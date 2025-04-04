@@ -147,5 +147,6 @@ io.mkdir("test", S_IRUSR | S_IWUSR);
 let fd = io.open("test/file", O_RDWR | O_NOFOLLOW); //O_NOFOLLOW ensures that even if someone replaces test with a symlink in between, open() will fail on symlinks and not follow them.
 io.write(fd, "meow!", 5);
 print(io.read(fd, 5));
+io.close(fd);
 io.remove("test/file");
 ```
