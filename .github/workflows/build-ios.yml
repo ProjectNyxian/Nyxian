@@ -11,27 +11,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Ruby (for `xcpretty`, optional)
+      - name: Set up Ruby (for xcpretty)
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
 
-      - name: Install dependencies
-        run: |
-          gem install xcpretty
+      - name: Install xcpretty
+        run: gem install xcpretty
 
       - name: Build and archive app
         run: |
           xcodebuild clean archive \
-            -scheme YourAppScheme \
-            -archivePath ${{ github.workspace }}/build/App.xcarchive \
+            -project Nyxian.xcodeproj \
+            -scheme Nyxian \
+            -archivePath ${{ github.workspace }}/build/Nyxian.xcarchive \
             -destination "generic/platform=iOS" \
             -allowProvisioningUpdates | xcpretty
 
       - name: Export .ipa
         run: |
           xcodebuild -exportArchive \
-            -archivePath ${{ github.workspace }}/build/App.xcarchive \
+            -archivePath ${{ github.workspace }}/build/Nyxian.xcarchive \
             -exportOptionsPlist ExportOptions.plist \
             -exportPath ${{ github.workspace }}/build \
             -allowProvisioningUpdates | xcpretty
@@ -39,5 +39,5 @@ jobs:
       - name: Upload .ipa artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iOS App IPA
+          name: Nyxian App IPA
           path: build/*.ipa
