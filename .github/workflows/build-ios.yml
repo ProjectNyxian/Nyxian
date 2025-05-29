@@ -19,7 +19,6 @@ jobs:
       - name: Install LLVM
         run: |
           brew install llvm
-          echo "LLVM_DIR=/opt/homebrew/opt/llvm" >> $GITHUB_ENV
 
       - name: Build and Archive
         run: |
@@ -29,10 +28,9 @@ jobs:
             -archivePath ${{ github.workspace }}/build/Nyxian.xcarchive \
             -destination "generic/platform=iOS" \
             -allowProvisioningUpdates \
-            CODE_SIGNING_ALLOWED=NO \
-            OTHER_CFLAGS="-I${LLVM_DIR}/include" \
-            OTHER_LDFLAGS="-L${LLVM_DIR}/lib"
-      
+            -xcconfig ${{ github.workspace }}/ci.xcconfig \
+            CODE_SIGNING_ALLOWED=NO
+            
       - name: Export .ipa
         run: |
           xcodebuild -exportArchive \
