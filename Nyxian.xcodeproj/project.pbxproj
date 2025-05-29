@@ -479,7 +479,7 @@
 		};
 		AF9FD5872DC935F400411E1A /* XCRemoteSwiftPackageReference "Runestone" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/simonbs/Runestone.git";
+			repositoryURL = "https://github.com/nehtnet/Runestone.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.5.1;
