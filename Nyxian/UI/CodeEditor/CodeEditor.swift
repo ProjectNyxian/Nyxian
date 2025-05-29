@@ -85,7 +85,7 @@ class CodeEditorViewController: UIViewController {
         self.navigationController?.navigationBar.prefersLargeTitles = false
         self.navigationController?.navigationBar.standardAppearance = UINavigationBarAppearance()
         self.navigationController?.navigationBar.standardAppearance.configureWithOpaqueBackground()
-        self.navigationController?.navigationBar.standardAppearance.backgroundColor = theme.backgroundColor
+        self.navigationController?.navigationBar.standardAppearance.backgroundColor = theme.gutterBackgroundColor
         self.navigationController?.navigationBar.standardAppearance.titleTextAttributes = [.foregroundColor: UIColor.label]
         self.navigationController?.navigationBar.scrollEdgeAppearance = self.navigationController?.navigationBar.standardAppearance
         
@@ -113,6 +113,7 @@ class CodeEditorViewController: UIViewController {
         self.textView.showSpaces = codeEditorConfig.showSpaces
         self.textView.isLineWrappingEnabled = codeEditorConfig.wrapLine
         self.textView.showLineBreaks = codeEditorConfig.showReturn
+        self.textView.lineSelectionDisplayType = .line
         
         self.textView.lineHeightMultiplier = 1.3
         self.textView.keyboardType = .asciiCapable
@@ -184,6 +185,7 @@ class CodeEditorViewController: UIViewController {
     func setupToolbar(textView: TextView) {
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
+        toolbar.barTintColor = self.textView.theme.gutterBackgroundColor
         
         func spawnSeperator() -> UIBarButtonItem {
             return UIBarButtonItem(customView: UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 1)))
