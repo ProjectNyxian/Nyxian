@@ -20,7 +20,7 @@
 import Foundation
 import UIKit
 import Runestone
-@testable import Runestone
+//gas/@testable import Runestone
 
 // MARK: - COORDINATOR
 class Coordinator: NSObject, TextViewDelegate {
