@@ -1,0 +1,3 @@
+// ci.xcconfig
+HEADER_SEARCH_PATHS = $(inherited) /opt/homebrew/opt/llvm/include
+LIBRARY_SEARCH_PATHS = $(inherited) /opt/homebrew/opt/llvm/lib
