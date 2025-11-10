@@ -11,6 +11,7 @@
 @property (nonatomic) UIView *resizeHandle;
 @property (nonatomic) UIView *contentView;
 @property (nonatomic) UILabel *label;
+@property (nonatomic) UIImage *snapshot;
 
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGFloat scaleRatio;

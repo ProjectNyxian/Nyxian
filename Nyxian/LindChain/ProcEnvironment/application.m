@@ -64,6 +64,71 @@
 
 #pragma mark - Initilizer
 
+UIViewController *TopViewController(UIViewController *rootVC) {
+    if (rootVC.presentedViewController) {
+        return TopViewController(rootVC.presentedViewController);
+    }
+    if ([rootVC isKindOfClass:[UINavigationController class]]) {
+        UINavigationController *nav = (UINavigationController *)rootVC;
+        return TopViewController(nav.visibleViewController);
+    }
+    if ([rootVC isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *tab = (UITabBarController *)rootVC;
+        return TopViewController(tab.selectedViewController);
+    }
+    return rootVC;
+}
+
+void environment_signal_child_handler(int code)
+{
+    UIApplication *sharedApplication = [PrivClass(UIApplication) sharedApplication];
+    
+    if(sharedApplication)
+    {
+        if(code == SIGUSR1)
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                // TODO: Shall be done by the runLoop and not by the handler, this could lead to some strange behaviour
+                UIWindow *keyWindow = nil;
+                for(UIWindowScene *scene in sharedApplication.connectedScenes)
+                {
+                    if(scene.activationState == UISceneActivationStateForegroundActive)
+                    {
+                        keyWindow = scene.windows.firstObject;
+                        break;
+                    }
+                }
+                if(!keyWindow)
+                {
+                    keyWindow = sharedApplication.keyWindow;
+                }
+                
+                UIView *rootView = keyWindow.rootViewController.view;
+                
+                UIViewController *topVC = keyWindow.rootViewController;
+                UIView *viewToCapture = topVC.view ?: rootView;
+                
+                CGFloat scale = [UIScreen mainScreen].scale;
+                UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+                format.scale = scale;
+                format.opaque = viewToCapture.isOpaque;
+                
+                UIGraphicsImageRenderer *renderer =
+                [[UIGraphicsImageRenderer alloc] initWithSize:viewToCapture.bounds.size format:format];
+                
+                UIImage *snapshot = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
+                    [viewToCapture.layer renderInContext:rendererContext.CGContext];
+                }];
+                environment_proxy_set_snapshot(snapshot);
+                
+                // TODO: Signal didEnterBackground
+                //[[sharedApplication delegate] applicationDidEnterBackground:sharedApplication];*/
+            });
+        }
+        return;
+    }
+}
+
 void environment_application_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
@@ -73,5 +138,8 @@ void environment_application_init(void)
         swizzle_objc_method(@selector(_run), [UIApplication class], @selector(hook_run), nil);
         swizzle_objc_method(@selector(setActive:error:), [UIApplication class], @selector(hook_setActive:error:), nil);
         swizzle_objc_method(@selector(setActive:withOptions:error:), [AVAudioSession class], @selector(hook_setActive:withOptions:error:), nil);
+        
+        signal(SIGUSR1, environment_signal_child_handler);
+        signal(SIGUSR2, environment_signal_child_handler);
     }
 }

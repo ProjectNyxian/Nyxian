@@ -261,7 +261,6 @@
     if(foreground)
     {
         [self.presenter activate];
-        
         // Do it like on iOS, remove time window if applicable
         if(self.backgroundEnforcementTimer)
         {
@@ -282,6 +281,7 @@
     }
     else
     {
+        [self.process sendSignal:SIGUSR1];
         [self.presenter deactivate];
         
         // Do it like on iOS, give application time window for background tasks

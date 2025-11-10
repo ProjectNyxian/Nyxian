@@ -35,5 +35,6 @@
 
 - (BOOL)openWindowForProcessIdentifier:(pid_t)processIdentifier;
 - (BOOL)closeWindowForProcessIdentifier:(pid_t)processIdentifier;
+- (void)setSnapshotForProcessIdentifier:(pid_t)processIdentifier withImage:(UIImage*)image;
 
 @end

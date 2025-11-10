@@ -69,4 +69,6 @@ void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint
 
 NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSString *serviceIdentifier);
 
+void environment_proxy_set_snapshot(UIImage *snapshot);
+
 #endif /* PROCENVIRONMENT_PROXY_H */

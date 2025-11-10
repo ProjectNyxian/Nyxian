@@ -160,7 +160,6 @@
                         weakSelf.windows[@(processIdentifier)] = window;
                         [weakSelf addSubview:window.view];
                         if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
-                            if (weakSelf.appSwitcherView) [weakSelf addTileForProcess:processIdentifier window:window];
                             [weakSelf activateWindowForProcessIdentifier:processIdentifier animated:YES withCompletion:^{
                                 [self.windowScene _registerSettingsDiffActionArray:@[window.appSceneVC] forKey:window.appSceneVC.sceneID];
                             }];
@@ -206,45 +205,6 @@
         if(self.appSwitcherView) [self removeTileForProcess:processIdentifier];
     });
     return YES;
-}
-
-- (void)addTileForProcess:(pid_t)processIdentifier window:(LDEWindow *)window
-{
-    if(!self.stackView) return;
-
-    self.placeholderStack.hidden = YES;
-
-    UIView *tile = [[UIView alloc] init];
-    tile.translatesAutoresizingMaskIntoConstraints = NO;
-    tile.backgroundColor = UIColor.systemBackgroundColor;
-    tile.layer.cornerRadius = 16;
-    tile.layer.shadowColor = [UIColor blackColor].CGColor;
-    tile.layer.shadowOpacity = 0.15;
-    tile.layer.shadowRadius = 6;
-    tile.layer.shadowOffset = CGSizeMake(0, 3);
-    tile.tag = processIdentifier;
-
-    UILabel *title = [[UILabel alloc] init];
-    title.translatesAutoresizingMaskIntoConstraints = NO;
-    title.text = window.windowName ?: @"App";
-    title.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
-    title.textAlignment = NSTextAlignmentCenter;
-
-    [tile addSubview:title];
-    [NSLayoutConstraint activateConstraints:@[
-        [tile.widthAnchor constraintEqualToConstant:150],
-        [tile.heightAnchor constraintEqualToConstant:300],
-        [title.centerXAnchor constraintEqualToAnchor:tile.centerXAnchor],
-        [title.centerYAnchor constraintEqualToAnchor:tile.centerYAnchor]
-    ]];
-
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileTap:)];
-    [tile addGestureRecognizer:tap];
-
-    UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileVerticalSwipe:)];
-    [tile addGestureRecognizer:verticalPan];
-
-    [self.stackView addArrangedSubview:tile];
 }
 
 - (void)removeTileForProcess:(pid_t)processIdentifier
@@ -369,7 +329,12 @@
                 {
                     LDEWindow *window = self.windows[pidKey];
                     
-                    UIView *tile = [[UIView alloc] init];
+                    UIView *tileContainer = [[UIView alloc] init];
+                    tileContainer.translatesAutoresizingMaskIntoConstraints = NO;
+                    
+                    UIImageView *tile = [[UIImageView alloc] init];
+                    if(window.snapshot) tile.image = window.snapshot;
+                    tile.clipsToBounds = YES;
                     tile.translatesAutoresizingMaskIntoConstraints = NO;
                     tile.backgroundColor = UIColor.systemBackgroundColor;
                     tile.layer.cornerRadius = 16;
@@ -381,15 +346,19 @@
                     UILabel *title = [[UILabel alloc] init];
                     title.translatesAutoresizingMaskIntoConstraints = NO;
                     title.text = window.windowName ?: @"App";
-                    title.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+                    title.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
                     title.textAlignment = NSTextAlignmentCenter;
                     
-                    [tile addSubview:title];
+                    [tileContainer addSubview:tile];
+                    [tileContainer addSubview:title];
                     [NSLayoutConstraint activateConstraints:@[
+                        [tileContainer.widthAnchor constraintEqualToConstant:150],
+                        [tileContainer.heightAnchor constraintEqualToConstant:320],
                         [tile.widthAnchor constraintEqualToConstant:150],
                         [tile.heightAnchor constraintEqualToConstant:300],
-                        [title.centerXAnchor constraintEqualToAnchor:tile.centerXAnchor],
-                        [title.centerYAnchor constraintEqualToAnchor:tile.centerYAnchor]
+                        [title.centerXAnchor constraintEqualToAnchor:tileContainer.centerXAnchor],
+                        [title.bottomAnchor constraintEqualToAnchor:tile.topAnchor constant: -5],
+                        [title.widthAnchor constraintEqualToConstant:140]
                     ]];
                     
                     tile.userInteractionEnabled = YES;
@@ -399,10 +368,10 @@
                     
                     UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                                   action:@selector(handleTileVerticalSwipe:)];
-                    [tile addGestureRecognizer:verticalPan];
+                    [tileContainer addGestureRecognizer:verticalPan];
                     verticalPan.delegate = self;
                     
-                    [stack addArrangedSubview:tile];
+                    [stack addArrangedSubview:tileContainer];
                 }
             }
 
@@ -588,5 +557,18 @@
     }
     return NO;
 }
+
+- (void)setSnapshotForProcessIdentifier:(pid_t)processIdentifier
+                              withImage:(UIImage *)image
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        LDEWindow *window = self.windows[@(processIdentifier)];
+        if(window)
+        {
+            [window setSnapshot:image];
+        }
+    });
+}
+
 
 @end

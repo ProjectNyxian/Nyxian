@@ -359,4 +359,12 @@
     reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
 }
 
+/*
+ App switcher services
+ */
+- (void)setSnapshot:(UIImage*)image
+{
+    [[LDEMultitaskManager shared] setSnapshotForProcessIdentifier:_processIdentifier withImage:image];
+}
+
 @end

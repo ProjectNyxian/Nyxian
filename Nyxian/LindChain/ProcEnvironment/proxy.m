@@ -241,3 +241,9 @@ NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSS
         [hostProcessProxy getEndpointOfServiceIdentifier:serviceIdentifier withReply:reply];
     });
 }
+
+void environment_proxy_set_snapshot(UIImage *snapshot)
+{
+    environment_must_be_role(EnvironmentRoleGuest);
+    [hostProcessProxy setSnapshot:snapshot];
+}
