@@ -296,13 +296,18 @@ class Builder {
                     close(stderrPipe[0])
                     close(stderrPipe[1])
                     
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.sync {
                         let terminalVC: TerminalViewController = TerminalViewController(title: self.project.projectConfig.displayName, stdoutFD: stdoutPipe[0], stdinFD: stdinPipe[1]) {
                             process?.terminate()
                         }
                         let terminalNVC: UINavigationController = UINavigationController(rootViewController: terminalVC)
                         
-                        LDEMultitaskManager.shared().rootViewController?.present(terminalNVC, animated: true)
+                        
+                        terminalNVC.modalPresentationStyle = (UIDevice.current.userInterfaceIdiom == .pad) ? .fullScreen : .pageSheet
+                        
+                        if let rootVC = LDEMultitaskManager.shared().rootViewController?.topMostViewController() {
+                            rootVC.present(terminalNVC, animated: true)
+                        }
                     }
                 }
             }
@@ -411,5 +416,20 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
             
             completion()
         }
+    }
+}
+
+extension UIViewController {
+    func topMostViewController() -> UIViewController {
+        if let presented = presentedViewController {
+            return presented.topMostViewController()
+        }
+        if let nav = self as? UINavigationController {
+            return nav.visibleViewController?.topMostViewController() ?? nav
+        }
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.topMostViewController() ?? tab
+        }
+        return self
     }
 }

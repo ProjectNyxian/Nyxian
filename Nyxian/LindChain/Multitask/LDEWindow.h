@@ -17,8 +17,6 @@
 
 - (instancetype)initWithProcess:(LDEProcess*)process
                  withDimensions:(CGRect)rect;
-- (void)minimizeWindowPiP;
-- (void)unminimizeWindowPiP;
 - (void)updateVerticalConstraints;
 - (void)closeWindow;
 

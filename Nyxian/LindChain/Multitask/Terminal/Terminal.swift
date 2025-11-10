@@ -44,10 +44,10 @@ import UIKit
         
         self.isOpaque = false;
         self.terminalDelegate = self
-        self.backgroundColor = .systemBackground
+        self.backgroundColor = .secondarySystemBackground
         self.nativeForegroundColor = gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
         self.caretTextColor = .label
-        self.font = UIFont.monospacedSystemFont(ofSize: 10, weight: .regular)
+        self.font = UIFont.monospacedSystemFont(ofSize: (UIDevice.current.userInterfaceIdiom == .pad) ? 14 : 10, weight: .regular)
         _ = self.becomeFirstResponder()
         
         stdoutHandle.readabilityHandler = { [weak self] fileHandle in
@@ -142,6 +142,12 @@ import UIKit
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let button: UIBarButtonItem = UIBarButtonItem(title: "Close", style: .plain, target: self, action: #selector(buttonTapped))
+            self.navigationController?.navigationBar.topItem?.leftBarButtonItem = button
+        }
+        
         self.view.addSubview(self.terminalView)
         
         self.terminalView.translatesAutoresizingMaskIntoConstraints = false
@@ -161,5 +167,9 @@ import UIKit
     override func viewDidDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
         self.callback()
+    }
+    
+    @objc func buttonTapped() {
+        self.dismiss(animated: true)
     }
 }

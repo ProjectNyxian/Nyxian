@@ -130,12 +130,14 @@ void UIKitFixesInit(void) {
                                       delay:0
                                     options:UIViewAnimationOptionCurveEaseInOut
                                  animations:^{
-                                     windowView.transform = CGAffineTransformMakeTranslation(0, windowView.bounds.size.height + 100);
-                                     windowView.alpha = 0;
-                                 } completion:^(BOOL finished) {
-                                     [self.appSceneVC setForegroundEnabled:NO];
-                                     [windowView removeFromSuperview];
-                                 }];
+                    windowView.transform = CGAffineTransformMakeTranslation(0, windowView.bounds.size.height + 100);
+                    windowView.alpha = 0;
+                } completion:^(BOOL finished) {
+                    windowView.transform = CGAffineTransformIdentity;
+                    windowView.alpha = 1.0;
+                    [windowView removeFromSuperview];
+                    [self.appSceneVC setForegroundEnabled:NO];
+                }];
             } else {
                 // Snap back
                 [UIView animateWithDuration:0.6
