@@ -21,9 +21,9 @@ import Foundation
 import UIKit
 
 // App
-let buildName: String = "CottonCandy"
-let buildStage: String = "Indev"
-let buildVersion: Double = 0.6
+let buildName: String = "Vendetta"
+let buildStage: String = "Alpha"
+let buildVersion: Double = 0.7
 
 // AppInfoView
 class AppInfoViewController: UIThemedTableViewController {
