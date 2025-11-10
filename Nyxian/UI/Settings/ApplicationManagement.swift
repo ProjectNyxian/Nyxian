@@ -70,10 +70,12 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             
             // Task Port
             if #available(iOS 26.0, *) {
-                let tfp = self.createEntitlementButton(title: "Task For Pid", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPid, application: application)
-                let prvtTfp = self.createEntitlementButton(title: "Task For Pid (Private)", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPidPrvt, application: application)
-                let hostTfp = self.createEntitlementButton(title: "Get Host Task Port", entitlement: entitlement, targetEntitlement: PEEntitlement.getHostTaskPort, application: application)
-                entMenuItems.append(UIMenu(title: "Task Port", image: UIImage(systemName: "powerplug.portrait.fill"), children: [tfp, prvtTfp, hostTfp]))
+                if #unavailable(iOS 26.1) {
+                    let tfp = self.createEntitlementButton(title: "Task For Pid", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPid, application: application)
+                    let prvtTfp = self.createEntitlementButton(title: "Task For Pid (Private)", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPidPrvt, application: application)
+                    let hostTfp = self.createEntitlementButton(title: "Get Host Task Port", entitlement: entitlement, targetEntitlement: PEEntitlement.getHostTaskPort, application: application)
+                    entMenuItems.append(UIMenu(title: "Task Port", image: UIImage(systemName: "powerplug.portrait.fill"), children: [tfp, prvtTfp, hostTfp]))
+                }
             }
             
             // Credentials
