@@ -16,7 +16,8 @@
 @property (nonatomic) CGFloat scaleRatio;
 
 - (instancetype)initWithProcess:(LDEProcess*)process
-                 withDimensions:(CGRect)rect;
+                 withDimensions:(CGRect)rect
+              dismissalCallback:(void (^)(void))dismissalCallback;
 - (void)updateVerticalConstraints;
 - (void)closeWindow;
 

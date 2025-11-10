@@ -47,6 +47,7 @@
     self = [super initWithFrame:UIScreen.mainScreen.bounds];
     if (self) {
         _windows = [[NSMutableDictionary alloc] init];
+        _activeProcessIdentifier = (pid_t)-1;
         hasInitialized = YES;
     }
     return self;
@@ -68,6 +69,8 @@
 {
     LDEWindow *window = self.windows[@(processIdentifier)];
     if (!window || window.view.hidden) { if (completion) completion(); return; }
+    
+    
 
     UIView *v = window.view;
     [self bringSubviewToFront:v];
@@ -101,6 +104,8 @@
 - (void)activateWindowForProcessIdentifier:(pid_t)processIdentifier animated:(BOOL)animated withCompletion:(void (^)(void))completion {
     LDEWindow *window = self.windows[@(processIdentifier)];
     if (!window) return;
+    
+    self.activeProcessIdentifier = processIdentifier;
 
     UIView *v = window.view;
     if (v.superview != self) {
@@ -127,8 +132,6 @@
         v.transform = CGAffineTransformIdentity;
     }
     
-    self.activeProcessIdentifier = processIdentifier;
-    
     if (self.appSwitcherView) {
         [self hideAppSwitcher];
     }
@@ -136,7 +139,7 @@
 
 - (BOOL)openWindowForProcessIdentifier:(pid_t)processIdentifier
 {
-    __typeof(self) weakSelf = self;
+    __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         void (^openAct)(void) = ^{
             LDEWindow *window = [self.windows objectForKey:@(processIdentifier)];
@@ -149,7 +152,9 @@
                 LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:processIdentifier];
                 if(process)
                 {
-                    LDEWindow *window = [[LDEWindow alloc] initWithProcess:process withDimensions:CGRectMake(50, 50, 300, 400)];
+                    LDEWindow *window = [[LDEWindow alloc] initWithProcess:process withDimensions:CGRectMake(50, 50, 300, 400) dismissalCallback:^{
+                        weakSelf.activeProcessIdentifier = (pid_t)-1;
+                    }];
                     if(window)
                     {
                         weakSelf.windows[@(processIdentifier)] = window;
@@ -276,7 +281,7 @@
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
-    if(recognizer.state == UIGestureRecognizerStateBegan)
+    if(_activeProcessIdentifier == -1 && recognizer.state == UIGestureRecognizerStateBegan)
     {
         if(!self.appSwitcherView)
         {

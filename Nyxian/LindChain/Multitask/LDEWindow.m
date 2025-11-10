@@ -46,14 +46,18 @@ void UIKitFixesInit(void) {
 @property (nonatomic) dispatch_once_t closeWindowOnce;
 @property (nonatomic) dispatch_once_t appearOnceAction;
 
+@property (nonatomic) void (^dismissalCallback)(void);
+
 @end
 
 @implementation LDEWindow
 
 - (instancetype)initWithProcess:(LDEProcess*)process
                  withDimensions:(CGRect)rect
+              dismissalCallback:(void (^)(void))dismissalCallback
 {
     self = [super initWithNibName:nil bundle:nil];
+    _dismissalCallback = dismissalCallback;
     _appSceneVC = [[LDEAppScene alloc] initWithProcess:process withDelegate:self];
     if(!_appSceneVC) return nil;
     _multitaskingTermination = NO;
@@ -110,6 +114,8 @@ void UIKitFixesInit(void) {
 
 - (void)handlePullDown:(UIPanGestureRecognizer *)gesture
 {
+    static BOOL isAnimating = NO;
+    
     UIView *windowView = self.view;
     CGPoint translation = [gesture translationInView:windowView.superview];
     CGFloat offsetY = MAX(translation.y, 0); // never allow negative
@@ -123,6 +129,8 @@ void UIKitFixesInit(void) {
         }
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled: {
+            if (isAnimating) return;
+            isAnimating = YES;
             BOOL shouldDismiss = (offsetY > 150 || velocityY > 600);
 
             if (shouldDismiss) {
@@ -133,10 +141,15 @@ void UIKitFixesInit(void) {
                     windowView.transform = CGAffineTransformMakeTranslation(0, windowView.bounds.size.height + 100);
                     windowView.alpha = 0;
                 } completion:^(BOOL finished) {
-                    windowView.transform = CGAffineTransformIdentity;
-                    windowView.alpha = 1.0;
-                    [windowView removeFromSuperview];
-                    [self.appSceneVC setForegroundEnabled:NO];
+                    if(finished)
+                    {
+                        windowView.transform = CGAffineTransformIdentity;
+                        windowView.alpha = 1.0;
+                        [windowView removeFromSuperview];
+                        [self.appSceneVC setForegroundEnabled:NO];
+                        if(self.dismissalCallback != nil) self.dismissalCallback();
+                        isAnimating = NO;
+                    }
                 }];
             } else {
                 // Snap back
@@ -147,7 +160,12 @@ void UIKitFixesInit(void) {
                                     options:UIViewAnimationOptionCurveEaseInOut
                                  animations:^{
                                      windowView.transform = CGAffineTransformIdentity;
-                                 } completion:nil];
+                } completion:^(BOOL finished){
+                    if(finished)
+                    {
+                        isAnimating = NO;
+                    }
+                }];
             }
             break;
         }
