@@ -361,10 +361,10 @@
                         [title.widthAnchor constraintEqualToConstant:140]
                     ]];
                     
-                    tile.userInteractionEnabled = YES;
+                    tileContainer.userInteractionEnabled = YES;
                     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileTap:)];
-                    tile.tag = pidKey.intValue;
-                    [tile addGestureRecognizer:tap];
+                    tileContainer.tag = pidKey.intValue;
+                    [tileContainer addGestureRecognizer:tap];
                     
                     UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                                   action:@selector(handleTileVerticalSwipe:)];
