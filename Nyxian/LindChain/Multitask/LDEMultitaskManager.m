@@ -400,6 +400,7 @@
                     UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                                   action:@selector(handleTileVerticalSwipe:)];
                     [tile addGestureRecognizer:verticalPan];
+                    verticalPan.delegate = self;
                     
                     [stack addArrangedSubview:tile];
                 }
@@ -421,6 +422,7 @@
             UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                   action:@selector(handlePan:)];
             [self.appSwitcherView addGestureRecognizer:pan];
+            pan.delegate = self;
 
             self.impactGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
             [self.impactGenerator prepare];
@@ -571,6 +573,20 @@
                              completion:nil];
         }
     }
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    // Allow UIScrollView to scroll when horizontal
+    if([gestureRecognizer.view isDescendantOfView:self.stackView])
+    {
+        if([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]])
+        {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 @end

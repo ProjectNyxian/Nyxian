@@ -22,7 +22,7 @@
 #import <Project/NXProject.h>
 #import <LindChain/Multitask/LDEWindow.h>
 
-@interface LDEMultitaskManager : UIWindow
+@interface LDEMultitaskManager : UIWindow <UIGestureRecognizerDelegate>
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
 
