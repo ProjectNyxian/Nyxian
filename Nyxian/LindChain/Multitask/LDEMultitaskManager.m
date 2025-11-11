@@ -26,6 +26,7 @@
 @interface LDEMultitaskManager ()
 
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, LDEWindow *> *windows;
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
 
 @property (nonatomic, strong) UIStackView *stackView;
 @property (nonatomic, strong) UIStackView *placeholderStack;
@@ -47,6 +48,7 @@
     self = [super initWithFrame:UIScreen.mainScreen.bounds];
     if (self) {
         _windows = [[NSMutableDictionary alloc] init];
+        _windowOrder = [[NSMutableArray alloc] init];
         _activeProcessIdentifier = (pid_t)-1;
         hasInitialized = YES;
     }
@@ -63,6 +65,20 @@
     return multitaskManagerSingleton;
 }
 
+- (void)moveWindowToFrontWithNumber:(NSNumber *)number
+{
+    if (!number || !self.windows[number]) return;
+
+    [self.windowOrder removeObject:number];
+    [self.windowOrder insertObject:number atIndex:0];
+
+    LDEWindow *window = self.windows[number];
+    if(window.view.superview == self)
+    {
+        [self bringSubviewToFront:window.view];
+    }
+}
+
 - (void)deactivateWindowForProcessIdentifier:(pid_t)processIdentifier
                                    pullDown:(BOOL)pullDown
                                  completion:(void (^)(void))completion
@@ -70,8 +86,6 @@
     LDEWindow *window = self.windows[@(processIdentifier)];
     if (!window || window.view.hidden) { if (completion) completion(); return; }
     
-    
-
     UIView *v = window.view;
     [self bringSubviewToFront:v];
 
@@ -106,6 +120,7 @@
     if (!window) return;
     
     self.activeProcessIdentifier = processIdentifier;
+    [self moveWindowToFrontWithNumber:@(processIdentifier)];
 
     UIView *v = window.view;
     if (v.superview != self) {
@@ -158,6 +173,7 @@
                     if(window)
                     {
                         weakSelf.windows[@(processIdentifier)] = window;
+                        [weakSelf.windowOrder insertObject:@(processIdentifier) atIndex:0];
                         [weakSelf addSubview:window.view];
                         if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
                             [weakSelf activateWindowForProcessIdentifier:processIdentifier animated:YES withCompletion:^{
@@ -201,6 +217,7 @@
             [window closeWindow];
             [self.windowScene _unregisterSettingsDiffActionArrayForKey:window.appSceneVC.sceneID];
             [self.windows removeObjectForKey:@(processIdentifier)];
+            [self.windowOrder removeObject:@(processIdentifier)];
         }
         if(self.appSwitcherView) [self removeTileForProcess:processIdentifier];
     });
@@ -325,7 +342,7 @@
 
             if(self.windows.count > 0)
             {
-                for(NSNumber *pidKey in self.windows)
+                for (NSNumber *pidKey in self.windowOrder)
                 {
                     LDEWindow *window = self.windows[pidKey];
                     
