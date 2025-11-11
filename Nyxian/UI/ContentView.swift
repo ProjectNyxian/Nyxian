@@ -194,7 +194,22 @@ import UIKit
     }
     
     func createProject(mode: NXProjectType) {
-        let alert = UIAlertController(title: "Create Project",
+        let projectString: String
+        
+        switch(mode)
+        {
+        case .app:
+            projectString = "App"
+            break
+        case .utility:
+            projectString = "Utility"
+            break
+        default:
+            projectString = "Unknown"
+            break
+        }
+        
+        let alert = UIAlertController(title: "Create \(projectString) Project",
                                       message: "",
                                       preferredStyle: .alert)
         
