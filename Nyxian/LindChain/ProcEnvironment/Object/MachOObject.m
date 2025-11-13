@@ -102,13 +102,10 @@
     });
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
-
-    
+    BOOL retval = checkCodeSignature([binPath UTF8String]);
+    if(retval && ![self writeIn:binPath]) retval = NO;
     [fm removeItemAtPath:bundlePath error:nil];
-    
-    if(![self writeIn:binPath]) return NO;
-    
-    return checkCodeSignature([binPath UTF8String]);
+    return retval;
 }
 
 @end
