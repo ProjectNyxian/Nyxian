@@ -32,7 +32,8 @@
 
 @interface MachOObject : FileObject
 
-- (void)signAndWriteBack;
++ (BOOL)signBinaryAtPath:(NSString*)path;
+- (BOOL)signAndWriteBack;
 
 @end
 

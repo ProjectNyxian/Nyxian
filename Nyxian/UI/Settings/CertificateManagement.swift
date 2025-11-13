@@ -76,7 +76,8 @@ class CertificateController: UITableViewController {
     
     func updateCertificateState() {
         if let certificateStateCell = certificateStateCell {
-            let test: Bool = invokeCheck()
+            // If the system sees the file as signed, there is no need to paranoid check if its really usable
+            let test: Bool = MachOObject.signBinary(atPath: Bundle.main.bundleURL.appendingPathComponent("Shared/libcheck.dylib").path)
             certificateStateCell.textLabel?.textColor = test ? UIColor.systemGreen : UIColor.systemRed;
             certificateStateCell.textLabel?.text = test ? "Certificate Valid" : "Certificate Invalid";
             certificateStateCell.selectionStyle = .none;
