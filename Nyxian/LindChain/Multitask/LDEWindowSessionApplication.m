@@ -163,18 +163,20 @@
 
 - (void)windowChangesSizeToRect:(CGRect)rect
 {
+    windowSize = rect;
+    
     // Handle user resizes
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.deviceOrientation = UIDevice.currentDevice.orientation;
         settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;
         
-        if (UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
+        if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation))
+        {
             settings.frame = CGRectMake(rect.origin.x, rect.origin.y, rect.size.height, rect.size.width);
-        } else {
-            settings.frame = rect;
         }
-        if (self.pendingSettingsBlock) {
-            self.pendingSettingsBlock(settings);
+        else
+        {
+            settings.frame = rect;
         }
     }];
 }
@@ -210,12 +212,18 @@
     newSettings.interfaceOrientation = baseSettings.interfaceOrientation;
     newSettings.deviceOrientation = baseSettings.deviceOrientation;
     
-    //[self.appSceneVC resizeActionStart];
-    //[self.appSceneVC resizeActionEnd];
+    if(UIInterfaceOrientationIsLandscape(newSettings.interfaceOrientation))
+    {
+        newSettings.frame = CGRectMake(windowSize.origin.x, windowSize.origin.y, windowSize.size.height, windowSize.size.width);
+    }
+    else
+    {
+        newSettings.frame = windowSize;
+    }
     
     [self.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
     
-    //[self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
+    [self windowChangesSizeToRect:windowSize];
 }
 
 - (void)encodeWithCoder:(nonnull NSCoder *)coder
