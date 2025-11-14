@@ -28,13 +28,12 @@
 @property (nonatomic) CGRect windowSize;
 @property (nonatomic) NSString *windowName;
 
-- (BOOL)openWindowWithScene:(UIWindowScene*)windowScene;
+- (BOOL)openWindowWithScene:(UIWindowScene*)windowScene withSessionIdentifier:(int)identifier;
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene;
 - (UIImage*)snapshotWindow;
 - (void)activateWindow;
 - (void)deactivateWindow;
 - (void)windowChangesSizeToRect:(CGRect)rect;
-- (void)sessionIdentifierAssigned:(int)identifier;
 
 @end
 

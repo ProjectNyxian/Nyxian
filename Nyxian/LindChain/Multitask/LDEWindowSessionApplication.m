@@ -35,7 +35,10 @@
 }
 
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
+      withSessionIdentifier:(int)identifier
 {
+    _process.windowIdentifier = identifier;
+    
     FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
     // At this point, the process is spawned and we're ready to create a scene to render in our app
     [manager registerProcessForAuditToken:self.process.processHandle.auditToken];

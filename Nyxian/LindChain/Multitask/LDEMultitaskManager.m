@@ -166,11 +166,11 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         void (^openAct)(void) = ^{
             windowIdentifier = [self getNextWindowIdentifier];
-            [session openWindowWithScene:self.windowScene];
-            [session sessionIdentifierAssigned:windowIdentifier];
+            [session openWindowWithScene:self.windowScene withSessionIdentifier:windowIdentifier];
             LDEWindow *window = [[LDEWindow alloc] initWithSession:session dismissalCallback:^{
-                [weakSelf deactivateWindowByPullDown:(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) withIdentifier:windowIdentifier withCompletion:nil];
-                [session closeWindowWithScene:self.windowScene];
+                [weakSelf deactivateWindowByPullDown:(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) withIdentifier:windowIdentifier withCompletion:^{
+                    [session closeWindowWithScene:self.windowScene];
+                }];
             }];
             window.identifier = windowIdentifier;
             if(window)

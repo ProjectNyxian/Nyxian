@@ -130,7 +130,7 @@
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         proc_object_remove_for_pid(strongSelf.pid);
-                        [[LDEMultitaskManager shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
+                        if(self.windowIdentifier != -1) [[LDEMultitaskManager shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
