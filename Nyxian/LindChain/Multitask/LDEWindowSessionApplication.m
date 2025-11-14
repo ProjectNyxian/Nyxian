@@ -30,7 +30,7 @@
     self = [super init];
     _processIdentifier = processIdentifier;
     _process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
-    self.windowName = @"Meow";
+    self.windowName = _process.displayName;
     return self;
 }
 
