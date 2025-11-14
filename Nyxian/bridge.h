@@ -37,6 +37,8 @@
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
+#import <LindChain/Multitask/LDEWindowSessionDummy.h>
+#import <LindChain/Multitask/LDEWindowSessionApplication.h>
 
 /*
  Project

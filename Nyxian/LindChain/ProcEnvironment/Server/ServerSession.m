@@ -27,6 +27,7 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <mach/mach.h>
+#import <LindChain/Multitask/LDEWindowSessionApplication.h>
 
 @implementation ServerSession
 
@@ -136,8 +137,20 @@
 {
     __block BOOL didInvokeWindow = NO;
     dispatch_once(&_makeWindowVisibleOnce,^{
-        // To be done
-        didInvokeWindow = [[LDEMultitaskManager shared] openWindowForProcessIdentifier:_processIdentifier];
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            // To be done
+            LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
+            if(process)
+            {
+                LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcessIdentifier:_processIdentifier];
+                wid_t wid = (wid_t)-1;
+                if([[LDEMultitaskManager shared] openWindowWithSession:session identifier:&wid])
+                {
+                    didInvokeWindow = YES;
+                }
+                process.windowIdentifier = wid;
+            }
+        });
     });
     
     reply(didInvokeWindow);
@@ -364,7 +377,11 @@
  */
 - (void)setSnapshot:(UIImage*)image
 {
-    [[LDEMultitaskManager shared] setSnapshotForProcessIdentifier:_processIdentifier withImage:image];
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
+    if(process != nil)
+    {
+        process.snapshot = image;
+    }
 }
 
 @end

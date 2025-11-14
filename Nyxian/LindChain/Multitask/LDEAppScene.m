@@ -4,7 +4,7 @@
 //
 //  Created by s s on 2025/5/17.
 //
-#import "LDEAppScene.h"
+/*#import "LDEAppScene.h"
 #import "LDEWindow.h"
 #import <LindChain/LiveContainer/LCUtils.h>
 #import "Localization.h"
@@ -303,3 +303,4 @@
 
 @end
  
+*/

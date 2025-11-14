@@ -87,6 +87,7 @@
     self.ppid = configuration.ppid;
     self.uid = configuration.uid;
     self.gid = configuration.gid;
+    self.windowIdentifier = (wid_t)-1;
     
     NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
     if(!liveProcessBundle) {
@@ -129,7 +130,7 @@
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         proc_object_remove_for_pid(strongSelf.pid);
-                        [[LDEMultitaskManager shared] closeWindowForProcessIdentifier:strongSelf.pid];
+                        [[LDEMultitaskManager shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
@@ -312,7 +313,8 @@
             }
             else
             {
-                [[LDEMultitaskManager shared] openWindowForProcessIdentifier:process.pid];
+                // FIXME: Vulnerability found
+                //[[LDEMultitaskManager shared] openWindowForProcessIdentifier:process.pid];
                 return process.pid;
             }
         }
@@ -368,8 +370,9 @@
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
+    LDEProcess *process = [self.processes objectForKey:@(pid)];
+    if(process != nil) [[LDEMultitaskManager shared] closeWindowWithIdentifier:process.windowIdentifier];
     [self.processes removeObjectForKey:@(pid)];
-    [[LDEMultitaskManager shared] closeWindowForProcessIdentifier:pid];
     proc_object_remove_for_pid(pid);
 }
 

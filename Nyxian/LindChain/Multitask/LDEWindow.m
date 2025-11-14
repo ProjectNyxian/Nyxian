@@ -10,41 +10,37 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/Debugger/Logger.h>
 
+// TODO: Move those away
 @implementation RBSTarget(hook)
-+ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
+
++ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier
+{
     if([environmentIdentifier containsString:@"LiveProcess"]) {
         environmentIdentifier = [NSString stringWithFormat:@"LiveProcess:%d", pid];
     }
     return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
 }
+
 @end
-static int hook_return_2(void) {
+
+static int hook_return_2(void)
+{
     return 2;
-}
-__attribute__((constructor))
-void UIKitFixesInit(void) {
-    // Fix _UIPrototypingMenuSlider not continually updating its value on iOS 17+
-    Class _UIFluidSliderInteraction = objc_getClass("_UIFluidSliderInteraction");
-    if(_UIFluidSliderInteraction) {
-        method_setImplementation(class_getInstanceMethod(_UIFluidSliderInteraction, @selector(_state)), (IMP)hook_return_2);
-    }
-    // Fix physical keyboard focus on iOS 17+
-    if(@available(iOS 17.0, *)) {
-        method_exchangeImplementations(class_getClassMethod(RBSTarget.class, @selector(targetWithPid:environmentIdentifier:)), class_getClassMethod(RBSTarget.class, @selector(hook_targetWithPid:environmentIdentifier:)));
-    }
 }
 
 @interface LDEWindow ()
 
-@property (nonatomic) UITextView *processLog;
 @property (nonatomic) NSArray* activatedVerticalConstraints;
-@property (nonatomic) CGRect originalFrame;
 @property (nonatomic) UIBarButtonItem *maximizeButton;
-@property (nonatomic) bool isAppTerminationRequested;
-@property (nonatomic) BOOL multitaskingTermination;
-
-@property (nonatomic) dispatch_once_t closeWindowOnce;
 @property (nonatomic) dispatch_once_t appearOnceAction;
+
+@property (nonatomic, strong) CADisplayLink *resizeDisplayLink;
+@property (nonatomic, strong) NSTimer *resizeEndDebounceTimer;
+@property (atomic) int resizeEndDebounceRefCnt;
+
+/*@property (nonatomic) CGRect originalFrame;
+@property (nonatomic) UIBarButtonItem *maximizeButton;
+@property (nonatomic) dispatch_once_t closeWindowOnce;*/
 
 @property (nonatomic) void (^dismissalCallback)(void);
 
@@ -52,7 +48,51 @@ void UIKitFixesInit(void) {
 
 @implementation LDEWindow
 
-- (instancetype)initWithProcess:(LDEProcess*)process
+- (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session
+              dismissalCallback:(void (^)(void))dismissalCallback
+{
+    self = [super initWithNibName:nil bundle:nil];
+    _session = session;
+    _dismissalCallback = dismissalCallback;
+    _windowName = session.windowName;
+    
+    [self setupDecoratedView:CGRectMake(50, 50, 400, 400)];
+    
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {
+        UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
+        UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
+        maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
+        self.maximizeButton = [[UIBarButtonItem alloc] initWithImage:maximizeImage style:UIBarButtonItemStylePlain target:self action:@selector(maximizeButtonPressed)];
+        self.maximizeButton.tintColor = [UIColor systemGreenColor];
+        
+        
+        UIImage *closeImage = [UIImage systemImageNamed:@"xmark.circle.fill"];
+        UIImageConfiguration *closeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
+        closeImage = [closeImage imageWithConfiguration:closeConfig];
+        UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithImage:closeImage style:UIBarButtonItemStylePlain target:self action:@selector(closeWindow)];
+        closeButton.tintColor = [UIColor systemRedColor];
+        
+        NSArray *barButtonItems = @[closeButton, self.maximizeButton];
+        self.navigationItem.rightBarButtonItems = barButtonItems;
+    }
+    
+    return self;
+}
+
+- (void)closeWindow
+{
+    self.dismissalCallback();
+}
+
+- (void)dismissViewControllerAnimated:(BOOL)flag
+                           completion:(void (^)(void))completion
+{
+    [super dismissViewControllerAnimated:flag completion:completion];
+    _dismissalCallback();
+}
+
+/*- (instancetype)initWithProcess:(LDEProcess*)process
                  withDimensions:(CGRect)rect
               dismissalCallback:(void (^)(void))dismissalCallback
 {
@@ -100,12 +140,8 @@ void UIKitFixesInit(void) {
         
         __weak typeof(self) weakSelf = self;
         [self.navigationItem setTitleMenuProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions){
-            /*if(!weakSelf.appSceneVC.isAppRunning) {
-             return [UIMenu menuWithTitle:NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", nil) children:@[]];
-             } else {*/
             NSString *pidText = [NSString stringWithFormat:@"PID: %d", weakSelf.appSceneVC.process.pid];
             return [UIMenu menuWithTitle:pidText children:menuItems];
-            //}
         }];
     }
     
@@ -172,7 +208,7 @@ void UIKitFixesInit(void) {
         default:
             break;
     }
-}
+}*/
 
 - (void)viewDidAppear:(BOOL)animated
 {
@@ -191,8 +227,9 @@ void UIKitFixesInit(void) {
         else
         {
             // MARK: Triggering resize system at start to guarantee that it gets layouted
-            [self.appSceneVC resizeActionStart];
-            [self.appSceneVC resizeActionEnd];
+            [self startLiveResizeWithSettingsBlock];
+            [self resizeActionStart];
+            [self resizeActionEnd];
         }
     });
 }
@@ -202,19 +239,13 @@ void UIKitFixesInit(void) {
     CGFloat navBarHeight = 44;
     self.view = [UIStackView new];
     
-    /*if(UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation)) {
-        self.view.frame = CGRectMake(50, 150, 480, 320 + navBarHeight);
-    } else {*/
-        //self.view.frame = CGRectMake(50, 150, 320, 480 + navBarHeight);
-    //}
-    
-    if(_appSceneVC) dimensions.size.height += navBarHeight;
+    dimensions.size.height += navBarHeight;
     self.view.frame = dimensions;
     
     // Navigation bar
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, navBarHeight)];
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@"Unnamed window"];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
     navigationBar.items = @[navigationItem];
     
     self.view.axis = UILayoutConstraintAxisVertical;
@@ -231,11 +262,6 @@ void UIKitFixesInit(void) {
     CGRect contentFrame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - navBarHeight);
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    /*if([NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"]) {
-        [self.view insertArrangedSubview:fixedPositionContentView atIndex:0];
-    } else {
-        [self.view addArrangedSubview:fixedPositionContentView];
-    }*/
     [self.view addArrangedSubview:fixedPositionContentView];
     [self.view sendSubviewToBack:fixedPositionContentView];
     
@@ -260,25 +286,23 @@ void UIKitFixesInit(void) {
     self.view.layer.borderWidth = 0.5;
     self.view.layer.borderColor = UIColor.systemGray3Color.CGColor;
     
-    if(_appSceneVC)
-    {
-        [self addChildViewController:_appSceneVC];
-        [self.view insertSubview:_appSceneVC.view atIndex:0];
-        _appSceneVC.view.translatesAutoresizingMaskIntoConstraints = NO;
+
+    [self addChildViewController:_session];
+    [self.view insertSubview:_session.view atIndex:0];
+    _session.view.translatesAutoresizingMaskIntoConstraints = NO;
         
-        [self updateVerticalConstraints];
-        [NSLayoutConstraint activateConstraints:@[
-            [_appSceneVC.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-            [_appSceneVC.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
-        ]];
-    }
+    [self updateVerticalConstraints];
+    [NSLayoutConstraint activateConstraints:@[
+        [_session.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
+        [_session.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]
+    ]];
     
     [self updateOriginalFrame];
 }
 
 
 // Stolen from UIKitester
-- (UIView *)scaleSliderViewWithTitle:(NSString *)title min:(CGFloat)minValue max:(CGFloat)maxValue value:(CGFloat)initialValue stepInterval:(CGFloat)step {
+/*- (UIView *)scaleSliderViewWithTitle:(NSString *)title min:(CGFloat)minValue max:(CGFloat)maxValue value:(CGFloat)initialValue stepInterval:(CGFloat)step {
     UIView *containerView = [[UIView alloc] init];
     containerView.translatesAutoresizingMaskIntoConstraints = NO;
     containerView.exclusiveTouch = YES;
@@ -343,10 +367,10 @@ void UIKitFixesInit(void) {
             if(completed) [self.view removeFromSuperview];
         }];
     });
-}
+}*/
 
 - (void)maximizeWindow:(BOOL)animated {
-    [self.appSceneVC resizeActionStart];
+    /*[self.appSceneVC resizeActionStart];
     if (self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
         CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
@@ -395,7 +419,7 @@ void UIKitFixesInit(void) {
                 [self.appSceneVC resizeActionEnd];
             }
         }];
-    }
+    }*/
 }
 
 - (void)maximizeButtonPressed
@@ -403,7 +427,7 @@ void UIKitFixesInit(void) {
     [self maximizeWindow:YES];
 }
 
-- (void)appSceneVC:(LDEAppScene*)vc didInitializeWithError:(NSError *)error {
+/*- (void)appSceneVC:(LDEAppScene*)vc didInitializeWithError:(NSError *)error {
     // TODO: Fix it
     dispatch_async(dispatch_get_main_queue(), ^{
         if(error) {
@@ -436,7 +460,7 @@ void UIKitFixesInit(void) {
 - (void)appSceneVCAppDidExit:(LDEAppScene*)vc
 {
     // TODO: Cleanup these methods they have no need in Nyxians app lifecycle design
-}
+}*/
 
 - (void)adjustNavigationBarButtonSpacingWithNegativeSpacing:(CGFloat)spacing rightMargin:(CGFloat)margin {
     if (!self.navigationBar) return;
@@ -479,7 +503,7 @@ void UIKitFixesInit(void) {
 }
 
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+/*- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if(_isMaximized) {
         [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             [self updateMaximizedFrameWithSettings:settings];
@@ -501,7 +525,7 @@ void UIKitFixesInit(void) {
         [self updateVerticalConstraints];
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
     }];
-}
+}*/
 
 - (void)moveWindow:(UIPanGestureRecognizer*)sender {
     if(_isMaximized) return;
@@ -519,7 +543,7 @@ void UIKitFixesInit(void) {
     
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan:
-            [self.appSceneVC resizeActionStart];
+            [self resizeActionStart];
             break;
         case UIGestureRecognizerStateChanged: {
             CGPoint point = [gesture translationInView:self.view];
@@ -534,7 +558,7 @@ void UIKitFixesInit(void) {
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed:
-            [self.appSceneVC resizeActionEnd];
+            [self resizeActionEnd];
             break;
         default:
             break;
@@ -551,25 +575,25 @@ void UIKitFixesInit(void) {
 - (void)updateVerticalConstraints
 {
     // Update safe area insets
-    if(_isMaximized && self.appSceneVC)
+    /*if(_isMaximized)
     {
         __weak typeof(self) weakSelf = self;
         self.appSceneVC.nextUpdateSettingsBlock = ^(UIMutableApplicationSceneSettings *settings)
         {
             [weakSelf updateMaximizedFrameWithSettings:settings];
         };
-    }
+    }*/
     
-    [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
+    /*[NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
     self.activatedVerticalConstraints = @[
-        [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:44],
-        [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [self.session.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:44],
+        [self.session.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
         [self.navigationBar.heightAnchor constraintEqualToConstant:44]
     ];
-    [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
+    [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];*/
 }
 
-- (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings
+/*- (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings
 {
     UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
     settings.peripheryInsets = UIEdgeInsetsMake(0, safeAreaInsets.left, safeAreaInsets.bottom, safeAreaInsets.right);
@@ -626,12 +650,78 @@ void UIKitFixesInit(void) {
     [UIView animateWithDuration:0.3 animations:^{
         self.view.frame = frame;
     }];
-}
+}*/
 
 - (void)updateOriginalFrame {
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
     // save origin as normalized coordinates
     self.originalFrame = CGRectMake(self.view.frame.origin.x / maxFrame.size.width, self.view.frame.origin.y / maxFrame.size.height, self.view.frame.size.width, self.view.frame.size.height);
+}
+
+/*
+ * Resize Handling
+ *
+ */
+- (void)startLiveResizeWithSettingsBlock
+{
+    if(!self.resizeDisplayLink)
+    {
+        self.resizeDisplayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateSceneFrame)];
+        [self.resizeDisplayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+        self.resizeDisplayLink.paused = YES;
+    }
+}
+
+- (void)updateSceneFrame
+{
+    CGRect frame = CGRectMake(self.view.frame.origin.x,
+                              self.view.frame.origin.y + 44,
+                              self.view.frame.size.width,
+                              self.view.frame.size.height - 44);
+    
+    [_session windowChangesSizeToRect:frame];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    [self endLiveResize];
+}
+
+- (void)endLiveResize
+{
+    [self.resizeDisplayLink invalidate];
+    self.resizeDisplayLink = nil;
+}
+
+- (void)resizeActionStart
+{
+    if(_resizeEndDebounceRefCnt == 0)
+    {
+        [self.resizeEndDebounceTimer invalidate];
+        self.resizeEndDebounceTimer = nil;
+        self.resizeDisplayLink.paused = NO;
+    }
+    
+    _resizeEndDebounceRefCnt += 1;
+}
+
+- (void)resizeActionEnd
+{
+    if(_resizeEndDebounceRefCnt == 0)
+        return;
+    else
+        _resizeEndDebounceRefCnt -= 1;
+    
+    if(_resizeEndDebounceRefCnt == 0)
+    {
+        [self.resizeEndDebounceTimer invalidate];
+        __weak typeof(self) weakSelf = self;
+        self.resizeEndDebounceTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:NO block:^(NSTimer * _Nonnull timer) {
+            weakSelf.resizeDisplayLink.paused = YES;
+            weakSelf.resizeEndDebounceTimer = nil;
+        }];
+    }
 }
 
 @end

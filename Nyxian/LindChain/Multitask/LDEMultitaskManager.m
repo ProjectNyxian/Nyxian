@@ -18,19 +18,16 @@
 */
 
 #import <LindChain/Multitask/LDEMultitaskManager.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+//#import <LindChain/Multitask/LDEProcessManager.h>
 #if __has_include(<Nyxian-Swift.h>)
 #import <Nyxian-Swift.h>
 #endif
 
 @interface LDEMultitaskManager ()
 
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, LDEWindow *> *windows;
-@property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
-
 @property (nonatomic, strong) UIStackView *stackView;
 @property (nonatomic, strong) UIStackView *placeholderStack;
-@property (nonatomic, assign) pid_t activeProcessIdentifier;
+@property (nonatomic, assign) wid_t activeWindowIdentifier;
 
 @end
 
@@ -49,7 +46,8 @@
     if (self) {
         _windows = [[NSMutableDictionary alloc] init];
         _windowOrder = [[NSMutableArray alloc] init];
-        _activeProcessIdentifier = (pid_t)-1;
+        _activeWindowIdentifier = (wid_t)-1;
+        _appSwitcherView = nil;
         hasInitialized = YES;
     }
     return self;
@@ -65,62 +63,30 @@
     return multitaskManagerSingleton;
 }
 
+- (wid_t)getNextWindowIdentifier
+{
+    static wid_t windowIdentifier = 0;
+    return windowIdentifier++;
+}
+
 - (void)moveWindowToFrontWithNumber:(NSNumber *)number
 {
     if (!number || !self.windows[number]) return;
 
     [self.windowOrder removeObject:number];
     [self.windowOrder insertObject:number atIndex:0];
-
-    LDEWindow *window = self.windows[number];
-    if(window.view.superview == self)
-    {
-        [self bringSubviewToFront:window.view];
-    }
 }
 
-- (void)deactivateWindowForProcessIdentifier:(pid_t)processIdentifier
-                                   pullDown:(BOOL)pullDown
-                                 completion:(void (^)(void))completion
+- (void)activateWindowForIdentifier:(wid_t)identifier
+                           animated:(BOOL)animated
+                     withCompletion:(void (^)(void))completion
 {
-    LDEWindow *window = self.windows[@(processIdentifier)];
-    if (!window || window.view.hidden) { if (completion) completion(); return; }
-    
-    UIView *v = window.view;
-    [self bringSubviewToFront:v];
-
-    if (!pullDown) {
-        v.hidden = YES;
-        v.transform = CGAffineTransformIdentity;
-        if (completion) completion();
-        return;
-    }
-
-    CGFloat h = self.bounds.size.height;
-    [v.layer removeAllAnimations];
-
-    [UIView animateWithDuration:0.5
-                          delay:0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^{
-        v.transform = CGAffineTransformMakeTranslation(0, h);
-        v.alpha = 0.0;
-    } completion:^(BOOL finished) {
-        v.hidden = YES;
-        v.alpha = 1.0;
-        v.transform = CGAffineTransformIdentity;
-        if (completion) completion();
-    }];
-}
-
-- (void)activateWindowForProcessIdentifier:(pid_t)processIdentifier animated:(BOOL)animated withCompletion:(void (^)(void))completion {
-    LDEWindow *window = self.windows[@(processIdentifier)];
+    LDEWindow *window = self.windows[@(identifier)];
     if (!window) return;
     
-    self.activeProcessIdentifier = processIdentifier;
-    [self moveWindowToFrontWithNumber:@(processIdentifier)];
+    _activeWindowIdentifier = identifier;
+    [self moveWindowToFrontWithNumber:@(identifier)];
+    [window.session activateWindow];
 
     UIView *v = window.view;
     if (v.superview != self) {
@@ -152,47 +118,85 @@
     }
 }
 
-- (BOOL)openWindowForProcessIdentifier:(pid_t)processIdentifier
+- (void)deactivateWindowByPullDown:(BOOL)pullDown
+                    withIdentifier:(wid_t)identifier
+                    withCompletion:(void (^)(void))completion
 {
+    LDEWindow *window = self.windows[@(identifier)];
+    if(!window || window.view.hidden)
+    {
+        if(completion)
+        {
+            completion();
+            return;
+        }
+    }
+    
+    UIView *v = window.view;
+    [self bringSubviewToFront:v];
+
+    CGFloat h = self.bounds.size.height;
+    [v.layer removeAllAnimations];
+
+    [UIView animateWithDuration:0.5
+                          delay:0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionCurveEaseInOut
+                     animations:^{
+        if(pullDown)
+        {
+            v.transform = CGAffineTransformMakeTranslation(0, h);
+        }
+        v.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        v.hidden = YES;
+        v.alpha = 1.0;
+        v.transform = CGAffineTransformIdentity;
+        [window.session deactivateWindow];
+        if (completion) completion();
+    }];
+}
+
+- (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session
+                   identifier:(wid_t*)identifier
+{
+    __block wid_t windowIdentifier = (wid_t)-1;
     __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         void (^openAct)(void) = ^{
-            LDEWindow *window = [self.windows objectForKey:@(processIdentifier)];
+            windowIdentifier = [self getNextWindowIdentifier];
+            [session openWindowWithScene:self.windowScene];
+            [session sessionIdentifierAssigned:windowIdentifier];
+            LDEWindow *window = [[LDEWindow alloc] initWithSession:session dismissalCallback:^{
+                [weakSelf deactivateWindowByPullDown:(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) withIdentifier:windowIdentifier withCompletion:nil];
+                [session closeWindowWithScene:self.windowScene];
+            }];
+            window.identifier = windowIdentifier;
             if(window)
             {
-                [weakSelf activateWindowForProcessIdentifier:processIdentifier animated:([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad) withCompletion:nil];
-            }
-            else
-            {
-                LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:processIdentifier];
-                if(process)
+                weakSelf.windows[@(windowIdentifier)] = window;
+                [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
+                [weakSelf addSubview:window.view];
+                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
                 {
-                    LDEWindow *window = [[LDEWindow alloc] initWithProcess:process withDimensions:CGRectMake(50, 50, 300, 400) dismissalCallback:^{
-                        weakSelf.activeProcessIdentifier = (pid_t)-1;
-                    }];
-                    if(window)
-                    {
-                        weakSelf.windows[@(processIdentifier)] = window;
-                        [weakSelf.windowOrder insertObject:@(processIdentifier) atIndex:0];
-                        [weakSelf addSubview:window.view];
-                        if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
-                            [weakSelf activateWindowForProcessIdentifier:processIdentifier animated:YES withCompletion:^{
-                                [self.windowScene _registerSettingsDiffActionArray:@[window.appSceneVC] forKey:window.appSceneVC.sceneID];
-                            }];
-                        }
-                        else
-                        {
-                            [self.windowScene _registerSettingsDiffActionArray:@[window.appSceneVC] forKey:window.appSceneVC.sceneID];
-                        }
-                    }
+                    [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
+                }
+                else
+                {
+                    // TODO: iPad Stuff Maybe needed
+                    [window.session activateWindow];
                 }
             }
         };
         
-        if(weakSelf.activeProcessIdentifier != processIdentifier && [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
+        LDEWindow *window = self.windows[@(weakSelf.activeWindowIdentifier)];
+        if(window != nil &&
+           weakSelf.activeWindowIdentifier != window.identifier &&
+           [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
         {
             // close first the old one and wait
-            [self deactivateWindowForProcessIdentifier:weakSelf.activeProcessIdentifier pullDown:YES completion:^{
+            [self deactivateWindowByPullDown:YES withIdentifier:weakSelf.activeWindowIdentifier withCompletion:^{
                 openAct();
             }];
         }
@@ -200,33 +204,30 @@
         {
             openAct();
         }
+        
+        if(identifier != NULL) *identifier = windowIdentifier;
     });
     return YES;
 }
 
-- (BOOL)closeWindowForProcessIdentifier:(pid_t)processIdentifier
+- (BOOL)closeWindowWithIdentifier:(wid_t)identifier
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        LDEWindow *window = self.windows[@(processIdentifier)];
-        if(window)
+        LDEWindow *window = self.windows[@(identifier)];
+        if(window != nil)
         {
-            // If this was the active one, clear active pid
-            if (self.activeProcessIdentifier == processIdentifier) {
-                self.activeProcessIdentifier = (pid_t)-1;
-            }
-            [window closeWindow];
-            [self.windowScene _unregisterSettingsDiffActionArrayForKey:window.appSceneVC.sceneID];
-            [self.windows removeObjectForKey:@(processIdentifier)];
-            [self.windowOrder removeObject:@(processIdentifier)];
+            [self deactivateWindowByPullDown:([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad) withIdentifier:identifier withCompletion:^{
+                [window closeWindow];
+                [self.windows removeObjectForKey:@(identifier)];
+            }];
         }
-        if(self.appSwitcherView) [self removeTileForProcess:processIdentifier];
     });
     return YES;
 }
 
 - (void)removeTileForProcess:(pid_t)processIdentifier
 {
-    if(!self.stackView) return;
+    /*if(!self.stackView) return;
 
     for(UIView *tile in self.stackView.arrangedSubviews)
     {
@@ -241,7 +242,7 @@
     if(self.stackView.arrangedSubviews.count == 0)
     {
         self.placeholderStack.hidden = NO;
-    }
+    }*/
 }
 
 - (void)makeKeyAndVisible
@@ -251,14 +252,13 @@
     if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
         UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-        //gestureRecognizer.numberOfTouchesRequired = 2;
         [self addGestureRecognizer:gestureRecognizer];
     }
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
-    if(_activeProcessIdentifier == -1 && recognizer.state == UIGestureRecognizerStateBegan)
+    if(_activeWindowIdentifier == (wid_t)-1 && recognizer.state == UIGestureRecognizerStateBegan)
     {
         if(!self.appSwitcherView)
         {
@@ -350,7 +350,8 @@
                     tileContainer.translatesAutoresizingMaskIntoConstraints = NO;
                     
                     UIImageView *tile = [[UIImageView alloc] init];
-                    if(window.snapshot) tile.image = window.snapshot;
+                    UIImage *snapshot = [window.session snapshotWindow];
+                    if(snapshot != nil) tile.image = snapshot;
                     tile.clipsToBounds = YES;
                     tile.translatesAutoresizingMaskIntoConstraints = NO;
                     tile.backgroundColor = UIColor.systemBackgroundColor;
@@ -453,10 +454,7 @@
                 pid_t pid = (pid_t)tile.tag;
                 LDEWindow *window = self.windows[@(pid)];
                 
-                if(window)
-                {
-                    [window.appSceneVC.process terminate];
-                }
+                if(window) [window.session closeWindowWithScene:self.windowScene];
                 [tile removeFromSuperview];
             }];
         }
@@ -475,9 +473,8 @@
 {
     UIView *tile = recognizer.view;
     if (!tile) return;
-
-    pid_t pid = (pid_t)tile.tag;
-    [self activateWindowForProcessIdentifier:pid animated:YES withCompletion:nil];
+    wid_t identifier = (wid_t)tile.tag;
+    [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];
 }
 
 - (void)showAppSwitcher
@@ -574,18 +571,5 @@
     }
     return NO;
 }
-
-- (void)setSnapshotForProcessIdentifier:(pid_t)processIdentifier
-                              withImage:(UIImage *)image
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        LDEWindow *window = self.windows[@(processIdentifier)];
-        if(window)
-        {
-            [window setSnapshot:image];
-        }
-    });
-}
-
 
 @end

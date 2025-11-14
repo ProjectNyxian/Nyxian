@@ -5,7 +5,7 @@
 //  Created by s s on 2025/5/17.
 //
 
-#ifndef APPSCENE_H
+/*#ifndef APPSCENE_H
 #define APPSCENE_H
 
 #import <LindChain/Private/UIKitPrivate.h>
@@ -48,6 +48,6 @@
 - (void)resizeActionEnd;
 - (void)setForegroundEnabled:(BOOL)foreground;
 
-@end
+@end*/
 
-#endif /* APPSCENE_H */
+//#endif /* APPSCENE_H */

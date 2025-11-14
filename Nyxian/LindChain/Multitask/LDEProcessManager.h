@@ -21,11 +21,13 @@
 #define LDEPROCESSMANAGER_H
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/Multitask/LDEMultitaskManager.h>
 
 @interface LDEProcessConfiguration : NSObject
 
@@ -51,6 +53,8 @@
 @property (nonatomic,strong) NSExtension *extension;
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
+@property (nonatomic,strong) UIImage *snapshot;
+@property (nonatomic) wid_t windowIdentifier;
 
 // Process properties
 @property (nonatomic,strong) NSUUID *identifier;

@@ -17,25 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef LDEWINDOWSESSIONDUMMY_H
+#define LDEWINDOWSESSIONDUMMY_H
+
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <Project/NXProject.h>
-#import <LindChain/Multitask/LDEWindow.h>
 #import <LindChain/Multitask/LDEWindowSession.h>
 
-@interface LDEMultitaskManager : UIWindow <UIGestureRecognizerDelegate>
-
-@property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
-@property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
-
-@property (nonatomic, strong) UIView *appSwitcherView;
-@property (nonatomic, strong) NSLayoutConstraint *appSwitcherTopConstraint;
-@property (nonatomic, strong) UIImpactFeedbackGenerator *impactGenerator;
-
-- (instancetype)init;
-+ (instancetype)shared;
-
-- (BOOL)closeWindowWithIdentifier:(wid_t)identifier;
-- (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session identifier:(wid_t*)identifier;
+@interface LDEWindowSessionDummy : UIViewController <LDEWindowSession>
 
 @end
+
+#endif /* LDEWINDOWSESSIONDUMMY_H */
