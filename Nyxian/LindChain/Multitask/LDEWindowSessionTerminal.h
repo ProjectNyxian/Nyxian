@@ -17,15 +17,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWSESSIONDUMMY_H
-#define LDEWINDOWSESSIONDUMMY_H
+#ifndef LDEWINDOWSESSIONTERMINAL_H
+#define LDEWINDOWSESSIONTERMINAL_H
 
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import <LindChain/Multitask/LDEWindowSession.h>
 
-@interface LDEWindowSessionDummy : UIViewController <LDEWindowSession>
+@interface LDEWindowSessionTerminal : UIViewController <LDEWindowSession>
+
+@property (nonatomic,strong) NSString *utilityPath;
+
+@property (nonatomic,strong) NSLayoutConstraint *heigthConstraint;
+@property (nonatomic,strong) NSLayoutConstraint *widthConstraint;
+
+- (instancetype)initWithUtilityPath:(NSString*)utilityPath;
 
 @end
 
-#endif /* LDEWINDOWSESSIONDUMMY_H */
+#endif /* LDEWINDOWSESSIONTERMINAL_H */

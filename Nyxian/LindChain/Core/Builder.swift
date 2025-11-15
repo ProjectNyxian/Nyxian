@@ -278,7 +278,7 @@ class Builder {
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
-                    var stdoutPipe = [Int32](repeating: 0, count: 2)
+                    /*var stdoutPipe = [Int32](repeating: 0, count: 2)
                     var stderrPipe = [Int32](repeating: 0, count: 2)
                     var stdinPipe  = [Int32](repeating: 0, count: 2)
                     
@@ -308,6 +308,11 @@ class Builder {
                         if let rootVC = LDEMultitaskManager.shared().rootViewController?.topMostViewController() {
                             rootVC.present(terminalNVC, animated: true)
                         }
+                    }*/
+                    
+                    DispatchQueue.main.sync {
+                        let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
+                        LDEMultitaskManager.shared().openWindow(withSession: TerminalSession, identifier: nil)
                     }
                 }
             }
