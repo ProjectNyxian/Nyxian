@@ -37,24 +37,19 @@ static int hook_return_2(void)
 @property (nonatomic, strong) CADisplayLink *resizeDisplayLink;
 @property (nonatomic, strong) NSTimer *resizeEndDebounceTimer;
 @property (atomic) int resizeEndDebounceRefCnt;
-
-/*@property (nonatomic) CGRect originalFrame;
-@property (nonatomic) UIBarButtonItem *maximizeButton;
-@property (nonatomic) dispatch_once_t closeWindowOnce;*/
-
-@property (nonatomic) void (^dismissalCallback)(void);
+@property (nonatomic) UIView *focusView;
 
 @end
 
 @implementation LDEWindow
 
 - (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session
-              dismissalCallback:(void (^)(void))dismissalCallback
+                   withDelegate:(id<LDEWindowDelegate>)delegate;
 {
     self = [super initWithNibName:nil bundle:nil];
     _session = session;
-    _dismissalCallback = dismissalCallback;
     _windowName = session.windowName;
+    _delegate = delegate;
     
     [self setupDecoratedView:CGRectMake(50, 50, 400, 400)];
     
@@ -82,75 +77,20 @@ static int hook_return_2(void)
 
 - (void)closeWindow
 {
-    self.dismissalCallback();
+    [self.delegate dismissedWindow:self];
 }
 
 - (void)dismissViewControllerAnimated:(BOOL)flag
                            completion:(void (^)(void))completion
 {
     [super dismissViewControllerAnimated:flag completion:completion];
-    _dismissalCallback();
-}
-
-/*- (instancetype)initWithProcess:(LDEProcess*)process
-                 withDimensions:(CGRect)rect
-              dismissalCallback:(void (^)(void))dismissalCallback
-{
-    self = [super initWithNibName:nil bundle:nil];
-    _dismissalCallback = dismissalCallback;
-    _appSceneVC = [[LDEAppScene alloc] initWithProcess:process withDelegate:self];
-    if(!_appSceneVC) return nil;
-    _multitaskingTermination = NO;
-    
-    [self setupDecoratedView:rect];
-    self.scaleRatio = 1.0;
-    self.isMaximized = NO;
-    self.originalFrame = CGRectZero;
-    
-    //TODO: Take window name from future process API
-    self.windowName = process.displayName;
-    self.navigationItem.title = process.displayName;
-    
-    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-    {
-        NSArray *menuItems = @[
-            [UIAction actionWithTitle:@"Copy Pid" image:[UIImage systemImageNamed:@"doc.on.doc"] identifier:nil handler:^(UIAction * _Nonnull action) {
-                UIPasteboard.generalPasteboard.string = @(self.appSceneVC.process.pid).stringValue;
-            }],
-            [UICustomViewMenuElement elementWithViewProvider:^UIView *(UICustomViewMenuElement *element) {
-                return [self scaleSliderViewWithTitle:@"Scale" min:0.5 max:2.0 value:self.scaleRatio stepInterval:0.01];
-            }]
-        ];
-        
-        UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-        UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-        maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
-        self.maximizeButton = [[UIBarButtonItem alloc] initWithImage:maximizeImage style:UIBarButtonItemStylePlain target:self action:@selector(maximizeButtonPressed)];
-        self.maximizeButton.tintColor = [UIColor systemGreenColor];
-        
-        
-        UIImage *closeImage = [UIImage systemImageNamed:@"xmark.circle.fill"];
-        UIImageConfiguration *closeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-        closeImage = [closeImage imageWithConfiguration:closeConfig];
-        UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithImage:closeImage style:UIBarButtonItemStylePlain target:self action:@selector(closeWindow)];
-        closeButton.tintColor = [UIColor systemRedColor];
-        
-        NSArray *barButtonItems = @[closeButton, self.maximizeButton];
-        self.navigationItem.rightBarButtonItems = barButtonItems;
-        
-        __weak typeof(self) weakSelf = self;
-        [self.navigationItem setTitleMenuProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions){
-            NSString *pidText = [NSString stringWithFormat:@"PID: %d", weakSelf.appSceneVC.process.pid];
-            return [UIMenu menuWithTitle:pidText children:menuItems];
-        }];
-    }
-    
-    return self;
+    [self closeWindow];
 }
 
 - (void)handlePullDown:(UIPanGestureRecognizer *)gesture
 {
-    static BOOL isAnimating = NO;
+    // TODO: Fix this up
+    /*static BOOL isAnimating = NO;
     
     UIView *windowView = self.view;
     CGPoint translation = [gesture translationInView:windowView.superview];
@@ -207,8 +147,8 @@ static int hook_return_2(void)
         }
         default:
             break;
-    }
-}*/
+    }*/
+}
 
 - (void)viewDidAppear:(BOOL)animated
 {
@@ -234,6 +174,75 @@ static int hook_return_2(void)
     });
 }
 
+- (void)unfocusWindow
+{
+    if (_focusView != nil) return;
+    
+    _focusView = [[UIView alloc] init];
+    [self.view insertSubview:_focusView atIndex:2];
+    
+    _focusView.backgroundColor = UIColor.secondarySystemFillColor;
+    _focusView.alpha = 0.0;
+    _focusView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [_focusView.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:44],
+        [_focusView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [_focusView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [_focusView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
+    ]];
+    
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(focusWindow:)];
+    [_focusView addGestureRecognizer:tap];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+        
+        [UIView animateWithDuration:0.22
+                              delay:0
+                            options:UIViewAnimationOptionCurveEaseOut
+                         animations:^{
+            
+            self->_focusView.alpha = 0.12;
+            self->_focusView.transform = CGAffineTransformIdentity;
+            
+            // Smooth background color transition
+            [UIView transitionWithView:self->_navigationBar
+                              duration:0.22
+                               options:UIViewAnimationOptionTransitionCrossDissolve
+                            animations:^{
+                self->_navigationBar.backgroundColor = UIColor.grayColor;
+            } completion:nil];
+            
+        } completion:nil];
+    });
+}
+
+- (void)focusWindow:(UIPanGestureRecognizer*)sender
+{
+    if (!_focusView) return;
+
+    [UIView animateWithDuration:0.18
+                          delay:0
+                        options:UIViewAnimationOptionCurveEaseIn
+                     animations:^{
+        self->_focusView.alpha = 0.0;
+        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+
+        [UIView transitionWithView:self->_navigationBar
+                          duration:0.18
+                           options:UIViewAnimationOptionTransitionCrossDissolve
+                        animations:^{
+            self->_navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
+        } completion:nil];
+
+    } completion:^(BOOL finished) {
+        [self->_focusView removeFromSuperview];
+        self->_focusView = nil;
+        [self.delegate activatedWindow:self];
+    }];
+}
+
 - (void)setupDecoratedView:(CGRect)dimensions
 {
     CGFloat navBarHeight = 44;
@@ -244,6 +253,7 @@ static int hook_return_2(void)
     
     // Navigation bar
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, navBarHeight)];
+    navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
     navigationBar.items = @[navigationItem];
@@ -299,75 +309,6 @@ static int hook_return_2(void)
     
     [self updateOriginalFrame];
 }
-
-
-// Stolen from UIKitester
-/*- (UIView *)scaleSliderViewWithTitle:(NSString *)title min:(CGFloat)minValue max:(CGFloat)maxValue value:(CGFloat)initialValue stepInterval:(CGFloat)step {
-    UIView *containerView = [[UIView alloc] init];
-    containerView.translatesAutoresizingMaskIntoConstraints = NO;
-    containerView.exclusiveTouch = YES;
-
-    UIStackView *stackView = [[UIStackView alloc] init];
-    stackView.axis = UILayoutConstraintAxisVertical;
-    stackView.spacing = 0.0;
-    stackView.translatesAutoresizingMaskIntoConstraints = NO;
-    [containerView addSubview:stackView];
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [stackView.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:10.0],
-        [stackView.bottomAnchor constraintEqualToAnchor:containerView.bottomAnchor constant:-8.0],
-        [stackView.leadingAnchor constraintEqualToAnchor:containerView.leadingAnchor constant:16.0],
-        [stackView.trailingAnchor constraintEqualToAnchor:containerView.trailingAnchor constant:-16.0]
-    ]];
-    
-    UILabel *label = [[UILabel alloc] init];
-    label.text = title;
-    label.translatesAutoresizingMaskIntoConstraints = NO;
-    label.font = [UIFont boldSystemFontOfSize:12.0];
-    [stackView addArrangedSubview:label];
-    
-    _UIPrototypingMenuSlider *slider = [[_UIPrototypingMenuSlider alloc] init];
-    slider.minimumValue = minValue;
-    slider.maximumValue = maxValue;
-    slider.value = initialValue;
-    slider.stepSize = step;
-    
-    NSLayoutConstraint *sliderHeight = [slider.heightAnchor constraintEqualToConstant:40.0];
-    sliderHeight.active = YES;
-    
-    [stackView addArrangedSubview:slider];
-    
-    [slider addTarget:self action:@selector(scaleSliderChanged:) forControlEvents:UIControlEventValueChanged];
-    
-    return containerView;
-}
-
-- (void)scaleSliderChanged:(_UIPrototypingMenuSlider *)slider {
-    self.scaleRatio = slider.value;
-    self.appSceneVC.scaleRatio = _scaleRatio;
-    self.appSceneVC.contentView.layer.sublayerTransform = CATransform3DMakeScale(_scaleRatio, _scaleRatio, 1.0);
-    [self.appSceneVC resizeActionStart];
-    [self updateMaximizedSafeAreaWithSettings:self.appSceneVC.settings];
-    [self.appSceneVC resizeActionEnd];
-}
-
-- (void)closeWindow
-{
-    dispatch_once(&_closeWindowOnce, ^{
-        if([self.appSceneVC.process.processHandle isValid]) [self.appSceneVC.process terminate];
-        self.view.layer.masksToBounds = NO;
-        [UIView transitionWithView:self.view.window
-                          duration:0.2
-                           options:UIViewAnimationOptionTransitionCrossDissolve
-                        animations:^
-         {
-            self.view.alpha = 0;
-        } completion:^(BOOL completed)
-         {
-            if(completed) [self.view removeFromSuperview];
-        }];
-    });
-}*/
 
 - (void)maximizeWindow:(BOOL)animated {
     /*[self.appSceneVC resizeActionStart];
@@ -427,41 +368,6 @@ static int hook_return_2(void)
     [self maximizeWindow:YES];
 }
 
-/*- (void)appSceneVC:(LDEAppScene*)vc didInitializeWithError:(NSError *)error {
-    // TODO: Fix it
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if(error) {
-            //[vc appTerminationCleanUp:NO];
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"lc.common.error".loc message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:@"lc.common.ok".loc style:UIAlertActionStyleCancel handler:nil]];
-            [alert addAction:[UIAlertAction actionWithTitle:@"lc.common.copy".loc style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                UIPasteboard.generalPasteboard.string = error.localizedDescription;
-            }]];
-            [self presentViewController:alert animated:YES completion:nil];
-        } else {
-            [self updateOriginalFrame];
-        }
-    });
-}
-
-- (void)appSceneVC:(LDEAppScene*)vc didUpdateFromSettings:(UIMutableApplicationSceneSettings *)baseSettings transitionContext:(id)newContext
-{
-    UIMutableApplicationSceneSettings *newSettings = [vc.presenter.scene.settings mutableCopy];
-    newSettings.userInterfaceStyle = baseSettings.userInterfaceStyle;
-    newSettings.interfaceOrientation = baseSettings.interfaceOrientation;
-    newSettings.deviceOrientation = baseSettings.deviceOrientation;
-        
-    [self.appSceneVC resizeActionStart];
-    [self.appSceneVC resizeActionEnd];
-    
-    [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
-}
-
-- (void)appSceneVCAppDidExit:(LDEAppScene*)vc
-{
-    // TODO: Cleanup these methods they have no need in Nyxians app lifecycle design
-}*/
-
 - (void)adjustNavigationBarButtonSpacingWithNegativeSpacing:(CGFloat)spacing rightMargin:(CGFloat)margin {
     if (!self.navigationBar) return;
     [self findAndAdjustButtonBarStackView:self.navigationBar withSpacing:spacing sideMargin:margin];
@@ -501,31 +407,6 @@ static int hook_return_2(void)
         [self findAndAdjustButtonBarStackView:subview withSpacing:spacing sideMargin:margin];
     }
 }
-
-
-/*- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-    if(_isMaximized) {
-        [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-            [self updateMaximizedFrameWithSettings:settings];
-        }];
-    }
-    
-    BOOL bottomWindowBar = [change[NSKeyValueChangeNewKey] boolValue];
-    [UIView animateWithDuration:0.3 animations:^{
-        if(bottomWindowBar) {
-            self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems;
-            self.navigationItem.rightBarButtonItems = nil;
-            [self.view addArrangedSubview:self.navigationBar];
-        } else {
-            self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems;
-            self.navigationItem.leftBarButtonItems = nil;
-            [self.view insertArrangedSubview:self.navigationBar atIndex:0];
-        }
-        
-        [self updateVerticalConstraints];
-        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
-    }];
-}*/
 
 - (void)moveWindow:(UIPanGestureRecognizer*)sender {
     if(_isMaximized) return;
@@ -570,6 +451,7 @@ static int hook_return_2(void)
     [super touchesBegan:touches withEvent:event];
     // FIXME: how to bring view to front when touching the passthrough view?
     [self.view.superview bringSubviewToFront:self.view];
+    [self focusWindow:nil];
 }
 
 - (void)updateVerticalConstraints

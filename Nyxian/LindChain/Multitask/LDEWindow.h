@@ -25,6 +25,15 @@
 
 typedef int wid_t;
 
+@class LDEWindow;
+
+@protocol LDEWindowDelegate <NSObject>
+
+- (void)dismissedWindow:(LDEWindow*)window;
+- (void)activatedWindow:(LDEWindow*)window;
+
+@end
+
 @interface LDEWindow : UIViewController
 
 @property (nonatomic) wid_t identifier;
@@ -39,9 +48,12 @@ typedef int wid_t;
 @property (nonatomic) UIStackView *view;
 @property (nonatomic) UIViewController<LDEWindowSession> *session;
 
-- (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session dismissalCallback:(void (^)(void))dismissalCallback;
+@property (nonatomic, weak) id<LDEWindowDelegate> delegate;
+
+- (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session withDelegate:(id<LDEWindowDelegate>)delegate;
 - (void)updateVerticalConstraints;
 - (void)closeWindow;
+- (void)unfocusWindow;
 
 @end
 

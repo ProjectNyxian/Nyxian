@@ -167,15 +167,12 @@
         void (^openAct)(void) = ^{
             windowIdentifier = [self getNextWindowIdentifier];
             [session openWindowWithScene:self.windowScene withSessionIdentifier:windowIdentifier];
-            LDEWindow *window = [[LDEWindow alloc] initWithSession:session dismissalCallback:^{
-                [weakSelf deactivateWindowByPullDown:(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) withIdentifier:windowIdentifier withCompletion:^{
-                    [session closeWindowWithScene:self.windowScene];
-                }];
-            }];
+            LDEWindow *window = [[LDEWindow alloc] initWithSession:session withDelegate:self];
             window.identifier = windowIdentifier;
             if(window)
             {
                 weakSelf.windows[@(windowIdentifier)] = window;
+                [self activatedWindow:window];
                 [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
                 [weakSelf addSubview:window.view];
                 if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
@@ -570,6 +567,22 @@
         }
     }
     return NO;
+}
+
+- (void)activatedWindow:(LDEWindow *)window
+{
+    for(NSNumber *wid in self.windows)
+    {
+        LDEWindow *iwindow = self.windows[wid];
+        if(iwindow == window) continue;
+        [iwindow unfocusWindow];
+    }
+}
+
+- (void)dismissedWindow:(LDEWindow *)window
+{
+    [window.session closeWindowWithScene:self.windowScene];
+    [self closeWindowWithIdentifier:window.identifier];
 }
 
 @end

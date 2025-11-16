@@ -23,7 +23,7 @@
 #import <LindChain/Multitask/LDEWindow.h>
 #import <LindChain/Multitask/LDEWindowSession.h>
 
-@interface LDEMultitaskManager : UIWindow <UIGestureRecognizerDelegate>
+@interface LDEMultitaskManager : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
