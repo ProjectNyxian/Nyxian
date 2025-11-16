@@ -21,6 +21,12 @@
 #import <LindChain/Multitask/LDEWindowSessionTerminal.h>
 #import <Nyxian-Swift.h>
 
+@interface LDEWindowSessionTerminal ()
+
+@property (nonatomic,strong) NyxianTerminal *terminal;
+
+@end
+
 @implementation LDEWindowSessionTerminal
 
 @synthesize windowName;
@@ -53,17 +59,17 @@
     close(stderrPipe[0]);
     close(stderrPipe[1]);
     
-    NyxianTerminal *terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:[process displayName] stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
+    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:[process displayName] stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
-    terminal.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:terminal];
+    _terminal.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:_terminal];
     
     [NSLayoutConstraint activateConstraints:@[
-        [terminal.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-        [terminal.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-        [terminal.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-        [terminal.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]
+        [_terminal.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+        [_terminal.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [_terminal.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+        [_terminal.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]
     ]];
     
     _heigthConstraint = [self.view.heightAnchor constraintEqualToConstant:100];

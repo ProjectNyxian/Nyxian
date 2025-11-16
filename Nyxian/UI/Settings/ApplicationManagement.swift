@@ -71,31 +71,50 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // Task Port
             if #available(iOS 26.0, *) {
                 if #unavailable(iOS 26.1) {
+                    let alltask = self.createEntitlementButton(title: "Get Task Allowed", entitlement: entitlement, targetEntitlement: PEEntitlement.getTaskAllowed, application: application)
                     let tfp = self.createEntitlementButton(title: "Task For Pid", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPid, application: application)
-                    let prvtTfp = self.createEntitlementButton(title: "Task For Pid (Private)", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPidPrvt, application: application)
-                    let hostTfp = self.createEntitlementButton(title: "Get Host Task Port", entitlement: entitlement, targetEntitlement: PEEntitlement.getHostTaskPort, application: application)
-                    entMenuItems.append(UIMenu(title: "Task Port", image: UIImage(systemName: "powerplug.portrait.fill"), children: [tfp, prvtTfp, hostTfp]))
+                    let hostTfp = self.createEntitlementButton(title: "Task For Pid Host", entitlement: entitlement, targetEntitlement: PEEntitlement.taskForPidHost, application: application)
+                    entMenuItems.append(UIMenu(title: "Task Port", image: UIImage(systemName: "powerplug.portrait.fill"), children: [alltask, tfp, hostTfp]))
                 }
             }
             
-            // Credentials
-            let credentialSetUID = self.createEntitlementButton(title: "Set UID", entitlement: entitlement, targetEntitlement: PEEntitlement.setUidAllowed, application: application)
-            let credentialSetGID = self.createEntitlementButton(title: "Set GID", entitlement: entitlement, targetEntitlement: PEEntitlement.setGidAllowed, application: application)
-            
-            entMenuItems.append(UIMenu(title: "Credentials", image: UIImage(systemName: "key.2.on.ring.fill"), children: [credentialSetUID, credentialSetGID]))
+            // Surface
+            let surfaceRead = self.createEntitlementButton(title: "Surface Read", entitlement: entitlement, targetEntitlement: PEEntitlement.surfaceRead, application: application)
+            let surfaceWrite = self.createEntitlementButton(title: "Surface Write", entitlement: entitlement, targetEntitlement: PEEntitlement.surfaceWrite, application: application)
+            let surfaceManager = self.createEntitlementButton(title: "Surface Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.surfaceManager, application: application)
+            entMenuItems.append(UIMenu(title: "Surface", image: UIImage(systemName: "square.dashed"), children: [surfaceRead, surfaceWrite, surfaceManager]))
             
             // Inter Process
-            let sendSignal = self.createEntitlementButton(title: "Send Signal", entitlement: entitlement, targetEntitlement: PEEntitlement.sendSignal, application: application)
-            let sendSignalPrvt = self.createEntitlementButton(title: "Send Signal (Private)", entitlement: entitlement, targetEntitlement: PEEntitlement.sendSignalPrvt, application: application)
-            let recvSignal = self.createEntitlementButton(title: "Receive Signal", entitlement: entitlement, targetEntitlement: PEEntitlement.recvSignal, application: application)
+            let processEnumeration = self.createEntitlementButton(title: "Process Enumeration", entitlement: entitlement, targetEntitlement: PEEntitlement.processEnumeration, application: application)
+            let processKill = self.createEntitlementButton(title: "Process Kill", entitlement: entitlement, targetEntitlement: PEEntitlement.processKill, application: application)
+            let processSpawn = self.createEntitlementButton(title: "Process Spawn", entitlement: entitlement, targetEntitlement: PEEntitlement.processSpawn, application: application)
+            let processSpawnSignedOnly = self.createEntitlementButton(title: "Process Spawn (Signed-Only)", entitlement: entitlement, targetEntitlement: PEEntitlement.processSpawnSignedOnly, application: application)
+            let processElevate = self.createEntitlementButton(title: "Process Elevate", entitlement: entitlement, targetEntitlement: PEEntitlement.processElevate, application: application)
+            entMenuItems.append(UIMenu(title: "Process", image: UIImage(systemName: "cable.coaxial"), children: [processEnumeration, processKill, processSpawn, processSpawnSignedOnly, processElevate]))
             
-            entMenuItems.append(UIMenu(title: "Inter Process", image: UIImage(systemName: "cable.coaxial"), children: [sendSignal, sendSignalPrvt, recvSignal]))
+            // Host
+            let hostManager = self.createEntitlementButton(title: "Host Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.hostManager, application: application)
+            let credManager = self.createEntitlementButton(title: "Credential Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.credentialsManager, application: application)
+            entMenuItems.append(UIMenu(title: "Host", image: UIImage(systemName: "pc"), children: [hostManager, credManager]))
             
-            // Process
-            let spawnProc = self.createEntitlementButton(title: "Spawn Process", entitlement: entitlement, targetEntitlement: PEEntitlement.spawnProc, application: application)
-            let childSuperv = self.createEntitlementButton(title: "Child Supervisor", entitlement: entitlement, targetEntitlement: PEEntitlement.childSupervisor, application: application)
+            // LaunchServices
+            let lsStart = self.createEntitlementButton(title: "LaunchServices Start", entitlement: entitlement, targetEntitlement: PEEntitlement.launchServicesStart, application: application)
+            let lsStop = self.createEntitlementButton(title: "LaunchServices Stop", entitlement: entitlement, targetEntitlement: PEEntitlement.launchServicesStop, application: application)
+            let lsToggle = self.createEntitlementButton(title: "LaunchServices Toggle", entitlement: entitlement, targetEntitlement: PEEntitlement.launchServicesToggle, application: application)
+            let lsEndpoint = self.createEntitlementButton(title: "LaunchServices Get Endpoint", entitlement: entitlement, targetEntitlement: PEEntitlement.launchServicesGetEndpoint, application: application)
+            let lsManager = self.createEntitlementButton(title: "LaunchServices Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.launchServicesManager, application: application)
+            entMenuItems.append(UIMenu(title: "LaunchServices", image: UIImage(systemName: "bolt.fill"), children: [lsStart, lsStop, lsToggle, lsEndpoint, lsManager]))
             
-            entMenuItems.append(UIMenu(title: "Process", image: UIImage(systemName: "apple.terminal.fill"), children: [spawnProc, childSuperv]))
+            // TrustCache
+            let tcRead = self.createEntitlementButton(title: "TrustCache Read", entitlement: entitlement, targetEntitlement: PEEntitlement.trustCacheRead, application: application)
+            let tcWrite = self.createEntitlementButton(title: "TrustCache Write", entitlement: entitlement, targetEntitlement: PEEntitlement.trustCacheWrite, application: application)
+            let tcManager = self.createEntitlementButton(title: "TrustCache Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.trustCacheManager, application: application)
+            entMenuItems.append(UIMenu(title: "TrustCache", image: UIImage(systemName: "tray.full.fill"), children: [tcRead, tcWrite, tcManager]))
+            
+            // Misc
+            let miscEnforceDeviceSpoof = self.createEntitlementButton(title: "Enforce Device Spoof", entitlement: entitlement, targetEntitlement: PEEntitlement.enforceDeviceSpoof, application: application)
+            let miscDyldHideLiveProcess = self.createEntitlementButton(title: "Dyld Hide LiveProcess", entitlement: entitlement, targetEntitlement: PEEntitlement.dyldHideLiveProcess, application: application)
+            entMenuItems.append(UIMenu(title: "Misc", image: UIImage(systemName: "ellipsis"), children: [miscEnforceDeviceSpoof, miscDyldHideLiveProcess]))
             
             let entMent: UIMenu = UIMenu(title: "Entitlements", image: UIImage(systemName: "checkmark.seal.text.page.fill"), children: entMenuItems)
             

@@ -73,7 +73,7 @@ extern surface_map_t *surface;
 /* Handoff */
 
 /// Returns a process surface file handle to perform a handoff over XPC
-MappingPortObject *proc_surface_handoff(void);
+MappingPortObject *proc_surface_for_pid(pid_t pid);
 
 /* sysctl */
 int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out);

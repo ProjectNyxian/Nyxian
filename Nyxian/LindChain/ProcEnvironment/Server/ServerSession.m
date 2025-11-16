@@ -44,27 +44,13 @@
 - (void)getPort:(pid_t)pid
       withReply:(void (^)(TaskPortObject*))reply API_AVAILABLE(ios(26.0));
 {
-    // Does the process requesting even have the entitlement
-    if(!proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPid))
-    {
-        reply(nil);
-        return;
-    }
+    // Prepare
+    bool isHost = pid == getpid();
     
-    // Special or host
-    bool prvt = proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPidPrvt);
-    bool hostPriveleged = proc_got_entitlement(_processIdentifier, PEEntitlementGetHostTaskPort);
-    bool isHost = (pid == getpid());
-    
-    // Is the request pid the host app
-    if(isHost && !hostPriveleged)
-    {
-        reply(nil);
-        return;
-    }
-    
-    // Needs special?
-    if(!isHost && !permitive_over_process_allowed(_processIdentifier, pid) && !prvt)
+    // Checking if we have necessary entitlements
+    if(!proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPid) ||
+       (isHost && !proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPidHost)) ||
+       (!isHost && (!proc_got_entitlement(pid, PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
     {
         reply(nil);
         return;
@@ -91,29 +77,10 @@
 
 - (void)proc_kill:(pid_t)pid withSignal:(int)signal withReply:(void (^)(int))reply
 {
-    // Check
-    bool send_signal = proc_got_entitlement(_processIdentifier, PEEntitlementSendSignal);
-    bool recv_signal = proc_got_entitlement(_processIdentifier, PEEntitlementRecvSignal);
-    bool send_signal_prvt = proc_got_entitlement(_processIdentifier, PEEntitlementSendSignalPrvt);
-    
-    // Check if process is priveleged enough to send signals
-    if(!send_signal)
+    // Checking if we have necessary entitlements
+    if(!proc_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid))
     {
-        reply(1);
-        return;
-    }
-    
-    // Check if process is priveleged enough to receive signals
-    if(!recv_signal && !send_signal_prvt)
-    {
-        reply(1);
-        return;
-    }
-    
-    // Check if process is permited essentially
-    if(!send_signal_prvt && !permitive_over_process_allowed(_processIdentifier, pid))
-    {
-        reply(1);
+        reply(-1);
         return;
     }
 
@@ -165,7 +132,7 @@
        && arguments
        && environment
        && mapObject
-       && proc_got_entitlement(_processIdentifier, PEEntitlementSpawnProc))
+       && (proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn) || proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly)))
     {
         // TODO: Inherit entitlements across calls, with the power to drop entitlements, but not getting more entitlements
         LDEProcessConfiguration *processConfig = [LDEProcessConfiguration inheriteConfigurationUsingProcessIdentifier:_processIdentifier];
@@ -195,7 +162,7 @@
 - (void)handinSurfaceMappingPortObjectViaReply:(void (^)(MappingPortObject *))reply
 {
     dispatch_once(&_handoffSurfaceOnce, ^{
-        reply(proc_surface_handoff());
+        reply(proc_surface_for_pid(_processIdentifier));
         return;
     });
     
@@ -217,136 +184,92 @@
 /*
  Set credentials
  */
-- (void)setCredentialWithOption:(CredentialSet)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply
+- (void)setCredentialWithOption:(Credential)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply
 {
-    // Check if option is valid
-    if(option < 0 ||
-       option >= CredentialSetMAX)
+    kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
+    kinfo_info_surface_t bobject = object;
+    
+    switch(option)
+    {
+        case CredentialUID:
+            object.real.kp_eproc.e_ucred.cr_uid = uid;
+            object.real.kp_eproc.e_pcred.p_svuid = uid;
+        case CredentialRUID:
+            object.real.kp_eproc.e_pcred.p_ruid = uid;
+            break;
+        case CredentialGID:
+            object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
+            object.real.kp_eproc.e_pcred.p_svgid = uid;
+        case CredentialRGID:
+            object.real.kp_eproc.e_pcred.p_rgid = uid;
+            break;
+        case CredentialEUID:
+            object.real.kp_eproc.e_ucred.cr_uid = uid;
+            break;
+        case CredentialEGID:
+            object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
+            break;
+        default:
+            reply(-1);
+            return;
+    }
+    
+    bool processAllowedToElevate = proc_got_entitlement(_processIdentifier, PEEntitlementProcessElevate);
+    bool processObjectIsDifferent = !(proc_getuid(object) == proc_getuid(bobject) &&
+                                      proc_getruid(object) == proc_getruid(bobject) &&
+                                      proc_getsvuid(object) == proc_getsvuid(bobject) &&
+                                      proc_getgid(object) == proc_getgid(bobject) &&
+                                      proc_getrgid(object) == proc_getrgid(bobject) &&
+                                      proc_getsvgid(object) == proc_getsvgid(bobject));
+    
+    if(processObjectIsDifferent && processAllowedToElevate)
+    {
+        proc_object_insert(object);
+    }
+    else if(processObjectIsDifferent)
     {
         reply(-1);
         return;
     }
     
-    BOOL isAlteringAllowed = YES;
-    
-    // Check for setuid entitlement if applicable
-    if ((option == CredentialSetUID ||
-         option == CredentialSetEUID ||
-         option == CredentialSetRUID) &&
-        !proc_got_entitlement(_processIdentifier, PEEntitlementSetUidAllowed))
-    {
-        isAlteringAllowed = NO;
-    }
-    
-    // Check for setgid entitlement if applicable
-    if ((option == CredentialSetGID ||
-         option == CredentialSetEGID ||
-         option == CredentialSetRGID) &&
-        !proc_got_entitlement(_processIdentifier, PEEntitlementSetGidAllowed))
-    {
-        isAlteringAllowed = NO;
-    }
-    
-    // Now change uid
+    reply(0);
+    return;
+}
+
+- (void)getCredentialWithOption:(Credential)option withReply:(void (^)(uid_t result))reply
+{
     kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
     
-    int repl = 0;
+    pid_t repl = 0;
     
     switch(option)
     {
-        case CredentialSetUID:
-            if(object.real.kp_eproc.e_ucred.cr_uid != uid &&
-               object.real.kp_eproc.e_pcred.p_ruid != uid &&
-               object.real.kp_eproc.e_pcred.p_svuid != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_ucred.cr_uid = uid;
-                    object.real.kp_eproc.e_pcred.p_ruid = uid;
-                    object.real.kp_eproc.e_pcred.p_svuid = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
+        case CredentialUID:
+        case CredentialEUID:
+            repl = proc_getuid(object);
             break;
-        case CredentialSetRUID:
-            if(object.real.kp_eproc.e_pcred.p_ruid != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_pcred.p_ruid = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
+        case CredentialRUID:
+            repl = proc_getruid(object);
             break;
-        case CredentialSetEUID:
-            if(object.real.kp_eproc.e_ucred.cr_uid != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_ucred.cr_uid = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
+        case CredentialGID:
+        case CredentialEGID:
+            repl = proc_getgid(object);
             break;
-        case CredentialSetGID:
-            if(object.real.kp_eproc.e_ucred.cr_groups[0] != uid &&
-               object.real.kp_eproc.e_pcred.p_rgid != uid &&
-               object.real.kp_eproc.e_pcred.p_svgid != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
-                    object.real.kp_eproc.e_pcred.p_rgid = uid;
-                    object.real.kp_eproc.e_pcred.p_svgid = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
-            break;
-        case CredentialSetEGID:
-            if(object.real.kp_eproc.e_ucred.cr_groups[0] != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
-            break;
-        case CredentialSetRGID:
-            if(object.real.kp_eproc.e_pcred.p_rgid != uid)
-            {
-                if(isAlteringAllowed)
-                {
-                    object.real.kp_eproc.e_pcred.p_rgid = uid;
-                }
-                else
-                {
-                    repl = -1;
-                }
-            }
+        case CredentialRGID:
+            repl = proc_getrgid(object);
             break;
         default:
             repl = -1;
     }
     
-    proc_object_insert(object);
-    
     reply(repl);
+    return;
+}
+
+- (void)getParentProcessIdentifierWithReply:(void (^)(pid_t result))reply
+{
+    kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
+    reply(proc_getppid(object));
     return;
 }
 
@@ -355,6 +278,12 @@
  */
 - (void)signMachO:(MachOObject *)object withReply:(void (^)(void))reply
 {
+    if(proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly) && !proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn))
+    {
+        reply();
+        return;
+    }
+    
     [object signAndWriteBack];
     reply();
 }

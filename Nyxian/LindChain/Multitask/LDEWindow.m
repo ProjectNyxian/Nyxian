@@ -285,13 +285,13 @@ static int hook_return_2(void)
     
     self.view.layer.borderWidth = 0.5;
     self.view.layer.borderColor = UIColor.systemGray3Color.CGColor;
-    
 
     [self addChildViewController:_session];
     [self.view insertSubview:_session.view atIndex:0];
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
         
     [self updateVerticalConstraints];
+    _session.view.translatesAutoresizingMaskIntoConstraints = NO;
     [NSLayoutConstraint activateConstraints:@[
         [_session.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
         [_session.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]

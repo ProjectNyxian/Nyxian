@@ -29,14 +29,14 @@
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-typedef NS_OPTIONS(uint64_t, CredentialSet) {
-    CredentialSetUID = 0,
-    CredentialSetEUID = 1,
-    CredentialSetRUID = 2,
-    CredentialSetGID = 3,
-    CredentialSetEGID = 4,
-    CredentialSetRGID = 5,
-    CredentialSetMAX = 6,
+typedef NS_OPTIONS(uint64_t, Credential) {
+    CredentialUID = 0,
+    CredentialEUID = 1,
+    CredentialRUID = 2,
+    CredentialGID = 3,
+    CredentialEGID = 4,
+    CredentialRGID = 5,
+    CredentialMAX = 6,
 };
 
 @protocol ServerProtocol
@@ -75,9 +75,11 @@ typedef NS_OPTIONS(uint64_t, CredentialSet) {
 - (void)setAudioBackgroundModeActive:(BOOL)active;
 
 /*
- Set credentials
+ Credentials
  */
-- (void)setCredentialWithOption:(CredentialSet)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply;
+- (void)getParentProcessIdentifierWithReply:(void (^)(pid_t result))reply;
+- (void)setCredentialWithOption:(Credential)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply;
+- (void)getCredentialWithOption:(Credential)option withReply:(void (^)(uid_t result))reply;
 
 /*
  Signer

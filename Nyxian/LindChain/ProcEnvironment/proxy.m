@@ -85,6 +85,24 @@ sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
     return (waited == 0) ? result : -1;
 }
 
+static inline uid_t
+sync_call_with_timeout_uid(void (^invoke)(void (^reply)(uid_t)))
+{
+    __block int result = -1;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+
+    invoke(^(uid_t val){
+        result = val;
+        dispatch_semaphore_signal(sem);
+    });
+
+    long waited = dispatch_semaphore_wait(
+        sem,
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
+    );
+    return (waited == 0) ? result : -1;
+}
+
 static inline BOOL
 sync_call_with_timeout_bool(void (^invoke)(void (^reply)(BOOL)))
 {
@@ -204,14 +222,33 @@ MappingPortObject *environment_proxy_get_surface_mapping(void)
     });
 }
 
-int environment_proxy_setcred(CredentialSet credentialSet,
-                              uint32_t uid)
+int environment_proxy_setcred(Credential credential,
+                              uid_t uid)
 {
     environment_must_be_role(EnvironmentRoleGuest);
     int ret = sync_call_with_timeout_int(PROXY_TYPE_REPLY(int){
-        [hostProcessProxy setCredentialWithOption:credentialSet withIdentifier:uid withReply:reply];
+        [hostProcessProxy setCredentialWithOption:credential withIdentifier:uid withReply:reply];
     });
     if(ret == -1) errno = EPERM;
+    return ret;
+}
+
+uid_t environment_proxy_getcred(Credential credential)
+{
+    environment_must_be_role(EnvironmentRoleGuest);
+    uid_t ret = sync_call_with_timeout_uid(PROXY_TYPE_REPLY(uid_t){
+        [hostProcessProxy getCredentialWithOption:credential withReply:reply];
+    });
+    if(ret == -1) errno = EPERM;
+    return ret;
+}
+
+pid_t environment_proxy_getppid(void)
+{
+    environment_must_be_role(EnvironmentRoleGuest);
+    uid_t ret = sync_call_with_timeout_pid(PROXY_TYPE_REPLY(pid_t){
+        [hostProcessProxy getParentProcessIdentifierWithReply:reply];
+    });
     return ret;
 }
 

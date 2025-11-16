@@ -28,56 +28,79 @@
  @abstract Entitlements which are responsible for the permitives of the environment hostsided
  */
 typedef NS_OPTIONS(uint64_t, PEEntitlement) {
-    /*! Grants getting the task port of other processes that shared the same uid or have a higher uid. */
-    PEEntitlementTaskForPid =       1ull << 0,
+    /*! Grants other processes with appropriate permitives to get task port of process .*/
+    PEEntitlementGetTaskAllowed             = 1ull << 0,
     
-    /*! Grants getting the task port of any process, even processes with a lower uid, except the host task port.*/
-    PEEntitlementTaskForPidPrvt =   1ull << 1,
+    /*! Grants process to get task port of processes. */
+    PEEntitlementTaskForPid                 = 1ull << 1,
     
-    /*! Grants getting the task port of the host process. */
-    PEEntitlementGetHostTaskPort =  1ull << 2,
+    /*! Grants process to get task port of Nyxian it self. */
+    PEEntitlementTaskForPidHost             = 1ull << 2,
     
-    /*! Grants getting information from the surface. */
-    PEEntitlementSurfaceRead =      1ull << 3,
+    /*! Grants process to read surface. */
+    PEEntitlementSurfaceRead                = 1ull << 3,
     
-    /*! Grants setting user identifier. */
-    PEEntitlementSetUidAllowed =    1ull << 4,
+    /*! Grants process to write to surface. (cautions: never use this) */
+    PEEntitlementSurfaceWrite               = 1ull << 4,
     
-    /*! Grants setting group identifier. */
-    PEEntitlementSetGidAllowed =    1ull << 5,
+    /*! Grants process to manage surface. (cautions: never use this) */
+    PEEntitlementSurfaceManager             = PEEntitlementSurfaceRead | PEEntitlementSurfaceWrite,
     
-    /*! Grants receiving signals from processes. */
-    PEEntitlementRecvSignal    =    1ull << 6,
+    /*! Grants process to enumerate processes. */
+    PEEntitlementProcessEnumeration         = PEEntitlementSurfaceRead,
     
-    /*! Grants sending signals to processes that shared the same uid or have a higher uid. */
-    PEEntitlementSendSignal    =    1ull << 7,
+    /*! Grants process to kill other processes. */
+    PEEntitlementProcessKill                = 1ull << 5,
     
-    /*! Grants sending signals, even to processes that dont have PEEntitlementRecvSignal. And it grants sending signals to processes with lower uids aswell. */
-    PEEntitlementSendSignalPrvt =   1ull << 8,
+    /*! Grants process to spawn other processes. */
+    PEEntitlementProcessSpawn               = 1ull << 6,
     
-    /*! Grants spawning processes. */
-    PEEntitlementSpawnProc     =    1ull << 9,
+    /*! Grants process to spawn other processes, under the condition that the binary must be signed. */
+    PEEntitlementProcessSpawnSignedOnly     = 1ull << 7,
     
-    /*! Grants all permissions over a child process. */
-    PEEntitlementChildSupervisor =  1ull << 10,
+    /*! Grants process to elevate permitive. */
+    PEEntitlementProcessElevate             = 1ull << 8,
     
-    /*! Grants permissions to read from the trustcache */
-    PEEntitlementTrustCacheRead = 1ull << 11,
+    /*! Grants process to manage host. */
+    PEEntitlementHostManager                = 1ull << 9,
     
-    /*! Grants permissions to write to the trustcache */
-    PEEntitlementTrustCacheWrite = 1ull << 12,
+    /*! Grants process to manage credentials. */
+    PEEntitlementCredentialsManager         = 1ull << 10,
     
-    /*! Grants all entitlements */
-    PEEntitlementAll = (PEEntitlementTaskForPid | PEEntitlementTaskForPidPrvt | PEEntitlementGetHostTaskPort | PEEntitlementSurfaceRead | PEEntitlementSetUidAllowed | PEEntitlementSetGidAllowed | PEEntitlementRecvSignal | PEEntitlementSendSignal | PEEntitlementSendSignalPrvt | PEEntitlementSpawnProc | PEEntitlementChildSupervisor),
+    /*! Grants process to start launch services. */
+    PEEntitlementLaunchServicesStart        = 1ull << 11,
     
-    /*! Grants access to user application permitives */
-    PEEntitlementDefaultUserApplication = (PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementRecvSignal | PEEntitlementSendSignal | PEEntitlementSpawnProc | PEEntitlementChildSupervisor),
+    /*! Grants process to stop launch services. */
+    PEEntitlementLaunchServicesStop         = 1ull << 12,
     
-    /*! Grants access to system application permitives */
-    PEEntitlementDefaultSystemApplication = (PEEntitlementDefaultUserApplication | PEEntitlementTaskForPidPrvt | PEEntitlementGetHostTaskPort | PEEntitlementSetUidAllowed | PEEntitlementSetGidAllowed),
+    /*! Grants process to manage launch services. */
+    PEEntitlementLaunchServicesToggle       = 1ull << 13,
     
-    /*! Fine tuned permitives for applicationmgmtd */
-    PEEntitlementDefaultApplicationManagementDaemon = 0
+    /*! Grants process to get endpoint of launch services. */
+    PEEntitlementLaunchServicesGetEndpoint  = 1ull << 14,
+    
+    /*! Grants process to manage launch services. */
+    PEEntitlementLaunchServicesManager      = PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint,
+    
+    /*! Grants process to read from trust cache. */
+    PEEntitlementTrustCacheRead             = 1ull << 15,
+    
+    /*! Grants process to write to trust cache. (caution: never use this) */
+    PEEntitlementTrustCacheWrite            = 1ull << 16,
+    
+    /*! Grants process to manage trust cache */
+    PEEntitlementTrustCacheManager          = PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite,
+    
+    /*! Enforces device spoofing settings */
+    PEEntitlementEnforceDeviceSpoof         = 1ull << 17,
+    
+    /*! Hides LiveProcess in DYLD Api. (recommended) */
+    PEEntitlementDyldHideLiveProcess        = 1ull << 18,
+    
+    PEEntitlementSandboxedApplication       = 0,
+    PEEntitlementUserApplication            = PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSystemApplication          = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementAll                        = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementSurfaceRead | PEEntitlementSurfaceWrite | PEEntitlementSurfaceManager | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite | PEEntitlementTrustCacheManager | PEEntitlementEnforceDeviceSpoof | PEEntitlementDyldHideLiveProcess
 };
 
 bool proc_got_entitlement(pid_t pid, PEEntitlement entitlement);

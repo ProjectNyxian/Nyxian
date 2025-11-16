@@ -39,28 +39,7 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
        (caller_uid == proc_getuid(targetObj)) ||
        (caller_uid == proc_getruid(targetObj))) return YES;
     
-    // Check if process has `PEEntitlementChildSupervisor`
-    if(!entitlement_got_entitlement(proc_getentitlements(callerObj), PEEntitlementChildSupervisor)) return NO;
-    
-    // Since it got `PEEntitlementChildSupervisor`, we need to walk in the process tree
-    pid_t kern_pid = getpid();
-    while(1)
-    {
-        // Get ppid of target pid
-        targetObj = proc_object_for_pid(targetPid);
-        
-        // Get ppid
-        pid_t ppid = proc_getppid(targetObj);
-        
-        // In case ppid is kern_pid it is automatically a NO and if ppid is callerPid then its a yes because thats power over child process tree as a parent in the tree
-        if(ppid == 0 || ppid == kern_pid)
-            return NO;
-        else if(ppid == callerPid)
-            return YES;
-        
-        // This time not so we set targetPid to ppid
-        targetPid = ppid;
-    }
+    // MARK: Child supervisor entitlement has been removed because too large attack surface
     
     return NO;
 }

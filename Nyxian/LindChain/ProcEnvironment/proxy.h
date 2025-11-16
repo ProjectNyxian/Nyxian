@@ -60,7 +60,13 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments
 MappingPortObject *environment_proxy_get_surface_mapping(void);
 
 /// Sets process credential
-int environment_proxy_setcred(CredentialSet credentialSet, uint32_t uid);
+int environment_proxy_setcred(Credential credential, uid_t uid);
+
+/// Gets process credential
+uid_t environment_proxy_getcred(Credential credential);
+
+/// Gets parent process identifier
+pid_t environment_proxy_getppid(void);
 
 /// Signs a MachO at a given path
 void environment_proxy_sign_macho(NSString *path);

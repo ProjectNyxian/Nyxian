@@ -52,12 +52,12 @@
 
 + (instancetype)userApplicationConfiguration
 {
-    return [[self alloc] initWithParentProcessIdentifier:getpid() withUserIdentifier:501 withGroupIdentifier:501 withEntitlements:PEEntitlementDefaultUserApplication];
+    return [[self alloc] initWithParentProcessIdentifier:getpid() withUserIdentifier:501 withGroupIdentifier:501 withEntitlements:PEEntitlementUserApplication];
 }
 
 + (instancetype)systemApplicationConfiguration
 {
-    return [[self alloc] initWithParentProcessIdentifier:getpid() withUserIdentifier:501 withGroupIdentifier:501 withEntitlements:PEEntitlementDefaultSystemApplication];
+    return [[self alloc] initWithParentProcessIdentifier:getpid() withUserIdentifier:501 withGroupIdentifier:501 withEntitlements:PEEntitlementUserApplication];
 }
 
 + (instancetype)configurationForHash:(NSString*)hash
@@ -113,7 +113,7 @@
             __typeof(self) strongSelf = weakSelf;
             
             weakSelf.identifier = identifier;
-            weakSelf.pid = [self.extension pidForRequestIdentifier:self.identifier];
+            weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
             weakSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor,
                                                                                                                    RBSProcessHandle *handle,
@@ -121,7 +121,7 @@
                                        {
                 // Setting process handle directly from process monitor
                 weakSelf.processHandle = handle;
-                proc_create_child_proc(strongSelf.ppid, strongSelf.pid, strongSelf.uid, strongSelf.gid, strongSelf.executablePath, configuration.entitlements);
+                proc_create_child_proc(weakSelf.ppid, weakSelf.pid, weakSelf.uid, weakSelf.gid, weakSelf.executablePath, configuration.entitlements);
                 
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];

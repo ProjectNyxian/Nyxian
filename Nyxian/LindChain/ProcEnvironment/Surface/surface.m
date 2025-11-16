@@ -81,10 +81,12 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
  Management
  */
 /// Returns a process surface file handle to perform a handoff over XPC
-MappingPortObject *proc_surface_handoff(void)
+MappingPortObject *proc_surface_for_pid(pid_t pid)
 {
     environment_must_be_role(EnvironmentRoleHost);
-    return [surfaceMappingPortObject copyWithProt:VM_PROT_READ];
+    // TODO: Enforce entitlements
+    uint32_t flags = VM_PROT_READ;
+    return [surfaceMappingPortObject copyWithProt:flags];
 }
 
 /*
