@@ -65,16 +65,6 @@
 /*
  libproc_userspace
  */
-- (void)proc_listallpidsViaReply:(void (^)(NSSet*))reply
-{
-    reply([NSSet setWithArray:[[LDEProcessManager shared] processes].allKeys]);
-}
-
-- (void)proc_getProcStructureForProcessIdentifier:(pid_t)pid withReply:(void (^)(LDEProcess*))reply
-{
-    reply([[LDEProcessManager shared] processForProcessIdentifier:pid]);
-}
-
 - (void)proc_kill:(pid_t)pid withSignal:(int)signal withReply:(void (^)(int))reply
 {
     // Checking if we have necessary entitlements

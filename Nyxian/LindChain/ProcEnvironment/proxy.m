@@ -153,22 +153,6 @@ TaskPortObject *environment_proxy_tfp_get_port_object_for_process_identifier(pid
     });
 }
 
-NSSet *environment_proxy_proc_list_all_process_identifier(void)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout(PROXY_TYPE_REPLY(NSSet*){
-        [hostProcessProxy proc_listallpidsViaReply:reply];
-    });
-}
-
-LDEProcess *environment_proxy_proc_structure_for_process_identifier(pid_t process_identifier)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout(PROXY_TYPE_REPLY(LDEProcess*){
-        [hostProcessProxy proc_getProcStructureForProcessIdentifier:process_identifier withReply:reply];
-    });
-}
-
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
                                                    int signal)
 {
