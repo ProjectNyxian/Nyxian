@@ -45,7 +45,6 @@ typedef int wid_t;
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGRect originalFrame;
 
-@property (nonatomic) UIStackView *view;
 @property (nonatomic) UIViewController<LDEWindowSession> *session;
 
 @property (nonatomic, weak) id<LDEWindowDelegate> delegate;
