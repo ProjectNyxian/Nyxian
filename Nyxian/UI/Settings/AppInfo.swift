@@ -32,6 +32,7 @@ class AppInfoViewController: UIThemedTableViewController {
         Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "Duy Tran", role: "LiveContainer", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Huge_Black", role: "LiveContainer", githubURL: "https://github.com/hugeBlack"),
+        Credit(name: "Stossy11", role: "Helpful advise for the window server", githubURL: "https://github.com/stossy11"),
         Credit(name: "Lars Fröder", role: "litehook", githubURL: "https://github.com/opa334")
     ]
     
