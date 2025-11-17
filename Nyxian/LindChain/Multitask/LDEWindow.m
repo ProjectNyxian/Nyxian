@@ -247,9 +247,9 @@ static int hook_return_2(void)
 {
     CGFloat navBarHeight = 44;
 
-    UIView *shadowContainer = [[UIView alloc] initWithFrame:dimensions];
+    UIView *shadowContainer = [[UIStackView alloc] initWithFrame:dimensions];
     shadowContainer.backgroundColor = UIColor.clearColor;
-    shadowContainer.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    shadowContainer.autoresizingMask = UIViewAutoresizingNone;
 
     shadowContainer.layer.shadowColor = UIColor.blackColor.CGColor;
     shadowContainer.layer.shadowOpacity = 1.0;
