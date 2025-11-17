@@ -17,6 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef LDEMULTITASKMANAGER_H
+#define LDEMULTITASKMANAGER_H
+
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <Project/NXProject.h>
@@ -39,3 +42,5 @@
 - (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session identifier:(wid_t*)identifier;
 
 @end
+
+#endif /* LDEMULTITASKMANAGER_H */

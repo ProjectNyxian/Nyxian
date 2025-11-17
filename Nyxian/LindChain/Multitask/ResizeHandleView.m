@@ -4,10 +4,13 @@
 //
 //  Created by Duy Tran on 2/6/25.
 //
+
 #import "ResizeHandleView.h"
 
 @implementation ResizeHandleView
-- (instancetype)initWithFrame:(CGRect)frame {
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
     self = [super initWithFrame:frame];
     self.layer.masksToBounds = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
@@ -18,4 +21,5 @@
     [self addSubview:backgroundView];
     return self;
 }
+
 @end
