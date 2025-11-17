@@ -28,8 +28,7 @@
 - (instancetype)initWithProcessIdentifier:(pid_t)processIdentifier
 {
     self = [super init];
-    _processIdentifier = processIdentifier;
-    _process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
+    _process = [[LDEProcessManager shared] processForProcessIdentifier:processIdentifier];
     self.windowName = _process.displayName;
     return self;
 }
@@ -71,7 +70,6 @@
     settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
     
     settings.statusBarDisabled = YES;
-    self.settings = settings;
     parameters.settings = settings;
     
     UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
@@ -97,15 +95,15 @@
 
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene
 {
+    [_presenter invalidate];
     [windowScene _unregisterSettingsDiffActionArrayForKey:self.sceneID];
     [_process terminate];
 }
 
 - (UIImage*)snapshotWindow
 {
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
-    if(process == nil) return nil;
-    return process.snapshot;
+    if(_process == nil) return nil;
+    return _process.snapshot;
 }
 
 - (void)activateWindow

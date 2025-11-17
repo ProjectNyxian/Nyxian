@@ -28,11 +28,8 @@
 
 @property (nonatomic) NSString *sceneID;
 @property(nonatomic) UIView* contentView;
-@property(nonatomic) pid_t processIdentifier;
-@property(nonatomic) LDEProcess *process;
+@property(nonatomic, weak) LDEProcess *process;
 @property(nonatomic) _UIScenePresenter *presenter;
-@property (nonatomic, copy) void (^pendingSettingsBlock)(UIMutableApplicationSceneSettings *settings);
-@property(nonatomic) UIMutableApplicationSceneSettings *settings;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
 
 - (instancetype)initWithProcessIdentifier:(pid_t)processIdentifier;
