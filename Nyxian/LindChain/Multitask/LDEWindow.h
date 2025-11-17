@@ -29,8 +29,8 @@ typedef int wid_t;
 
 @protocol LDEWindowDelegate <NSObject>
 
-- (void)dismissedWindow:(LDEWindow*)window;
-- (void)activatedWindow:(LDEWindow*)window;
+- (void)userDidCloseWindow:(LDEWindow*)window;
+- (void)userDidFocusWindow:(LDEWindow*)window;
 
 @end
 

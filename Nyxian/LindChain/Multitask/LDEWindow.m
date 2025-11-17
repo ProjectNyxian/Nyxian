@@ -1,32 +1,25 @@
-#import "LDEWindow.h"
-#import "ResizeHandleView.h"
-//#import "LiveContainerSwiftUI-Swift.h"
-#import "LDEAppScene.h"
+/*
+ Copyright (C) 2025 cr4zyengineer
+
+ This file is part of Nyxian.
+
+ Nyxian is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Nyxian is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#import <LindChain/Multitask/LDEWindow.h>
+#import <LindChain/Multitask/ResizeHandleView.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import "../LiveContainer/Localization.h"
-#import "utils.h"
-#import <objc/runtime.h>
-#import <LindChain/Multitask/LDEMultitaskManager.h>
-#import <LindChain/ProcEnvironment/Server/Server.h>
-#import <LindChain/Debugger/Logger.h>
-
-// TODO: Move those away
-@implementation RBSTarget(hook)
-
-+ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier
-{
-    if([environmentIdentifier containsString:@"LiveProcess"]) {
-        environmentIdentifier = [NSString stringWithFormat:@"LiveProcess:%d", pid];
-    }
-    return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
-}
-
-@end
-
-static int hook_return_2(void)
-{
-    return 2;
-}
 
 @interface LDEWindow ()
 
@@ -53,8 +46,9 @@ static int hook_return_2(void)
     
     [self setupDecoratedView:CGRectMake(50, 50, 400, 400)];
     
-    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-    {
+    // TODO: Reimplement windows for phone
+    /*if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {*/
         UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
         UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
         maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
@@ -70,14 +64,14 @@ static int hook_return_2(void)
         
         NSArray *barButtonItems = @[closeButton, self.maximizeButton];
         self.navigationItem.rightBarButtonItems = barButtonItems;
-    }
+    //}
     
     return self;
 }
 
 - (void)closeWindow
 {
-    [self.delegate dismissedWindow:self];
+    [self.delegate userDidCloseWindow:self];
 }
 
 - (void)dismissViewControllerAnimated:(BOOL)flag
@@ -90,7 +84,7 @@ static int hook_return_2(void)
 - (void)handlePullDown:(UIPanGestureRecognizer *)gesture
 {
     // TODO: Fix this up
-    /*static BOOL isAnimating = NO;
+    static BOOL isAnimating = NO;
     
     UIView *windowView = self.view;
     CGPoint translation = [gesture translationInView:windowView.superview];
@@ -122,8 +116,8 @@ static int hook_return_2(void)
                         windowView.transform = CGAffineTransformIdentity;
                         windowView.alpha = 1.0;
                         [windowView removeFromSuperview];
-                        [self.appSceneVC setForegroundEnabled:NO];
-                        if(self.dismissalCallback != nil) self.dismissalCallback();
+                        //[self.appSceneVC setForegroundEnabled:NO];
+                        //if(self.dismissalCallback != nil) self.dismissalCallback();
                         isAnimating = NO;
                     }
                 }];
@@ -147,7 +141,7 @@ static int hook_return_2(void)
         }
         default:
             break;
-    }*/
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -158,19 +152,19 @@ static int hook_return_2(void)
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:8.0];
         
         // MARK: Suppose to only run on phones
-        if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+        /*if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
         {
             [self maximizeWindow:NO];
             UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
             [self.navigationBar addGestureRecognizer:pullDownGesture];
         }
         else
-        {
+        {*/
             // MARK: Triggering resize system at start to guarantee that it gets layouted
             [self startLiveResizeWithSettingsBlock];
             [self resizeActionStart];
             [self resizeActionEnd];
-        }
+        //}
     });
 }
 
@@ -239,7 +233,7 @@ static int hook_return_2(void)
     } completion:^(BOOL finished) {
         [self->_focusView removeFromSuperview];
         self->_focusView = nil;
-        [self.delegate activatedWindow:self];
+        [self.delegate userDidFocusWindow:self];
     }];
 }
 
@@ -248,86 +242,86 @@ static int hook_return_2(void)
     UIView *shadowContainer = [[UIStackView alloc] initWithFrame:dimensions];
     shadowContainer.backgroundColor = UIColor.clearColor;
     shadowContainer.autoresizingMask = UIViewAutoresizingNone;
-
+    
     shadowContainer.layer.shadowColor = UIColor.blackColor.CGColor;
     shadowContainer.layer.shadowOpacity = 1.0;
     shadowContainer.layer.shadowRadius = 12;
     shadowContainer.layer.shadowOffset = CGSizeMake(0, 4);
-
+    
     UIStackView *contentStack = [UIStackView new];
     contentStack.frame = shadowContainer.bounds;
     contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
+    
     contentStack.axis = UILayoutConstraintAxisVertical;
     contentStack.backgroundColor = UIColor.systemBackgroundColor;
     contentStack.layer.cornerRadius = 10;
     contentStack.layer.masksToBounds = YES;
     [shadowContainer addSubview:contentStack];
     self.view = shadowContainer;
-
+    
     UINavigationBar *navigationBar = [[UINavigationBar alloc] init];
     navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
     navigationBar.items = @[navigationItem];
-
+    
     self.navigationBar = navigationBar;
     self.navigationItem = navigationItem;
     [contentStack addArrangedSubview:navigationBar];
-
+    
     CGRect contentFrame = CGRectMake(0, 0,
-        contentStack.frame.size.width,
-        contentStack.frame.size.height);
-
+                                     contentStack.frame.size.width,
+                                     contentStack.frame.size.height);
+    
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
     fixedPositionContentView.autoresizingMask =
-        UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
+    UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
     [contentStack addArrangedSubview:fixedPositionContentView];
     [contentStack sendSubviewToBack:fixedPositionContentView];
-
+    
     self.contentView = [[UIView alloc] initWithFrame:contentFrame];
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
     self.contentView.autoresizingMask =
-        UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
+    UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
     [fixedPositionContentView addSubview:self.contentView];
-
+    
     UIPanGestureRecognizer *moveGesture =
-        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
+    [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
     moveGesture.maximumNumberOfTouches = 1;
     [self.navigationBar addGestureRecognizer:moveGesture];
-
+    
     UIPanGestureRecognizer *resizeGesture =
-        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
+    [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
-
+    
     self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(contentStack.frame.size.width - 44, contentStack.frame.size.height - 44, 44, 44)];
     [self.resizeHandle addGestureRecognizer:resizeGesture];
     [contentStack addSubview:self.resizeHandle];
-
+    
     contentStack.layer.borderWidth = 0.5;
     contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
-
+    
     [self addChildViewController:_session];
     [contentStack insertSubview:_session.view atIndex:0];
-
+    
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
-
+    
     [NSLayoutConstraint activateConstraints:@[
         [_session.view.topAnchor constraintEqualToAnchor:navigationBar.bottomAnchor],
         [_session.view.leadingAnchor constraintEqualToAnchor:contentStack.leadingAnchor]
     ]];
-
+    
     [self updateVerticalConstraints];
     [self updateOriginalFrame];
 }
 
 - (void)maximizeWindow:(BOOL)animated {
-    /*[self.appSceneVC resizeActionStart];
+    [self resizeActionStart];
     if (self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
         CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
@@ -335,21 +329,12 @@ static int hook_return_2(void)
             self.view.frame = newFrame;
             self.view.layer.borderWidth = 1;
             self.resizeHandle.alpha = 1;
-            if(self.appSceneVC)
-            {
-                [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-                    [self updateWindowedFrameWithSettings:settings];
-                }];
-            }
         } completion:^(BOOL finished) {
             self.isMaximized = NO;
             UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
             UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
             self.maximizeButton.image = [maximizeImage imageWithConfiguration:maximizeConfig];
-            if(self.appSceneVC)
-            {
-                [self.appSceneVC resizeActionEnd];
-            }
+            [self resizeActionEnd];
         }];
     } else {
         [self.view.superview bringSubviewToFront:self.view];
@@ -360,23 +345,13 @@ static int hook_return_2(void)
             
             self.view.layer.borderWidth = 0;
             self.resizeHandle.alpha = 0;
-            if(self.appSceneVC)
-            {
-                [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-                    [self updateMaximizedFrameWithSettings:settings];
-                }];
-            }
         } completion:^(BOOL finished) {
             UIImage *restoreImage = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
             UIImageConfiguration *restoreConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
             self.maximizeButton.image = [restoreImage imageWithConfiguration:restoreConfig];
-            
-            if(self.appSceneVC)
-            {
-                [self.appSceneVC resizeActionEnd];
-            }
+            [self resizeActionEnd];
         }];
-    }*/
+    }
 }
 
 - (void)maximizeButtonPressed

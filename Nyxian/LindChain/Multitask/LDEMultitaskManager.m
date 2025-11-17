@@ -173,7 +173,7 @@
             if(window)
             {
                 weakSelf.windows[@(windowIdentifier)] = window;
-                [self activatedWindow:window];
+                [self userDidFocusWindow:window];
                 [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
                 [weakSelf addSubview:window.view];
                 if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
@@ -225,7 +225,7 @@
 
 - (void)removeTileForProcess:(pid_t)processIdentifier
 {
-    /*if(!self.stackView) return;
+    if(!self.stackView) return;
 
     for(UIView *tile in self.stackView.arrangedSubviews)
     {
@@ -240,7 +240,7 @@
     if(self.stackView.arrangedSubviews.count == 0)
     {
         self.placeholderStack.hidden = NO;
-    }*/
+    }
 }
 
 - (void)makeKeyAndVisible
@@ -570,7 +570,7 @@
     return NO;
 }
 
-- (void)activatedWindow:(LDEWindow *)window
+- (void)userDidFocusWindow:(LDEWindow *)window
 {
     if(_activeWindow != nil &&
        _activeWindow != window)
@@ -580,7 +580,7 @@
     _activeWindow = window;
 }
 
-- (void)dismissedWindow:(LDEWindow *)window
+- (void)userDidCloseWindow:(LDEWindow *)window
 {
     if(_activeWindow == window)
     {
