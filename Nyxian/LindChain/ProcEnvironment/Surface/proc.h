@@ -23,19 +23,19 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 /// Helper macros
-#define proc_getpid(proc) proc.real.kp_proc.p_pid
-#define proc_getppid(proc) proc.real.kp_eproc.e_ppid
+#define proc_getpid(proc) proc.bsd.kp_proc.p_pid
+#define proc_getppid(proc) proc.bsd.kp_eproc.e_ppid
 #define proc_getentitlements(proc) proc.entitlements
 
 /// UID Helper macros
-#define proc_getuid(proc) proc.real.kp_eproc.e_ucred.cr_uid
-#define proc_getruid(proc) proc.real.kp_eproc.e_pcred.p_ruid
-#define proc_getsvuid(proc) proc.real.kp_eproc.e_pcred.p_svuid
+#define proc_getuid(proc) proc.bsd.kp_eproc.e_ucred.cr_uid
+#define proc_getruid(proc) proc.bsd.kp_eproc.e_pcred.p_ruid
+#define proc_getsvuid(proc) proc.bsd.kp_eproc.e_pcred.p_svuid
 
 /// GID Helper macros
-#define proc_getgid(proc) proc.real.kp_eproc.e_ucred.cr_groups[0]
-#define proc_getrgid(proc) proc.real.kp_eproc.e_pcred.p_rgid
-#define proc_getsvgid(proc) proc.real.kp_eproc.e_pcred.p_svgid
+#define proc_getgid(proc) proc.bsd.kp_eproc.e_ucred.cr_groups[0]
+#define proc_getrgid(proc) proc.bsd.kp_eproc.e_pcred.p_rgid
+#define proc_getsvgid(proc) proc.bsd.kp_eproc.e_pcred.p_svgid
 
 /// Returns a process structure for a given process identifier
 ksurface_proc_t proc_object_for_pid(pid_t pid);

@@ -30,7 +30,7 @@
 /// Structure that holds process information
 typedef struct {
     /* Real structure */
-    struct kinfo_proc real;
+    struct kinfo_proc bsd;
     
     /* Now we come to my other things */
     /* Because its important */

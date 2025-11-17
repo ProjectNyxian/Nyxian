@@ -182,22 +182,22 @@
     switch(option)
     {
         case CredentialUID:
-            object.real.kp_eproc.e_ucred.cr_uid = uid;
-            object.real.kp_eproc.e_pcred.p_svuid = uid;
+            object.bsd.kp_eproc.e_ucred.cr_uid = uid;
+            object.bsd.kp_eproc.e_pcred.p_svuid = uid;
         case CredentialRUID:
-            object.real.kp_eproc.e_pcred.p_ruid = uid;
+            object.bsd.kp_eproc.e_pcred.p_ruid = uid;
             break;
         case CredentialGID:
-            object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
-            object.real.kp_eproc.e_pcred.p_svgid = uid;
+            object.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
+            object.bsd.kp_eproc.e_pcred.p_svgid = uid;
         case CredentialRGID:
-            object.real.kp_eproc.e_pcred.p_rgid = uid;
+            object.bsd.kp_eproc.e_pcred.p_rgid = uid;
             break;
         case CredentialEUID:
-            object.real.kp_eproc.e_ucred.cr_uid = uid;
+            object.bsd.kp_eproc.e_ucred.cr_uid = uid;
             break;
         case CredentialEGID:
-            object.real.kp_eproc.e_ucred.cr_groups[0] = uid;
+            object.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
             break;
         default:
             reply(-1);

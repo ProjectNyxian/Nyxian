@@ -47,7 +47,7 @@
 + (instancetype)inheriteConfigurationUsingProcessIdentifier:(pid_t)pid
 {
     ksurface_proc_t object = proc_object_for_pid(pid);
-    return [[self alloc] initWithParentProcessIdentifier:object.real.kp_proc.p_pid withUserIdentifier:object.real.kp_eproc.e_pcred.p_ruid withGroupIdentifier:object.real.kp_eproc.e_pcred.p_rgid withEntitlements:object.entitlements];
+    return [[self alloc] initWithParentProcessIdentifier:object.bsd.kp_proc.p_pid withUserIdentifier:object.bsd.kp_eproc.e_pcred.p_ruid withGroupIdentifier:object.bsd.kp_eproc.e_pcred.p_rgid withEntitlements:object.entitlements];
 }
 
 + (instancetype)userApplicationConfiguration

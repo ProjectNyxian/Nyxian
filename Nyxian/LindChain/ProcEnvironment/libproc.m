@@ -50,7 +50,7 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
 
             pid_t *pids = (pid_t *)buffer;
             for (size_t i = 0; i < n; i++) {
-                pids[i] = surface->proc_info[i].real.kp_proc.p_pid;
+                pids[i] = surface->proc_info[i].bsd.kp_proc.p_pid;
             }
         }
 
@@ -71,10 +71,10 @@ int proc_libproc_name(pid_t pid, void * buffer, uint32_t buffersize)
         return 0;
     
     ksurface_proc_t info = proc_object_for_pid(pid);
-    if (info.real.kp_proc.p_pid == 0)
+    if (info.bsd.kp_proc.p_pid == 0)
         return 0;
     
-    strlcpy((char*)buffer, info.real.kp_proc.p_comm, buffersize);
+    strlcpy((char*)buffer, info.bsd.kp_proc.p_comm, buffersize);
     
     return (int)strlen((char*)buffer);
 }
@@ -85,7 +85,7 @@ int proc_libproc_pidpath(pid_t pid, void * buffer, uint32_t buffersize)
         return 0;
 
     ksurface_proc_t info = proc_object_for_pid(pid);
-    if (info.real.kp_proc.p_pid == 0)
+    if (info.bsd.kp_proc.p_pid == 0)
         return 0;
 
     strlcpy((char*)buffer, info.path, buffersize);
@@ -99,7 +99,7 @@ int proc_libproc_pidinfo(pid_t pid, int flavor, uint64_t arg,
         return 0;
 
     ksurface_proc_t kinfo = proc_object_for_pid(pid);
-    if (kinfo.real.kp_proc.p_pid == 0)
+    if (kinfo.bsd.kp_proc.p_pid == 0)
         return 0;
 
     switch (flavor) {
@@ -112,7 +112,7 @@ int proc_libproc_pidinfo(pid_t pid, int flavor, uint64_t arg,
             return 0;
         struct proc_taskallinfo *info = (struct proc_taskallinfo*)buffer;
         memset(info, 0, sizeof(*info));
-        memcpy(&info->pbsd, &kinfo.real, sizeof(kinfo.real) < sizeof(info->pbsd) ? sizeof(kinfo.real) : sizeof(info->pbsd));
+        memcpy(&info->pbsd, &kinfo.bsd, sizeof(kinfo.bsd) < sizeof(info->pbsd) ? sizeof(kinfo.bsd) : sizeof(info->pbsd));
         return sizeof(struct proc_taskallinfo);
     }
 

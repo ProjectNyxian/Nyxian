@@ -151,7 +151,7 @@
         {
             // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
             ksurface_proc_t object = proc_object_for_pid(self.process.pid);
-            if(object.real.kp_proc.p_pid == 0) return;
+            if(object.bsd.kp_proc.p_pid == 0) return;
             object.force_task_role_override = true;
             object.task_role_override = TASK_DARWINBG_APPLICATION;
             proc_object_insert(object);

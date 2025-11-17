@@ -65,7 +65,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
         {
             memset(&kprocs[i], 0, sizeof(struct kinfo_proc));
             memcpy(&kprocs[i],
-                   &surface->proc_info[i].real,
+                   &surface->proc_info[i].bsd,
                    sizeof(struct kinfo_proc));
         }
 

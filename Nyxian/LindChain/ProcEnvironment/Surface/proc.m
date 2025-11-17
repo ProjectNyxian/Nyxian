@@ -37,7 +37,7 @@ ksurface_proc_t proc_object_for_pid(pid_t pid)
         for(uint32_t i = 0; i < surface->proc_count; i++)
         {
             ksurface_proc_t object = surface->proc_info[i];
-            if(object.real.kp_proc.p_pid == pid)
+            if(object.bsd.kp_proc.p_pid == pid)
             {
                 cur = object;
                 break;
@@ -57,7 +57,7 @@ void proc_object_remove_for_pid(pid_t pid)
 
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
-        if(surface->proc_info[i].real.kp_proc.p_pid == pid)
+        if(surface->proc_info[i].bsd.kp_proc.p_pid == pid)
         {
             if(i < surface->proc_count - 1)
             {
@@ -98,7 +98,7 @@ void proc_object_insert(ksurface_proc_t object)
     
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
-        if(surface->proc_info[i].real.kp_proc.p_pid == object.real.kp_proc.p_pid)
+        if(surface->proc_info[i].bsd.kp_proc.p_pid == object.bsd.kp_proc.p_pid)
         {
             memcpy(&surface->proc_info[i], &object, sizeof(ksurface_proc_t));
             seqlock_unlock(&(surface->seqlock));
@@ -226,7 +226,7 @@ BOOL proc_create_child_proc(pid_t ppid,
     ksurface_proc_t finalObject = {};
     finalObject.force_task_role_override = true;
     finalObject.task_role_override = TASK_UNSPECIFIED;
-    finalObject.real = childInfoProc;
+    finalObject.bsd = childInfoProc;
     strncpy(finalObject.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     
     finalObject.entitlements = entitlement;
