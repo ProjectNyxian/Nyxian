@@ -180,7 +180,7 @@
     _focusView.translatesAutoresizingMaskIntoConstraints = NO;
     
     [NSLayoutConstraint activateConstraints:@[
-        [_focusView.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:44],
+        [_focusView.topAnchor constraintEqualToAnchor:self.navigationBar.bottomAnchor],
         [_focusView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
         [_focusView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [_focusView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
