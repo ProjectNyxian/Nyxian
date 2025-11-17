@@ -27,6 +27,7 @@
 
 @property (nonatomic, strong) UIStackView *stackView;
 @property (nonatomic, strong) UIStackView *placeholderStack;
+@property (nonatomic, strong) LDEWindow *activeWindow;
 @property (nonatomic, assign) wid_t activeWindowIdentifier;
 
 @end
@@ -571,16 +572,20 @@
 
 - (void)activatedWindow:(LDEWindow *)window
 {
-    for(NSNumber *wid in self.windows)
+    if(_activeWindow != nil &&
+       _activeWindow != window)
     {
-        LDEWindow *iwindow = self.windows[wid];
-        if(iwindow == window) continue;
-        [iwindow unfocusWindow];
+        [_activeWindow unfocusWindow];
     }
+    _activeWindow = window;
 }
 
 - (void)dismissedWindow:(LDEWindow *)window
 {
+    if(_activeWindow == window)
+    {
+        _activeWindow = nil;
+    }
     [window.session closeWindowWithScene:self.windowScene];
     [self closeWindowWithIdentifier:window.identifier];
 }
