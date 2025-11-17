@@ -30,7 +30,8 @@ class CustomizationViewController: UIThemedTableViewController {
     var icons: [String] = [
         "Default",
         "Drawn",
-        "MoonLight"
+        "Nyxcat",
+        "Nyxcat2"
     ]
     
     var themePreviewCell: ThemePickerPreviewCell?

@@ -33,7 +33,8 @@ class AppInfoViewController: UIThemedTableViewController {
         Credit(name: "Duy Tran", role: "LiveContainer", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Huge_Black", role: "LiveContainer", githubURL: "https://github.com/hugeBlack"),
         Credit(name: "Stossy11", role: "Helpful advise for the window server", githubURL: "https://github.com/stossy11"),
-        Credit(name: "Lars Fröder", role: "litehook", githubURL: "https://github.com/opa334")
+        Credit(name: "Lars Fröder", role: "litehook", githubURL: "https://github.com/opa334"),
+        Credit(name: "xzadik", role: "Nyxcat app icons", githubURL: "https://github.com/xzadik"),
     ]
     
     override func viewDidLoad() {
