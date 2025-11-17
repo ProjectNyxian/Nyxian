@@ -23,57 +23,57 @@
 
 DEFINE_HOOK(getuid, uid_t, (void))
 {
-    return environment_proxy_getcred(CredentialUID);
+    return environment_proxy_getprocinfo(ProcessInfoUID);
 }
 
 DEFINE_HOOK(getgid, gid_t, (void))
 {
-    return environment_proxy_getcred(CredentialGID);
+    return environment_proxy_getprocinfo(ProcessInfoGID);
 }
 
 DEFINE_HOOK(geteuid, uid_t, (void))
 {
-    return environment_proxy_getcred(CredentialEUID);
+    return environment_proxy_getprocinfo(ProcessInfoEUID);
 }
 
 DEFINE_HOOK(getegid, gid_t, (void))
 {
-    return environment_proxy_getcred(CredentialEGID);
+    return environment_proxy_getprocinfo(ProcessInfoEGID);
 }
 
 DEFINE_HOOK(getppid, pid_t, (void))
 {
-    return environment_proxy_getppid();
+    return environment_proxy_getprocinfo(ProcessInfoPPID);
 }
 
 DEFINE_HOOK(setuid, int, (uid_t uid))
 {
-    return environment_proxy_setcred(CredentialUID, uid);
+    return environment_proxy_setprocinfo(ProcessInfoUID, uid);
 }
 
 DEFINE_HOOK(seteuid, int, (uid_t uid))
 {
-    return environment_proxy_setcred(CredentialEUID, uid);
+    return environment_proxy_setprocinfo(ProcessInfoEUID, uid);
 }
 
 DEFINE_HOOK(setruid, int, (uid_t uid))
 {
-    return environment_proxy_setcred(CredentialRUID, uid);
+    return environment_proxy_setprocinfo(ProcessInfoRUID, uid);
 }
 
 DEFINE_HOOK(setgid, int, (gid_t gid))
 {
-    return environment_proxy_setcred(CredentialGID, gid);
+    return environment_proxy_setprocinfo(ProcessInfoGID, gid);
 }
 
 DEFINE_HOOK(setegid, int, (gid_t gid))
 {
-    return environment_proxy_setcred(CredentialEGID, gid);
+    return environment_proxy_setprocinfo(ProcessInfoEGID, gid);
 }
 
 DEFINE_HOOK(setrgid, int, (gid_t gid))
 {
-    return environment_proxy_setcred(CredentialEGID, gid);
+    return environment_proxy_setprocinfo(ProcessInfoRGID, gid);
 }
 
 void environment_cred_init(void)

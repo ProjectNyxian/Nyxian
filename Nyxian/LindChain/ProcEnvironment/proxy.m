@@ -27,9 +27,7 @@
 
 NSObject<ServerProtocol> *hostProcessProxy = nil;
 
-static inline id
-_Nullable
-sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
+static id _Nullable sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
 {
     __block id result = nil;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -47,9 +45,7 @@ sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
     return result;
 }
 
-static inline NSArray*
-_Nullable
-sync_call_with_timeout2(void (^invoke)(void (^reply)(id,id)))
+static NSArray* _Nullable sync_call_with_timeout2(void (^invoke)(void (^reply)(id,id)))
 {
     __block NSArray *result = nil;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -67,8 +63,7 @@ sync_call_with_timeout2(void (^invoke)(void (^reply)(id,id)))
     return result;
 }
 
-static inline int
-sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
+static int sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
 {
     __block int result = -1;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -85,49 +80,12 @@ sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
     return (waited == 0) ? result : -1;
 }
 
-static inline uid_t
-sync_call_with_timeout_uid(void (^invoke)(void (^reply)(uid_t)))
+static unsigned int sync_call_with_timeout_uint(void (^invoke)(void (^reply)(unsigned int)))
 {
     __block int result = -1;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    invoke(^(uid_t val){
-        result = val;
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    return (waited == 0) ? result : -1;
-}
-
-static inline BOOL
-sync_call_with_timeout_bool(void (^invoke)(void (^reply)(BOOL)))
-{
-    __block int result = -1;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(BOOL val){
-        result = val;
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    return (waited == 0) ? result : -1;
-}
-
-static inline pid_t
-sync_call_with_timeout_pid(void (^invoke)(void (^reply)(pid_t)))
-{
-    __block int result = -1;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(pid_t val){
+    invoke(^(unsigned int val){
         result = val;
         dispatch_semaphore_signal(sem);
     });
@@ -182,7 +140,7 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
 BOOL environment_proxy_make_window_visible(void)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout_bool(PROXY_TYPE_REPLY(BOOL){
+    return sync_call_with_timeout_int(PROXY_TYPE_REPLY(int){
         [hostProcessProxy makeWindowVisibleWithReply:reply];
     });
 }
@@ -193,7 +151,7 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path,
                                               FDMapObject *mapObject)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout_pid(PROXY_TYPE_REPLY(pid_t){
+    return sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
         [hostProcessProxy spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withReply:reply];
     });
 }
@@ -206,33 +164,24 @@ MappingPortObject *environment_proxy_get_surface_mapping(void)
     });
 }
 
-int environment_proxy_setcred(Credential credential,
-                              uid_t uid)
+int environment_proxy_setprocinfo(ProcessInfo info,
+                                  unsigned int identifier)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    int ret = sync_call_with_timeout_int(PROXY_TYPE_REPLY(int){
-        [hostProcessProxy setCredentialWithOption:credential withIdentifier:uid withReply:reply];
+    int ret = sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
+        [hostProcessProxy setProcessInfoWithOption:info withIdentifier:identifier withReply:reply];
     });
     if(ret == -1) errno = EPERM;
     return ret;
 }
 
-uid_t environment_proxy_getcred(Credential credential)
+unsigned int environment_proxy_getprocinfo(ProcessInfo info)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    uid_t ret = sync_call_with_timeout_uid(PROXY_TYPE_REPLY(uid_t){
-        [hostProcessProxy getCredentialWithOption:credential withReply:reply];
+    uid_t ret = sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
+        [hostProcessProxy getProcessInfoWithOption:info withReply:reply];
     });
     if(ret == -1) errno = EPERM;
-    return ret;
-}
-
-pid_t environment_proxy_getppid(void)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    uid_t ret = sync_call_with_timeout_pid(PROXY_TYPE_REPLY(pid_t){
-        [hostProcessProxy getParentProcessIdentifierWithReply:reply];
-    });
     return ret;
 }
 

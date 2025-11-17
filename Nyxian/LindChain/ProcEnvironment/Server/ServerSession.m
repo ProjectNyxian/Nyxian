@@ -90,7 +90,7 @@
 /*
  application
  */
-- (void)makeWindowVisibleWithReply:(void (^)(BOOL))reply
+- (void)makeWindowVisibleWithReply:(void (^)(int))reply
 {
     __block BOOL didInvokeWindow = NO;
     dispatch_once(&_makeWindowVisibleOnce,^{
@@ -116,7 +116,7 @@
 /*
  posix_spawn
  */
-- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(pid_t))reply
+- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply
 {
     if(path
        && arguments
@@ -174,30 +174,32 @@
 /*
  Set credentials
  */
-- (void)setCredentialWithOption:(Credential)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply
+- (void)setProcessInfoWithOption:(ProcessInfo)option
+                  withIdentifier:(unsigned int)uid
+                       withReply:(void (^)(unsigned int result))reply
 {
-    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
-    ksurface_proc_t bobject = object;
+    ksurface_proc_t proc = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t proc_unmod = proc;
     
     switch(option)
     {
-        case CredentialUID:
-            object.bsd.kp_eproc.e_ucred.cr_uid = uid;
-            object.bsd.kp_eproc.e_pcred.p_svuid = uid;
-        case CredentialRUID:
-            object.bsd.kp_eproc.e_pcred.p_ruid = uid;
+        case ProcessInfoUID:
+            proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
+            proc.bsd.kp_eproc.e_pcred.p_svuid = uid;
+        case ProcessInfoRUID:
+            proc.bsd.kp_eproc.e_pcred.p_ruid = uid;
             break;
-        case CredentialGID:
-            object.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
-            object.bsd.kp_eproc.e_pcred.p_svgid = uid;
-        case CredentialRGID:
-            object.bsd.kp_eproc.e_pcred.p_rgid = uid;
+        case ProcessInfoGID:
+            proc.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
+            proc.bsd.kp_eproc.e_pcred.p_svgid = uid;
+        case ProcessInfoRGID:
+            proc.bsd.kp_eproc.e_pcred.p_rgid = uid;
             break;
-        case CredentialEUID:
-            object.bsd.kp_eproc.e_ucred.cr_uid = uid;
+        case ProcessInfoEUID:
+            proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
             break;
-        case CredentialEGID:
-            object.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
+        case ProcessInfoEGID:
+            proc.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
             break;
         default:
             reply(-1);
@@ -205,16 +207,16 @@
     }
     
     bool processAllowedToElevate = proc_got_entitlement(_processIdentifier, PEEntitlementProcessElevate);
-    bool processObjectIsDifferent = !(proc_getuid(object) == proc_getuid(bobject) &&
-                                      proc_getruid(object) == proc_getruid(bobject) &&
-                                      proc_getsvuid(object) == proc_getsvuid(bobject) &&
-                                      proc_getgid(object) == proc_getgid(bobject) &&
-                                      proc_getrgid(object) == proc_getrgid(bobject) &&
-                                      proc_getsvgid(object) == proc_getsvgid(bobject));
+    bool processObjectIsDifferent = !(proc_getuid(proc) == proc_getuid(proc_unmod) &&
+                                      proc_getruid(proc) == proc_getruid(proc_unmod) &&
+                                      proc_getsvuid(proc) == proc_getsvuid(proc_unmod) &&
+                                      proc_getgid(proc) == proc_getgid(proc_unmod) &&
+                                      proc_getrgid(proc) == proc_getrgid(proc_unmod) &&
+                                      proc_getsvgid(proc) == proc_getsvgid(proc_unmod));
     
     if(processObjectIsDifferent && processAllowedToElevate)
     {
-        proc_object_insert(object);
+        proc_object_insert(proc);
     }
     else if(processObjectIsDifferent)
     {
@@ -226,40 +228,40 @@
     return;
 }
 
-- (void)getCredentialWithOption:(Credential)option withReply:(void (^)(uid_t result))reply
+- (void)getProcessInfoWithOption:(ProcessInfo)option
+                       withReply:(void (^)(unsigned int result))reply
 {
-    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t proc = proc_object_for_pid(_processIdentifier);
     
     pid_t repl = 0;
     
     switch(option)
     {
-        case CredentialUID:
-        case CredentialEUID:
-            repl = proc_getuid(object);
+        case ProcessInfoUID:
+        case ProcessInfoEUID:
+            repl = proc_getuid(proc);
             break;
-        case CredentialRUID:
-            repl = proc_getruid(object);
+        case ProcessInfoGID:
+        case ProcessInfoEGID:
+            repl = proc_getgid(proc);
             break;
-        case CredentialGID:
-        case CredentialEGID:
-            repl = proc_getgid(object);
+        case ProcessInfoRUID:
+            repl = proc_getruid(proc);
             break;
-        case CredentialRGID:
-            repl = proc_getrgid(object);
+        case ProcessInfoRGID:
+            repl = proc_getrgid(proc);
+            break;
+        case ProcessInfoPID:
+            repl = proc_getpid(proc);
+            break;
+        case ProcessInfoPPID:
+            repl = proc_getppid(proc);
             break;
         default:
             repl = -1;
     }
     
     reply(repl);
-    return;
-}
-
-- (void)getParentProcessIdentifierWithReply:(void (^)(pid_t result))reply
-{
-    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
-    reply(proc_getppid(object));
     return;
 }
 

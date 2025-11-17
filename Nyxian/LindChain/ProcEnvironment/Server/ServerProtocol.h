@@ -29,14 +29,16 @@
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-typedef NS_OPTIONS(uint64_t, Credential) {
-    CredentialUID = 0,
-    CredentialEUID = 1,
-    CredentialRUID = 2,
-    CredentialGID = 3,
-    CredentialEGID = 4,
-    CredentialRGID = 5,
-    CredentialMAX = 6,
+typedef NS_OPTIONS(uint64_t, ProcessInfo) {
+    ProcessInfoUID = 0,
+    ProcessInfoEUID = 1,
+    ProcessInfoRUID = 2,
+    ProcessInfoGID = 3,
+    ProcessInfoEGID = 4,
+    ProcessInfoRGID = 5,
+    ProcessInfoPID = 6,
+    ProcessInfoPPID = 7,
+    ProcessInfoMAX = 8,
 };
 
 @protocol ServerProtocol
@@ -55,12 +57,12 @@ typedef NS_OPTIONS(uint64_t, Credential) {
 /*
  application
  */
-- (void)makeWindowVisibleWithReply:(void (^)(BOOL))reply;
+- (void)makeWindowVisibleWithReply:(void (^)(int))reply;
 
 /*
  posix_spawn
  */
-- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(pid_t))reply;
+- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;
 
 /*
  surface
@@ -73,11 +75,10 @@ typedef NS_OPTIONS(uint64_t, Credential) {
 - (void)setAudioBackgroundModeActive:(BOOL)active;
 
 /*
- Credentials
+ Process Info
  */
-- (void)getParentProcessIdentifierWithReply:(void (^)(pid_t result))reply;
-- (void)setCredentialWithOption:(Credential)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply;
-- (void)getCredentialWithOption:(Credential)option withReply:(void (^)(uid_t result))reply;
+- (void)setProcessInfoWithOption:(ProcessInfo)option withIdentifier:(unsigned int)uid withReply:(void (^)(unsigned int result))reply;
+- (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned int result))reply;
 
 /*
  Signer
