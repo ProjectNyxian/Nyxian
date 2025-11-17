@@ -245,8 +245,6 @@ static int hook_return_2(void)
 
 - (void)setupDecoratedView:(CGRect)dimensions
 {
-    CGFloat navBarHeight = 44;
-
     UIView *shadowContainer = [[UIStackView alloc] initWithFrame:dimensions];
     shadowContainer.backgroundColor = UIColor.clearColor;
     shadowContainer.autoresizingMask = UIViewAutoresizingNone;
@@ -267,8 +265,7 @@ static int hook_return_2(void)
     [shadowContainer addSubview:contentStack];
     self.view = shadowContainer;
 
-    UINavigationBar *navigationBar =
-        [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, contentStack.frame.size.width, navBarHeight)];
+    UINavigationBar *navigationBar = [[UINavigationBar alloc] init];
     navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
@@ -280,7 +277,7 @@ static int hook_return_2(void)
 
     CGRect contentFrame = CGRectMake(0, 0,
         contentStack.frame.size.width,
-        contentStack.frame.size.height - navBarHeight);
+        contentStack.frame.size.height);
 
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
     fixedPositionContentView.autoresizingMask =
@@ -308,11 +305,7 @@ static int hook_return_2(void)
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
 
-    self.resizeHandle = [[ResizeHandleView alloc]
-        initWithFrame:CGRectMake(contentStack.frame.size.width - navBarHeight,
-                                 contentStack.frame.size.height - navBarHeight,
-                                 navBarHeight, navBarHeight)];
-
+    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(contentStack.frame.size.width - 44, contentStack.frame.size.height - 44, 44, 44)];
     [self.resizeHandle addGestureRecognizer:resizeGesture];
     [contentStack addSubview:self.resizeHandle];
 
