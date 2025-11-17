@@ -38,16 +38,16 @@
 #define proc_getsvgid(proc) proc.real.kp_eproc.e_pcred.p_svgid
 
 /// Returns a process structure for a given process identifier
-kinfo_info_surface_t proc_object_for_pid(pid_t pid);
+ksurface_proc_t proc_object_for_pid(pid_t pid);
 
 /// Removes a process structure for a given process identifier
 void proc_object_remove_for_pid(pid_t pid);
 
 /// Inserts a given process structure into the surface structure
-void proc_object_insert(kinfo_info_surface_t object);
+void proc_object_insert(ksurface_proc_t object);
 
 /// Returns a process structure at a given index
-kinfo_info_surface_t proc_object_at_index(uint32_t index);
+ksurface_proc_t proc_object_at_index(uint32_t index);
 
 /// Returns if any process is allowed to spawn
 BOOL proc_can_spawn(void);

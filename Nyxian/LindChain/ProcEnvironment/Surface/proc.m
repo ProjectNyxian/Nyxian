@@ -24,9 +24,9 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-kinfo_info_surface_t proc_object_for_pid(pid_t pid)
+ksurface_proc_t proc_object_for_pid(pid_t pid)
 {
-    kinfo_info_surface_t cur = {};
+    ksurface_proc_t cur = {};
     
     // Dont use if uninitilized
     if(surface == NULL) return cur;
@@ -36,7 +36,7 @@ kinfo_info_surface_t proc_object_for_pid(pid_t pid)
         seqlock_read_begin(&(surface->seqlock));
         for(uint32_t i = 0; i < surface->proc_count; i++)
         {
-            kinfo_info_surface_t object = surface->proc_info[i];
+            ksurface_proc_t object = surface->proc_info[i];
             if(object.real.kp_proc.p_pid == pid)
             {
                 cur = object;
@@ -63,7 +63,7 @@ void proc_object_remove_for_pid(pid_t pid)
             {
                 memmove(&surface->proc_info[i],
                         &surface->proc_info[i + 1],
-                        (surface->proc_count - i - 1) * sizeof(kinfo_info_surface_t));
+                        (surface->proc_count - i - 1) * sizeof(ksurface_proc_t));
             }
             surface->proc_count--;
             break;
@@ -89,7 +89,7 @@ BOOL proc_can_spawn(void)
     return result;
 }
 
-void proc_object_insert(kinfo_info_surface_t object)
+void proc_object_insert(ksurface_proc_t object)
 {
     // Dont use if uninitilized
     if(surface == NULL) return;
@@ -100,20 +100,20 @@ void proc_object_insert(kinfo_info_surface_t object)
     {
         if(surface->proc_info[i].real.kp_proc.p_pid == object.real.kp_proc.p_pid)
         {
-            memcpy(&surface->proc_info[i], &object, sizeof(kinfo_info_surface_t));
+            memcpy(&surface->proc_info[i], &object, sizeof(ksurface_proc_t));
             seqlock_unlock(&(surface->seqlock));
             return;
         }
     }
     
-    memcpy(&surface->proc_info[surface->proc_count++], &object, sizeof(kinfo_info_surface_t));
+    memcpy(&surface->proc_info[surface->proc_count++], &object, sizeof(ksurface_proc_t));
     
     seqlock_unlock(&(surface->seqlock));
 }
 
-kinfo_info_surface_t proc_object_at_index(uint32_t index)
+ksurface_proc_t proc_object_at_index(uint32_t index)
 {
-    kinfo_info_surface_t cur = {};
+    ksurface_proc_t cur = {};
     
     // Dont use if uninitilized
     if(surface == NULL) return cur;
@@ -223,7 +223,7 @@ BOOL proc_create_child_proc(pid_t ppid,
     childInfoProc.kp_eproc.e_tpgid = 0;
     childInfoProc.kp_eproc.e_flag = 2;
     
-    kinfo_info_surface_t finalObject = {};
+    ksurface_proc_t finalObject = {};
     finalObject.force_task_role_override = true;
     finalObject.task_role_override = TASK_UNSPECIFIED;
     finalObject.real = childInfoProc;

@@ -28,8 +28,8 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
     environment_must_be_role(EnvironmentRoleHost);
     
     // Get the objects of both pids
-    kinfo_info_surface_t callerObj = proc_object_for_pid(callerPid);
-    kinfo_info_surface_t targetObj = proc_object_for_pid(targetPid);
+    ksurface_proc_t callerObj = proc_object_for_pid(callerPid);
+    ksurface_proc_t targetObj = proc_object_for_pid(targetPid);
     
     // Gets creds
     uid_t caller_uid = proc_getuid(callerObj);

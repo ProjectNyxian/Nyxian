@@ -89,7 +89,7 @@ DEFINE_HOOK(task_policy_get, kern_return_t,(task_policy_get_t task,
         kr = pid_for_task(task, &pid);
         if(kr == KERN_SUCCESS)
         {
-            kinfo_info_surface_t object = proc_object_for_pid(pid);
+            ksurface_proc_t object = proc_object_for_pid(pid);
             if(object.force_task_role_override)
             {
                 task_category_policy_data_t *data = (task_category_policy_data_t*)policy_info;

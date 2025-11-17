@@ -176,8 +176,8 @@
  */
 - (void)setCredentialWithOption:(Credential)option withIdentifier:(uid_t)uid withReply:(void (^)(int result))reply
 {
-    kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
-    kinfo_info_surface_t bobject = object;
+    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t bobject = object;
     
     switch(option)
     {
@@ -228,7 +228,7 @@
 
 - (void)getCredentialWithOption:(Credential)option withReply:(void (^)(uid_t result))reply
 {
-    kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
     
     pid_t repl = 0;
     
@@ -258,7 +258,7 @@
 
 - (void)getParentProcessIdentifierWithReply:(void (^)(pid_t result))reply
 {
-    kinfo_info_surface_t object = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t object = proc_object_for_pid(_processIdentifier);
     reply(proc_getppid(object));
     return;
 }

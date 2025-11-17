@@ -42,13 +42,13 @@ typedef struct {
     
     /* Entitlements*/
     PEEntitlement entitlements;
-} kinfo_info_surface_t;
+} ksurface_proc_t;
 
 /* Interestingly launchd only allows us to have 1000 extensions to execute, which is still unsafe, so i reduced it to 750 */
 #define PROC_MAX 750
 
 /// Structure that holds surface information and other structures
-struct surface_map {
+typedef struct {
     /* Spinlock */
     seqlock_t seqlock;
     
@@ -58,17 +58,14 @@ struct surface_map {
     
     /* Proc */
     uint32_t proc_count;
-    kinfo_info_surface_t proc_info[PROC_MAX];
-};
-
-typedef struct surface_map surface_map_t;
-
+    ksurface_proc_t proc_info[PROC_MAX];
+} ksurface_mapping_t;
 
 /* Surface Macros */
 #define SURFACE_MAGIC 0xFABCDEFB
 
 /* Shared properties */
-extern surface_map_t *surface;
+extern ksurface_mapping_t *surface;
 
 /* Handoff */
 

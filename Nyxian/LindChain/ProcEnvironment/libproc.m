@@ -70,7 +70,7 @@ int proc_libproc_name(pid_t pid, void * buffer, uint32_t buffersize)
     if (buffersize == 0 || buffer == NULL)
         return 0;
     
-    kinfo_info_surface_t info = proc_object_for_pid(pid);
+    ksurface_proc_t info = proc_object_for_pid(pid);
     if (info.real.kp_proc.p_pid == 0)
         return 0;
     
@@ -84,7 +84,7 @@ int proc_libproc_pidpath(pid_t pid, void * buffer, uint32_t buffersize)
     if (buffersize == 0 || buffer == NULL)
         return 0;
 
-    kinfo_info_surface_t info = proc_object_for_pid(pid);
+    ksurface_proc_t info = proc_object_for_pid(pid);
     if (info.real.kp_proc.p_pid == 0)
         return 0;
 
@@ -98,7 +98,7 @@ int proc_libproc_pidinfo(pid_t pid, int flavor, uint64_t arg,
     if (buffer == NULL || buffersize <= 0)
         return 0;
 
-    kinfo_info_surface_t kinfo = proc_object_for_pid(pid);
+    ksurface_proc_t kinfo = proc_object_for_pid(pid);
     if (kinfo.real.kp_proc.p_pid == 0)
         return 0;
 

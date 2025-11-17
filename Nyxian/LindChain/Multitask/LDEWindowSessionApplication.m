@@ -122,7 +122,7 @@
     }
     
     // See if proc object needs to be altered
-    kinfo_info_surface_t object = proc_object_for_pid(self.process.pid);
+    ksurface_proc_t object = proc_object_for_pid(self.process.pid);
     if(object.force_task_role_override)
     {
         object.force_task_role_override = false;
@@ -150,7 +150,7 @@
         if([self.process suspend])
         {
             // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
-            kinfo_info_surface_t object = proc_object_for_pid(self.process.pid);
+            ksurface_proc_t object = proc_object_for_pid(self.process.pid);
             if(object.real.kp_proc.p_pid == 0) return;
             object.force_task_role_override = true;
             object.task_role_override = TASK_DARWINBG_APPLICATION;

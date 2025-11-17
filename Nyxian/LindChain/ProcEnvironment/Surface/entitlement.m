@@ -25,7 +25,7 @@ bool proc_got_entitlement(pid_t pid,
 {
     // TODO: Check if proc exists
     // Get proc
-    kinfo_info_surface_t object = proc_object_for_pid(pid);
+    ksurface_proc_t object = proc_object_for_pid(pid);
     
     // Now check entitlements
     return(object.entitlements & entitlement) == entitlement;

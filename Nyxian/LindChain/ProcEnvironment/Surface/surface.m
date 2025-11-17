@@ -26,7 +26,7 @@
 #import <sys/sysctl.h>
 #import <mach-o/dyld.h>
 
-surface_map_t *surface = NULL;
+ksurface_mapping_t *surface = NULL;
 static MappingPortObject *surfaceMappingPortObject = NULL;
 
 /* sysctl */
@@ -120,7 +120,7 @@ void proc_surface_init(void)
         if(environment_is_role(EnvironmentRoleHost))
         {
             // Allocate surface and spinface
-            surfaceMappingPortObject = [[MappingPortObject alloc] initWithSize:sizeof(surface_map_t) withProt:VM_PROT_READ | VM_PROT_WRITE];
+            surfaceMappingPortObject = [[MappingPortObject alloc] initWithSize:sizeof(ksurface_mapping_t) withProt:VM_PROT_READ | VM_PROT_WRITE];
             surface = surfaceMappingPortObject.addr;
             
             // Setup surface
