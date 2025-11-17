@@ -246,67 +246,90 @@ static int hook_return_2(void)
 - (void)setupDecoratedView:(CGRect)dimensions
 {
     CGFloat navBarHeight = 44;
-    self.view = [UIStackView new];
-    
-    dimensions.size.height += navBarHeight;
-    self.view.frame = dimensions;
-    
-    // Navigation bar
-    UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, navBarHeight)];
+
+    UIView *shadowContainer = [[UIView alloc] initWithFrame:dimensions];
+    shadowContainer.backgroundColor = UIColor.clearColor;
+    shadowContainer.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
+    shadowContainer.layer.shadowColor = UIColor.blackColor.CGColor;
+    shadowContainer.layer.shadowOpacity = 1.0;
+    shadowContainer.layer.shadowRadius = 12;
+    shadowContainer.layer.shadowOffset = CGSizeMake(0, 4);
+
+    UIStackView *contentStack = [UIStackView new];
+    contentStack.frame = shadowContainer.bounds;
+    contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
+    contentStack.axis = UILayoutConstraintAxisVertical;
+    contentStack.backgroundColor = UIColor.systemBackgroundColor;
+    contentStack.layer.cornerRadius = 10;
+    contentStack.layer.masksToBounds = YES;
+    [shadowContainer addSubview:contentStack];
+    self.view = shadowContainer;
+
+    UINavigationBar *navigationBar =
+        [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, contentStack.frame.size.width, navBarHeight)];
     navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
     navigationBar.items = @[navigationItem];
-    
-    self.view.axis = UILayoutConstraintAxisVertical;
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
-    self.view.layer.cornerRadius = 10;
-    self.view.layer.masksToBounds = YES;
 
     self.navigationBar = navigationBar;
-    self.navigationItem = navigationBar.items.firstObject;
-    if (!self.navigationBar.superview) {
-        [self.view addArrangedSubview:self.navigationBar];
-    }
-    
-    CGRect contentFrame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - navBarHeight);
+    self.navigationItem = navigationItem;
+    [contentStack addArrangedSubview:navigationBar];
+
+    CGRect contentFrame = CGRectMake(0, 0,
+        contentStack.frame.size.width,
+        contentStack.frame.size.height - navBarHeight);
+
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
-    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.view addArrangedSubview:fixedPositionContentView];
-    [self.view sendSubviewToBack:fixedPositionContentView];
-    
+    fixedPositionContentView.autoresizingMask =
+        UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
+    [contentStack addArrangedSubview:fixedPositionContentView];
+    [contentStack sendSubviewToBack:fixedPositionContentView];
+
     self.contentView = [[UIView alloc] initWithFrame:contentFrame];
-    self.contentView.layer.anchorPoint = self.contentView.layer.position = CGPointMake(0, 0);
-    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.contentView.layer.anchorPoint = CGPointMake(0, 0);
+    self.contentView.layer.position = CGPointMake(0, 0);
+    self.contentView.autoresizingMask =
+        UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
     [fixedPositionContentView addSubview:self.contentView];
-    
-    UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
+
+    UIPanGestureRecognizer *moveGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
     moveGesture.maximumNumberOfTouches = 1;
     [self.navigationBar addGestureRecognizer:moveGesture];
 
-    // Resize handle (idea stolen from Notes debugging window)
-    UIPanGestureRecognizer *resizeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
+    UIPanGestureRecognizer *resizeGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
-    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - navBarHeight, self.view.frame.size.height - navBarHeight, navBarHeight, navBarHeight)];
+
+    self.resizeHandle = [[ResizeHandleView alloc]
+        initWithFrame:CGRectMake(contentStack.frame.size.width - navBarHeight,
+                                 contentStack.frame.size.height - navBarHeight,
+                                 navBarHeight, navBarHeight)];
+
     [self.resizeHandle addGestureRecognizer:resizeGesture];
-    [self.view addSubview:self.resizeHandle];
-    
-    self.view.layer.borderWidth = 0.5;
-    self.view.layer.borderColor = UIColor.systemGray3Color.CGColor;
+    [contentStack addSubview:self.resizeHandle];
+
+    contentStack.layer.borderWidth = 0.5;
+    contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
 
     [self addChildViewController:_session];
-    [self.view insertSubview:_session.view atIndex:0];
+    [contentStack insertSubview:_session.view atIndex:0];
+
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
-        
-    [self updateVerticalConstraints];
-    _session.view.translatesAutoresizingMaskIntoConstraints = NO;
+
     [NSLayoutConstraint activateConstraints:@[
-        [_session.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
-        [_session.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]
+        [_session.view.topAnchor constraintEqualToAnchor:contentStack.topAnchor constant:navBarHeight],
+        [_session.view.leadingAnchor constraintEqualToAnchor:contentStack.leadingAnchor]
     ]];
-    
+
+    [self updateVerticalConstraints];
     [self updateOriginalFrame];
 }
 
