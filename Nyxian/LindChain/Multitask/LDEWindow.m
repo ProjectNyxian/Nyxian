@@ -325,7 +325,7 @@ static int hook_return_2(void)
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
 
     [NSLayoutConstraint activateConstraints:@[
-        [_session.view.topAnchor constraintEqualToAnchor:contentStack.topAnchor constant:navBarHeight],
+        [_session.view.topAnchor constraintEqualToAnchor:navigationBar.bottomAnchor],
         [_session.view.leadingAnchor constraintEqualToAnchor:contentStack.leadingAnchor]
     ]];
 
@@ -579,10 +579,12 @@ static int hook_return_2(void)
 
 - (void)updateSceneFrame
 {
+    CGFloat navBarHeight = self.navigationBar.frame.size.height;
+    
     CGRect frame = CGRectMake(self.view.frame.origin.x,
-                              self.view.frame.origin.y + 44,
+                              self.view.frame.origin.y + navBarHeight,
                               self.view.frame.size.width,
-                              self.view.frame.size.height - 44);
+                              self.view.frame.size.height - navBarHeight);
     
     [_session windowChangesSizeToRect:frame];
 }
