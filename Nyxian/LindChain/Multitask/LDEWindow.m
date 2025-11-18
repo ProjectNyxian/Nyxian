@@ -399,13 +399,22 @@
     }
 }
 
-- (void)moveWindow:(UIPanGestureRecognizer*)sender {
+- (void)moveWindow:(UIPanGestureRecognizer*)sender
+{
     if(_isMaximized) return;
     
     CGPoint point = [sender translationInView:self.view];
     [sender setTranslation:CGPointZero inView:self.view];
+    CGPoint newPosition = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
+    CGRect newRect = CGRectMake(
+        newPosition.x - self.view.bounds.size.width / 2.0,
+        newPosition.y - self.view.bounds.size.height / 2.0,
+        self.view.bounds.size.width,
+        self.view.bounds.size.height
+    );
+    newRect = [self.delegate userDoesChangeWindow:self toRect:newRect];
+    self.view.frame = newRect;
     
-    self.view.center = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
     [self updateOriginalFrame];
 }
 
@@ -417,13 +426,32 @@
         case UIGestureRecognizerStateBegan:
             [self resizeActionStart];
             break;
-        case UIGestureRecognizerStateChanged: {
-            CGPoint point = [gesture translationInView:self.view];
-            [gesture setTranslation:CGPointZero inView:self.view];
-            CGRect frame = self.view.frame;
-            frame.size.width = MAX(50, frame.size.width + point.x);
-            frame.size.height = MAX(50, frame.size.height + point.y);
-            self.view.frame = frame;
+        case UIGestureRecognizerStateChanged:
+        {
+            CGPoint point = [gesture translationInView:self.view.superview];
+            [gesture setTranslation:CGPointZero inView:self.view.superview];
+            CGRect oldFrame = self.view.frame;
+            CGRect proposed = oldFrame;
+            proposed.size.width  = MAX(50, proposed.size.width  + point.x);
+            proposed.size.height = MAX(50, proposed.size.height + point.y);
+            CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
+            
+            BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
+            BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
+
+            if(widthBlocked)
+            {
+                corrected.size.width = oldFrame.size.width;
+                corrected.origin.x   = oldFrame.origin.x;
+            }
+
+            if(heightBlocked)
+            {
+                corrected.size.height = oldFrame.size.height;
+                corrected.origin.y    = oldFrame.origin.y;
+            }
+
+            self.view.frame = corrected;
             [self updateOriginalFrame];
             break;
         }

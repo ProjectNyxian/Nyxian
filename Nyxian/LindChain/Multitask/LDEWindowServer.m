@@ -590,4 +590,30 @@
     [self closeWindowWithIdentifier:window.identifier];
 }
 
+- (CGRect)userDoesChangeWindow:(LDEWindow *)window
+                        toRect:(CGRect)rect
+{
+    UIEdgeInsets insets = self.safeAreaInsets;
+    CGRect bounds = self.bounds;
+    
+    CGRect allowed = CGRectMake(bounds.origin.x + insets.left,
+                                bounds.origin.y + insets.top,
+                                bounds.size.width  - insets.left - insets.right,
+                                bounds.size.height - insets.top - insets.bottom);
+    
+    if (rect.origin.x < allowed.origin.x)
+        rect.origin.x = allowed.origin.x;
+    
+    if (CGRectGetMaxX(rect) > CGRectGetMaxX(allowed))
+        rect.origin.x = CGRectGetMaxX(allowed) - rect.size.width;
+    
+    if (rect.origin.y < allowed.origin.y)
+        rect.origin.y = allowed.origin.y;
+    
+    if (CGRectGetMaxY(rect) > CGRectGetMaxY(allowed))
+        rect.origin.y = CGRectGetMaxY(allowed) - rect.size.height;
+    
+    return rect;
+}
+
 @end
