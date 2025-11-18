@@ -136,7 +136,7 @@ void environment_application_init(void)
         // MARK: GUEST Init
         // MARK: Hooking _run of UIApplication class seems more reliable
         swizzle_objc_method(@selector(_run), [UIApplication class], @selector(hook_run), nil);
-        swizzle_objc_method(@selector(setActive:error:), [UIApplication class], @selector(hook_setActive:error:), nil);
+        swizzle_objc_method(@selector(setActive:error:), [AVAudioSession class], @selector(hook_setActive:error:), nil);
         swizzle_objc_method(@selector(setActive:withOptions:error:), [AVAudioSession class], @selector(hook_setActive:withOptions:error:), nil);
         
         signal(SIGUSR1, environment_signal_child_handler);

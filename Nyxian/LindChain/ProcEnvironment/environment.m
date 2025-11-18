@@ -80,6 +80,11 @@ void environment_init(EnvironmentRole role,
         // Setting environment properties
         environmentRole = role;
         
+        if(role == EnvironmentRoleGuest)
+        {
+            environment_client_attach_debugger();
+        }
+        
         // We do proc_surface_init() before environment_tfp_init(), because otherwise a other process could get the task port of this process and suspend it and abuse its NSXPCConnection to gather write access to the proc surface
         proc_surface_init();
         
