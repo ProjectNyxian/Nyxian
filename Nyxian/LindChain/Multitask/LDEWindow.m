@@ -341,7 +341,7 @@
         for(NSLayoutConstraint *constraint in _fullScreenConstraints) constraint.active = NO;
         self.view.translatesAutoresizingMaskIntoConstraints = YES;
         [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.view.frame = self.fullScreenRectBackup;
+            self.view.frame = [self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup];
             self.contentStack.layer.cornerRadius = 10;
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
