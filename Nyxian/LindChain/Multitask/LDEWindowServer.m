@@ -224,30 +224,11 @@
             [self deactivateWindowByPullDown:([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad) withIdentifier:identifier withCompletion:^{
                 [window closeWindow];
                 [self.windows removeObjectForKey:@(identifier)];
+                [self.windowOrder removeObject:@(identifier)];
             }];
         }
     });
     return YES;
-}
-
-- (void)removeTileForProcess:(pid_t)processIdentifier
-{
-    if(!self.stackView) return;
-
-    for(UIView *tile in self.stackView.arrangedSubviews)
-    {
-        if (tile.tag == processIdentifier)
-        {
-            [self.stackView removeArrangedSubview:tile];
-            [tile removeFromSuperview];
-            break;
-        }
-    }
-
-    if(self.stackView.arrangedSubviews.count == 0)
-    {
-        self.placeholderStack.hidden = NO;
-    }
 }
 
 - (void)makeKeyAndVisible
