@@ -65,10 +65,12 @@
 /*
  libproc_userspace
  */
-- (void)proc_kill:(pid_t)pid withSignal:(int)signal withReply:(void (^)(int))reply
+- (void)proc_kill:(pid_t)pid
+       withSignal:(int)signal
+        withReply:(void (^)(int))reply
 {
     // Checking if we have necessary entitlements
-    if(!proc_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid))
+    if(pid != _processIdentifier && (!proc_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
     {
         reply(-1);
         return;
@@ -116,7 +118,11 @@
 /*
  posix_spawn
  */
-- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply
+- (void)spawnProcessWithPath:(NSString*)path
+               withArguments:(NSArray*)arguments
+    withEnvironmentVariables:(NSDictionary *)environment
+               withMapObject:(FDMapObject*)mapObject
+                   withReply:(void (^)(unsigned int))reply
 {
     if(path
        && arguments
@@ -268,7 +274,8 @@
 /*
  Signer
  */
-- (void)signMachO:(MachOObject *)object withReply:(void (^)(void))reply
+- (void)signMachO:(MachOObject *)object
+        withReply:(void (^)(void))reply
 {
     if(proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly) && !proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn))
     {
@@ -288,7 +295,8 @@
     [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
 }
 
-- (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier withReply:(void (^)(NSXPCListenerEndpoint *result))reply
+- (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
+                             withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
     reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
 }
