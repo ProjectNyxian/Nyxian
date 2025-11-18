@@ -217,3 +217,20 @@ void environment_proxy_set_snapshot(UIImage *snapshot)
     environment_must_be_role(EnvironmentRoleGuest);
     [hostProcessProxy setSnapshot:snapshot];
 }
+
+void environment_proxy_waittrap(void)
+{
+    // MARK: Trapping till the host says it added us to the proc map
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    [hostProcessProxy waitTillAddedTrapWithReply:^(BOOL added){
+        if(added)
+        {
+            dispatch_semaphore_signal(sema);
+        }
+        else
+        {
+            exit(0);
+        }
+    }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+}

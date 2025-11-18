@@ -96,6 +96,8 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
  */
 - (void)setSnapshot:(UIImage*)image;
 
+- (void)waitTillAddedTrapWithReply:(void (^)(BOOL added))reply;
+
 @end
 
 #endif /* PROCENVIRONMENT_SERVER_SERVERPROTOCOL_H */

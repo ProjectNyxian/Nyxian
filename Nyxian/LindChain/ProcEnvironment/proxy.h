@@ -68,4 +68,6 @@ NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSS
 
 void environment_proxy_set_snapshot(UIImage *snapshot);
 
+void environment_proxy_waittrap(void);
+
 #endif /* PROCENVIRONMENT_PROXY_H */

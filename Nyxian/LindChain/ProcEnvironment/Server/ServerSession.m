@@ -305,4 +305,34 @@
     }
 }
 
+- (void)waitTillAddedTrapWithReply:(void (^)(BOOL wasAdded))reply
+{
+    if(_waitTrapOnce != 0)
+    {
+        reply(NO);
+        return;
+    }
+    
+    dispatch_once(&_waitTrapOnce, ^{
+        const uint64_t start = mach_absolute_time();
+        const uint64_t timeoutNs = 1 * NSEC_PER_SEC;
+        
+        ksurface_proc_t proc = {};
+        BOOL matched = NO;
+        
+        while (mach_absolute_time() - start < timeoutNs)
+        {
+            proc = proc_object_for_pid(_processIdentifier);
+            if (proc.bsd.kp_proc.p_pid == _processIdentifier) {
+                matched = YES;
+                break;
+            }
+            usleep(50 * 1000);
+        }
+        
+        reply(matched);
+    });
+}
+
+
 @end
