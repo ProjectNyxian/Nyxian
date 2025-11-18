@@ -27,6 +27,7 @@
 
 @property (nonatomic) CGRect windowSize;
 @property (nonatomic) NSString *windowName;
+@property (nonatomic) BOOL windowIsFullscreen;
 
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene withSessionIdentifier:(int)identifier;
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene;

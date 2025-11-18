@@ -44,6 +44,7 @@
 {
     self = [super initWithNibName:nil bundle:nil];
     _session = session;
+    _session.windowIsFullscreen = NO;
     _windowName = session.windowName;
     _delegate = delegate;
     
@@ -335,10 +336,11 @@
     }
     
     [self resizeActionStart];
-    if (self.isMaximized)
+    if(self.isMaximized)
     {
+        self.session.windowIsFullscreen = NO;
         self.resizeHandle.hidden = NO;
-        for(NSLayoutConstraint *constraint in _fullScreenConstraints) constraint.active = NO;
+        [NSLayoutConstraint deactivateConstraints:self.fullScreenConstraints];
         self.view.translatesAutoresizingMaskIntoConstraints = YES;
         [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = [self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup];
@@ -352,6 +354,7 @@
     } else
     {
         self.isMaximized = YES;
+        self.session.windowIsFullscreen = YES;
         self.fullScreenRectBackup = self.view.frame;
         [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height);
@@ -360,7 +363,7 @@
             self.view.layer.shadowOpacity = 0;
         } completion:^(BOOL finished){
             self.view.translatesAutoresizingMaskIntoConstraints = NO;
-            for(NSLayoutConstraint *constraint in self.fullScreenConstraints) constraint.active = YES;
+            [NSLayoutConstraint activateConstraints:self.fullScreenConstraints];
             self.resizeHandle.hidden = YES;
             [self resizeActionEnd];
         }];

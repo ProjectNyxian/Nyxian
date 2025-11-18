@@ -24,6 +24,7 @@
 
 @synthesize windowSize;
 @synthesize windowName;
+@synthesize windowIsFullscreen;
 
 - (instancetype)initWithProcessIdentifier:(pid_t)processIdentifier
 {
@@ -175,6 +176,27 @@
         else
         {
             settings.frame = rect;
+        }
+        
+        if(self.windowIsFullscreen)
+        {
+            UIWindow *window = UIApplication.sharedApplication.keyWindow;
+            UIEdgeInsets insets = window.safeAreaInsets;
+            
+            // MARK: The window server already accounts for that in fullscreen as fullscreen is not real fullscreen
+            insets.top = 0;
+            
+            settings.safeAreaInsetsPortrait = insets;
+            settings.safeAreaInsetsLandscapeLeft = insets;
+            settings.safeAreaInsetsLandscapeRight = insets;
+            settings.safeAreaInsetsPortraitUpsideDown = insets;
+        }
+        else
+        {
+            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
+            settings.safeAreaInsetsLandscapeLeft = UIEdgeInsetsMake(0, 0, 0, 0);
+            settings.safeAreaInsetsLandscapeRight = UIEdgeInsetsMake(0, 0, 0, 0);
+            settings.safeAreaInsetsPortraitUpsideDown = UIEdgeInsetsMake(0, 0, 0, 0);
         }
     }];
 }
