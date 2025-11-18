@@ -51,6 +51,13 @@
         _appSwitcherView = nil;
         hasInitialized = YES;
     }
+    
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(orientationChanged:)
+                                                 name:UIDeviceOrientationDidChangeNotification
+                                               object:nil];
+    
     return self;
 }
 
@@ -614,6 +621,20 @@
         rect.origin.y = CGRectGetMaxY(allowed) - rect.size.height;
     
     return rect;
+}
+
+- (void)orientationChanged:(NSNotification *)notification
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        for(NSNumber *key in self.windows)
+        {
+            LDEWindow *window = self.windows[key];
+            if(window != nil)
+            {
+                [window changeWindowToRect:[self userDoesChangeWindow:window toRect:window.view.frame]];
+            }
+        }
+    });
 }
 
 @end

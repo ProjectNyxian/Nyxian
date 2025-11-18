@@ -148,7 +148,7 @@
 {
     [super viewDidAppear:animated];
     
-    dispatch_once(&_appearOnceAction, ^{
+    dispatch_once(&_appearOnceAction, ^{        
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:8.0];
         
         // MARK: Suppose to only run on phones
@@ -557,6 +557,16 @@
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
     // save origin as normalized coordinates
     self.originalFrame = CGRectMake(self.view.frame.origin.x / maxFrame.size.width, self.view.frame.origin.y / maxFrame.size.height, self.view.frame.size.width, self.view.frame.size.height);
+}
+
+- (void)changeWindowToRect:(CGRect)rect
+{
+    [UIView animateWithDuration:0.35
+                          delay:0
+                        options:UIViewAnimationOptionCurveEaseInOut
+                     animations:^{
+                         self.view.frame = rect;
+                     } completion:nil];
 }
 
 /*

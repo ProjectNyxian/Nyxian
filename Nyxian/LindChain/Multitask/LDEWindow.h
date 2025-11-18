@@ -55,6 +55,8 @@ typedef int wid_t;
 - (void)closeWindow;
 - (void)unfocusWindow;
 
+- (void)changeWindowToRect:(CGRect)rect;
+
 @end
 
 #endif /* LDEWINDOW_H */
