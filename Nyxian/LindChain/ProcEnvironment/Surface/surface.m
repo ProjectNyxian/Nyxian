@@ -85,7 +85,14 @@ MappingPortObject *proc_surface_for_pid(pid_t pid)
 {
     environment_must_be_role(EnvironmentRoleHost);
     // TODO: Enforce entitlements
-    uint32_t flags = VM_PROT_READ;
+    uint32_t flags = VM_PROT_NONE;
+    
+    // Check entitlements and go
+    ksurface_proc_t proc = proc_object_for_pid(pid);
+    PEEntitlement proc_ent = proc_getentitlements(proc);
+    if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceRead)) flags = flags | VM_PROT_READ;
+    if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
+    
     return [surfaceMappingPortObject copyWithProt:flags];
 }
 
@@ -142,16 +149,16 @@ void proc_surface_init(void)
             if(surfaceMapObject != nil)
             {
                 // Now map em
+                if(surfaceMapObject.prot == VM_PROT_NONE) return;
                 void *surfacePtr = [surfaceMapObject map];
                 
-                if(surfacePtr != MAP_FAILED)
+                if(surfacePtr != MAP_FAILED ||
+                   ((ksurface_mapping_t*)surfacePtr)->magic != SURFACE_MAGIC)
                 {
                     surface = surfacePtr;
+                    DO_HOOK_GLOBAL(gethostname);
                 }
             }
-            
-            // Hook hostname
-            DO_HOOK_GLOBAL(gethostname);
         }
     });
 }
