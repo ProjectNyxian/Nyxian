@@ -53,7 +53,6 @@ typedef int wid_t;
 @property (nonatomic, weak) id<LDEWindowDelegate> delegate;
 
 - (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session withDelegate:(id<LDEWindowDelegate>)delegate;
-- (void)updateVerticalConstraints;
 - (void)closeWindow;
 - (void)unfocusWindow;
 
