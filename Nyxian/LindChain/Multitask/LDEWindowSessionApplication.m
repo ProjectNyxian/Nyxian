@@ -185,7 +185,7 @@
             UIEdgeInsets insets = window.safeAreaInsets;
             
             // MARK: The window server already accounts for that in fullscreen as fullscreen is not real fullscreen
-            insets.top = 0;
+            insets.top = 10;
             
             settings.safeAreaInsetsPortrait = insets;
             settings.safeAreaInsetsLandscapeLeft = insets;
@@ -194,10 +194,10 @@
         }
         else
         {
-            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
-            settings.safeAreaInsetsLandscapeLeft = UIEdgeInsetsMake(0, 0, 0, 0);
-            settings.safeAreaInsetsLandscapeRight = UIEdgeInsetsMake(0, 0, 0, 0);
-            settings.safeAreaInsetsPortraitUpsideDown = UIEdgeInsetsMake(0, 0, 0, 0);
+            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(10, 0, 0, 0);
+            settings.safeAreaInsetsLandscapeLeft = UIEdgeInsetsMake(10, 0, 0, 0);
+            settings.safeAreaInsetsLandscapeRight = UIEdgeInsetsMake(10, 0, 0, 0);
+            settings.safeAreaInsetsPortraitUpsideDown = UIEdgeInsetsMake(10, 0, 0, 0);
         }
     }];
 }
