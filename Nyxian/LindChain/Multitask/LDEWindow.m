@@ -32,6 +32,9 @@
 @property (atomic) int resizeEndDebounceRefCnt;
 @property (nonatomic) UIView *focusView;
 
+@property (nonatomic, strong) NSArray<NSLayoutConstraint*> *fullScreenConstraints;
+@property (nonatomic) CGRect fullScreenRectBackup;
+
 @end
 
 @implementation LDEWindow
@@ -320,35 +323,36 @@
     [self updateOriginalFrame];
 }
 
-- (void)maximizeWindow:(BOOL)animated {
+- (void)maximizeWindow:(BOOL)animated
+{
+    if(_fullScreenConstraints == nil)
+    {
+        _fullScreenConstraints = @[
+            [self.view.topAnchor constraintEqualToAnchor:self.view.superview.topAnchor constant:self.view.superview.safeAreaInsets.top],
+            [self.view.bottomAnchor constraintEqualToAnchor:self.view.superview.bottomAnchor],
+            [self.view.trailingAnchor constraintEqualToAnchor:self.view.superview.trailingAnchor],
+            [self.view.leadingAnchor constraintEqualToAnchor:self.view.superview.leadingAnchor],
+        ];
+    }
+    
     [self resizeActionStart];
-    if (self.isMaximized) {
-        CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-        CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
-        [UIView animateWithDuration:animated ? 0.3 : 0.0 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.view.frame = newFrame;
-            self.view.layer.borderWidth = 1;
-            self.resizeHandle.alpha = 1;
-        } completion:^(BOOL finished) {
+    if (self.isMaximized)
+    {
+        self.resizeHandle.hidden = NO;
+        for(NSLayoutConstraint *constraint in _fullScreenConstraints) constraint.active = NO;
+        self.view.translatesAutoresizingMaskIntoConstraints = YES;
+        [self changeWindowToRect:[self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup] completion:^(BOOL finished){
             self.isMaximized = NO;
-            UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-            UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-            self.maximizeButton.image = [maximizeImage imageWithConfiguration:maximizeConfig];
             [self resizeActionEnd];
         }];
-    } else {
-        [self.view.superview bringSubviewToFront:self.view];
-        [self updateOriginalFrame];
-        [UIView animateWithDuration:animated ? 0.3 : 0.0 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.isMaximized = YES;
-            [self updateVerticalConstraints];
-            
-            self.view.layer.borderWidth = 0;
-            self.resizeHandle.alpha = 0;
-        } completion:^(BOOL finished) {
-            UIImage *restoreImage = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
-            UIImageConfiguration *restoreConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-            self.maximizeButton.image = [restoreImage imageWithConfiguration:restoreConfig];
+    } else
+    {
+        self.isMaximized = YES;
+        self.fullScreenRectBackup = self.view.frame;
+        [self changeWindowToRect:CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height) completion:^(BOOL finished){
+            self.view.translatesAutoresizingMaskIntoConstraints = NO;
+            for(NSLayoutConstraint *constraint in self.fullScreenConstraints) constraint.active = YES;
+            self.resizeHandle.hidden = YES;
             [self resizeActionEnd];
         }];
     }
@@ -560,14 +564,23 @@
 }
 
 - (void)changeWindowToRect:(CGRect)rect
+                completion:(void (^)(BOOL))completion
 {
+    [self resizeActionStart];
     [UIView animateWithDuration:0.35
                           delay:0
                         options:UIViewAnimationOptionCurveEaseInOut
                      animations:^{
                          self.view.frame = rect;
-                     } completion:nil];
-    [self.session windowChangesSizeToRect:rect];
+    } completion:^(BOOL finished){
+        [self resizeActionEnd];
+        if(completion != nil) completion(finished);
+    }];
+}
+
+- (void)changeWindowToRect:(CGRect)rect
+{
+    [self changeWindowToRect:rect completion:nil];
 }
 
 /*
