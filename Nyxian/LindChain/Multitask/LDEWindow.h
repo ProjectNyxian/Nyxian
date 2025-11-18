@@ -32,6 +32,7 @@ typedef int wid_t;
 - (void)userDidCloseWindow:(LDEWindow*)window;
 - (void)userDidFocusWindow:(LDEWindow*)window;
 - (CGRect)userDoesChangeWindow:(LDEWindow*)window toRect:(CGRect)rect;
+- (void)userDidMinimizeWindow:(LDEWindow*)window;
 
 @end
 

@@ -118,8 +118,8 @@
                         windowView.transform = CGAffineTransformIdentity;
                         windowView.alpha = 1.0;
                         [windowView removeFromSuperview];
-                        //[self.appSceneVC setForegroundEnabled:NO];
-                        //if(self.dismissalCallback != nil) self.dismissalCallback();
+                        [self.session deactivateWindow];
+                        [self.delegate userDidMinimizeWindow:self];
                         isAnimating = NO;
                     }
                 }];

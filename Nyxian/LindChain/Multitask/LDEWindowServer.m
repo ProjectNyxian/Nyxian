@@ -476,10 +476,10 @@
 
 - (void)handleTileTap:(UITapGestureRecognizer *)recognizer
 {
-    UIView *tile = recognizer.view;
+    /*UIView *tile = recognizer.view;
     if (!tile) return;
     wid_t identifier = (wid_t)tile.tag;
-    [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];
+    [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];*/
 }
 
 - (void)showAppSwitcher
@@ -595,6 +595,11 @@
     }
     [window.session closeWindowWithScene:self.windowScene];
     [self closeWindowWithIdentifier:window.identifier];
+}
+
+- (void)userDidMinimizeWindow:(LDEWindow*)window
+{
+    _activeWindowIdentifier = (wid_t)-1;
 }
 
 - (CGRect)userDoesChangeWindow:(LDEWindow *)window
