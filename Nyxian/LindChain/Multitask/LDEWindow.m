@@ -291,11 +291,23 @@
     
     [fixedPositionContentView addSubview:self.contentView];
     
-    UIPanGestureRecognizer *moveGesture =
-    [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
-    moveGesture.minimumNumberOfTouches = 1;
-    moveGesture.maximumNumberOfTouches = 1;
-    [self.navigationBar addGestureRecognizer:moveGesture];
+    if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+    {
+        UIPanGestureRecognizer *moveGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
+        moveGesture.minimumNumberOfTouches = 1;
+        moveGesture.maximumNumberOfTouches = 1;
+        [self.navigationBar addGestureRecognizer:moveGesture];
+        
+        UITapGestureRecognizer *fullScreenGesture =
+        [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(maximizeButtonPressed)];
+        fullScreenGesture.numberOfTapsRequired = 2;
+        fullScreenGesture.numberOfTouchesRequired = 1;
+        [self.navigationBar addGestureRecognizer:fullScreenGesture];
+        
+        moveGesture.delegate = self;
+        fullScreenGesture.delegate = self;
+    }
     
     UIPanGestureRecognizer *resizeGesture =
     [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
@@ -661,6 +673,11 @@
             weakSelf.resizeEndDebounceTimer = nil;
         }];
     }
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+        shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    return YES;
 }
 
 @end

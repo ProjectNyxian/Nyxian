@@ -36,7 +36,7 @@ typedef int wid_t;
 
 @end
 
-@interface LDEWindow : UIViewController
+@interface LDEWindow : UIViewController <UIGestureRecognizerDelegate>
 
 @property (nonatomic) wid_t identifier;
 @property (nonatomic) NSString* windowName;
