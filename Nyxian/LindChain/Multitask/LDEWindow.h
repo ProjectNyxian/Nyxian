@@ -56,6 +56,7 @@ typedef int wid_t;
 - (void)closeWindow;
 - (void)unfocusWindow;
 
+- (void)maximizeWindow:(BOOL)animated;
 - (void)changeWindowToRect:(CGRect)rect completion:(void (^)(BOOL))completion;
 - (void)changeWindowToRect:(CGRect)rect;
 

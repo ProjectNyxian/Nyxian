@@ -50,15 +50,13 @@
     
     [self setupDecoratedView:CGRectMake(50, 50, 400, 400)];
     
-    // TODO: Reimplement windows for phone
-    /*if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-    {*/
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {
         UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
         UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
         maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
         self.maximizeButton = [[UIBarButtonItem alloc] initWithImage:maximizeImage style:UIBarButtonItemStylePlain target:self action:@selector(maximizeButtonPressed)];
         self.maximizeButton.tintColor = [UIColor systemGreenColor];
-        
         
         UIImage *closeImage = [UIImage systemImageNamed:@"xmark.circle.fill"];
         UIImageConfiguration *closeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
@@ -68,7 +66,7 @@
         
         NSArray *barButtonItems = @[closeButton, self.maximizeButton];
         self.navigationItem.rightBarButtonItems = barButtonItems;
-    //}
+    }
     
     return self;
 }
@@ -156,19 +154,20 @@
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:8.0];
         
         // MARK: Suppose to only run on phones
-        /*if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+        [self startLiveResizeWithSettingsBlock];
+        if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
         {
             [self maximizeWindow:NO];
             UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
             [self.navigationBar addGestureRecognizer:pullDownGesture];
         }
         else
-        {*/
+        {
             // MARK: Triggering resize system at start to guarantee that it gets layouted
             [self startLiveResizeWithSettingsBlock];
             [self resizeActionStart];
             [self resizeActionEnd];
-        //}
+        }
     });
 }
 
@@ -345,7 +344,7 @@
         self.resizeHandle.hidden = NO;
         [NSLayoutConstraint deactivateConstraints:self.fullScreenConstraints];
         self.view.translatesAutoresizingMaskIntoConstraints = YES;
-        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = [self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup];
             self.contentStack.layer.cornerRadius = 10;
             self.contentStack.layer.borderWidth = 0.5;
@@ -359,7 +358,7 @@
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
         self.fullScreenRectBackup = self.view.frame;
-        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height);
             self.contentStack.layer.cornerRadius = 0;
             self.contentStack.layer.borderWidth = 0;
