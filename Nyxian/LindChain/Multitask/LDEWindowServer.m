@@ -602,12 +602,18 @@
 {
     UIEdgeInsets insets = self.safeAreaInsets;
     CGRect bounds = self.bounds;
-    
+
     CGRect allowed = CGRectMake(bounds.origin.x + insets.left,
                                 bounds.origin.y + insets.top,
                                 bounds.size.width  - insets.left - insets.right,
                                 bounds.size.height - insets.top - insets.bottom);
     
+    if (rect.size.width > allowed.size.width)
+        rect.size.width = allowed.size.width;
+    
+    if (rect.size.height > allowed.size.height)
+        rect.size.height = allowed.size.height;
+
     if (rect.origin.x < allowed.origin.x)
         rect.origin.x = allowed.origin.x;
     

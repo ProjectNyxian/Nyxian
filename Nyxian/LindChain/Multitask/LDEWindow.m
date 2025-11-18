@@ -567,6 +567,7 @@
                      animations:^{
                          self.view.frame = rect;
                      } completion:nil];
+    [self.session windowChangesSizeToRect:rect];
 }
 
 /*
