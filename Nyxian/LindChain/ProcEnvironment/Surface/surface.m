@@ -92,8 +92,7 @@ MappingPortObject *proc_surface_for_pid(pid_t pid)
 /*
  Experimental hooks & implementations
  */
-int environment_gethostname(char *buf,
-                            size_t bufsize)
+DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
 {
     do
     {
@@ -150,6 +149,9 @@ void proc_surface_init(void)
                     surface = surfacePtr;
                 }
             }
+            
+            // Hook hostname
+            DO_HOOK_GLOBAL(gethostname);
         }
     });
 }
