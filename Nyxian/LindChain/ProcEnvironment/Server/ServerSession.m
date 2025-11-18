@@ -292,13 +292,31 @@
  */
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier
 {
-    [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
+    BOOL passed = NO;
+    for(LaunchService *ls in [[LaunchServices shared] launchServices])
+    {
+        if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process.pid == _processIdentifier)
+        {
+            passed = YES;
+        }
+    }
+    if(passed)
+    {
+        [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
+    }
 }
 
 - (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
-    reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
+    if(proc_got_entitlement(_processIdentifier, PEEntitlementLaunchServicesGetEndpoint))
+    {
+        reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
+    }
+    else
+    {
+        reply([[NSXPCListenerEndpoint alloc] init]);
+    }
 }
 
 /*
