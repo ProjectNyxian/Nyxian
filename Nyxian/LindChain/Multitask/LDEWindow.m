@@ -219,6 +219,7 @@
 - (void)focusWindow:(UIPanGestureRecognizer*)sender
 {
     if (!_focusView) return;
+    [self.view.superview bringSubviewToFront:self.view];
 
     [UIView animateWithDuration:0.18
                           delay:0
@@ -325,6 +326,8 @@
 
 - (void)maximizeWindow:(BOOL)animated
 {
+    [self focusWindow:nil];
+    
     if(_fullScreenConstraints == nil)
     {
         _fullScreenConstraints = @[
@@ -484,8 +487,6 @@
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
     [super touchesBegan:touches withEvent:event];
-    // FIXME: how to bring view to front when touching the passthrough view?
-    [self.view.superview bringSubviewToFront:self.view];
     [self focusWindow:nil];
 }
 
