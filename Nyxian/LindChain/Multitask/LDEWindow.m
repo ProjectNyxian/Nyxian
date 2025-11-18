@@ -242,25 +242,24 @@
 
 - (void)setupDecoratedView:(CGRect)dimensions
 {
-    UIView *shadowContainer = [[UIStackView alloc] initWithFrame:dimensions];
-    shadowContainer.backgroundColor = UIColor.clearColor;
-    shadowContainer.autoresizingMask = UIViewAutoresizingNone;
+    self.view = [[UIStackView alloc] initWithFrame:dimensions];
+    self.view .backgroundColor = UIColor.clearColor;
+    self.view .autoresizingMask = UIViewAutoresizingNone;
     
-    shadowContainer.layer.shadowColor = UIColor.blackColor.CGColor;
-    shadowContainer.layer.shadowOpacity = 1.0;
-    shadowContainer.layer.shadowRadius = 12;
-    shadowContainer.layer.shadowOffset = CGSizeMake(0, 4);
+    self.view .layer.shadowColor = UIColor.blackColor.CGColor;
+    self.view .layer.shadowOpacity = 1.0;
+    self.view .layer.shadowRadius = 12;
+    self.view .layer.shadowOffset = CGSizeMake(0, 4);
     
-    UIStackView *contentStack = [UIStackView new];
-    contentStack.frame = shadowContainer.bounds;
-    contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.contentStack = [UIStackView new];
+    self.contentStack.frame = self.view.bounds;
+    self.contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
-    contentStack.axis = UILayoutConstraintAxisVertical;
-    contentStack.backgroundColor = UIColor.systemBackgroundColor;
-    contentStack.layer.cornerRadius = 10;
-    contentStack.layer.masksToBounds = YES;
-    [shadowContainer addSubview:contentStack];
-    self.view = shadowContainer;
+    self.contentStack.axis = UILayoutConstraintAxisVertical;
+    self.contentStack.backgroundColor = UIColor.systemBackgroundColor;
+    self.contentStack.layer.cornerRadius = 10;
+    self.contentStack.layer.masksToBounds = YES;
+    [self.view addSubview:self.contentStack];
     
     UINavigationBar *navigationBar = [[UINavigationBar alloc] init];
     navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
@@ -270,18 +269,18 @@
     
     self.navigationBar = navigationBar;
     self.navigationItem = navigationItem;
-    [contentStack addArrangedSubview:navigationBar];
+    [self.contentStack addArrangedSubview:navigationBar];
     
     CGRect contentFrame = CGRectMake(0, 0,
-                                     contentStack.frame.size.width,
-                                     contentStack.frame.size.height);
+                                     self.contentStack.frame.size.width,
+                                     self.contentStack.frame.size.height);
     
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
     fixedPositionContentView.autoresizingMask =
     UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
-    [contentStack addArrangedSubview:fixedPositionContentView];
-    [contentStack sendSubviewToBack:fixedPositionContentView];
+    [self.contentStack addArrangedSubview:fixedPositionContentView];
+    [self.contentStack sendSubviewToBack:fixedPositionContentView];
     
     self.contentView = [[UIView alloc] initWithFrame:contentFrame];
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
@@ -302,21 +301,21 @@
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
     
-    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(contentStack.frame.size.width - 44, contentStack.frame.size.height - 44, 44, 44)];
+    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.contentStack.frame.size.width - 44, self.contentStack.frame.size.height - 44, 44, 44)];
     [self.resizeHandle addGestureRecognizer:resizeGesture];
-    [contentStack addSubview:self.resizeHandle];
+    [self.contentStack addSubview:self.resizeHandle];
     
-    contentStack.layer.borderWidth = 0.5;
-    contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+    self.contentStack.layer.borderWidth = 0.5;
+    self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
     
     [self addChildViewController:_session];
-    [contentStack insertSubview:_session.view atIndex:0];
+    [self.contentStack insertSubview:_session.view atIndex:0];
     
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
     
     [NSLayoutConstraint activateConstraints:@[
         [_session.view.topAnchor constraintEqualToAnchor:navigationBar.bottomAnchor],
-        [_session.view.leadingAnchor constraintEqualToAnchor:contentStack.leadingAnchor]
+        [_session.view.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor]
     ]];
     
     [self updateVerticalConstraints];
@@ -341,7 +340,12 @@
         self.resizeHandle.hidden = NO;
         for(NSLayoutConstraint *constraint in _fullScreenConstraints) constraint.active = NO;
         self.view.translatesAutoresizingMaskIntoConstraints = YES;
-        [self changeWindowToRect:[self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup] completion:^(BOOL finished){
+        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.view.frame = self.fullScreenRectBackup;
+            self.contentStack.layer.cornerRadius = 10;
+            self.contentStack.layer.borderWidth = 0.5;
+            self.view.layer.shadowOpacity = 1.0;
+        } completion:^(BOOL finished){
             self.isMaximized = NO;
             [self resizeActionEnd];
         }];
@@ -349,7 +353,12 @@
     {
         self.isMaximized = YES;
         self.fullScreenRectBackup = self.view.frame;
-        [self changeWindowToRect:CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height) completion:^(BOOL finished){
+        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.view.frame = CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height);
+            self.contentStack.layer.cornerRadius = 0;
+            self.contentStack.layer.borderWidth = 0;
+            self.view.layer.shadowOpacity = 0;
+        } completion:^(BOOL finished){
             self.view.translatesAutoresizingMaskIntoConstraints = NO;
             for(NSLayoutConstraint *constraint in self.fullScreenConstraints) constraint.active = YES;
             self.resizeHandle.hidden = YES;
