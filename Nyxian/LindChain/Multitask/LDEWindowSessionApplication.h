@@ -36,4 +36,6 @@
 
 @end
 
+void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *bundleIdentifier);
+
 #endif /* LDEWINDOWSESSIONAPPLICATION_H */

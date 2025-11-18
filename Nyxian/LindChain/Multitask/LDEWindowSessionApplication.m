@@ -19,6 +19,7 @@
 
 #import <LindChain/Multitask/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 
 @implementation LDEWindowSessionApplication
 
@@ -293,3 +294,27 @@
 }
 
 @end
+
+void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *bundleIdentifier)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) return;
+        LDEWindowServer *windowServer = [LDEWindowServer shared];
+        if(windowServer == nil) return;
+        
+        for(NSNumber *key in windowServer.windows)
+        {
+            LDEWindow *window = windowServer.windows[key];
+            if(window == nil) continue;
+            if([window.session isKindOfClass:[LDEWindowSessionApplication class]])
+            {
+                LDEWindowSessionApplication *session = (LDEWindowSessionApplication*)window.session;
+                if([session.process.bundleIdentifier isEqualToString:bundleIdentifier])
+                {
+                    [window.view.superview bringSubviewToFront:window.view];
+                    break;
+                }
+            }
+        }
+    });
+}

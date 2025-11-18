@@ -48,6 +48,11 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
         }
 
         self.delegate = self
+        
+        if self.project.projectConfig.type == NXProjectType.app.rawValue
+        {
+            LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
