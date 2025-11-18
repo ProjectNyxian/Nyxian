@@ -312,7 +312,7 @@ class Builder {
                     
                     DispatchQueue.main.sync {
                         let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
-                        LDEMultitaskManager.shared().openWindow(withSession: TerminalSession, identifier: nil)
+                        LDEWindowServer.shared().openWindow(withSession: TerminalSession, identifier: nil)
                     }
                 }
             }

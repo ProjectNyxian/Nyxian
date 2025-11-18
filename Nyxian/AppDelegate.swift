@@ -27,7 +27,7 @@ import UIKit
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        window = LDEMultitaskManager.shared()
+        window = LDEWindowServer.shared()
         
         let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
         

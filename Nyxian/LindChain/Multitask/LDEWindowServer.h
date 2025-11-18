@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEMULTITASKMANAGER_H
-#define LDEMULTITASKMANAGER_H
+#ifndef LDEWINDOWSERVER_H
+#define LDEWINDOWSERVER_H
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -26,7 +26,7 @@
 #import <LindChain/Multitask/LDEWindow.h>
 #import <LindChain/Multitask/LDEWindowSession.h>
 
-@interface LDEMultitaskManager : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
+@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
@@ -43,4 +43,4 @@
 
 @end
 
-#endif /* LDEMULTITASKMANAGER_H */
+#endif /* LDEWINDOWSERVER_H */

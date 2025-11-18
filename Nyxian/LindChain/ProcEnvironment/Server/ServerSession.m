@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/Server/ServerSession.h>
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Multitask/LDEMultitaskManager.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 #import <LindChain/Debugger/Logger.h>
 #import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
@@ -101,7 +101,7 @@
             {
                 LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcessIdentifier:_processIdentifier];
                 wid_t wid = (wid_t)-1;
-                if([[LDEMultitaskManager shared] openWindowWithSession:session identifier:&wid])
+                if([[LDEWindowServer shared] openWindowWithSession:session identifier:&wid])
                 {
                     didInvokeWindow = YES;
                 }

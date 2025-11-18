@@ -27,7 +27,7 @@
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 #import <LindChain/Debugger/Logger.h>
-#import <LindChain/Multitask/LDEMultitaskManager.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Private/UIKitPrivate.h>

@@ -21,7 +21,7 @@
 #import <LindChain/Multitask/LDEProcessManager.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Multitask/LDEMultitaskManager.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc.h>
@@ -130,7 +130,7 @@
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         proc_object_remove_for_pid(strongSelf.pid);
-                        if(self.windowIdentifier != -1) [[LDEMultitaskManager shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
+                        if(self.windowIdentifier != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
@@ -371,7 +371,7 @@
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
     LDEProcess *process = [self.processes objectForKey:@(pid)];
-    if(process != nil) [[LDEMultitaskManager shared] closeWindowWithIdentifier:process.windowIdentifier];
+    if(process != nil && process.windowIdentifier != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.windowIdentifier];
     [self.processes removeObjectForKey:@(pid)];
     proc_object_remove_for_pid(pid);
 }

@@ -27,7 +27,7 @@
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/Multitask/LDEMultitaskManager.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 
 @interface LDEProcessConfiguration : NSObject
 

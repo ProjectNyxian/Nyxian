@@ -17,13 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/LDEMultitaskManager.h>
+#import <LindChain/Multitask/LDEWindowServer.h>
 //#import <LindChain/Multitask/LDEProcessManager.h>
 #if __has_include(<Nyxian-Swift.h>)
 #import <Nyxian-Swift.h>
 #endif
 
-@interface LDEMultitaskManager ()
+@interface LDEWindowServer ()
 
 @property (nonatomic, strong) UIStackView *stackView;
 @property (nonatomic, strong) UIStackView *placeholderStack;
@@ -32,7 +32,7 @@
 
 @end
 
-@implementation LDEMultitaskManager
+@implementation LDEWindowServer
 
 
 - (instancetype)init
@@ -56,10 +56,10 @@
 
 + (instancetype)shared
 {
-    static LDEMultitaskManager *multitaskManagerSingleton = nil;
+    static LDEWindowServer *multitaskManagerSingleton = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        multitaskManagerSingleton = [[LDEMultitaskManager alloc] init];
+        multitaskManagerSingleton = [[LDEWindowServer alloc] init];
     });
     return multitaskManagerSingleton;
 }
