@@ -264,6 +264,6 @@ bool checkCodeSignature(const char* path);
 void ApplicationManagementDaemonEntry(void)
 {
     ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:[LDEApplicationWorkspaceProxy class] withProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
-    environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], @"com.cr4zy.appmanagementd");
+    environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], @"com.cr4zy.installd");
     CFRunLoopRun();
 }

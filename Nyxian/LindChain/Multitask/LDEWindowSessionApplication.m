@@ -124,11 +124,29 @@
     }
     
     // See if proc object needs to be altered
-    ksurface_proc_t object = proc_object_for_pid(self.process.pid);
-    if(object.force_task_role_override)
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(self.process.pid, &proc);
+    
+    // Checking error
+    if(error != kSurfaceErrorSuccess)
     {
-        object.force_task_role_override = false;
-        proc_object_insert(object);
+        // Terminate if its not succeeded
+        [self.process terminate];
+        return;
+    }
+    
+    // Overriding role
+    if(proc.force_task_role_override)
+    {
+        proc.force_task_role_override = false;
+        error = proc_insert(proc);
+        
+        if(error != kSurfaceErrorSuccess)
+        {
+            // Terminate if its not succeeded
+            [self.process terminate];
+            return;
+        }
     }
     
     // Resume if applicable
@@ -152,11 +170,29 @@
         if([self.process suspend])
         {
             // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
-            ksurface_proc_t object = proc_object_for_pid(self.process.pid);
-            if(object.bsd.kp_proc.p_pid == 0) return;
-            object.force_task_role_override = true;
-            object.task_role_override = TASK_DARWINBG_APPLICATION;
-            proc_object_insert(object);
+            // See if proc object needs to be altered
+            ksurface_proc_t proc = {};
+            ksurface_error_t error = proc_for_pid(self.process.pid, &proc);
+            
+            // Checking error
+            if(error != kSurfaceErrorSuccess)
+            {
+                // Terminate if its not succeeded
+                [self.process terminate];
+                return;
+            }
+            
+            if(proc.bsd.kp_proc.p_pid == 0) return;
+            proc.force_task_role_override = true;
+            proc.task_role_override = TASK_DARWINBG_APPLICATION;
+            error = proc_insert(proc);
+            
+            if(error != kSurfaceErrorSuccess)
+            {
+                // Terminate if its not succeeded
+                [self.process terminate];
+                return;
+            }
         }
     }];
 }

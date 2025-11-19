@@ -46,8 +46,9 @@
 
 + (instancetype)inheriteConfigurationUsingProcessIdentifier:(pid_t)pid
 {
-    ksurface_proc_t object = proc_object_for_pid(pid);
-    return [[self alloc] initWithParentProcessIdentifier:object.bsd.kp_proc.p_pid withUserIdentifier:object.bsd.kp_eproc.e_pcred.p_ruid withGroupIdentifier:object.bsd.kp_eproc.e_pcred.p_rgid withEntitlements:object.entitlements];
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    return [[self alloc] initWithParentProcessIdentifier:proc_getpid(proc) withUserIdentifier:proc_getruid(proc) withGroupIdentifier:proc_getrgid(proc) withEntitlements:proc_getentitlements(proc)];
 }
 
 + (instancetype)userApplicationConfiguration
@@ -121,7 +122,7 @@
                                        {
                 // Setting process handle directly from process monitor
                 weakSelf.processHandle = handle;
-                proc_create_child_proc(weakSelf.ppid, weakSelf.pid, weakSelf.uid, weakSelf.gid, weakSelf.executablePath, configuration.entitlements);
+                proc_add_proc(weakSelf.ppid, weakSelf.pid, weakSelf.uid, weakSelf.gid, weakSelf.executablePath, configuration.entitlements);
                 
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];
@@ -129,7 +130,7 @@
                 {
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
-                        proc_object_remove_for_pid(strongSelf.pid);
+                        proc_remove_for_pid(strongSelf.pid);
                         if(self.windowIdentifier != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
@@ -373,7 +374,7 @@
     LDEProcess *process = [self.processes objectForKey:@(pid)];
     if(process != nil && process.windowIdentifier != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.windowIdentifier];
     [self.processes removeObjectForKey:@(pid)];
-    proc_object_remove_for_pid(pid);
+    proc_remove_for_pid(pid);
 }
 
 - (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier

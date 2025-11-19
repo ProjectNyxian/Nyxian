@@ -184,7 +184,15 @@
                   withIdentifier:(unsigned int)uid
                        withReply:(void (^)(unsigned int result))reply
 {
-    ksurface_proc_t proc = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
+    
+    if(error != kSurfaceErrorSuccess)
+    {
+        reply(-1);
+        return;
+    }
+    
     ksurface_proc_t proc_unmod = proc;
     
     switch(option)
@@ -222,7 +230,7 @@
     
     if(processObjectIsDifferent && processAllowedToElevate)
     {
-        proc_object_insert(proc);
+        proc_insert(proc);
     }
     else if(processObjectIsDifferent)
     {
@@ -237,37 +245,44 @@
 - (void)getProcessInfoWithOption:(ProcessInfo)option
                        withReply:(void (^)(unsigned int result))reply
 {
-    ksurface_proc_t proc = proc_object_for_pid(_processIdentifier);
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
     
-    pid_t repl = 0;
+    unsigned int retval = -1;
+    
+    if(error != kSurfaceErrorSuccess)
+    {
+        reply(retval);
+        return;
+    }
     
     switch(option)
     {
         case ProcessInfoUID:
         case ProcessInfoEUID:
-            repl = proc_getuid(proc);
+            retval = proc_getuid(proc);
             break;
         case ProcessInfoGID:
         case ProcessInfoEGID:
-            repl = proc_getgid(proc);
+            retval = proc_getgid(proc);
             break;
         case ProcessInfoRUID:
-            repl = proc_getruid(proc);
+            retval = proc_getruid(proc);
             break;
         case ProcessInfoRGID:
-            repl = proc_getrgid(proc);
+            retval = proc_getrgid(proc);
             break;
         case ProcessInfoPID:
-            repl = proc_getpid(proc);
+            retval = proc_getpid(proc);
             break;
         case ProcessInfoPPID:
-            repl = proc_getppid(proc);
+            retval = proc_getppid(proc);
             break;
         default:
-            repl = -1;
+            break;
     }
     
-    reply(repl);
+    reply(retval);
     return;
 }
 
@@ -348,8 +363,10 @@
         
         while (mach_absolute_time() - start < timeoutNs)
         {
-            proc = proc_object_for_pid(_processIdentifier);
-            if (proc.bsd.kp_proc.p_pid == _processIdentifier) {
+            ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
+            if(error == kSurfaceErrorSuccess
+               && proc.bsd.kp_proc.p_pid == _processIdentifier)
+            {
                 matched = YES;
                 break;
             }

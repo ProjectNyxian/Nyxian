@@ -38,24 +38,21 @@
 #define proc_getsvgid(proc) proc.bsd.kp_eproc.e_pcred.p_svgid
 
 /// Returns a process structure for a given process identifier
-ksurface_proc_t proc_object_for_pid(pid_t pid);
+ksurface_error_t proc_for_pid(pid_t pid, ksurface_proc_t *proc);
 
 /// Removes a process structure for a given process identifier
-void proc_object_remove_for_pid(pid_t pid);
-
-/// Inserts a given process structure into the surface structure
-void proc_object_insert(ksurface_proc_t object);
-
-/// Returns a process structure at a given index
-ksurface_proc_t proc_object_at_index(uint32_t index);
+ksurface_error_t proc_remove_for_pid(pid_t pid);
 
 /// Returns if any process is allowed to spawn
-BOOL proc_can_spawn(void);
+ksurface_error_t proc_can_spawn(void);
+
+/// Inserts a given process structure into the surface structure
+ksurface_error_t proc_insert(ksurface_proc_t proc);
+
+/// Returns a process structure at a given index
+ksurface_error_t proc_at_index(uint32_t index, ksurface_proc_t *proc);
 
 /// Creates child process
-BOOL proc_create_child_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
-
-/// Removes process object from process table
-void proc_object_remove_for_pid(pid_t pid);
+ksurface_error_t proc_add_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
 
 #endif /* PROCENVIRONMENT_PROC_H */

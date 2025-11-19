@@ -24,214 +24,219 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-ksurface_proc_t proc_object_for_pid(pid_t pid)
+ksurface_error_t proc_for_pid(pid_t pid,
+                              ksurface_proc_t *proc)
 {
-    ksurface_proc_t cur = {};
+    // Check to ensure its not a nullified surface or better said
+    if(surface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
     
-    // Dont use if uninitilized
-    if(surface == NULL) return cur;
+    // Preparing error
+    ksurface_error_t retval = kSurfaceErrorNotFound;
     
+    // Beginning to spin, to hopefully find the processes requested
     do
     {
         seqlock_read_begin(&(surface->seqlock));
+        
+        // Iterating through all process structures
         for(uint32_t i = 0; i < surface->proc_count; i++)
         {
-            ksurface_proc_t object = surface->proc_info[i];
-            if(object.bsd.kp_proc.p_pid == pid)
+            // Checking if its the process structure were looking for
+            if(surface->proc[i].bsd.kp_proc.p_pid == pid)
             {
-                cur = object;
+                // Copying it to the process ptr passed
+                *proc = surface->proc[i];
+                
+                // Setting return value to success
+                retval = kSurfaceErrorSuccess;
                 break;
             }
         }
     }
     while (seqlock_read_retry(&(surface->seqlock)));
-    return cur;
+    
+    // Returning return value
+    return retval;
 }
 
-void proc_object_remove_for_pid(pid_t pid)
+ksurface_error_t proc_remove_for_pid(pid_t pid)
 {
     // Dont use if uninitilized
-    if(surface == NULL) return;
+    if(surface == NULL) return kSurfaceErrorNullPtr;
     
+    // Aquiring rw lock
     seqlock_lock(&(surface->seqlock));
 
+    // Return value
+    ksurface_error_t retval = kSurfaceErrorNotFound;
+    
+    // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
-        if(surface->proc_info[i].bsd.kp_proc.p_pid == pid)
+        // Checking if its the process were looking for
+        if(surface->proc[i].bsd.kp_proc.p_pid == pid)
         {
+            // Some check i dont remember why I wrote, I need to remember writing comments ong
+            // MARK: Find out if its safe plaxinf proc_count-- here instead of in the if condition
             if(i < surface->proc_count - 1)
             {
-                memmove(&surface->proc_info[i],
-                        &surface->proc_info[i + 1],
+                // Removing process from process structure by moving the process struture in front of it to it
+                memmove(&surface->proc[i],
+                        &surface->proc[i + 1],
                         (surface->proc_count - i - 1) * sizeof(ksurface_proc_t));
             }
+            
+            // Decrementing the count of processes
             surface->proc_count--;
+            
+            // Setting return value to succession
+            retval = kSurfaceErrorSuccess;
             break;
         }
     }
 
-    seqlock_unlock(&(surface->seqlock));
-}
-
-BOOL proc_can_spawn(void)
-{
-    BOOL result = NO;
-    
-    // Dont use if uninitilized
-    if(surface == NULL) return result;
-    
-    seqlock_lock(&(surface->seqlock));
-    
-    result = (surface->proc_count < PROC_MAX);
-    
+    // Releasing rw lock
     seqlock_unlock(&(surface->seqlock));
     
-    return result;
+    // Returning return value
+    return retval;
 }
 
-void proc_object_insert(ksurface_proc_t object)
+ksurface_error_t proc_can_spawn(void)
 {
     // Dont use if uninitilized
-    if(surface == NULL) return;
+    if(surface == NULL) return kSurfaceErrorNullPtr;
     
+    // Aquiring rw lock (Its from biggest necessarity to make sure that no process gets added while we check if a process is allowed to spawn)
     seqlock_lock(&(surface->seqlock));
     
+    // Return value
+    ksurface_error_t retval = kSurfaceErrorUndefined;
+    
+    // Checking if process count would exceed the maximum
+    if(surface->proc_count < PROC_MAX)
+    {
+        // Setting return value to undefined, as a universal marker
+        retval = kSurfaceErrorUndefined;
+    }
+    
+    // Releasing rw lock
+    seqlock_unlock(&(surface->seqlock));
+    
+    // Returning return value
+    return retval;
+}
+
+ksurface_error_t proc_insert(ksurface_proc_t proc)
+{
+    // Dont use if uninitilized
+    if(surface == NULL) return kSurfaceErrorNullPtr;
+    
+    // Aquiring rw lock
+    seqlock_lock(&(surface->seqlock));
+    
+    // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
-        if(surface->proc_info[i].bsd.kp_proc.p_pid == object.bsd.kp_proc.p_pid)
+        // Checking if the process at a certain position in memory matches the provided process that we wanna insert
+        if(surface->proc[i].bsd.kp_proc.p_pid == proc.bsd.kp_proc.p_pid)
         {
-            memcpy(&surface->proc_info[i], &object, sizeof(ksurface_proc_t));
+            // Copying provided process onto the surface at already existing memory entry
+            memcpy(&surface->proc[i], &proc, sizeof(ksurface_proc_t));
+            
+            // Releasing rw lock
             seqlock_unlock(&(surface->seqlock));
-            return;
+            
+            // It succeeded
+            return kSurfaceErrorSuccess;
         }
     }
     
-    memcpy(&surface->proc_info[surface->proc_count++], &object, sizeof(ksurface_proc_t));
+    // It doesnt exist already so we copy it into the next new entry
+    memcpy(&surface->proc[surface->proc_count++], &proc, sizeof(ksurface_proc_t));
     
+    // Releasing rw lock
     seqlock_unlock(&(surface->seqlock));
+    
+    // It succeeded
+    return kSurfaceErrorSuccess;
 }
 
-ksurface_proc_t proc_object_at_index(uint32_t index)
+ksurface_error_t proc_at_index(uint32_t index,
+                               ksurface_proc_t *prot)
 {
-    ksurface_proc_t cur = {};
-    
     // Dont use if uninitilized
-    if(surface == NULL) return cur;
+    if(surface == NULL) return kSurfaceErrorNullPtr;
     
+    // Return value
+    ksurface_error_t retval = kSurfaceErrorOutOfBounds;
+    
+    // Beginning to spin, to hopefully find the processes requested
     do
     {
         seqlock_read_begin(&(surface->seqlock));
+        
+        // Checking if the index is within bounds
         if(index < surface->proc_count)
-            cur = surface->proc_info[index];
+        {
+            // Copying process at index to the pointer provided
+            *prot = surface->proc[index];
+            
+            // Setting return value to succeed
+            retval = kSurfaceErrorSuccess;
+        }
     }
     while (seqlock_read_retry(&(surface->seqlock)));
-    return cur;
+    
+    // Returning return value
+    return retval;
 }
 
 // MARK: New and safer approach, NO means execution not granted!
-BOOL proc_create_child_proc(pid_t ppid,
-                            pid_t pid,
-                            uid_t uid,
-                            gid_t gid,
-                            NSString *executablePath,
-                            PEEntitlement entitlement)
+ksurface_error_t proc_add_proc(pid_t ppid,
+                               pid_t pid,
+                               uid_t uid,
+                               gid_t gid,
+                               NSString *executablePath,
+                               PEEntitlement entitlement)
 {
-    struct kinfo_proc childInfoProc = {};
+    ksurface_proc_t proc = {};
     
-    // Set start time to now
+    // Set ksurface_proc properties
+    proc.force_task_role_override = true;
+    proc.task_role_override = TASK_UNSPECIFIED;
+    proc.entitlements = entitlement;
+    strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    
+    // Set bsd process stuff
     struct timeval tv;
     if(gettimeofday(&tv, NULL) != 0) return NO;
-    childInfoProc.kp_proc.p_un.__p_starttime.tv_sec = tv.tv_sec;
-    childInfoProc.kp_proc.p_un.__p_starttime.tv_usec = tv.tv_usec;
+    proc.bsd.kp_proc.p_un.__p_starttime.tv_sec = tv.tv_sec;
+    proc.bsd.kp_proc.p_un.__p_starttime.tv_usec = tv.tv_usec;
+    proc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+    proc.bsd.kp_proc.p_stat = SRUN;
+    proc.bsd.kp_proc.p_pid = pid;
+    proc.bsd.kp_proc.p_oppid = ppid;
+    proc.bsd.kp_proc.p_priority = PUSER;
+    proc.bsd.kp_proc.p_usrpri = PUSER;
+    strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
+    proc.bsd.kp_proc.p_acflag = 2;
+    proc.bsd.kp_eproc.e_pcred.p_ruid = uid;
+    proc.bsd.kp_eproc.e_pcred.p_svuid = uid;
+    proc.bsd.kp_eproc.e_pcred.p_rgid = gid;
+    proc.bsd.kp_eproc.e_pcred.p_svgid = gid;
+    proc.bsd.kp_eproc.e_ucred.cr_ref = 5;
+    proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
+    proc.bsd.kp_eproc.e_ucred.cr_ngroups = 4;
+    proc.bsd.kp_eproc.e_ucred.cr_groups[0] = gid;
+    proc.bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
+    proc.bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
+    proc.bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
+    proc.bsd.kp_eproc.e_ppid = ppid;
+    proc.bsd.kp_eproc.e_pgid = ppid;
+    proc.bsd.kp_eproc.e_tdev = -1;
+    proc.bsd.kp_eproc.e_flag = 2;
     
-    // TODO: Make the process a zombie to either get killed or get waited on
-    // Set process flag and stat
-    childInfoProc.kp_proc.p_flag = P_LP64 | P_EXEC;
-    childInfoProc.kp_proc.p_stat = SRUN;
-    
-    // set process stuff
-    childInfoProc.kp_proc.p_pid = pid;
-    childInfoProc.kp_proc.p_oppid = ppid;
-    
-    // Set dupfd
-    childInfoProc.kp_proc.p_dupfd = 0;
-    
-    // set user stack
-    childInfoProc.kp_proc.user_stack = 0x0;
-    childInfoProc.kp_proc.exit_thread = NULL;
-    
-    // Set otger things
-    childInfoProc.kp_proc.p_debugger = 0;
-    childInfoProc.kp_proc.sigwait = 0;
-    childInfoProc.kp_proc.p_estcpu = 0;
-    childInfoProc.kp_proc.p_cpticks = 0;
-    childInfoProc.kp_proc.p_pctcpu = 0;
-    childInfoProc.kp_proc.p_wchan = NULL;
-    childInfoProc.kp_proc.p_wmesg = NULL;
-    childInfoProc.kp_proc.p_swtime = 0;
-    childInfoProc.kp_proc.p_slptime = 0;
-    childInfoProc.kp_proc.p_realtimer.it_value.tv_sec = 0;
-    childInfoProc.kp_proc.p_realtimer.it_value.tv_usec = 0;
-    childInfoProc.kp_proc.p_realtimer.it_interval.tv_sec = 0;
-    childInfoProc.kp_proc.p_realtimer.it_interval.tv_usec = 0;
-    childInfoProc.kp_proc.p_rtime.tv_sec = 0;
-    childInfoProc.kp_proc.p_rtime.tv_usec = 0;
-    childInfoProc.kp_proc.p_uticks = 0;
-    childInfoProc.kp_proc.p_sticks = 0;
-    childInfoProc.kp_proc.p_iticks = 0;
-    childInfoProc.kp_proc.p_traceflag = 0;
-    childInfoProc.kp_proc.p_tracep = NULL;
-    childInfoProc.kp_proc.p_siglist = 0;
-    childInfoProc.kp_proc.p_textvp = NULL;
-    childInfoProc.kp_proc.p_holdcnt = 0;
-    childInfoProc.kp_proc.p_sigmask = 0;
-    childInfoProc.kp_proc.p_sigignore = 0;
-    childInfoProc.kp_proc.p_sigcatch = 0;
-    childInfoProc.kp_proc.p_priority = PUSER;
-    childInfoProc.kp_proc.p_usrpri = PUSER;
-    childInfoProc.kp_proc.p_nice = 0;
-    strncpy(childInfoProc.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
-    childInfoProc.kp_proc.p_pgrp = NULL;
-    childInfoProc.kp_proc.p_addr = NULL;
-    childInfoProc.kp_proc.p_xstat = 0;
-    childInfoProc.kp_proc.p_acflag = 2;
-    childInfoProc.kp_proc.p_ru = NULL;
-    
-    childInfoProc.kp_eproc.e_paddr = NULL;
-    childInfoProc.kp_eproc.e_sess = NULL;
-    
-    childInfoProc.kp_eproc.e_pcred.pc_ucred = NULL;
-    childInfoProc.kp_eproc.e_pcred.p_ruid = uid;
-    childInfoProc.kp_eproc.e_pcred.p_svuid = uid;
-    childInfoProc.kp_eproc.e_pcred.p_rgid = gid;
-    childInfoProc.kp_eproc.e_pcred.p_svgid = gid;
-    childInfoProc.kp_eproc.e_pcred.p_refcnt = 0;
-    
-    childInfoProc.kp_eproc.e_ucred.cr_ref = 5;
-    childInfoProc.kp_eproc.e_ucred.cr_uid = uid;
-    childInfoProc.kp_eproc.e_ucred.cr_ngroups = 4;
-    childInfoProc.kp_eproc.e_ucred.cr_groups[0] = gid;
-    childInfoProc.kp_eproc.e_ucred.cr_groups[1] = 250;
-    childInfoProc.kp_eproc.e_ucred.cr_groups[2] = 286;
-    childInfoProc.kp_eproc.e_ucred.cr_groups[3] = 299;
-    
-    childInfoProc.kp_eproc.e_ppid = ppid;
-    childInfoProc.kp_eproc.e_pgid = ppid;
-    
-    childInfoProc.kp_eproc.e_jobc = 0;
-    childInfoProc.kp_eproc.e_tdev = -1;
-    childInfoProc.kp_eproc.e_tpgid = 0;
-    childInfoProc.kp_eproc.e_flag = 2;
-    
-    ksurface_proc_t finalObject = {};
-    finalObject.force_task_role_override = true;
-    finalObject.task_role_override = TASK_UNSPECIFIED;
-    finalObject.bsd = childInfoProc;
-    strncpy(finalObject.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
-    
-    finalObject.entitlements = entitlement;
-    
-    proc_object_insert(finalObject);
-    
-    return YES;
+    // Adding/Inserting proc
+    return proc_insert(proc);
 }

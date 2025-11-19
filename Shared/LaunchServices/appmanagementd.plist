@@ -3,18 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>LSServiceIdentifier</key>
-	<string>com.cr4zy.appmanagementd</string>
+	<string>com.cr4zy.installd</string>
 	<key>LSShouldAutorestart</key>
 	<true/>
 	<key>LSExecutablePath</key>
-	<string>/usr/libexec/appmanagementd</string>
+	<string>/usr/libexec/installd</string>
 	<key>LSServiceMode</key>
 	<string>management</string>
 	<key>LSUserIdentifier</key>
-	<integer>0</integer>
+	<integer>1</integer>
 	<key>LSGroupIdentifier</key>
-	<integer>0</integer>
+	<integer>1</integer>
 	<key>LSIntegratedServiceName</key>
-	<string>appmanagementd</string>
+	<string>installd</string>
 </dict>
 </plist>

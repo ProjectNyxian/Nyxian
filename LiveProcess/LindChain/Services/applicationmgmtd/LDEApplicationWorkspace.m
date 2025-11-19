@@ -48,7 +48,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -62,7 +62,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -76,7 +76,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -90,7 +90,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -104,7 +104,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -118,7 +118,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -132,7 +132,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return result;
 }
 
@@ -146,7 +146,7 @@
             dispatch_semaphore_signal(sema);
         }];
         dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.appmanagementd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
     return fastpath;
 }
 

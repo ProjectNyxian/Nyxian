@@ -140,7 +140,7 @@ int LiveProcessMain(int argc, char *argv[]) {
     if([mode isEqualToString:@"management"])
     {
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
-        if([service isEqualToString:@"appmanagementd"])
+        if([service isEqualToString:@"installd"])
         {
             ApplicationManagementDaemonEntry();
         }

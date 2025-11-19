@@ -83,17 +83,20 @@ DEFINE_HOOK(task_policy_get, kern_return_t,(task_policy_get_t task,
 {
     kern_return_t kr = ORIG_FUNC(task_policy_get)(task, flavor, policy_info, policy_infoCnt, get_default);
     
-    if(kr == KERN_SUCCESS && flavor == TASK_CATEGORY_POLICY)
+    if(kr == KERN_SUCCESS
+       && flavor == TASK_CATEGORY_POLICY)
     {
         pid_t pid = 0;
         kr = pid_for_task(task, &pid);
         if(kr == KERN_SUCCESS)
         {
-            ksurface_proc_t object = proc_object_for_pid(pid);
-            if(object.force_task_role_override)
+            ksurface_proc_t proc = {};
+            ksurface_error_t error = proc_for_pid(pid, &proc);
+            if(error != kSurfaceErrorSuccess
+               && proc.force_task_role_override)
             {
                 task_category_policy_data_t *data = (task_category_policy_data_t*)policy_info;
-                data->role = object.task_role_override;
+                data->role = proc.task_role_override;
             }
         }
     }

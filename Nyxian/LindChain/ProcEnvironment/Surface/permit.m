@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
-#import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 BOOL permitive_over_process_allowed(pid_t callerPid,
                                     pid_t targetPid)
@@ -27,17 +26,30 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
     // Only let host proceed
     environment_must_be_role(EnvironmentRoleHost);
     
+    // Place holder for the processes
+    ksurface_proc_t callerProc = {};
+    ksurface_proc_t targetProc = {};
+    
     // Get the objects of both pids
-    ksurface_proc_t callerObj = proc_object_for_pid(callerPid);
-    ksurface_proc_t targetObj = proc_object_for_pid(targetPid);
+    ksurface_error_t error = proc_for_pid(callerPid, &callerProc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return NO;
+    }
+    
+    error = proc_for_pid(targetPid, &targetProc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return NO;
+    }
     
     // Gets creds
-    uid_t caller_uid = proc_getuid(callerObj);
+    uid_t caller_uid = proc_getuid(callerProc);
     
     // Gets if its allowed in the first place
     if((caller_uid == 0) ||
-       (caller_uid == proc_getuid(targetObj)) ||
-       (caller_uid == proc_getruid(targetObj))) return YES;
+       (caller_uid == proc_getuid(targetProc)) ||
+       (caller_uid == proc_getruid(targetProc))) return YES;
     
     // MARK: Child supervisor entitlement has been removed because too large attack surface
     

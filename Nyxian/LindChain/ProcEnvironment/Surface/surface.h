@@ -27,6 +27,17 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 
+enum kSurfaceError {
+    kSurfaceErrorSuccess        = 0,
+    kSurfaceErrorUndefined      = 1,
+    kSurfaceErrorNullPtr        = 2,
+    kSurfaceErrorNotFound       = 3,
+    kSurfaceErrorNotHoldingLock = 4, /* potentially for future */
+    kSurfaceErrorOutOfBounds    = 5,
+};
+
+typedef unsigned char ksurface_error_t;
+
 /// Structure that holds process information
 typedef struct {
     /* Real structure */
@@ -58,7 +69,7 @@ typedef struct {
     
     /* Proc */
     uint32_t proc_count;
-    ksurface_proc_t proc_info[PROC_MAX];
+    ksurface_proc_t proc[PROC_MAX];
 } ksurface_mapping_t;
 
 /* Surface Macros */

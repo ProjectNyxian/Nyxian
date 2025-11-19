@@ -50,7 +50,7 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
 
             pid_t *pids = (pid_t *)buffer;
             for (size_t i = 0; i < n; i++) {
-                pids[i] = surface->proc_info[i].bsd.kp_proc.p_pid;
+                pids[i] = surface->proc[i].bsd.kp_proc.p_pid;
             }
         }
 
@@ -67,53 +67,70 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
 
 int proc_libproc_name(pid_t pid, void * buffer, uint32_t buffersize)
 {
-    if (buffersize == 0 || buffer == NULL)
+    if(buffersize == 0 || buffer == NULL)
+    {
         return 0;
+    }
     
-    ksurface_proc_t info = proc_object_for_pid(pid);
-    if (info.bsd.kp_proc.p_pid == 0)
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
         return 0;
-    
-    strlcpy((char*)buffer, info.bsd.kp_proc.p_comm, buffersize);
+    }
+        
+    strlcpy((char*)buffer, proc.bsd.kp_proc.p_comm, buffersize);
     
     return (int)strlen((char*)buffer);
 }
 
 int proc_libproc_pidpath(pid_t pid, void * buffer, uint32_t buffersize)
 {
-    if (buffersize == 0 || buffer == NULL)
+    if(buffersize == 0 || buffer == NULL)
+    {
         return 0;
-
-    ksurface_proc_t info = proc_object_for_pid(pid);
-    if (info.bsd.kp_proc.p_pid == 0)
+    }
+    
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
         return 0;
+    }
 
-    strlcpy((char*)buffer, info.path, buffersize);
+    strlcpy((char*)buffer, proc.path, buffersize);
     return (int)strlen((char*)buffer);
 }
 
 int proc_libproc_pidinfo(pid_t pid, int flavor, uint64_t arg,
                  void * buffer, int buffersize)
 {
-    if (buffer == NULL || buffersize <= 0)
+    if(buffer == NULL || buffersize <= 0)
+    {
         return 0;
-
-    ksurface_proc_t kinfo = proc_object_for_pid(pid);
-    if (kinfo.bsd.kp_proc.p_pid == 0)
+    }
+    
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
         return 0;
+    }
 
-    switch (flavor) {
-    case PROC_PIDTASKINFO:
-        memset(buffer, 0, buffersize);
-        return sizeof(struct proc_taskinfo);
-
-    case PROC_PIDTASKALLINFO: {
-        if (buffersize < sizeof(struct proc_taskallinfo))
-            return 0;
-        struct proc_taskallinfo *info = (struct proc_taskallinfo*)buffer;
-        memset(info, 0, sizeof(*info));
-        memcpy(&info->pbsd, &kinfo.bsd, sizeof(kinfo.bsd) < sizeof(info->pbsd) ? sizeof(kinfo.bsd) : sizeof(info->pbsd));
-        return sizeof(struct proc_taskallinfo);
+    switch(flavor)
+    {
+        case PROC_PIDTASKINFO:
+            memset(buffer, 0, buffersize);
+            return sizeof(struct proc_taskinfo);
+        case PROC_PIDTASKALLINFO: {
+            if(buffersize < sizeof(struct proc_taskallinfo))
+            {
+                return 0;
+            }
+            struct proc_taskallinfo *info = (struct proc_taskallinfo*)buffer;
+            memset(info, 0, sizeof(*info));
+            memcpy(&info->pbsd, &proc.bsd, sizeof(proc.bsd) < sizeof(info->pbsd) ? sizeof(proc.bsd) : sizeof(info->pbsd));
+            return sizeof(struct proc_taskallinfo);
     }
 
     default:

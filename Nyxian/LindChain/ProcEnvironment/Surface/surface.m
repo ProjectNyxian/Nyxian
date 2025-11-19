@@ -65,7 +65,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
         {
             memset(&kprocs[i], 0, sizeof(struct kinfo_proc));
             memcpy(&kprocs[i],
-                   &surface->proc_info[i].bsd,
+                   &surface->proc[i].bsd,
                    sizeof(struct kinfo_proc));
         }
 
@@ -88,10 +88,15 @@ MappingPortObject *proc_surface_for_pid(pid_t pid)
     uint32_t flags = VM_PROT_NONE;
     
     // Check entitlements and go
-    ksurface_proc_t proc = proc_object_for_pid(pid);
-    PEEntitlement proc_ent = proc_getentitlements(proc);
-    if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceRead)) flags = flags | VM_PROT_READ;
-    if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    if(error == kSurfaceErrorSuccess)
+    {
+        // If gathering the process was successful, only then we gonna add permitives to the mapping port we going to distribute to the process
+        PEEntitlement proc_ent = proc_getentitlements(proc);
+        if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceRead)) flags = flags | VM_PROT_READ;
+        if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
+    }
     
     return [surfaceMappingPortObject copyWithProt:flags];
 }
@@ -135,7 +140,7 @@ void proc_surface_init(void)
             if(hostname == nil) hostname = @"localhost";
             strlcpy(surface->hostname, hostname.UTF8String, MAXHOSTNAMELEN);
             surface->proc_count = 0;
-            proc_create_child_proc(getppid(), getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
+            proc_add_proc(getppid(), getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
             
             
             // Setup spinface
