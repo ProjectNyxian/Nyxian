@@ -21,6 +21,7 @@
 #define LDEWINDOWSESSIONTERMINAL_H
 
 #import <LindChain/Multitask/LDEWindowSession.h>
+#import <LindChain/Multitask/LDEProcessManager.h>
 
 @interface LDEWindowSessionTerminal : UIViewController <LDEWindowSession>
 
@@ -28,6 +29,8 @@
 
 @property (nonatomic,strong) NSLayoutConstraint *heigthConstraint;
 @property (nonatomic,strong) NSLayoutConstraint *widthConstraint;
+
+@property (nonatomic,weak) LDEProcess *process;
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath;
 

@@ -56,7 +56,8 @@
     [mapObject insertStdPipe:stdoutPipe StdErrPipe:stderrPipe StdInPipe:stdinPipe];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withConfiguration:[LDEProcessConfiguration userApplicationConfiguration] process:&process];
-    process.wid = identifier;
+    _process = process;
+    _process.wid = identifier;
     
     close(stderrPipe[0]);
     close(stderrPipe[1]);
@@ -87,6 +88,7 @@
 
 - (void)closeWindowWithScene:(UIWindowScene *)windowScene
 {
+    [_process terminate];
 }
 
 - (void)activateWindow
