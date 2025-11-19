@@ -278,38 +278,6 @@ class Builder {
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
-                    /*var stdoutPipe = [Int32](repeating: 0, count: 2)
-                    var stderrPipe = [Int32](repeating: 0, count: 2)
-                    var stdinPipe  = [Int32](repeating: 0, count: 2)
-                    
-                    guard pipe(&stdoutPipe) == 0,
-                          pipe(&stderrPipe) == 0,
-                          pipe(&stdinPipe) == 0 else {
-                        fatalError("pipe() failed")
-                    }
-                    
-                    let fdMap: FDMapObject = FDMapObject.emptyMap()
-                    fdMap.insertStdPipe(&stdoutPipe, stdErrPipe: &stderrPipe, stdInPipe: &stdinPipe)
-                    var process: LDEProcess? = nil
-                    LDEProcessManager.shared().spawnProcess(withPath: path, withArguments: [], withEnvironmentVariables: [:], with: fdMap, with: LDEProcessConfiguration(parentProcessIdentifier: getpid(), withUserIdentifier: 501, withGroupIdentifier: 501, withEntitlements: PEEntitlement.defaultUserApplication), process: &process)
-                    
-                    close(stderrPipe[0])
-                    close(stderrPipe[1])
-                    
-                    DispatchQueue.main.sync {
-                        let terminalVC: TerminalViewController = TerminalViewController(title: self.project.projectConfig.displayName, stdoutFD: stdoutPipe[0], stdinFD: stdinPipe[1]) {
-                            process?.terminate()
-                        }
-                        let terminalNVC: UINavigationController = UINavigationController(rootViewController: terminalVC)
-                        
-                        
-                        terminalNVC.modalPresentationStyle = (UIDevice.current.userInterfaceIdiom == .pad) ? .fullScreen : .pageSheet
-                        
-                        if let rootVC = LDEMultitaskManager.shared().rootViewController?.topMostViewController() {
-                            rootVC.present(terminalNVC, animated: true)
-                        }
-                    }*/
-                    
                     DispatchQueue.main.sync {
                         let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
                         LDEWindowServer.shared().openWindow(withSession: TerminalSession, identifier: nil)

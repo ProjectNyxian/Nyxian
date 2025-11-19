@@ -31,6 +31,7 @@
 
 @synthesize windowName;
 @synthesize windowSize;
+@synthesize windowIsFullscreen;
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath
 {
@@ -55,6 +56,7 @@
     [mapObject insertStdPipe:stdoutPipe StdErrPipe:stderrPipe StdInPipe:stdinPipe];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withConfiguration:[LDEProcessConfiguration userApplicationConfiguration] process:&process];
+    process.wid = identifier;
     
     close(stderrPipe[0]);
     close(stderrPipe[1]);
