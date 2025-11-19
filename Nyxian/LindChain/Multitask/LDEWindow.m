@@ -190,6 +190,7 @@
     ]];
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(focusWindow:)];
+    tap.delegate = self;
     [_focusView addGestureRecognizer:tap];
     
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -438,33 +439,42 @@
     }
 }
 
-- (void)moveWindow:(UIPanGestureRecognizer*)sender
+- (void)moveWindow:(UIPanGestureRecognizer*)gesture
 {
-    [self focusWindow];
     if(_isMaximized) return;
     
-    CGPoint point = [sender translationInView:self.view];
-    [sender setTranslation:CGPointZero inView:self.view];
-    CGPoint newPosition = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
-    CGRect newRect = CGRectMake(
-        newPosition.x - self.view.bounds.size.width / 2.0,
-        newPosition.y - self.view.bounds.size.height / 2.0,
-        self.view.bounds.size.width,
-        self.view.bounds.size.height
-    );
-    newRect = [self.delegate userDoesChangeWindow:self toRect:newRect];
-    self.view.frame = newRect;
-    
-    [self updateOriginalFrame];
+    switch(gesture.state)
+    {
+        case UIGestureRecognizerStateBegan:
+            [self focusWindow];
+        case UIGestureRecognizerStateChanged:
+        {
+            CGPoint point = [gesture translationInView:self.view];
+            [gesture setTranslation:CGPointZero inView:self.view];
+            CGPoint newPosition = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
+            CGRect newRect = CGRectMake(newPosition.x - self.view.bounds.size.width / 2.0,
+                                        newPosition.y - self.view.bounds.size.height / 2.0,
+                                        self.view.bounds.size.width,
+                                        self.view.bounds.size.height);
+            newRect = [self.delegate userDoesChangeWindow:self toRect:newRect];
+            self.view.frame = newRect;
+            [self updateOriginalFrame];
+        }
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+        default:
+            break;
+    }
 }
 
 - (void)resizeWindow:(UIPanGestureRecognizer*)gesture
 {
-    [self focusWindow];
     if(_isMaximized) return;
     
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan:
+            [self focusWindow];
             [self resizeActionStart];
             break;
         case UIGestureRecognizerStateChanged:
