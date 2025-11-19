@@ -486,10 +486,14 @@
             proposed.size.width  = MAX(50, proposed.size.width  + point.x);
             proposed.size.height = MAX(50, proposed.size.height + point.y);
             
-            if(proposed.size.width < 300 ||
-               proposed.size.height < 200)
+            if(proposed.size.width < 300)
             {
-                return;
+                proposed.size.width = 300;
+            }
+            
+            if(proposed.size.height < 200)
+            {
+                proposed.size.height = 200;
             }
             
             CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
