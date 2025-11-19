@@ -36,7 +36,6 @@
 @property (nonatomic) CGRect fullScreenRectBackup;
 
 // Intuition Fixup
-@property CGRect startFrame;
 @property CGPoint resizeAnchor;
 @property CGPoint grabOffset;
 
@@ -490,21 +489,39 @@
         {
             [self focusWindow];
             [self resizeActionStart];
-            self.startFrame = self.view.frame;
             self.resizeAnchor = CGPointMake(
-                CGRectGetMinX(self.startFrame),
-                CGRectGetMinY(self.startFrame)
+                CGRectGetMinX(self.view.frame),
+                CGRectGetMinY(self.view.frame)
             );
             break;
         }
         case UIGestureRecognizerStateChanged:
         {
-            CGRect frame = self.startFrame;
             CGFloat newWidth  = finger.x - self.resizeAnchor.x;
             CGFloat newHeight = finger.y - self.resizeAnchor.y;
-            frame.size.width  = MAX(300, newWidth);
-            frame.size.height = MAX(200, newHeight);
-            self.view.frame = frame;
+            
+            CGRect oldFrame = self.view.frame;
+            CGRect proposed = oldFrame;
+            proposed.size.width = MAX(300, newWidth);
+            proposed.size.height = MAX(200, newHeight);
+            
+            CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
+            BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
+            BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
+            
+            if(widthBlocked)
+            {
+                corrected.size.width = oldFrame.size.width;
+                corrected.origin.x   = oldFrame.origin.x;
+            }
+            
+            if(heightBlocked)
+            {
+                corrected.size.height = oldFrame.size.height;
+                corrected.origin.y    = oldFrame.origin.y;
+            }
+            
+            self.view.frame = corrected;
             [self updateOriginalFrame];
             break;
         }
