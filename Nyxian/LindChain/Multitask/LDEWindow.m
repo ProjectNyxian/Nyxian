@@ -241,6 +241,13 @@
     }];
 }
 
+- (void)focusWindow
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self focusWindow:nil];
+    });
+}
+
 - (void)setupDecoratedView:(CGRect)dimensions
 {
     self.view = [[UIStackView alloc] initWithFrame:dimensions];
@@ -433,6 +440,7 @@
 
 - (void)moveWindow:(UIPanGestureRecognizer*)sender
 {
+    [self focusWindow];
     if(_isMaximized) return;
     
     CGPoint point = [sender translationInView:self.view];
@@ -452,6 +460,7 @@
 
 - (void)resizeWindow:(UIPanGestureRecognizer*)gesture
 {
+    [self focusWindow];
     if(_isMaximized) return;
     
     switch (gesture.state) {

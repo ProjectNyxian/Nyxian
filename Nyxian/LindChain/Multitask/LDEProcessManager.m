@@ -325,8 +325,12 @@
             }
             else
             {
-                // FIXME: Vulnerability found
-                //[[LDEMultitaskManager shared] openWindowForProcessIdentifier:process.pid];
+                LDEWindowServer *windowServer = [LDEWindowServer shared];
+                LDEWindow *window = windowServer.windows[@(process.wid)];
+                if(window != nil)
+                {
+                    [window focusWindow];
+                }
                 return process.pid;
             }
         }

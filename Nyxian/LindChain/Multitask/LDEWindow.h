@@ -55,6 +55,7 @@ typedef int wid_t;
 - (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session withDelegate:(id<LDEWindowDelegate>)delegate;
 - (void)closeWindow;
 - (void)unfocusWindow;
+- (void)focusWindow;
 
 - (void)maximizeWindow:(BOOL)animated;
 - (void)changeWindowToRect:(CGRect)rect completion:(void (^)(BOOL))completion;
