@@ -82,10 +82,27 @@ static int sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
 
 static unsigned int sync_call_with_timeout_uint(void (^invoke)(void (^reply)(unsigned int)))
 {
-    __block int result = -1;
+    __block unsigned int result = -1;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
     invoke(^(unsigned int val){
+        result = val;
+        dispatch_semaphore_signal(sem);
+    });
+
+    long waited = dispatch_semaphore_wait(
+        sem,
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
+    );
+    return (waited == 0) ? result : -1;
+}
+
+static unsigned long sync_call_with_timeout_ul(void (^invoke)(void (^reply)(unsigned long)))
+{
+    __block unsigned long result = -1;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+
+    invoke(^(unsigned long val){
         result = val;
         dispatch_semaphore_signal(sem);
     });
@@ -175,10 +192,10 @@ int environment_proxy_setprocinfo(ProcessInfo info,
     return ret;
 }
 
-unsigned int environment_proxy_getprocinfo(ProcessInfo info)
+unsigned long environment_proxy_getprocinfo(ProcessInfo info)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    uid_t ret = sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
+    unsigned long ret = sync_call_with_timeout_ul(PROXY_TYPE_REPLY(unsigned long){
         [hostProcessProxy getProcessInfoWithOption:info withReply:reply];
     });
     if(ret == -1) errno = EPERM;

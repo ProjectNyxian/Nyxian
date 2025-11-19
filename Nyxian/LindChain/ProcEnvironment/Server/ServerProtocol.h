@@ -30,15 +30,16 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 typedef NS_OPTIONS(uint64_t, ProcessInfo) {
-    ProcessInfoUID = 0,
-    ProcessInfoEUID = 1,
-    ProcessInfoRUID = 2,
-    ProcessInfoGID = 3,
-    ProcessInfoEGID = 4,
-    ProcessInfoRGID = 5,
-    ProcessInfoPID = 6,
-    ProcessInfoPPID = 7,
-    ProcessInfoMAX = 8,
+    ProcessInfoUID              = 0,
+    ProcessInfoEUID             = 1,
+    ProcessInfoRUID             = 2,
+    ProcessInfoGID              = 3,
+    ProcessInfoEGID             = 4,
+    ProcessInfoRGID             = 5,
+    ProcessInfoPID              = 6,
+    ProcessInfoPPID             = 7,
+    ProcessInfoEntitlements     = 8,
+    ProcessInfoMAX              = 9,
 };
 
 @protocol ServerProtocol
@@ -78,7 +79,7 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
  Process Info
  */
 - (void)setProcessInfoWithOption:(ProcessInfo)option withIdentifier:(unsigned int)uid withReply:(void (^)(unsigned int result))reply;
-- (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned int result))reply;
+- (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned long result))reply;
 
 /*
  Signer

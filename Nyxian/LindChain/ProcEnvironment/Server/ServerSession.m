@@ -140,19 +140,6 @@
 }
 
 /*
- Code signer
- */
-- (void)gatherCodeSignerViaReply:(void (^)(NSData*,NSString*))reply
-{
-    reply(LCUtils.certificateData, LCUtils.certificatePassword);
-}
-
-- (void)gatherSignerExtrasViaReply:(void (^)(NSString*))reply
-{
-    reply([[NSBundle mainBundle] bundlePath]);
-}
-
-/*
  surface
  */
 - (void)handinSurfaceMappingPortObjectViaReply:(void (^)(MappingPortObject *))reply
@@ -243,12 +230,12 @@
 }
 
 - (void)getProcessInfoWithOption:(ProcessInfo)option
-                       withReply:(void (^)(unsigned int result))reply
+                       withReply:(void (^)(unsigned long result))reply
 {
     ksurface_proc_t proc = {};
     ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
     
-    unsigned int retval = -1;
+    unsigned long retval = -1;
     
     if(error != kSurfaceErrorSuccess)
     {
@@ -277,6 +264,9 @@
             break;
         case ProcessInfoPPID:
             retval = proc_getppid(proc);
+            break;
+        case ProcessInfoEntitlements:
+            retval = proc_getentitlements(proc);
             break;
         default:
             break;

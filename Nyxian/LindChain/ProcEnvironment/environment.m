@@ -87,14 +87,18 @@ void environment_init(EnvironmentRole role,
         
         environment_libproc_init();
         environment_application_init();
-        environment_posix_spawn_init();
-        environment_fork_init();
         environment_sysctl_init();
         environment_cred_init();
         
         if(environment_is_role(EnvironmentRoleGuest))
         {
             environment_proxy_waittrap();
+            PEEntitlement entitlement = environment_proxy_getprocinfo(ProcessInfoEntitlements);
+            if(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) || entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly))
+            {
+                environment_fork_init();
+                environment_posix_spawn_init();
+            }
         }
         
         // We do proc_surface_init() before environment_tfp_init(), because otherwise a other process could get the task port of this process and suspend it and abuse its NSXPCConnection to gather write access to the proc surface

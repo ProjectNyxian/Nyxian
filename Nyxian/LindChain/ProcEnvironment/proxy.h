@@ -57,7 +57,7 @@ MappingPortObject *environment_proxy_get_surface_mapping(void);
 int environment_proxy_setprocinfo(ProcessInfo info, unsigned int identifier);
 
 /// Gets process credential
-unsigned int environment_proxy_getprocinfo(ProcessInfo info);
+unsigned long environment_proxy_getprocinfo(ProcessInfo info);
 
 /// Signs a MachO at a given path
 void environment_proxy_sign_macho(NSString *path);
