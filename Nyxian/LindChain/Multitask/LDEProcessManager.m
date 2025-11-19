@@ -304,15 +304,6 @@
                         withConfiguration:(LDEProcessConfiguration*)configuration
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
-    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
-    if(!applicationObject.isLaunchAllowed)
-    {
-        [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
-        return 0;
-    }
-    
-    [self enforceSpawnCooldown];
-    
     for(NSNumber *key in self.processes)
     {
         LDEProcess *process = self.processes[key];
@@ -335,6 +326,15 @@
             }
         }
     }
+    
+    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
+    if(!applicationObject.isLaunchAllowed)
+    {
+        [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
+        return 0;
+    }
+    
+    [self enforceSpawnCooldown];
     
     LDEProcess *process = nil;
     pid_t pid = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
