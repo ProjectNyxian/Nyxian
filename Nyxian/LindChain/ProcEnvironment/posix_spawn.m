@@ -113,6 +113,14 @@ int environment_posix_spawn(pid_t *process_identifier,
                             char *const argv[],
                             char *const envp[])
 {
+    // Getting entitlement list and checking it
+    PEEntitlement entitlement = environment_proxy_getprocinfo(ProcessInfoEntitlements);
+    if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
+         entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
+    {
+        return -1;
+    }
+    
     // Fixing executing binaries at relative paths
     char resolved[PATH_MAX];
     realpath(path, resolved);

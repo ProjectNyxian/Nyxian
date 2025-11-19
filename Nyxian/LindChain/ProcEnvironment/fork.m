@@ -108,6 +108,14 @@ void *helper_thread(void *args)
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
 DEFINE_HOOK(fork, pid_t, (void))
 {
+    // Getting entitlement list and checking it
+    PEEntitlement entitlement = environment_proxy_getprocinfo(ProcessInfoEntitlements);
+    if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
+         entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
+    {
+        return -1;
+    }
+    
     // Create local snapshot
     local_thread_snapshot = malloc(sizeof(thread_snapshot_t));
     local_thread_snapshot->mapObject = [FDMapObject currentMap];
