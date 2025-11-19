@@ -31,7 +31,8 @@ class CustomizationViewController: UIThemedTableViewController {
         "Default",
         "Drawn",
         "Nyxcat",
-        "Nyxcat2"
+        "Nyxcat2",
+        "Nyxcat3"
     ]
     
     var themePreviewCell: ThemePickerPreviewCell?

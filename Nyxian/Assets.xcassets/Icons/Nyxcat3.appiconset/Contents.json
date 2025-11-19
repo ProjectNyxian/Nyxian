@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "nyxcat-light.png",
+      "filename" : "nyxcat-new2-2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "nyxcat-dark.png",
+      "filename" : "nyxcat-new1-2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
