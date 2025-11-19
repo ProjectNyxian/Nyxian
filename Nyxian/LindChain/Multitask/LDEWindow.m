@@ -485,6 +485,13 @@
             CGRect proposed = oldFrame;
             proposed.size.width  = MAX(50, proposed.size.width  + point.x);
             proposed.size.height = MAX(50, proposed.size.height + point.y);
+            
+            if(proposed.size.width < 300 ||
+               proposed.size.height < 200)
+            {
+                return;
+            }
+            
             CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
             
             BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
