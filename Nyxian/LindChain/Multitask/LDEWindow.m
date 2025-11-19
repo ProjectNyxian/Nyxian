@@ -196,7 +196,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
         
-        [UIView animateWithDuration:0.22
+        [UIView animateWithDuration:0.11
                               delay:0
                             options:UIViewAnimationOptionCurveEaseOut
                          animations:^{
@@ -206,7 +206,7 @@
             
             // Smooth background color transition
             [UIView transitionWithView:self->_navigationBar
-                              duration:0.22
+                              duration:0.11
                                options:UIViewAnimationOptionTransitionCrossDissolve
                             animations:^{
                 self->_navigationBar.backgroundColor = UIColor.grayColor;
@@ -221,7 +221,7 @@
     if (!_focusView) return;
     [self.view.superview bringSubviewToFront:self.view];
 
-    [UIView animateWithDuration:0.18
+    [UIView animateWithDuration:0.11
                           delay:0
                         options:UIViewAnimationOptionCurveEaseIn
                      animations:^{
@@ -229,7 +229,7 @@
         self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
 
         [UIView transitionWithView:self->_navigationBar
-                          duration:0.18
+                          duration:0.11
                            options:UIViewAnimationOptionTransitionCrossDissolve
                         animations:^{
             self->_navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
