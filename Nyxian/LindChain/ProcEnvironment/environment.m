@@ -80,11 +80,6 @@ void environment_init(EnvironmentRole role,
         // Setting environment properties
         environmentRole = role;
         
-        if(environment_is_role(EnvironmentRoleGuest))
-        {
-            environment_client_attach_debugger();
-        }
-        
         environment_libproc_init();
         environment_application_init();
         environment_posix_spawn_init();
@@ -92,7 +87,7 @@ void environment_init(EnvironmentRole role,
         environment_sysctl_init();
         environment_cred_init();
         
-        if(role == EnvironmentRoleGuest)
+        if(environment_is_role(EnvironmentRoleGuest))
         {
             environment_proxy_waittrap();
         }
