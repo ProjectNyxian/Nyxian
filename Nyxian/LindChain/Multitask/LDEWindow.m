@@ -35,6 +35,11 @@
 @property (nonatomic, strong) NSArray<NSLayoutConstraint*> *fullScreenConstraints;
 @property (nonatomic) CGRect fullScreenRectBackup;
 
+// Intuition Fixup
+@property CGRect startFrame;
+@property CGPoint resizeAnchor;
+@property CGPoint grabOffset;
+
 @end
 
 @implementation LDEWindow
@@ -442,23 +447,28 @@
 - (void)moveWindow:(UIPanGestureRecognizer*)gesture
 {
     if(_isMaximized) return;
-    
+
+    CGPoint finger = [gesture locationInView:self.view.superview];
+
     switch(gesture.state)
     {
+
         case UIGestureRecognizerStateBegan:
+        {
             [self focusWindow];
+            CGPoint pointInWindow = [gesture locationInView:self.view];
+            self.grabOffset = pointInWindow;
+            break;
+        }
         case UIGestureRecognizerStateChanged:
         {
-            CGPoint point = [gesture translationInView:self.view];
-            [gesture setTranslation:CGPointZero inView:self.view];
-            CGPoint newPosition = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
-            CGRect newRect = CGRectMake(newPosition.x - self.view.bounds.size.width / 2.0,
-                                        newPosition.y - self.view.bounds.size.height / 2.0,
-                                        self.view.bounds.size.width,
-                                        self.view.bounds.size.height);
-            newRect = [self.delegate userDoesChangeWindow:self toRect:newRect];
-            self.view.frame = newRect;
+            CGRect frame = self.view.frame;
+            frame.origin.x = finger.x - self.grabOffset.x;
+            frame.origin.y = finger.y - self.grabOffset.y;
+            frame = [self.delegate userDoesChangeWindow:self toRect:frame];
+            self.view.frame = frame;
             [self updateOriginalFrame];
+            break;
         }
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled:
@@ -471,49 +481,30 @@
 - (void)resizeWindow:(UIPanGestureRecognizer*)gesture
 {
     if(_isMaximized) return;
-    
-    switch (gesture.state) {
+
+    CGPoint finger = [gesture locationInView:self.view.superview];
+
+    switch(gesture.state)
+    {
         case UIGestureRecognizerStateBegan:
+        {
             [self focusWindow];
             [self resizeActionStart];
+            self.startFrame = self.view.frame;
+            self.resizeAnchor = CGPointMake(
+                CGRectGetMinX(self.startFrame),
+                CGRectGetMinY(self.startFrame)
+            );
             break;
+        }
         case UIGestureRecognizerStateChanged:
         {
-            CGPoint point = [gesture translationInView:self.view.superview];
-            [gesture setTranslation:CGPointZero inView:self.view.superview];
-            CGRect oldFrame = self.view.frame;
-            CGRect proposed = oldFrame;
-            proposed.size.width  = MAX(50, proposed.size.width  + point.x);
-            proposed.size.height = MAX(50, proposed.size.height + point.y);
-            
-            if(proposed.size.width < 300)
-            {
-                proposed.size.width = 300;
-            }
-            
-            if(proposed.size.height < 200)
-            {
-                proposed.size.height = 200;
-            }
-            
-            CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
-            
-            BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
-            BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
-
-            if(widthBlocked)
-            {
-                corrected.size.width = oldFrame.size.width;
-                corrected.origin.x   = oldFrame.origin.x;
-            }
-
-            if(heightBlocked)
-            {
-                corrected.size.height = oldFrame.size.height;
-                corrected.origin.y    = oldFrame.origin.y;
-            }
-
-            self.view.frame = corrected;
+            CGRect frame = self.startFrame;
+            CGFloat newWidth  = finger.x - self.resizeAnchor.x;
+            CGFloat newHeight = finger.y - self.resizeAnchor.y;
+            frame.size.width  = MAX(300, newWidth);
+            frame.size.height = MAX(200, newHeight);
+            self.view.frame = frame;
             [self updateOriginalFrame];
             break;
         }
