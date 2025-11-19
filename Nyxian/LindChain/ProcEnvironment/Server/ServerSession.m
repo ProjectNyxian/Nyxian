@@ -107,7 +107,7 @@
                 {
                     didInvokeWindow = YES;
                 }
-                process.windowIdentifier = wid;
+                process.wid = wid;
             }
         });
     });
@@ -230,7 +230,7 @@
     
     if(processObjectIsDifferent && processAllowedToElevate)
     {
-        proc_insert(proc);
+        proc_insert_proc(proc);
     }
     else if(processObjectIsDifferent)
     {

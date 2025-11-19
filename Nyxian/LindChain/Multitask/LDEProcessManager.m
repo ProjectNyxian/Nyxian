@@ -84,11 +84,7 @@
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
     else self.displayName = [[NSURL fileURLWithPath:self.executablePath] lastPathComponent];
-    
-    self.ppid = configuration.ppid;
-    self.uid = configuration.uid;
-    self.gid = configuration.gid;
-    self.windowIdentifier = (wid_t)-1;
+    self.wid = (wid_t)-1;
     
     NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
     if(!liveProcessBundle) {
@@ -122,7 +118,22 @@
                                        {
                 // Setting process handle directly from process monitor
                 weakSelf.processHandle = handle;
-                proc_add_proc(weakSelf.ppid, weakSelf.pid, weakSelf.uid, weakSelf.gid, weakSelf.executablePath, configuration.entitlements);
+                
+                // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
+                ksurface_error_t error = kSurfaceErrorUndefined;
+                if(configuration.ppid != getpid())
+                {
+                    error = proc_add_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
+                }
+                else
+                {
+                    error = proc_add_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
+                }
+                
+                if(error != kSurfaceErrorSuccess)
+                {
+                    [weakSelf terminate];
+                }
                 
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];
@@ -131,7 +142,7 @@
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         proc_remove_for_pid(strongSelf.pid);
-                        if(self.windowIdentifier != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier];
+                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
@@ -372,7 +383,7 @@
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
     LDEProcess *process = [self.processes objectForKey:@(pid)];
-    if(process != nil && process.windowIdentifier != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.windowIdentifier];
+    if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
     [self.processes removeObjectForKey:@(pid)];
     proc_remove_for_pid(pid);
 }

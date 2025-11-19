@@ -127,7 +127,7 @@ ksurface_error_t proc_can_spawn(void)
     return retval;
 }
 
-ksurface_error_t proc_insert(ksurface_proc_t proc)
+ksurface_error_t proc_insert_proc(ksurface_proc_t proc)
 {
     // Dont use if uninitilized
     if(surface == NULL) return kSurfaceErrorNullPtr;
@@ -166,7 +166,7 @@ ksurface_error_t proc_at_index(uint32_t index,
                                ksurface_proc_t *prot)
 {
     // Dont use if uninitilized
-    if(surface == NULL) return kSurfaceErrorNullPtr;
+    if(surface == NULL || prot == NULL) return kSurfaceErrorNullPtr;
     
     // Return value
     ksurface_error_t retval = kSurfaceErrorOutOfBounds;
@@ -238,5 +238,28 @@ ksurface_error_t proc_add_proc(pid_t ppid,
     proc.bsd.kp_eproc.e_flag = 2;
     
     // Adding/Inserting proc
-    return proc_insert(proc);
+    return proc_insert_proc(proc);
+}
+
+ksurface_error_t proc_add_child_proc(pid_t ppid,
+                                     pid_t pid,
+                                     NSString *executablePath)
+{
+    // Get the old process
+    ksurface_proc_t proc = {};
+    ksurface_error_t error = proc_for_pid(ppid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return error;
+    }
+    
+    // Overwriting executable path
+    strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
+    
+    // Patching the old process structure we copied out of the process table
+    proc_setpid(proc, pid);
+    
+    // Insert it back
+    return proc_insert_proc(proc);
 }

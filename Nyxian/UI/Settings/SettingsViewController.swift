@@ -26,7 +26,7 @@ class SettingsViewController: UIThemedTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 6
+        return 5
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -49,18 +49,14 @@ class SettingsViewController: UIThemedTableViewController {
             cell.textLabel?.text = "Applications"
             break
         case 2:
-            cell.imageView?.image = UIImage(systemName: "apple.terminal.fill")
-            cell.textLabel?.text = "Processes"
-            break
-        case 3:
             cell.imageView?.image = UIImage(systemName: "paintbrush.fill")
             cell.textLabel?.text = "Customization"
             break
-        case 4:
+        case 3:
             cell.imageView?.image = UIImage(systemName: "checkmark.seal.text.page.fill")
             cell.textLabel?.text = "Certificate"
             break
-        case 5:
+        case 4:
             cell.imageView?.image = UIImage(systemName: "info")
             cell.textLabel?.text = "Info"
             break
@@ -84,12 +80,10 @@ class SettingsViewController: UIThemedTableViewController {
             case 1:
                 return ApplicationManagementViewController(style: .insetGrouped)
             case 2:
-                return ProcessManagementViewController(style: .insetGrouped)
-            case 3:
                 return CustomizationViewController(style: .insetGrouped)
-            case 4:
+            case 3:
                 return CertificateController(style: .insetGrouped)
-            case 5:
+            case 4:
                 return AppInfoViewController(style: .insetGrouped)
             default:
                 return nil

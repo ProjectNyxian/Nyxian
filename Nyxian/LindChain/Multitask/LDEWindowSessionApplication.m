@@ -38,7 +38,7 @@
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
       withSessionIdentifier:(int)identifier
 {
-    _process.windowIdentifier = identifier;
+    _process.wid = identifier;
     
     FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
     // At this point, the process is spawned and we're ready to create a scene to render in our app
@@ -139,7 +139,7 @@
     if(proc.force_task_role_override)
     {
         proc.force_task_role_override = false;
-        error = proc_insert(proc);
+        error = proc_insert_proc(proc);
         
         if(error != kSurfaceErrorSuccess)
         {
@@ -185,7 +185,7 @@
             if(proc.bsd.kp_proc.p_pid == 0) return;
             proc.force_task_role_override = true;
             proc.task_role_override = TASK_DARWINBG_APPLICATION;
-            error = proc_insert(proc);
+            error = proc_insert_proc(proc);
             
             if(error != kSurfaceErrorSuccess)
             {
@@ -240,7 +240,7 @@
 
 - (void)sessionIdentifierAssigned:(int)identifier
 {
-    _process.windowIdentifier = identifier;
+    _process.wid = identifier;
 }
 
 - (void)_performActionsForUIScene:(UIScene *)scene

@@ -54,7 +54,6 @@
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
 @property (nonatomic,strong) UIImage *snapshot;
-@property (nonatomic) wid_t windowIdentifier;
 
 // Process properties
 @property (nonatomic,strong) NSUUID *identifier;
@@ -62,13 +61,9 @@
 @property (nonatomic,strong) NSString *bundleIdentifier;
 @property (nonatomic,strong) NSString *executablePath;
 
-@property (nonatomic,strong) UIImage *icon;
-
-// Info properties used to create child process on surface
-@property (nonatomic) pid_t ppid;
+// Info properties
 @property (nonatomic) pid_t pid;
-@property (nonatomic) uid_t uid;
-@property (nonatomic) gid_t gid;
+@property (nonatomic) wid_t wid;
 
 // Background modes suspension fix
 @property (nonatomic) BOOL audioBackgroundModeUsage;
