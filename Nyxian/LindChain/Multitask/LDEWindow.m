@@ -297,9 +297,6 @@
         [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
         moveGesture.minimumNumberOfTouches = 1;
         moveGesture.maximumNumberOfTouches = 1;
-        moveGesture.delaysTouchesBegan = NO;
-        moveGesture.delaysTouchesEnded = NO;
-        moveGesture.cancelsTouchesInView = NO;
         [self.navigationBar addGestureRecognizer:moveGesture];
         
         UITapGestureRecognizer *fullScreenGesture =
