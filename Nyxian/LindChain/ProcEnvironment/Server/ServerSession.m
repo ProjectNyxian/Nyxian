@@ -37,29 +37,39 @@
 - (void)sendPort:(TaskPortObject*)machPort API_AVAILABLE(ios(26.0));
 {
     dispatch_once(&_sendPortOnce, ^{
-        environment_host_take_client_task_port(machPort);
+        if(environment_supports_tfp())
+        {
+            environment_host_take_client_task_port(machPort);
+        }
     });
 }
 
 - (void)getPort:(pid_t)pid
       withReply:(void (^)(TaskPortObject*))reply API_AVAILABLE(ios(26.0));
 {
-    // Prepare
-    bool isHost = pid == getpid();
-    
-    // Checking if we have necessary entitlements
-    if(!proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPid) ||
-       (isHost && !proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPidHost)) ||
-       (!isHost && (!proc_got_entitlement(pid, PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
+    if(environment_supports_tfp())
+    {
+        // Prepare
+        bool isHost = pid == getpid();
+        
+        // Checking if we have necessary entitlements
+        if(!proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPid) ||
+           (isHost && !proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPidHost)) ||
+           (!isHost && (!proc_got_entitlement(pid, PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
+        {
+            reply(nil);
+            return;
+        }
+        
+        // Send requested task port
+        mach_port_t port;
+        kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
+        reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
+    }
+    else
     {
         reply(nil);
-        return;
     }
-    
-    // Send requested task port
-    mach_port_t port;
-    kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
-    reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
 }
 
 /*

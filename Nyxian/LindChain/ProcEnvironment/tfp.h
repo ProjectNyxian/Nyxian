@@ -33,9 +33,11 @@
  * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
 
-kern_return_t environment_task_for_pid(mach_port_name_t taskPort, pid_t pid, mach_port_name_t *requestTaskPort) API_AVAILABLE(ios(26.0));
+kern_return_t environment_task_for_pid(mach_port_name_t taskPort, pid_t pid, mach_port_name_t *requestTaskPort);
 
-void environment_host_take_client_task_port(TaskPortObject *machPort) API_AVAILABLE(ios(26.0));
+void environment_host_take_client_task_port(TaskPortObject *machPort);
+
+bool environment_supports_tfp(void);
 
 void environment_tfp_init(void);
 
