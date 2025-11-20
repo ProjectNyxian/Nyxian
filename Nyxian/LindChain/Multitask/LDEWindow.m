@@ -262,7 +262,7 @@
     self.view .layer.shadowColor = UIColor.blackColor.CGColor;
     self.view .layer.shadowOpacity = 1.0;
     self.view .layer.shadowRadius = 12;
-    self.view .layer.shadowOffset = CGSizeMake(0, 4);
+    //self.view .layer.shadowOffset = CGSizeMake(0, 4);
     
     self.contentStack = [UIStackView new];
     self.contentStack.frame = self.view.bounds;
@@ -270,7 +270,7 @@
     
     self.contentStack.axis = UILayoutConstraintAxisVertical;
     self.contentStack.backgroundColor = UIColor.systemBackgroundColor;
-    self.contentStack.layer.cornerRadius = 10;
+    self.contentStack.layer.cornerRadius = 20;
     self.contentStack.layer.masksToBounds = YES;
     [self.view addSubview:self.contentStack];
     
@@ -372,9 +372,10 @@
         self.view.translatesAutoresizingMaskIntoConstraints = YES;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = [self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup];
-            self.contentStack.layer.cornerRadius = 10;
+            self.contentStack.layer.cornerRadius = 20;
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
+            
         } completion:^(BOOL finished){
             self.isMaximized = NO;
             [self resizeActionEnd];
