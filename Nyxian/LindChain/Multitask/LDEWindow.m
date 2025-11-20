@@ -180,11 +180,10 @@
     if (_focusView != nil) return;
     
     _focusView = [[UIView alloc] init];
-    [self.view insertSubview:_focusView atIndex:2];
-    
     _focusView.backgroundColor = UIColor.secondarySystemFillColor;
     _focusView.alpha = 0.0;
     _focusView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.contentStack insertSubview:_focusView aboveSubview:self.session.view];
     
     [NSLayoutConstraint activateConstraints:@[
         [_focusView.topAnchor constraintEqualToAnchor:self.navigationBar.bottomAnchor],
