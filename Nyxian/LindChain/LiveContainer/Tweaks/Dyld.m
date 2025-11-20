@@ -183,6 +183,76 @@ void overwriteAppExecutableFileType(void)
 }
 // Rewritten END
 
+static dyld_build_version_t getDyldImageBuildVersion(const struct mach_header *mh)
+{
+    dyld_build_version_t result = { .platform = 0xffffffff, .version = 0 };
+
+    if(!mh) return result;
+
+    bool is64 = false;
+
+    switch(mh->magic)
+    {
+        case MH_MAGIC_64:
+        case MH_CIGAM_64:
+            is64 = true;
+            break;
+        case MH_MAGIC:
+        case MH_CIGAM:
+            is64 = false;
+            break;
+        default:
+            return result;
+    }
+
+    uint32_t headerSize = is64 ?
+        sizeof(struct mach_header_64) :
+        sizeof(struct mach_header);
+
+    const uint8_t *ptr = ((const uint8_t *)mh) + headerSize;
+    uint32_t ncmds = mh->ncmds;
+
+    for(uint32_t i = 0; i < ncmds; i++)
+    {
+        const struct load_command *lc = (const struct load_command *)ptr;
+
+        if(lc->cmd == LC_BUILD_VERSION)
+        {
+            const struct build_version_command *bvc = (const struct build_version_command *)ptr;
+            result.platform = bvc->platform;
+            result.version  = bvc->sdk;
+            return result;
+        }
+        ptr += lc->cmdsize;
+    }
+
+    ptr = ((const uint8_t *)mh) + headerSize;
+
+    for(uint32_t i = 0; i < ncmds; i++)
+    {
+
+        const struct load_command *lc = (const struct load_command *)ptr;
+
+        if(lc->cmd == LC_VERSION_MIN_IPHONEOS ||
+           lc->cmd == LC_VERSION_MIN_MACOSX)
+        {
+            const struct version_min_command *vm = (const struct version_min_command *)ptr;
+            result.platform = 0xffffffff;
+            result.version  = vm->sdk;
+            return result;
+        }
+
+        ptr += lc->cmdsize;
+    }
+
+    return result;
+}
+
+void* getGuestAppHeader(void)
+{
+    return (void*)ORIG_FUNC(_dyld_get_image_header)(appMainImageIndex);
+}
+
 bool initGuestSDKVersionInfo(void)
 {
     void* dyldBase = getDyldBase();
@@ -211,7 +281,6 @@ bool initGuestSDKVersionInfo(void)
     
     NSOperatingSystemVersion currentVersion = [[NSProcessInfo processInfo] operatingSystemVersion];
     uint32_t maxVersion = ((uint32_t)currentVersion.majorVersion << 16) | ((uint32_t)currentVersion.minorVersion << 8);
-    
     uint32_t candidateVersion = 0;
     uint32_t candidateVersionEquivalent = 0;
     uint32_t newVersionSetVersion = 0;
@@ -257,20 +326,15 @@ void DyldHooksInit(void)
         DO_HOOK_GLOBAL(_dyld_get_image_name)
         DO_HOOK_GLOBAL(dlopen);
         
-        // Hack remove iOS 26 UI support (for now)
-        guestAppSdkVersion = 1179648; // Is 18.0
+        guestAppSdkVersion = getDyldImageBuildVersion(getGuestAppHeader()).version;
         if(!initGuestSDKVersionInfo() ||
            !performHookDyldApi("dyld_program_sdk_at_least", 1, NULL, hook_dyld_program_sdk_at_least) ||
            !performHookDyldApi("dyld_get_program_sdk_version", 0, NULL, hook_dyld_get_program_sdk_version))
         {
-            return;
+            exit(0);
         }
+        return;
     });
-}
-
-void* getGuestAppHeader(void)
-{
-    return (void*)orig__dyld_get_image_header(appMainImageIndex);
 }
 
 #pragma mark - Fix black screen
