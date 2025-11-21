@@ -113,11 +113,11 @@ ksurface_error_t proc_can_spawn(void)
     // Return value
     ksurface_error_t retval = kSurfaceErrorUndefined;
     
-    // Checking if process count would exceed the maximum
+    // Checking if process count is underneath PROC_MAX
     if(surface->proc_count < PROC_MAX)
     {
-        // Setting return value to undefined, as a universal marker
-        retval = kSurfaceErrorUndefined;
+        // Setting return value to succession
+        retval = kSurfaceErrorSuccess;
     }
     
     // Releasing rw lock
