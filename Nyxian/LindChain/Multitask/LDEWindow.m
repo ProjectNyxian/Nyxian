@@ -176,7 +176,7 @@
     [super viewDidAppear:animated];
     
     dispatch_once(&_appearOnceAction, ^{        
-        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-12.0 rightMargin:6.0];
+        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-10.0 rightMargin:6.0];
         
         // MARK: Suppose to only run on phones
         [self startLiveResizeWithSettingsBlock];
