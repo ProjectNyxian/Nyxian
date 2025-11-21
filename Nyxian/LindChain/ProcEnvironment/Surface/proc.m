@@ -130,7 +130,8 @@ ksurface_error_t proc_can_spawn(void)
     return retval;
 }
 
-ksurface_error_t proc_insert_proc(ksurface_proc_t proc)
+ksurface_error_t proc_insert_proc(ksurface_proc_t proc,
+                                  bool append)
 {
     // Dont use if uninitilized
     if(surface == NULL) return kSurfaceErrorNullPtr;
@@ -138,31 +139,59 @@ ksurface_error_t proc_insert_proc(ksurface_proc_t proc)
     // Aquiring rw lock
     seqlock_lock(&(surface->seqlock));
     
+    // Error value
+    ksurface_error_t error = kSurfaceErrorSuccess;
+    
+    // Flag if the process already exists
+    bool proc_already_present = false;
+    
     // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
         if(surface->proc[i].bsd.kp_proc.p_pid == proc.bsd.kp_proc.p_pid)
         {
-            // Copying provided process onto the surface at already existing memory entry
-            memcpy(&surface->proc[i], &proc, sizeof(ksurface_proc_t));
+            if(!append)
+            {
+                // Copying provided process onto the surface at already existing memory entry
+                memcpy(&surface->proc[i], &proc, sizeof(ksurface_proc_t));
+            }
             
-            // Releasing rw lock
-            seqlock_unlock(&(surface->seqlock));
-            
-            // It succeeded
-            return kSurfaceErrorSuccess;
+            proc_already_present = true;
+            break;
         }
     }
     
-    // It doesnt exist already so we copy it into the next new entry
-    memcpy(&surface->proc[surface->proc_count++], &proc, sizeof(ksurface_proc_t));
+    if(append)
+    {
+        if(proc_already_present)
+        {
+            error = kSurfaceErrorAlreadyExists;
+        }
+        else
+        {
+            // It doesnt exist already so we copy it into the next new entry
+            if(surface->proc_count < PROC_MAX)
+            {
+                memcpy(&surface->proc[surface->proc_count], &proc, sizeof(ksurface_proc_t));
+                surface->proc_count++;
+            }
+            else
+            {
+                error = kSurfaceErrorOutOfBounds;
+            }
+        }
+    }
+    else if(!append && !proc_already_present)
+    {
+        error = kSurfaceErrorNotFound;
+    }
     
     // Releasing rw lock
     seqlock_unlock(&(surface->seqlock));
     
     // It succeeded
-    return kSurfaceErrorSuccess;
+    return error;
 }
 
 ksurface_error_t proc_at_index(uint32_t index,
@@ -199,7 +228,7 @@ ksurface_error_t proc_at_index(uint32_t index,
 }
 
 // MARK: New and safer approach, NO means execution not granted!
-ksurface_error_t proc_add_proc(pid_t ppid,
+ksurface_error_t proc_new_proc(pid_t ppid,
                                pid_t pid,
                                uid_t uid,
                                gid_t gid,
@@ -241,10 +270,10 @@ ksurface_error_t proc_add_proc(pid_t ppid,
     proc.bsd.kp_eproc.e_flag = 2;
     
     // Adding/Inserting proc
-    return proc_insert_proc(proc);
+    return proc_insert_proc(proc, true);
 }
 
-ksurface_error_t proc_add_child_proc(pid_t ppid,
+ksurface_error_t proc_new_child_proc(pid_t ppid,
                                      pid_t pid,
                                      NSString *executablePath)
 {
@@ -303,5 +332,29 @@ ksurface_error_t proc_add_child_proc(pid_t ppid,
     proc_setpid(proc, pid);
     
     // Insert it back
-    return proc_insert_proc(proc);
+    return proc_insert_proc(proc, true);
+}
+
+ksurface_error_t proc_flag_proc(pid_t pid,
+                                int flag)
+{
+    // Error value
+    ksurface_error_t error = kSurfaceErrorSuccess;
+    
+    // Get target process
+    ksurface_proc_t proc = {};
+    error = proc_for_pid(pid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return error;
+    }
+    
+    // Flag process
+    proc.bsd.kp_proc.p_flag = proc.bsd.kp_proc.p_flag | flag;
+    
+    // Set error
+    error = proc_insert_proc(proc, false);
+    
+    // Return error
+    return error;
 }

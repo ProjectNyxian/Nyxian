@@ -147,7 +147,7 @@ void proc_surface_init(void)
             surface->proc_count = 0;
             
             // MARK: Hardcode launchd pid because otherwise the debugger will be the ppid and certain checks will start to fail
-            proc_add_proc(PID_LAUNCHD, getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
+            proc_new_proc(PID_LAUNCHD, getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
             
             
             // Setup spinface

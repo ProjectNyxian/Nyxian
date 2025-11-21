@@ -63,15 +63,15 @@ ksurface_error_t proc_remove_for_pid(pid_t pid);
 ksurface_error_t proc_can_spawn(void);
 
 /// Inserts a given process structure into the surface structure
-ksurface_error_t proc_insert_proc(ksurface_proc_t proc);
+ksurface_error_t proc_insert_proc(ksurface_proc_t proc, bool append);
 
 /// Returns a process structure at a given index
 ksurface_error_t proc_at_index(uint32_t index, ksurface_proc_t *proc);
 
 /// Creates and adds new process
-ksurface_error_t proc_add_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
+ksurface_error_t proc_new_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
 
 /// Safe approach to create a child process out of an already existing process
-ksurface_error_t proc_add_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
+ksurface_error_t proc_new_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
 
 #endif /* PROCENVIRONMENT_PROC_H */

@@ -34,7 +34,8 @@ enum kSurfaceError {
     kSurfaceErrorNotFound       = 3,
     kSurfaceErrorNotHoldingLock = 4, /* potentially for future */
     kSurfaceErrorOutOfBounds    = 5,
-    kSurfaceErrorDenied         = 6
+    kSurfaceErrorDenied         = 6,
+    kSurfaceErrorAlreadyExists  = 7
 };
 
 typedef unsigned char ksurface_error_t;

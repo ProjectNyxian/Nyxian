@@ -149,7 +149,7 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
     if(proc.force_task_role_override)
     {
         proc.force_task_role_override = false;
-        error = proc_insert_proc(proc);
+        error = proc_insert_proc(proc, false);
         
         if(error != kSurfaceErrorSuccess)
         {
@@ -195,7 +195,7 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
             if(proc.bsd.kp_proc.p_pid == 0) return;
             proc.force_task_role_override = true;
             proc.task_role_override = TASK_DARWINBG_APPLICATION;
-            error = proc_insert_proc(proc);
+            error = proc_insert_proc(proc, false);
             
             if(error != kSurfaceErrorSuccess)
             {

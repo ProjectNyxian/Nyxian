@@ -123,11 +123,11 @@
                 ksurface_error_t error = kSurfaceErrorUndefined;
                 if(configuration.ppid != getpid())
                 {
-                    error = proc_add_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
+                    error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
                 }
                 else
                 {
-                    error = proc_add_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
+                    error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
                 }
                 
                 if(error != kSurfaceErrorSuccess)
