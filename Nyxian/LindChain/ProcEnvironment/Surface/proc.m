@@ -33,10 +33,13 @@ ksurface_error_t proc_for_pid(pid_t pid,
     // Preparing error
     ksurface_error_t retval = kSurfaceErrorNotFound;
     
+    // Sequence
+    unsigned long seq;
+    
     // Beginning to spin, to hopefully find the processes requested
     do
     {
-        seqlock_read_begin(&(surface->seqlock));
+        seq = seqlock_read_begin(&(surface->seqlock));
         
         // Iterating through all process structures
         for(uint32_t i = 0; i < surface->proc_count; i++)
@@ -53,7 +56,7 @@ ksurface_error_t proc_for_pid(pid_t pid,
             }
         }
     }
-    while (seqlock_read_retry(&(surface->seqlock)));
+    while (seqlock_read_retry(&(surface->seqlock), seq));
     
     // Returning return value
     return retval;
@@ -171,10 +174,13 @@ ksurface_error_t proc_at_index(uint32_t index,
     // Return value
     ksurface_error_t retval = kSurfaceErrorOutOfBounds;
     
+    // Sequence
+    unsigned long seq;
+    
     // Beginning to spin, to hopefully find the processes requested
     do
     {
-        seqlock_read_begin(&(surface->seqlock));
+        seq = seqlock_read_begin(&(surface->seqlock));
         
         // Checking if the index is within bounds
         if(index < surface->proc_count)
@@ -186,7 +192,7 @@ ksurface_error_t proc_at_index(uint32_t index,
             retval = kSurfaceErrorSuccess;
         }
     }
-    while (seqlock_read_retry(&(surface->seqlock)));
+    while (seqlock_read_retry(&(surface->seqlock), seq));
     
     // Returning return value
     return retval;

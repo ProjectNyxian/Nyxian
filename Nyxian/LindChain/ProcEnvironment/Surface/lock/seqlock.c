@@ -20,8 +20,6 @@
 #include <LindChain/ProcEnvironment/Surface/lock/seqlock.h>
 #include <LindChain/ProcEnvironment/Surface/extra/relax.h>
 
-_Thread_local unsigned long local_seq;
-
 void seqlock_init(seqlock_t *s)
 {
     spinlock_init((spinlock_t*)s);
@@ -40,28 +38,30 @@ void seqlock_unlock(seqlock_t *s)
     __atomic_add_fetch(&s->seq, 1, __ATOMIC_RELEASE);
 }
 
-void seqlock_read_begin(const seqlock_t *s)
+unsigned long seqlock_read_begin(const seqlock_t *s)
 {
+    unsigned long seq;
     while(1)
     {
-        local_seq = __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE);
-        if(local_seq & 1)
+        seq = __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE);
+        if(seq & 1)
         {
             do
             {
                 relax();
-                local_seq = __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE);
+                seq = __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE);
             }
-            while(local_seq & 1);
+            while(seq & 1);
         }
 
-        if(__atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) == local_seq)
-            return;
+        if(__atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) == seq)
+            return seq;
     }
 }
 
-bool seqlock_read_retry(const seqlock_t *s)
+bool seqlock_read_retry(const seqlock_t *s,
+                        unsigned long seq)
 {
     __atomic_thread_fence(__ATOMIC_ACQUIRE);
-    return __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) != local_seq;
+    return __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) != seq;
 }

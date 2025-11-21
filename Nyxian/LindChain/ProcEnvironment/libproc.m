@@ -26,7 +26,8 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc.h>
 
-int proc_libproc_listallpids(void *buffer, int buffersize)
+int proc_libproc_listallpids(void *buffer,
+                             int buffersize)
 {
     if(buffersize < 0)
     {
@@ -37,9 +38,11 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
     size_t n = 0;
     size_t needed_bytes = 0;
 
+    unsigned long seq;
+    
     do
     {
-        seqlock_read_begin(&(surface->seqlock));
+        seq =                                       seqlock_read_begin(&(surface->seqlock));
 
         uint32_t count = surface->proc_count;
         needed_bytes = (size_t)count * sizeof(pid_t);
@@ -55,7 +58,7 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
         }
 
     }
-    while (seqlock_read_retry(&(surface->seqlock)));
+    while (seqlock_read_retry(&(surface->seqlock), seq));
     
     if(buffer == NULL || buffersize == 0)
     {
@@ -65,7 +68,9 @@ int proc_libproc_listallpids(void *buffer, int buffersize)
     return (int)(n * sizeof(pid_t));
 }
 
-int proc_libproc_name(pid_t pid, void * buffer, uint32_t buffersize)
+int proc_libproc_name(pid_t pid,
+                      void * buffer,
+                      uint32_t buffersize)
 {
     if(buffersize == 0 || buffer == NULL)
     {
@@ -84,7 +89,9 @@ int proc_libproc_name(pid_t pid, void * buffer, uint32_t buffersize)
     return (int)strlen((char*)buffer);
 }
 
-int proc_libproc_pidpath(pid_t pid, void * buffer, uint32_t buffersize)
+int proc_libproc_pidpath(pid_t pid,
+                         void * buffer,
+                         uint32_t buffersize)
 {
     if(buffersize == 0 || buffer == NULL)
     {
@@ -102,8 +109,11 @@ int proc_libproc_pidpath(pid_t pid, void * buffer, uint32_t buffersize)
     return (int)strlen((char*)buffer);
 }
 
-int proc_libproc_pidinfo(pid_t pid, int flavor, uint64_t arg,
-                 void * buffer, int buffersize)
+int proc_libproc_pidinfo(pid_t pid,
+                         int flavor,
+                         uint64_t arg,
+                         void * buffer,
+                         int buffersize)
 {
     if(buffer == NULL || buffersize <= 0)
     {

@@ -38,8 +38,11 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
     size_t needed_bytes = 0;
     int ret = 0;
 
+    // Sequence
+    unsigned long seq;
+    
     do {
-        seqlock_read_begin(&(surface->seqlock));
+        seq = seqlock_read_begin(&(surface->seqlock));
 
         uint32_t count = surface->proc_count;
         needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
@@ -72,7 +75,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
         ret = (int)needed_bytes;
 
     }
-    while(seqlock_read_retry(&(surface->seqlock)));
+    while(seqlock_read_retry(&(surface->seqlock), seq));
 
     return ret;
 }
@@ -106,12 +109,14 @@ MappingPortObject *proc_surface_for_pid(pid_t pid)
  */
 DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
 {
+    unsigned long seq;
+    
     do
     {
-        seqlock_read_begin(&(surface->seqlock));
+        seq = seqlock_read_begin(&(surface->seqlock));
         strlcpy(buf, surface->hostname, bufsize);
     }
-    while(seqlock_read_retry(&(surface->seqlock)));
+    while(seqlock_read_retry(&(surface->seqlock), seq));
     
     return 0;
 }

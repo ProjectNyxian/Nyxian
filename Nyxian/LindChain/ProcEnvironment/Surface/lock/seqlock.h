@@ -24,7 +24,6 @@
  *  Apple API Headers
  * -------------------------------------------------------------------- */
 #include <stdbool.h>
-#include <stdint.h>
 
 /* ----------------------------------------------------------------------
  *  Environment API Headers
@@ -79,20 +78,22 @@ void seqlock_unlock(seqlock_t *s);
 
 /*!
  @function seqlock_read_begin
- @abstract Starts reading action.
+ @abstract Starts reading action and returns current sequence.
  @discussion
     Stores thread locally the current sequence to compare it later to in `seqlock_retry(1)`
  @param  s
     Pointer to seqlock structure.
  */
-void seqlock_read_begin(const seqlock_t *s);
+unsigned long seqlock_read_begin(const seqlock_t *s);
 
 /*!
  @function seqlock_read_retry
  @abstract Returns if a read sequence needs to be retried.
  @param  s
     Pointer to seqlock structure.
+ @param seq
+    Value of saved sequence.
  */
-bool seqlock_read_retry(const seqlock_t *s);
+bool seqlock_read_retry(const seqlock_t *s, unsigned long seq);
 
 #endif /* PROCENVIRONMENT_SEQLOCK */
