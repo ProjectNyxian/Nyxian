@@ -69,7 +69,7 @@
         closeButton.tintColor = [UIColor systemRedColor];
         
         NSArray *barButtonItems = @[closeButton, self.maximizeButton];
-        self.navigationItem.rightBarButtonItems = barButtonItems;
+        self.navigationItem.leftBarButtonItems = barButtonItems;
     }
     
     return self;
@@ -155,7 +155,7 @@
     [super viewDidAppear:animated];
     
     dispatch_once(&_appearOnceAction, ^{        
-        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:8.0];
+        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-12.0 rightMargin:6.0];
         
         // MARK: Suppose to only run on phones
         [self startLiveResizeWithSettingsBlock];
@@ -168,7 +168,6 @@
         else
         {
             // MARK: Triggering resize system at start to guarantee that it gets layouted
-            [self startLiveResizeWithSettingsBlock];
             [self resizeActionStart];
             [self resizeActionEnd];
         }
@@ -409,25 +408,29 @@
 }
 
 - (void)findAndAdjustButtonBarStackView:(UIView *)view withSpacing:(CGFloat)spacing sideMargin:(CGFloat)margin {
-    for (UIView *subview in view.subviews) {
-        if ([subview isKindOfClass:NSClassFromString(@"_UIButtonBarStackView")]) {
+    for(UIView *subview in view.subviews)
+    {
+        if([subview isKindOfClass:NSClassFromString(@"_UIButtonBarStackView")])
+        {
             if ([subview respondsToSelector:@selector(setSpacing:)]) {
                 [(_UIButtonBarStackView *)subview setSpacing:spacing];
             }
             
-            if (subview.superview) {
-                for (NSLayoutConstraint *constraint in subview.superview.constraints) {
-                    if ((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeTrailing) ||
-                        (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeTrailing)) {
+            if (subview.superview)
+            {
+                for(NSLayoutConstraint *constraint in subview.superview.constraints)
+                {
+                    if((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeTrailing) ||
+                       (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeTrailing))
+                    {
                         constraint.constant = (constraint.firstItem == subview) ? -margin : margin;
                         break;
                     }
-                }
-                
-                for (NSLayoutConstraint *constraint in subview.superview.constraints) {
-                    if ((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeLeading) ||
-                        (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeLeading)) {
-                        constraint.constant = (constraint.firstItem == subview) ? -margin : margin;
+                    
+                    if((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeLeading) ||
+                       (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeLeading))
+                    {
+                        constraint.constant = (constraint.firstItem == subview) ? margin : -margin;
                         break;
                     }
                 }
