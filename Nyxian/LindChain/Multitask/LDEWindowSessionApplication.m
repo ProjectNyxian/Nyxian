@@ -209,6 +209,9 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
 
 - (void)windowChangesSizeToRect:(CGRect)rect
 {
+    // MARK: Has to be set so _performActionsForUIScene works
+    self.windowSize = rect;
+    
     // Handle user resizes
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.deviceOrientation = UIDevice.currentDevice.orientation;
