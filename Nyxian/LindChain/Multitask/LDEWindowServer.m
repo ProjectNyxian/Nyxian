@@ -139,14 +139,11 @@
             return;
         }
     }
-    
-    UIView *v = window.view;
-    [self bringSubviewToFront:v];
 
     CGFloat h = self.bounds.size.height;
-    [v.layer removeAllAnimations];
+    [window.view.layer removeAllAnimations];
 
-    [UIView animateWithDuration:0.5
+    /*[UIView animateWithDuration:2.0
                           delay:0
          usingSpringWithDamping:1.0
           initialSpringVelocity:1.0
@@ -154,13 +151,28 @@
                      animations:^{
         if(pullDown)
         {
-            v.transform = CGAffineTransformMakeTranslation(0, h);
+            //window.view.transform = CGAffineTransformMakeTranslation(0, h);
         }
-        v.alpha = 0.0;
+        window.view.alpha = 0.0;
     } completion:^(BOOL finished) {
-        v.hidden = YES;
-        v.alpha = 1.0;
-        v.transform = CGAffineTransformIdentity;
+        window.view.hidden = YES;
+        window.view.alpha = 1.0;
+        window.view.transform = CGAffineTransformIdentity;
+        [window.session deactivateWindow];
+        if (completion) completion();
+    }];*/
+    
+    [UIView animateWithDuration:2.0
+                     animations:^{
+        /*if(pullDown)
+        {*/
+            //window.view.transform = CGAffineTransformMakeTranslation(0, h);
+        //}
+        window.view.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        window.view.hidden = YES;
+        window.view.alpha = 1.0;
+        window.view.transform = CGAffineTransformIdentity;
         [window.session deactivateWindow];
         if (completion) completion();
     }];
@@ -192,6 +204,7 @@
                     // TODO: iPad Stuff Maybe needed
                     [window.session activateWindow];
                 }
+                [window openWindow];
             }
         };
         
@@ -221,11 +234,9 @@
         LDEWindow *window = self.windows[@(identifier)];
         if(window != nil)
         {
-            [self deactivateWindowByPullDown:([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad) withIdentifier:identifier withCompletion:^{
-                [window closeWindow];
-                [self.windows removeObjectForKey:@(identifier)];
-                [self.windowOrder removeObject:@(identifier)];
-            }];
+            [window closeWindow];
+            [self.windows removeObjectForKey:@(identifier)];
+            [self.windowOrder removeObject:@(identifier)];
         }
     });
     return YES;
@@ -570,11 +581,12 @@
 
 - (void)userDidCloseWindow:(LDEWindow *)window
 {
-    if(_activeWindow == window)
+    if(self.activeWindow == window)
     {
-        _activeWindow = nil;
+        self.activeWindow = nil;
     }
-    [self closeWindowWithIdentifier:window.identifier];
+    [self.windows removeObjectForKey:@(window.identifier)];
+    [self.windowOrder removeObject:@(window.identifier)];
 }
 
 - (void)userDidMinimizeWindow:(LDEWindow*)window

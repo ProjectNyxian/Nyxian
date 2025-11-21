@@ -77,15 +77,35 @@
 
 - (void)closeWindow
 {
-    [self.session closeWindowWithScene:self.delegate.windowScene withFrame:self.originalFrame];
-    [self.delegate userDidCloseWindow:self];
+    [UIView animateKeyframesWithDuration:0.25 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeCubic animations:^{
+        [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.25 animations:^{
+            self.view.alpha = 0.8;
+            self.view.transform = CGAffineTransformMakeScale(1.05, 1.05);
+        }];
+        [UIView addKeyframeWithRelativeStartTime:0.25 relativeDuration:0.75 animations:^{
+            self.view.alpha = 0.0;
+            self.view.transform = CGAffineTransformMakeScale(0.6, 0.6);
+        }];
+    } completion:^(BOOL finished) {
+        self.view.transform = CGAffineTransformIdentity;
+        [self.session closeWindowWithScene:self.delegate.windowScene withFrame:self.originalFrame];
+        [self.delegate userDidCloseWindow:self];
+    }];
 }
 
-- (void)dismissViewControllerAnimated:(BOOL)flag
-                           completion:(void (^)(void))completion
+- (void)openWindow
 {
-    [super dismissViewControllerAnimated:flag completion:completion];
-    [self closeWindow];
+    self.view.alpha = 0.0;
+    self.view.transform = CGAffineTransformMakeScale(0.6, 0.6);
+    [UIView animateKeyframesWithDuration:0.28 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeCubic animations:^{
+        [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.5 animations:^{
+            self.view.alpha = 1.0;
+            self.view.transform = CGAffineTransformMakeScale(1.05, 1.05);
+        }];
+        [UIView addKeyframeWithRelativeStartTime:0.5 relativeDuration:0.5 animations:^{
+            self.view.transform = CGAffineTransformIdentity;
+        }];
+    } completion:nil];
 }
 
 - (void)handlePullDown:(UIPanGestureRecognizer *)gesture
@@ -346,6 +366,7 @@
     ]];
     
     [self updateOriginalFrame];
+    self.view.alpha = 0.0;
 }
 
 - (void)maximizeWindow:(BOOL)animated
