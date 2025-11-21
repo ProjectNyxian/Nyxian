@@ -34,8 +34,8 @@ void seqlock_lock(seqlock_t *s)
 
 void seqlock_unlock(seqlock_t *s)
 {
-    spinlock_unlock((spinlock_t*)s);
     __atomic_add_fetch(&s->seq, 1, __ATOMIC_RELEASE);
+    spinlock_unlock((spinlock_t*)s);
 }
 
 unsigned long seqlock_read_begin(const seqlock_t *s)
