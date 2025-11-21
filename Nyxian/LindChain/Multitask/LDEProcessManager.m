@@ -313,6 +313,7 @@
             if(doRestartIfRunning)
             {
                 [process terminate];
+                usleep(300000);
             }
             else
             {
