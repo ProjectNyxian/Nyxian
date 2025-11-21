@@ -255,13 +255,13 @@
 - (void)setupDecoratedView:(CGRect)dimensions
 {
     self.view = [[UIStackView alloc] initWithFrame:dimensions];
-    self.view .backgroundColor = UIColor.clearColor;
-    self.view .autoresizingMask = UIViewAutoresizingNone;
+    self.view.backgroundColor = UIColor.clearColor;
+    self.view.autoresizingMask = UIViewAutoresizingNone;
     
-    self.view .layer.shadowColor = UIColor.blackColor.CGColor;
-    self.view .layer.shadowOpacity = 1.0;
-    self.view .layer.shadowRadius = 12;
-    //self.view .layer.shadowOffset = CGSizeMake(0, 4);
+    self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+    self.view.layer.shadowOpacity = 1.0;
+    self.view.layer.shadowRadius = 12;
+    self.view.layer.shadowOffset = CGSizeMake(0, 0);
     
     self.contentStack = [UIStackView new];
     self.contentStack.frame = self.view.bounds;
