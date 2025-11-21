@@ -258,6 +258,7 @@ ksurface_error_t proc_add_child_proc(pid_t ppid,
     strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
     
     // Patching the old process structure we copied out of the process table
+    proc_setppid(proc, ppid);
     proc_setpid(proc, pid);
     
     // Insert it back

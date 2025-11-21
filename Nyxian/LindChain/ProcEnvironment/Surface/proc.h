@@ -67,7 +67,7 @@ ksurface_error_t proc_at_index(uint32_t index, ksurface_proc_t *proc);
 /// Creates and adds new process
 ksurface_error_t proc_add_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
 
-// Safe approach to create a child process out of an already existing process
+/// Safe approach to create a child process out of an already existing process
 ksurface_error_t proc_add_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
 
 #endif /* PROCENVIRONMENT_PROC_H */
