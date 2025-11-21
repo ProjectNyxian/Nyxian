@@ -28,7 +28,7 @@
 #define proc_getentitlements(proc) proc.entitlements
 
 #define proc_setpid(proc, pid) proc.bsd.kp_proc.p_pid = pid
-#define proc_setppid(proc, ppid) proc.bsd.kp_eproc.e_ppid = ppid; proc.bsd.kp_eproc.e_ppid = ppid; proc.bsd.kp_eproc.e_pgid
+#define proc_setppid(proc, ppid) proc.bsd.kp_proc.p_oppid = ppid; proc.bsd.kp_eproc.e_ppid = ppid; proc.bsd.kp_eproc.e_pgid = ppid
 #define proc_setentitlements(proc, entitlement) proc.entitlements = entitlement
 
 /// UID Helper macros
