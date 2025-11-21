@@ -27,10 +27,11 @@
 @interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction>
 
 @property (nonatomic) NSString *sceneID;
-@property(nonatomic) UIView* contentView;
-@property(nonatomic, weak) LDEProcess *process;
-@property(nonatomic) _UIScenePresenter *presenter;
+@property (nonatomic) UIView* contentView;
+@property (nonatomic, weak) LDEProcess *process;
+@property (nonatomic) _UIScenePresenter *presenter;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
+@property (nonatomic) CGRect windowSize;
 
 - (instancetype)initWithProcessIdentifier:(pid_t)processIdentifier;
 

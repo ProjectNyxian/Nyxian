@@ -30,7 +30,6 @@
 @implementation LDEWindowSessionTerminal
 
 @synthesize windowName;
-@synthesize windowSize;
 @synthesize windowIsFullscreen;
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath

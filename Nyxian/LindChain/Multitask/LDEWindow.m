@@ -77,8 +77,7 @@
 
 - (void)closeWindow
 {
-    _session.windowSize = self.view.frame;
-    [self.session closeWindowWithScene:self.delegate.windowScene];
+    [self.session closeWindowWithScene:self.delegate.windowScene withFrame:self.originalFrame];
     [self.delegate userDidCloseWindow:self];
 }
 
@@ -471,12 +470,12 @@
             frame.origin.y = finger.y - self.grabOffset.y;
             frame = [self.delegate userDoesChangeWindow:self toRect:frame];
             self.view.frame = frame;
-            [self updateOriginalFrame];
             break;
         }
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed:
+            [self updateOriginalFrame];
         default:
             break;
     }
@@ -527,13 +526,13 @@
             }
             
             self.view.frame = corrected;
-            [self updateOriginalFrame];
             break;
         }
         case UIGestureRecognizerStateEnded:
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed:
             [self resizeActionEnd];
+            [self updateOriginalFrame];
             break;
         default:
             break;
@@ -546,10 +545,9 @@
     [self focusWindow:nil];
 }
 
-- (void)updateOriginalFrame {
-    CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-    // save origin as normalized coordinates
-    self.originalFrame = CGRectMake(self.view.frame.origin.x / maxFrame.size.width, self.view.frame.origin.y / maxFrame.size.height, self.view.frame.size.width, self.view.frame.size.height);
+- (void)updateOriginalFrame
+{
+    self.originalFrame = self.view.frame;
 }
 
 - (void)changeWindowToRect:(CGRect)rect

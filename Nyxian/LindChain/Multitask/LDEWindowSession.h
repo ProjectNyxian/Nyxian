@@ -25,12 +25,11 @@
 
 @protocol LDEWindowSession
 
-@property (nonatomic) CGRect windowSize;
 @property (nonatomic) NSString *windowName;
 @property (nonatomic) BOOL windowIsFullscreen;
 
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene withSessionIdentifier:(int)identifier;
-- (void)closeWindowWithScene:(UIWindowScene*)windowScene;
+- (void)closeWindowWithScene:(UIWindowScene*)windowScene withFrame:(CGRect)rect;
 - (UIImage*)snapshotWindow;
 - (void)activateWindow;
 - (void)deactivateWindow;

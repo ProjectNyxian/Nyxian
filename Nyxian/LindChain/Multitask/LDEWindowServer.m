@@ -440,7 +440,7 @@
                 pid_t pid = (pid_t)tile.tag;
                 LDEWindow *window = self.windows[@(pid)];
                 
-                if(window) [window.session closeWindowWithScene:self.windowScene];
+                if(window) [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
                 [tile removeFromSuperview];
             }];
         }

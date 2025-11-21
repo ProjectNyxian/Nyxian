@@ -25,7 +25,6 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
 
 @implementation LDEWindowSessionApplication
 
-@synthesize windowSize;
 @synthesize windowName;
 @synthesize windowIsFullscreen;
 
@@ -102,10 +101,11 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
 }
 
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene
+                   withFrame:(CGRect)rect;
 {
     if(_process.bundleIdentifier != nil)
     {
-        runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:self.windowSize];
+        runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:rect];
     }
     [_presenter invalidate];
     [windowScene _unregisterSettingsDiffActionArrayForKey:self.sceneID];
@@ -282,16 +282,16 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
     
     if(UIInterfaceOrientationIsLandscape(newSettings.interfaceOrientation))
     {
-        newSettings.frame = CGRectMake(windowSize.origin.x, windowSize.origin.y, windowSize.size.height, windowSize.size.width);
+        newSettings.frame = CGRectMake(self.windowSize.origin.x, self.windowSize.origin.y, self.windowSize.size.height, self.windowSize.size.width);
     }
     else
     {
-        newSettings.frame = windowSize;
+        newSettings.frame = self.windowSize;
     }
     
     [self.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
     
-    [self windowChangesSizeToRect:windowSize];
+    [self windowChangesSizeToRect:self.windowSize];
 }
 
 - (void)encodeWithCoder:(nonnull NSCoder *)coder
