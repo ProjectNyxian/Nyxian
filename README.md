@@ -6,4 +6,4 @@ You need a free or paid apple developer account, you have to sign Nyxian using t
 ## Language Support
 It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 18 SDK. All frameworks work except 3D rendering ones like SceneKIT.
 ## Project Support
-Currently you can only make apps inside of Nyxian. Its planned to add tweak development support with ElleKIT to Nyxian.
+You can only make apps and utilities inside of Nyxian. Its planned to add tweak development support with ElleKIT to Nyxian. Its also planned to add a custom tweak loader into Nyxian and for the kernel virtualisation layer on nyxian it self a kernel extension loader so people can extend the kernel safely. (idk, sounds like a great idea)
