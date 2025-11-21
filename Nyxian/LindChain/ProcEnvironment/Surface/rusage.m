@@ -31,7 +31,7 @@ int proc_libproc_pid_rusage(pid_t pid,
                             int flavor,
                             struct rusage_info_v2 *ri)
 {
-    if(@available(iOS 26.0, *))
+    if(environment_supports_tfp())
     {
         if (!ri) return -1;
         memset(ri, 0, sizeof(*ri));

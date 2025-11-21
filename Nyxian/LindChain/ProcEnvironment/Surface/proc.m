@@ -209,10 +209,7 @@ ksurface_error_t proc_add_proc(pid_t ppid,
     strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     
     // Set bsd process stuff
-    struct timeval tv;
-    if(gettimeofday(&tv, NULL) != 0) return NO;
-    proc.bsd.kp_proc.p_un.__p_starttime.tv_sec = tv.tv_sec;
-    proc.bsd.kp_proc.p_un.__p_starttime.tv_usec = tv.tv_usec;
+    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
     proc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
     proc.bsd.kp_proc.p_stat = SRUN;
     proc.bsd.kp_proc.p_pid = pid;
@@ -252,6 +249,9 @@ ksurface_error_t proc_add_child_proc(pid_t ppid,
     {
         return error;
     }
+    
+    // Reset time to now
+    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
     
     // Overwriting executable path
     strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
