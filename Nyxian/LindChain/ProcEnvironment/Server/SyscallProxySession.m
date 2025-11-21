@@ -27,4 +27,11 @@
     
 }
 
+- (void)mappingPortObjectAtAddress:(unsigned long)address
+                          withProt:(vm_prot_t)prot
+                         withReply:(void (^)(MappingPortObject*))reply
+{
+    
+}
+
 @end

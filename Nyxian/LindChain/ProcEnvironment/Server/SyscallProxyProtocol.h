@@ -26,7 +26,7 @@
 @protocol SyscallProxyProtocol <NSObject>
 
 - (void)syscall:(unsigned int)call withArguments:(NSArray*)arguments withReply:(void (^)(unsigned long))reply;
-- (void)mappingPortObjectAtAddress:(unsigned long)address withProt:(vm_prot_t)prot;
+- (void)mappingPortObjectAtAddress:(unsigned long)address withProt:(vm_prot_t)prot withReply:(void (^)(MappingPortObject*))reply;
 
 @end
 
