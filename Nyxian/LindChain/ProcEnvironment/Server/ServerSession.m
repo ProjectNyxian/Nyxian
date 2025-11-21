@@ -195,47 +195,49 @@
     switch(option)
     {
         case ProcessInfoUID:
-            proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
-            proc.bsd.kp_eproc.e_pcred.p_svuid = uid;
+            proc_setuid(proc, uid);
+            proc_setsvuid(proc, uid);
+            /* FALLTHROUGH */
         case ProcessInfoRUID:
-            proc.bsd.kp_eproc.e_pcred.p_ruid = uid;
+            proc_setruid(proc, uid);
             break;
         case ProcessInfoGID:
-            proc.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
-            proc.bsd.kp_eproc.e_pcred.p_svgid = uid;
+            proc_setgid(proc, uid);
+            proc_setsvgid(proc, uid);
+            /* FALLTHROUGH */
         case ProcessInfoRGID:
-            proc.bsd.kp_eproc.e_pcred.p_rgid = uid;
+            proc_setrgid(proc, uid);
             break;
         case ProcessInfoEUID:
-            proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
+            proc_setuid(proc, uid);
             break;
         case ProcessInfoEGID:
-            proc.bsd.kp_eproc.e_ucred.cr_groups[0] = uid;
+            proc_setgid(proc, uid);
             break;
         default:
             reply(-1);
             return;
     }
     
-    bool processAllowedToElevate = proc_got_entitlement(_processIdentifier, PEEntitlementProcessElevate);
-    bool processObjectIsDifferent = !(proc_getuid(proc) == proc_getuid(proc_unmod) &&
-                                      proc_getruid(proc) == proc_getruid(proc_unmod) &&
-                                      proc_getsvuid(proc) == proc_getsvuid(proc_unmod) &&
-                                      proc_getgid(proc) == proc_getgid(proc_unmod) &&
-                                      proc_getrgid(proc) == proc_getrgid(proc_unmod) &&
-                                      proc_getsvgid(proc) == proc_getsvgid(proc_unmod));
+    bool processAllowedToElevate = entitlement_got_entitlement(proc_getentitlements(proc_unmod), PEEntitlementProcessElevate);
+    bool processWasModified = !(proc_getuid(proc) == proc_getuid(proc_unmod) &&
+                                proc_getruid(proc) == proc_getruid(proc_unmod) &&
+                                proc_getsvuid(proc) == proc_getsvuid(proc_unmod) &&
+                                proc_getgid(proc) == proc_getgid(proc_unmod) &&
+                                proc_getrgid(proc) == proc_getrgid(proc_unmod) &&
+                                proc_getsvgid(proc) == proc_getsvgid(proc_unmod));
     
-    if(processObjectIsDifferent && processAllowedToElevate)
+    if(processWasModified && processAllowedToElevate)
     {
-        proc_insert_proc(proc);
+        error = proc_insert_proc(proc);
     }
-    else if(processObjectIsDifferent)
+    else if(processWasModified)
     {
         reply(-1);
         return;
     }
     
-    reply(0);
+    reply((error == kSurfaceErrorSuccess) ? 0 : -1);
     return;
 }
 
@@ -292,7 +294,7 @@
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
-    if(proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly) && !proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn))
+    if(!proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn))
     {
         reply();
         return;
