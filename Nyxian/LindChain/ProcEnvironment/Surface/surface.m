@@ -145,7 +145,9 @@ void proc_surface_init(void)
             if(hostname == nil) hostname = @"localhost";
             strlcpy(surface->hostname, hostname.UTF8String, MAXHOSTNAMELEN);
             surface->proc_count = 0;
-            proc_add_proc(getppid(), getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
+            
+            // MARK: Hardcode launchd pid because otherwise the debugger will be the ppid and certain checks will start to fail
+            proc_add_proc(PID_LAUNCHD, getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
             
             
             // Setup spinface

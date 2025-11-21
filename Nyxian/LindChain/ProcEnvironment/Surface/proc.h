@@ -49,6 +49,10 @@
 #define proc_setrgid(proc, rgid) proc.bsd.kp_eproc.e_pcred.p_rgid = rgid
 #define proc_setsvgid(proc, svgid) proc.bsd.kp_eproc.e_pcred.p_svgid = svgid
 
+#define pid_is_launchd(pid) pid == 1
+
+#define PID_LAUNCHD 1
+
 /// Returns a process structure for a given process identifier
 ksurface_error_t proc_for_pid(pid_t pid, ksurface_proc_t *proc);
 
