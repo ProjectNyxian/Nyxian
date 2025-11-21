@@ -21,6 +21,8 @@
 #import <LindChain/ProcEnvironment/Surface/proc.h>
 #import <LindChain/Multitask/LDEWindowServer.h>
 
+NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
+
 @implementation LDEWindowSessionApplication
 
 @synthesize windowSize;
@@ -32,6 +34,10 @@
     self = [super init];
     _process = [[LDEProcessManager shared] processForProcessIdentifier:processIdentifier];
     self.windowName = _process.displayName;
+    if(runtimeStoredRectValuesByBundleIdentifier == nil)
+    {
+        runtimeStoredRectValuesByBundleIdentifier = [[NSMutableDictionary alloc] init];
+    }
     return self;
 }
 
@@ -97,6 +103,10 @@
 
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene
 {
+    if(_process.bundleIdentifier != nil)
+    {
+        runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:self.windowSize];
+    }
     [_presenter invalidate];
     [windowScene _unregisterSettingsDiffActionArrayForKey:self.sceneID];
     [_process terminate];
@@ -199,8 +209,6 @@
 
 - (void)windowChangesSizeToRect:(CGRect)rect
 {
-    windowSize = rect;
-    
     // Handle user resizes
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.deviceOrientation = UIDevice.currentDevice.orientation;
@@ -327,6 +335,19 @@
 
 - (void)updateFocusIfNeeded
 {
+}
+
+- (CGRect)windowRect
+{
+    NSValue *nsValue = runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier];
+    if(nsValue == nil)
+    {
+        return CGRectMake(50, 50, 400, 400);
+    }
+    else
+    {
+        return nsValue.CGRectValue;
+    }
 }
 
 @end

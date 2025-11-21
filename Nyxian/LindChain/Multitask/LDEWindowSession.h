@@ -35,6 +35,7 @@
 - (void)activateWindow;
 - (void)deactivateWindow;
 - (void)windowChangesSizeToRect:(CGRect)rect;
+- (CGRect)windowRect;
 
 @end
 

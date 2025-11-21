@@ -29,6 +29,8 @@ typedef int wid_t;
 
 @protocol LDEWindowDelegate <NSObject>
 
+@property (nonatomic) UIWindowScene *windowScene;
+
 - (void)userDidCloseWindow:(LDEWindow*)window;
 - (void)userDidFocusWindow:(LDEWindow*)window;
 - (CGRect)userDoesChangeWindow:(LDEWindow*)window toRect:(CGRect)rect;

@@ -52,7 +52,7 @@
     _windowName = session.windowName;
     _delegate = delegate;
     
-    [self setupDecoratedView:CGRectMake(50, 50, 400, 400)];
+    [self setupDecoratedView:[_delegate userDoesChangeWindow:self toRect:[_session windowRect]]];
     
     if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
@@ -77,6 +77,8 @@
 
 - (void)closeWindow
 {
+    _session.windowSize = self.view.frame;
+    [self.session closeWindowWithScene:self.delegate.windowScene];
     [self.delegate userDidCloseWindow:self];
 }
 

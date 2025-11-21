@@ -574,7 +574,6 @@
     {
         _activeWindow = nil;
     }
-    [window.session closeWindowWithScene:self.windowScene];
     [self closeWindowWithIdentifier:window.identifier];
 }
 
