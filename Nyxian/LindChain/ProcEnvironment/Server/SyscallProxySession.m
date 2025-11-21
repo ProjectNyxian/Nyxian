@@ -22,9 +22,16 @@
 
 @implementation SyscallProxySession
 
-- (void)syscall:(unsigned int)call withArguments:(NSArray *)arguments withReply:(void (^)(unsigned long))reply
+- (void)syscall:(long)call
+  withArguments:(NSArray<NSNumber*>*)arguments
+      withReply:(void (^)(unsigned long))reply
 {
-    
+    unsigned long sysarg[10] = {};
+    for(unsigned char i = 0; i < arguments.count && i < 10; i++)
+    {
+        sysarg[i] = arguments[i].unsignedLongValue;
+    }
+    reply(syscall(call, sysarg[0], sysarg[1], sysarg[2], sysarg[3], sysarg[4], sysarg[5], sysarg[6], sysarg[7], sysarg[8], sysarg[9]));
 }
 
 - (void)mappingPortObjectWithSize:(unsigned long)size
