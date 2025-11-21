@@ -27,11 +27,11 @@
     
 }
 
-- (void)mappingPortObjectAtAddress:(unsigned long)address
-                          withProt:(vm_prot_t)prot
-                         withReply:(void (^)(MappingPortObject*))reply
+- (void)mappingPortObjectWithSize:(unsigned long)size
+                         withProt:(vm_prot_t)prot
+                        withReply:(void (^)(MappingPortObject*))reply
 {
-    
+    reply([[MappingPortObject alloc] initWithSize:size withProt:prot]);
 }
 
 @end
