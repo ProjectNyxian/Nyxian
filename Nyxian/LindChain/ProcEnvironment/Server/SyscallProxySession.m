@@ -16,3 +16,15 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#import <LindChain/ProcEnvironment/Server/SyscallProxySession.h>
+#import <sys/syscall.h>
+
+@implementation SyscallProxySession
+
+- (void)syscall:(unsigned int)call withArguments:(NSArray *)arguments withReply:(void (^)(unsigned long))reply
+{
+    
+}
+
+@end

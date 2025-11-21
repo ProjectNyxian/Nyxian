@@ -16,3 +16,14 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#ifndef SYSCALLPROXYSESSION_H
+#define SYSCALLPROXYSESSION_H
+
+#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Server/SyscallProxyProtocol.h>
+
+@interface SyscallProxySession : NSObject <SyscallProxyProtocol>
+@end
+
+#endif /* SYSCALLPROXYSESSION_H */

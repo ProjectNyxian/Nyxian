@@ -21,10 +21,12 @@
 #define SYSCALLPROXYPROTOCOL_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 
 @protocol SyscallProxyProtocol <NSObject>
 
 - (void)syscall:(unsigned int)call withArguments:(NSArray*)arguments withReply:(void (^)(unsigned long))reply;
+- (void)mappingPortObjectAtAddress:(unsigned long)address withProt:(vm_prot_t)prot;
 
 @end
 
