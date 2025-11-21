@@ -26,9 +26,6 @@
 
 - (void)syscall:(unsigned int)call withArguments:(NSArray*)arguments withReply:(void (^)(unsigned long))reply;
 
-- (void)allocateMemoryWithSize:(size_t)size withReply:(void (^)(unsigned long))address;
-- (void)releaseMemoryAtAddress:(unsigned long)address;
-
 @end
 
 #endif /* SYSCALLPROXYPROTOCOL_H */
