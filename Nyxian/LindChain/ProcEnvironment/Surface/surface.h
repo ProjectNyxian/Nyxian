@@ -65,11 +65,6 @@ typedef struct {
 
 /// Structure that holds process information
 typedef struct {
-    bool inUse;
-    bool isValid;
-    seqlock_t seqlock;
-    void *parent;
-    ksurface_proc_children_t children;
     kinfo_proc_t bsd;
     knyx_proc_t nyx;
 } ksurface_proc_t;
