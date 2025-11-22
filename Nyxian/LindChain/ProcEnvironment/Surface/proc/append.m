@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/append.h>
 #import <LindChain/ProcEnvironment/Surface/proc/helper.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
                                                     bool use_lock)
@@ -33,7 +34,7 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
-        if(surface->proc[i].bsd.kp_proc.p_pid == proc.bsd.kp_proc.p_pid)
+        if(proc_getpid(surface->proc[i]) == proc_getpid(proc))
         {
             proc_helper_unlock(use_lock);
             return kSurfaceErrorAlreadyExists;
@@ -43,7 +44,7 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     ksurface_error_t error = kSurfaceErrorSuccess;
     if(surface->proc_count < PROC_MAX)
     {
-        memcpy(&surface->proc[surface->proc_count], &proc, sizeof(ksurface_proc_t));
+        proc_cpy(surface->proc[surface->proc_count], proc);
         surface->proc_count++;
     }
     else

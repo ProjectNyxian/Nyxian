@@ -51,4 +51,6 @@
 
 #define PID_LAUNCHD 1
 
+#define proc_cpy(a,b) memcpy(&a, &b, sizeof(ksurface_proc_t))
+
 #endif /* PROC_DEF_H */
