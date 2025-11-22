@@ -44,7 +44,7 @@ int proc_libproc_listallpids(void *buffer,
     {
         seq =                                       seqlock_read_begin(&(surface->seqlock));
 
-        uint32_t count = surface->proc_count;
+        uint32_t count = surface->proc_info.proc_count;
         needed_bytes = (size_t)count * sizeof(pid_t);
 
         if (buffer != NULL && buffersize > 0) {
@@ -53,7 +53,7 @@ int proc_libproc_listallpids(void *buffer,
 
             pid_t *pids = (pid_t *)buffer;
             for (size_t i = 0; i < n; i++) {
-                pids[i] = surface->proc[i].bsd.kp_proc.p_pid;
+                pids[i] = surface->proc_info.proc[i].bsd.kp_proc.p_pid;
             }
         }
 
@@ -105,7 +105,7 @@ int proc_libproc_pidpath(pid_t pid,
         return 0;
     }
 
-    strlcpy((char*)buffer, proc.path, buffersize);
+    strlcpy((char*)buffer, proc.executable_path, buffersize);
     return (int)strlen((char*)buffer);
 }
 

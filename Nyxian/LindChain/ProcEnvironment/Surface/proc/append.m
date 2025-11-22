@@ -31,10 +31,10 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     proc_helper_lock(use_lock);
     
     // Iterating through all processes
-    for(uint32_t i = 0; i < surface->proc_count; i++)
+    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
     {
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
-        if(proc_getpid(surface->proc[i]) == proc_getpid(proc))
+        if(proc_getpid(surface->proc_info.proc[i]) == proc_getpid(proc))
         {
             proc_helper_unlock(use_lock);
             return kSurfaceErrorAlreadyExists;
@@ -42,10 +42,10 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     }
     // It doesnt exist already so we copy it into the next new entry
     ksurface_error_t error = kSurfaceErrorSuccess;
-    if(surface->proc_count < PROC_MAX)
+    if(surface->proc_info.proc_count < PROC_MAX)
     {
-        proc_cpy(surface->proc[surface->proc_count], proc);
-        surface->proc_count++;
+        proc_cpy(surface->proc_info.proc[surface->proc_info.proc_count], proc);
+        surface->proc_info.proc_count++;
     }
     else
     {

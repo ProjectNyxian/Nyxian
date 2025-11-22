@@ -33,23 +33,23 @@ static inline ksurface_error_t proc_remove_by_pid_internal(pid_t pid,
     ksurface_error_t retval = kSurfaceErrorNotFound;
     
     // Iterating through all processes
-    for(uint32_t i = 0; i < surface->proc_count; i++)
+    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
     {
         // Checking if its the process were looking for
-        if(surface->proc[i].bsd.kp_proc.p_pid == pid)
+        if(surface->proc_info.proc[i].bsd.kp_proc.p_pid == pid)
         {
             // Some check i dont remember why I wrote, I need to remember writing comments ong
             // MARK: Find out if its safe plaxinf proc_count-- here instead of in the if condition
-            if(i < surface->proc_count - 1)
+            if(i < surface->proc_info.proc_count - 1)
             {
                 // Removing process from process structure by moving the process struture in front of it to it
-                memmove(&surface->proc[i],
-                        &surface->proc[i + 1],
-                        (surface->proc_count - i - 1) * sizeof(ksurface_proc_t));
+                memmove(&surface->proc_info.proc[i],
+                        &surface->proc_info.proc[i + 1],
+                        (surface->proc_info.proc_count - i - 1) * sizeof(ksurface_proc_t));
             }
             
             // Decrementing the count of processes
-            surface->proc_count--;
+            surface->proc_info.proc_count--;
             
             // Setting return value to succession
             retval = kSurfaceErrorSuccess;

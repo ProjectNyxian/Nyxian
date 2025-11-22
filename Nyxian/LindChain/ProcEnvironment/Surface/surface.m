@@ -44,7 +44,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
     do {
         seq = seqlock_read_begin(&(surface->seqlock));
 
-        uint32_t count = surface->proc_count;
+        uint32_t count = surface->proc_info.proc_count;
         needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
 
         if(needed_out)
@@ -68,7 +68,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
         {
             memset(&kprocs[i], 0, sizeof(struct kinfo_proc));
             memcpy(&kprocs[i],
-                   &surface->proc[i].bsd,
+                   &surface->proc_info.proc[i].bsd,
                    sizeof(struct kinfo_proc));
         }
 
@@ -114,7 +114,7 @@ DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
     do
     {
         seq = seqlock_read_begin(&(surface->seqlock));
-        strlcpy(buf, surface->hostname, bufsize);
+        strlcpy(buf, surface->host_info.hostname, bufsize);
     }
     while(seqlock_read_retry(&(surface->seqlock), seq));
     
@@ -125,7 +125,7 @@ void kern_sethostname(NSString *hostname)
 {
     seqlock_lock(&(surface->seqlock));
     hostname = hostname ?: @"localhost";
-    strlcpy(surface->hostname, [hostname UTF8String], MAXHOSTNAMELEN);
+    strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
     seqlock_unlock(&(surface->seqlock));
 }
 
@@ -143,8 +143,8 @@ void proc_surface_init(void)
             surface->magic = SURFACE_MAGIC;
             NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
             if(hostname == nil) hostname = @"localhost";
-            strlcpy(surface->hostname, hostname.UTF8String, MAXHOSTNAMELEN);
-            surface->proc_count = 0;
+            strlcpy(surface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
+            surface->proc_info.proc_count = 0;
             
             // MARK: Hardcode launchd pid because otherwise the debugger will be the ppid and certain checks will start to fail
             proc_new_proc(PID_LAUNCHD, getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);

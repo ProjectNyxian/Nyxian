@@ -40,52 +40,55 @@ enum kSurfaceError {
 
 typedef unsigned char ksurface_error_t;
 
+#define PROC_MAX 750
+#define CHILD_PROC_MAX 100
+#define SURFACE_MAGIC 0xFABCDEFB
+
+/// BSD process structure
+typedef struct kinfo_proc kinfo_proc_t;
+
+/// Structure that holds child process lists
+typedef struct {
+    void *children_proc[CHILD_PROC_MAX];
+    unsigned char children_cnt;
+} ksurface_proc_children_t;
+
 /// Structure that holds process information
 typedef struct {
-    /* Real structure */
-    struct kinfo_proc bsd;
-    
-    /* Now we come to my other things */
-    /* Because its important */
-    char path[PATH_MAX];
-    
-    /* Storing override flag for TASK_UNSPECIFIED */
+    kinfo_proc_t bsd;
+    ksurface_proc_children_t children;
+    char executable_path[PATH_MAX];
     bool force_task_role_override;
     task_role_t task_role_override;
-    
-    /* Entitlements*/
     PEEntitlement entitlements;
 } ksurface_proc_t;
 
-/* Interestingly launchd only allows us to have 1000 extensions to execute, which is still unsafe, so i reduced it to 750 */
-#define PROC_MAX 750
+/// Host information
+typedef struct {
+    char hostname[MAXHOSTNAMELEN];
+} ksurface_host_info_t;
+
+/// Process information
+typedef struct {
+    uint32_t proc_count;
+    ksurface_proc_t proc[PROC_MAX];
+} ksurface_proc_info_t;
 
 /// Structure that holds surface information and other structures
 typedef struct {
-    /* Spinlock */
-    seqlock_t seqlock;
-    
-    /* System */
     uint32_t magic;
-    char hostname[MAXHOSTNAMELEN];
-    
-    /* Proc */
-    uint32_t proc_count;
-    ksurface_proc_t proc[PROC_MAX];
+    seqlock_t seqlock;
+    ksurface_host_info_t host_info;
+    ksurface_proc_info_t proc_info;
 } ksurface_mapping_t;
 
-/* Surface Macros */
-#define SURFACE_MAGIC 0xFABCDEFB
-
-/* Shared properties */
+/* Shared mapping */
 extern ksurface_mapping_t *surface;
 
 /* Handoff */
-
-/// Returns a process surface file handle to perform a handoff over XPC
 MappingPortObject *proc_surface_for_pid(pid_t pid);
 
-/* sysctl */
+/* Sysctl */
 int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out);
 
 void kern_sethostname(NSString *hostname);

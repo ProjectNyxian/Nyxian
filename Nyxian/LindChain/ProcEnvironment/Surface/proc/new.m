@@ -37,7 +37,7 @@ ksurface_error_t proc_new_proc(pid_t ppid,
     proc.force_task_role_override = true;
     proc.task_role_override = TASK_UNSPECIFIED;
     proc.entitlements = entitlement;
-    strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    strncpy(proc.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     
     // Set bsd process stuff
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
@@ -88,7 +88,7 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
     
     // Overwriting executable path
-    strncpy(proc.path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    strncpy(proc.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
     
     // Patching the old process structure we copied out of the process table

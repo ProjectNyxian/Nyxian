@@ -40,13 +40,13 @@ static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
         seq = proc_helper_read_begin(use_lock);
         
         // Iterating through all process structures
-        for(uint32_t i = 0; i < surface->proc_count; i++)
+        for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
         {
             // Checking if its the process structure were looking for
-            if(proc_getpid(surface->proc[i]) == pid)
+            if(proc_getpid(surface->proc_info.proc[i]) == pid)
             {
                 // Copying it to the process ptr passed
-                *proc = surface->proc[i];
+                *proc = surface->proc_info.proc[i];
                 
                 // Setting return value to success
                 retval = kSurfaceErrorSuccess;
@@ -79,10 +79,10 @@ static inline ksurface_error_t proc_for_idx_internal(unsigned int idx,
         seq = proc_helper_read_begin(use_lock);
         
         // Checking if the index is within bounds
-        if(idx < surface->proc_count)
+        if(idx < surface->proc_info.proc_count)
         {
             // Copying process at index to the pointer provided
-            *proc = surface->proc[idx];
+            *proc = surface->proc_info.proc[idx];
             
             // Setting return value to succeed
             retval = kSurfaceErrorSuccess;

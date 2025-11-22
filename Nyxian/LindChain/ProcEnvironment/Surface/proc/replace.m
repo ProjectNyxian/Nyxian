@@ -31,13 +31,13 @@ static inline ksurface_error_t proc_replace_internal(ksurface_proc_t proc,
     proc_helper_lock(use_lock);
     
     // Iterating through all processes
-    for(uint32_t i = 0; i < surface->proc_count; i++)
+    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
     {
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
-        if(proc_getpid(surface->proc[i]) == proc_getpid(proc))
+        if(proc_getpid(surface->proc_info.proc[i]) == proc_getpid(proc))
         {
             // Copying provided process onto the surface at already existing memory entry
-            proc_cpy(surface->proc[i], proc);
+            proc_cpy(surface->proc_info.proc[i], proc);
             
             proc_helper_unlock(use_lock);
             
