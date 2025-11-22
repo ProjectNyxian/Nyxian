@@ -50,17 +50,11 @@ typedef struct kinfo_proc kinfo_proc_t;
 
 /// Nyxian process structure
 typedef struct {
+    /* Black magic, night walker~~ She haunts me like no other~~ */
     char executable_path[PATH_MAX];
     bool force_task_role_override;
     task_role_t task_role_override;
     PEEntitlement entitlements;
-    
-    /* Black magic, night walker~~ She haunts me like no other~~ */
-    dispatch_once_t removeOnce;
-    __strong NSUUID *identifier;
-    __strong NSExtension *extension;
-    __strong RBSProcessHandle *handle;
-    __strong RBSProcessMonitor *monitor;
 } knyx_proc_t;
 
 /// Structure that holds child process lists
