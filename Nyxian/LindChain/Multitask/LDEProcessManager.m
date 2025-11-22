@@ -24,7 +24,7 @@
 #import <LindChain/Multitask/LDEWindowServer.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 
 @implementation LDEProcessConfiguration
@@ -47,6 +47,7 @@
 + (instancetype)inheriteConfigurationUsingProcessIdentifier:(pid_t)pid
 {
     ksurface_proc_t proc = {};
+    // TODO: Handle error
     ksurface_error_t error = proc_for_pid(pid, &proc);
     return [[self alloc] initWithParentProcessIdentifier:proc_getpid(proc) withUserIdentifier:proc_getruid(proc) withGroupIdentifier:proc_getrgid(proc) withEntitlements:proc_getentitlements(proc)];
 }
@@ -141,7 +142,7 @@
                 {
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
-                        proc_remove_for_pid(strongSelf.pid);
+                        proc_remove_by_pid(strongSelf.pid);
                         if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
@@ -390,7 +391,7 @@
     LDEProcess *process = [self.processes objectForKey:@(pid)];
     if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
     [self.processes removeObjectForKey:@(pid)];
-    proc_remove_for_pid(pid);
+    proc_remove_by_pid(pid);
 }
 
 - (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier

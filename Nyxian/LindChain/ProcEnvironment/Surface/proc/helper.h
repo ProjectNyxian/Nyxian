@@ -17,13 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_PERMIT_H
-#define PROCENVIRONMENT_PERMIT_H
+#ifndef PROC_HELPER_H
+#define PROC_HELPER_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <stdbool.h>
 
-BOOL permitive_over_process_allowed(pid_t callerPid,
-                                    pid_t targetPid);
+void proc_helper_lock(bool wantLock);
+void proc_helper_unlock(bool wantLock);
 
-#endif /* PROCENVIRONMENT_PERMIT_H */
+unsigned long proc_helper_read_begin(bool wantLock);
+bool proc_helper_read_retry(bool wantLock, unsigned long seq);
+
+#endif /* PROC_HELPER_H */

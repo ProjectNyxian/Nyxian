@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/Multitask/LDEWindowSessionApplication.h>
-#import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/LDEWindowServer.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
@@ -149,7 +149,7 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
     if(proc.force_task_role_override)
     {
         proc.force_task_role_override = false;
-        error = proc_insert_proc(proc, false);
+        error = proc_replace(proc);
         
         if(error != kSurfaceErrorSuccess)
         {
@@ -195,7 +195,7 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
             if(proc.bsd.kp_proc.p_pid == 0) return;
             proc.force_task_role_override = true;
             proc.task_role_override = TASK_DARWINBG_APPLICATION;
-            error = proc_insert_proc(proc, false);
+            error = proc_replace(proc);
             
             if(error != kSurfaceErrorSuccess)
             {

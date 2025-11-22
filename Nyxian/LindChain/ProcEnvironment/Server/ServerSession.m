@@ -229,7 +229,7 @@
     
     if(processWasModified && processAllowedToElevate)
     {
-        error = proc_insert_proc(proc, false);
+        error = proc_replace(proc);
     }
     else if(processWasModified)
     {

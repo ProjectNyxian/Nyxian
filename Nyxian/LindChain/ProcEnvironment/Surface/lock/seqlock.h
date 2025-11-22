@@ -96,4 +96,6 @@ unsigned long seqlock_read_begin(const seqlock_t *s);
  */
 bool seqlock_read_retry(const seqlock_t *s, unsigned long seq);
 
+bool seqlock_is_locked(const seqlock_t *s);
+
 #endif /* PROCENVIRONMENT_SEQLOCK */

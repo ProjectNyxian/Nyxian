@@ -29,19 +29,19 @@ void seqlock_init(seqlock_t *s)
 void seqlock_lock(seqlock_t *s)
 {
     spinlock_lock((spinlock_t*)s);
-    __atomic_add_fetch(&s->seq, 1, __ATOMIC_RELEASE);
+    __atomic_add_fetch(&s->seq, 1, __ATOMIC_ACQ_REL);
 }
 
 void seqlock_unlock(seqlock_t *s)
 {
-    __atomic_add_fetch(&s->seq, 1, __ATOMIC_RELEASE);
+    __atomic_add_fetch(&s->seq, 1, __ATOMIC_ACQ_REL);
     spinlock_unlock((spinlock_t*)s);
 }
 
 unsigned long seqlock_read_begin(const seqlock_t *s)
 {
     unsigned long seq;
-    while(1)
+    for(;;)
     {
         seq = __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE);
         if(seq & 1)
@@ -53,9 +53,12 @@ unsigned long seqlock_read_begin(const seqlock_t *s)
             }
             while(seq & 1);
         }
-
+        __atomic_thread_fence(__ATOMIC_ACQUIRE);
         if(__atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) == seq)
+        {
             return seq;
+        }
+        relax();
     }
 }
 
@@ -64,4 +67,9 @@ bool seqlock_read_retry(const seqlock_t *s,
 {
     __atomic_thread_fence(__ATOMIC_ACQUIRE);
     return __atomic_load_n(&s->seq, __ATOMIC_ACQUIRE) != seq;
+}
+
+bool seqlock_is_locked(const seqlock_t *s)
+{
+    return spinlock_is_locked((spinlock_t*)s);
 }

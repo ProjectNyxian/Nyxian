@@ -17,10 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_PROC_H
-#define PROCENVIRONMENT_PROC_H
-
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#ifndef PROC_DEF_H
+#define PROC_DEF_H
 
 /// Helper macros
 #define proc_getpid(proc) proc.bsd.kp_proc.p_pid
@@ -53,25 +51,4 @@
 
 #define PID_LAUNCHD 1
 
-/// Returns a process structure for a given process identifier
-ksurface_error_t proc_for_pid(pid_t pid, ksurface_proc_t *proc);
-
-/// Removes a process structure for a given process identifier
-ksurface_error_t proc_remove_for_pid(pid_t pid);
-
-/// Returns if any process is allowed to spawn
-ksurface_error_t proc_can_spawn(void);
-
-/// Inserts a given process structure into the surface structure
-ksurface_error_t proc_insert_proc(ksurface_proc_t proc, bool append);
-
-/// Returns a process structure at a given index
-ksurface_error_t proc_at_index(uint32_t index, ksurface_proc_t *proc);
-
-/// Creates and adds new process
-ksurface_error_t proc_new_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
-
-/// Safe approach to create a child process out of an already existing process
-ksurface_error_t proc_new_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
-
-#endif /* PROCENVIRONMENT_PROC_H */
+#endif /* PROC_DEF_H */

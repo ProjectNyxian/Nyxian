@@ -21,7 +21,7 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/litehook/src/litehook.h>
-#import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
 
 static NSMutableDictionary <NSNumber*,TaskPortObject*> *tfp_userspace_ports;

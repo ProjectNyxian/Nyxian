@@ -16,14 +16,3 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
-
-#ifndef PROCENVIRONMENT_PERMIT_H
-#define PROCENVIRONMENT_PERMIT_H
-
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-
-BOOL permitive_over_process_allowed(pid_t callerPid,
-                                    pid_t targetPid);
-
-#endif /* PROCENVIRONMENT_PERMIT_H */

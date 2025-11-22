@@ -17,13 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_PERMIT_H
-#define PROCENVIRONMENT_PERMIT_H
+#ifndef PROCENVIRONMENT_PANIC_H
+#define PROCENVIRONMENT_PANIC_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+void environment_panic(void);
 
-BOOL permitive_over_process_allowed(pid_t callerPid,
-                                    pid_t targetPid);
-
-#endif /* PROCENVIRONMENT_PERMIT_H */
+#endif /* PROCENVIRONMENT_PANIC_H */

@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 bool proc_got_entitlement(pid_t pid,
                           PEEntitlement entitlement)

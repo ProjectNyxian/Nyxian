@@ -17,13 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_PERMIT_H
-#define PROCENVIRONMENT_PERMIT_H
+#ifndef PROC_REMOVE_H
+#define PROC_REMOVE_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-BOOL permitive_over_process_allowed(pid_t callerPid,
-                                    pid_t targetPid);
+ksurface_error_t proc_remove_by_pid(pid_t pid);
+ksurface_error_t proc_remove_by_pid_nolock(pid_t pid);
 
-#endif /* PROCENVIRONMENT_PERMIT_H */
+#endif /* PROC_REMOVE_H */

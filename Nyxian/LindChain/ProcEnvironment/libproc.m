@@ -24,7 +24,7 @@
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 int proc_libproc_listallpids(void *buffer,
                              int buffersize)

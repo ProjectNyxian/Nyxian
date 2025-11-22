@@ -17,35 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/lock/spinlock.h>
-#include <LindChain/ProcEnvironment/Surface/extra/relax.h>
+#include <stdlib.h>
+#import <LindChain/ProcEnvironment/panic.h>
 
-void spinlock_init(spinlock_t *s)
+void environment_panic(void)
 {
-    __atomic_store_n(&s->lock, 0, __ATOMIC_RELAXED);
-}
-
-void spinlock_lock(spinlock_t *s)
-{
-    for(;;)
-    {
-        while(__atomic_load_n(&s->lock, __ATOMIC_RELAXED) == 1)
-        {
-            relax();
-        }
-        if(__atomic_exchange_n(&s->lock, 1, __ATOMIC_ACQUIRE) == 0)
-        {
-            break;
-        }
-    }
-}
-
-void spinlock_unlock(spinlock_t *s)
-{
-    __atomic_store_n(&s->lock, 0, __ATOMIC_RELEASE);
-}
-
-bool spinlock_is_locked(const spinlock_t *s)
-{
-    return __atomic_load_n(&s->lock, __ATOMIC_RELAXED);
+    // MARK: Incase we change something in future, like adding a crash log producer
+    exit(1);
 }

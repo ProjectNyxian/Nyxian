@@ -141,6 +141,7 @@
 				LindChain/ProcEnvironment/Object/MappingPortObject.m,
 				LindChain/ProcEnvironment/Object/PEObject.m,
 				LindChain/ProcEnvironment/Object/TaskPortObject.m,
+				LindChain/ProcEnvironment/panic.m,
 				LindChain/ProcEnvironment/posix_spawn.m,
 				LindChain/ProcEnvironment/proxy.m,
 				LindChain/ProcEnvironment/Surface/entitlement.m,
@@ -148,7 +149,13 @@
 				LindChain/ProcEnvironment/Surface/lock/seqlock.c,
 				LindChain/ProcEnvironment/Surface/lock/spinlock.c,
 				LindChain/ProcEnvironment/Surface/permit.m,
-				LindChain/ProcEnvironment/Surface/proc.m,
+				LindChain/ProcEnvironment/Surface/proc/append.m,
+				LindChain/ProcEnvironment/Surface/proc/fetch.m,
+				LindChain/ProcEnvironment/Surface/proc/helper.m,
+				LindChain/ProcEnvironment/Surface/proc/new.m,
+				LindChain/ProcEnvironment/Surface/proc/proc.m,
+				LindChain/ProcEnvironment/Surface/proc/remove.m,
+				LindChain/ProcEnvironment/Surface/proc/replace.m,
 				LindChain/ProcEnvironment/Surface/rusage.m,
 				LindChain/ProcEnvironment/Surface/surface.m,
 				LindChain/ProcEnvironment/sysctl.m,
@@ -631,6 +638,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -691,6 +699,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;

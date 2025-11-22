@@ -17,13 +17,29 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_PERMIT_H
-#define PROCENVIRONMENT_PERMIT_H
-
-#import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-BOOL permitive_over_process_allowed(pid_t callerPid,
-                                    pid_t targetPid);
-
-#endif /* PROCENVIRONMENT_PERMIT_H */
+ksurface_error_t proc_can_spawn(void)
+{
+    // Dont use if uninitilized
+    if(surface == NULL) return kSurfaceErrorNullPtr;
+    
+    // Aquiring rw lock (Its from biggest necessarity to make sure that no process gets added while we check if a process is allowed to spawn)
+    seqlock_lock(&(surface->seqlock));
+    
+    // Return value
+    ksurface_error_t retval = kSurfaceErrorUndefined;
+    
+    // Checking if process count is underneath PROC_MAX
+    if(surface->proc_count < PROC_MAX)
+    {
+        // Setting return value to succession
+        retval = kSurfaceErrorSuccess;
+    }
+    
+    // Releasing rw lock
+    seqlock_unlock(&(surface->seqlock));
+    
+    // Returning return value
+    return retval;
+}
