@@ -23,7 +23,87 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #include <sys/sysctl.h>
 
-// MARK: If you wanna use CocoaTop you need to fix this one bug in the source code where it allocates SIZE_MAX on a NSMutableArray
+int sysctl_kernmaxproc(int *name,
+                       u_int namelen,
+                       void *__sized_by(*oldlenp) oldp,
+                       size_t *oldlenp,
+                       void *__sized_by(newlen) newp,
+                       size_t newlen)
+{
+    if(oldp && oldlenp && *oldlenp >= sizeof(int))
+    {
+        *(int *)oldp = PROC_MAX;
+        *oldlenp = sizeof(int);
+        return 0;
+    }
+    
+    if(oldlenp)
+    {
+        *oldlenp = sizeof(int);
+        return 0;
+    }
+    
+    errno = EINVAL;
+    return -1;
+}
+
+int sysctl_kernprocall(int *name,
+                       u_int namelen,
+                       void *__sized_by(*oldlenp) oldp,
+                       size_t *oldlenp,
+                       void *__sized_by(newlen) newp,
+                       size_t newlen)
+{
+    if(!oldlenp)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    size_t needed = proc_sysctl_listproc(NULL, 0, NULL);
+    
+    if(oldp == NULL || *oldlenp == 0)
+    {
+        *oldlenp = needed;
+        return 0;
+    }
+    
+    if(*oldlenp < needed)
+    {
+        *oldlenp = needed;
+        errno = ENOMEM;
+        return -1;
+    }
+    
+    int written = proc_sysctl_listproc(oldp, *oldlenp, NULL);
+    if(written < 0) return -1;
+    
+    *oldlenp = written;
+    return 0;
+}
+
+int sysctl_kernprocargs2(int *name,
+                         u_int namelen,
+                         void *__sized_by(*oldlenp) oldp,
+                         size_t *oldlenp,
+                         void *__sized_by(newlen) newp,
+                         size_t newlen)
+{
+    pid_t pid = name[2];
+    if (oldlenp) {
+        if (oldp && *oldlenp >= sizeof(int)) {
+            *(int *)oldp = 0;
+            *oldlenp = sizeof(int);
+            return 0;
+        }
+        *oldlenp = sizeof(int);
+        return 0;
+    }
+    
+    errno = EINVAL;
+    return -1;
+}
+
 DEFINE_HOOK(sysctl, int, (int *name,
                           u_int namelen,
                           void *__sized_by(*oldlenp) oldp,
@@ -31,81 +111,37 @@ DEFINE_HOOK(sysctl, int, (int *name,
                           void *__sized_by(newlen) newp,
                           size_t newlen))
 {
-    /* KERN_MAXPROC fix */
-    if(namelen == 2 && name[0] == CTL_KERN && name[1] == KERN_MAXPROC)
+    if(namelen > 0)
     {
-        if(oldp && oldlenp && *oldlenp >= sizeof(int))
+        switch(name[0])
         {
-            *(int *)oldp = PROC_MAX;
-            *oldlenp = sizeof(int);
-            return 0;
+            case CTL_KERN:
+                if(namelen > 1)
+                {
+                    switch(name[1])
+                    {
+                        case KERN_MAXPROC:
+                            return sysctl_kernmaxproc(name, namelen, oldp, oldlenp, newp, newlen);
+                        case KERN_PROC:
+                            if(namelen > 2)
+                            {
+                                switch(name[2])
+                                {
+                                    case KERN_PROC_ALL:
+                                        return sysctl_kernprocall(name, namelen, oldp, oldlenp, newp, newlen);
+                                    default:
+                                        break;
+                                }
+                            }
+                        case KERN_PROCARGS2:
+                            return sysctl_kernprocargs2(name, namelen, oldp, oldlenp, newp, newlen);
+                        default:
+                            break;
+                    }
+                }
+            default:
+                break;
         }
-
-        if(oldlenp)
-        {
-            *oldlenp = sizeof(int);
-            return 0;
-        }
-
-        errno = EINVAL;
-        return -1;
-    }
-    
-    /* KERN_PROC_ALL fix */
-    if (namelen == 4 &&
-        name[0] == CTL_KERN &&
-        name[1] == KERN_PROC &&
-        name[2] == KERN_PROC_ALL &&
-        name[3] == 0)
-    {
-        if(!oldlenp)
-        {
-            errno = EINVAL;
-            return -1;
-        }
-
-        size_t needed = proc_sysctl_listproc(NULL, 0, NULL);
-
-        if(oldp == NULL || *oldlenp == 0)
-        {
-            *oldlenp = needed;
-            return 0;
-        }
-
-        if(*oldlenp < needed)
-        {
-            *oldlenp = needed;
-            errno = ENOMEM;
-            return -1;
-        }
-
-        int written = proc_sysctl_listproc(oldp, *oldlenp, NULL);
-        if(written < 0) return -1;
-
-        *oldlenp = written;
-        return 0;
-    }
-    
-    /* --- KERN_PROCARGS2 spoof --- */
-    if (namelen == 3 &&
-        name[0] == CTL_KERN &&
-        name[1] == KERN_PROCARGS2)
-    {
-        pid_t pid = name[2];
-        NSLog(@"ProcArray.m asked for procargs2 of pid=%d -> returning empty", pid);
-
-        if (oldlenp) {
-            if (oldp && *oldlenp >= sizeof(int)) {
-                *(int *)oldp = 0;
-                *oldlenp = sizeof(int);
-                return 0;
-            }
-            *oldlenp = sizeof(int);
-            return 0;
-        }
-
-        errno = EINVAL;
-        return -1;
     }
     
     return ORIG_FUNC(sysctl)(name, namelen, oldp, oldlenp, newp, newlen);
