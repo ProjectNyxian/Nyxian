@@ -359,6 +359,7 @@
     
     [self updateOriginalFrame];
     self.view.alpha = 0.0;
+    
 }
 
 - (void)maximizeWindow:(BOOL)animated

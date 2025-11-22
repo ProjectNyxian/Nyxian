@@ -45,17 +45,23 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
     pid_t flagged_pid[PROC_MAX] = { pid };
     int flagged_pid_cnt = 1;
     
-    // Loop
-    for(;error == kSurfaceErrorSuccess; pid++)
+    // Iterating through all process structures
+    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
     {
-        error = proc_for_pid_nolock(pid, &proc);
+        // Copying it to the process ptr passed
+        proc = surface->proc_info.proc[i];
+        
         for(int i = 0; i < flagged_pid_cnt; i++)
         {
             if(flagged_pid[i] == proc_getppid(proc))
             {
-                flagged_pid[flagged_pid_cnt++] = pid;
+                flagged_pid[flagged_pid_cnt++] = proc_getpid(proc);
+                break;
             }
         }
+        
+        // Setting return value to success
+        error = kSurfaceErrorSuccess;
     }
     
     // Now we shall have all suspicious pids
