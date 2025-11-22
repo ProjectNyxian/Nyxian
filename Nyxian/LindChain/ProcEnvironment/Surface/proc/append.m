@@ -29,42 +29,26 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     // Aquiring rw lock if applicable
     proc_helper_lock(use_lock);
     
-    // Error value
-    ksurface_error_t error = kSurfaceErrorSuccess;
-    
-    // Flag if the process already exists
-    bool proc_already_present = false;
-    
     // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_count; i++)
     {
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
         if(surface->proc[i].bsd.kp_proc.p_pid == proc.bsd.kp_proc.p_pid)
         {
-            // Copying provided process onto the surface at already existing memory entry
-            memcpy(&surface->proc[i], &proc, sizeof(ksurface_proc_t));
-            
-            proc_already_present = true;
-            break;
+            proc_helper_unlock(use_lock);
+            return kSurfaceErrorAlreadyExists;
         }
     }
-    
-    if(proc_already_present)
+    // It doesnt exist already so we copy it into the next new entry
+    ksurface_error_t error = kSurfaceErrorSuccess;
+    if(surface->proc_count < PROC_MAX)
     {
-        error = kSurfaceErrorAlreadyExists;
+        memcpy(&surface->proc[surface->proc_count], &proc, sizeof(ksurface_proc_t));
+        surface->proc_count++;
     }
     else
     {
-        // It doesnt exist already so we copy it into the next new entry
-        if(surface->proc_count < PROC_MAX)
-        {
-            memcpy(&surface->proc[surface->proc_count], &proc, sizeof(ksurface_proc_t));
-            surface->proc_count++;
-        }
-        else
-        {
-            error = kSurfaceErrorOutOfBounds;
-        }
+        error = kSurfaceErrorOutOfBounds;
     }
     
     // Releasing rw lock if applicable
