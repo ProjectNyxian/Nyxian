@@ -312,7 +312,7 @@
     BOOL passed = NO;
     for(LaunchService *ls in [[LaunchServices shared] launchServices])
     {
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process.pid == _processIdentifier)
+        if([ls isServiceWithServiceIdentifier:serviceIdentifier])
         {
             passed = YES;
         }

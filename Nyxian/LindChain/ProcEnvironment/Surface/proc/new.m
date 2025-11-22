@@ -112,13 +112,13 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
  */
 #import <LindChain/ProcEnvironment/Surface/proc/alloc.h>
 
-ksurface_error_t proc_new_procv2(pid_t ppid,
-                                 pid_t pid,
-                                 uid_t uid,
-                                 gid_t gid,
-                                 NSString *executablePath,
-                                 PEEntitlement entitlement,
-                                 ksurface_proc_t **proc)
+ksurface_error_t proc_new_proc_v2(pid_t ppid,
+                                  pid_t pid,
+                                  uid_t uid,
+                                  gid_t gid,
+                                  NSString *executablePath,
+                                  PEEntitlement entitlement,
+                                  ksurface_proc_t **proc)
 {
     ksurface_error_t error = proc_alloc_proc_v2(proc);
     if(error != kSurfaceErrorSuccess)
@@ -129,6 +129,9 @@ ksurface_error_t proc_new_procv2(pid_t ppid,
     seqlock_lock(&((*proc)->seqlock));
     
     // Set ksurface_proc properties
+    (*proc)->parent = NULL;
+    (*proc)->children.children_cnt = 0;
+    (*proc)->children.children_cnt = 0;
     (*proc)->nyx.force_task_role_override = true;
     (*proc)->nyx.task_role_override = TASK_UNSPECIFIED;
     (*proc)->nyx.entitlements = entitlement;
@@ -163,16 +166,17 @@ ksurface_error_t proc_new_procv2(pid_t ppid,
     (*proc)->bsd.kp_eproc.e_pgid = ppid;
     (*proc)->bsd.kp_eproc.e_tdev = -1;
     (*proc)->bsd.kp_eproc.e_flag = 2;
+    (*proc)->isValid = true;
     
     seqlock_unlock(&((*proc)->seqlock));
     
     return kSurfaceErrorSuccess;
 }
 
-ksurface_error_t proc_new_child_procv2(ksurface_proc_t *parent,
-                                       pid_t pid,
-                                       NSString *executablePath,
-                                       ksurface_proc_t **proc)
+ksurface_error_t proc_new_child_proc_v2(ksurface_proc_t *parent,
+                                        pid_t pid,
+                                        NSString *executablePath,
+                                        ksurface_proc_t **proc)
 {
     ksurface_error_t error = proc_alloc_proc_v2(proc);
     if(error != kSurfaceErrorSuccess)
@@ -183,7 +187,7 @@ ksurface_error_t proc_new_child_procv2(ksurface_proc_t *parent,
     seqlock_lock(&(parent->seqlock));
     seqlock_lock(&((*proc)->seqlock));
     
-    unsigned char idx = parent->children.children_cnt;
+    unsigned long idx = parent->children.children_cnt;
     if(!(idx < CHILD_PROC_MAX))
     {
         seqlock_unlock(&((*proc)->seqlock));
@@ -214,6 +218,8 @@ ksurface_error_t proc_new_child_procv2(ksurface_proc_t *parent,
     proc_setppid((*(*proc)), proc_getppid((*parent)));
     proc_setpid((*(*proc)), pid);
     proc_setentitlements((*(*proc)), proc_getentitlements((*parent)));
+    
+    (*proc)->isValid = true;
     
     seqlock_unlock(&((*proc)->seqlock));
     seqlock_unlock(&(parent->seqlock));

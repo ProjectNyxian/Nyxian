@@ -42,7 +42,7 @@ enum kSurfaceError {
 typedef unsigned char ksurface_error_t;
 
 #define PROC_MAX 750
-#define CHILD_PROC_MAX 100
+#define CHILD_PROC_MAX PROC_MAX
 #define SURFACE_MAGIC 0xFABCDEFB
 
 /// BSD process structure
@@ -54,17 +54,25 @@ typedef struct {
     bool force_task_role_override;
     task_role_t task_role_override;
     PEEntitlement entitlements;
+    
+    /* Black magic, night walker~~ She haunts me like no other~~ */
+    dispatch_once_t removeOnce;
+    __strong NSUUID *identifier;
+    __strong NSExtension *extension;
+    __strong RBSProcessHandle *handle;
+    __strong RBSProcessMonitor *monitor;
 } knyx_proc_t;
 
 /// Structure that holds child process lists
 typedef struct {
     void *children_proc[CHILD_PROC_MAX];
-    unsigned char children_cnt;
+    unsigned long children_cnt;
 } ksurface_proc_children_t;
 
 /// Structure that holds process information
 typedef struct {
     bool inUse;
+    bool isValid;
     seqlock_t seqlock;
     void *parent;
     ksurface_proc_children_t children;

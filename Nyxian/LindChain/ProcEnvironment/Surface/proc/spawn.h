@@ -17,16 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_NEW_H
-#define PROC_NEW_H
+#ifndef PROC_SPAWN_H
+#define PROC_SPAWN_H
 
-#import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_error_t proc_new_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement);
-ksurface_error_t proc_new_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
+ksurface_error_t proc_spawn(ksurface_proc_t *parent, uid_t uid, gid_t gid, PEEntitlement entitlement, NSString *mode, NSString *path, NSArray<NSString*> *arg, NSDictionary<NSString*,NSString*> *env);
 
-ksurface_error_t proc_new_proc_v2(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath, PEEntitlement entitlement, ksurface_proc_t **proc);
-ksurface_error_t proc_new_child_proc_v2(ksurface_proc_t *parent, pid_t pid, NSString *executablePath, ksurface_proc_t **proc);
-
-#endif /* PROC_NEW_H */
+#endif /* PROC_SPAWN_H */

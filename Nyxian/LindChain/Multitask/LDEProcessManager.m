@@ -104,36 +104,15 @@
     
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
-        if(identifier) {
+        if(identifier)
+        {
             if(weakSelf == nil) return;
             __typeof(self) strongSelf = weakSelf;
             
             weakSelf.identifier = identifier;
             weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
-            weakSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor,
-                                                                                                                   RBSProcessHandle *handle,
-                                                                                                                   RBSProcessStateUpdate *update)
-                                       {
-                // Setting process handle directly from process monitor
-                weakSelf.processHandle = handle;
-                
-                // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
-                ksurface_error_t error = kSurfaceErrorUndefined;
-                if(configuration.ppid != getpid())
-                {
-                    error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
-                }
-                else
-                {
-                    error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
-                }
-                
-                if(error != kSurfaceErrorSuccess)
-                {
-                    [weakSelf terminate];
-                }
-                
+            weakSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];
                 if([states count] == 0)
@@ -144,6 +123,27 @@
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
+                }
+                else
+                {
+                    // Setting process handle directly from process monitor
+                    weakSelf.processHandle = handle;
+                    
+                    // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
+                    ksurface_error_t error = kSurfaceErrorUndefined;
+                    if(configuration.ppid != getpid())
+                    {
+                        error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
+                    }
+                    else
+                    {
+                        error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
+                    }
+                    
+                    if(error != kSurfaceErrorSuccess)
+                    {
+                        [weakSelf terminate];
+                    }
                 }
             }];
         }

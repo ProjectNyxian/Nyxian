@@ -158,6 +158,7 @@
 				LindChain/ProcEnvironment/Surface/proc/proc.m,
 				LindChain/ProcEnvironment/Surface/proc/remove.m,
 				LindChain/ProcEnvironment/Surface/proc/replace.m,
+				LindChain/ProcEnvironment/Surface/proc/spawn.m,
 				LindChain/ProcEnvironment/Surface/rusage.m,
 				LindChain/ProcEnvironment/Surface/surface.m,
 				LindChain/ProcEnvironment/sysctl.m,
