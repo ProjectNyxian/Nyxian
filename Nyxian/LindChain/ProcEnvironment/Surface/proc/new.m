@@ -34,10 +34,10 @@ ksurface_error_t proc_new_proc(pid_t ppid,
     ksurface_proc_t proc = {};
     
     // Set ksurface_proc properties
-    proc.force_task_role_override = true;
-    proc.task_role_override = TASK_UNSPECIFIED;
-    proc.entitlements = entitlement;
-    strncpy(proc.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    proc.nyx.force_task_role_override = true;
+    proc.nyx.task_role_override = TASK_UNSPECIFIED;
+    proc.nyx.entitlements = entitlement;
+    strncpy(proc.nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     
     // Set bsd process stuff
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
@@ -85,10 +85,14 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     }
     
     // Reset time to now
-    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
+    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    {
+        proc_helper_unlock(true);
+        return kSurfaceErrorUndefined;
+    }
     
     // Overwriting executable path
-    strncpy(proc.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    strncpy(proc.nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
     
     // Patching the old process structure we copied out of the process table
@@ -101,4 +105,118 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     proc_helper_unlock(true);
     
     return error;
+}
+
+/*
+ V2
+ */
+#import <LindChain/ProcEnvironment/Surface/proc/alloc.h>
+
+ksurface_error_t proc_new_procv2(pid_t ppid,
+                                 pid_t pid,
+                                 uid_t uid,
+                                 gid_t gid,
+                                 NSString *executablePath,
+                                 PEEntitlement entitlement,
+                                 ksurface_proc_t **proc)
+{
+    ksurface_error_t error = proc_alloc_proc_v2(proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return error;
+    }
+    
+    seqlock_lock(&((*proc)->seqlock));
+    
+    // Set ksurface_proc properties
+    (*proc)->nyx.force_task_role_override = true;
+    (*proc)->nyx.task_role_override = TASK_UNSPECIFIED;
+    (*proc)->nyx.entitlements = entitlement;
+    strncpy((*proc)->nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    
+    // Set bsd process stuff
+    if(gettimeofday(&(*proc)->bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    {
+        seqlock_unlock(&((*proc)->seqlock));
+        return kSurfaceErrorUndefined;
+    }
+    (*proc)->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+    (*proc)->bsd.kp_proc.p_stat = SRUN;
+    (*proc)->bsd.kp_proc.p_pid = pid;
+    (*proc)->bsd.kp_proc.p_oppid = ppid;
+    (*proc)->bsd.kp_proc.p_priority = PUSER;
+    (*proc)->bsd.kp_proc.p_usrpri = PUSER;
+    strncpy((*proc)->bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
+    (*proc)->bsd.kp_proc.p_acflag = 2;
+    (*proc)->bsd.kp_eproc.e_pcred.p_ruid = uid;
+    (*proc)->bsd.kp_eproc.e_pcred.p_svuid = uid;
+    (*proc)->bsd.kp_eproc.e_pcred.p_rgid = gid;
+    (*proc)->bsd.kp_eproc.e_pcred.p_svgid = gid;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_ref = 5;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_uid = uid;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_ngroups = 4;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_groups[0] = gid;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
+    (*proc)->bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
+    (*proc)->bsd.kp_eproc.e_ppid = ppid;
+    (*proc)->bsd.kp_eproc.e_pgid = ppid;
+    (*proc)->bsd.kp_eproc.e_tdev = -1;
+    (*proc)->bsd.kp_eproc.e_flag = 2;
+    
+    seqlock_unlock(&((*proc)->seqlock));
+    
+    return kSurfaceErrorSuccess;
+}
+
+ksurface_error_t proc_new_child_procv2(ksurface_proc_t *parent,
+                                       pid_t pid,
+                                       NSString *executablePath,
+                                       ksurface_proc_t **proc)
+{
+    ksurface_error_t error = proc_alloc_proc_v2(proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return error;
+    }
+    
+    seqlock_lock(&(parent->seqlock));
+    seqlock_lock(&((*proc)->seqlock));
+    
+    unsigned char idx = parent->children.children_cnt;
+    if(!(idx < CHILD_PROC_MAX))
+    {
+        seqlock_unlock(&((*proc)->seqlock));
+        seqlock_unlock(&(parent->seqlock));
+        return kSurfaceErrorOutOfBounds;
+    }
+    
+    parent->children.children_proc[idx] = *proc;
+    parent->children.children_cnt++;
+    (*proc)->parent = parent;
+    
+    // Copy parent structure to child to inherite properties 1:1
+    memcpy(&((*proc)->bsd), &((parent)->bsd), sizeof(kinfo_proc_t));
+    
+    // Reset time to now
+    if(gettimeofday(&((*proc)->bsd.kp_proc.p_un.__p_starttime), NULL) != 0)
+    {
+        seqlock_unlock(&((*proc)->seqlock));
+        seqlock_unlock(&(parent->seqlock));
+        return kSurfaceErrorUndefined;
+    }
+    
+    // Overwriting executable path
+    strncpy((*proc)->nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    strncpy((*proc)->bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
+    
+    // Patching the old process structure we copied out of the process table
+    proc_setppid((*(*proc)), proc_getppid((*parent)));
+    proc_setpid((*(*proc)), pid);
+    proc_setentitlements((*(*proc)), proc_getentitlements((*parent)));
+    
+    seqlock_unlock(&((*proc)->seqlock));
+    seqlock_unlock(&(parent->seqlock));
+    
+    return kSurfaceErrorSuccess;
 }

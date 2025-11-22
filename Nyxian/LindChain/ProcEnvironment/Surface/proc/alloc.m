@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/alloc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 
-ksurface_error_t proc_alloc_proc(ksurface_proc_t **proc)
+ksurface_error_t proc_alloc_proc_v2(ksurface_proc_t **proc)
 {
     if(proc == NULL) return kSurfaceErrorNullPtr;
     
@@ -41,7 +41,7 @@ ksurface_error_t proc_alloc_proc(ksurface_proc_t **proc)
     return (*proc == NULL) ? kSurfaceErrorOutOfBounds : kSurfaceErrorSuccess;
 }
 
-ksurface_error_t proc_release_proc(ksurface_proc_t *proc)
+ksurface_error_t proc_release_proc_v2(ksurface_proc_t *proc)
 {
     if(proc == NULL) return kSurfaceErrorNullPtr;
     return (__atomic_exchange_n(&(proc->inUse), false, __ATOMIC_RELEASE) == 0) ? kSurfaceErrorUndefined : kSurfaceErrorSuccess;

@@ -146,9 +146,9 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
     }
     
     // Overriding role
-    if(proc.force_task_role_override)
+    if(proc.nyx.force_task_role_override)
     {
-        proc.force_task_role_override = false;
+        proc.nyx.force_task_role_override = false;
         error = proc_replace(proc);
         
         if(error != kSurfaceErrorSuccess)
@@ -193,8 +193,8 @@ NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifi
             }
             
             if(proc.bsd.kp_proc.p_pid == 0) return;
-            proc.force_task_role_override = true;
-            proc.task_role_override = TASK_DARWINBG_APPLICATION;
+            proc.nyx.force_task_role_override = true;
+            proc.nyx.task_role_override = TASK_DARWINBG_APPLICATION;
             error = proc_replace(proc);
             
             if(error != kSurfaceErrorSuccess)

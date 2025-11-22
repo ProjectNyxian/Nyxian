@@ -22,7 +22,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_error_t proc_alloc_proc(ksurface_proc_t **proc);
-ksurface_error_t proc_release_proc(ksurface_proc_t *proc);
+ksurface_error_t proc_alloc_proc_v2(ksurface_proc_t **proc);
+ksurface_error_t proc_release_proc_v2(ksurface_proc_t *proc);
 
 #endif /* PROC_ALLOC_H */

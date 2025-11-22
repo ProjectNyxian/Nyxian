@@ -105,7 +105,7 @@ int proc_libproc_pidpath(pid_t pid,
         return 0;
     }
 
-    strlcpy((char*)buffer, proc.executable_path, buffersize);
+    strlcpy((char*)buffer, proc.nyx.executable_path, buffersize);
     return (int)strlen((char*)buffer);
 }
 

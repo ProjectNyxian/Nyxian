@@ -23,11 +23,11 @@
 /// Helper macros
 #define proc_getpid(proc) proc.bsd.kp_proc.p_pid
 #define proc_getppid(proc) proc.bsd.kp_eproc.e_ppid
-#define proc_getentitlements(proc) proc.entitlements
+#define proc_getentitlements(proc) proc.nyx.entitlements
 
 #define proc_setpid(proc, pid) proc.bsd.kp_proc.p_pid = pid
 #define proc_setppid(proc, ppid) proc.bsd.kp_proc.p_oppid = ppid; proc.bsd.kp_eproc.e_ppid = ppid; proc.bsd.kp_eproc.e_pgid = ppid
-#define proc_setentitlements(proc, entitlement) proc.entitlements = entitlement
+#define proc_setentitlements(proc, entitlement) proc.nyx.entitlements = entitlement
 
 /// UID Helper macros
 #define proc_getuid(proc) proc.bsd.kp_eproc.e_ucred.cr_uid

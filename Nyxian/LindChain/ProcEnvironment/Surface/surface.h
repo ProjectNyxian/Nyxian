@@ -48,6 +48,14 @@ typedef unsigned char ksurface_error_t;
 /// BSD process structure
 typedef struct kinfo_proc kinfo_proc_t;
 
+/// Nyxian process structure
+typedef struct {
+    char executable_path[PATH_MAX];
+    bool force_task_role_override;
+    task_role_t task_role_override;
+    PEEntitlement entitlements;
+} knyx_proc_t;
+
 /// Structure that holds child process lists
 typedef struct {
     void *children_proc[CHILD_PROC_MAX];
@@ -58,12 +66,10 @@ typedef struct {
 typedef struct {
     bool inUse;
     seqlock_t seqlock;
-    kinfo_proc_t bsd;
+    void *parent;
     ksurface_proc_children_t children;
-    char executable_path[PATH_MAX];
-    bool force_task_role_override;
-    task_role_t task_role_override;
-    PEEntitlement entitlements;
+    kinfo_proc_t bsd;
+    knyx_proc_t nyx;
 } ksurface_proc_t;
 
 /// Host information
