@@ -79,8 +79,6 @@
 {
     self = [super init];
     
-    if(proc_can_spawn() != kSurfaceErrorSuccess) return nil;
-    
     self.displayName = @"LiveProcess";
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;

@@ -98,4 +98,6 @@ bool seqlock_read_retry(const seqlock_t *s, unsigned long seq);
 
 bool seqlock_is_locked(const seqlock_t *s);
 
+bool seqlock_trylock(seqlock_t *s);
+
 #endif /* PROCENVIRONMENT_SEQLOCK */

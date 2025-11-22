@@ -149,6 +149,7 @@
 				LindChain/ProcEnvironment/Surface/lock/seqlock.c,
 				LindChain/ProcEnvironment/Surface/lock/spinlock.c,
 				LindChain/ProcEnvironment/Surface/permit.m,
+				LindChain/ProcEnvironment/Surface/proc/alloc.m,
 				LindChain/ProcEnvironment/Surface/proc/append.m,
 				LindChain/ProcEnvironment/Surface/proc/exit.m,
 				LindChain/ProcEnvironment/Surface/proc/fetch.m,

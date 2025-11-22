@@ -73,3 +73,13 @@ bool seqlock_is_locked(const seqlock_t *s)
 {
     return spinlock_is_locked((spinlock_t*)s);
 }
+
+bool seqlock_trylock(seqlock_t *s)
+{
+    bool aquired_lock = spinlock_trylock((spinlock_t*)s);
+    if(aquired_lock)
+    {
+        __atomic_add_fetch(&s->seq, 1, __ATOMIC_ACQ_REL);
+    }
+    return aquired_lock;
+}

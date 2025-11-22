@@ -49,3 +49,19 @@ bool spinlock_is_locked(const spinlock_t *s)
 {
     return __atomic_load_n(&s->lock, __ATOMIC_RELAXED);
 }
+
+bool spinlock_trylock(spinlock_t *s)
+{
+    if(__atomic_load_n(&s->lock, __ATOMIC_RELAXED) == 1)
+    {
+        return false;
+    }
+    else if(__atomic_exchange_n(&s->lock, 1, __ATOMIC_ACQUIRE) == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

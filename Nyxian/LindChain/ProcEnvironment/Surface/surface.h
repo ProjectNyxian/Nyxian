@@ -26,6 +26,7 @@
 #include <LindChain/ProcEnvironment/Surface/lock/seqlock.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
+#import <LindChain/Multitask/LDEProcessManager.h>
 
 enum kSurfaceError {
     kSurfaceErrorSuccess        = 0,
@@ -55,6 +56,8 @@ typedef struct {
 
 /// Structure that holds process information
 typedef struct {
+    bool inUse;
+    seqlock_t seqlock;
     kinfo_proc_t bsd;
     ksurface_proc_children_t children;
     char executable_path[PATH_MAX];

@@ -71,4 +71,6 @@ void spinlock_unlock(spinlock_t *s);
 
 bool spinlock_is_locked(const spinlock_t *s);
 
+bool spinlock_trylock(spinlock_t *s);
+
 #endif /* PROCENVIRONMENT_SPINLOCK */
