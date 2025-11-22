@@ -53,4 +53,6 @@
 
 #define proc_cpy(a,b) memcpy(&a, &b, sizeof(ksurface_proc_t))
 
+#define kernel_proc_ &(surface->proc_info.proc[0])
+
 #endif /* PROC_DEF_H */
