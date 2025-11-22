@@ -41,10 +41,6 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
         return error;
     }
     
-    // Flagging the process, no process can now spawn that is part of the same tree
-    proc.bsd.kp_proc.p_flag = proc.bsd.kp_proc.p_flag | P_WEXIT;
-    proc_replace_nolock(proc);
-    
     // Prepare
     pid_t flagged_pid[PROC_MAX] = { pid };
     int flagged_pid_cnt = 1;
@@ -58,9 +54,6 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
             if(flagged_pid[i] == proc_getppid(proc))
             {
                 flagged_pid[flagged_pid_cnt++] = pid;
-                
-                proc.bsd.kp_proc.p_flag = proc.bsd.kp_proc.p_flag | P_WEXIT;
-                proc_replace_nolock(proc);
             }
         }
     }
