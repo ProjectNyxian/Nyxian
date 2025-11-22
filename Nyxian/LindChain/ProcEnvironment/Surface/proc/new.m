@@ -84,35 +84,6 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         return error;
     }
     
-    // If this is true in the end it means that the process that gets created shouldnt be created because the sequence lock
-    bool isFlagged = true;
-    
-    // Looking if any parent process in the process tree is exiting
-    ksurface_proc_t cproc = proc;
-    
-    while(error == kSurfaceErrorSuccess && !(cproc.bsd.kp_proc.p_flag & P_WEXIT))
-    {
-        // Get parent process identifier
-        pid_t ppid = proc_getppid(cproc);
-        
-        // Check if its real launchd
-        if(pid_is_launchd(ppid))
-        {
-            isFlagged = false;
-            break;
-        }
-        
-        // Getting next parent process
-        error = proc_for_pid_nolock(ppid, &cproc);
-    }
-    
-    // Denying addition to the proc table
-    if(isFlagged)
-    {
-        proc_helper_unlock(true);
-        return kSurfaceErrorDenied;
-    }
-    
     // Reset time to now
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
     
