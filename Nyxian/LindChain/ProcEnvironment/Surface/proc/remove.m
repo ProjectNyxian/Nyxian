@@ -58,7 +58,7 @@ static inline ksurface_error_t proc_remove_by_pid_internal(pid_t pid,
     }
 
     // Releasing rw lock
-    seqlock_unlock(&(surface->seqlock));
+    proc_helper_unlock(use_lock);
     
     // Returning return value
     return retval;

@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
 #import <LindChain/ProcEnvironment/Surface/proc/helper.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
                                                      ksurface_proc_t *proc,
@@ -42,7 +43,7 @@ static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
         for(uint32_t i = 0; i < surface->proc_count; i++)
         {
             // Checking if its the process structure were looking for
-            if(surface->proc[i].bsd.kp_proc.p_pid == pid)
+            if(proc_getpid(surface->proc[i]) == pid)
             {
                 // Copying it to the process ptr passed
                 *proc = surface->proc[i];

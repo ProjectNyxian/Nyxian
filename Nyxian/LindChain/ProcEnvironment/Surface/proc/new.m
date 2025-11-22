@@ -80,6 +80,7 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     ksurface_error_t error = proc_for_pid_nolock(ppid, &proc);
     if(error != kSurfaceErrorSuccess)
     {
+        proc_helper_unlock(true);
         return error;
     }
     
@@ -106,7 +107,11 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     }
     
     // Denying addition to the proc table
-    if(isFlagged) return kSurfaceErrorDenied;
+    if(isFlagged)
+    {
+        proc_helper_unlock(true);
+        return kSurfaceErrorDenied;
+    }
     
     // Reset time to now
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;

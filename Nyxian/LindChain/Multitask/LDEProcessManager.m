@@ -142,7 +142,6 @@
                 {
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
-                        proc_remove_by_pid(strongSelf.pid);
                         if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
@@ -391,7 +390,7 @@
     LDEProcess *process = [self.processes objectForKey:@(pid)];
     if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
     [self.processes removeObjectForKey:@(pid)];
-    proc_remove_by_pid(pid);
+    proc_exit_for_pid(pid);
 }
 
 - (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier

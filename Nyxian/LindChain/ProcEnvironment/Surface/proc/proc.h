@@ -26,6 +26,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/Surface/proc/new.h>
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
+#import <LindChain/ProcEnvironment/Surface/proc/exit.h>
 
 ksurface_error_t proc_can_spawn(void);
 

@@ -16,3 +16,12 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#ifndef PROC_EXIT_H
+#define PROC_EXIT_H
+
+#import <LindChain/ProcEnvironment/Surface/surface.h>
+
+ksurface_error_t proc_exit_for_pid(pid_t pid);
+
+#endif /* PROC_EXIT_H */
