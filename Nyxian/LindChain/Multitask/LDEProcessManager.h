@@ -95,7 +95,8 @@
  */
 @interface LDEProcessManager : NSObject
 
-@property (nonatomic) NSMutableDictionary<NSNumber*,LDEProcess*> *processes;
+@property (atomic) NSMutableDictionary<NSNumber*,LDEProcess*> *processes;
+@property (atomic) dispatch_queue_t syncQueue;
 
 - (instancetype)init;
 + (instancetype)shared;

@@ -252,6 +252,7 @@
     mach_timebase_info(&timebase);
     _spawnCooldown = (100ull * timebase.denom) / timebase.numer;
     _lastSpawnTime = 0;
+    _syncQueue = dispatch_queue_create("com.ldeprocessmanager.sync", DISPATCH_QUEUE_SERIAL);
     
     return self;
 }
@@ -304,45 +305,50 @@
                         withConfiguration:(LDEProcessConfiguration*)configuration
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
-    for(NSNumber *key in self.processes)
-    {
-        LDEProcess *process = self.processes[key];
-        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
-        else
+    __block pid_t retval = 0;
+    dispatch_sync(_syncQueue, ^{
+        for(NSNumber *key in self.processes)
         {
-            if(doRestartIfRunning)
-            {
-                [process terminate];
-                usleep(300000);
-            }
+            LDEProcess *process = self.processes[key];
+            if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
             else
             {
-                LDEWindowServer *windowServer = [LDEWindowServer shared];
-                LDEWindow *window = windowServer.windows[@(process.wid)];
-                if(window != nil)
+                if(doRestartIfRunning)
                 {
-                    [window focusWindow];
+                    [process terminate];
+                    usleep(300000);
                 }
-                return process.pid;
+                else
+                {
+                    LDEWindowServer *windowServer = [LDEWindowServer shared];
+                    LDEWindow *window = windowServer.windows[@(process.wid)];
+                    if(window != nil)
+                    {
+                        [window focusWindow];
+                    }
+                    retval = process.pid;
+                    return;
+                }
             }
         }
-    }
-    
-    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
-    if(!applicationObject.isLaunchAllowed)
-    {
-        [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
-        return 0;
-    }
-    
-    [self enforceSpawnCooldown];
-    
-    LDEProcess *process = nil;
-    pid_t pid = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
-        @"HOME": applicationObject.containerPath
-    } withMapObject:nil withConfiguration:configuration process:&process];
-    process.bundleIdentifier = applicationObject.bundleIdentifier;
-    return pid;
+        
+        LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
+        if(!applicationObject.isLaunchAllowed)
+        {
+            [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
+            retval = 0;
+            return;
+        }
+        
+        [self enforceSpawnCooldown];
+        
+        LDEProcess *process = nil;
+        retval = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
+            @"HOME": applicationObject.containerPath
+        } withMapObject:nil withConfiguration:configuration process:&process];
+        process.bundleIdentifier = applicationObject.bundleIdentifier;
+    });
+    return retval;
 }
 
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
@@ -387,10 +393,12 @@
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
-    LDEProcess *process = [self.processes objectForKey:@(pid)];
-    if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
-    [self.processes removeObjectForKey:@(pid)];
-    proc_exit_for_pid(pid);
+    dispatch_sync(_syncQueue, ^{
+        LDEProcess *process = [self.processes objectForKey:@(pid)];
+        if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
+        [self.processes removeObjectForKey:@(pid)];
+        proc_exit_for_pid(pid);
+    });
 }
 
 - (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier
