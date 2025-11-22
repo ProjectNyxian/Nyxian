@@ -86,6 +86,7 @@
 }
 
 - (void)closeWindowWithScene:(UIWindowScene *)windowScene
+                   withFrame:(CGRect)rect
 {
     [_process terminate];
 }
@@ -110,6 +111,10 @@
 {
     _heigthConstraint.constant = rect.size.height;
     _widthConstraint.constant = rect.size.width;
+}
+
+- (CGRect)windowRect { 
+    return CGRectMake(50, 50, 400, 400);
 }
 
 @end
