@@ -88,6 +88,9 @@
 - (void)closeWindowWithScene:(UIWindowScene *)windowScene
                    withFrame:(CGRect)rect
 {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.terminal resignFirstResponder];
+    });
     [_process terminate];
 }
 
