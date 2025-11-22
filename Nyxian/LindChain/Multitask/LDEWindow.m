@@ -314,14 +314,6 @@
     [self.contentStack addArrangedSubview:fixedPositionContentView];
     [self.contentStack sendSubviewToBack:fixedPositionContentView];
     
-    self.contentView = [[UIView alloc] initWithFrame:contentFrame];
-    self.contentView.layer.anchorPoint = CGPointMake(0, 0);
-    self.contentView.layer.position = CGPointMake(0, 0);
-    self.contentView.autoresizingMask =
-    UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
-    [fixedPositionContentView addSubview:self.contentView];
-    
     if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
     {
         UIPanGestureRecognizer *moveGesture =

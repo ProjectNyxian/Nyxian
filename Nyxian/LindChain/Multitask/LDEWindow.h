@@ -45,7 +45,6 @@ typedef int wid_t;
 @property (nonatomic) UINavigationBar *navigationBar;
 @property (nonatomic) UINavigationItem *navigationItem;
 @property (nonatomic) UIView *resizeHandle;
-@property (nonatomic) UIView *contentView;
 @property (nonatomic) UIStackView *contentStack;
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGRect originalFrame;
