@@ -20,8 +20,27 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <objc/runtime.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
+
+@implementation RBSTarget(hook)
++ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
+    if([environmentIdentifier containsString:@"LiveProcess"]) {
+        environmentIdentifier = [NSString stringWithFormat:@"LiveProcess:%d", pid];
+    }
+    return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
+}
+@end
+
+__attribute__((constructor))
+void UIKitFixesInit(void)
+{
+    // Fix physical keyboard focus on iOS 17+
+    if(@available(iOS 17.0, *)) {
+        method_exchangeImplementations(class_getClassMethod(RBSTarget.class, @selector(targetWithPid:environmentIdentifier:)), class_getClassMethod(RBSTarget.class, @selector(hook_targetWithPid:environmentIdentifier:)));
+    }
+}
 
 @implementation LDEWindowSessionApplication
 

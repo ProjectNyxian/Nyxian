@@ -48,10 +48,3 @@ import UIKit
         return true
     }
 }
-
-@objc extension UIWindow {
-    open override func isKind(of aClass: AnyClass) -> Bool {
-        // Fix physical keyboard focus on iOS 17+
-        aClass == _UIRootWindow.self || super.isKind(of: aClass)
-    }
-}
