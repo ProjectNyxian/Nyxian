@@ -17,9 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SYSCTL_H
-#define PROCENVIRONMENT_SYSCTL_H
+#ifndef LINDCHAIN_KERN_KERN_H
+#define LINDCHAIN_KERN_KERN_H
 
-void environment_sysctl_init(void);
+#import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 
-#endif /* PROCENVIRONMENT_SYSCTL_H */
+int sysctl_kernmaxproc(sysctl_req_t *req);
+int sysctl_kernprocall(sysctl_req_t *req);
+int sysctl_kernprocargs2(sysctl_req_t *req);
+
+#endif /* LINDCHAIN_KERN_KERN_H */

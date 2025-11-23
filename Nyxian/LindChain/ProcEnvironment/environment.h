@@ -33,7 +33,7 @@
 #import <LindChain/ProcEnvironment/libproc.h>
 #import <LindChain/ProcEnvironment/application.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
-#import <LindChain/ProcEnvironment/sysctl.h>
+#import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <LindChain/ProcEnvironment/fork.h>
 #import <LindChain/ProcEnvironment/cred.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
