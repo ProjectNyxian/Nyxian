@@ -17,10 +17,18 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/Services/Service.h>
+#import <LindChain/Services/trustd/LDETrustProxy.h>
+#import <LindChain/Services/trustd/LDETrustProtocol.h>
 
-@protocol LDETrustProtocol <NSObject>
-
-
+@implementation LDETrustProxy
 
 @end
+
+void TrustDaemonDaemonEntry(void)
+{
+    ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:[LDETrustProxy class] withProtocol:@protocol(LDETrustProtocol)];
+    environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], @"com.cr4zy.trustd");
+    CFRunLoopRun();
+}

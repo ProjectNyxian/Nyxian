@@ -89,6 +89,7 @@
 				LindChain/Services/applicationmgmtd/LDEApplicationObject.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
 				LindChain/Services/Service.m,
+				LindChain/Services/trustd/LDETrustProxy.m,
 				main.m,
 			);
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
@@ -100,6 +101,7 @@
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
 				LindChain/Services/Service.m,
+				LindChain/Services/trustd/LDETrust.m,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};

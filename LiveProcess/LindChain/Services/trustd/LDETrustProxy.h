@@ -17,10 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef LDETRUSTPROXY_H
+#define LDETRUSTPROXY_H
+
 #import <Foundation/Foundation.h>
+#import <LindChain/Services/trustd/LDETrustProtocol.h>
 
-@protocol LDETrustProtocol <NSObject>
-
-
+@interface LDETrustProxy: NSObject <LDETrustProtocol>
 
 @end
+
+void TrustDaemonDaemonEntry(void);
+
+#endif /* LDETRUSTPROXY_H */

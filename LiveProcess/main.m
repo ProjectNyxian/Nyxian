@@ -22,6 +22,7 @@
 #import <mach-o/dyld.h>
 #import <objc/runtime.h>
 #import "LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h"
+#import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/proxy.h>
@@ -143,6 +144,9 @@ int LiveProcessMain(int argc, char *argv[]) {
         if([service isEqualToString:@"installd"])
         {
             ApplicationManagementDaemonEntry();
+        } else if([service isEqualToString:@"trustd"])
+        {
+            TrustDaemonDaemonEntry();
         }
     }
     else if([mode isEqualToString:@"spawn"])
