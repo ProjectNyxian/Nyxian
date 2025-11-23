@@ -23,13 +23,21 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Sysctl/kern/kern.h>
 
-static const int mib_kern_maxproc[]    = { CTL_KERN, KERN_MAXPROC };
-static const int mib_kern_proc_all[]   = { CTL_KERN, KERN_PROC, KERN_PROC_ALL };
-static const int mib_kern_procargs2[]  = { CTL_KERN, KERN_PROCARGS2 };
+static const int mib_kern_maxproc[]         = { CTL_KERN, KERN_MAXPROC };
+static const int mib_kern_proc_all[]        = { CTL_KERN, KERN_PROC, KERN_PROC_ALL };
+static const int mib_kern_proc_pid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_PID };
+static const int mib_kern_proc_pgrp[]       = { CTL_KERN, KERN_PROC, KERN_PROC_PGRP };      /* Needs implementation */
+static const int mib_kern_proc_session[]    = { CTL_KERN, KERN_PROC, KERN_PROC_SESSION };   /* Needs implementation */
+static const int mib_kern_proc_tty[]        = { CTL_KERN, KERN_PROC, KERN_PROC_TTY };       /* Needs implementation */
+static const int mib_kern_proc_uid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_UID };       /* Needs implementation */
+static const int mib_kern_proc_ruid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_RUID };      /* Needs implementation */
+static const int mib_kern_proc_lcid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_LCID };      /* Needs implementation */
+static const int mib_kern_procargs2[]       = { CTL_KERN, KERN_PROCARGS2 };
 
 static const sysctl_map_entry_t sysctl_map[] = {
     { mib_kern_maxproc,   2, sysctl_kernmaxproc },
     { mib_kern_proc_all,  3, sysctl_kernprocall },
+    { mib_kern_proc_pid,  3, sysctl_kernprocpid },
     { mib_kern_procargs2, 2, sysctl_kernprocargs2 }
 };
 

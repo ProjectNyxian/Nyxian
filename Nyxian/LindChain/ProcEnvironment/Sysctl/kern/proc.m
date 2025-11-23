@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #include <errno.h>
 
 int sysctl_kernprocall(sysctl_req_t *req)
@@ -48,5 +49,55 @@ int sysctl_kernprocall(sysctl_req_t *req)
     if(written < 0) return -1;
     
     *(req->oldlenp) = written;
+    return 0;
+}
+
+int sysctl_kernprocpid(sysctl_req_t *req)
+{
+    if(!req->oldlenp)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    size_t needed = sizeof(kinfo_proc_t);
+
+    if(req->namelen == 3)
+    {
+        *req->oldlenp = needed;
+        return 0;
+    }
+
+    if(req->namelen != 4)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if(req->oldp == NULL || *req->oldlenp == 0)
+    {
+        *req->oldlenp = needed;
+        return 0;
+    }
+
+    if(*req->oldlenp < needed)
+    {
+        *req->oldlenp = needed;
+        errno = ENOMEM;
+        return -1;
+    }
+
+    pid_t pid = req->name[3];
+
+    ksurface_proc_t proc;
+    ksurface_error_t error = proc_for_pid(pid, &proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        return -1;
+    }
+
+    memcpy(req->oldp, &(proc.bsd), needed);
+    *req->oldlenp = needed;
+
     return 0;
 }
