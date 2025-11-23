@@ -91,8 +91,9 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 let processKill = self.createEntitlementButton(title: "Process Kill", entitlement: entitlement, targetEntitlement: PEEntitlement.processKill, application: application)
                 let processSpawn = self.createEntitlementButton(title: "Process Spawn", entitlement: entitlement, targetEntitlement: PEEntitlement.processSpawn, application: application)
                 let processSpawnSignedOnly = self.createEntitlementButton(title: "Process Spawn (Signed-Only)", entitlement: entitlement, targetEntitlement: PEEntitlement.processSpawnSignedOnly, application: application)
+                let processSpawnInheriteEntitlements = self.createEntitlementButton(title: "Process Spawn (Inherite Entitlements)", entitlement: entitlement, targetEntitlement: PEEntitlement.processSpawnInheriteEntitlements, application: application)
                 let processElevate = self.createEntitlementButton(title: "Process Elevate", entitlement: entitlement, targetEntitlement: PEEntitlement.processElevate, application: application)
-                entMenuItems.append(UIMenu(title: "Process", image: UIImage(systemName: "cable.coaxial"), children: [processEnumeration, processKill, processSpawn, processSpawnSignedOnly, processElevate]))
+                entMenuItems.append(UIMenu(title: "Process", image: UIImage(systemName: "cable.coaxial"), children: [processEnumeration, processKill, processSpawn, processSpawnSignedOnly, processSpawnInheriteEntitlements, processElevate]))
                 
                 // Host
                 let hostManager = self.createEntitlementButton(title: "Host Manager", entitlement: entitlement, targetEntitlement: PEEntitlement.hostManager, application: application)
