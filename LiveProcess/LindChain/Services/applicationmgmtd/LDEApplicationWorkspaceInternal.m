@@ -255,8 +255,17 @@ bool checkCodeSignature(const char* path);
     NSURL *url = [NSURL fileURLWithPath:object.path];
     NSString *fastPath = [[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:[url lastPathComponent]];
     [object writeOut:[[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:[url lastPathComponent]]];
-    environment_proxy_sign_macho(fastPath);
-    reply(fastPath, checkCodeSignature([fastPath UTF8String]));
+    bool isSigned = checkCodeSignature([fastPath UTF8String]);
+    if(!isSigned)
+    {
+        environment_proxy_sign_macho(fastPath);
+        isSigned = checkCodeSignature([fastPath UTF8String]);
+        if(!isSigned)
+        {
+            [[NSFileManager defaultManager] removeItemAtPath:fastPath error:nil];
+        }
+    }
+    reply(fastPath, isSigned);
 }
 
 @end

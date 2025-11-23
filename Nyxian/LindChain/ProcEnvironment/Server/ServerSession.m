@@ -189,6 +189,7 @@
     if(error != kSurfaceErrorSuccess)
     {
         reply(-1);
+        reflock_unlock(&(surface->reflock));
         return;
     }
     
@@ -218,6 +219,7 @@
             break;
         default:
             reply(-1);
+            reflock_unlock(&(surface->reflock));
             return;
     }
     
@@ -232,15 +234,18 @@
     if(processWasModified && processAllowedToElevate)
     {
         error = proc_replace(proc);
+        reply((error == kSurfaceErrorSuccess) ? 0 : -1);
+        reflock_unlock(&(surface->reflock));
+        return;
     }
     else if(processWasModified)
     {
         reply(-1);
+        reflock_unlock(&(surface->reflock));
         return;
     }
     
-    reply((error == kSurfaceErrorSuccess) ? 0 : -1);
-    
+    reply(0);
     reflock_unlock(&(surface->reflock));
     
     return;
