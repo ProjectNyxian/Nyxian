@@ -22,42 +22,6 @@
 #import "ISIcon.h"
 
 #import <UIKit/UIKit.h>
-#import <CommonCrypto/CommonCrypto.h>
-
-NSString *hashOfFileAtPath(NSString *path)
-{
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:path];
-    if (!fileHandle) {
-        return nil;
-    }
-    
-    CC_SHA256_CTX context;
-    CC_SHA256_Init(&context);
-    
-    while(true)
-    {
-        @autoreleasepool
-        {
-            NSData *fileData = [fileHandle readDataOfLength:1024 * 8];
-            if (fileData.length == 0)
-            {
-                break;
-            }
-            CC_SHA256_Update(&context, [fileData bytes], (CC_LONG)[fileData length]);
-        }
-    }
-    
-    unsigned char digest[CC_SHA256_DIGEST_LENGTH];
-    CC_SHA256_Final(digest, &context);
-    
-    NSMutableString *hashString = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
-    for(int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++)
-    {
-        [hashString appendFormat:@"%02x", digest[i]];
-    }
-    
-    return [hashString copy];
-}
 
 @implementation LDEApplicationObject
 
@@ -74,7 +38,6 @@ NSString *hashOfFileAtPath(NSString *path)
     {
         self.bundlePath = [[bundle bundleURL] path];
         self.executablePath = [[bundle executableURL] path];
-        self.entHash = hashOfFileAtPath(self.executablePath);
         self.containerPath = [[[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundle.identifier] path];
     }
     
@@ -142,8 +105,8 @@ NSString *hashOfFileAtPath(NSString *path)
     return YES;
 }
 
-- (void)encodeWithCoder:(nonnull NSCoder *)coder {
-    [coder encodeObject:self.entHash forKey:@"entHash"];
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
     [coder encodeObject:self.bundleIdentifier forKey:@"bundleIdentifier"];
     [coder encodeObject:self.bundlePath forKey:@"bundlePath"];
     [coder encodeObject:self.executablePath forKey:@"executablePath"];
@@ -153,10 +116,10 @@ NSString *hashOfFileAtPath(NSString *path)
     [coder encodeObject:@(self.isLaunchAllowed) forKey:@"isLaunchAllowed"];
 }
 
-- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder {
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
     if(self = [super init])
     {
-        _entHash = [coder decodeObjectOfClass:[NSString class] forKey:@"entHash"];
         _bundleIdentifier = [coder decodeObjectOfClass:[NSString class] forKey:@"bundleIdentifier"];
         _bundlePath = [coder decodeObjectOfClass:[NSString class] forKey:@"bundlePath"];
         _executablePath = [coder decodeObjectOfClass:[NSString class] forKey:@"executablePath"];

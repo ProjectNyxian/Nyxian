@@ -26,16 +26,14 @@
 
 @interface LDEApplicationWorkspace : NSObject
 
-+ (LDEApplicationWorkspace*)shared;
-
-- (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath;
-- (BOOL)installApplicationAtPackagePath:(NSString*)packagePath;
-- (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;
-- (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID;
-- (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID;
-- (NSArray<LDEApplicationObject*>*)allApplicationObjects;
-- (BOOL)clearContainerForBundleID:(NSString*)bundleID;
-- (NSString*)fastpathUtility:(NSString*)utilityPath;
++ (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath;
++ (BOOL)installApplicationAtPackagePath:(NSString*)packagePath;
++ (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;
++ (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID;
++ (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID;
++ (NSArray<LDEApplicationObject*>*)allApplicationObjects;
++ (BOOL)clearContainerForBundleID:(NSString*)bundleID;
++ (NSString*)fastpathUtility:(NSString*)utilityPath;
 
 @end
 

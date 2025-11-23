@@ -21,8 +21,50 @@
 #import <LindChain/Services/Service.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
+#import <CommonCrypto/CommonCrypto.h>
+
+NSString *hashOfFileAtPath(NSString *path)
+{
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:path];
+    if (!fileHandle) {
+        return nil;
+    }
+    
+    CC_SHA256_CTX context;
+    CC_SHA256_Init(&context);
+    
+    while(true)
+    {
+        @autoreleasepool
+        {
+            NSData *fileData = [fileHandle readDataOfLength:1024 * 8];
+            if (fileData.length == 0)
+            {
+                break;
+            }
+            CC_SHA256_Update(&context, [fileData bytes], (CC_LONG)[fileData length]);
+        }
+    }
+    
+    unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+    CC_SHA256_Final(digest, &context);
+    
+    NSMutableString *hashString = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
+    for(int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++)
+    {
+        [hashString appendFormat:@"%02x", digest[i]];
+    }
+    
+    return [hashString copy];
+}
 
 @implementation LDETrustProxy
+
+- (void)getHashOfExecutableAtPath:(NSString*)path
+                        withReply:(void (^)(NSString*))reply
+{
+    reply(hashOfFileAtPath(path));
+}
 
 @end
 

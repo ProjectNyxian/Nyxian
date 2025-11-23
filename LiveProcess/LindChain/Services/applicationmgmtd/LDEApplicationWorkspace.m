@@ -27,17 +27,7 @@
 
 @implementation LDEApplicationWorkspace
 
-+ (LDEApplicationWorkspace*)shared
-{
-    static LDEApplicationWorkspace *applicationWorkspaceSingleton = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        applicationWorkspaceSingleton = [[LDEApplicationWorkspace alloc] init];
-    });
-    return applicationWorkspaceSingleton;
-}
-
-- (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath
++ (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath
 {
     __block BOOL result = NO;
     ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithDirectory:bundlePath];
@@ -52,7 +42,7 @@
     return result;
 }
 
-- (BOOL)installApplicationAtPackagePath:(NSString *)packagePath
++ (BOOL)installApplicationAtPackagePath:(NSString *)packagePath
 {
     __block BOOL result = NO;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -66,7 +56,7 @@
     return result;
 }
 
-- (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
++ (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
 {
     __block BOOL result = NO;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -80,7 +70,7 @@
     return result;
 }
 
-- (BOOL)applicationInstalledWithBundleID:(NSString *)bundleID
++ (BOOL)applicationInstalledWithBundleID:(NSString *)bundleID
 {
     __block BOOL result = NO;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -94,7 +84,7 @@
     return result;
 }
 
-- (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID
++ (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID
 {
     __block LDEApplicationObject *result = nil;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -108,7 +98,7 @@
     return result;
 }
 
-- (NSArray<LDEApplicationObject*>*)allApplicationObjects
++ (NSArray<LDEApplicationObject*>*)allApplicationObjects
 {
     __block NSArray<LDEApplicationObject*> *result = nil;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -122,7 +112,7 @@
     return result;
 }
 
-- (BOOL)clearContainerForBundleID:(NSString *)bundleID
++ (BOOL)clearContainerForBundleID:(NSString *)bundleID
 {
     __block BOOL result = NO;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
@@ -136,7 +126,7 @@
     return result;
 }
 
-- (NSString*)fastpathUtility:(NSString*)utilityPath
++ (NSString*)fastpathUtility:(NSString*)utilityPath
 {
     __block NSString *fastpath = nil;
     [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){

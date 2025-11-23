@@ -29,6 +29,7 @@
 #import <LindChain/Debugger/Logger.h>
 #import <LindChain/Multitask/LDEWindowServer.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/Multitask/LDEProcessManager.h>

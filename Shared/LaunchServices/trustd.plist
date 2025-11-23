@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSServiceIdentifier</key>
+	<string>com.cr4zy.trustd</string>
+	<key>LSShouldAutorestart</key>
+	<true/>
+	<key>LSExecutablePath</key>
+	<string>/usr/libexec/trustd</string>
+	<key>LSServiceMode</key>
+	<string>management</string>
+	<key>LSUserIdentifier</key>
+	<integer>1</integer>
+	<key>LSGroupIdentifier</key>
+	<integer>1</integer>
+	<key>LSIntegratedServiceName</key>
+	<string>trustd</string>
+</dict>
+</plist>

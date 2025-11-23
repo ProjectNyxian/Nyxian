@@ -16,3 +16,25 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/Services/trustd/LDETrustProtocol.h>
+#import <LindChain/LaunchServices/LaunchService.h>
+
+@implementation LDETrust
+
++ (NSString*)entHashOfExecutableAtPath:(NSString *)path
+{
+    __block NSString *entHashExport = nil;
+    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
+        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+        [remoteObject getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
+            entHashExport = entHash;
+            dispatch_semaphore_signal(sema);
+        }];
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    return entHashExport;
+}
+
+@end

@@ -17,10 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef LDETRUSTPROTOCOL_H
+#define LDETRUSTPROTOCOL_H
+
 #import <Foundation/Foundation.h>
 
 @protocol LDETrustProtocol <NSObject>
 
-
+- (void)getHashOfExecutableAtPath:(NSString*)path withReply:(void (^)(NSString*))reply;
 
 @end
+
+#endif /* LDETRUSTPROTOCOL_H */

@@ -16,3 +16,16 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#ifndef LDETRUST_H
+#define LDETRUST_H
+
+#import <Foundation/Foundation.h>
+
+@interface LDETrust : NSObject
+
++ (NSString*)entHashOfExecutableAtPath:(NSString*)path;
+
+@end
+
+#endif /* LDETRUST_H */
