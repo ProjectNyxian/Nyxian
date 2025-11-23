@@ -181,6 +181,8 @@
                   withIdentifier:(unsigned int)uid
                        withReply:(void (^)(unsigned int result))reply
 {
+    reflock_lock(&(surface->reflock));
+    
     ksurface_proc_t proc = {};
     ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
     
@@ -238,6 +240,9 @@
     }
     
     reply((error == kSurfaceErrorSuccess) ? 0 : -1);
+    
+    reflock_unlock(&(surface->reflock));
+    
     return;
 }
 
