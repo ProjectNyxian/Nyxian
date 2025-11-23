@@ -137,7 +137,7 @@
                     }
                     else
                     {
-                        error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath, configuration.entitlements);
+                        error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath);
                     }
                     
                     if(error != kSurfaceErrorSuccess)

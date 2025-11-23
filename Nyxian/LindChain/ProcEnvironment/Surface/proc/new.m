@@ -22,21 +22,41 @@
 #import <LindChain/ProcEnvironment/Surface/proc/append.h>
 #import <LindChain/ProcEnvironment/Surface/proc/replace.h>
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
+#import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/ProcEnvironment/Server/Trust.h>
 
 ksurface_error_t proc_new_proc(pid_t ppid,
                                pid_t pid,
                                uid_t uid,
                                gid_t gid,
-                               NSString *executablePath,
-                               PEEntitlement entitlement)
+                               NSString *executablePath)
 {
+#ifdef HOST_ENV
     ksurface_proc_t proc = {};
     
     // Set ksurface_proc properties
     proc.nyx.force_task_role_override = true;
     proc.nyx.task_role_override = TASK_UNSPECIFIED;
-    proc.nyx.entitlements = entitlement;
     strncpy(proc.nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
+    
+    if(ppid == PID_LAUNCHD)
+    {
+        // Its nyxian it self
+        proc_setentitlements(proc, PEEntitlementAll);
+    }
+    else
+    {
+        // Its a usual process nyxian created
+        NSString *entHash = [LDETrust entHashOfExecutableAtPath:executablePath];
+        if(entHash == nil)
+        {
+            proc_setentitlements(proc, PEEntitlementSandboxedApplication);
+        }
+        else
+        {
+            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:[LDETrust entHashOfExecutableAtPath:executablePath]]);
+        }
+    }
     
     // Set bsd process stuff
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
@@ -66,12 +86,16 @@ ksurface_error_t proc_new_proc(pid_t ppid,
     
     // Adding/Inserting proc
     return proc_append(proc);
+#else
+    return kSurfaceErrorUndefined;
+#endif /* HOST_ENV */
 }
 
 ksurface_error_t proc_new_child_proc(pid_t ppid,
                                      pid_t pid,
                                      NSString *executablePath)
 {
+#ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
     
     // Get the old process
@@ -90,6 +114,20 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         return kSurfaceErrorUndefined;
     }
     
+    // Inheriting entitlements or not?
+    if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawnInheriteEntitlements))
+    {
+        NSString *entHash = [LDETrust entHashOfExecutableAtPath:executablePath];
+        if(entHash == nil)
+        {
+            proc_setentitlements(proc, PEEntitlementSandboxedApplication);
+        }
+        else
+        {
+            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:[LDETrust entHashOfExecutableAtPath:executablePath]]);
+        }
+    }
+    
     // Overwriting executable path
     strncpy(proc.nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
     strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
@@ -104,4 +142,7 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     reflock_unlock(&(surface->reflock));
     
     return error;
+#else /* HOST_ENV */
+    return kSurfaceErrorUndefined;
+#endif
 }

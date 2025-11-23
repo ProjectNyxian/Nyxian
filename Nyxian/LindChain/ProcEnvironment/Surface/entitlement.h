@@ -97,8 +97,11 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Hides LiveProcess in DYLD Api. (recommended) */
     PEEntitlementDyldHideLiveProcess        = 1ull << 18,
     
-    PEEntitlementSandboxedApplication       = PEEntitlementGetTaskAllowed,
-    PEEntitlementUserApplication            = PEEntitlementGetTaskAllowed | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
+    /*! Makes a process retain entitlements across processes, made for sandboxed applications and such. Its a security feature. */
+    PEEntitlementProcessSpawnInheriteEntitlements = 1ull << 19,
+    
+    PEEntitlementSandboxedApplication       = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements,
+    PEEntitlementUserApplication            = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemApplication          = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
     PEEntitlementAll                        = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementSurfaceRead | PEEntitlementSurfaceWrite | PEEntitlementSurfaceManager | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite | PEEntitlementTrustCacheManager | PEEntitlementEnforceDeviceSpoof | PEEntitlementDyldHideLiveProcess
 };
