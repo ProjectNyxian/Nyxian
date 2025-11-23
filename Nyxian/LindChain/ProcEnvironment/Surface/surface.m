@@ -42,7 +42,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
     unsigned long seq;
     
     do {
-        seq = seqlock_read_begin(&(surface->seqlock));
+        seq = reflock_read_begin(&(surface->reflock));
 
         uint32_t count = surface->proc_info.proc_count;
         needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
@@ -75,7 +75,7 @@ int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
         ret = (int)needed_bytes;
 
     }
-    while(seqlock_read_retry(&(surface->seqlock), seq));
+    while(reflock_read_retry(&(surface->reflock), seq));
 
     return ret;
 }
@@ -115,20 +115,20 @@ DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
     
     do
     {
-        seq = seqlock_read_begin(&(surface->seqlock));
+        seq = reflock_read_begin(&(surface->reflock));
         strlcpy(buf, surface->host_info.hostname, bufsize);
     }
-    while(seqlock_read_retry(&(surface->seqlock), seq));
+    while(reflock_read_retry(&(surface->reflock), seq));
     
     return 0;
 }
 
 void kern_sethostname(NSString *hostname)
 {
-    seqlock_lock(&(surface->seqlock));
+    reflock_lock(&(surface->reflock));
     hostname = hostname ?: @"localhost";
     strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
-    seqlock_unlock(&(surface->seqlock));
+    reflock_unlock(&(surface->reflock));
 }
 
 void proc_surface_init(void)
@@ -152,7 +152,7 @@ void proc_surface_init(void)
             proc_new_proc(PID_LAUNCHD, getpid(), 0, 0, [[NSBundle mainBundle] executablePath], PEEntitlementAll);
             
             // Setup spinface
-            seqlock_init(&(surface->seqlock));
+            reflock_init(&(surface->reflock));
         }
         else
         {

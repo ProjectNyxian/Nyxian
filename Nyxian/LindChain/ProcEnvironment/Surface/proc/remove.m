@@ -18,16 +18,14 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 
-static inline ksurface_error_t proc_remove_by_pid_internal(pid_t pid,
-                                                           bool use_lock)
+ksurface_error_t proc_remove_by_pid(pid_t pid)
 {
     // Dont use if uninitilized
     if(surface == NULL) return kSurfaceErrorNullPtr;
     
     // Aquiring rw lock
-    proc_helper_lock(use_lock);
+    reflock_lock(&(surface->reflock));
 
     // Return value
     ksurface_error_t retval = kSurfaceErrorNotFound;
@@ -58,18 +56,8 @@ static inline ksurface_error_t proc_remove_by_pid_internal(pid_t pid,
     }
 
     // Releasing rw lock
-    proc_helper_unlock(use_lock);
+    reflock_unlock(&(surface->reflock));
     
     // Returning return value
     return retval;
-}
-
-ksurface_error_t proc_remove_by_pid(pid_t pid)
-{
-    return proc_remove_by_pid_internal(pid, true);
-}
-
-ksurface_error_t proc_remove_by_pid_nolock(pid_t pid)
-{
-    return proc_remove_by_pid_internal(pid, false);
 }

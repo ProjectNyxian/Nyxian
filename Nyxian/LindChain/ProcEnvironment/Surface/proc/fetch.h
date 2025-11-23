@@ -23,9 +23,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_error_t proc_for_pid(pid_t pid, ksurface_proc_t *proc);
-ksurface_error_t proc_for_pid_nolock(pid_t pid, ksurface_proc_t *proc);
-
 ksurface_error_t proc_for_index(unsigned int idx, ksurface_proc_t *proc);
-ksurface_error_t proc_for_index_nolock(unsigned int idx, ksurface_proc_t *proc);
 
 #endif /* PROC_FETCH_H */

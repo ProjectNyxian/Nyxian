@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/append.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
@@ -28,7 +27,7 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     if(surface == NULL) return kSurfaceErrorNullPtr;
     
     // Aquiring rw lock if applicable
-    proc_helper_lock(use_lock);
+    reflock_lock(&(surface->reflock));
     
     // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
@@ -36,7 +35,7 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
         // Checking if the process at a certain position in memory matches the provided process that we wanna insert
         if(proc_getpid(surface->proc_info.proc[i]) == proc_getpid(proc))
         {
-            proc_helper_unlock(use_lock);
+            reflock_unlock(&(surface->reflock));
             return kSurfaceErrorAlreadyExists;
         }
     }
@@ -53,7 +52,7 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     }
     
     // Releasing rw lock if applicable
-    proc_helper_unlock(use_lock);
+    reflock_unlock(&(surface->reflock));
     
     // It succeeded
     return error;

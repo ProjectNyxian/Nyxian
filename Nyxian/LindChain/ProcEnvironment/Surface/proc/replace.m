@@ -18,17 +18,15 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/replace.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-static inline ksurface_error_t proc_replace_internal(ksurface_proc_t proc,
-                                                     bool use_lock)
+ksurface_error_t proc_replace(ksurface_proc_t proc)
 {
     // Dont use if uninitilized
     if(surface == NULL) return kSurfaceErrorNullPtr;
     
     // Aquiring rw lock
-    proc_helper_lock(use_lock);
+    reflock_lock(&(surface->reflock));
     
     // Iterating through all processes
     for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
@@ -39,25 +37,15 @@ static inline ksurface_error_t proc_replace_internal(ksurface_proc_t proc,
             // Copying provided process onto the surface at already existing memory entry
             proc_cpy(surface->proc_info.proc[i], proc);
             
-            proc_helper_unlock(use_lock);
+            reflock_unlock(&(surface->reflock));
             
             return kSurfaceErrorSuccess;
         }
     }
     
     // Releasing rw lock
-    proc_helper_unlock(use_lock);
+    reflock_unlock(&(surface->reflock));
     
     // It succeeded
     return kSurfaceErrorSuccess;
-}
-
-ksurface_error_t proc_replace(ksurface_proc_t proc)
-{
-    return proc_replace_internal(proc, true);
-}
-
-ksurface_error_t proc_replace_nolock(ksurface_proc_t proc)
-{
-    return proc_replace_internal(proc, false);
 }

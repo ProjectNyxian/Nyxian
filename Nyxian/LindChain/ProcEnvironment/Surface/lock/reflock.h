@@ -23,6 +23,7 @@ typedef struct {
     unsigned char lock;
     unsigned long seq;
     unsigned long ref;
+    unsigned long tid;
 } reflock_t;
 
 void reflock_init(reflock_t *r);

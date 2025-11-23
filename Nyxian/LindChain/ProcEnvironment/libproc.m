@@ -42,7 +42,7 @@ int proc_libproc_listallpids(void *buffer,
     
     do
     {
-        seq =                                       seqlock_read_begin(&(surface->seqlock));
+        seq = reflock_read_begin(&(surface->reflock));
 
         uint32_t count = surface->proc_info.proc_count;
         needed_bytes = (size_t)count * sizeof(pid_t);
@@ -58,7 +58,7 @@ int proc_libproc_listallpids(void *buffer,
         }
 
     }
-    while (seqlock_read_retry(&(surface->seqlock), seq));
+    while (reflock_read_retry(&(surface->reflock), seq));
     
     if(buffer == NULL || buffersize == 0)
     {

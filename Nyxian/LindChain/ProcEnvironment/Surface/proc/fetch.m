@@ -18,12 +18,10 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
-                                                     ksurface_proc_t *proc,
-                                                     bool use_lock)
+ksurface_error_t proc_for_pid(pid_t pid,
+                              ksurface_proc_t *proc)
 {
     // Check to ensure its not a nullified surface or better said
     if(surface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
@@ -37,7 +35,7 @@ static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
     // Beginning to spin, to hopefully find the processes requested
     do
     {
-        seq = proc_helper_read_begin(use_lock);
+        seq = reflock_read_begin(&(surface->reflock));
         
         // Iterating through all process structures
         for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
@@ -54,15 +52,13 @@ static inline ksurface_error_t proc_for_pid_internal(pid_t pid,
             }
         }
     }
-    while (proc_helper_read_retry(use_lock, seq));
+    while (reflock_read_retry(&(surface->reflock), seq));
     
     // Returning return value
     return retval;
 }
-
-static inline ksurface_error_t proc_for_idx_internal(unsigned int idx,
-                                                     ksurface_proc_t *proc,
-                                                     bool use_lock)
+ksurface_error_t proc_for_index(unsigned int idx,
+                              ksurface_proc_t *proc)
 {
     // Check to ensure its not a nullified surface or better said
     if(surface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
@@ -76,7 +72,7 @@ static inline ksurface_error_t proc_for_idx_internal(unsigned int idx,
     // Beginning to spin, to hopefully find the processes requested
     do
     {
-        seq = proc_helper_read_begin(use_lock);
+        seq = reflock_read_begin(&(surface->reflock));
         
         // Checking if the index is within bounds
         if(idx < surface->proc_info.proc_count)
@@ -88,32 +84,8 @@ static inline ksurface_error_t proc_for_idx_internal(unsigned int idx,
             retval = kSurfaceErrorSuccess;
         }
     }
-    while (proc_helper_read_retry(use_lock, seq));
+    while (reflock_read_retry(&(surface->reflock), seq));
     
     // Returning return value
     return retval;
-}
-
-ksurface_error_t proc_for_pid(pid_t pid,
-                              ksurface_proc_t *proc)
-{
-    return proc_for_pid_internal(pid, proc, true);
-}
-
-ksurface_error_t proc_for_pid_nolock(pid_t pid,
-                                     ksurface_proc_t *proc)
-{
-    return proc_for_pid_internal(pid, proc, false);
-}
-
-ksurface_error_t proc_for_index(unsigned int idx,
-                                ksurface_proc_t *proc)
-{
-    return proc_for_idx_internal(idx, proc, true);
-}
-
-ksurface_error_t proc_for_index_nolock(unsigned int idx,
-                                       ksurface_proc_t *proc)
-{
-    return proc_for_idx_internal(idx, proc, false);
 }

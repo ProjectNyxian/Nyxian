@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 #include <sys/sysctl.h>
 #include <limits.h>
-#include <LindChain/ProcEnvironment/Surface/lock/seqlock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/reflock.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/Multitask/LDEProcessManager.h>
@@ -83,7 +83,7 @@ typedef struct {
 /// Structure that holds surface information and other structures
 typedef struct {
     uint32_t magic;
-    seqlock_t seqlock;
+    reflock_t reflock;
     ksurface_host_info_t host_info;
     ksurface_proc_info_t proc_info;
 } ksurface_mapping_t;

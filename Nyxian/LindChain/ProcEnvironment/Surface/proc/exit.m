@@ -22,7 +22,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/replace.h>
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 
 #ifdef HOST_ENV
 #import <LindChain/Multitask/LDEProcessManager.h>
@@ -31,13 +30,13 @@
 ksurface_error_t proc_exit_for_pid(pid_t pid)
 {
 #ifdef HOST_ENV
-    proc_helper_lock(true);
+    reflock_lock(&(surface->reflock));
     
     ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid_nolock(pid, &proc);
+    ksurface_error_t error = proc_for_pid(pid, &proc);
     if(error != kSurfaceErrorSuccess)
     {
-        proc_helper_unlock(true);
+        reflock_unlock(&(surface->reflock));
         return error;
     }
     
@@ -68,10 +67,10 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
     // Now second pass
     for(int i = 0; i < flagged_pid_cnt; i++)
     {
-        error = proc_remove_by_pid_nolock(flagged_pid[i]);
+        error = proc_remove_by_pid(flagged_pid[i]);
     }
     
-    proc_helper_unlock(true);
+    reflock_unlock(&(surface->reflock));
     
     // 3rd pass
     for(int i = 1; i < flagged_pid_cnt; i++)

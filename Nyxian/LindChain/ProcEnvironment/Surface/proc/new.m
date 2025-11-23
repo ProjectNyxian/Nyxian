@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/new.h>
-#import <LindChain/ProcEnvironment/Surface/proc/helper.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/append.h>
 #import <LindChain/ProcEnvironment/Surface/proc/replace.h>
@@ -73,21 +72,21 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
                                      pid_t pid,
                                      NSString *executablePath)
 {
-    proc_helper_lock(true);
+    reflock_lock(&(surface->reflock));
     
     // Get the old process
     ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid_nolock(ppid, &proc);
+    ksurface_error_t error = proc_for_pid(ppid, &proc);
     if(error != kSurfaceErrorSuccess)
     {
-        proc_helper_unlock(true);
+        reflock_unlock(&(surface->reflock));
         return error;
     }
     
     // Reset time to now
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
     {
-        proc_helper_unlock(true);
+        reflock_unlock(&(surface->reflock));
         return kSurfaceErrorUndefined;
     }
     
@@ -100,9 +99,9 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     proc_setpid(proc, pid);
     
     // Insert it back
-    error = proc_append_nolock(proc);
+    error = proc_append(proc);
     
-    proc_helper_unlock(true);
+    reflock_unlock(&(surface->reflock));
     
     return error;
 }

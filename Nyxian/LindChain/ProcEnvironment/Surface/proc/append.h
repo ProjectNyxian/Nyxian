@@ -23,6 +23,5 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_error_t proc_append(ksurface_proc_t proc);
-ksurface_error_t proc_append_nolock(ksurface_proc_t proc);
 
 #endif /* PROC_APPEND_H */

@@ -23,6 +23,5 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_error_t proc_remove_by_pid(pid_t pid);
-ksurface_error_t proc_remove_by_pid_nolock(pid_t pid);
 
 #endif /* PROC_REMOVE_H */
