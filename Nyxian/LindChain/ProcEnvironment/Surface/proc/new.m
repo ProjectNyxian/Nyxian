@@ -44,6 +44,12 @@ ksurface_error_t proc_new_proc(pid_t ppid,
         // Its nyxian it self
         proc_setentitlements(proc, PEEntitlementAll);
     }
+    else if([executablePath isEqualToString:@"/usr/libexec/installd"] ||
+            [executablePath isEqualToString:@"/usr/libexec/trustd"])
+    {
+        // Its a daemon
+        proc_setentitlements(proc, PEEntitlementSystemApplication);
+    }
     else
     {
         // Its a usual process nyxian created
