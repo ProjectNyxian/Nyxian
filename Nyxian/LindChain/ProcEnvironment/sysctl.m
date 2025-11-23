@@ -23,23 +23,27 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #include <sys/sysctl.h>
 
-int sysctl_kernmaxproc(int *name,
-                       u_int namelen,
-                       void *__sized_by(*oldlenp) oldp,
-                       size_t *oldlenp,
-                       void *__sized_by(newlen) newp,
-                       size_t newlen)
+typedef struct {
+    int *name;
+    u_int namelen;
+    void *__sized_by(*oldlenp) oldp;
+    size_t *oldlenp;
+    void *__sized_by(newlen) newp;
+    size_t newlen;
+} sysctl_req_t;
+
+int sysctl_kernmaxproc(sysctl_req_t req)
 {
-    if(oldp && oldlenp && *oldlenp >= sizeof(int))
+    if(req.oldp && req.oldlenp && *(req.oldlenp) >= sizeof(int))
     {
-        *(int *)oldp = PROC_MAX;
-        *oldlenp = sizeof(int);
+        *(int *)(req.oldp) = PROC_MAX;
+        *(req.oldlenp) = sizeof(int);
         return 0;
     }
     
-    if(oldlenp)
+    if(req.oldlenp)
     {
-        *oldlenp = sizeof(int);
+        *(req.oldlenp) = sizeof(int);
         return 0;
     }
     
@@ -47,14 +51,9 @@ int sysctl_kernmaxproc(int *name,
     return -1;
 }
 
-int sysctl_kernprocall(int *name,
-                       u_int namelen,
-                       void *__sized_by(*oldlenp) oldp,
-                       size_t *oldlenp,
-                       void *__sized_by(newlen) newp,
-                       size_t newlen)
+int sysctl_kernprocall(sysctl_req_t req)
 {
-    if(!oldlenp)
+    if(!req.oldlenp)
     {
         errno = EINVAL;
         return -1;
@@ -62,41 +61,37 @@ int sysctl_kernprocall(int *name,
     
     size_t needed = proc_sysctl_listproc(NULL, 0, NULL);
     
-    if(oldp == NULL || *oldlenp == 0)
+    if(req.oldp == NULL || *(req.oldlenp) == 0)
     {
-        *oldlenp = needed;
+        *(req.oldlenp) = needed;
         return 0;
     }
     
-    if(*oldlenp < needed)
+    if(*(req.oldlenp) < needed)
     {
-        *oldlenp = needed;
+        *(req.oldlenp) = needed;
         errno = ENOMEM;
         return -1;
     }
     
-    int written = proc_sysctl_listproc(oldp, *oldlenp, NULL);
+    int written = proc_sysctl_listproc(req.oldp, *(req.oldlenp), NULL);
     if(written < 0) return -1;
     
-    *oldlenp = written;
+    *(req.oldlenp) = written;
     return 0;
 }
 
-int sysctl_kernprocargs2(int *name,
-                         u_int namelen,
-                         void *__sized_by(*oldlenp) oldp,
-                         size_t *oldlenp,
-                         void *__sized_by(newlen) newp,
-                         size_t newlen)
+int sysctl_kernprocargs2(sysctl_req_t req)
 {
-    pid_t pid = name[2];
-    if (oldlenp) {
-        if (oldp && *oldlenp >= sizeof(int)) {
-            *(int *)oldp = 0;
-            *oldlenp = sizeof(int);
+    if(req.oldlenp)
+    {
+        if(req.oldp && *(req.oldlenp) >= sizeof(int))
+        {
+            *(int *)(req.oldp) = 0;
+            *(req.oldlenp) = sizeof(int);
             return 0;
         }
-        *oldlenp = sizeof(int);
+        *(req.oldlenp) = sizeof(int);
         return 0;
     }
     
@@ -111,6 +106,15 @@ DEFINE_HOOK(sysctl, int, (int *name,
                           void *__sized_by(newlen) newp,
                           size_t newlen))
 {
+    sysctl_req_t req = {
+        .name = name,
+        .namelen = namelen,
+        .oldp = oldp,
+        .oldlenp = oldlenp,
+        .newp = newp,
+        .newlen = newlen,
+    };
+    
     if(namelen > 0)
     {
         switch(name[0])
@@ -121,20 +125,20 @@ DEFINE_HOOK(sysctl, int, (int *name,
                     switch(name[1])
                     {
                         case KERN_MAXPROC:
-                            return sysctl_kernmaxproc(name, namelen, oldp, oldlenp, newp, newlen);
+                            return sysctl_kernmaxproc(req);
                         case KERN_PROC:
                             if(namelen > 2)
                             {
                                 switch(name[2])
                                 {
                                     case KERN_PROC_ALL:
-                                        return sysctl_kernprocall(name, namelen, oldp, oldlenp, newp, newlen);
+                                        return sysctl_kernprocall(req);
                                     default:
                                         break;
                                 }
                             }
                         case KERN_PROCARGS2:
-                            return sysctl_kernprocargs2(name, namelen, oldp, oldlenp, newp, newlen);
+                            return sysctl_kernprocargs2(req);
                         default:
                             break;
                     }
