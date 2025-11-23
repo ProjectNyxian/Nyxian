@@ -54,7 +54,7 @@ ksurface_error_t proc_new_proc(pid_t ppid,
         }
         else
         {
-            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:[LDETrust entHashOfExecutableAtPath:executablePath]]);
+            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:entHash]);
         }
     }
     
@@ -124,7 +124,7 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         }
         else
         {
-            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:[LDETrust entHashOfExecutableAtPath:executablePath]]);
+            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:entHash]);
         }
     }
     
