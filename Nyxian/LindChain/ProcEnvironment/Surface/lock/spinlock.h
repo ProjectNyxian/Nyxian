@@ -69,8 +69,20 @@ void spinlock_lock(spinlock_t *s);
  */
 void spinlock_unlock(spinlock_t *s);
 
+/*!
+ @function spinlock_is_locked
+ @abstract Returns if the write lock is currently locked.
+ @param  s
+    Pointer to spinlock structure.
+ */
 bool spinlock_is_locked(const spinlock_t *s);
 
+/*!
+ @function spinlock_trylock
+ @abstract Tries to lock the spinlock, if successful it returns a boolean value accordingly.
+ @param  s
+    Pointer to spinlock structure.
+ */
 bool spinlock_trylock(spinlock_t *s);
 
 #endif /* PROCENVIRONMENT_SPINLOCK */

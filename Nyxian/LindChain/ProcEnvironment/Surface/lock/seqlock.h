@@ -96,8 +96,20 @@ unsigned long seqlock_read_begin(const seqlock_t *s);
  */
 bool seqlock_read_retry(const seqlock_t *s, unsigned long seq);
 
+/*!
+ @function seqlock_is_locked
+ @abstract Returns if the write lock is currently locked.
+ @param  s
+    Pointer to seqlock structure.
+ */
 bool seqlock_is_locked(const seqlock_t *s);
 
+/*!
+ @function seqlock_trylock
+ @abstract Tries to lock the seqlock and returns a boolean value about its succession with that.
+ @param  s
+    Pointer to seqlock structure.
+ */
 bool seqlock_trylock(seqlock_t *s);
 
 #endif /* PROCENVIRONMENT_SEQLOCK */

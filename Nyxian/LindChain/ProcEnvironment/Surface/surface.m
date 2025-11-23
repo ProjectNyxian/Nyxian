@@ -98,7 +98,9 @@ MappingPortObject *proc_surface_for_pid(pid_t pid)
         // If gathering the process was successful, only then we gonna add permitives to the mapping port we going to distribute to the process
         PEEntitlement proc_ent = proc_getentitlements(proc);
         if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceRead)) flags = flags | VM_PROT_READ;
-        if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
+        
+        // MARK: PEEntitlementSurfaceWrite Banned because of reflock implementation, no child process shall be able to alter the ksurface memory at all
+        //if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
     }
     
     return [surfaceMappingPortObject copyWithProt:flags];
