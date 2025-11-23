@@ -23,8 +23,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <Project/NXProject.h>
-#import <LindChain/Multitask/LDEWindow.h>
-#import <LindChain/Multitask/LDEWindowSession.h>
+#import <LindChain/Multitask/WindowServer/LDEWindow.h>
 
 @interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
 
@@ -44,3 +43,4 @@
 @end
 
 #endif /* LDEWINDOWSERVER_H */
+

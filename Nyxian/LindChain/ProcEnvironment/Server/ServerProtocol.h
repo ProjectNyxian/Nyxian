@@ -22,7 +22,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 #import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>

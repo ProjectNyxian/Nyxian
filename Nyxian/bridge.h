@@ -27,19 +27,19 @@
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 #import <LindChain/Debugger/Logger.h>
-#import <LindChain/Multitask/LDEWindowServer.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
-#import <LindChain/Multitask/LDEWindowSessionApplication.h>
-#import <LindChain/Multitask/LDEWindowSessionTerminal.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 
 /*
  Project

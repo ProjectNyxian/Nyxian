@@ -24,7 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 #ifdef HOST_ENV
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #endif
 
 ksurface_error_t proc_exit_for_pid(pid_t pid)

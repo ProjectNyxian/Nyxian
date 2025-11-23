@@ -20,14 +20,14 @@
 #import <LindChain/ProcEnvironment/Server/ServerSession.h>
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Multitask/LDEWindowServer.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Debugger/Logger.h>
 #import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <mach/mach.h>
-#import <LindChain/Multitask/LDEWindowSessionApplication.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 
 @implementation ServerSession
 

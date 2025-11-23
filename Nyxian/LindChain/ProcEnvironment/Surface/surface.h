@@ -26,7 +26,7 @@
 #include <LindChain/ProcEnvironment/Surface/lock/reflock.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 enum kSurfaceError {
     kSurfaceErrorSuccess        = 0,

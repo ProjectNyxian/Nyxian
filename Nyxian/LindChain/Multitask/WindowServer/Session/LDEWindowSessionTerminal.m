@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/LDEProcessManager.h>
-#import <LindChain/Multitask/LDEWindowSessionTerminal.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 #import <Nyxian-Swift.h>
 
 @interface LDEWindowSessionTerminal ()
@@ -116,7 +116,7 @@
     _widthConstraint.constant = rect.size.width;
 }
 
-- (CGRect)windowRect { 
+- (CGRect)windowRect {
     return CGRectMake(50, 50, 400, 400);
 }
 

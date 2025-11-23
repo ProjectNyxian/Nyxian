@@ -17,9 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/LDEWindowSessionApplication.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/Multitask/LDEWindowServer.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 

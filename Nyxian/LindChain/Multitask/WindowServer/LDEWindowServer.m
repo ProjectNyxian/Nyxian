@@ -17,8 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/LDEWindowServer.h>
-//#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #if __has_include(<Nyxian-Swift.h>)
 #import <Nyxian-Swift.h>
 #endif
@@ -641,3 +640,4 @@
 }
 
 @end
+

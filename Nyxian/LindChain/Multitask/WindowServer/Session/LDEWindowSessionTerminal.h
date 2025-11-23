@@ -20,8 +20,8 @@
 #ifndef LDEWINDOWSESSIONTERMINAL_H
 #define LDEWINDOWSESSIONTERMINAL_H
 
-#import <LindChain/Multitask/LDEWindowSession.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowSession.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 @interface LDEWindowSessionTerminal : UIViewController <LDEWindowSession>
 

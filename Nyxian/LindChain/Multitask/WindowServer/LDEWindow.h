@@ -21,7 +21,7 @@
 #define LDEWINDOW_H
 
 #import "FoundationPrivate.h"
-#import <LindChain/Multitask/LDEWindowSession.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowSession.h>
 
 typedef int wid_t;
 

@@ -21,7 +21,7 @@
 #define LAUNCHSERVICES_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Multitask/LDEProcessManager.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 @interface LaunchService : NSObject
 

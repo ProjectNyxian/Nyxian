@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/LDEWindow.h>
-#import <LindChain/Multitask/ResizeHandleView.h>
+#import <LindChain/Multitask/WindowServer/LDEWindow.h>
+#import <LindChain/Multitask/WindowServer/ResizeHandleView.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
 @interface LDEWindow ()
@@ -175,7 +175,7 @@
 {
     [super viewDidAppear:animated];
     
-    dispatch_once(&_appearOnceAction, ^{        
+    dispatch_once(&_appearOnceAction, ^{
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-10.0 rightMargin:6.0];
         
         // MARK: Suppose to only run on phones
@@ -658,3 +658,4 @@
 }
 
 @end
+

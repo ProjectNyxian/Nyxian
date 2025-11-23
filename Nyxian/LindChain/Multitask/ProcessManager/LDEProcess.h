@@ -17,37 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEPROCESSMANAGER_H
-#define LDEPROCESSMANAGER_H
+#ifndef LDEPROCESS_H
+#define LDEPROCESS_H
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import <LindChain/ProcEnvironment/posix_spawn.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessConfiguration.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
-#import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/Multitask/LDEWindowServer.h>
 
-@interface LDEProcessConfiguration : NSObject
-
-@property (nonatomic) pid_t ppid;
-@property (nonatomic) uid_t uid;
-@property (nonatomic) gid_t gid;
-@property (nonatomic) PEEntitlement entitlements;
-
-- (instancetype)initWithParentProcessIdentifier:(pid_t)ppid withUserIdentifier:(uid_t)uid withGroupIdentifier:(gid_t)gid withEntitlements:(PEEntitlement)entitlements;
-+ (instancetype)inheriteConfigurationUsingProcessIdentifier:(pid_t)pid;
-
-+ (instancetype)userApplicationConfiguration;
-+ (instancetype)systemApplicationConfiguration;
-+ (instancetype)configurationForHash:(NSString*)hash;
-
-@end
-
-/*
- Process
- */
 @interface LDEProcess : NSObject
 
 @property (nonatomic,strong) NSExtension *extension;
@@ -90,27 +69,4 @@
 
 @end
 
-/*
- Process Manager
- */
-@interface LDEProcessManager : NSObject
-
-@property (atomic) NSMutableDictionary<NSNumber*,LDEProcess*> *processes;
-@property (atomic) dispatch_queue_t syncQueue;
-
-- (instancetype)init;
-+ (instancetype)shared;
-
-- (pid_t)spawnProcessWithItems:(NSDictionary*)items withConfiguration:(LDEProcessConfiguration*)configuration;
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withConfiguration:(LDEProcessConfiguration*)configuration doRestartIfRunning:(BOOL)doRestartIfRunning;
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withConfiguration:(LDEProcessConfiguration*)configuration;
-- (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withConfiguration:(LDEProcessConfiguration*)configuration process:(LDEProcess**)processReply;
-
-- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
-- (LDEProcess*)processForProcessIdentifier:(pid_t)pid;
-- (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
-- (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier;
-
-@end
-
-#endif /* LDEPROCESSMANAGER_H */
+#endif /* LDEPROCESS_H */
