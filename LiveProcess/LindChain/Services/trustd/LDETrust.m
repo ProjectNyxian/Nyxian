@@ -25,6 +25,14 @@
 
 + (NSString*)entHashOfExecutableAtPath:(NSString *)path
 {
+    // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
+    // RIGHT HERE
+    if([path isEqualToString:@"/usr/libexec/trustd"] ||
+       [path isEqualToString:@"/usr/libexec/installd"])
+    {
+        return @"com.cr4zy.nyxian.daemon.trustcache_daemon";
+    }
+    
     __block NSString *entHashExport = nil;
     [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);

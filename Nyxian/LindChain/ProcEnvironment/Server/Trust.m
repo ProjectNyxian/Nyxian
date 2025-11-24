@@ -44,15 +44,19 @@
 
 - (PEEntitlement)getEntitlementsForHash:(NSString*)hash
 {
-    NSNumber *entitlementObject = [_cache objectForKey:hash];
-    if(entitlementObject)
+    if([hash isEqualToString:@"com.cr4zy.nyxian.daemon.trustcache_daemon"])
     {
-        return [entitlementObject unsignedLongLongValue];
+        return PEEntitlementSystemApplication;
     }
     else
     {
-        return PEEntitlementSandboxedApplication;
+        NSNumber *entitlementObject = [_cache objectForKey:hash];
+        if(entitlementObject)
+        {
+            return [entitlementObject unsignedLongLongValue];
+        }
     }
+    return PEEntitlementSandboxedApplication;
 }
 
 - (void)setEntitlementsForHash:(NSString *)hash

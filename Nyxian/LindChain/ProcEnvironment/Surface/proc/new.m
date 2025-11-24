@@ -42,13 +42,10 @@ ksurface_error_t proc_new_proc(pid_t ppid,
     if(ppid == PID_LAUNCHD)
     {
         // Its nyxian it self
-        proc_setentitlements(proc, PEEntitlementAll);
-    }
-    else if([executablePath isEqualToString:@"/usr/libexec/installd"] ||
-            [executablePath isEqualToString:@"/usr/libexec/trustd"])
-    {
-        // Its a daemon
-        proc_setentitlements(proc, PEEntitlementSystemApplication);
+        // Nyxian has all entitlements granted in ProcEnvironment Kernel because it has already EnvironmentRoleHost, its the host
+        // Its extremely dangrous to grant a process all entitlements by being the parent of launchd, a process could somehow manipulate its own process structure with a vulnerability
+        // Modify its ppid to be PID_LAUNCHD, to prevent that we simply set it to sandboxed although Nyxian is the host and has max control by default
+        proc_setentitlements(proc, PEEntitlementSandboxedApplication);
     }
     else
     {
