@@ -100,32 +100,6 @@
 }
 
 /*
- application
- */
-- (void)makeWindowVisibleWithReply:(void (^)(int))reply
-{
-    __block BOOL didInvokeWindow = NO;
-    dispatch_once(&_makeWindowVisibleOnce,^{
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            // To be done
-            LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
-            if(process)
-            {
-                LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcessIdentifier:_processIdentifier];
-                wid_t wid = (wid_t)-1;
-                if([[LDEWindowServer shared] openWindowWithSession:session identifier:&wid])
-                {
-                    didInvokeWindow = YES;
-                }
-                process.wid = wid;
-            }
-        });
-    });
-    
-    reply(didInvokeWindow);
-}
-
-/*
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path

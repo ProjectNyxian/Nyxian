@@ -26,11 +26,14 @@
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
-@interface LDEProcess : NSObject
+@interface LDEProcess : NSObject <FBSceneDelegate>
 
 @property (nonatomic,strong) NSExtension *extension;
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
+@property (nonatomic,strong) FBScene *scene;
+@property (nonatomic,strong) NSString *sceneID;
+@property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
 @property (nonatomic,strong) UIImage *snapshot;
 
 // Process properties

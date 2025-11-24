@@ -154,14 +154,6 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
     return 0;
 }
 
-BOOL environment_proxy_make_window_visible(void)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout_int(PROXY_TYPE_REPLY(int){
-        [hostProcessProxy makeWindowVisibleWithReply:reply];
-    });
-}
-
 pid_t environment_proxy_spawn_process_at_path(NSString *path,
                                               NSArray *arguments,
                                               NSDictionary *environment,

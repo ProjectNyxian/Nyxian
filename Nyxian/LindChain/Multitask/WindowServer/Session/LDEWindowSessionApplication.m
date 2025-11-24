@@ -47,10 +47,10 @@ void UIKitFixesInit(void)
 @synthesize windowName;
 @synthesize windowIsFullscreen;
 
-- (instancetype)initWithProcessIdentifier:(pid_t)processIdentifier
+- (instancetype)initWithProcess:(LDEProcess*)process;
 {
     self = [super init];
-    _process = [[LDEProcessManager shared] processForProcessIdentifier:processIdentifier];
+    _process = process;
     self.windowName = _process.displayName;
     if(runtimeStoredRectValuesByBundleIdentifier == nil)
     {
@@ -62,50 +62,7 @@ void UIKitFixesInit(void)
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
       withSessionIdentifier:(int)identifier
 {
-    _process.wid = identifier;
-    
-    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-    // At this point, the process is spawned and we're ready to create a scene to render in our app
-    [manager registerProcessForAuditToken:self.process.processHandle.auditToken];
-    self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
-    
-    FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-    definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
-    
-    // FIXME: Handle when the process is not valid anymore, it will cause EXC_BREAKPOINT otherwise because of "Invalid condition not satisfying: processIdentity"
-    definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.process.processHandle.identity];
-    definition.specification = [UIApplicationSceneSpecification specification];
-    FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
-    
-    UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
-    settings.canShowAlerts = YES;
-    settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:self.view.layer.cornerRadius bottomLeft:self.view.layer.cornerRadius bottomRight:self.view.layer.cornerRadius topRight:self.view.layer.cornerRadius];
-    settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
-    settings.foreground = YES;
-    
-    settings.deviceOrientation = UIDevice.currentDevice.orientation;
-    settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-    settings.frame = CGRectMake(0, 0, self.view.frame.size.height, self.view.frame.size.width);
-    
-    //settings.interruptionPolicy = 2; // reconnect
-    settings.level = 1;
-    settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
-    
-    // it seems some apps don't honor these settings so we don't cover the top of the app
-    settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-    settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
-    
-    settings.statusBarDisabled = YES;
-    parameters.settings = settings;
-    
-    UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
-    clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
-    clientSettings.statusBarStyle = 0;
-    parameters.clientSettings = clientSettings;
-    
-    FBScene *scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
-    
-    self.presenter = [scene.uiPresentationManager createPresenterWithIdentifier:self.sceneID];
+    self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
     [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
         context.appearanceStyle = 2;
     }];
@@ -114,7 +71,7 @@ void UIKitFixesInit(void)
     self.view.layer.anchorPoint = CGPointMake(0, 0);
     self.view.layer.position = CGPointMake(0, 0);
 
-    [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
+    [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
     return YES;
 }
@@ -127,7 +84,7 @@ void UIKitFixesInit(void)
         runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:rect];
     }
     [_presenter invalidate];
-    [windowScene _unregisterSettingsDiffActionArrayForKey:self.sceneID];
+    [windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
     [_process terminate];
 }
 
@@ -357,6 +314,107 @@ void UIKitFixesInit(void)
 
 - (void)updateFocusIfNeeded
 {
+}
+
+- (void)scene:(FBScene *)arg1 didReceiveActions:(NSSet *)arg2
+{
+    NSLog(@"didReceiveActions");
+}
+
+- (void)scene:(FBScene *)arg1 willUpdateSettings:(FBSSceneUpdate *)arg2
+{
+    NSLog(@"willUpdateSettings");
+}
+
+- (void)scene:(FBScene *)arg1 willUpdateSettings:(FBSMutableSceneSettings *)arg2 withTransitionContext:(FBSSceneTransitionContext *)arg3
+{
+    NSLog(@"willUpdateSettings");
+}
+
+- (void)sceneDidDeactivate:(FBScene *)arg1 withContext:(FBSSceneTransitionContext *)arg2
+{
+    NSLog(@"sceneDidDeactivate");
+}
+
+- (void)sceneDidDeactivate:(FBScene *)arg1 withError:(NSError *)arg2
+{
+    NSLog(@"sceneDidDeactivate");
+}
+
+- (void)scene:(FBScene *)arg1 clientDidConnect:(FBSceneClientHandle *)arg2
+{
+    NSLog(@"clientDidConnect");
+}
+
+- (void)scene:(FBScene *)arg1 didApplyUpdateWithContext:(FBSceneUpdateContext *)arg2
+{
+    NSLog(@"didApplyUpdateWithContext");
+}
+
+- (void)scene:(FBScene *)arg1 didCompleteUpdateWithContext:(FBSceneUpdateContext *)arg2 error:(NSError *)arg3
+{
+    NSLog(@"didCompleteUpdateWithContext");
+}
+
+- (void)scene:(FBScene *)arg1 didPrepareUpdateWithContext:(FBSceneUpdateContext *)arg2
+{
+    NSLog(@"didPrepareUpdateWithContext");
+}
+
+- (void)scene:(FBScene *)arg1 didUpdateClientSettings:(FBSSceneUpdate *)arg2
+{
+    NSLog(@"didUpdateClientSettings");
+}
+
+- (void)scene:(FBScene *)arg1 didUpdateClientSettingsWithDiff:(FBSSceneClientSettingsDiff *)arg2 oldClientSettings:(FBSSceneClientSettings *)arg3 transitionContext:(FBSSceneTransitionContext *)arg4
+{
+    NSLog(@"didUpdateClientSettingsWithDiff");
+}
+
+- (void)scene:(FBScene *)arg1 didUpdateSettings:(FBSSceneUpdate *)arg2
+{
+    NSLog(@"didUpdateSettings");
+}
+
+- (NSSet *)scene:(FBScene *)arg1 handleActions:(NSSet *)arg2
+{
+    NSLog(@"handleActions %@", arg2);
+    return arg2;
+}
+
+- (void)sceneContentStateDidChange:(FBScene *)arg1
+{
+    NSLog(@"sceneContentStateDidChange");
+}
+
+- (void)sceneDidActivate:(FBScene *)arg1
+{
+    NSLog(@"sceneDidActivate");
+}
+
+- (void)sceneDidInvalidate:(FBScene *)arg1
+{
+    NSLog(@"sceneDidInvalidate");
+}
+
+- (void)sceneDidInvalidate:(FBScene *)arg1 withContext:(FBSSceneTransitionContext *)arg2
+{
+    NSLog(@"sceneDidInvalidateWC");
+}
+
+- (void)sceneWillActivate:(FBScene *)arg1
+{
+    NSLog(@"sceneWillActivate");
+}
+
+- (void)sceneWillDeactivate:(FBScene *)arg1 withContext:(FBSSceneTransitionContext *)arg2
+{
+    NSLog(@"sceneWillDeactivate WC");
+}
+
+- (void)sceneWillDeactivate:(FBScene *)arg1 withError:(NSError *)arg2
+{
+    NSLog(@"sceneWillDeactivate WE");
 }
 
 - (CGRect)windowRect

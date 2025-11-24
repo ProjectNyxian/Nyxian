@@ -56,11 +56,6 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
 - (void)proc_kill:(pid_t)pid withSignal:(int)signal withReply:(void (^)(int))reply;
 
 /*
- application
- */
-- (void)makeWindowVisibleWithReply:(void (^)(int))reply;
-
-/*
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;

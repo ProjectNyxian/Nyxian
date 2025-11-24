@@ -18,6 +18,8 @@
 */
 
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
@@ -74,10 +76,54 @@
                 }
                 else
                 {
-                    // Setting process handle directly from process monitor
-                    weakSelf.processHandle = handle;
+                    dispatch_sync(dispatch_get_main_queue(), ^{
+                        // Setting process handle directly from process monitor
+                        weakSelf.processHandle = handle;
+                        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+                        // At this point, the process is spawned and we're ready to create a scene to render in our app
+                        [manager registerProcessForAuditToken:self.processHandle.auditToken];
+                        self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
+                        
+                        FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
+                        definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
+                        
+                        // FIXME: Handle when the process is not valid anymore, it will cause EXC_BREAKPOINT otherwise because of "Invalid condition not satisfying: processIdentity"
+                        definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
+                        definition.specification = [UIApplicationSceneSpecification specification];
+                        FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
+                        
+                        UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
+                        settings.canShowAlerts = YES;
+                        settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
+                        settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
+                        settings.foreground = YES;
+                        
+                        settings.deviceOrientation = UIDevice.currentDevice.orientation;
+                        settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+                        settings.frame = CGRectMake(0, 0, 0, 0);
+                        
+                        //settings.interruptionPolicy = 2; // reconnect
+                        settings.level = 1;
+                        settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
+                        
+                        // it seems some apps don't honor these settings so we don't cover the top of the app
+                        settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                        settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
+                        
+                        settings.statusBarDisabled = YES;
+                        parameters.settings = settings;
+                        
+                        UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
+                        clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
+                        clientSettings.statusBarStyle = 0;
+                        parameters.clientSettings = clientSettings;
                     
-                    // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
+                        self.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
+                        self.scene.delegate = self;
+                    });
+                    
+                    // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
+                    // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
                     ksurface_error_t error = kSurfaceErrorUndefined;
                     error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
                     
@@ -170,6 +216,16 @@
 - (void)setExitingCallback:(void(^)(void))callback
 {
     _exitingCallback = callback;
+}
+
+- (void)scene:(FBScene *)arg1 didCompleteUpdateWithContext:(FBSceneUpdateContext *)arg2 error:(NSError *)arg3
+{
+    dispatch_once(&_notifyWindowManagerOnce, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
+            [[LDEWindowServer shared] openWindowWithSession:session identifier:&(self->_wid)];
+        });
+    });
 }
 
 @end

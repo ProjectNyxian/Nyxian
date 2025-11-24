@@ -44,9 +44,6 @@ TaskPortObject *environment_proxy_tfp_get_port_object_for_process_identifier(pid
 /// Sends the `signal` to the process identified by its `process_identifier`
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int signal);
 
-/// Asks the host application to make your process visible via a window, similar to macOS
-BOOL environment_proxy_make_window_visible(void);
-
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 

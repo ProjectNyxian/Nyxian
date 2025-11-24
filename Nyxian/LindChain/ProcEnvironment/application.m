@@ -24,24 +24,6 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/Utils/Swizzle.h>
 
-#pragma mark - UIApplication entry detection (Used to trigger window apparance, headless processes basically)
-
-@implementation UIApplication (ProcEnvironment)
-
-- (void)hook_run
-{
-    // Only allow client processing
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
-        // Tell host app to let our process appear
-        if(!environment_proxy_make_window_visible()) exit(0);
-    }
-    
-    [self hook_run];
-}
-
-@end
-
 #pragma mark - Audio background mode fix (Fixes playing music in spotify while spotify is not in nyxians foreground)
 
 @implementation AVAudioSession (ProcEnvironment)
@@ -134,8 +116,6 @@ void environment_application_init(void)
     if(environment_is_role(EnvironmentRoleGuest))
     {
         // MARK: GUEST Init
-        // MARK: Hooking _run of UIApplication class seems more reliable
-        swizzle_objc_method(@selector(_run), [UIApplication class], @selector(hook_run), nil);
         swizzle_objc_method(@selector(setActive:error:), [AVAudioSession class], @selector(hook_setActive:error:), nil);
         swizzle_objc_method(@selector(setActive:withOptions:error:), [AVAudioSession class], @selector(hook_setActive:withOptions:error:), nil);
         
