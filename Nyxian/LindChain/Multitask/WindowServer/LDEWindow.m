@@ -373,8 +373,11 @@
         self.isMaximized = NO;
         self.session.windowIsFullscreen = NO;
         CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:self.originalFrame];
+        CGRect newNavigationBar = self.navigationBar.frame;
+        newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
+            self.navigationBar.frame = newNavigationBar;
             self.contentStack.layer.cornerRadius = 20;
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
@@ -387,8 +390,11 @@
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
         CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:CGRectZero];
+        CGRect newNavigationBar = self.navigationBar.frame;
+        newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
+            self.navigationBar.frame = newNavigationBar;
             self.contentStack.layer.cornerRadius = 0;
             self.contentStack.layer.borderWidth = 0;
             self.view.layer.shadowOpacity = 0;
@@ -589,10 +595,9 @@
 {
     CGFloat navBarHeight = self.navigationBar.frame.size.height;
     
-    CGRect frame = CGRectMake(self.view.frame.origin.x,
-                              self.view.frame.origin.y + navBarHeight,
-                              self.view.frame.size.width,
-                              self.view.frame.size.height - navBarHeight);
+    CGRect frame = self.view.layer.presentationLayer ? ((CALayer *)self.view.layer.presentationLayer).frame : self.view.frame;
+    frame.origin.y += navBarHeight;
+    frame.size.height -= navBarHeight;
     
     [_session windowChangesSizeToRect:frame];
 }
