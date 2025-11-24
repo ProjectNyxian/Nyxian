@@ -14,8 +14,8 @@
             filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "82"
-            endingLineNumber = "82"
+            startingLineNumber = "78"
+            endingLineNumber = "78"
             landmarkName = "-closeWindowWithScene:withFrame:"
             landmarkType = "7">
          </BreakpointContent>

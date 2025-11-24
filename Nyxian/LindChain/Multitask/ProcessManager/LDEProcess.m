@@ -23,11 +23,18 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
+extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
+
 @implementation LDEProcess
 
 - (instancetype)initWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier
 {
     self = [super init];
+    
+    if(runtimeStoredRectValuesByBundleIdentifier == nil)
+    {
+        runtimeStoredRectValuesByBundleIdentifier = [[NSMutableDictionary alloc] init];
+    }
     
     self.displayName = @"LiveProcess";
     self.executablePath = items[@"LSExecutablePath"];
@@ -100,7 +107,17 @@
                         
                         settings.deviceOrientation = UIDevice.currentDevice.orientation;
                         settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-                        settings.frame = CGRectMake(0, 0, 0, 0);
+                        
+                        CGRect rect = CGRectMake(50, 50, 400, 400);
+                        if(self.bundleIdentifier != nil)
+                        {
+                            NSValue *value = runtimeStoredRectValuesByBundleIdentifier[self.bundleIdentifier];
+                            if(value != nil)
+                            {
+                                rect = [value CGRectValue];
+                            }
+                        }
+                        settings.frame = rect;
                         
                         //settings.interruptionPolicy = 2; // reconnect
                         settings.level = 1;

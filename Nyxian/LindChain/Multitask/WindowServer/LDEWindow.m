@@ -595,7 +595,7 @@
 {
     CGFloat navBarHeight = self.navigationBar.frame.size.height;
     
-    CGRect frame = self.view.layer.presentationLayer ? ((CALayer *)self.view.layer.presentationLayer).frame : self.view.frame;
+    CGRect frame = self.view.frame;
     frame.origin.y += navBarHeight;
     frame.size.height -= navBarHeight;
     

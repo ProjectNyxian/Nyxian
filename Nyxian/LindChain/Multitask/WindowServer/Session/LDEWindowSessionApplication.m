@@ -52,10 +52,6 @@ void UIKitFixesInit(void)
     self = [super init];
     _process = process;
     self.windowName = _process.displayName;
-    if(runtimeStoredRectValuesByBundleIdentifier == nil)
-    {
-        runtimeStoredRectValuesByBundleIdentifier = [[NSMutableDictionary alloc] init];
-    }
     return self;
 }
 
