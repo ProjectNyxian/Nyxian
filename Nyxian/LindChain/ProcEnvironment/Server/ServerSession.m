@@ -140,9 +140,7 @@
        && mapObject
        && (proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn) || proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly)))
     {
-        // TODO: Inherit entitlements across calls, with the power to drop entitlements, but not getting more entitlements
-        LDEProcessConfiguration *processConfig = [LDEProcessConfiguration inheriteConfigurationUsingProcessIdentifier:_processIdentifier];
-        reply([[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withConfiguration:processConfig process:nil]);
+        reply([[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:_processIdentifier process:nil]);
         return;
     }
     

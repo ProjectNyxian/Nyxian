@@ -59,8 +59,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                let entHash: String? = LDETrust.entHashOfExecutable(atPath: application.executablePath)
-                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, with: (entHash == nil) ? LDEProcessConfiguration.userApplication() : LDEProcessConfiguration(forHash: entHash))
+                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withParentProcessIdentifier: getpid(), doRestartIfRunning: false)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -150,8 +149,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let application = ApplicationManagementViewController.applications[indexPath.row]
-        let entHash: String? = LDETrust.entHashOfExecutable(atPath: application.executablePath)
-        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, with: (entHash == nil) ? LDEProcessConfiguration.userApplication() : LDEProcessConfiguration(forHash: entHash))
+        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withParentProcessIdentifier: getpid(), doRestartIfRunning: false)
     }
     
     @objc func plusButtonPressed() {
@@ -191,7 +189,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     let bundleId = lcapp!.bundleIdentifier()
                     if LDEApplicationWorkspace.installApplication(atBundlePath: bundlePath) {
                         DispatchQueue.main.async {
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, with: LDEProcessConfiguration.userApplication())
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withParentProcessIdentifier: getpid(), doRestartIfRunning: true)
                             let appObject: LDEApplicationObject = LDEApplicationWorkspace.applicationObject(forBundleID: miBundle.identifier)
                             if let index = ApplicationManagementViewController.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
                                 ApplicationManagementViewController.applications[index] = appObject

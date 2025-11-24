@@ -54,7 +54,7 @@
     FDMapObject *mapObject = [FDMapObject emptyMap];
     [mapObject insertStdPipe:stdoutPipe StdErrPipe:stderrPipe StdInPipe:stdinPipe];
     LDEProcess *process = nil;
-    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withConfiguration:[LDEProcessConfiguration userApplicationConfiguration] process:&process];
+    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withParentProcessIdentifier:getpid() process:&process];
     _process = process;
     _process.wid = identifier;
     

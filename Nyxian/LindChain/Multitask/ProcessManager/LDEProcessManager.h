@@ -31,15 +31,13 @@
 - (instancetype)init;
 + (instancetype)shared;
 
-- (pid_t)spawnProcessWithItems:(NSDictionary*)items withConfiguration:(LDEProcessConfiguration*)configuration;
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withConfiguration:(LDEProcessConfiguration*)configuration doRestartIfRunning:(BOOL)doRestartIfRunning;
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withConfiguration:(LDEProcessConfiguration*)configuration;
-- (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withConfiguration:(LDEProcessConfiguration*)configuration process:(LDEProcess**)processReply;
+- (pid_t)spawnProcessWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier;
+- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withParentProcessIdentifier:(pid_t)parentProcessIdentifier doRestartIfRunning:(BOOL)doRestartIfRunning;
+- (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withParentProcessIdentifier:(pid_t)parentProcessIdentifier process:(LDEProcess**)processReply;
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (LDEProcess*)processForProcessIdentifier:(pid_t)pid;
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
-- (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier;
 
 @end
 

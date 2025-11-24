@@ -24,7 +24,6 @@
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessConfiguration.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
 @interface LDEProcess : NSObject
@@ -55,8 +54,8 @@
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
-- (instancetype)initWithItems:(NSDictionary*)items withConfiguration:(LDEProcessConfiguration*)configuration;
-- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withConfiguration:(LDEProcessConfiguration*)configuration;
+- (instancetype)initWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier;
+- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withParentProcessIdentifier:(pid_t)parentProcessIdentifier;
 
 - (void)sendSignal:(int)signal;
 - (BOOL)suspend;

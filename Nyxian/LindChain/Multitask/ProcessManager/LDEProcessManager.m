@@ -74,11 +74,11 @@
 }
 
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
-             withConfiguration:(LDEProcessConfiguration*)configuration
+   withParentProcessIdentifier:(pid_t)parentProcessIdentifier
 {
     [self enforceSpawnCooldown];
     
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withConfiguration:configuration];
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withParentProcessIdentifier:parentProcessIdentifier];
     if(!process) return 0;
     pid_t pid = process.pid;
     [self.processes setObject:process forKey:@(pid)];
@@ -86,7 +86,7 @@
 }
 
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
-                        withConfiguration:(LDEProcessConfiguration*)configuration
+              withParentProcessIdentifier:(pid_t)parentProcessIdentifier
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
     __block pid_t retval = 0;
@@ -129,45 +129,26 @@
         LDEProcess *process = nil;
         retval = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
             @"HOME": applicationObject.containerPath
-        } withMapObject:nil withConfiguration:configuration process:&process];
+        } withMapObject:nil withParentProcessIdentifier:parentProcessIdentifier process:&process];
         process.bundleIdentifier = applicationObject.bundleIdentifier;
     });
     return retval;
-}
-
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
-                        withConfiguration:(LDEProcessConfiguration*)configuration
-{
-    return [self spawnProcessWithBundleIdentifier:bundleIdentifier withConfiguration:configuration doRestartIfRunning:NO];
 }
 
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
                 withArguments:(NSArray *)arguments
      withEnvironmentVariables:(NSDictionary*)environment
                 withMapObject:(FDMapObject*)mapObject
-            withConfiguration:(LDEProcessConfiguration*)configuration
+  withParentProcessIdentifier:(pid_t)parentProcessIdentifier
                       process:(LDEProcess**)processReply
 {
     [self enforceSpawnCooldown];
-    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withConfiguration:configuration];
+    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:parentProcessIdentifier];
     if(!process) return 0;
     pid_t pid = process.pid;
     [self.processes setObject:process forKey:@(pid)];
     if(processReply) *processReply = process;
     return pid;
-}
-
-- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier
-{
-    for(NSNumber *key in self.processes)
-    {
-        LDEProcess *process = self.processes[key];
-        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
-        else
-        {
-            [process terminate];
-        }
-    }
 }
 
 - (LDEProcess*)processForProcessIdentifier:(pid_t)pid
@@ -185,20 +166,17 @@
     });
 }
 
-- (BOOL)isExecutingProcessWithBundleIdentifier:(NSString*)bundleIdentifier
+- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier
 {
     for(NSNumber *key in self.processes)
     {
-        LDEProcess *process = [self.processes objectForKey:key];
-        if(process)
+        LDEProcess *process = self.processes[key];
+        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
+        else
         {
-            if([process.bundleIdentifier isEqual:bundleIdentifier])
-            {
-                return YES;
-            }
+            [process terminate];
         }
     }
-    return NO;
 }
 
 @end

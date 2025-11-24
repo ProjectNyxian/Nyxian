@@ -23,8 +23,7 @@
 
 @implementation LDEProcess
 
-- (instancetype)initWithItems:(NSDictionary*)items
-            withConfiguration:(LDEProcessConfiguration*)configuration
+- (instancetype)initWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier
 {
     self = [super init];
     
@@ -80,7 +79,7 @@
                     
                     // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
                     ksurface_error_t error = kSurfaceErrorUndefined;
-                    error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
+                    error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
                     
                     if(error != kSurfaceErrorSuccess)
                     {
@@ -100,7 +99,7 @@
                withArguments:(NSArray *)arguments
     withEnvironmentVariables:(NSDictionary*)environment
                withMapObject:(FDMapObject*)mapObject
-           withConfiguration:(LDEProcessConfiguration*)configuration
+ withParentProcessIdentifier:(pid_t)parentProcessIdentifier
 {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
         @"LSEndpoint": [Server getTicket],
@@ -115,7 +114,7 @@
         [dictionary setObject:mapObject forKey:@"LSMapObject"];
     }
     
-    self = [self initWithItems:[dictionary copy] withConfiguration:configuration];
+    self = [self initWithItems:[dictionary copy] withParentProcessIdentifier:parentProcessIdentifier];
     
     return self;
 }
