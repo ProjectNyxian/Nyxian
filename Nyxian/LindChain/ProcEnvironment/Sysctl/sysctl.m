@@ -29,8 +29,8 @@ static const int mib_kern_proc_pid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_P
 static const int mib_kern_proc_pgrp[]       = { CTL_KERN, KERN_PROC, KERN_PROC_PGRP };      /* Needs implementation */
 static const int mib_kern_proc_session[]    = { CTL_KERN, KERN_PROC, KERN_PROC_SESSION };   /* Needs implementation */
 static const int mib_kern_proc_tty[]        = { CTL_KERN, KERN_PROC, KERN_PROC_TTY };       /* Needs implementation */
-static const int mib_kern_proc_uid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_UID };       /* Needs implementation */
-static const int mib_kern_proc_ruid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_RUID };      /* Needs implementation */
+static const int mib_kern_proc_uid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_UID };
+static const int mib_kern_proc_ruid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_RUID };
 static const int mib_kern_proc_lcid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_LCID };      /* Needs implementation */
 static const int mib_kern_procargs2[]       = { CTL_KERN, KERN_PROCARGS2 };
 
@@ -38,6 +38,8 @@ static const sysctl_map_entry_t sysctl_map[] = {
     { mib_kern_maxproc,   2, sysctl_kernmaxproc },
     { mib_kern_proc_all,  3, sysctl_kernprocall },
     { mib_kern_proc_pid,  3, sysctl_kernprocpid },
+    { mib_kern_proc_uid,  3, sysctl_kernprocuid },
+    { mib_kern_proc_ruid,  3, sysctl_kernprocruid },
     { mib_kern_procargs2, 2, sysctl_kernprocargs2 }
 };
 

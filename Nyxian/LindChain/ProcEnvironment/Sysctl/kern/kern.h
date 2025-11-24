@@ -23,8 +23,12 @@
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 
 int sysctl_kernmaxproc(sysctl_req_t *req);
+
 int sysctl_kernprocall(sysctl_req_t *req);
 int sysctl_kernprocpid(sysctl_req_t *req);
+int sysctl_kernprocuid(sysctl_req_t *req);
+int sysctl_kernprocruid(sysctl_req_t *req);
+
 int sysctl_kernprocargs2(sysctl_req_t *req);
 
 #endif /* LINDCHAIN_KERN_KERN_H */

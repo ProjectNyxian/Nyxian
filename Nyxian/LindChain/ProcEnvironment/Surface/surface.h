@@ -94,9 +94,6 @@ extern ksurface_mapping_t *surface;
 /* Handoff */
 MappingPortObject *proc_surface_for_pid(pid_t pid);
 
-/* Sysctl */
-int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out);
-
 void kern_sethostname(NSString *hostname);
 
 void proc_surface_init(void);

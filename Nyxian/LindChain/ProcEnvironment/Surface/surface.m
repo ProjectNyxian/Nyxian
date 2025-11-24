@@ -29,61 +29,6 @@
 ksurface_mapping_t *surface = NULL;
 static MappingPortObject *surfaceMappingPortObject = NULL;
 
-/* sysctl */
-int proc_sysctl_listproc(void *buffer, size_t buffersize, size_t *needed_out)
-{
-    // Dont use if uninitilized
-    if(surface == NULL) return 0;
-    
-    size_t needed_bytes = 0;
-    int ret = 0;
-
-    // Sequence
-    unsigned long seq;
-    
-    do {
-        seq = reflock_read_begin(&(surface->reflock));
-
-        uint32_t count = surface->proc_info.proc_count;
-        needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
-
-        if(needed_out)
-            *needed_out = needed_bytes;
-
-        if(buffer == NULL || buffersize == 0)
-        {
-            ret = (int)needed_bytes;
-            break;
-        }
-
-        if(buffersize < needed_bytes)
-        {
-            errno = ENOMEM;
-            ret = -1;
-            break;
-        }
-
-        struct kinfo_proc *kprocs = buffer;
-        for(uint32_t i = 0; i < count; i++)
-        {
-            memset(&kprocs[i], 0, sizeof(struct kinfo_proc));
-            memcpy(&kprocs[i],
-                   &surface->proc_info.proc[i].bsd,
-                   sizeof(struct kinfo_proc));
-        }
-
-        ret = (int)needed_bytes;
-
-    }
-    while(reflock_read_retry(&(surface->reflock), seq));
-
-    return ret;
-}
-
-/*
- Management
- */
-/// Returns a process surface file handle to perform a handoff over XPC
 MappingPortObject *proc_surface_for_pid(pid_t pid)
 {
     environment_must_be_role(EnvironmentRoleHost);
