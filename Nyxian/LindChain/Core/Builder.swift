@@ -235,7 +235,7 @@ class Builder {
             "-platform_version",
             "ios",
             project.projectConfig.platformMinimumVersion!,
-            "26.1",
+            project.projectConfig.platformVersion!,
             "-arch",
             "arm64",
             "-syslibroot",

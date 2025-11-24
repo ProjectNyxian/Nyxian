@@ -45,6 +45,7 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 @property (nonatomic,strong,readonly) NSArray *compilerFlags;
 @property (nonatomic,strong,readonly) NSArray *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
+@property (nonatomic,strong,readonly) NSString *platformVersion;
 @property (nonatomic,readonly) int type;
 @property (nonatomic,readonly) int threads;
 @property (nonatomic,readonly) BOOL increment;
