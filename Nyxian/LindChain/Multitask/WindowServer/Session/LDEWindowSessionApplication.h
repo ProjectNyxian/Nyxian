@@ -24,7 +24,7 @@
 #import <LindChain/Multitask/WindowServer/LDEWindowSession.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
-@interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction,FBSceneDelegate>
+@interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction>
 
 @property (nonatomic) UIView* contentView;
 @property (nonatomic, weak) LDEProcess *process;

@@ -88,20 +88,6 @@
 }
 @end
 
-@interface GridTableCell2 : NSObject
-@end
-
-@implementation GridTableCell2
-
-- (void)hook_configureWithId:(int)id columns:(NSArray *)columns size:(CGSize)size
-{
-    if(columns.count == 0)
-        return;
-    return [self hook_configureWithId:id columns:columns size:size];
-}
-
-@end
-
 void UIKitGuestHooksInit(void)
 {
     static dispatch_once_t onceToken;
@@ -111,13 +97,6 @@ void UIKitGuestHooksInit(void)
         swizzle_objc_method(@selector(__supportedInterfaceOrientations), [UIViewController class], @selector(hook___supportedInterfaceOrientations), nil);
         swizzle_objc_method(@selector(shouldAutorotateToInterfaceOrientation:), [UIViewController class], @selector(hook_shouldAutorotateToInterfaceOrientation:), nil);
         swizzle_objc_method(@selector(setAutorotates:forceUpdateInterfaceOrientation:), [UIWindow class], @selector(hook_setAutorotates:forceUpdateInterfaceOrientation:), nil);
-        
-        Class class = NSClassFromString(@"GridTableCell");
-        if(class)
-        {
-            NSLog(@"Fixing CocoaTop!");
-            swizzle_objc_method(@selector(configureWithId:columns:size:), class, @selector(hook_configureWithId:columns:size:), [GridTableCell2 class]);
-        }
     });
 }
 
