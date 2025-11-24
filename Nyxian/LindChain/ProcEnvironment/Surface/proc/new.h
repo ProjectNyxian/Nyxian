@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_error_t proc_new_proc(pid_t ppid, pid_t pid, uid_t uid, gid_t gid, NSString *executablePath);
+ksurface_error_t proc_init_kproc(void);
 ksurface_error_t proc_new_child_proc(pid_t ppid, pid_t pid, NSString *executablePath);
 
 #endif /* PROC_NEW_H */

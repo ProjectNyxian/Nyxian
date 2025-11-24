@@ -24,71 +24,68 @@
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
+#import <LindChain/ProcEnvironment/panic.h>
 
-ksurface_error_t proc_new_proc(pid_t ppid,
-                               pid_t pid,
-                               uid_t uid,
-                               gid_t gid,
-                               NSString *executablePath)
+ksurface_error_t proc_init_kproc(void)
 {
 #ifdef HOST_ENV
+    reflock_lock(&(surface->reflock));
+    
+    if(surface->proc_info.proc_count != 0)
+    {
+        // Its not nyxian adding it self to the list... This shall never happen under no condition
+        environment_panic();
+        
+        // Incase we return from panic... which shall never happen under no condition
+        reflock_unlock(&(surface->reflock));
+        return kSurfaceErrorUndefined;
+    }
+    
     ksurface_proc_t proc = {};
     
     // Set ksurface_proc properties
     proc.nyx.force_task_role_override = true;
     proc.nyx.task_role_override = TASK_UNSPECIFIED;
-    strncpy(proc.nyx.executable_path, [[[NSURL fileURLWithPath:executablePath] path] UTF8String], PATH_MAX);
-    
-    if(ppid == PID_LAUNCHD)
-    {
-        // Its nyxian it self
-        // Nyxian has all entitlements granted in ProcEnvironment Kernel because it has already EnvironmentRoleHost, its the host
-        // Its extremely dangrous to grant a process all entitlements by being the parent of launchd, a process could somehow manipulate its own process structure with a vulnerability
-        // Modify its ppid to be PID_LAUNCHD, to prevent that we simply set it to sandboxed although Nyxian is the host and has max control by default
-        proc_setentitlements(proc, PEEntitlementSandboxedApplication);
-    }
-    else
-    {
-        // Its a usual process nyxian created
-        NSString *entHash = [LDETrust entHashOfExecutableAtPath:executablePath];
-        if(entHash == nil)
-        {
-            proc_setentitlements(proc, PEEntitlementSandboxedApplication);
-        }
-        else
-        {
-            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:entHash]);
-        }
-    }
+    NSString *executablePath = [[NSBundle mainBundle] executablePath];
+    strncpy(proc.nyx.executable_path, [executablePath UTF8String], PATH_MAX);
+    proc_setentitlements(proc, PEEntitlementKernel);
     
     // Set bsd process stuff
-    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0) return kSurfaceErrorUndefined;
+    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    {
+        reflock_unlock(&(surface->reflock));
+        return kSurfaceErrorUndefined;
+    }
     proc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
     proc.bsd.kp_proc.p_stat = SRUN;
-    proc.bsd.kp_proc.p_pid = pid;
-    proc.bsd.kp_proc.p_oppid = ppid;
+    proc.bsd.kp_proc.p_pid = getpid();
+    proc.bsd.kp_proc.p_oppid = PID_LAUNCHD;
     proc.bsd.kp_proc.p_priority = PUSER;
     proc.bsd.kp_proc.p_usrpri = PUSER;
-    strncpy(proc.bsd.kp_proc.p_comm, [[[NSURL fileURLWithPath:executablePath] lastPathComponent] UTF8String], MAXCOMLEN + 1);
+    strncpy(proc.bsd.kp_proc.p_comm, [[executablePath lastPathComponent] UTF8String], MAXCOMLEN + 1);
     proc.bsd.kp_proc.p_acflag = 2;
-    proc.bsd.kp_eproc.e_pcred.p_ruid = uid;
-    proc.bsd.kp_eproc.e_pcred.p_svuid = uid;
-    proc.bsd.kp_eproc.e_pcred.p_rgid = gid;
-    proc.bsd.kp_eproc.e_pcred.p_svgid = gid;
+    proc.bsd.kp_eproc.e_pcred.p_ruid = 0;
+    proc.bsd.kp_eproc.e_pcred.p_svuid = 0;
+    proc.bsd.kp_eproc.e_pcred.p_rgid = 0;
+    proc.bsd.kp_eproc.e_pcred.p_svgid = 0;
     proc.bsd.kp_eproc.e_ucred.cr_ref = 5;
-    proc.bsd.kp_eproc.e_ucred.cr_uid = uid;
+    proc.bsd.kp_eproc.e_ucred.cr_uid = 0;
     proc.bsd.kp_eproc.e_ucred.cr_ngroups = 4;
-    proc.bsd.kp_eproc.e_ucred.cr_groups[0] = gid;
+    proc.bsd.kp_eproc.e_ucred.cr_groups[0] = 0;
     proc.bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
     proc.bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
     proc.bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
-    proc.bsd.kp_eproc.e_ppid = ppid;
-    proc.bsd.kp_eproc.e_pgid = ppid;
+    proc.bsd.kp_eproc.e_ppid = PID_LAUNCHD;
+    proc.bsd.kp_eproc.e_pgid = PID_LAUNCHD;
     proc.bsd.kp_eproc.e_tdev = -1;
     proc.bsd.kp_eproc.e_flag = 2;
     
+    ksurface_error_t error = proc_append(proc);
+    
     // Adding/Inserting proc
-    return proc_append(proc);
+    reflock_unlock(&(surface->reflock));
+    
+    return error;
 #else
     return kSurfaceErrorUndefined;
 #endif /* HOST_ENV */
@@ -110,11 +107,16 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         return error;
     }
     
-    // Reset time to now
-    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    // Check if Nyxian spawned it, if so, drop its permitives accordingly
+    if(proc_getppid(proc) == PID_LAUNCHD)
     {
-        reflock_unlock(&(surface->reflock));
-        return kSurfaceErrorUndefined;
+        //Its Nyxian it self and due to that we have to drop permitives to mobile user
+        proc_setuid(proc, 501);
+        proc_setruid(proc, 501);
+        proc_setsvuid(proc, 501);
+        proc_setgid(proc, 501);
+        proc_setrgid(proc, 501);
+        proc_setsvgid(proc, 501);
     }
     
     // Inheriting entitlements or not?
@@ -129,6 +131,13 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         {
             proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:entHash]);
         }
+    }
+    
+    // Reset time to now
+    if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    {
+        reflock_unlock(&(surface->reflock));
+        return kSurfaceErrorUndefined;
     }
     
     // Overwriting executable path

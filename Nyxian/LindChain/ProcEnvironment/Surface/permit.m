@@ -46,12 +46,18 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
     // Gets creds
     uid_t caller_uid = proc_getuid(callerProc);
     
+    // Platform check
+    if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
+       !entitlement_got_entitlement(proc_getentitlements(callerProc), PEEntitlementPlatform))
+    {
+        // If the target got platform but the caller doesnt it gets denied
+        return NO;
+    }
+    
     // Gets if its allowed in the first place
     if((caller_uid == 0) ||
        (caller_uid == proc_getuid(targetProc)) ||
        (caller_uid == proc_getruid(targetProc))) return YES;
-    
-    // MARK: Child supervisor entitlement has been removed because too large attack surface
     
     return NO;
 }

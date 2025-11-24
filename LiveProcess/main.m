@@ -141,6 +141,13 @@ int LiveProcessMain(int argc, char *argv[]) {
     if([mode isEqualToString:@"management"])
     {
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
+        
+        if(environment_proxy_setprocinfo(ProcessInfoUID, 1) != 0 ||
+           environment_proxy_setprocinfo(ProcessInfoGID, 1) != 0)
+        {
+            exit(1);
+        }
+        
         if([service isEqualToString:@"installd"])
         {
             ApplicationManagementDaemonEntry();

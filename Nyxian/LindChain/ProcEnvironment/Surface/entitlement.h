@@ -100,9 +100,14 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Makes a process retain entitlements across processes, made for sandboxed applications and such. Its a security feature. */
     PEEntitlementProcessSpawnInheriteEntitlements = 1ull << 19,
     
+    /*! Security feature for daemons and such */
+    PEEntitlementPlatform                         = 1ull << 20,
+    
     PEEntitlementSandboxedApplication       = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements,
     PEEntitlementUserApplication            = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemApplication          = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSystemDaemon               = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
+    PEEntitlementKernel                     = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementSurfaceManager | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
 };
 
 bool proc_got_entitlement(pid_t pid, PEEntitlement entitlement);

@@ -46,7 +46,7 @@
 {
     if([hash isEqualToString:@"com.cr4zy.nyxian.daemon.trustcache_daemon"])
     {
-        return PEEntitlementSystemApplication;
+        return PEEntitlementSystemDaemon;
     }
     else
     {

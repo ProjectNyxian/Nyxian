@@ -80,14 +80,7 @@
                     
                     // TODO: We gonna shrink down this part more and more to move the tasks all slowly to surface
                     ksurface_error_t error = kSurfaceErrorUndefined;
-                    if(configuration.ppid != getpid())
-                    {
-                        error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
-                    }
-                    else
-                    {
-                        error = proc_new_proc(configuration.ppid, weakSelf.pid, configuration.uid, configuration.gid, weakSelf.executablePath);
-                    }
+                    error = proc_new_child_proc(configuration.ppid, weakSelf.pid, weakSelf.executablePath);
                     
                     if(error != kSurfaceErrorSuccess)
                     {
