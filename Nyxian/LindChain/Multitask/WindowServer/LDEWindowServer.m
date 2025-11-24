@@ -91,19 +91,30 @@
     LDEWindow *window = self.windows[@(identifier)];
     if (!window) return;
     
-    _activeWindowIdentifier = identifier;
-    [self moveWindowToFrontWithNumber:@(identifier)];
-    [window.session activateWindow];
-
-    UIView *v = window.view;
+    if(window.view.superview != self)
+    {
+        _activeWindowIdentifier = identifier;
+        [self moveWindowToFrontWithNumber:@(identifier)];
+        [window.session activateWindow];
+        [self addSubview:window.view];
+        [window openWindow];
+    }
+    
+    if(self.appSwitcherView)
+    {
+        [self hideAppSwitcher];
+    }
+    
+    /*UIView *v = window.view;
     if (v.superview != self) {
         [self addSubview:v];
     }
     v.hidden = NO;
     [self bringSubviewToFront:v];
-    [v.layer removeAllAnimations];
+    [v.layer removeAllAnimations];*/
     
-    if (animated) {
+    /*if(animated)
+    {
         v.transform = CGAffineTransformMakeTranslation(0, self.bounds.size.height);
         v.alpha = 1.0;
         [UIView animateWithDuration:0.6
@@ -116,13 +127,11 @@
         } completion:^(BOOL done){
             if(done && completion) completion();
         }];
-    } else {
+    }
+    else
+    {
         v.transform = CGAffineTransformIdentity;
-    }
-    
-    if (self.appSwitcherView) {
-        [self hideAppSwitcher];
-    }
+    }*/
 }
 
 - (void)deactivateWindowByPullDown:(BOOL)pullDown
@@ -193,8 +202,8 @@
                 weakSelf.windows[@(windowIdentifier)] = window;
                 [self userDidFocusWindow:window];
                 [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
-                [weakSelf addSubview:window.view];
-                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+                //[weakSelf addSubview:window.view];
+                /*if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
                 {
                     [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
                 }
@@ -202,8 +211,9 @@
                 {
                     // TODO: iPad Stuff Maybe needed
                     [window.session activateWindow];
-                }
-                [window openWindow];
+                }*/
+                //[window openWindow];
+                [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
             }
         };
         
@@ -467,10 +477,10 @@
 
 - (void)handleTileTap:(UITapGestureRecognizer *)recognizer
 {
-    /*UIView *tile = recognizer.view;
+    UIView *tile = recognizer.view;
     if (!tile) return;
     wid_t identifier = (wid_t)tile.tag;
-    [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];*/
+    [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];
 }
 
 - (void)showAppSwitcher
@@ -598,11 +608,17 @@
 {
     UIEdgeInsets insets = self.safeAreaInsets;
     CGRect bounds = self.bounds;
-
+    
     CGRect allowed = CGRectMake(bounds.origin.x + insets.left,
                                 bounds.origin.y + insets.top,
                                 bounds.size.width  - insets.left - insets.right,
                                 bounds.size.height - insets.top - insets.bottom);
+    
+    if(window.isMaximized)
+    {
+        allowed.size.height = bounds.size.height - insets.top;
+        return allowed;
+    }
     
     if (rect.size.width > allowed.size.width)
         rect.size.width = allowed.size.width;

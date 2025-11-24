@@ -32,9 +32,6 @@
 @property (atomic) int resizeEndDebounceRefCnt;
 @property (nonatomic) UIView *focusView;
 
-@property (nonatomic, strong) NSArray<NSLayoutConstraint*> *fullScreenConstraints;
-@property (nonatomic) CGRect fullScreenRectBackup;
-
 // Intuition Fixup
 @property CGPoint resizeAnchor;
 @property CGPoint grabOffset;
@@ -142,6 +139,10 @@
                     {
                         windowView.transform = CGAffineTransformIdentity;
                         windowView.alpha = 1.0;
+                        if(self.isMaximized)
+                        {
+                            [self maximizeWindow:NO];
+                        }
                         [windowView removeFromSuperview];
                         [self.session deactivateWindow];
                         [self.delegate userDidMinimizeWindow:self];
@@ -366,47 +367,33 @@
 {
     [self focusWindow:nil];
     
-    if(_fullScreenConstraints == nil)
-    {
-        _fullScreenConstraints = @[
-            [self.view.topAnchor constraintEqualToAnchor:self.view.superview.topAnchor constant:self.view.superview.safeAreaInsets.top],
-            [self.view.bottomAnchor constraintEqualToAnchor:self.view.superview.bottomAnchor],
-            [self.view.trailingAnchor constraintEqualToAnchor:self.view.superview.trailingAnchor],
-            [self.view.leadingAnchor constraintEqualToAnchor:self.view.superview.leadingAnchor],
-        ];
-    }
-    
     [self resizeActionStart];
     if(self.isMaximized)
     {
+        self.isMaximized = NO;
         self.session.windowIsFullscreen = NO;
-        self.resizeHandle.hidden = NO;
-        [NSLayoutConstraint deactivateConstraints:self.fullScreenConstraints];
-        self.view.translatesAutoresizingMaskIntoConstraints = YES;
+        CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:self.originalFrame];
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.view.frame = [self.delegate userDoesChangeWindow:self toRect:self.fullScreenRectBackup];
+            self.view.frame = newFrame;
             self.contentStack.layer.cornerRadius = 20;
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
-            
+            self.resizeHandle.hidden = NO;
         } completion:^(BOOL finished){
-            self.isMaximized = NO;
             [self resizeActionEnd];
         }];
     } else
     {
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
-        self.fullScreenRectBackup = self.view.frame;
+        CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:CGRectZero];
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.view.frame = CGRectMake(0, self.view.superview.safeAreaInsets.top, self.view.superview.bounds.size.width, self.view.superview.bounds.size.height);
+            self.view.frame = newFrame;
             self.contentStack.layer.cornerRadius = 0;
             self.contentStack.layer.borderWidth = 0;
             self.view.layer.shadowOpacity = 0;
-        } completion:^(BOOL finished){
-            self.view.translatesAutoresizingMaskIntoConstraints = NO;
-            [NSLayoutConstraint activateConstraints:self.fullScreenConstraints];
             self.resizeHandle.hidden = YES;
+        } completion:^(BOOL finished){
             [self resizeActionEnd];
         }];
     }
