@@ -35,7 +35,7 @@ import Foundation
 @objc class Bootstrap: NSObject {
     var semaphore: DispatchSemaphore?
     let rootPath: String = "\(NSHomeDirectory())/Documents"
-    let newestBootstrapVersion: Int = 7
+    let newestBootstrapVersion: Int = 8
     
     var bootstrapVersion: Int {
         get {
@@ -145,13 +145,18 @@ import Foundation
                     }
                     
                     if self.bootstrapVersion == 6 {
+                        print("[*] bootstrap upgrade patch for version 7")
+                        self.bootstrapVersion = 7
+                    }
+                    
+                    if self.bootstrapVersion == 7 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
                         }
                         
-                        print("[*] bootstrap upgrade patch for version 7")
+                        print("[*] bootstrap upgrade patch for version 8")
                         
-                        if !fdownload("https://nyxian.app/bootstrap/sdk18.5.zip", "sdk.zip") {
+                        if !fdownload("https://nyxian.app/bootstrap/sdk26.1.zip", "sdk.zip") {
                             print("[*] Bootstrap download failed\n")
                             throw NSError(
                                 domain: "",
@@ -163,7 +168,7 @@ import Foundation
                         print("[*] Extracting sdk.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
                         
-                        self.bootstrapVersion = 7
+                        self.bootstrapVersion = 8
                     }
                     
                     self.bootstrapVersion = self.newestBootstrapVersion

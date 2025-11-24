@@ -61,7 +61,9 @@
         @"-target",
         [self platformTriple],
         @"-isysroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS16.5.sdk"],
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
+        [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
+        [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
         [NSString stringWithFormat:@"-I%@", [[Bootstrap shared] bootstrapPath:@"/Include/include"]]
     ]];
     

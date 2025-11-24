@@ -235,11 +235,11 @@ class Builder {
             "-platform_version",
             "ios",
             project.projectConfig.platformMinimumVersion!,
-            "18.5",
+            "26.1",
             "-arch",
             "arm64",
             "-syslibroot",
-            Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS16.5.sdk")
+            Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.1.sdk")
         ] + self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
