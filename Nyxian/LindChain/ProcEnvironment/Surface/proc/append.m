@@ -20,8 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/append.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
-                                                    bool use_lock)
+ksurface_error_t proc_append(ksurface_proc_t proc)
 {
     // Dont use if uninitilized
     if(surface == NULL) return kSurfaceErrorNullPtr;
@@ -56,14 +55,4 @@ static inline ksurface_error_t proc_append_internal(ksurface_proc_t proc,
     
     // It succeeded
     return error;
-}
-
-ksurface_error_t proc_append(ksurface_proc_t proc)
-{
-    return proc_append_internal(proc, true);
-}
-
-ksurface_error_t proc_append_nolock(ksurface_proc_t proc)
-{
-    return proc_append_internal(proc, false);
 }
