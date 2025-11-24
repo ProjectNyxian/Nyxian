@@ -247,13 +247,4 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     });
 }
 
-- (void)sceneDidInvalidate:(FBScene *)arg1
-{
-    dispatch_once(&_notifyWindowManagerOnceInForAll, ^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
-        });
-    });
-}
-
 @end
