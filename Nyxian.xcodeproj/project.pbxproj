@@ -118,7 +118,6 @@
 				LindChain/LiveContainer/dyld_bypass_validation.m,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,
-				LindChain/LiveContainer/Localization.m,
 				LindChain/LiveContainer/Tweaks/Dead10ccFix.m,
 				LindChain/LiveContainer/Tweaks/Dyld.m,
 				"LindChain/LiveContainer/Tweaks/NSBundle+FixCydiaSubstrate.m",

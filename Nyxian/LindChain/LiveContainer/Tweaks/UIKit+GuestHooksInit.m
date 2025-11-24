@@ -3,7 +3,6 @@
 #import "UIKitPrivate.h"
 #import "utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
-#import "Localization.h"
 #import <LindChain/Utils/Swizzle.h>
 #import <objc/message.h>
 
