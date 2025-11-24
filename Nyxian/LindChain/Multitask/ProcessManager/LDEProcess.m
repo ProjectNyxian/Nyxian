@@ -76,7 +76,9 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                 {
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
-                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
+                        dispatch_once(&strongSelf->_notifyWindowManagerOnceInForAll, ^{
+                            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
+                        });
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
@@ -241,6 +243,15 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
         dispatch_async(dispatch_get_main_queue(), ^{
             LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
             [[LDEWindowServer shared] openWindowWithSession:session identifier:&(self->_wid)];
+        });
+    });
+}
+
+- (void)sceneDidInvalidate:(FBScene *)arg1
+{
+    dispatch_once(&_notifyWindowManagerOnceInForAll, ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
         });
     });
 }

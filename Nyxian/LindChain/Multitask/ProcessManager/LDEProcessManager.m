@@ -159,8 +159,6 @@
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
     dispatch_sync(_syncQueue, ^{
-        LDEProcess *process = [self.processes objectForKey:@(pid)];
-        if(process != nil && process.wid != (wid_t)-1) [[LDEWindowServer shared] closeWindowWithIdentifier:process.wid];
         [self.processes removeObjectForKey:@(pid)];
         proc_exit_for_pid(pid);
     });

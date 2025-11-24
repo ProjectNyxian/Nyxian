@@ -34,6 +34,7 @@
 @property (nonatomic,strong) FBScene *scene;
 @property (nonatomic,strong) NSString *sceneID;
 @property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
+@property (nonatomic) dispatch_once_t notifyWindowManagerOnceInForAll;
 @property (nonatomic,strong) UIImage *snapshot;
 
 // Process properties
