@@ -156,7 +156,6 @@
 				LindChain/ProcEnvironment/Surface/proc/exit.m,
 				LindChain/ProcEnvironment/Surface/proc/fetch.m,
 				LindChain/ProcEnvironment/Surface/proc/new.m,
-				LindChain/ProcEnvironment/Surface/proc/proc.m,
 				LindChain/ProcEnvironment/Surface/proc/remove.m,
 				LindChain/ProcEnvironment/Surface/proc/replace.m,
 				LindChain/ProcEnvironment/Surface/rusage.m,

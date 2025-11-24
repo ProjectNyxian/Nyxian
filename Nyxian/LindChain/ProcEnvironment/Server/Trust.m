@@ -51,7 +51,7 @@
     }
     else
     {
-        return PEEntitlementUserApplication;
+        return PEEntitlementSandboxedApplication;
     }
 }
 
