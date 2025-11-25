@@ -22,6 +22,7 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 
 extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
@@ -39,7 +40,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     self.displayName = @"LiveProcess";
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
-    else self.displayName = [[NSURL fileURLWithPath:self.executablePath] lastPathComponent];
+    
     self.wid = (wid_t)-1;
     
     NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];

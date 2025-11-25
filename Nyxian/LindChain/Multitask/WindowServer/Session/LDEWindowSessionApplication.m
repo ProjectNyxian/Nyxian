@@ -20,6 +20,7 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <objc/runtime.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
@@ -51,6 +52,20 @@ void UIKitFixesInit(void)
 {
     self = [super init];
     _process = process;
+    
+    // FIXME: This crashes when installd is not running yet
+    LDEApplicationObject *applicationObject = [LDEApplicationWorkspace applicationObjectForExecutablePath:self.process.executablePath];
+    if(applicationObject != nil)
+    {
+        self.process.displayName = applicationObject.displayName;
+        self.process.bundleIdentifier = applicationObject.bundleIdentifier;
+    }
+    else
+    {
+        self.process.displayName = [self.process.executablePath lastPathComponent];
+        self.process.bundleIdentifier = nil;
+    }
+    
     self.windowName = _process.displayName;
     return self;
 }

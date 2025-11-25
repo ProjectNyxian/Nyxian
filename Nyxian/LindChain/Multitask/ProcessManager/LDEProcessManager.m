@@ -100,7 +100,11 @@
                 if(doRestartIfRunning)
                 {
                     [process terminate];
-                    usleep(300000);
+                    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+                    {
+                        // FIXME: If we store two values at the same time then this goes terribly wrong in LDEWindowSessionApplication
+                        usleep(300000);
+                    }
                 }
                 else
                 {
@@ -130,7 +134,6 @@
         retval = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
             @"HOME": applicationObject.containerPath
         } withMapObject:nil withParentProcessIdentifier:parentProcessIdentifier process:&process];
-        process.bundleIdentifier = applicationObject.bundleIdentifier;
     });
     return retval;
 }

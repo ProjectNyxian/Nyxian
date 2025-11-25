@@ -281,7 +281,7 @@ bool checkCodeSignature(const char* path);
     NSString *potentialBundlePath = [executablePath stringByDeletingLastPathComponent];
     NSError *error = nil;
     MIBundle *bundle = [[PrivClass(MIBundle) alloc] initWithBundleURL:[NSURL fileURLWithPath:potentialBundlePath] error:&error];
-    if(error == nil)
+    if(error != nil)
     {
         reply(nil);
         return;
