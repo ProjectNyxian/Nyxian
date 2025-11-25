@@ -98,6 +98,7 @@
         [window.session activateWindow];
         [self addSubview:window.view];
         [window openWindow];
+        [window focusWindow];
     }
     
     if(self.appSwitcherView)
