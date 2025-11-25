@@ -108,11 +108,16 @@
                 }
                 else
                 {
-                    LDEWindowServer *windowServer = [LDEWindowServer shared];
-                    LDEWindow *window = windowServer.windows[@(process.wid)];
-                    if(window != nil)
+                    if(process.wid != (wid_t)-1)
                     {
-                        [window focusWindow];
+                        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+                        {
+                            [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
+                        }
+                        else
+                        {
+                            [[LDEWindowServer shared] activateWindowForIdentifier:process.wid animated:YES withCompletion:nil];
+                        }
                     }
                     retval = process.pid;
                     return;

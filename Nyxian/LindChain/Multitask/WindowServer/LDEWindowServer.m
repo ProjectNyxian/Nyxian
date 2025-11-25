@@ -105,34 +105,6 @@
     {
         [self hideAppSwitcher];
     }
-    
-    /*UIView *v = window.view;
-    if (v.superview != self) {
-        [self addSubview:v];
-    }
-    v.hidden = NO;
-    [self bringSubviewToFront:v];
-    [v.layer removeAllAnimations];*/
-    
-    /*if(animated)
-    {
-        v.transform = CGAffineTransformMakeTranslation(0, self.bounds.size.height);
-        v.alpha = 1.0;
-        [UIView animateWithDuration:0.6
-                              delay:0
-             usingSpringWithDamping:0.8
-              initialSpringVelocity:0.6
-                            options:UIViewAnimationOptionCurveEaseInOut
-                         animations:^{
-            v.transform = CGAffineTransformIdentity;
-        } completion:^(BOOL done){
-            if(done && completion) completion();
-        }];
-    }
-    else
-    {
-        v.transform = CGAffineTransformIdentity;
-    }*/
 }
 
 - (void)deactivateWindowByPullDown:(BOOL)pullDown
@@ -185,6 +157,13 @@
         [window.session deactivateWindow];
         if (completion) completion();
     }];
+}
+
+- (void)focusWindowForIdentifier:(wid_t)identifier
+{
+    LDEWindow *window = self.windows[@(identifier)];
+    if (!window) return;
+    [window focusWindow];
 }
 
 - (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session

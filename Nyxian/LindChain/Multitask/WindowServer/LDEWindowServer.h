@@ -39,6 +39,8 @@
 
 - (BOOL)closeWindowWithIdentifier:(wid_t)identifier;
 - (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session identifier:(wid_t*)identifier;
+- (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
+- (void)focusWindowForIdentifier:(wid_t)identifier;
 
 @end
 
