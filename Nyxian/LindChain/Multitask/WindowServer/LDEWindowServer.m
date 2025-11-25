@@ -443,6 +443,11 @@
                 
                 if(window) [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
                 [tile removeFromSuperview];
+                
+                if(self.windows.count == 1 && self.placeholderStack)
+                {
+                    self.placeholderStack.hidden = NO;
+                }
             }];
         }
         else
