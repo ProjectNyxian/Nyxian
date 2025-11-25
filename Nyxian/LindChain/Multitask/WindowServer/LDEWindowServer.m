@@ -545,22 +545,17 @@
     }
 }
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
-    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
     if([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
-       [gestureRecognizer.view.superview isEqual:self.stackView])
+        gestureRecognizer.view.superview == self.stackView)
     {
         UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
         CGPoint velocity = [pan velocityInView:self];
-        if(fabs(velocity.y) > fabs(velocity.x))
-        {
-            return NO;
-        }
-        return YES;
+        return fabs(velocity.y) > fabs(velocity.x);
     }
-    
-    return NO;
+
+    return YES;
 }
 
 - (void)userDidFocusWindow:(LDEWindow *)window
