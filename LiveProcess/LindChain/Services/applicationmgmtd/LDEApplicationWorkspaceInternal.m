@@ -197,15 +197,18 @@ bool checkCodeSignature(const char* path);
 
 @implementation LDEApplicationWorkspaceProxy
 
-- (void)applicationInstalledWithBundleID:(NSString *)bundleID withReply:(void (^)(BOOL))reply {
+- (void)applicationInstalledWithBundleID:(NSString *)bundleID
+                               withReply:(void (^)(BOOL))reply {
     reply([[LDEApplicationWorkspaceInternal shared] applicationInstalledWithBundleID:bundleID]);
 }
 
-- (void)deleteApplicationWithBundleID:(NSString *)bundleID withReply:(void (^)(BOOL))reply {
+- (void)deleteApplicationWithBundleID:(NSString *)bundleID
+                            withReply:(void (^)(BOOL))reply {
     reply([[LDEApplicationWorkspaceInternal shared] deleteApplicationWithBundleID:bundleID]);
 }
 
-- (void)installApplicationWithArchiveObject:(ArchiveObject*)archiveObject withReply:(void (^)(BOOL))reply {
+- (void)installApplicationWithArchiveObject:(ArchiveObject*)archiveObject
+                                  withReply:(void (^)(BOOL))reply {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *tempBundle = [archiveObject extractArchive];
     BOOL didInstall = [[LDEApplicationWorkspaceInternal shared] installApplicationWithPayloadPath:tempBundle];
@@ -213,7 +216,8 @@ bool checkCodeSignature(const char* path);
     reply(didInstall);
 }
 
-- (void)applicationObjectForBundleID:(NSString *)bundleID withReply:(void (^)(LDEApplicationObject *))reply
+- (void)applicationObjectForBundleID:(NSString *)bundleID
+                           withReply:(void (^)(LDEApplicationObject *))reply
 {
     MIBundle *bundle = [[LDEApplicationWorkspaceInternal shared] applicationBundleForBundleID:bundleID];
     
@@ -226,7 +230,8 @@ bool checkCodeSignature(const char* path);
     reply([[LDEApplicationObject alloc] initWithBundle:bundle]);
 }
 
-- (void)applicationContainerForBundleID:(NSString*)bundleID withReply:(void (^)(NSURL*))reply
+- (void)applicationContainerForBundleID:(NSString*)bundleID
+                              withReply:(void (^)(NSURL*))reply
 {
     reply([[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundleID]);
 }
@@ -244,12 +249,14 @@ bool checkCodeSignature(const char* path);
     reply([[LDEApplicationObjectArray alloc] initWithApplicationObjects:[objects copy]]);
 }
 
-- (void)clearContainerForBundleID:(NSString *)bundleID withReply:(void (^)(BOOL))reply
+- (void)clearContainerForBundleID:(NSString *)bundleID
+                        withReply:(void (^)(BOOL))reply
 {
     reply([[LDEApplicationWorkspaceInternal shared] clearContainerForBundleID:bundleID]);
 }
 
-- (void)fastpathUtility:(FileObject*)object withReply:(void (^)(NSString*,BOOL))reply;
+- (void)fastpathUtility:(FileObject*)object
+              withReply:(void (^)(NSString*,BOOL))reply;
 {
     // Write out
     NSURL *url = [NSURL fileURLWithPath:object.path];
@@ -266,6 +273,22 @@ bool checkCodeSignature(const char* path);
         }
     }
     reply(fastPath, isSigned);
+}
+
+- (void)applicationObjectForExecutablePath:(NSString*)executablePath
+                                 withReply:(void (^)(LDEApplicationObject*))reply
+{
+    NSString *potentialBundlePath = [executablePath stringByDeletingLastPathComponent];
+    NSError *error = nil;
+    MIBundle *bundle = [[PrivClass(MIBundle) alloc] initWithBundleURL:[NSURL fileURLWithPath:potentialBundlePath] error:&error];
+    if(error == nil)
+    {
+        reply(nil);
+        return;
+    }
+    
+    LDEApplicationObject *application = [[LDEApplicationObject alloc] initWithBundle:bundle];
+    reply(application);
 }
 
 @end

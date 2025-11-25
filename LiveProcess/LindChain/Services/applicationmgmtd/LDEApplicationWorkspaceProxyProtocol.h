@@ -33,6 +33,7 @@
 - (void)allApplicationObjectsWithReply:(void (^)(LDEApplicationObjectArray *))reply;
 - (void)clearContainerForBundleID:(NSString*)bundleID withReply:(void (^)(BOOL))reply;
 - (void)fastpathUtility:(FileObject*)object withReply:(void (^)(NSString*,BOOL))reply;
+- (void)applicationObjectForExecutablePath:(NSString*)executablePath withReply:(void (^)(LDEApplicationObject*))reply;
 
 @end
 

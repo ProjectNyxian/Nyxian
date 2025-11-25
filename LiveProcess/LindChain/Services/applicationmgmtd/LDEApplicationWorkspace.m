@@ -140,4 +140,18 @@
     return fastpath;
 }
 
++ (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath
+{
+    __block LDEApplicationObject *application = nil;
+    [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
+        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+        [remoteProxy applicationObjectForExecutablePath:executablePath withReply:^(LDEApplicationObject *applicationReply){
+            application = applicationReply;
+            dispatch_semaphore_signal(sema);
+        }];
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    return application;
+}
+
 @end
