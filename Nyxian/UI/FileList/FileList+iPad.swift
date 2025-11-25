@@ -322,20 +322,23 @@ class SplitScreenDetailViewController: UIViewController {
             bottomBorderView.heightAnchor.constraint(equalToConstant: 1)
         ])
         
-        let buildButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "play.fill"), primaryAction: UIAction { _ in
+        var barButtons: [UIBarButtonItem] = []
+        barButtons.append(UIBarButtonItem(image: UIImage(systemName: "play.fill"), primaryAction: UIAction { _ in
             NotificationCenter.default.post(name: NSNotification.Name("RunAct"), object: nil)
-        })
-        let packageButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "archivebox.fill"), primaryAction: UIAction { [weak self] _ in
-            guard let self = self else { return }
-            buildProjectWithArgumentUI(targetViewController: self, project: self.project, buildType: .InstallPackagedApp)
-        })
-        let issueNavigator: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "exclamationmark.triangle.fill"), primaryAction: UIAction { [weak self] _ in
+        }))
+        if self.project.projectConfig.type == NXProjectType.app.rawValue {
+            barButtons.append(UIBarButtonItem(image: UIImage(systemName: "archivebox.fill"), primaryAction: UIAction { [weak self] _ in
+                guard let self = self else { return }
+                buildProjectWithArgumentUI(targetViewController: self, project: self.project, buildType: .InstallPackagedApp)
+            }))
+        }
+        barButtons.append(UIBarButtonItem(image: UIImage(systemName: "exclamationmark.triangle.fill"), primaryAction: UIAction { [weak self] _ in
             guard let self = self else { return }
             let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: self.project))
             loggerView.modalPresentationStyle = .formSheet
             self.present(loggerView, animated: true)
-        })
-        self.navigationItem.rightBarButtonItems = [buildButton,packageButton,issueNavigator]
+        }))
+        self.navigationItem.rightBarButtonItems = barButtons
     }
     
     override func viewDidAppear(_ animated: Bool) {

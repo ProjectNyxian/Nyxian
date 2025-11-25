@@ -263,7 +263,7 @@ class Builder {
                     if result {
                         if(LDEApplicationWorkspace.installApplication(atBundlePath: self.project.bundlePath)) {
                             let application: LDEApplicationObject = LDEApplicationWorkspace.applicationObject(forBundleID: project.projectConfig.bundleid)
-                            if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.bundlePath) {
+                            if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.executablePath) {
                                 TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                             }
                             LDEProcessManager.shared().spawnProcess(withBundleIdentifier: project.projectConfig.bundleid, withParentProcessIdentifier: getpid(), doRestartIfRunning: true)

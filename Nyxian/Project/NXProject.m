@@ -353,6 +353,7 @@
 
 - (BOOL)reload
 {
+    [[self entitlementsConfig] reloadIfNeeded];
     return [[self projectConfig] reloadIfNeeded];
 }
 
