@@ -213,26 +213,22 @@ void UIKitFixesInit(void)
             settings.frame = rect;
         }
         
+        UIEdgeInsets insets = UIEdgeInsetsZero;
         if(self.windowIsFullscreen)
         {
-            UIWindow *window = UIApplication.sharedApplication.keyWindow;
-            UIEdgeInsets insets = window.safeAreaInsets;
-            
-            // MARK: The window server already accounts for that in fullscreen as fullscreen is not real fullscreen
-            insets.top = 10;
-            
-            settings.safeAreaInsetsPortrait = insets;
-            settings.safeAreaInsetsLandscapeLeft = insets;
-            settings.safeAreaInsetsLandscapeRight = insets;
-            settings.safeAreaInsetsPortraitUpsideDown = insets;
+            insets = LDEWindowServer.shared.safeAreaInsets;
         }
         else
         {
-            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(10, 0, 0, 0);
-            settings.safeAreaInsetsLandscapeLeft = UIEdgeInsetsMake(10, 0, 0, 0);
-            settings.safeAreaInsetsLandscapeRight = UIEdgeInsetsMake(10, 0, 0, 0);
-            settings.safeAreaInsetsPortraitUpsideDown = UIEdgeInsetsMake(10, 0, 0, 0);
+            insets = UIEdgeInsetsZero;
         }
+        
+        insets.top = 10;
+        
+        settings.safeAreaInsetsPortrait = insets;
+        settings.safeAreaInsetsLandscapeLeft = insets;
+        settings.safeAreaInsetsLandscapeRight = insets;
+        settings.safeAreaInsetsPortraitUpsideDown = insets;
     }];
 }
 
