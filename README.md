@@ -2,7 +2,7 @@
 ## What is it?
 Nyxian is a iOS application for iOS 17.0 and above(iOS 26.2 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups.
 ## Whats do I need?
-You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self.
+You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self. Do not use LiveContainer to use Nyxian, install Nyxian seperately.
 ## Language Support
 It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 18 SDK. All frameworks work except 3D rendering ones like SceneKIT.
 ## Project Support
