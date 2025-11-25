@@ -287,15 +287,15 @@
             [NSLayoutConstraint activateConstraints:@[
                 [scrollView.topAnchor constraintEqualToAnchor:blurView.contentView.topAnchor constant:20],
                 [scrollView.bottomAnchor constraintEqualToAnchor:blurView.contentView.bottomAnchor constant:-20],
-                [scrollView.leadingAnchor constraintEqualToAnchor:blurView.contentView.leadingAnchor constant:20],
-                [scrollView.trailingAnchor constraintEqualToAnchor:blurView.contentView.trailingAnchor constant:-20],
+                [scrollView.leadingAnchor constraintEqualToAnchor:blurView.contentView.leadingAnchor],
+                [scrollView.trailingAnchor constraintEqualToAnchor:blurView.contentView.trailingAnchor],
             ]];
 
             [NSLayoutConstraint activateConstraints:@[
                 [stack.topAnchor constraintEqualToAnchor:scrollView.topAnchor],
                 [stack.bottomAnchor constraintEqualToAnchor:scrollView.bottomAnchor],
-                [stack.leadingAnchor constraintEqualToAnchor:scrollView.leadingAnchor],
-                [stack.trailingAnchor constraintEqualToAnchor:scrollView.trailingAnchor],
+                [stack.leadingAnchor constraintEqualToAnchor:scrollView.leadingAnchor constant:20],
+                [stack.trailingAnchor constraintEqualToAnchor:scrollView.trailingAnchor constant:-20],
                 [stack.heightAnchor constraintEqualToAnchor:scrollView.heightAnchor]
             ]];
 
@@ -454,7 +454,6 @@
         }
     }
 }
-
 
 - (void)handleTileTap:(UITapGestureRecognizer *)recognizer
 {
