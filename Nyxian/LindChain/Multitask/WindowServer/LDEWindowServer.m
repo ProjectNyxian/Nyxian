@@ -241,6 +241,7 @@
 - (BOOL)closeWindowWithIdentifier:(wid_t)identifier
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+        if(self.activeWindowIdentifier == identifier) self.activeWindowIdentifier = (wid_t)-1;
         LDEWindow *window = self.windows[@(identifier)];
         if(window != nil)
         {
