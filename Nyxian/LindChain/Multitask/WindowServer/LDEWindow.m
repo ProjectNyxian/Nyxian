@@ -139,10 +139,6 @@
                     {
                         windowView.transform = CGAffineTransformIdentity;
                         windowView.alpha = 1.0;
-                        if(self.isMaximized)
-                        {
-                            [self maximizeWindow:NO];
-                        }
                         [windowView removeFromSuperview];
                         [self.session deactivateWindow];
                         [self.delegate userDidMinimizeWindow:self];
