@@ -40,6 +40,7 @@
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/ProcEnvironment/Server/Trust.h>
 
 /*
  Project

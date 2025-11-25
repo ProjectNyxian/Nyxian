@@ -80,6 +80,67 @@
 
 @end
 
+@implementation NXEntitlementsConfig
+
+- (BOOL)getTaskAllowed { return [self readBooleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]; }
+- (BOOL)taskForPid { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]; }
+- (BOOL)taskForPidHost { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid_host" withDefaultValue:NO]; }
+- (BOOL)surfaceRead { return [self readBooleanForKey:@"com.nyxian.pe.surface_read" withDefaultValue:YES]; }
+- (BOOL)surfaceWrite { return [self readBooleanForKey:@"com.nyxian.pe.surface_write" withDefaultValue:NO]; }
+- (BOOL)surfaceManager { return [self readBooleanForKey:@"com.nyxian.pe.surface_write" withDefaultValue:NO]; }
+- (BOOL)processEnumeration { return [self readBooleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]; }
+- (BOOL)processKill { return [self readBooleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]; }
+- (BOOL)processSpawn { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]; }
+- (BOOL)processSpawnSignedOnly { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_signed_only" withDefaultValue:NO]; }
+- (BOOL)processElevate { return [self readBooleanForKey:@"com.nyxian.pe.process_elevate" withDefaultValue:NO]; }
+- (BOOL)hostManager { return [self readBooleanForKey:@"com.nyxian.pe.host_manager" withDefaultValue:NO]; }
+- (BOOL)credManager { return [self readBooleanForKey:@"com.nyxian.pe.credentials_manager" withDefaultValue:NO]; }
+- (BOOL)launchServiceStart { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_start" withDefaultValue:NO]; }
+- (BOOL)launchServiceStop { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]; }
+- (BOOL)launchServiceToggle { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]; }
+- (BOOL)launchServiceGetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]; }
+- (BOOL)launchServiceManager { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]; }
+- (BOOL)trustCacheRead { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_read" withDefaultValue:NO]; }
+- (BOOL)trustCacheWrite { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_write" withDefaultValue:NO]; }
+- (BOOL)trustCacheManager { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_manager" withDefaultValue:NO]; }
+- (BOOL)enforceDeviceSpoof { return [self readBooleanForKey:@"com.nyxian.pe.enforce_device_spoof" withDefaultValue:NO]; }
+- (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:YES]; }
+- (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
+
+- (PEEntitlement)generateEntitlements
+{
+    PEEntitlement entitlements = 0;
+    
+    if([self getTaskAllowed]) entitlements = entitlements | PEEntitlementGetTaskAllowed;
+    if([self taskForPid]) entitlements = entitlements | PEEntitlementTaskForPid;
+    if([self taskForPidHost]) entitlements = entitlements | PEEntitlementTaskForPidHost;
+    if([self surfaceRead]) entitlements = entitlements | PEEntitlementSurfaceRead;
+    if([self surfaceWrite]) entitlements = entitlements | PEEntitlementSurfaceWrite;
+    if([self surfaceManager]) entitlements = entitlements | PEEntitlementSurfaceManager;
+    if([self processEnumeration]) entitlements = entitlements | PEEntitlementProcessEnumeration;
+    if([self processKill]) entitlements = entitlements | PEEntitlementProcessKill;
+    if([self processSpawn]) entitlements = entitlements | PEEntitlementProcessSpawn;
+    if([self processSpawnSignedOnly]) entitlements = entitlements | PEEntitlementProcessSpawnSignedOnly;
+    if([self processElevate]) entitlements = entitlements | PEEntitlementProcessElevate;
+    if([self hostManager]) entitlements = entitlements | PEEntitlementHostManager;
+    if([self credManager]) entitlements = entitlements | PEEntitlementCredentialsManager;
+    if([self launchServiceStart]) entitlements = entitlements | PEEntitlementLaunchServicesStart;
+    if([self launchServiceStop]) entitlements = entitlements | PEEntitlementLaunchServicesStop;
+    if([self launchServiceToggle]) entitlements = entitlements | PEEntitlementLaunchServicesToggle;
+    if([self launchServiceGetEndpoint]) entitlements = entitlements | PEEntitlementLaunchServicesGetEndpoint;
+    if([self launchServiceManager]) entitlements = entitlements | PEEntitlementLaunchServicesManager;
+    if([self trustCacheRead]) entitlements = entitlements | PEEntitlementTrustCacheRead;
+    if([self trustCacheWrite]) entitlements = entitlements | PEEntitlementTrustCacheWrite;
+    if([self trustCacheManager]) entitlements = entitlements | PEEntitlementTrustCacheManager;
+    if([self enforceDeviceSpoof]) entitlements = entitlements | PEEntitlementEnforceDeviceSpoof;
+    if([self processSpawnInheriteEntitlements]) entitlements = entitlements | PEEntitlementProcessSpawnInheriteEntitlements;
+    if([self platform]) entitlements = entitlements | PEEntitlementPlatform;
+    
+    return entitlements;
+}
+
+@end
+
 /*
  Project
  */
@@ -91,6 +152,7 @@
     _path = path;
     _cachePath = [[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path]];
+    _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path]];
     return self;
 }
 
@@ -133,7 +195,7 @@
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
                     @"com.nyxian.pe.task_for_pid_host": @(NO),
-                    @"com.nyxian.pe.surface_read": @(NO),
+                    @"com.nyxian.pe.surface_read": @(YES),
                     @"com.nyxian.pe.surface_write": @(NO),
                     @"com.nyxian.pe.surface_manager": @(NO),
                     @"com.nyxian.pe.process_enumeration": @(NO),
@@ -171,7 +233,7 @@
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
                     @"com.nyxian.pe.task_for_pid_host": @(NO),
-                    @"com.nyxian.pe.surface_read": @(NO),
+                    @"com.nyxian.pe.surface_read": @(YES),
                     @"com.nyxian.pe.surface_write": @(NO),
                     @"com.nyxian.pe.surface_manager": @(NO),
                     @"com.nyxian.pe.process_enumeration": @(NO),

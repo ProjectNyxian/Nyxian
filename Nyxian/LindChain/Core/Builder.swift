@@ -262,6 +262,10 @@ class Builder {
                     guard let self = self else { return }
                     if result {
                         if(LDEApplicationWorkspace.installApplication(atBundlePath: self.project.bundlePath)) {
+                            let application: LDEApplicationObject = LDEApplicationWorkspace.applicationObject(forBundleID: project.projectConfig.bundleid)
+                            if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.bundlePath) {
+                                TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
+                            }
                             LDEProcessManager.shared().spawnProcess(withBundleIdentifier: project.projectConfig.bundleid, withParentProcessIdentifier: getpid(), doRestartIfRunning: true)
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
@@ -279,6 +283,9 @@ class Builder {
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
                 if let path: String = LDEApplicationWorkspace.fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
+                        if let entHash: String = LDETrust.entHashOfExecutable(atPath: path) {
+                            TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
+                        }
                         let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
                         LDEWindowServer.shared().openWindow(withSession: TerminalSession, identifier: nil)
                     }
