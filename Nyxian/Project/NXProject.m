@@ -128,6 +128,33 @@
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
                     @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"]
+                },
+                @"/Config/Entitlements.plist": @{
+                    @"com.nyxian.pe.get_task_allowed": @(YES),
+                    @"com.nyxian.pe.task_for_pid": @(NO),
+                    @"com.nyxian.pe.task_for_pid_host": @(NO),
+                    @"com.nyxian.pe.surface_read": @(NO),
+                    @"com.nyxian.pe.surface_write": @(NO),
+                    @"com.nyxian.pe.surface_manager": @(NO),
+                    @"com.nyxian.pe.process_enumeration": @(NO),
+                    @"com.nyxian.pe.process_kill": @(NO),
+                    @"com.nyxian.pe.process_spawn": @(NO),
+                    @"com.nyxian.pe.process_spawn_signed_only": @(NO),
+                    @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
+                    @"com.nyxian.pe.process_elevate": @(NO),
+                    @"com.nyxian.pe.host_manager": @(NO),
+                    @"com.nyxian.pe.credentials_manager": @(NO),
+                    @"com.nyxian.pe.launch_services_start": @(NO),
+                    @"com.nyxian.pe.launch_services_stop": @(NO),
+                    @"com.nyxian.pe.launch_services_toggle": @(NO),
+                    @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
+                    @"com.nyxian.pe.launch_services_manager": @(NO),
+                    @"com.nyxian.pe.trustcache_read": @(NO),
+                    @"com.nyxian.pe.trustcache_write": @(NO),
+                    @"com.nyxian.pe.trustcache_manager": @(NO),
+                    @"com.nyxian.pe.device_spoof": @(NO),
+                    @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
+                    @"com.nyxian.pe.platform": @(NO)
                 }
             };
             break;
@@ -139,6 +166,33 @@
                     @"LDEProjectType": @(type),
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
                     @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"]
+                },
+                @"/Config/Entitlements.plist": @{
+                    @"com.nyxian.pe.get_task_allowed": @(YES),
+                    @"com.nyxian.pe.task_for_pid": @(NO),
+                    @"com.nyxian.pe.task_for_pid_host": @(NO),
+                    @"com.nyxian.pe.surface_read": @(NO),
+                    @"com.nyxian.pe.surface_write": @(NO),
+                    @"com.nyxian.pe.surface_manager": @(NO),
+                    @"com.nyxian.pe.process_enumeration": @(NO),
+                    @"com.nyxian.pe.process_kill": @(NO),
+                    @"com.nyxian.pe.process_spawn": @(NO),
+                    @"com.nyxian.pe.process_spawn_signed_only": @(NO),
+                    @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
+                    @"com.nyxian.pe.process_elevate": @(NO),
+                    @"com.nyxian.pe.host_manager": @(NO),
+                    @"com.nyxian.pe.credentials_manager": @(NO),
+                    @"com.nyxian.pe.launch_services_start": @(NO),
+                    @"com.nyxian.pe.launch_services_stop": @(NO),
+                    @"com.nyxian.pe.launch_services_toggle": @(NO),
+                    @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
+                    @"com.nyxian.pe.launch_services_manager": @(NO),
+                    @"com.nyxian.pe.trustcache_read": @(NO),
+                    @"com.nyxian.pe.trustcache_write": @(NO),
+                    @"com.nyxian.pe.trustcache_manager": @(NO),
+                    @"com.nyxian.pe.device_spoof": @(NO),
+                    @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
+                    @"com.nyxian.pe.platform": @(NO)
                 }
             };
             break;

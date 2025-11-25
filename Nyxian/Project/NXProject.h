@@ -22,6 +22,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Project/NXPlistHelper.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 typedef int NXProjectType NS_TYPED_ENUM;
 static NXProjectType const NXProjectTypeAny = 0;
@@ -57,10 +58,41 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 
 @end
 
+@interface NXEntitlementsConfig : NXPlistHelper
+
+@property (nonatomic,readonly) BOOL getTaskAllowed;
+@property (nonatomic,readonly) BOOL taskForPid;
+@property (nonatomic,readonly) BOOL taskForPidHost;
+@property (nonatomic,readonly) BOOL surfaceRead;
+@property (nonatomic,readonly) BOOL surfaceWrite;
+@property (nonatomic,readonly) BOOL surfaceManager;
+@property (nonatomic,readonly) BOOL processEnumeration;
+@property (nonatomic,readonly) BOOL processKill;
+@property (nonatomic,readonly) BOOL processSpawn;
+@property (nonatomic,readonly) BOOL processSpawnSignedOnly;
+@property (nonatomic,readonly) BOOL processElevate;
+@property (nonatomic,readonly) BOOL hostManager;
+@property (nonatomic,readonly) BOOL credManager;
+@property (nonatomic,readonly) BOOL launchServiceStart;
+@property (nonatomic,readonly) BOOL launchServiceStop;
+@property (nonatomic,readonly) BOOL launchServiceToggle;
+@property (nonatomic,readonly) BOOL launchServiceGetEndpoint;
+@property (nonatomic,readonly) BOOL launchServiceManager;
+@property (nonatomic,readonly) BOOL trustCacheRead;
+@property (nonatomic,readonly) BOOL trustCacheWrite;
+@property (nonatomic,readonly) BOOL trustCacheManager;
+@property (nonatomic,readonly) BOOL enforceDeviceSpoof;
+@property (nonatomic,readonly) BOOL processSpawnInheriteEntitlements;
+@property (nonatomic,readonly) BOOL platform;
+
+- (PEEntitlement)generateEntitlements;
+
+@end
+
 @interface NXProject : NSObject
 
-//@property (nonatomic,strong,readonly) UITableViewCell *tableCell;
 @property (nonatomic,strong,readonly) NXProjectConfig *projectConfig;
+@property (nonatomic,strong,readonly) NXEntitlementsConfig *entitlementsConfig;
 
 @property (nonatomic,strong,readonly) NSString *path;
 @property (nonatomic,strong,readonly) NSString *cachePath;
