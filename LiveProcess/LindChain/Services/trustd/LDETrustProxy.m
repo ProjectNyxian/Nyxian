@@ -23,6 +23,8 @@
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <CommonCrypto/CommonCrypto.h>
 
+bool checkCodeSignature(const char* path);
+
 NSString *hashOfFileAtPath(NSString *path)
 {
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:path];
@@ -64,6 +66,12 @@ NSString *hashOfFileAtPath(NSString *path)
                         withReply:(void (^)(NSString*))reply
 {
     reply(hashOfFileAtPath(path));
+}
+
+- (void)executableAllowedToExecutedAtPath:(NSString*)path
+                                withReply:(void (^)(BOOL))reply
+{
+    reply(checkCodeSignature([path UTF8String]));
 }
 
 @end

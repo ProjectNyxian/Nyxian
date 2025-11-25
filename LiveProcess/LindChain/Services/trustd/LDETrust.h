@@ -25,6 +25,7 @@
 @interface LDETrust : NSObject
 
 + (NSString*)entHashOfExecutableAtPath:(NSString*)path;
++ (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
 
 @end
 

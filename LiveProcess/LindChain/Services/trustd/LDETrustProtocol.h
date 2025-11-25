@@ -25,6 +25,7 @@
 @protocol LDETrustProtocol <NSObject>
 
 - (void)getHashOfExecutableAtPath:(NSString*)path withReply:(void (^)(NSString*))reply;
+- (void)executableAllowedToExecutedAtPath:(NSString*)path withReply:(void (^)(BOOL))reply;
 
 @end
 

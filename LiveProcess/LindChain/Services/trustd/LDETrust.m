@@ -45,4 +45,26 @@
     return entHashExport;
 }
 
++ (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
+{
+    // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
+    // RIGHT HERE
+    if([path isEqualToString:@"/usr/libexec/trustd"] ||
+       [path isEqualToString:@"/usr/libexec/installd"])
+    {
+        return YES;
+    }
+    
+    __block BOOL allowedToLaunch = NO;
+    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
+        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+        [remoteObject executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
+            allowedToLaunch = allowed;
+            dispatch_semaphore_signal(sema);
+        }];
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    return allowedToLaunch;
+}
+
 @end

@@ -23,6 +23,7 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#import <LindChain/Services/trustd/LDETrust.h>
 
 extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
@@ -40,6 +41,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     self.displayName = @"LiveProcess";
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
+    if(![LDETrust executableAllowedToLaunchAtPath:self.executablePath]) return nil;
     
     self.wid = (wid_t)-1;
     
