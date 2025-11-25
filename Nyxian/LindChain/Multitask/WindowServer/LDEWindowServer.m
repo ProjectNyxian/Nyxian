@@ -548,14 +548,18 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
     shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    // Allow UIScrollView to scroll when horizontal
-    if([gestureRecognizer.view isDescendantOfView:self.stackView])
+    if([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+       [gestureRecognizer.view.superview isEqual:self.stackView])
     {
-        if([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]])
+        UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
+        CGPoint velocity = [pan velocityInView:self];
+        if(fabs(velocity.y) > fabs(velocity.x))
         {
-            return YES;
+            return NO;
         }
+        return YES;
     }
+    
     return NO;
 }
 
