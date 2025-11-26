@@ -76,7 +76,15 @@
             [self.detailTextLabel.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor constant:-20]
         ]];
         
-        self.imageView.layer.cornerRadius = 10;
+        if(@available(iOS 26.0, *))
+        {
+            self.imageView.layer.cornerRadius = 15;
+        }
+        else
+        {
+            self.imageView.layer.cornerRadius = 10;
+        }
+        
         self.imageView.clipsToBounds = YES;
         self.imageView.layer.borderWidth = 0.5;
         self.imageView.layer.borderColor = UIColor.grayColor.CGColor;

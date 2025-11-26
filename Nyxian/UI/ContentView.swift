@@ -268,7 +268,7 @@ import UIKit
         let keys = Array(self.projectsList.keys).sorted()
         let key = keys[section]
         let sectionProjects = self.projectsList[key] ?? []
-        return "\(key) (\(sectionProjects.count))"
+        return "\(key.capitalized) (\(sectionProjects.count))"
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
