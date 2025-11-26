@@ -82,8 +82,6 @@
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
-	<key>UIDesignRequiresCompatibility</key>
-	<true/>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
