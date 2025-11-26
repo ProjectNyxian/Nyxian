@@ -19,6 +19,7 @@
 
 #import <LindChain/Multitask/WindowServer/LDEWindow.h>
 #import <LindChain/Multitask/WindowServer/ResizeHandleView.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowBar.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
 @interface LDEWindow ()
@@ -31,6 +32,7 @@
 @property (nonatomic, strong) NSTimer *resizeEndDebounceTimer;
 @property (atomic) int resizeEndDebounceRefCnt;
 @property (nonatomic) UIView *focusView;
+@property (nonatomic) LDEWindowBar *windowBar;
 
 // Intuition Fixup
 @property CGPoint resizeAnchor;
@@ -173,15 +175,13 @@
     [super viewDidAppear:animated];
     
     dispatch_once(&_appearOnceAction, ^{
-        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-10.0 rightMargin:6.0];
-        
         // MARK: Suppose to only run on phones
         [self startLiveResizeWithSettingsBlock];
         if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
         {
             [self maximizeWindow:NO];
             UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
-            [self.navigationBar addGestureRecognizer:pullDownGesture];
+            [self.windowBar addGestureRecognizer:pullDownGesture];
         }
         else
         {
@@ -203,7 +203,7 @@
     [self.contentStack insertSubview:_focusView aboveSubview:self.session.view];
     
     [NSLayoutConstraint activateConstraints:@[
-        [_focusView.topAnchor constraintEqualToAnchor:self.navigationBar.bottomAnchor],
+        [_focusView.topAnchor constraintEqualToAnchor:self.windowBar.bottomAnchor],
         [_focusView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
         [_focusView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [_focusView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
@@ -229,7 +229,7 @@
                               duration:0.11
                                options:UIViewAnimationOptionTransitionCrossDissolve
                             animations:^{
-                self->_navigationBar.backgroundColor = UIColor.grayColor;
+                self->_windowBar.backgroundColor = UIColor.grayColor;
             } completion:nil];
             
         } completion:nil];
@@ -252,7 +252,7 @@
                           duration:0.11
                            options:UIViewAnimationOptionTransitionCrossDissolve
                         animations:^{
-            self->_navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
+            self->_windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
         } completion:nil];
 
     } completion:^(BOOL finished) {
@@ -290,15 +290,22 @@
     self.contentStack.layer.masksToBounds = YES;
     [self.view addSubview:self.contentStack];
     
-    UINavigationBar *navigationBar = [[UINavigationBar alloc] init];
-    navigationBar.backgroundColor = UIColor.quaternarySystemFillColor;
-    navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:_windowName];
-    navigationBar.items = @[navigationItem];
+    __weak typeof(self) weakSelf = self;
+    LDEWindowBar *windowBar = [[LDEWindowBar alloc] initWithTitle:self.windowName withCloseCallback:^{
+        [weakSelf closeWindow];
+    } withMaximizeCallback:^{
+        [weakSelf maximizeWindow:YES];
+    }];
     
-    self.navigationBar = navigationBar;
-    self.navigationItem = navigationItem;
-    [self.contentStack addArrangedSubview:navigationBar];
+    windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
+    [self.contentStack addArrangedSubview:windowBar];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [windowBar.topAnchor constraintEqualToAnchor:self.contentStack.topAnchor],
+        [windowBar.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor],
+        [windowBar.trailingAnchor constraintEqualToAnchor:self.contentStack.trailingAnchor],
+    ]];
+    self.windowBar = windowBar;
     
     CGRect contentFrame = CGRectMake(0, 0,
                                      self.contentStack.frame.size.width,
@@ -317,7 +324,7 @@
         [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
         moveGesture.minimumNumberOfTouches = 1;
         moveGesture.maximumNumberOfTouches = 1;
-        [self.navigationBar addGestureRecognizer:moveGesture];
+        [self.windowBar addGestureRecognizer:moveGesture];
         
         UITapGestureRecognizer *fullScreenGesture =
         [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(maximizeButtonPressed)];
@@ -326,7 +333,7 @@
         fullScreenGesture.delaysTouchesBegan = NO;
         fullScreenGesture.delaysTouchesEnded = NO;
         fullScreenGesture.cancelsTouchesInView = NO;
-        [self.navigationBar addGestureRecognizer:fullScreenGesture];
+        [self.windowBar addGestureRecognizer:fullScreenGesture];
         
         moveGesture.delegate = self;
         fullScreenGesture.delegate = self;
@@ -350,7 +357,7 @@
     _session.view.translatesAutoresizingMaskIntoConstraints = NO;
     
     [NSLayoutConstraint activateConstraints:@[
-        [_session.view.topAnchor constraintEqualToAnchor:navigationBar.bottomAnchor],
+        [_session.view.topAnchor constraintEqualToAnchor:windowBar.bottomAnchor],
         [_session.view.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor]
     ]];
     
@@ -369,11 +376,11 @@
         self.isMaximized = NO;
         self.session.windowIsFullscreen = NO;
         CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:self.originalFrame];
-        CGRect newNavigationBar = self.navigationBar.frame;
+        CGRect newNavigationBar = self.windowBar.frame;
         newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
-            self.navigationBar.frame = newNavigationBar;
+            self.windowBar.frame = newNavigationBar;
             self.contentStack.layer.cornerRadius = 20;
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
@@ -386,11 +393,11 @@
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
         CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:CGRectZero];
-        CGRect newNavigationBar = self.navigationBar.frame;
+        CGRect newNavigationBar = self.windowBar.frame;
         newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
-            self.navigationBar.frame = newNavigationBar;
+            self.windowBar.frame = newNavigationBar;
             self.contentStack.layer.cornerRadius = 0;
             self.contentStack.layer.borderWidth = 0;
             self.view.layer.shadowOpacity = 0;
@@ -404,50 +411,6 @@
 - (void)maximizeButtonPressed
 {
     [self maximizeWindow:YES];
-}
-
-- (void)adjustNavigationBarButtonSpacingWithNegativeSpacing:(CGFloat)spacing rightMargin:(CGFloat)margin {
-    if (!self.navigationBar) return;
-    [self findAndAdjustButtonBarStackView:self.navigationBar withSpacing:spacing sideMargin:margin];
-}
-
-- (void)findAndAdjustButtonBarStackView:(UIView *)view withSpacing:(CGFloat)spacing sideMargin:(CGFloat)margin {
-    for(UIView *subview in view.subviews)
-    {
-        if([subview isKindOfClass:NSClassFromString(@"_UIButtonBarStackView")])
-        {
-            if ([subview respondsToSelector:@selector(setSpacing:)]) {
-                [(_UIButtonBarStackView *)subview setSpacing:spacing];
-            }
-            
-            if (subview.superview)
-            {
-                for(NSLayoutConstraint *constraint in subview.superview.constraints)
-                {
-                    if((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeTrailing) ||
-                       (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeTrailing))
-                    {
-                        constraint.constant = (constraint.firstItem == subview) ? -margin : margin;
-                        break;
-                    }
-                    
-                    if((constraint.firstItem == subview && constraint.firstAttribute == NSLayoutAttributeLeading) ||
-                       (constraint.secondItem == subview && constraint.secondAttribute == NSLayoutAttributeLeading))
-                    {
-                        constraint.constant = (constraint.firstItem == subview) ? margin : -margin;
-                        break;
-                    }
-                }
-                
-                [subview setNeedsLayout];
-                [subview.superview setNeedsLayout];
-            }
-            
-            return;
-        }
-        
-        [self findAndAdjustButtonBarStackView:subview withSpacing:spacing sideMargin:margin];
-    }
 }
 
 - (void)moveWindow:(UIPanGestureRecognizer*)gesture
@@ -589,7 +552,7 @@
 
 - (void)updateSceneFrame
 {
-    CGFloat navBarHeight = self.navigationBar.frame.size.height;
+    CGFloat navBarHeight = self.windowBar.frame.size.height;
     
     CGRect frame = self.view.frame;
     frame.origin.y += navBarHeight;
@@ -643,6 +606,14 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
         shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     return YES;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+{
+    [super traitCollectionDidChange:previousTraitCollection];
+    
+    // Fixes that the color doesnt change when the user changes to dark/light mode
+    self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
 }
 
 @end
