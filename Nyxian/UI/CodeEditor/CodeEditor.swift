@@ -271,14 +271,17 @@ class CodeEditorViewController: UIViewController {
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         ]
         
-
-        items.append(contentsOf: getAdditionalButtons(buttons: ["(",")","{","}","[","]",";"]))
+        if #unavailable(iOS 26.0) {
+            items.append(contentsOf: getAdditionalButtons(buttons: ["(",")","{","}","[","]",";"]))
+        }
         
-        items.append(contentsOf: [
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            spawnSeperator(),
-            hideBarButton
-        ])
+        items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
+        
+        if #unavailable(iOS 26.0) {
+            items.append(spawnSeperator())
+        }
+        
+        items.append(hideBarButton)
         
         toolbar.items = items
         textView.inputAccessoryView = toolbar
@@ -291,7 +294,7 @@ class CodeEditorViewController: UIViewController {
         
         guard let project = self.project,
               let database = self.database,
-              let synpushServer = self.synpushServer,
+              let _ = self.synpushServer,
               let coordinator = self.coordinator else { return }
         
         database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)

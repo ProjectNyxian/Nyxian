@@ -45,11 +45,13 @@ class SymbolButton: UIButton {
         
         self.tintColor = theme.textColor //.label
         self.setTitleColor(theme.textColor, for: .normal)
-        self.layer.cornerRadius = 5
-        self.layer.borderWidth = 1
-        self.layer.borderColor = theme.gutterHairlineColor.cgColor
         
-        self.backgroundColor = theme.gutterBackgroundColor //gibDynamicColor(light: .systemGray5, dark: .systemGray6)
+        if #unavailable(iOS 26.0) {
+            self.layer.cornerRadius = 5
+            self.layer.borderWidth = 1
+            self.layer.borderColor = theme.gutterHairlineColor.cgColor
+            self.backgroundColor = theme.gutterBackgroundColor //gibDynamicColor(light: .systemGray5, dark: .systemGray6)
+        }
         
         NSLayoutConstraint.activate([
             self.widthAnchor.constraint(equalToConstant: width),
