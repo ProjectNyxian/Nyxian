@@ -240,9 +240,11 @@
     {
         if(@available(iOS 26.0, *))
         {
-            UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-            [self addGestureRecognizer:gestureRecognizer];
+            return;
         }
+        
+        UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+        [self addGestureRecognizer:gestureRecognizer];
     }
 }
 
