@@ -23,6 +23,7 @@ import UIKit
 class SwitchTableCell: UITableViewCell {
     let title: String
     
+    var toggle: UISwitch? = nil
     let key: String
     let defaultValue: Bool
     var value: Bool {
@@ -69,8 +70,6 @@ class SwitchTableCell: UITableViewCell {
         
         // now the option button
         let toggle: UISwitch = UISwitch()
-        toggle.onTintColor = UILabel.appearance().textColor
-        toggle.thumbTintColor = UITableViewCell.appearance().backgroundColor
         toggle.setOn(self.value, animated: false)
         toggle.translatesAutoresizingMaskIntoConstraints = false
         toggle.addTarget(self, action: #selector(toggleValueChanged), for: .valueChanged)
@@ -86,6 +85,15 @@ class SwitchTableCell: UITableViewCell {
             toggle.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16),
             toggle.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor)
         ])
+        
+        self.toggle = toggle
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        self.toggle?.onTintColor = UILabel.appearance().textColor
+        self.toggle?.thumbTintColor = UITableViewCell.appearance().backgroundColor
     }
     
     @objc private func toggleValueChanged(_ sender: UISwitch) {
