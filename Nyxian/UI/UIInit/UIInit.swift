@@ -49,7 +49,8 @@ func RevertUI() {
     UITableView.appearance().backgroundColor = currentTheme.gutterBackgroundColor
     UITableViewCell.appearance().backgroundColor = currentTheme.backgroundColor
     
-    UILabel.appearance().textColor = currentTheme.textColor
+    UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).textColor = currentTheme.textColor
+    UILabel.appearance(whenContainedInInstancesOf: [UIButton.self]).textColor = currentTheme.textColor
     UIView.appearance().tintColor = currentTheme.textColor
     
     NotificationCenter.default.post(name: Notification.Name("uiColorChangeNotif"), object: nil, userInfo: nil)
