@@ -28,20 +28,22 @@ func RevertUI() {
     
     guard let currentTheme = currentTheme else { return }
     
-    currentNavigationBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
-    currentNavigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
-    currentNavigationBarAppearance.buttonAppearance.normal.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
-    currentNavigationBarAppearance.backButtonAppearance = UIBarButtonItemAppearance()
-    currentNavigationBarAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor : currentTheme.textColor]
-    
-    UINavigationBar.appearance().compactAppearance = currentNavigationBarAppearance
-    UINavigationBar.appearance().scrollEdgeAppearance = currentNavigationBarAppearance
-    
-    if #available(iOS 15.0, *) {
-        currentTabBarAppearance.configureWithOpaqueBackground()
-        currentTabBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
-        UITabBar.appearance().standardAppearance = currentTabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = currentTabBarAppearance
+    if #unavailable(iOS 26.0) {
+        currentNavigationBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
+        currentNavigationBarAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
+        currentNavigationBarAppearance.buttonAppearance.normal.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
+        currentNavigationBarAppearance.backButtonAppearance = UIBarButtonItemAppearance()
+        currentNavigationBarAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor : currentTheme.textColor]
+        
+        UINavigationBar.appearance().compactAppearance = currentNavigationBarAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = currentNavigationBarAppearance
+        
+        if #available(iOS 15.0, *) {
+            currentTabBarAppearance.configureWithOpaqueBackground()
+            currentTabBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
+            UITabBar.appearance().standardAppearance = currentTabBarAppearance
+            UITabBar.appearance().scrollEdgeAppearance = currentTabBarAppearance
+        }
     }
     
     UITableView.appearance().backgroundColor = currentTheme.gutterBackgroundColor
