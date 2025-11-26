@@ -63,3 +63,13 @@ bool reflock_is_locked(reflock_t *r)
 {
     return seqlock_is_locked((seqlock_t*)r);
 }
+
+bool reflock_is_locked_by_machthreadself(reflock_t *r)
+{
+    bool isLocked = seqlock_is_locked((seqlock_t*)r);
+    if(isLocked)
+    {
+        return ((__atomic_load_n(&r->tid, __ATOMIC_ACQUIRE) == mach_thread_self()));
+    }
+    return false;
+}

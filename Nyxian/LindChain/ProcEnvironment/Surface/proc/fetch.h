@@ -25,4 +25,7 @@
 ksurface_error_t proc_for_pid(pid_t pid, ksurface_proc_t *proc);
 ksurface_error_t proc_for_index(unsigned int idx, ksurface_proc_t *proc);
 
+ksurface_error_t proc_ptr_for_pid(pid_t pid, ksurface_proc_t **proc);
+ksurface_error_t proc_ptr_for_index(unsigned int idx, ksurface_proc_t **proc);
+
 #endif /* PROC_FETCH_H */

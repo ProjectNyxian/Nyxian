@@ -32,3 +32,4 @@ void reflock_unlock(reflock_t *r);
 unsigned long reflock_read_begin(reflock_t *r);
 bool reflock_read_retry(reflock_t *r, unsigned long seq);
 bool reflock_is_locked(reflock_t *r);
+bool reflock_is_locked_by_machthreadself(reflock_t *r);
