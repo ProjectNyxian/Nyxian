@@ -68,31 +68,43 @@
     }
     _closeButton = closeButton;
 
-    UIButtonConfiguration *maxConfig = [UIButtonConfiguration plainButtonConfiguration];
-    maxConfig.preferredSymbolConfigurationForImage =
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        UIButtonConfiguration *maxConfig = [UIButtonConfiguration plainButtonConfiguration];
+        maxConfig.preferredSymbolConfigurationForImage =
         [UIImageSymbolConfiguration configurationWithPointSize:17
                                                         weight:UIImageSymbolWeightSemibold];
-    maxConfig.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-
-    UIButton *maximizeButton = [UIButton buttonWithConfiguration:maxConfig primaryAction:nil];
-    maximizeButton.translatesAutoresizingMaskIntoConstraints = NO;
-    if(maximizeCallback)
-    {
-        [maximizeButton addAction:[UIAction actionWithHandler:^(__kindof UIAction * _Nonnull action) {
-            maximizeCallback();
-        }] forControlEvents:UIControlEventTouchUpInside];
+        maxConfig.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
+        
+        UIButton *maximizeButton = [UIButton buttonWithConfiguration:maxConfig primaryAction:nil];
+        maximizeButton.translatesAutoresizingMaskIntoConstraints = NO;
+        if(maximizeCallback)
+        {
+            [maximizeButton addAction:[UIAction actionWithHandler:^(__kindof UIAction * _Nonnull action) {
+                maximizeCallback();
+            }] forControlEvents:UIControlEventTouchUpInside];
+        }
+        _maximizeButton = maximizeButton;
+        
+        UIStackView *buttonStack = [[UIStackView alloc] initWithArrangedSubviews:@[
+            closeButton,
+            maximizeButton
+        ]];
+        buttonStack.axis = UILayoutConstraintAxisHorizontal;
+        buttonStack.spacing = 6;
+        buttonStack.translatesAutoresizingMaskIntoConstraints = NO;
+        
+        [self addSubview:buttonStack];
+        
+        [NSLayoutConstraint activateConstraints:@[
+            [buttonStack.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
+            [buttonStack.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:12],
+            [closeButton.widthAnchor constraintEqualToConstant:30],
+            [closeButton.heightAnchor constraintEqualToConstant:30],
+            [maximizeButton.widthAnchor constraintEqualToConstant:30],
+            [maximizeButton.heightAnchor constraintEqualToConstant:30],
+        ]];
     }
-    _maximizeButton = maximizeButton;
-
-    UIStackView *buttonStack = [[UIStackView alloc] initWithArrangedSubviews:@[
-        closeButton,
-        maximizeButton
-    ]];
-    buttonStack.axis = UILayoutConstraintAxisHorizontal;
-    buttonStack.spacing = 6;
-    buttonStack.translatesAutoresizingMaskIntoConstraints = NO;
-
-    [self addSubview:buttonStack];
 
     UIView *bottomBorder = [[UIView alloc] init];
     bottomBorder.translatesAutoresizingMaskIntoConstraints = NO;
@@ -103,12 +115,6 @@
     [NSLayoutConstraint activateConstraints:@[
         [titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
         [titleLabel.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-        [buttonStack.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-        [buttonStack.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:12],
-        [closeButton.widthAnchor constraintEqualToConstant:30],
-        [closeButton.heightAnchor constraintEqualToConstant:30],
-        [maximizeButton.widthAnchor constraintEqualToConstant:30],
-        [maximizeButton.heightAnchor constraintEqualToConstant:30],
         [self.heightAnchor constraintEqualToConstant:50],
         [bottomBorder.heightAnchor constraintEqualToConstant:0.5],
         [bottomBorder.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
