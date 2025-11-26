@@ -36,6 +36,9 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.primaryBackgroundStyle = .none
+        
         masterVC = FileListViewController(project: project)
         detailVC = SplitScreenDetailViewController(project: project)
 
