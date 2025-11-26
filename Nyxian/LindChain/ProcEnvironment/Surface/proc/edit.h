@@ -17,16 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_H
-#define PROC_H
+#ifndef PROC_EDIT_H
+#define PROC_EDIT_H
 
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/append.h>
-#import <LindChain/ProcEnvironment/Surface/proc/replace.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/new.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
-#import <LindChain/ProcEnvironment/Surface/proc/exit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/edit.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#endif /* PROC_H */
+#define TASK_NONE 10
+
+ksurface_error_t proc_edit_task_role_for_pid(pid_t pid, task_role_t role);
+
+#endif /* PROC_EDIT_H */

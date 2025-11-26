@@ -120,30 +120,14 @@ void UIKitFixesInit(void)
         self.backgroundEnforcementTimer = nil;
     }
     
-    // See if proc object needs to be altered
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(self.process.pid, &proc);
-    
+    ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_NONE);
+
     // Checking error
     if(error != kSurfaceErrorSuccess)
     {
         // Terminate if its not succeeded
         [self.process terminate];
         return;
-    }
-    
-    // Overriding role
-    if(proc.nyx.force_task_role_override)
-    {
-        proc.nyx.force_task_role_override = false;
-        error = proc_replace(proc);
-        
-        if(error != kSurfaceErrorSuccess)
-        {
-            // Terminate if its not succeeded
-            [self.process terminate];
-            return;
-        }
     }
     
     // Resume if applicable
@@ -167,23 +151,9 @@ void UIKitFixesInit(void)
         if([self.process suspend])
         {
             // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
-            // See if proc object needs to be altered
-            ksurface_proc_t proc = {};
-            ksurface_error_t error = proc_for_pid(self.process.pid, &proc);
-            
+            ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_DARWINBG_APPLICATION);
+ 
             // Checking error
-            if(error != kSurfaceErrorSuccess)
-            {
-                // Terminate if its not succeeded
-                [self.process terminate];
-                return;
-            }
-            
-            if(proc.bsd.kp_proc.p_pid == 0) return;
-            proc.nyx.force_task_role_override = true;
-            proc.nyx.task_role_override = TASK_DARWINBG_APPLICATION;
-            error = proc_replace(proc);
-            
             if(error != kSurfaceErrorSuccess)
             {
                 // Terminate if its not succeeded
