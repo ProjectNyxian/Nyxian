@@ -79,9 +79,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                 {
                     // Process dead!
                     dispatch_once(&strongSelf->_removeOnce, ^{
-                        dispatch_once(&strongSelf->_notifyWindowManagerOnceInForAll, ^{
-                            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
-                        });
+                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
                     });
