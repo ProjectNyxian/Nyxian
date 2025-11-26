@@ -28,16 +28,6 @@ ksurface_error_t proc_append(ksurface_proc_t proc)
     // Aquiring rw lock if applicable
     reflock_lock(&(surface->reflock));
     
-    // Iterating through all processes
-    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
-    {
-        // Checking if the process at a certain position in memory matches the provided process that we wanna insert
-        if(proc_getpid(surface->proc_info.proc[i]) == proc_getpid(proc))
-        {
-            reflock_unlock(&(surface->reflock));
-            return kSurfaceErrorAlreadyExists;
-        }
-    }
     // It doesnt exist already so we copy it into the next new entry
     ksurface_error_t error = kSurfaceErrorSuccess;
     if(surface->proc_info.proc_count < PROC_MAX)

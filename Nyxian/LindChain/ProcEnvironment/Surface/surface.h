@@ -33,7 +33,7 @@ enum kSurfaceError {
     kSurfaceErrorUndefined      = 1,
     kSurfaceErrorNullPtr        = 2,
     kSurfaceErrorNotFound       = 3,
-    kSurfaceErrorNotHoldingLock = 4, /* potentially for future */
+    kSurfaceErrorNotHoldingLock = 4,
     kSurfaceErrorOutOfBounds    = 5,
     kSurfaceErrorDenied         = 6,
     kSurfaceErrorAlreadyExists  = 7
