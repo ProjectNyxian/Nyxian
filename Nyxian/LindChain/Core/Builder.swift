@@ -211,7 +211,7 @@ class Builder {
                 
                 self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
                 
-                XCodeButton.incrementProgress(progress: pstep)
+                XCButton.incrementProgress(withValue: pstep)
             } withCompletion: {
                 group.leave()
             }
@@ -313,7 +313,7 @@ class Builder {
                              completion: @escaping (Bool) -> Void) {
         project.projectConfig.reloadData()
         
-        XCodeButton.resetProgress()
+        XCButton.resetProgress()
         
         LDEThreadControl.pthreadDispatch {
             Bootstrap.shared.waitTillDone()
@@ -327,13 +327,13 @@ class Builder {
             func progressStage(systemName: String? = nil, increment: Double? = nil, handler: () throws -> Void) throws {
                 let doReset: Bool = (increment == nil)
                 if doReset, resetNeeded {
-                    XCodeButton.resetProgress()
+                    XCButton.resetProgress()
                     resetNeeded = false
                 }
-                if let systemName = systemName { XCodeButton.switchImage(systemName: systemName) }
+                if let systemName = systemName { XCButton.switchImage(withSystemName: systemName, animated: true) }
                 try handler()
                 if !doReset, let increment = increment {
-                    XCodeButton.incrementProgress(progress: increment)
+                    XCButton.incrementProgress(withValue: increment)
                     resetNeeded = true
                 }
             }
@@ -373,10 +373,10 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
                                 buildType: Builder.BuildType,
                                 completion: @escaping () -> Void = {}) {
     targetViewController.navigationItem.titleView?.isUserInteractionEnabled = false
-    XCodeButton.switchImageSync(systemName: "hammer.fill", animated: false)
+    XCButton.switchImageSync(withSystemName: "hammer.fill", animated: false)
     guard let oldBarButtons: [UIBarButtonItem] = targetViewController.navigationItem.rightBarButtonItems else { return }
     
-    let barButton: UIBarButtonItem = UIBarButtonItem(customView: XCodeButton.shared)
+    let barButton: UIBarButtonItem = UIBarButtonItem(customView: XCButton.shared())
     
     targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
     targetViewController.navigationItem.setHidesBackButton(true, animated: true)

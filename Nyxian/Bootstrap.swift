@@ -43,7 +43,7 @@ import Foundation
         }
         set {
             let cstep = 1.0 / Double(self.newestBootstrapVersion)
-            XCodeButton.updateProgress(progress: cstep * Double(newValue))
+            XCButton.updateProgress(withValue: cstep * Double(newValue))
             UserDefaults.standard.set(newValue, forKey: "LDEBootstrapVersion")
         }
     }
@@ -189,14 +189,14 @@ import Foundation
         print(Bootstrap.shared.bootstrapVersion)
         print(Bootstrap.shared.newestBootstrapVersion)
         
-        XCodeButton.switchImage(systemName: "archivebox.fill")
-        XCodeButton.updateProgress(progress: 0.1)
+        XCButton.switchImage(withSystemName: "archivebox.fill", animated: true)
+        XCButton.updateProgress(withValue: 0.1)
         
         while Bootstrap.shared.bootstrapVersion != Bootstrap.shared.newestBootstrapVersion {
             Thread.sleep(forTimeInterval: 1.0)
         }
         
-        XCodeButton.switchImage(systemName: "hammer.fill")
+        XCButton.switchImage(withSystemName: "hammer.fill", animated: true)
     }
     
     @objc static var shared: Bootstrap = Bootstrap()
