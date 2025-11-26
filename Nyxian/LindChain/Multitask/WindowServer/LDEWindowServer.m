@@ -238,14 +238,17 @@
 
     if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
-        UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-        [self addGestureRecognizer:gestureRecognizer];
+        if(@available(iOS 26.0, *))
+        {
+            UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+            [self addGestureRecognizer:gestureRecognizer];
+        }
     }
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
-    if(_activeWindowIdentifier == (wid_t)-1 && recognizer.state == UIGestureRecognizerStateBegan)
+    if(_activeWindowIdentifier == (wid_t)-1 && (recognizer.state == UIGestureRecognizerStateBegan || recognizer == nil))
     {
         if(!self.appSwitcherView)
         {
@@ -484,6 +487,11 @@
                      } completion:nil];
 
     [self.impactGenerator impactOccurred];
+}
+
+- (void)showAppSwitcherExternal
+{
+    [self handleLongPress:nil];
 }
 
 - (void)hideAppSwitcher

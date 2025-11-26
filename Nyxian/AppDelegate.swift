@@ -19,7 +19,7 @@
 
 import UIKit
 
-@objc class AppDelegate: UIResponder, UIApplicationDelegate {
+@objc class AppDelegate: UIResponder, UIApplicationDelegate, UITabBarControllerDelegate {
 
     var window: UIWindow?
 
@@ -31,6 +31,10 @@ import UIKit
         
         let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
         
+        if #available(iOS 26.0, *) {
+            tabViewController.mode = .tabSidebar;
+        }
+        
         let contentViewController: ContentViewController = ContentViewController(path: "\(NSHomeDirectory())/Documents/Projects")
         let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
         
@@ -40,11 +44,26 @@ import UIKit
         projectsNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
         settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
         
-        tabViewController.viewControllers = [projectsNavigationController, settingsNavigationController]
+        let fakeViewController: UIViewController = UIViewController()
+        fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
+        fakeViewController.tabBarItem.title = "Switcher"
+        fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+        
+        tabViewController.viewControllers = [projectsNavigationController, settingsNavigationController, fakeViewController]
+        tabViewController.delegate = self;
         
         window?.rootViewController = tabViewController
         window?.makeKeyAndVisible()
 
+        return true
+    }
+    
+    func tabBarController(_ tabBarController: UITabBarController,
+                          shouldSelect viewController: UIViewController) -> Bool {
+        if viewController.tabBarItem.tag == 2 {
+            LDEWindowServer.shared().showAppSwitcherExternal()
+            return false
+        }
         return true
     }
 }
