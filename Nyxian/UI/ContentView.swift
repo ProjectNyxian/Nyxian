@@ -20,7 +20,7 @@
 import Foundation
 import UIKit
 
-@objc class ContentViewController: UITableViewController, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
+@objc class ContentViewController: UIThemedTableViewController, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
     var sessionIndex: IndexPath? = nil
     var projectsList: [String:[NXProject]] = [:]
     var path: String

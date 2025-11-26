@@ -26,6 +26,7 @@ import UIKit
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
     
@@ -35,6 +36,7 @@ import UIKit
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
+        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
         self.tableView.backgroundColor = currentTheme?.gutterBackgroundColor
         
         for cell in tableView.visibleCells {
@@ -52,6 +54,7 @@ import UIKit
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
         super.viewDidAppear(animated)
     }
     
@@ -67,14 +70,16 @@ import UIKit
             }
         }
         
-        if #available(iOS 15.0, *) {
-            let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = currentTheme?.gutterBackgroundColor
-            self.tabBar.standardAppearance = appearance
-            self.tabBar.scrollEdgeAppearance = appearance
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-            UITabBar.appearance().scrollEdgeAppearance?.backgroundEffect = blurEffect
+        if #unavailable(iOS 26.0) {
+            if #available(iOS 15.0, *) {
+                let appearance = UITabBarAppearance()
+                appearance.configureWithOpaqueBackground()
+                appearance.backgroundColor = currentTheme?.gutterBackgroundColor
+                self.tabBar.standardAppearance = appearance
+                self.tabBar.scrollEdgeAppearance = appearance
+                UITabBar.appearance().scrollEdgeAppearance = appearance
+                UITabBar.appearance().scrollEdgeAppearance?.backgroundEffect = blurEffect
+            }
         }
     }
 }
