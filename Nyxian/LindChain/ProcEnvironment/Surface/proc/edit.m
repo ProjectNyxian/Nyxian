@@ -35,7 +35,7 @@ ksurface_error_t proc_edit_task_role_for_pid(pid_t pid,
     
     // Get proc structure pointer
     ksurface_proc_t *proc = NULL;
-    error = proc_ptr_for_pid(pid, &proc);
+    error = proc_ptr_for_pid(pid, &proc, NULL);
     if(error != kSurfaceErrorSuccess)
     {
         reflock_unlock(&surface->reflock);

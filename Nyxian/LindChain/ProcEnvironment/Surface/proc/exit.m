@@ -32,8 +32,10 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
 #ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
     
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(pid, &proc);
+    // Get process ptr
+    unsigned int index = 0;
+    ksurface_proc_t *proc = NULL;
+    ksurface_error_t error = proc_ptr_for_pid(pid, &proc, &index);
     if(error != kSurfaceErrorSuccess)
     {
         reflock_unlock(&(surface->reflock));
@@ -45,16 +47,14 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
     int flagged_pid_cnt = 1;
     
     // Iterating through all process structures
-    for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
+    for(uint32_t i = index; i < surface->proc_info.proc_count; i++)
     {
         // Copying it to the process ptr passed
-        proc = surface->proc_info.proc[i];
-        
         for(int i = 0; i < flagged_pid_cnt; i++)
         {
-            if(flagged_pid[i] == proc_getppid(proc))
+            if(flagged_pid[i] == proc_getppid(surface->proc_info.proc[i]))
             {
-                flagged_pid[flagged_pid_cnt++] = proc_getpid(proc);
+                flagged_pid[flagged_pid_cnt++] = proc_getpid(surface->proc_info.proc[i]);
                 break;
             }
         }
