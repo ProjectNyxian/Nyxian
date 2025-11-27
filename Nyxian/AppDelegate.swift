@@ -74,4 +74,8 @@ import UIKit
         }
         return true
     }
+    
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        proc_sync()
+    }
 }

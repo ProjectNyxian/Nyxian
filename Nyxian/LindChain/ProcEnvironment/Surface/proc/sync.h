@@ -17,17 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_H
-#define PROC_H
+#ifndef PROC_SYNC_H
+#define PROC_SYNC_H
 
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/append.h>
-#import <LindChain/ProcEnvironment/Surface/proc/replace.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/new.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
-#import <LindChain/ProcEnvironment/Surface/proc/exit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/edit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/sync.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#endif /* PROC_H */
+ksurface_error_t proc_sync(void);
+
+#endif /* PROC_SYNC_H */

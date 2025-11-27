@@ -158,6 +158,7 @@
 				LindChain/ProcEnvironment/Surface/proc/new.m,
 				LindChain/ProcEnvironment/Surface/proc/remove.m,
 				LindChain/ProcEnvironment/Surface/proc/replace.m,
+				LindChain/ProcEnvironment/Surface/proc/sync.m,
 				LindChain/ProcEnvironment/Surface/rusage.m,
 				LindChain/ProcEnvironment/Surface/surface.m,
 				LindChain/ProcEnvironment/Sysctl/kern/maxproc.m,
