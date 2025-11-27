@@ -294,7 +294,7 @@
     BOOL passed = NO;
     for(LaunchService *ls in [[LaunchServices shared] launchServices])
     {
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier])
+        if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process != nil && ls.process.pid == _processIdentifier)
         {
             passed = YES;
         }
