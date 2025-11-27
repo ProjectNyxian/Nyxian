@@ -291,17 +291,13 @@
  */
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier
 {
-    BOOL passed = NO;
     for(LaunchService *ls in [[LaunchServices shared] launchServices])
     {
         if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process != nil && ls.process.pid == _processIdentifier)
         {
-            passed = YES;
+            [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
+            return;
         }
-    }
-    if(passed)
-    {
-        [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
     }
 }
 
@@ -314,7 +310,7 @@
     }
     else
     {
-        reply([[NSXPCListenerEndpoint alloc] init]);
+        reply(nil);
     }
 }
 
