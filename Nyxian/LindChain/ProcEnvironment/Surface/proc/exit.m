@@ -58,9 +58,6 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
                 break;
             }
         }
-        
-        // Setting return value to success
-        error = kSurfaceErrorSuccess;
     }
     
     // Now we shall have all suspicious pids
@@ -68,6 +65,11 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
     for(int i = 0; i < flagged_pid_cnt; i++)
     {
         error = proc_remove_by_pid(flagged_pid[i]);
+        if(error != kSurfaceErrorSuccess)
+        {
+            reflock_unlock(&(surface->reflock));
+            return error;
+        }
     }
     
     reflock_unlock(&(surface->reflock));

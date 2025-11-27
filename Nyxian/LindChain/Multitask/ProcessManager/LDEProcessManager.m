@@ -20,6 +20,7 @@
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/panic.h>
 #import <Nyxian-Swift.h>
 
 @implementation LDEProcessManager {
@@ -168,7 +169,11 @@
 {
     dispatch_sync(_syncQueue, ^{
         [self.processes removeObjectForKey:@(pid)];
-        proc_exit_for_pid(pid);
+        ksurface_error_t error = proc_exit_for_pid(pid);
+        if(error != kSurfaceErrorSuccess)
+        {
+            environment_panic();
+        }
     });
 }
 
