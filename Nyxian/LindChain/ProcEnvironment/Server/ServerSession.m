@@ -28,6 +28,7 @@
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <mach/mach.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 @implementation ServerSession
 
@@ -79,9 +80,12 @@
        withSignal:(int)signal
         withReply:(void (^)(int))reply
 {
+    klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
+    
     // Checking if we have necessary entitlements
     if(pid != _processIdentifier && (!proc_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
     {
+        klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
         reply(-1);
         return;
     }
@@ -90,11 +94,13 @@
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
     if(!process)
     {
+        klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
         reply(1);
         return;
     }
     
     [process sendSignal:signal];
+    klog_log(@"syscall:kill", @"pid %d signaled pid %d", _processIdentifier, pid);
     
     reply(0);
 }

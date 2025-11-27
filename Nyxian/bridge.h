@@ -42,6 +42,7 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/ProcEnvironment/Surface/proc/sync.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 /*
  Project

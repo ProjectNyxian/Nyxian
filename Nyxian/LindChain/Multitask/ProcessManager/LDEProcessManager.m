@@ -22,6 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #import <Nyxian-Swift.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 @implementation LDEProcessManager {
     NSTimeInterval _lastSpawnTime;
@@ -168,6 +169,7 @@
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
     dispatch_sync(_syncQueue, ^{
+        klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"unregistering pid %d", pid);
         [self.processes removeObjectForKey:@(pid)];
         ksurface_error_t error = proc_exit_for_pid(pid);
         if(error != kSurfaceErrorSuccess)

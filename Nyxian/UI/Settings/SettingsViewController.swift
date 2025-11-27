@@ -26,7 +26,7 @@ class SettingsViewController: UIThemedTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return 6
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -60,6 +60,10 @@ class SettingsViewController: UIThemedTableViewController {
             cell.imageView?.image = UIImage(systemName: "info")
             cell.textLabel?.text = "Info"
             break
+        case 5:
+            cell.imageView?.image = UIImage(systemName: "info")
+            cell.textLabel?.text = "Kernel Log"
+            break
         default:
             break
         }
@@ -85,6 +89,8 @@ class SettingsViewController: UIThemedTableViewController {
                 return CertificateController(style: .insetGrouped)
             case 4:
                 return AppInfoViewController(style: .insetGrouped)
+            case 5:
+                return KernelLogViewController()
             default:
                 return nil
             }

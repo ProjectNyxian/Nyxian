@@ -25,6 +25,7 @@
 
 #ifdef HOST_ENV
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 #endif
 
 ksurface_error_t proc_exit_for_pid(pid_t pid)
@@ -32,12 +33,15 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
 #ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
     
+    klog_log(@"proc:exit", @"pid %d requested to exit", pid);
+    
     // Get process ptr
     unsigned int index = 0;
     ksurface_proc_t *proc = NULL;
     ksurface_error_t error = proc_ptr_for_pid(pid, &proc, &index);
     if(error != kSurfaceErrorSuccess)
     {
+        klog_log(@"proc:exit", @"pid %d wasnt found", pid);
         reflock_unlock(&(surface->reflock));
         return error;
     }
@@ -54,6 +58,7 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
         {
             if(flagged_pid[i] == proc_getppid(surface->proc_info.proc[i]))
             {
+                klog_log(@"proc:exit", @"flagging pid %d", proc_getpid(surface->proc_info.proc[i]));
                 flagged_pid[flagged_pid_cnt++] = proc_getpid(surface->proc_info.proc[i]);
                 break;
             }
@@ -67,8 +72,13 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
         error = proc_remove_by_pid(flagged_pid[i]);
         if(error != kSurfaceErrorSuccess)
         {
+            klog_log(@"proc:exit", @"failed to remove process structure for pid %d", flagged_pid[i]);
             reflock_unlock(&(surface->reflock));
             return error;
+        }
+        else
+        {
+            klog_log(@"proc:exit", @"removed process structure for pid %d", flagged_pid[i]);
         }
     }
     
@@ -80,7 +90,12 @@ ksurface_error_t proc_exit_for_pid(pid_t pid)
         LDEProcess *process = [LDEProcessManager shared].processes[@(flagged_pid[i])];
         if(process != nil)
         {
+            klog_log(@"proc:exit", @"terminating process for pid %d", flagged_pid[i]);
             [process terminate];
+        }
+        else
+        {
+            klog_log(@"proc:exit", @"failed to terminate process for pid %d", flagged_pid[i]);
         }
     }
     

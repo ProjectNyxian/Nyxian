@@ -25,11 +25,14 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/ProcEnvironment/panic.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 ksurface_error_t proc_init_kproc(void)
 {
 #ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
+    
+    klog_log(@"proc:kproc", @"initilizing kernel process");
     
     if(surface->proc_info.proc_count != 0)
     {
@@ -49,6 +52,7 @@ ksurface_error_t proc_init_kproc(void)
     NSString *executablePath = [[NSBundle mainBundle] executablePath];
     strncpy(proc.nyx.executable_path, [executablePath UTF8String], PATH_MAX);
     proc_setentitlements(proc, PEEntitlementKernel);
+    klog_log(@"proc:kproc", @"setting kernel process entitlements to %lu", PEEntitlementKernel);
     
     // Set bsd process stuff
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
@@ -81,6 +85,10 @@ ksurface_error_t proc_init_kproc(void)
     proc.bsd.kp_eproc.e_flag = 2;
     
     ksurface_error_t error = proc_append(proc);
+    if(error == kSurfaceErrorSuccess)
+    {
+        klog_log(@"proc:kproc", @"successfully created kernel process in process table");
+    }
     
     // Adding/Inserting proc
     reflock_unlock(&(surface->reflock));
@@ -98,6 +106,8 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
 #ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
     
+    klog_log(@"proc:new", @"pid %d requested creation of its child pid %d in the process table with executable path \"%@\"", ppid, pid, executablePath);
+    
     // Get the old process
     ksurface_proc_t proc = {};
     ksurface_error_t error = proc_for_pid(ppid, &proc);
@@ -107,9 +117,13 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
         return error;
     }
     
+    klog_log(@"proc:new", @"found process structure of pid %d in table", ppid);
+    
     // Check if Nyxian spawned it, if so, drop its permitives accordingly
     if(proc_getppid(proc) == PID_LAUNCHD)
     {
+        klog_log(@"proc:new", @"dropping permitives of child process %d", pid);
+        
         //Its Nyxian it self and due to that we have to drop permitives to mobile user
         proc_setuid(proc, 501);
         proc_setruid(proc, 501);
@@ -122,20 +136,25 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     // Inheriting entitlements or not?
     if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawnInheriteEntitlements))
     {
+        klog_log(@"proc:new", @"pid %d doesnt inherit entitlements of pid %d", pid, ppid);
         NSString *entHash = [LDETrust entHashOfExecutableAtPath:executablePath];
         if(entHash == nil)
         {
+            klog_log(@"proc:new", @"no hash found for pid %d dropping entitlements to %lu", pid, PEEntitlementSandboxedApplication);
             proc_setentitlements(proc, PEEntitlementSandboxedApplication);
         }
         else
         {
-            proc_setentitlements(proc, [[TrustCache shared] getEntitlementsForHash:entHash]);
+            PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
+            klog_log(@"proc:new", @"hash found for pid %d setting entitlements to %lu", pid, entitlement);
+            proc_setentitlements(proc, entitlement);
         }
     }
     
     // Reset time to now
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
     {
+        klog_log(@"proc:new", @"failed to get time of the day");
         reflock_unlock(&(surface->reflock));
         return kSurfaceErrorUndefined;
     }
@@ -149,6 +168,7 @@ ksurface_error_t proc_new_child_proc(pid_t ppid,
     proc_setpid(proc, pid);
     
     // Insert it back
+    klog_log(@"proc:new", @"Inserting process structure of pid %d", pid);
     error = proc_append(proc);
     
     reflock_unlock(&(surface->reflock));

@@ -25,6 +25,7 @@
 #import <mach/mach.h>
 #import <sys/sysctl.h>
 #import <mach-o/dyld.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 ksurface_mapping_t *surface = NULL;
 static MappingPortObject *surfaceMappingPortObject = NULL;
@@ -70,6 +71,7 @@ DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
 
 void kern_sethostname(NSString *hostname)
 {
+    klog_log(@"surface", @"setting hostname to %@", hostname);
     reflock_lock(&(surface->reflock));
     hostname = hostname ?: @"localhost";
     strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);

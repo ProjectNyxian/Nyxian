@@ -167,6 +167,7 @@
 				LindChain/ProcEnvironment/Sysctl/sysctl.m,
 				LindChain/ProcEnvironment/tfp.m,
 				LindChain/ProcEnvironment/Utils/fd.c,
+				LindChain/ProcEnvironment/Utils/klog.m,
 				LindChain/Utils/Swizzle.m,
 				LindChain/Utils/Zip.m,
 			);
