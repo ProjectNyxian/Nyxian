@@ -174,7 +174,7 @@
         ksurface_error_t error = proc_exit_for_pid(pid);
         if(error != kSurfaceErrorSuccess)
         {
-            environment_panic();
+            klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"failed to exit with pid %d", pid);
         }
     });
 }
