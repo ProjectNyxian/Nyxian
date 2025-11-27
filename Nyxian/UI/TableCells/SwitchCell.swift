@@ -21,6 +21,8 @@ import Foundation
 import UIKit
 
 class SwitchTableCell: UITableViewCell {
+    var callback: (Bool) -> Void = { _ in }
+    
     let title: String
     
     var toggle: UISwitch? = nil
@@ -98,5 +100,6 @@ class SwitchTableCell: UITableViewCell {
     
     @objc private func toggleValueChanged(_ sender: UISwitch) {
         self.value = sender.isOn
+        self.callback(self.value)
     }
 }

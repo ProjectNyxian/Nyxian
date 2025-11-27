@@ -25,6 +25,13 @@ import TreeSitterObjc
 import TreeSitterXML
 import GameController
 
+func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
+    if UserDefaults.standard.object(forKey: key) == nil {
+        return defaultValue
+    }
+    return UserDefaults.standard.bool(forKey: key)
+}
+
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController {
     private(set) var path: String
@@ -119,13 +126,6 @@ class CodeEditorViewController: UIViewController {
         self.navigationController?.navigationBar.prefersLargeTitles = false
         self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
         self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
-        
-        func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
-            if UserDefaults.standard.object(forKey: key) == nil {
-                return defaultValue
-            }
-            return UserDefaults.standard.bool(forKey: key)
-        }
         
         self.textView.showLineNumbers = booleanDefaults(key: "LDEShowLineNumbers", defaultValue: true)
         self.textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)

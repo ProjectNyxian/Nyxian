@@ -118,14 +118,29 @@ int main(void)
                 }
             } else if indexPath.row == 2 {
                 cell = StepperTableCell(title: "Font Size", key: "LDEFontSize", defaultValue: 10, minValue: 8, maxValue: 15)
+                (cell as! StepperTableCell).callback = { newValue in
+                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                }
             } else if indexPath.row == 3 {
                 cell = SwitchTableCell(title: "Show Line Numbers", key: "LDEShowLineNumbers", defaultValue: true)
+                (cell as! SwitchTableCell).callback = { newValue in
+                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                }
             } else if indexPath.row == 4 {
                 cell = SwitchTableCell(title: "Show Spaces", key: "LDEShowSpaces", defaultValue: true)
+                (cell as! SwitchTableCell).callback = { newValue in
+                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                }
             } else if indexPath.row == 5 {
                 cell = SwitchTableCell(title: "Wrap Lines", key: "LDEWrapLines", defaultValue: true)
+                (cell as! SwitchTableCell).callback = { newValue in
+                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                }
             } else {
                 cell = SwitchTableCell(title: "Show Line Breaks", key: "LDEShowLineBreaks", defaultValue: true)
+                (cell as! SwitchTableCell).callback = { newValue in
+                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                }
             }
         } else {
             cell = UITableViewCell(style: .default, reuseIdentifier: nil)

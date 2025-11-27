@@ -21,6 +21,8 @@ import Foundation
 import UIKit
 
 class StepperTableCell: UITableViewCell {
+    var callback: (Int) -> Void = { _ in }
+    
     let title: String
     
     let key: String
@@ -99,6 +101,7 @@ class StepperTableCell: UITableViewCell {
     
     @objc func stepperValueChanged(sender: UIStepper) {
         self.value = Int(sender.value)
+        self.callback(self.value)
         self.label?.text = "\(self.title): \(Int(sender.value))"
     }
 }

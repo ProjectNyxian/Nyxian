@@ -102,16 +102,28 @@ extension ThemePickerPreviewCell {
         textView.selectionBarColor = viewModel.theme.textColor
         textView.selectionHighlightColor = viewModel.theme.textColor.withAlphaComponent(0.2)
         textView.textContainerInset = UIEdgeInsets(top: 4, left: 2, bottom: 4, right: 0)
-        textView.showLineNumbers = true
         textView.isEditable = false
         textView.isSelectable = false
+        textView.showLineNumbers = booleanDefaults(key: "LDEShowLineNumbers", defaultValue: true)
+        textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)
+        textView.isLineWrappingEnabled = booleanDefaults(key: "LDEWrapLines", defaultValue: true)
+        textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
+        textView.lineSelectionDisplayType = .line
     }
     
     func switchTheme(theme: LindDEThemer) {
+        theme.fontSize = UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 10.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
         textView.theme = theme
         textView.backgroundColor = theme.backgroundColor
         textView.insertionPointColor = theme.textColor
         textView.selectionBarColor = theme.textColor
         textView.selectionHighlightColor = theme.textColor.withAlphaComponent(0.2)
+        textView.showLineNumbers = booleanDefaults(key: "LDEShowLineNumbers", defaultValue: true)
+        textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)
+        textView.isLineWrappingEnabled = booleanDefaults(key: "LDEWrapLines", defaultValue: true)
+        textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
+        textView.lineSelectionDisplayType = .line
+        textView.setNeedsLayout()
+        textView.layoutIfNeeded()
     }
 }
