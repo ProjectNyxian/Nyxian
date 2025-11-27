@@ -44,12 +44,20 @@ import UIKit
         projectsNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
         settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
         
-        let fakeViewController: UIViewController = UIViewController()
-        fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
-        fakeViewController.tabBarItem.title = "Switcher"
-        fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+        var viewControllers: [UIViewController] = [projectsNavigationController, settingsNavigationController]
         
-        tabViewController.viewControllers = [projectsNavigationController, settingsNavigationController, fakeViewController]
+        if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
+        {
+            if #available(iOS 26.0, *) {
+                let fakeViewController: UIViewController = UIViewController()
+                fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
+                fakeViewController.tabBarItem.title = "Switcher"
+                fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+                viewControllers.append(fakeViewController)
+            }
+        }
+        
+        tabViewController.viewControllers = viewControllers
         tabViewController.delegate = self;
         
         window?.rootViewController = tabViewController
