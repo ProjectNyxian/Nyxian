@@ -42,7 +42,7 @@ ksurface_error_t proc_sync(void)
         // Checking if its the process structure were looking for
         pid_t pid = proc_getpid(surface->proc_info.proc[i]);
         LDEProcess *process = [processCopy objectForKey:@(pid)];
-        if(process == nil)
+        if(process == nil || ![process.processHandle isValid])
         {
             flagged_pid[flagged_pid_cnt++] = pid;
         }
