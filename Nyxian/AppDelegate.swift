@@ -31,10 +31,6 @@ import UIKit
         
         let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
         
-        if #available(iOS 26.0, *) {
-            tabViewController.mode = .tabSidebar;
-        }
-        
         let contentViewController: ContentViewController = ContentViewController(path: "\(NSHomeDirectory())/Documents/Projects")
         let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
         
