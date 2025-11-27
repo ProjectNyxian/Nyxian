@@ -28,6 +28,5 @@
 #import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
 #import <LindChain/ProcEnvironment/Surface/proc/exit.h>
 #import <LindChain/ProcEnvironment/Surface/proc/edit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/sync.h>
 
 #endif /* PROC_H */

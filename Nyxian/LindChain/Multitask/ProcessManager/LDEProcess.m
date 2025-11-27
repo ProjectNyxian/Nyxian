@@ -77,7 +77,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                 NSArray<RBSProcessState *> *states = [monitor states];
                 if([states count] == 0)
                 {
-                    // Process dead!
+                    // Remove Once
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         if(strongSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
@@ -86,71 +86,74 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                 }
                 else
                 {
-                    dispatch_sync(dispatch_get_main_queue(), ^{
-                        // Setting process handle directly from process monitor
-                        weakSelf.processHandle = handle;
-                        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-                        // At this point, the process is spawned and we're ready to create a scene to render in our app
-                        [manager registerProcessForAuditToken:self.processHandle.auditToken];
-                        self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
-                        
-                        FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-                        definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
-                        
-                        // FIXME: Handle when the process is not valid anymore, it will cause EXC_BREAKPOINT otherwise because of "Invalid condition not satisfying: processIdentity"
-                        definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
-                        definition.specification = [UIApplicationSceneSpecification specification];
-                        FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
-                        
-                        UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
-                        settings.canShowAlerts = YES;
-                        settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
-                        settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
-                        settings.foreground = YES;
-                        
-                        settings.deviceOrientation = UIDevice.currentDevice.orientation;
-                        settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-                        
-                        CGRect rect = CGRectMake(50, 50, 400, 400);
-                        if(self.bundleIdentifier != nil)
-                        {
-                            NSValue *value = runtimeStoredRectValuesByBundleIdentifier[self.bundleIdentifier];
-                            if(value != nil)
+                    // Initilize once
+                    dispatch_once(&strongSelf->_addOnce, ^{
+                        dispatch_sync(dispatch_get_main_queue(), ^{
+                            // Setting process handle directly from process monitor
+                            weakSelf.processHandle = handle;
+                            FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+                            // At this point, the process is spawned and we're ready to create a scene to render in our app
+                            [manager registerProcessForAuditToken:self.processHandle.auditToken];
+                            self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
+                            
+                            FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
+                            definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
+                            
+                            // FIXME: Handle when the process is not valid anymore, it will cause EXC_BREAKPOINT otherwise because of "Invalid condition not satisfying: processIdentity"
+                            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
+                            definition.specification = [UIApplicationSceneSpecification specification];
+                            FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
+                            
+                            UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
+                            settings.canShowAlerts = YES;
+                            settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
+                            settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
+                            settings.foreground = YES;
+                            
+                            settings.deviceOrientation = UIDevice.currentDevice.orientation;
+                            settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+                            
+                            CGRect rect = CGRectMake(50, 50, 400, 400);
+                            if(self.bundleIdentifier != nil)
                             {
-                                rect = [value CGRectValue];
+                                NSValue *value = runtimeStoredRectValuesByBundleIdentifier[self.bundleIdentifier];
+                                if(value != nil)
+                                {
+                                    rect = [value CGRectValue];
+                                }
                             }
+                            settings.frame = rect;
+                            
+                            //settings.interruptionPolicy = 2; // reconnect
+                            settings.level = 1;
+                            settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
+                            
+                            // it seems some apps don't honor these settings so we don't cover the top of the app
+                            settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
+                            
+                            settings.statusBarDisabled = YES;
+                            parameters.settings = settings;
+                            
+                            UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
+                            clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
+                            clientSettings.statusBarStyle = 0;
+                            parameters.clientSettings = clientSettings;
+                            
+                            self.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
+                            self.scene.delegate = self;
+                        });
+                        
+                        // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
+                        // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
+                        ksurface_error_t error = kSurfaceErrorUndefined;
+                        error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
+                        
+                        if(error != kSurfaceErrorSuccess)
+                        {
+                            [weakSelf terminate];
                         }
-                        settings.frame = rect;
-                        
-                        //settings.interruptionPolicy = 2; // reconnect
-                        settings.level = 1;
-                        settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
-                        
-                        // it seems some apps don't honor these settings so we don't cover the top of the app
-                        settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                        settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
-                        
-                        settings.statusBarDisabled = YES;
-                        parameters.settings = settings;
-                        
-                        UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
-                        clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
-                        clientSettings.statusBarStyle = 0;
-                        parameters.clientSettings = clientSettings;
-                    
-                        self.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
-                        self.scene.delegate = self;
                     });
-                    
-                    // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
-                    // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
-                    ksurface_error_t error = kSurfaceErrorUndefined;
-                    error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
-                    
-                    if(error != kSurfaceErrorSuccess)
-                    {
-                        [weakSelf terminate];
-                    }
                 }
             }];
         }

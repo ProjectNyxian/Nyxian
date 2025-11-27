@@ -53,6 +53,7 @@
 @property (nonatomic) BOOL isSuspended;
 
 @property (nonatomic) dispatch_once_t removeOnce;
+@property (nonatomic) dispatch_once_t addOnce;
 
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
