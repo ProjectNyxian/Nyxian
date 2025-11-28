@@ -23,8 +23,7 @@
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/20251128a/nyxian_20251128a.ipa",
           "size": 148000000,
-          "version": "1",
-          "buildVersion": "20251128a",
+          "marketingVersion": "20251128a",
           "date": "2025-11-28T16:30:00+01:00",
           "localizedDescription": "Changelog\n- Fixed keyboard toolbar not floating on iOS 26.\n- Changed application template to use SceneDelegate lifecycle and to be 1:1 with apples swift template.\n- Updated Nyxian to use SceneDelegate lifecycle.\n- Fixed up appearance of menus and UI elements in iOS 26\n- Replaced blur effect with glass effect on app switcher iOS 26\n- Fixed up theming system and added new themes.. \"ForestDusk\",\"TransPride\",\"NeonGlow\",\"OLEDBlack\" and \"Scriptorium",
           "minOSVersion": "17.0"
@@ -32,8 +31,7 @@
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.6.0/nyxian_0.6.ipa",
           "size": 148000000,
-          "version": "1",
-          "buildVersion": "0.6.0",
+          "marketingVersion": "0.6",
           "date": "2025-09-05T18:00:00+02:00",
           "localizedDescription": "Dont expect this build to be 100% stable, it was generally tested on iPad\n\nChangelog\n- Too much to tell, the most important thing is that you can now use ur free apple developer certificate and that its compatible with iPad!",
           "minOSVersion": "17.0"
