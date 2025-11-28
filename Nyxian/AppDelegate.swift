@@ -19,55 +19,20 @@
 
 import UIKit
 
-@objc class AppDelegate: UIResponder, UIApplicationDelegate, UITabBarControllerDelegate {
-
+@objc class AppDelegate: UIResponder, UIApplicationDelegate {
+    
     var window: UIWindow?
-
+    
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        window = LDEWindowServer.shared()
-        
-        let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
-        
-        let contentViewController: ContentViewController = ContentViewController(path: "\(NSHomeDirectory())/Documents/Projects")
-        let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
-        
-        let projectsNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
-        let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
-        
-        projectsNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
-        settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
-        
-        var viewControllers: [UIViewController] = [projectsNavigationController, settingsNavigationController]
-        
-        if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
-        {
-            if #available(iOS 26.0, *) {
-                let fakeViewController: UIViewController = UIViewController()
-                fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
-                fakeViewController.tabBarItem.title = "Switcher"
-                fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
-                viewControllers.append(fakeViewController)
-            }
-        }
-        
-        tabViewController.viewControllers = viewControllers
-        tabViewController.delegate = self;
-        
-        window?.rootViewController = tabViewController
-        window?.makeKeyAndVisible()
-
         return true
     }
     
-    func tabBarController(_ tabBarController: UITabBarController,
-                          shouldSelect viewController: UIViewController) -> Bool {
-        if viewController.tabBarItem.tag == 2 {
-            LDEWindowServer.shared().showAppSwitcherExternal()
-            return false
-        }
-        return true
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
+    
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) { }
 }

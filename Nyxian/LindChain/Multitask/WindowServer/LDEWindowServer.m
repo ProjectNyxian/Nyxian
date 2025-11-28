@@ -33,8 +33,7 @@
 
 @implementation LDEWindowServer
 
-
-- (instancetype)init
+- (instancetype)initWithWindowScene:(UIWindowScene *)windowScene
 {
     static BOOL hasInitialized = NO;
     if (hasInitialized) {
@@ -42,7 +41,7 @@
                                        reason:@"This class may only be initialized once."
                                      userInfo:nil];
     }
-    self = [super initWithFrame:UIScreen.mainScreen.bounds];
+    self = [super initWithWindowScene:windowScene];
     if (self) {
         _windows = [[NSMutableDictionary alloc] init];
         _windowOrder = [[NSMutableArray alloc] init];
@@ -60,14 +59,19 @@
     return self;
 }
 
-+ (instancetype)shared
++ (instancetype)sharedWithWindowScene:(UIWindowScene*)windowScene
 {
     static LDEWindowServer *multitaskManagerSingleton = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        multitaskManagerSingleton = [[LDEWindowServer alloc] init];
+        multitaskManagerSingleton = [[LDEWindowServer alloc] initWithWindowScene:windowScene];
     });
     return multitaskManagerSingleton;
+}
+
++ (instancetype)shared
+{
+    return [self sharedWithWindowScene:nil];
 }
 
 - (wid_t)getNextWindowIdentifier

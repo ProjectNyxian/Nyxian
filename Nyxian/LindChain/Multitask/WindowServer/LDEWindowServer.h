@@ -34,7 +34,8 @@
 @property (nonatomic, strong) NSLayoutConstraint *appSwitcherTopConstraint;
 @property (nonatomic, strong) UIImpactFeedbackGenerator *impactGenerator;
 
-- (instancetype)init;
+- (instancetype)initWithWindowScene:(UIWindowScene *)windowScene;
++ (instancetype)sharedWithWindowScene:(UIWindowScene*)windowScene;
 + (instancetype)shared;
 
 - (BOOL)closeWindowWithIdentifier:(wid_t)identifier;
