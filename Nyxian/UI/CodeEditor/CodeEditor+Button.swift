@@ -37,7 +37,7 @@ class SymbolButton: UIButton {
             self.setTitleColor(.label, for: .normal)
         }
         
-        let theme: LindDEThemer = getCurrentSelectedTheme()
+        let theme: LDETheme = LDEThemeReader.shared.currentlySelectedTheme()
         
         self.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         self.addTarget(self, action: #selector(touchDown), for: .touchDown)

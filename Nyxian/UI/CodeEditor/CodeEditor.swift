@@ -116,7 +116,7 @@ class CodeEditorViewController: UIViewController {
             self.navigationItem.setLeftBarButton(closeButton, animated: true)
         }
         
-        let theme: LindDEThemer = currentTheme ?? LindDEThemer()
+        let theme: LDETheme = currentTheme ?? LDEThemeReader.shared.currentlySelectedTheme()
         theme.fontSize = UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 10.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
             
         self.view.backgroundColor = .systemBackground
@@ -236,7 +236,7 @@ class CodeEditorViewController: UIViewController {
     func setupToolbar(textView: TextView) {
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
-        let theme: LindDEThemer = getCurrentSelectedTheme()
+        let theme: LDETheme = LDEThemeReader.shared.currentlySelectedTheme()
         
         if #available(iOS 15.0, *) {
             let appearance = UIToolbarAppearance()

@@ -61,8 +61,8 @@ class SwitchTableCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        self.toggle?.onTintColor = currentTheme?.textColor
-        self.toggle?.thumbTintColor = currentTheme?.backgroundColor
+        self.toggle?.onTintColor = currentTheme?.appLabel
+        self.toggle?.thumbTintColor = currentTheme?.appTableCell
     }
     
     @objc private func toggleValueChanged(_ sender: UISwitch) {

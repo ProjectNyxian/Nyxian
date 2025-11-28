@@ -99,7 +99,7 @@ class CustomizationViewController: UIThemedTableViewController {
             if indexPath.row == 0 {
                 themePreviewCell = ThemePickerPreviewCell()
                 cell = themePreviewCell!
-                (cell as! ThemePickerPreviewCell).populate(with: ThemePickerPreviewCell.ViewModel(theme: getCurrentSelectedTheme(), text: """
+                (cell as! ThemePickerPreviewCell).populate(with: ThemePickerPreviewCell.ViewModel(theme: LDEThemeReader.shared.currentlySelectedTheme(), text: """
 #include <stdio.h>
 
 int main(void)
@@ -109,35 +109,40 @@ int main(void)
 }
 """))
             } else if indexPath.row == 1 {
-                cell = PickerTableCell(options: ["NyxianLDE", "Solarized"], title: "Theme", key: "LDETheme", defaultValue: 0)
+                var options: [String] = []
+                for theme in LDEThemeReader.shared.themes {
+                    options.append(theme.name)
+                }
+                cell = PickerTableCell(options: options, title: "Theme", key: "LDETheme", defaultValue: 0)
                 (cell as! PickerTableCell).callback = { selected in
-                    self.themePreviewCell!.switchTheme(theme: themes[selected])
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.themes[selected])
+                    LDEThemeReader.shared.selectedThemeIndex = selected
                     RevertUI()
                 }
             } else if indexPath.row == 2 {
                 cell = StepperTableCell(title: "Font Size", key: "LDEFontSize", defaultValue: 10, minValue: 8, maxValue: 15)
                 (cell as! StepperTableCell).callback = { newValue in
-                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 3 {
                 cell = SwitchTableCell(title: "Show Line Numbers", key: "LDEShowLineNumbers", defaultValue: true)
                 (cell as! SwitchTableCell).callback = { newValue in
-                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 4 {
                 cell = SwitchTableCell(title: "Show Spaces", key: "LDEShowSpaces", defaultValue: true)
                 (cell as! SwitchTableCell).callback = { newValue in
-                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 5 {
                 cell = SwitchTableCell(title: "Wrap Lines", key: "LDEWrapLines", defaultValue: true)
                 (cell as! SwitchTableCell).callback = { newValue in
-                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else {
                 cell = SwitchTableCell(title: "Show Line Breaks", key: "LDEShowLineBreaks", defaultValue: true)
                 (cell as! SwitchTableCell).callback = { newValue in
-                    self.themePreviewCell!.switchTheme(theme: getCurrentSelectedTheme())
+                    self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             }
         } else {

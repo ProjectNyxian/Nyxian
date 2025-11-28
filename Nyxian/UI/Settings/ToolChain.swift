@@ -27,7 +27,7 @@ class ToolChainController: UIThemedTableViewController {
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         self.tableView.translatesAutoresizingMaskIntoConstraints = false
-        self.tableView.rowHeight = 44
+        self.tableView.rowHeight = UITableView.automaticDimension
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {

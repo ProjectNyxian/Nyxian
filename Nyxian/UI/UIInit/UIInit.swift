@@ -19,12 +19,31 @@
 
 import UIKit
 
-var currentTheme: LindDEThemer?
+extension UIColor {
+    /// Returns the brightness value (0 = dark, 1 = bright)
+    var brightness: CGFloat {
+        var brightness: CGFloat = 0
+        getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
+        return brightness
+    }
+    
+    /// Returns the darker of two colors
+    func darker(than other: UIColor) -> UIColor {
+        return self.brightness < other.brightness ? self : other
+    }
+
+    /// Returns the lighter of two colors
+    func lighter(than other: UIColor) -> UIColor {
+        return self.brightness > other.brightness ? self : other
+    }
+}
+
+var currentTheme: LDETheme?
 var currentNavigationBarAppearance = UINavigationBarAppearance()
 var currentTabBarAppearance = UITabBarAppearance()
 
 func RevertUI() {
-    currentTheme = getCurrentSelectedTheme()
+    currentTheme = LDEThemeReader.shared.currentlySelectedTheme()
     
     guard let currentTheme = currentTheme else { return }
     
@@ -46,12 +65,12 @@ func RevertUI() {
         }
     }
     
-    UITableView.appearance().backgroundColor = currentTheme.gutterBackgroundColor
-    UITableViewCell.appearance().backgroundColor = currentTheme.backgroundColor
+    UITableView.appearance().backgroundColor = currentTheme.appTableView
+    UITableViewCell.appearance().backgroundColor = currentTheme.appTableCell
     
-    UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).textColor = currentTheme.textColor
-    UILabel.appearance(whenContainedInInstancesOf: [UIButton.self]).textColor = currentTheme.textColor
-    UIView.appearance().tintColor = currentTheme.textColor
+    UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).textColor = currentTheme.appLabel
+    UILabel.appearance(whenContainedInInstancesOf: [UIButton.self]).textColor = currentTheme.appLabel
+    UIView.appearance().tintColor = currentTheme.appLabel
     
     NotificationCenter.default.post(name: Notification.Name("uiColorChangeNotif"), object: nil, userInfo: nil)
 }

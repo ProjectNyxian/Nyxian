@@ -65,6 +65,7 @@ class PickerTableCell: UITableViewCell {
         let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
         let image = UIImage(systemName: "chevron.up.chevron.down", withConfiguration: config)
 
+        if(options.count >= value) { value = 0 }
         button.setTitle(options[value], for: .normal)
         button.setImage(image, for: .normal)
         button.semanticContentAttribute = .forceRightToLeft

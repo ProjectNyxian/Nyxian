@@ -96,7 +96,7 @@ extension UIColor {
 ///
 /// List of Themes
 ///
-var themes: [LindDEThemer] = [
+/*var themes: [LindDEThemer] = [
     LindDEThemer(),
     SolarizedThemer()
 ]
@@ -229,8 +229,183 @@ class SolarizedThemer: LindDEThemer {
         colorType = UIColor(light: (38, 139, 210), dark: (42, 161, 152))
         colorConstantBuiltin = UIColor(light: (211, 54, 130), dark: (133, 153, 0))
     }
-}
+}*/
 
 func neoRGB(_ red: CGFloat,_ green: CGFloat,_ blue: CGFloat ) -> UIColor {
     return UIColor(red: red/255.0, green: green/255.0, blue: blue/255.0, alpha: 1.0)
+}
+
+func ldeThemeColorGen(colorEntry: [String:Any]) -> UIColor {
+    // Get light and dark mode
+    let light: [String:Int] = colorEntry["light"] as! [String:Int];
+    let dark: [String:Int] = colorEntry["dark"] as! [String:Int];
+    
+    // Now forcefully!
+    return UIColor(light: (CGFloat(light["red"]!), CGFloat(light["green"]!), CGFloat(light["blue"]!)), dark: (CGFloat(dark["red"]!), CGFloat(dark["green"]!), CGFloat(dark["blue"]!)), alpha: Double(light["alpha"]!))
+}
+
+class LDETheme: Theme {
+    var fontSize: CGFloat = CGFloat(UserDefaults.standard.double(forKey: "CEFontSize"))
+    
+    var font: UIFont {
+        return UIFont.monospacedSystemFont(ofSize: fontSize, weight: .medium)
+    }
+    
+    var lineNumberFont: UIFont {
+        return UIFont.monospacedSystemFont(ofSize: fontSize * 0.85, weight: .regular)
+    }
+    
+    let name: String
+    let textColor: UIColor
+    let backgroundColor: UIColor
+    
+    let gutterBackgroundColor: UIColor
+    let gutterHairlineColor: UIColor
+    
+    let lineNumberColor: UIColor
+    
+    let selectedLineBackgroundColor: UIColor
+    let selectedLinesLineNumberColor: UIColor
+    let selectedLinesGutterBackgroundColor: UIColor
+    
+    var invisibleCharactersColor: UIColor {
+        return textColor.withAlphaComponent(0.25)
+    }
+    
+    let pageGuideHairlineColor: UIColor
+    let pageGuideBackgroundColor: UIColor
+    
+    let markedTextBackgroundColor: UIColor
+    let colorKeyword: UIColor
+    let colorComment: UIColor
+    let colorString: UIColor
+    let colorNumber: UIColor
+    let colorRegex: UIColor
+    let colorFunction: UIColor
+    let colorOperator: UIColor
+    let colorProperty: UIColor
+    let colorPunctuation: UIColor
+    let colorDirective: UIColor
+    let colorType: UIColor
+    let colorConstantBuiltin: UIColor
+    
+    let appLabel: UIColor
+    let appTableView: UIColor
+    let appTableCell: UIColor
+    
+    init?(plistPath: String) {
+        // Gaining plist access
+        if let data = try? Data(contentsOf: URL(fileURLWithPath: plistPath)),
+           let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
+            // Now reading "LDEThemes dictionary"
+            let theme: [String:Any] = plist["LDETheme"] as! [String:Any]
+            let app: [String:Any] = theme["app"] as! [String:Any]
+            let highlighting: [String:Any] = theme["highlighting"] as! [String:Any]
+            
+            name = URL(fileURLWithPath: plistPath).deletingPathExtension().lastPathComponent
+            
+            // First highlight
+            colorKeyword = ldeThemeColorGen(colorEntry: highlighting["keyword"] as! [String:Any])
+            colorComment = ldeThemeColorGen(colorEntry: highlighting["comment"] as! [String:Any])
+            colorString = ldeThemeColorGen(colorEntry: highlighting["string"] as! [String:Any])
+            colorNumber = ldeThemeColorGen(colorEntry: highlighting["number"] as! [String:Any])
+            colorRegex = ldeThemeColorGen(colorEntry: highlighting["regex"] as! [String:Any])
+            colorFunction = ldeThemeColorGen(colorEntry: highlighting["function"] as! [String:Any])
+            colorOperator = ldeThemeColorGen(colorEntry: highlighting["operator"] as! [String:Any])
+            colorProperty = ldeThemeColorGen(colorEntry: highlighting["property"] as! [String:Any])
+            colorPunctuation = ldeThemeColorGen(colorEntry: highlighting["punctuation"] as! [String:Any])
+            colorDirective = ldeThemeColorGen(colorEntry: highlighting["directive"] as! [String:Any])
+            colorType = ldeThemeColorGen(colorEntry: highlighting["type"] as! [String:Any])
+            colorConstantBuiltin = ldeThemeColorGen(colorEntry: highlighting["constant"] as! [String:Any])
+            
+            // Now everything else
+            textColor = ldeThemeColorGen(colorEntry: theme["text"] as! [String:Any])
+            backgroundColor = ldeThemeColorGen(colorEntry: theme["background"] as! [String:Any])
+            gutterBackgroundColor = ldeThemeColorGen(colorEntry: theme["gutterBackground"] as! [String:Any])
+            gutterHairlineColor = ldeThemeColorGen(colorEntry: theme["gutterHairline"] as! [String:Any])
+            lineNumberColor = ldeThemeColorGen(colorEntry: theme["lineNumber"] as! [String:Any])
+            selectedLineBackgroundColor = ldeThemeColorGen(colorEntry: theme["selectedLineBackground"] as! [String:Any])
+            selectedLinesLineNumberColor = ldeThemeColorGen(colorEntry: theme["selectedLinesLineNumber"] as! [String:Any])
+            selectedLinesGutterBackgroundColor = ldeThemeColorGen(colorEntry: theme["selectedLinesGutterBackground"] as! [String:Any])
+            pageGuideHairlineColor = ldeThemeColorGen(colorEntry: theme["pageGuideHairline"] as! [String:Any])
+            pageGuideBackgroundColor = ldeThemeColorGen(colorEntry: theme["pageGuideBackground"] as! [String:Any])
+            markedTextBackgroundColor = ldeThemeColorGen(colorEntry: theme["markedTextBackground"] as! [String:Any])
+            
+            appLabel = ldeThemeColorGen(colorEntry: app["appLabel"] as! [String:Any])
+            appTableView = ldeThemeColorGen(colorEntry: app["appTableViewBackground"] as! [String:Any])
+            appTableCell = ldeThemeColorGen(colorEntry: app["appTableCellBackground"] as! [String:Any])
+        } else {
+            return nil
+        }
+    }
+    
+    func textColor(for highlightName: String) -> UIColor? {
+        guard let highlightName = HighlightName(highlightName) else {
+            return nil
+        }
+        switch highlightName {
+        case .keyword:
+            return colorKeyword
+        case .constantBuiltin:
+            return colorConstantBuiltin
+        case .number:
+            return colorNumber
+        case .comment:
+            return colorComment
+        case .operator:
+            return colorOperator
+        case .string:
+            return colorString
+        case .function, .variable:
+            return colorFunction
+        case .property:
+            return colorProperty
+        case .punctuation:
+            return colorPunctuation
+        case .type:
+            return colorType
+        case .tag:
+            return colorString
+        default:
+            return textColor
+        }
+    }
+}
+
+class LDEThemeReader {
+    static let shared: LDEThemeReader = LDEThemeReader()
+    
+    var themes: [LDETheme] = []
+    
+    var selectedThemeIndex: Int {
+        get {
+            return UserDefaults.standard.integer(forKey: "LDESelectedThemeIndex")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "LDESelectedThemeIndex")
+        }
+    }
+    
+    init() {
+        // Gaining plist access
+        let path = "\(Bundle.main.bundlePath)/Shared/Themes/Themes.plist"
+        if let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+           let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
+            // Now reading "LDEThemes dictionary"
+            let themesFiles: [String] = plist["LDEThemes"] as! [String]
+            
+            if(themesFiles.count < selectedThemeIndex) {
+                selectedThemeIndex = 0
+            }
+            
+            // Now loading each theme
+            for file in themesFiles {
+                themes.append(LDETheme(plistPath: "\(Bundle.main.bundlePath)/Shared/Themes/".appending(file))!)
+            }
+        }
+    }
+    
+    func currentlySelectedTheme() -> LDETheme {
+        return themes[selectedThemeIndex]
+    }
 }

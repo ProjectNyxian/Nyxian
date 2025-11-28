@@ -26,7 +26,7 @@ import UIKit
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
+        self.view.backgroundColor = currentTheme?.appTableView
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
     
@@ -36,11 +36,11 @@ import UIKit
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
-        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
-        self.tableView.backgroundColor = currentTheme?.gutterBackgroundColor
+        self.view.backgroundColor = currentTheme?.appTableView
+        self.tableView.backgroundColor = currentTheme?.appTableView
         
         for cell in tableView.visibleCells {
-            cell.backgroundColor = currentTheme?.backgroundColor
+            cell.backgroundColor = currentTheme?.appTableCell
         }
     }
 }
@@ -54,27 +54,26 @@ import UIKit
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        self.view.backgroundColor = currentTheme?.gutterBackgroundColor
+        self.view.backgroundColor = currentTheme?.appTableView
         super.viewDidAppear(animated)
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
-        
-        let blurEffect = UIBlurEffect(style: .systemMaterial)
-        
-        if let viewControllers = self.viewControllers {
-            for case let nav as UINavigationController in viewControllers {
-                nav.navigationBar.standardAppearance = currentNavigationBarAppearance
-                nav.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
-                nav.navigationBar.scrollEdgeAppearance?.backgroundEffect = blurEffect
-            }
-        }
-        
         if #unavailable(iOS 26.0) {
+            let blurEffect = UIBlurEffect(style: .systemMaterial)
+            
+            if let viewControllers = self.viewControllers {
+                for case let nav as UINavigationController in viewControllers {
+                    nav.navigationBar.standardAppearance = currentNavigationBarAppearance
+                    nav.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+                    nav.navigationBar.scrollEdgeAppearance?.backgroundEffect = blurEffect
+                }
+            }
+            
             if #available(iOS 15.0, *) {
                 let appearance = UITabBarAppearance()
                 appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = currentTheme?.gutterBackgroundColor
+                appearance.backgroundColor = currentTheme?.appTableView
                 self.tabBar.standardAppearance = appearance
                 self.tabBar.scrollEdgeAppearance = appearance
                 UITabBar.appearance().scrollEdgeAppearance = appearance

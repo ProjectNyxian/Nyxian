@@ -72,7 +72,7 @@ final class ThemePickerPreviewCell: UITableViewCell {
 
 extension ThemePickerPreviewCell {
     struct ViewModel {
-        let theme: LindDEThemer
+        let theme: LDETheme
         let text: String
     }
     
@@ -111,7 +111,7 @@ extension ThemePickerPreviewCell {
         textView.lineSelectionDisplayType = .line
     }
     
-    func switchTheme(theme: LindDEThemer) {
+    func switchTheme(theme: LDETheme) {
         theme.fontSize = UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 10.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
         textView.theme = theme
         textView.backgroundColor = theme.backgroundColor
