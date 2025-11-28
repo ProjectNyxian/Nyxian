@@ -258,11 +258,18 @@
     {
         if(!self.appSwitcherView)
         {
-            UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
-            UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-            blurView.translatesAutoresizingMaskIntoConstraints = NO;
-            blurView.layer.cornerRadius = 20;
-            blurView.layer.masksToBounds = YES;
+            UIVisualEffectView *effectView;
+            if (@available(iOS 26.0, *)) {
+                UIGlassEffect *glassEffect = [[UIGlassEffect alloc] init];
+                effectView = [[UIVisualEffectView alloc] initWithEffect:glassEffect];
+            } else {
+                UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+                effectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+            }
+            
+            effectView.translatesAutoresizingMaskIntoConstraints = NO;
+            effectView.layer.cornerRadius = 20;
+            effectView.layer.masksToBounds = YES;
 
             UIView *container = [[UIView alloc] init];
             container.translatesAutoresizingMaskIntoConstraints = NO;
@@ -271,12 +278,12 @@
             container.layer.shadowRadius = 12;
             container.layer.shadowOffset = CGSizeMake(0, -4);
 
-            [container addSubview:blurView];
+            [container addSubview:effectView];
             [NSLayoutConstraint activateConstraints:@[
-                [blurView.topAnchor constraintEqualToAnchor:container.topAnchor],
-                [blurView.bottomAnchor constraintEqualToAnchor:container.bottomAnchor],
-                [blurView.leadingAnchor constraintEqualToAnchor:container.leadingAnchor],
-                [blurView.trailingAnchor constraintEqualToAnchor:container.trailingAnchor]
+                [effectView.topAnchor constraintEqualToAnchor:container.topAnchor],
+                [effectView.bottomAnchor constraintEqualToAnchor:container.bottomAnchor],
+                [effectView.leadingAnchor constraintEqualToAnchor:container.leadingAnchor],
+                [effectView.trailingAnchor constraintEqualToAnchor:container.trailingAnchor]
             ]];
             
             UIScrollView *scrollView = [[UIScrollView alloc] init];
@@ -291,13 +298,13 @@
             self.stackView = stack;
 
             [scrollView addSubview:stack];
-            [blurView.contentView addSubview:scrollView];
+            [effectView.contentView addSubview:scrollView];
 
             [NSLayoutConstraint activateConstraints:@[
-                [scrollView.topAnchor constraintEqualToAnchor:blurView.contentView.topAnchor constant:20],
-                [scrollView.bottomAnchor constraintEqualToAnchor:blurView.contentView.bottomAnchor constant:-20],
-                [scrollView.leadingAnchor constraintEqualToAnchor:blurView.contentView.leadingAnchor],
-                [scrollView.trailingAnchor constraintEqualToAnchor:blurView.contentView.trailingAnchor],
+                [scrollView.topAnchor constraintEqualToAnchor:effectView.contentView.topAnchor constant:20],
+                [scrollView.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-20],
+                [scrollView.leadingAnchor constraintEqualToAnchor:effectView.contentView.leadingAnchor],
+                [scrollView.trailingAnchor constraintEqualToAnchor:effectView.contentView.trailingAnchor],
             ]];
 
             [NSLayoutConstraint activateConstraints:@[
@@ -327,10 +334,10 @@
                 placeholderStack.translatesAutoresizingMaskIntoConstraints = NO;
                 self.placeholderStack = placeholderStack;
 
-                [blurView.contentView addSubview:placeholderStack];
+                [effectView.contentView addSubview:placeholderStack];
                 [NSLayoutConstraint activateConstraints:@[
-                    [placeholderStack.centerXAnchor constraintEqualToAnchor:blurView.contentView.centerXAnchor],
-                    [placeholderStack.centerYAnchor constraintEqualToAnchor:blurView.contentView.centerYAnchor]
+                    [placeholderStack.centerXAnchor constraintEqualToAnchor:effectView.contentView.centerXAnchor],
+                    [placeholderStack.centerYAnchor constraintEqualToAnchor:effectView.contentView.centerYAnchor]
                 ]];
             }
 
