@@ -21,48 +21,50 @@
 
 @implementation Synitem
 
-+ (UInt8)SynitemLevelOfClangLevel:(NSString*)error
-{
-    if([error isEqual:@" error"])
-        return 2;
-    
-    if([error isEqual:@" warning"])
-        return 1;
-    
++ (UInt8)SynitemLevelOfClangLevel:(NSString *)levelStr {
+    levelStr = [levelStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if ([levelStr hasPrefix:@"error"] || [levelStr hasPrefix:@"fatal"]) return 2;
+    if ([levelStr hasPrefix:@"warning"]) return 1;
+    if ([levelStr hasPrefix:@"note"]) return 3;
+    if ([levelStr hasPrefix:@"remark"]) return 4;
     return 0;
 }
 
-+ (NSArray<Synitem*> *)OfClangErrorWithString:(NSString*)errorString
-{
-    NSMutableArray<Synitem*> *issues = [[NSMutableArray alloc] init];
++ (NSArray<Synitem *> *)OfClangErrorWithString:(NSString *)errorString {
+    NSMutableArray<Synitem *> *issues = [[NSMutableArray alloc] init];
     [self OfClangErrorWithString:errorString usingArray:&issues];
     return issues;
 }
 
-+ (void)OfClangErrorWithString:(NSString*)errorString
-                    usingArray:(NSMutableArray<Synitem*> **)issues
-{
++ (void)OfClangErrorWithString:(NSString *)errorString
+                    usingArray:(NSMutableArray<Synitem *> **)issues {
     NSArray *errorLines = [errorString componentsSeparatedByString:@"\n"];
     
-    for(NSString *line in errorLines)
-    {
+    for (NSString *line in errorLines) {
         NSArray *errorComponents = [line componentsSeparatedByString:@":"];
-        if([errorComponents count] >= 5)
-        {
-            Synitem *item = [[Synitem alloc] init];
-            item.line = [errorComponents[1] unsignedIntValue];
-            item.column = [errorComponents[2] unsignedIntValue];
-            item.type = [Synitem SynitemLevelOfClangLevel:errorComponents[3]];
-            
-            // MARK: Notes aint tracked anyways by Synpush and it must come as close to Synpush as possible
-            if(item.type == 0)
-                continue;
-            
-            NSRange messageRange = NSMakeRange(4, errorComponents.count - 4);
-            item.message = [[errorComponents subarrayWithRange:messageRange] componentsJoinedByString:@":"];
-            
-            [*issues addObject:item];
-        }
+        if (errorComponents.count < 4) continue;
+        
+        NSString *potentialLine = errorComponents[1];
+        NSString *potentialCol = errorComponents.count >= 5 ? errorComponents[2] : nil;
+        BOOL hasLine = [potentialLine rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location != NSNotFound;
+        if (!hasLine) continue;
+        
+        BOOL hasCol = potentialCol && [potentialCol rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location != NSNotFound;
+        NSUInteger levelIdx = hasCol ? 3 : 2;
+        if (errorComponents.count <= levelIdx + 1) continue;
+        
+        Synitem *item = [[Synitem alloc] init];
+        item.line = [potentialLine integerValue];
+        item.column = hasCol ? [potentialCol integerValue] : 0;
+        item.type = [Synitem SynitemLevelOfClangLevel:errorComponents[levelIdx]];
+        
+        if (item.type == 0) continue;
+        
+        NSUInteger msgStart = levelIdx + 1;
+        item.message = [[errorComponents subarrayWithRange:NSMakeRange(msgStart, errorComponents.count - msgStart)] componentsJoinedByString:@":"];
+        item.message = [item.message stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        
+        [*issues addObject:item];
     }
 }
 

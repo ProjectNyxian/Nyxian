@@ -38,8 +38,6 @@
 
 - (void)reparseFile:(NSString*)content;
 - (NSArray<Synitem *> *)getDiagnostics;
-- (NSArray<NSString*>*)getAutocompletionsAtLine:(UInt32)line
-                                       atColumn:(UInt32)column;
 - (void)updateBuffer:(NSString *)content;
 
 @end

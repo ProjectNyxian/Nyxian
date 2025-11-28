@@ -216,21 +216,6 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 
 #pragma mark - Code Completion
 
-static inline NSString* sp_extractPrefix(NSString *lineUpToCursor) {
-    if (lineUpToCursor.length == 0) return @"";
-    NSMutableString *prefix = [NSMutableString string];
-    NSCharacterSet *valid = [NSCharacterSet characterSetWithCharactersInString:@"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"];
-    for (NSInteger i = (NSInteger)lineUpToCursor.length - 1; i >= 0; --i) {
-        unichar c = [lineUpToCursor characterAtIndex:(NSUInteger)i];
-        if ([valid characterIsMember:c]) {
-            [prefix insertString:[NSString stringWithCharacters:&c length:1] atIndex:0];
-        } else {
-            break;
-        }
-    }
-    return prefix;
-}
-
 - (void)updateBuffer:(NSString *)content
 {
     pthread_mutex_lock(&_mutex);
@@ -245,76 +230,6 @@ static inline NSString* sp_extractPrefix(NSString *lineUpToCursor) {
     }
 
     pthread_mutex_unlock(&_mutex);
-}
-
-- (NSArray<NSString*>*)getAutocompletionsAtLine:(UInt32)line
-                                       atColumn:(UInt32)column
-{
-    pthread_mutex_lock(&_mutex);
-
-    NSString *codeStr = [[NSString alloc] initWithData:_contentData encoding:NSUTF8StringEncoding];
-    if (!codeStr) { pthread_mutex_unlock(&_mutex); return @[]; }
-
-    __block NSString *currentLine = nil;
-    __block NSUInteger startOfLine = 0;
-    __block NSUInteger currentLineIndex = 1;
-    [codeStr enumerateSubstringsInRange:NSMakeRange(0, codeStr.length)
-                                options:NSStringEnumerationByLines | NSStringEnumerationSubstringNotRequired
-                             usingBlock:^(NSString * _Nullable substring, NSRange substringRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
-        if (currentLineIndex == line) {
-            currentLine = [codeStr substringWithRange:enclosingRange];
-            startOfLine = enclosingRange.location;
-            *stop = YES;
-        }
-        currentLineIndex++;
-    }];
-
-    if (!currentLine) { pthread_mutex_unlock(&_mutex); return @[]; }
-    NSUInteger colIndex = MIN((NSUInteger)MAX(1, column) - 1, currentLine.length);
-    NSString *lineUpToCursor = [currentLine substringToIndex:colIndex];
-
-    NSString *prefixStr = sp_extractPrefix(lineUpToCursor);
-    if (prefixStr.length == 0) { pthread_mutex_unlock(&_mutex); return @[]; }
-    const char *prefix = prefixStr.UTF8String;
-    const size_t prefix_len = strlen(prefix);
-
-    unsigned ccOpts = clang_defaultCodeCompleteOptions();
-
-    CXCodeCompleteResults *results = clang_codeCompleteAt(
-        _unit,
-        _cFilename,
-        line,
-        column,
-        &_unsaved,
-        1,
-        ccOpts);
-
-    if (!results) { pthread_mutex_unlock(&_mutex); return @[]; }
-
-    clang_sortCodeCompletionResults(results->Results, results->NumResults);
-
-    NSMutableArray<NSString*> *completions = [NSMutableArray array];
-
-    for (unsigned i = 0; i < results->NumResults; ++i) {
-        CXCompletionString cs = results->Results[i].CompletionString;
-        char *typed = build_completion_typed_or_text(cs);
-        if (!typed) continue;
-        if (strncasecmp(typed, prefix, prefix_len) == 0) {
-            const char *suffix = typed + prefix_len;
-            if (*suffix) {
-                [completions addObject:[NSString stringWithUTF8String:suffix]];
-            } else {
-                [completions addObject:@""];
-            }
-        }
-        free(typed);
-        if (completions.count >= 100) break; // protect UI; keep it snappy
-    }
-
-    clang_disposeCodeCompleteResults(results);
-
-    pthread_mutex_unlock(&_mutex);
-    return completions;
 }
 
 - (void)dealloc

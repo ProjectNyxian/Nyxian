@@ -23,12 +23,9 @@ import Runestone
 @testable import Runestone
 
 // MARK: - COORDINATOR
-class Coordinator: NSObject, TextViewDelegate, UITableViewDataSource, UITableViewDelegate {
+class Coordinator: NSObject, TextViewDelegate {
     private weak var parent: CodeEditorViewController?
     private var entries: [UInt64:(NeoButton?,UIView?)] = [:]
-    
-    private var autocompleteDropdown: UITableView?
-    private var currentAutocompletes: [String] = []
     
     private(set) var isProcessing: Bool = false
     private(set) var isInvalidated: Bool = false
@@ -94,34 +91,10 @@ class Coordinator: NSObject, TextViewDelegate, UITableViewDataSource, UITableVie
         if self.isInvalidated {
             self.debounce?.debounce()
         }
-        
-        
-        /*if(self.parent?.project?.codeEditorConfig.autocompletion ?? false) {
-            updateAutocomplete()
-        }*/
     }
     
     func redrawDiag() {
         guard let parent = self.parent else { return }
-        
-        /*if let textView = self.parent?.textView,
-           let selectedRange: UITextRange = textView.selectedTextRange {
-            let cursorPosition = textView.offset(from: textView.beginningOfDocument, to: selectedRange.start)
-            let utf16View = textView.text.utf16
-            let endIndex = utf16View.index(utf16View.startIndex, offsetBy: cursorPosition)
-            if let textUpToCursor = String(utf16View[..<endIndex]) {
-                let lines: [String] = textUpToCursor.components(separatedBy: "\n")
-                if let currentLine: String = lines.last {
-                    let line = lines.count
-                    let column = currentLine.count + 1
-                    
-                    self.parent?.synpushServer?.reparseFile(textView.text)
-                    if let autocompletes: [String] = self.parent?.synpushServer?.getAutocompletionsAtLine(UInt32(line), atColumn: UInt32(column)) {
-                        print("\(line) \(column) \(autocompletes)")
-                    }
-                }
-            }
-        }*/
         
         if !self.entries.isEmpty {
             for item in self.entries {
@@ -297,118 +270,6 @@ class Coordinator: NSObject, TextViewDelegate, UITableViewDataSource, UITableVie
             }
         }
     }
-    
-    private func showAutocompletes(_ autocompletes: [String], at rect: CGRect) {
-        guard let parent = self.parent, !autocompletes.isEmpty else { return }
-
-        // Remove old dropdown if exists
-        autocompleteDropdown?.removeFromSuperview()
-
-        currentAutocompletes = autocompletes
-
-        let dropdown = UITableView()
-        dropdown.tag = 999
-        dropdown.layer.borderColor = UIColor.gray.cgColor
-        dropdown.layer.borderWidth = 1
-        dropdown.layer.cornerRadius = 5
-        dropdown.isScrollEnabled = true
-        dropdown.rowHeight = 24
-        dropdown.dataSource = self
-        dropdown.delegate = self
-        dropdown.backgroundColor = UIColor.systemBackground
-
-        let width: CGFloat = 200
-        let maxHeight: CGFloat = 150
-        dropdown.frame = CGRect(
-            x: rect.origin.x,
-            y: rect.origin.y + rect.height,
-            width: width,
-            height: min(maxHeight, CGFloat(autocompletes.count * Int(dropdown.rowHeight)))
-        )
-
-        parent.view.addSubview(dropdown)
-        autocompleteDropdown = dropdown
-        dropdown.reloadData()
-    }
-    
-    func updateAutocomplete() {
-        guard let textView = self.parent?.textView,
-              let selectedRange = textView.selectedTextRange else {
-            autocompleteDropdown?.removeFromSuperview()
-            return
-        }
-
-        let cursorPosition = textView.offset(from: textView.beginningOfDocument, to: selectedRange.start)
-        let utf16View = textView.text.utf16
-        let endIndex = utf16View.index(utf16View.startIndex, offsetBy: cursorPosition)
-        guard let textUpToCursor = String(utf16View[..<endIndex]) else {
-            autocompleteDropdown?.removeFromSuperview()
-            return
-        }
-
-        let lines = textUpToCursor.components(separatedBy: "\n")
-        let lineNumber = lines.count
-        let currentLine = lines.last ?? ""
-        let column = currentLine.count + 1
-
-        // Request completions
-        parent?.synpushServer?.updateBuffer(textView.text)
-        guard let completions = parent?.synpushServer?.getAutocompletionsAtLine(UInt32(lineNumber), atColumn: UInt32(column)),
-              !completions.isEmpty else {
-            autocompleteDropdown?.removeFromSuperview()
-            return
-        }
-
-        // Show dropdown at caret
-        let caretRect = textView.caretRect(for: selectedRange.start)
-        let dropdownRect = textView.convert(caretRect, to: parent?.view)
-        showAutocompletes(completions, at: dropdownRect)
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            return currentAutocompletes.count
-        }
-
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            let cell = UITableViewCell()
-            cell.textLabel?.text = currentAutocompletes[indexPath.row]
-            cell.textLabel?.font = UIFont.systemFont(ofSize: 14)
-            return cell
-        }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let textView = parent?.textView,
-              let sel = textView.selectedTextRange else { return }
-
-        let completion = currentAutocompletes[indexPath.row]
-
-        let caret = sel.end
-        if textView.offset(from: sel.start, to: sel.end) != 0,
-           let collapsed = textView.textRange(from: caret, to: caret) {
-            textView.selectedTextRange = collapsed
-        }
-
-        guard let cursorRange = textView.selectedTextRange else { return }
-
-        var start = cursorRange.start
-        let underscore = "_".unicodeScalars.first!
-        while let prev = textView.position(from: start, offset: -1),
-              let r = textView.textRange(from: prev, to: start),
-              let s = textView.text(in: r),
-              let scalar = s.unicodeScalars.first,
-              CharacterSet.alphanumerics.contains(scalar) || scalar == underscore {
-            start = prev
-        }
-
-        let prefixRange = textView.textRange(from: start, to: cursorRange.start)
-        let typed = prefixRange.flatMap { textView.text(in: $0) } ?? ""
-
-        let suffix = completion.hasPrefix(typed) ? String(completion.dropFirst(typed.count)) : completion
-        textView.replace(cursorRange, withText: suffix)
-
-        tableView.removeFromSuperview()
-    }
-
     
     class ErrorPreview: UIView {
         var textView: UITextView
