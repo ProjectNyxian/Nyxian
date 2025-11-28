@@ -4,7 +4,6 @@
   "description": "Nyxian is a iOS app that lets you build and deploy iOS apps directly on-device without owning any computer. Means you can program where ever and when ever and in any type of situation. It currently supports iOS 15.0 upto the latest iOS version. Its designed for people that often find them selves on the go and dont want to take their mac with them selves and for the people who want to get into iOS software development but dont own a mac. Previously such a app didnt exist because no one tried to build something like that, propably because people thought that its not possible.",
   "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
   "website": "https://github.com/ProjectNyxian/Nyxian",
-  "patreonURL": "https://github.com/sponsors/ProjectNyxian",
   "tintColor": "#6156e2",
   "featuredApps": [
     "com.cr4zy.nyxian"
