@@ -21,112 +21,78 @@ import Foundation
 import UIKit
 
 class PickerTableCell: UITableViewCell {
-    let title: String
-    
     let options: [String]
     let key: String
     let defaultValue: Int
     var callback: (Int) -> Void = { _ in }
-    
-    let button: UIButton
-    
+
+    private let label = UILabel()
+    private let button = UIButton(type: .system)
+
     var value: Int {
         get {
-            if UserDefaults.standard.object(forKey: self.key) == nil {
-                UserDefaults.standard.set(self.defaultValue, forKey: self.key)
+            if UserDefaults.standard.object(forKey: key) == nil {
+                UserDefaults.standard.set(defaultValue, forKey: key)
             }
-            
-            return UserDefaults.standard.integer(forKey: self.key)
+            return UserDefaults.standard.integer(forKey: key)
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: self.key)
+            UserDefaults.standard.set(newValue, forKey: key)
             callback(newValue)
+            button.setTitle(options[newValue], for: .normal)
+            refreshMenuItems()
         }
     }
-    private var selectedOption: String {
-        get {
-            return self.options[self.value]
-        }
-        set {
-            self.value = options.firstIndex(where: { $0 == newValue } ) ?? 0
-        }
-    }
-    
-    init(
-        options: [String],
-        title: String,
-        key: String,
-        defaultValue: Int
-    ) {
+
+    init(options: [String], title: String, key: String, defaultValue: Int) {
         self.options = options
-        self.title = title
         self.key = key
         self.defaultValue = defaultValue
-        button = UIButton()
         super.init(style: .default, reuseIdentifier: nil)
-        
-        _ = self.value
-        
-        self.setupViews()
+
+        setupViews(title: title)
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupViews() {
-        // disable selection
-        self.selectionStyle = .none
-        
-        // First create the label
-        let label: UILabel = UILabel()
-        label.text = self.title
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    private func setupViews(title: String) {
+        selectionStyle = .none
+
+        label.text = title
         label.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(label)
-        
-        // create the chevron image
+        contentView.addSubview(label)
+
         let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
-        let image: UIImage = UIImage(systemName: "chevron.up.chevron.down", withConfiguration: config)!
-        
-        // now the option button
-        button.setTitle(self.selectedOption, for: .normal)
-        button.setTitleColor(UILabel.appearance().textColor, for: .normal)
+        let image = UIImage(systemName: "chevron.up.chevron.down", withConfiguration: config)
+
+        button.setTitle(options[value], for: .normal)
         button.setImage(image, for: .normal)
-        
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: -5, bottom: 0, right: 0)
-        
-        button.titleLabel?.textAlignment = .right
         button.semanticContentAttribute = .forceRightToLeft
         button.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(button)
+
+        contentView.addSubview(button)
         
-        // now the menu for the button
         refreshMenuItems()
         button.showsMenuAsPrimaryAction = true
-        
-        // Now fix its constraints
+
         NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            label.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
-            label.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 16),
-            
-            button.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            button.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
-            button.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 16),
-            button.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16)
+            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            button.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            button.leadingAnchor.constraint(greaterThanOrEqualTo: label.trailingAnchor, constant: 8),
+            button.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
     }
-    
+
     func refreshMenuItems() {
-        var menuItems: [UIMenuElement] = []
-        for option in self.options {
-            let index = self.options.firstIndex(where: { $0 == option } )
-            menuItems.append(UIAction(title: "\(index ?? 0): \(option) \((self.selectedOption == option) ? "(Selected)" : "")") { _ in
-                self.value = index ?? 0
-                self.button.setTitle(self.selectedOption, for: .normal)
-                self.refreshMenuItems()
-            })
-        }
-        button.menu = UIMenu(children: menuItems)
+        button.menu = UIMenu(children: options.enumerated().map { index, option in
+            UIAction(
+                title: option,
+                state: index == value ? .on : .off
+            ) { _ in
+                self.value = index
+            }
+        })
     }
 }

@@ -344,19 +344,7 @@ import UIKit
                 }
             }
             
-            let settings: UIAction = UIAction(title: "Settings", image: UIImage(systemName: "gear")) { _ in
-                let keys = Array(self.projectsList.keys).sorted()
-                let key = keys[indexPath.section]
-                let sectionProjects = self.projectsList[key] ?? []
-                let project = sectionProjects[indexPath.row]
-                
-                let settingsViewController: UINavigationController = UINavigationController(rootViewController: ProjectSettingsViewController(style: .insetGrouped, project: project))
-                settingsViewController.modalPresentationStyle = .formSheet
-                settingsViewController.presentationController?.delegate = self
-                self.present(settingsViewController, animated: true)
-            }
-            
-            return UIMenu(children: [export, item, settings])
+            return UIMenu(children: [export, item])
         }
     }
     

@@ -19,52 +19,91 @@
 
 import UIKit
 
-class TextFieldTableCell: UITableViewCell, UITextFieldDelegate {
+class NXTextFieldTableCell: UITableViewCell, UITextFieldDelegate {
     var textField: UITextField!
     let title: String
-    let key: String
+    let hint: String
+    let key: String?
     let defaultValue: String
+    let writeHandler: (String) -> Void
 
+    private var pvalue: String = ""
     var value: String {
         get {
-            if UserDefaults.standard.string(forKey: self.key) == nil {
-                UserDefaults.standard.set(self.defaultValue, forKey: self.key)
+            if let key = key {
+                return UserDefaults.standard.string(forKey: key) ?? defaultValue
+            } else {
+                return pvalue
             }
-            return UserDefaults.standard.string(forKey: self.key) ?? defaultValue
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: self.key)
+            self.writeHandler(newValue)
+            if let key = key {
+                UserDefaults.standard.set(newValue, forKey: key)
+            } else {
+                pvalue = newValue
+            }
+        }
+    }
+    
+    var text: String {
+        get {
+            return self.textField.text ?? ""
+        }
+        set {
+            self.textField.text = newValue
         }
     }
 
-    init(title: String, key: String, defaultValue: String) {
+    init(title: String,
+         hint: String,
+         key: String?,
+         defaultValue: String,
+         writeHandler: @escaping (String) -> Void = { _ in }) {
         self.title = title
         self.key = key
         self.defaultValue = defaultValue
+        self.writeHandler = writeHandler
+        self.hint = hint
         super.init(style: .default, reuseIdentifier: nil)
-        _ = self.value  // Ensures the default is set if needed
-        setupViews()
+        
+        if let key = key {
+            if UserDefaults.standard.object(forKey: key) == nil {
+                UserDefaults.standard.set(defaultValue, forKey: key)
+            }
+        }
+
+        setupViews(initialValue: value)
+    }
+    
+    convenience init(title: String, hint: String) {
+        self.init(title: title, hint: hint, key: nil, defaultValue: "")
+    }
+    
+    convenience init(title: String, hint: String, writeHandler: @escaping (String) -> Void) {
+        self.init(title: title, hint: hint, key: nil, defaultValue: "", writeHandler: writeHandler)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupViews() {
+    private func setupViews(initialValue: String) {
         selectionStyle = .none
 
         let label = UILabel()
         label.text = title
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
         contentView.addSubview(label)
 
         textField = UITextField()
-        textField.placeholder = "Value"
-        textField.text = value
+        textField.placeholder = self.hint
+        textField.text = initialValue
         textField.textAlignment = .right
         textField.delegate = self
-        textField.borderStyle = .none
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         contentView.addSubview(textField)
 
         NSLayoutConstraint.activate([
@@ -78,7 +117,10 @@ class TextFieldTableCell: UITableViewCell, UITextFieldDelegate {
         ])
     }
 
-    // MARK: - UITextFieldDelegate
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        textField.becomeFirstResponder()
+    }
 
     func textFieldDidEndEditing(_ textField: UITextField) {
         self.value = textField.text ?? ""
@@ -86,61 +128,12 @@ class TextFieldTableCell: UITableViewCell, UITextFieldDelegate {
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
+        self.value = textField.text ?? ""
         return true
     }
-}
 
-class TextFieldTableCellHandler: UITableViewCell, UITextFieldDelegate {
-    var textField: UITextField!
-    let title: String
-    var writeHandler: (String) -> Void = { _ in }
-
-    init(title: String, value: String) {
-        self.title = title
-        super.init(style: .default, reuseIdentifier: nil)
-        setupViews(value: value)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupViews(value: String) {
-        selectionStyle = .none
-
-        let label = UILabel()
-        label.text = title
-        label.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(label)
-
-        textField = UITextField()
-        textField.placeholder = "Value"
-        textField.text = value
-        textField.textAlignment = .right
-        textField.delegate = self
-        textField.borderStyle = .none
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(textField)
-
-        NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-
-            textField.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 12),
-            textField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            textField.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            textField.heightAnchor.constraint(equalToConstant: 30)
-        ])
-    }
-
-    // MARK: - UITextFieldDelegate
-
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        writeHandler(textField.text ?? "")
-    }
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        textField.text = nil
     }
 }

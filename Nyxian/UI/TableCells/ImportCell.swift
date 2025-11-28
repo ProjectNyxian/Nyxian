@@ -22,75 +22,82 @@ import UIKit
 import UniformTypeIdentifiers
 
 class ImportTableCell: UITableViewCell, UIDocumentPickerDelegate {
+
     private weak var parent: UIViewController?
-    private var button: UIButton?
-    private var label: UILabel?
     private(set) var url: URL?
-    
-    init(
-        parent: UIViewController,
-    ) {
-        super.init(style: .default, reuseIdentifier: nil)
+
+    private let importButton = UIButton(type: .system)
+    private let filenameLabel = UILabel()
+
+    init(parent: UIViewController) {
         self.parent = parent
-        self.setupViews()
+        super.init(style: .default, reuseIdentifier: nil)
+        setupViews()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func setupViews() {
-        // Setup the button
-        self.button = UIButton()
-        self.button?.titleLabel?.textAlignment = .left
-        self.button?.contentHorizontalAlignment = .left
-        self.button?.setTitle("Import", for: .normal)
-        self.button?.setTitleColor(UIColor.systemBlue, for: .normal)
-        self.button?.translatesAutoresizingMaskIntoConstraints = false
-        self.button?.addAction(UIAction { [weak self] _ in
-            guard let self = self,
-            let parent = self.parent else { return }
-            let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
-            documentPicker.delegate = self
-            documentPicker.modalPresentationStyle = .formSheet
-            parent.present(documentPicker, animated: true)
-        }, for: .touchUpInside)
-        self.contentView.addSubview(self.button!)
+        selectionStyle = .none
 
-        // Setup the label
-        self.label = UILabel()
-        self.label!.translatesAutoresizingMaskIntoConstraints = false
-        self.button!.addSubview(self.label!)
+        importButton.setTitle("Import", for: .normal)
+        importButton.setTitleColor(UIColor.systemBlue, for: .normal)
+        importButton.contentHorizontalAlignment = .left
+        importButton.addTarget(self, action: #selector(openPicker), for: .touchUpInside)
+        importButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
 
-        // Constraints
-        NSLayoutConstraint.activate([
-            self.button!.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            self.button!.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
-            self.button!.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 16),
-            self.button!.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16),
+        contentView.addSubview(importButton)
 
-            self.label!.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor),
-            self.label!.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16)
-        ])
-        
-        self.label!.setContentHuggingPriority(.required, for: .horizontal)
+        filenameLabel.text = ""
+        filenameLabel.textColor = .secondaryLabel
+        filenameLabel.textAlignment = .right
+        contentView.addSubview(filenameLabel)
     }
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let bounds = contentView.bounds
+        let inset: CGFloat = 16
+
+        // Import button fills full height, standard Apple style
+        importButton.frame = CGRect(
+            x: inset,
+            y: 0,
+            width: bounds.width / 2,
+            height: bounds.height
+        )
+
+        // Filename label sits on the right
+        filenameLabel.frame = CGRect(
+            x: bounds.width / 2,
+            y: 0,
+            width: bounds.width / 2 - inset,
+            height: bounds.height
+        )
+    }
+
+    @objc private func openPicker() {
+        guard let parent else { return }
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.data], asCopy: true)
+        picker.delegate = self
+        parent.present(picker, animated: true)
+    }
+
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let selectedURL = urls.first else { return }
+        guard let u = urls.first else { return }
+        url = u
         
-        self.url = selectedURL
-        
-        print("Picked file: \(selectedURL.lastPathComponent)")
-        
-        UIView.animate(withDuration: 0.25) {
-            self.label!.alpha = 0.0
-        } completion: { [weak self ]_ in
-            guard let self = self else { return }
-            self.label!.text = selectedURL.lastPathComponent
+        // Fade-out → text change → fade-in
+        UIView.animate(withDuration: 0.25, animations: {
+            self.filenameLabel.alpha = 0.0
+        }) { _ in
+            self.filenameLabel.text = u.lastPathComponent
             
             UIView.animate(withDuration: 0.25) {
-                self.label!.alpha = 1.0
+                self.filenameLabel.alpha = 1.0
             }
         }
     }

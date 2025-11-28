@@ -21,7 +21,7 @@ import UIKit
 import UniformTypeIdentifiers
 
 class CertificateImporter: UIThemedTableViewController, UITextFieldDelegate {
-    var textField: UITextField?
+    var textField: NXTextFieldTableCell?
     
     var cert: ImportTableCell?
     let callback: () -> Void
@@ -46,17 +46,15 @@ class CertificateImporter: UIThemedTableViewController, UITextFieldDelegate {
         
         self.title = "Import Certificate"
         
-        let importButton: UIBarButtonItem = UIBarButtonItem(
-            title: "Submit",
-            style: .done,
-            target: self,
-            action: #selector(importButton)
-        )
-        self.navigationItem.setRightBarButton(importButton, animated: true)
+        let barbutton: UIBarButtonItem = UIBarButtonItem()
+        barbutton.title = "Submit"
+        barbutton.target = self
+        barbutton.action = #selector(importButton)
+        navigationItem.rightBarButtonItem = barbutton
         
         self.tableView.translatesAutoresizingMaskIntoConstraints = false
         self.tableView.isScrollEnabled = false
-        self.tableView.rowHeight = 44
+        self.tableView.rowHeight = UITableView.automaticDimension
         
         if UIDevice.current.userInterfaceIdiom == .phone {
             if #available(iOS 16.0, *) {
@@ -75,7 +73,7 @@ class CertificateImporter: UIThemedTableViewController, UITextFieldDelegate {
             }
         }
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
@@ -93,11 +91,9 @@ class CertificateImporter: UIThemedTableViewController, UITextFieldDelegate {
             cell = cert!
             break
         case 1:
-            cell = UITableViewCell()
-            self.textField = UITextField(frame: CGRect(x: 15, y: 0, width: tableView.frame.width - 30, height: 44))
-            self.textField?.placeholder = "ie. 123456"
-            self.textField?.delegate = self
-            cell.contentView.addSubview(textField!)
+            textField = NXTextFieldTableCell(title: "", hint: "i.e 123456", key: nil, defaultValue: "")
+            cell = textField!
+            break
         default:
             cell = UITableViewCell()
             break

@@ -59,11 +59,11 @@ class CustomizationViewController: UIThemedTableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
         case 1:
-            return (indexPath.row == 0) ? 150 : 44
+            return (indexPath.row == 0) ? 150 : UITableView.automaticDimension
         case 2:
             return 65
         default:
-            return 44
+            return UITableView.automaticDimension
         }
     }
     
@@ -89,12 +89,10 @@ class CustomizationViewController: UIThemedTableViewController {
         
         if indexPath.section == 0 {
             if indexPath.row == 0 {
-                cell = TextFieldTableCell(title: "Username", key: "LDEUsername", defaultValue: "Anonym")
+                cell = NXTextFieldTableCell(title: "Username", hint: "i.e Anonymous", key: "LDEUsername", defaultValue: "Anonym")
             } else {
-                cell = TextFieldTableCellHandler(title: "Hostname", value: UserDefaults.standard.string(forKey: "LDEHostname") ?? "localhost")
-                (cell as! TextFieldTableCellHandler).writeHandler = { text in
-                    UserDefaults.standard.set(text, forKey: "LDEHostname")
-                    kern_sethostname(text)
+                cell = NXTextFieldTableCell(title: "Hostname", hint: "i.e localhost", key: "LDEHostname", defaultValue: "localhost") { newValue in
+                    kern_sethostname(newValue)
                 }
             }
         } else if indexPath.section == 1 {
@@ -154,7 +152,14 @@ int main(void)
                 }
             }()) {
                 let customImageView = UIImageView(image: image)
-                customImageView.layer.cornerRadius = 10
+                
+                if #available(iOS 26.0, *)
+                {
+                    customImageView.layer.cornerRadius = 15;
+                } else {
+                    customImageView.layer.cornerRadius = 10;
+                }
+                
                 customImageView.layer.masksToBounds = true
                 customImageView.translatesAutoresizingMaskIntoConstraints = false
                 customImageView.contentMode = .scaleAspectFit

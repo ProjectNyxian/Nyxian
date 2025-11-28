@@ -21,87 +21,49 @@ import Foundation
 import UIKit
 
 class StepperTableCell: UITableViewCell {
+    private let key: String
+    private let minValue: Int
+    private let maxValue: Int
+
     var callback: (Int) -> Void = { _ in }
-    
-    let title: String
-    
-    let key: String
-    let defaultValue: Int
-    let minValue: Int
-    let maxValue: Int
+
     var value: Int {
         get {
-            if UserDefaults.standard.object(forKey: self.key) == nil {
-                UserDefaults.standard.set(self.defaultValue, forKey: self.key)
+            if UserDefaults.standard.object(forKey: key) == nil {
+                UserDefaults.standard.set(minValue, forKey: key)
             }
-            
-            return UserDefaults.standard.integer(forKey: self.key)
+            return UserDefaults.standard.integer(forKey: key)
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: self.key)
+            UserDefaults.standard.set(newValue, forKey: key)
         }
     }
-    
-    var label: UILabel?
-    
-    init(
-        title: String,
-        key: String,
-        defaultValue: Int,
-        minValue: Int,
-        maxValue: Int
-    ) {
-        self.title = title
+
+    init(title: String, key: String, defaultValue: Int, minValue: Int, maxValue: Int) {
         self.key = key
-        self.defaultValue = defaultValue
         self.minValue = minValue
         self.maxValue = maxValue
-        super.init(style: .default, reuseIdentifier: nil)
-        
-        _ = self.value
-        
-        self.setupViews()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupViews() {
-        // disable selection
-        self.selectionStyle = .none
-        
-        // First create the label
-        self.label = UILabel()
-        self.label?.text = "\(self.title): \(self.value)"
-        self.label?.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(label!)
-        
-        // now the option button
+        super.init(style: .value1, reuseIdentifier: nil)
+
+        selectionStyle = .none
+        textLabel?.text = title
+
         let stepper = UIStepper()
-        stepper.minimumValue = Double(self.minValue)
-        stepper.maximumValue = Double(self.maxValue)
-        stepper.stepValue = 1
-        stepper.value = Double(self.value)
-        stepper.addTarget(self, action: #selector(stepperValueChanged), for: .valueChanged)
-        stepper.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(stepper)
-        
-        // Now fix its constraints
-        NSLayoutConstraint.activate([
-            self.label!.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            self.label!.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
-            self.label!.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 16),
-            
-            stepper.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor),
-            stepper.leadingAnchor.constraint(equalTo: self.label!.trailingAnchor, constant: 16),
-            stepper.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16)
-        ])
+        stepper.minimumValue = Double(minValue)
+        stepper.maximumValue = Double(maxValue)
+        stepper.value = Double(value)
+        stepper.addTarget(self, action: #selector(stepperChanged(_:)), for: .valueChanged)
+
+        accessoryView = stepper
+        detailTextLabel?.text = "\(value)"
     }
-    
-    @objc func stepperValueChanged(sender: UIStepper) {
-        self.value = Int(sender.value)
-        self.callback(self.value)
-        self.label?.text = "\(self.title): \(Int(sender.value))"
+
+    @objc private func stepperChanged(_ sender: UIStepper) {
+        value = Int(sender.value)
+        callback(value)
+        detailTextLabel?.text = "\(value)"
     }
+
+    required init?(coder: NSCoder) { fatalError() }
 }
+

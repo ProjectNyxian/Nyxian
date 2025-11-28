@@ -26,7 +26,7 @@ class CertificateController: UITableViewController {
         super.viewDidLoad()
         
         self.title = "Certificate"
-        self.tableView.rowHeight = 44
+        self.tableView.rowHeight = UITableView.automaticDimension
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -35,36 +35,11 @@ class CertificateController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == 1 {
-            let cell: ButtonTableCell = ButtonTableCell(title: "Import Certificate")
-            
-            cell.button?.addAction(UIAction(handler: { _ in
-                let importPopup: CertificateImporter = CertificateImporter(style: .insetGrouped) { [weak self] in
-                    guard let self = self else { return }
-                    self.updateCertificateState()
-                }
-                let importSettings: UINavigationController = UINavigationController(rootViewController: importPopup)
-                importSettings.modalPresentationStyle = .formSheet
-                
-                // dynamic size
-                if UIDevice.current.userInterfaceIdiom == .phone {
-                    if #available(iOS 16.0, *) {
-                        if let sheet = importSettings.sheetPresentationController {
-                            sheet.animateChanges {
-                                sheet.detents = [
-                                    .custom { _ in
-                                        return 200
-                                    }
-                                ]
-                            }
-                            
-                            sheet.prefersGrabberVisible = true
-                        }
-                    }
-                }
-                
-                self.present(importSettings, animated: true)
-            }), for: .touchUpInside)
-            
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            cell.textLabel?.text = "Import Certificate"
+            cell.textLabel?.textColor = .label
+            cell.textLabel?.textAlignment = .left
+            cell.selectionStyle = .default
             return cell
         } else {
             let cell: UITableViewCell = UITableViewCell()
@@ -72,6 +47,42 @@ class CertificateController: UITableViewController {
             updateCertificateState()
             return cell
         }
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row == 1 {
+            // run your action
+            importCertificate()
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    func importCertificate() {
+        let importPopup: CertificateImporter = CertificateImporter(style: .insetGrouped) { [weak self] in
+            guard let self = self else { return }
+            self.updateCertificateState()
+        }
+        let importSettings: UINavigationController = UINavigationController(rootViewController: importPopup)
+        importSettings.modalPresentationStyle = .formSheet
+        
+        // dynamic size
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if #available(iOS 16.0, *) {
+                if let sheet = importSettings.sheetPresentationController {
+                    sheet.animateChanges {
+                        sheet.detents = [
+                            .custom { _ in
+                                return 200
+                            }
+                        ]
+                    }
+                    
+                    sheet.prefersGrabberVisible = true
+                }
+            }
+        }
+        
+        self.present(importSettings, animated: true)
     }
     
     func updateCertificateState() {
