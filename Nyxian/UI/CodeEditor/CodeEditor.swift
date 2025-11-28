@@ -409,15 +409,11 @@ class CodeEditorViewController: UIViewController {
     }
     
     override var keyCommands: [UIKeyCommand]? {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return [
-                UIKeyCommand(input: "S",
-                             modifierFlags: [.command],
-                             action: #selector(saveText),
-                             discoverabilityTitle: "Save File"),
-            ]
-        } else {
-            return []
-        }
+        return [
+            UIKeyCommand(title: "Save File",
+                         action: #selector(saveText),
+                         input: "S",
+                         modifierFlags: .command)
+        ]
     }
 }
