@@ -128,7 +128,12 @@ import UniformTypeIdentifiers
                 self.dismiss(animated: true)
             }), animated: false)
         }
-        self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
+        
+        if #available(iOS 26.0, *) {
+            self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle.fill"), primaryAction: nil, menu: generateMenu()), animated: false)
+        } else {
+            self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
