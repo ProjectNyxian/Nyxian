@@ -4,6 +4,84 @@
 <dict>
 	<key>LDETheme</key>
 	<dict>
+		<key>app</key>
+		<dict>
+			<key>appLabel</key>
+			<dict>
+				<key>light</key>
+				<dict>
+					<key>red</key>
+					<integer>62</integer>
+					<key>green</key>
+					<integer>47</integer>
+					<key>blue</key>
+					<integer>35</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+				<key>dark</key>
+				<dict>
+					<key>red</key>
+					<integer>237</integer>
+					<key>green</key>
+					<integer>224</integer>
+					<key>blue</key>
+					<integer>212</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+			</dict>
+			<key>appTableViewBackground</key>
+			<dict>
+				<key>light</key>
+				<dict>
+					<key>red</key>
+					<integer>252</integer>
+					<key>green</key>
+					<integer>248</integer>
+					<key>blue</key>
+					<integer>240</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+				<key>dark</key>
+				<dict>
+					<key>red</key>
+					<integer>30</integer>
+					<key>green</key>
+					<integer>28</integer>
+					<key>blue</key>
+					<integer>25</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+			</dict>
+			<key>appTableCellBackground</key>
+			<dict>
+				<key>light</key>
+				<dict>
+					<key>red</key>
+					<integer>245</integer>
+					<key>green</key>
+					<integer>238</integer>
+					<key>blue</key>
+					<integer>225</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+				<key>dark</key>
+				<dict>
+					<key>red</key>
+					<integer>40</integer>
+					<key>green</key>
+					<integer>36</integer>
+					<key>blue</key>
+					<integer>32</integer>
+					<key>alpha</key>
+					<integer>10</integer>
+				</dict>
+			</dict>
+		</dict>
 		<key>highlighting</key>
 		<dict>
 			<key>keyword</key>
@@ -11,22 +89,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>133</integer>
+					<integer>156</integer>
 					<key>green</key>
-					<integer>153</integer>
+					<integer>82</integer>
 					<key>blue</key>
-					<integer>0</integer>
+					<integer>139</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>181</integer>
+					<integer>199</integer>
 					<key>green</key>
-					<integer>137</integer>
+					<integer>146</integer>
 					<key>blue</key>
-					<integer>0</integer>
+					<integer>184</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -36,22 +114,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>147</integer>
+					<integer>130</integer>
 					<key>green</key>
-					<integer>161</integer>
+					<integer>140</integer>
 					<key>blue</key>
-					<integer>161</integer>
+					<integer>115</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>88</integer>
+					<integer>120</integer>
 					<key>green</key>
-					<integer>110</integer>
+					<integer>140</integer>
 					<key>blue</key>
-					<integer>117</integer>
+					<integer>100</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -61,22 +139,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>42</integer>
+					<integer>80</integer>
 					<key>green</key>
-					<integer>161</integer>
+					<integer>120</integer>
 					<key>blue</key>
-					<integer>152</integer>
+					<integer>80</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>42</integer>
-					<key>green</key>
-					<integer>161</integer>
-					<key>blue</key>
 					<integer>152</integer>
+					<key>green</key>
+					<integer>195</integer>
+					<key>blue</key>
+					<integer>121</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -86,22 +164,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>211</integer>
+					<integer>180</integer>
 					<key>green</key>
-					<integer>54</integer>
+					<integer>110</integer>
 					<key>blue</key>
-					<integer>130</integer>
+					<integer>60</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>211</integer>
+					<integer>209</integer>
 					<key>green</key>
-					<integer>54</integer>
+					<integer>154</integer>
 					<key>blue</key>
-					<integer>130</integer>
+					<integer>102</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -111,22 +189,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>203</integer>
+					<integer>200</integer>
 					<key>green</key>
-					<integer>75</integer>
+					<integer>100</integer>
 					<key>blue</key>
-					<integer>22</integer>
+					<integer>50</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>203</integer>
+					<integer>229</integer>
 					<key>green</key>
-					<integer>75</integer>
+					<integer>152</integer>
 					<key>blue</key>
-					<integer>22</integer>
+					<integer>102</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -136,22 +214,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>38</integer>
+					<integer>70</integer>
 					<key>green</key>
-					<integer>139</integer>
+					<integer>130</integer>
 					<key>blue</key>
-					<integer>210</integer>
+					<integer>140</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>38</integer>
+					<integer>97</integer>
 					<key>green</key>
-					<integer>139</integer>
+					<integer>175</integer>
 					<key>blue</key>
-					<integer>210</integer>
+					<integer>180</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -161,22 +239,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>101</integer>
+					<integer>90</integer>
 					<key>green</key>
-					<integer>123</integer>
+					<integer>75</integer>
 					<key>blue</key>
-					<integer>131</integer>
+					<integer>60</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>131</integer>
+					<integer>190</integer>
 					<key>green</key>
-					<integer>148</integer>
+					<integer>175</integer>
 					<key>blue</key>
-					<integer>150</integer>
+					<integer>160</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -186,22 +264,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>108</integer>
+					<integer>140</integer>
 					<key>green</key>
-					<integer>113</integer>
+					<integer>100</integer>
 					<key>blue</key>
-					<integer>196</integer>
+					<integer>75</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>108</integer>
+					<integer>224</integer>
 					<key>green</key>
-					<integer>113</integer>
+					<integer>175</integer>
 					<key>blue</key>
-					<integer>196</integer>
+					<integer>140</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -211,22 +289,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>88</integer>
+					<integer>100</integer>
 					<key>green</key>
-					<integer>110</integer>
+					<integer>85</integer>
 					<key>blue</key>
-					<integer>117</integer>
+					<integer>70</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>147</integer>
+					<integer>170</integer>
 					<key>green</key>
-					<integer>161</integer>
+					<integer>155</integer>
 					<key>blue</key>
-					<integer>161</integer>
+					<integer>140</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -236,22 +314,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>203</integer>
+					<integer>170</integer>
 					<key>green</key>
-					<integer>75</integer>
+					<integer>85</integer>
 					<key>blue</key>
-					<integer>22</integer>
+					<integer>65</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>203</integer>
+					<integer>224</integer>
 					<key>green</key>
-					<integer>75</integer>
+					<integer>130</integer>
 					<key>blue</key>
-					<integer>22</integer>
+					<integer>108</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -261,22 +339,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>38</integer>
+					<integer>85</integer>
 					<key>green</key>
-					<integer>139</integer>
+					<integer>130</integer>
 					<key>blue</key>
-					<integer>210</integer>
+					<integer>110</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>42</integer>
+					<integer>130</integer>
 					<key>green</key>
-					<integer>161</integer>
+					<integer>195</integer>
 					<key>blue</key>
-					<integer>152</integer>
+					<integer>170</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -286,22 +364,22 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>211</integer>
+					<integer>185</integer>
 					<key>green</key>
-					<integer>54</integer>
+					<integer>95</integer>
 					<key>blue</key>
-					<integer>130</integer>
+					<integer>95</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
 				<key>dark</key>
 				<dict>
 					<key>red</key>
-					<integer>133</integer>
+					<integer>229</integer>
 					<key>green</key>
-					<integer>153</integer>
+					<integer>128</integer>
 					<key>blue</key>
-					<integer>0</integer>
+					<integer>128</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
@@ -312,22 +390,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>40</integer>
+				<integer>62</integer>
 				<key>green</key>
-				<integer>50</integer>
+				<integer>47</integer>
 				<key>blue</key>
-				<integer>55</integer>
+				<integer>35</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>220</integer>
+				<integer>237</integer>
 				<key>green</key>
-				<integer>230</integer>
+				<integer>224</integer>
 				<key>blue</key>
-				<integer>235</integer>
+				<integer>212</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -337,22 +415,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>253</integer>
+				<integer>252</integer>
 				<key>green</key>
-				<integer>246</integer>
+				<integer>248</integer>
 				<key>blue</key>
-				<integer>227</integer>
+				<integer>240</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>7</integer>
+				<integer>30</integer>
 				<key>green</key>
-				<integer>54</integer>
+				<integer>28</integer>
 				<key>blue</key>
-				<integer>66</integer>
+				<integer>25</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -362,22 +440,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>238</integer>
+				<integer>245</integer>
 				<key>green</key>
-				<integer>232</integer>
+				<integer>240</integer>
 				<key>blue</key>
-				<integer>213</integer>
+				<integer>230</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>0</integer>
+				<integer>25</integer>
 				<key>green</key>
-				<integer>43</integer>
+				<integer>23</integer>
 				<key>blue</key>
-				<integer>54</integer>
+				<integer>20</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -391,18 +469,18 @@
 				<key>green</key>
 				<integer>210</integer>
 				<key>blue</key>
-				<integer>180</integer>
+				<integer>195</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>88</integer>
+				<integer>50</integer>
 				<key>green</key>
-				<integer>110</integer>
+				<integer>45</integer>
 				<key>blue</key>
-				<integer>117</integer>
+				<integer>40</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -412,22 +490,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>147</integer>
+				<integer>180</integer>
 				<key>green</key>
-				<integer>161</integer>
+				<integer>165</integer>
 				<key>blue</key>
-				<integer>161</integer>
+				<integer>145</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>88</integer>
+				<integer>85</integer>
 				<key>green</key>
-				<integer>110</integer>
+				<integer>75</integer>
 				<key>blue</key>
-				<integer>117</integer>
+				<integer>65</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -437,22 +515,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>238</integer>
+				<integer>240</integer>
 				<key>green</key>
 				<integer>232</integer>
 				<key>blue</key>
-				<integer>213</integer>
+				<integer>215</integer>
 				<key>alpha</key>
 				<integer>8</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>17</integer>
+				<integer>45</integer>
 				<key>green</key>
-				<integer>59</integer>
+				<integer>40</integer>
 				<key>blue</key>
-				<integer>67</integer>
+				<integer>35</integer>
 				<key>alpha</key>
 				<integer>8</integer>
 			</dict>
@@ -462,22 +540,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>38</integer>
+				<integer>160</integer>
 				<key>green</key>
-				<integer>139</integer>
+				<integer>120</integer>
 				<key>blue</key>
-				<integer>210</integer>
+				<integer>80</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>42</integer>
+				<integer>200</integer>
 				<key>green</key>
-				<integer>161</integer>
+				<integer>160</integer>
 				<key>blue</key>
-				<integer>152</integer>
+				<integer>120</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -487,22 +565,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>248</integer>
+				<integer>238</integer>
 				<key>green</key>
-				<integer>243</integer>
+				<integer>230</integer>
 				<key>blue</key>
-				<integer>227</integer>
+				<integer>215</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>0</integer>
+				<integer>22</integer>
 				<key>green</key>
-				<integer>43</integer>
+				<integer>20</integer>
 				<key>blue</key>
-				<integer>54</integer>
+				<integer>18</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -512,22 +590,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>220</integer>
+				<integer>225</integer>
 				<key>green</key>
-				<integer>220</integer>
+				<integer>215</integer>
 				<key>blue</key>
-				<integer>210</integer>
+				<integer>200</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>88</integer>
+				<integer>45</integer>
 				<key>green</key>
-				<integer>110</integer>
+				<integer>42</integer>
 				<key>blue</key>
-				<integer>117</integer>
+				<integer>38</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -537,9 +615,9 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>250</integer>
+				<integer>248</integer>
 				<key>green</key>
-				<integer>250</integer>
+				<integer>244</integer>
 				<key>blue</key>
 				<integer>235</integer>
 				<key>alpha</key>
@@ -548,11 +626,11 @@
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>0</integer>
+				<integer>32</integer>
 				<key>green</key>
-				<integer>50</integer>
+				<integer>30</integer>
 				<key>blue</key>
-				<integer>60</integer>
+				<integer>27</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
@@ -562,22 +640,22 @@
 			<key>light</key>
 			<dict>
 				<key>red</key>
-				<integer>253</integer>
+				<integer>235</integer>
 				<key>green</key>
-				<integer>246</integer>
+				<integer>225</integer>
 				<key>blue</key>
-				<integer>227</integer>
+				<integer>200</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>
 			<key>dark</key>
 			<dict>
 				<key>red</key>
-				<integer>0</integer>
+				<integer>55</integer>
 				<key>green</key>
 				<integer>50</integer>
 				<key>blue</key>
-				<integer>60</integer>
+				<integer>42</integer>
 				<key>alpha</key>
 				<integer>10</integer>
 			</dict>

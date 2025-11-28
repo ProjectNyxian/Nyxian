@@ -5,7 +5,11 @@
 	<key>LDEThemes</key>
 	<array>
 		<string>NyxianLDE.plist</string>
-		<string>Synthwave.plist</string>
+		<string>ForestDusk.plist</string>
+		<string>TransPride.plist</string>
+		<string>NeonGlow.plist</string>
+		<string>OLEDBlack.plist</string>
+		<string>Scriptorium.plist</string>
 	</array>
 </dict>
 </plist>
