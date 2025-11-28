@@ -13,7 +13,6 @@
     {
       "name": "Nyxian",
       "bundleIdentifier": "com.cr4zy.nyxian",
-      "marketplaceID": "",
       "developerName": "cr4zyengineer",
       "subtitle": "IDE to develop native code iOS apps on unjailbroken iOS",
       "localizedDescription": "IDE to develop native code iOS apps on unjailbroken iOS it self just via a certificate and a kernel virtualization layer for those apps.",
