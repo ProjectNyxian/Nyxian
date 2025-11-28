@@ -1,0 +1,112 @@
+{
+  "name": "Nyxian",
+  "subtitle": "Unfolding the power of stock iOS coding.",
+  "description": "Nyxian is a iOS app that lets you build and deploy iOS apps directly on-device without owning any computer. Means you can program where ever and when ever and in any type of situation. It currently supports iOS 15.0 upto the latest iOS version. Its designed for people that often find them selves on the go and dont want to take their mac with them selves and for the people who want to get into iOS software development but dont own a mac. Previously such a app didnt exist because no one tried to build something like that, propably because people thought that its not possible.",
+  "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
+  "website": "https://github.com/ProjectNyxian/Nyxian",
+  "patreonURL": "https://github.com/sponsors/ProjectNyxian",
+  "tintColor": "#6156e2",
+  "featuredApps": [
+    "com.cr4zy.nyxian"
+  ],
+  "apps": [
+    {
+      "name": "Nyxian",
+      "bundleIdentifier": "com.cr4zy.nyxian",
+      "marketplaceID": "",
+      "developerName": "cr4zyengineer",
+      "subtitle": "IDE to develop native code iOS apps on unjailbroken iOS",
+      "localizedDescription": "IDE to develop native code iOS apps on unjailbroken iOS it self just via a certificate and a kernel virtualization layer for those apps.",
+      "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
+      "tintColor": "#aa80dc",
+      "category": "developer",
+      "screenshots": [],
+      "versions": [
+        {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/20251128a/nyxian_20251128a.ipa",
+          "size": 148000000,
+          "version": "20251128a",
+          "buildVersion": "0.7",
+          "date": "2025-11-28T16:30:00+01:00",
+          "localizedDescription": "Changelog\n- Fixed keyboard toolbar not floating on iOS 26.\n- Changed application template to use SceneDelegate lifecycle and to be 1:1 with apples swift template.\n- Updated Nyxian to use SceneDelegate lifecycle.\n- Fixed up appearance of menus and UI elements in iOS 26\n- Replaced blur effect with glass effect on app switcher iOS 26\n- Fixed up theming system and added new themes.. \"ForestDusk\",\"TransPride\",\"NeonGlow\",\"OLEDBlack\" and \"Scriptorium",
+          "minOSVersion": "17.0"
+        },
+        {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.6.0/nyxian_0.6.ipa",
+          "size": 148000000,
+          "version": "0.6.0",
+          "buildVersion": "0.6",
+          "date": "2025-09-05T18:00:00+02:00",
+          "localizedDescription": "Dont expect this build to be 100% stable, it was generally tested on iPad\n\nChangelog\n- Too much to tell, the most important thing is that you can now use ur free apple developer certificate and that its compatible with iPad!",
+          "minOSVersion": "17.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [
+          "get-task-allow"
+        ],
+        "privacy": {
+          "NSFaceIDUsageDescription": "The guest app is requesting for this permission.",
+          "NSSystemExtensionUsageDescription": "The guest app is requesting for this permission.",
+          "NSNearbyInteractionUsageDescription": "The guest app is requesting for this permission.",
+          "NSContactsUsageDescription": "The guest app is requesting for this permission.",
+          "NSHealthShareUsageDescription": "The guest app is requesting for this permission.",
+          "NSPhotoLibraryUsageDescription": "The guest app is requesting for this permission.",
+          "NSSiriUsageDescription": "The guest app is requesting for this permission.",
+          "NSRemovableVolumesUsageDescription": "The guest app is requesting for this permission.",
+          "NSSpeechRecognitionUsageDescription": "The guest app is requesting for this permission.",
+          "NSSensorKitUsageDescription": "The guest app is requesting for this permission.",
+          "NSNetworkVolumesUsageDescription": "The guest app is requesting for this permission.",
+          "NSFileProviderPresenceUsageDescription": "The guest app is requesting for this permission.",
+          "NSIdentityUsageDescription": "The guest app is requesting for this permission.",
+          "NSDesktopFolderUsageDescription": "The guest app is requesting for this permission.",
+          "NSBluetoothWhileInUseUsageDescription": "The guest app is requesting for this permission.",
+          "NSUserTrackingUsageDescription": "The guest app is requesting for this permission.",
+          "NSAppleEventsUsageDescription": "The guest app is requesting for this permission.",
+          "NSRemindersUsageDescription": "The guest app is requesting for this permission.",
+          "NSVoIPUsageDescription": "The guest app is requesting for this permission.",
+          "NSFallDetectionUsageDescription": "The guest app is requesting for this permission.",
+          "NSBluetoothAlwaysUsageDescription": "The guest app is requesting for this permission.",
+          "NSSystemAdministrationUsageDescription": "The guest app is requesting for this permission.",
+          "NSHealthUpdateUsageDescription": "The guest app is requesting for this permission.",
+          "NSLocationAlwaysAndWhenInUseUsageDescription": "The guest app is requesting for this permission.",
+          "NSPhotoLibraryAddUsageDescription": "The guest app is requesting for this permission.",
+          "NSCameraUsageDescription": "The guest app is requesting for this permission.",
+          "NSMicrophoneUsageDescription": "The guest app is requesting for this permission.",
+          "NSLocationUsageDescription": "The guest app is requesting for this permission.",
+          "NSGKFriendListUsageDescription": "The guest app is requesting for this permission.",
+          "NSAppleMusicUsageDescription": "The guest app is requesting for this permission.",
+          "NSMotionUsageDescription": "The guest app is requesting for this permission.",
+          "NSNearbyInteractionAllowOnceUsageDescription": "The guest app is requesting for this permission.",
+          "NSVideoSubscriberAccountUsageDescription": "The guest app is requesting for this permission.",
+          "NSBluetoothPeripheralUsageDescription": "The guest app is requesting for this permission.",
+          "NSCalendarsUsageDescription": "The guest app is requesting for this permission.",
+          "NSFocusStatusUsageDescription": "The guest app is requesting for this permission.",
+          "NSHomeKitUsageDescription": "The guest app is requesting for this permission.",
+          "NSLocationAlwaysUsageDescription": "The guest app is requesting for this permission.",
+          "NSLocalNetworkUsageDescription": "The guest app is requesting for this permission.",
+          "NSDownloadsFolderUsageDescription": "The guest app is requesting for this permission.",
+          "NSDocumentsFolderUsageDescription": "The guest app is requesting for this permission.",
+          "NSLocationWhenInUseUsageDescription": "The guest app is requesting for this permission.",
+          "NSSensorKitPrivacyPolicyURL": "The guest app is requesting for this permission.",
+          "NSFileProviderDomainUsageDescription": "The guest app is requesting for this permission.",
+          "NSHealthClinicalHealthRecordsShareUsageDescription": "The guest app is requesting for this permission."
+        }
+      },
+      "patreon": {}
+    }
+  ],
+  "news": [
+    {
+      "title": "Nyxian 0.6 released!",
+      "identifier": "news_wesu0cbrsb",
+      "caption": "CottonCandy (Indev)",
+      "date": "2025-09-06T00:00",
+      "tintColor": "#ff82a4",
+      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "notify": true,
+      "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.6.0",
+      "appID": "com.cr4zy.nyxian"
+    }
+  ]
+}
