@@ -58,7 +58,6 @@
     NSMutableArray *flags = [[NSMutableArray alloc] initWithArray:[self compilerFlags]];
     
     [flags addObjectsFromArray:@[
-        @"-g",
         @"-target",
         [self platformTriple],
         @"-isysroot",
@@ -183,10 +182,23 @@
                     @"LDEExecutable": name,
                     @"LDEDisplayName": name,
                     @"LDEBundleIdentifier": bundleid,
-                    @"LDEBundleInfo": @{},
+                    @"LDEBundleInfo": @{
+                        @"UIApplicationSceneManifest": @{
+                            @"UIApplicationSupportsMultipleScenes": @(NO),
+                            @"UISceneConfigurations": @{
+                                @"UIWindowSceneSessionRoleApplication": @[
+                                    @{
+                                        @"UISceneConfigurationName": @"Default Configuration",
+                                        @"UISceneDelegateClassName": @"SceneDelegate"
+                                    }
+                                ]
+                            }
+                        }
+                    },
                     @"LDEBundleVersion": @"1.0",
                     @"LDEBundleShortVersion": @"1.0",
                     @"LDEProjectType": @(type),
+                    @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
                     @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"]
