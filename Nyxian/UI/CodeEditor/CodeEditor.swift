@@ -42,6 +42,8 @@ class CodeEditorViewController: UIViewController {
     private(set) var database: DebugDatabase?
     private(set) var line: UInt64?
     private(set) var column: UInt64?
+    private(set) var floatingToolbar: UIToolbar?
+    private(set) var floatingToolbarBottomConstraint: NSLayoutConstraint?
     
     init(
         project: NXProject?,
@@ -234,19 +236,7 @@ class CodeEditorViewController: UIViewController {
     }
     
     func setupToolbar(textView: TextView) {
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
         let theme: LDETheme = LDEThemeReader.shared.currentlySelectedTheme()
-        
-        if #available(iOS 15.0, *) {
-            let appearance = UIToolbarAppearance()
-            appearance.configureWithOpaqueBackground()  // Make it opaque
-            appearance.backgroundColor = theme.gutterBackgroundColor
-            toolbar.standardAppearance = appearance
-            toolbar.scrollEdgeAppearance = appearance
-        } else {
-            toolbar.barTintColor = theme.gutterBackgroundColor
-        }
         
         func spawnSeperator() -> UIBarButtonItem {
             return UIBarButtonItem(customView: UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 1)))
@@ -288,8 +278,91 @@ class CodeEditorViewController: UIViewController {
         
         items.append(hideBarButton)
         
-        toolbar.items = items
-        textView.inputAccessoryView = toolbar
+        if #available(iOS 26.0, *) {
+            textView.inputAccessoryView = nil
+            let toolbar = UIToolbar()
+            toolbar.translatesAutoresizingMaskIntoConstraints = false
+            let appearance = UIToolbarAppearance()
+            appearance.configureWithTransparentBackground()
+            toolbar.standardAppearance = appearance
+            toolbar.scrollEdgeAppearance = appearance
+            
+            toolbar.items = items
+            toolbar.isHidden = true
+            
+            view.addSubview(toolbar)
+            
+            let bottomConstraint = toolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            NSLayoutConstraint.activate([
+                toolbar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 8),
+                toolbar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -8),
+                toolbar.heightAnchor.constraint(equalToConstant: 50),
+                bottomConstraint
+            ])
+            
+            toolbar.layer.cornerRadius = 12
+            toolbar.clipsToBounds = true
+            
+            self.floatingToolbar = toolbar
+            self.floatingToolbarBottomConstraint = bottomConstraint
+        } else {
+            let toolbar = UIToolbar()
+            toolbar.sizeToFit()
+            
+            if #available(iOS 15.0, *) {
+                let appearance = UIToolbarAppearance()
+                appearance.configureWithOpaqueBackground()
+                appearance.backgroundColor = theme.gutterBackgroundColor
+                toolbar.standardAppearance = appearance
+                toolbar.scrollEdgeAppearance = appearance
+            } else {
+                toolbar.barTintColor = theme.gutterBackgroundColor
+            }
+            
+            toolbar.items = items
+            textView.inputAccessoryView = toolbar
+        }
+    }
+
+    @objc func keyboardWillShow(notification: NSNotification) {
+        guard let userInfo = notification.userInfo,
+              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+
+        let bottomInset = keyboardFrame.height - view.safeAreaInsets.bottom
+        textView.contentInset.bottom = bottomInset
+        textView.scrollIndicatorInsets.bottom = bottomInset
+        
+        if #available(iOS 26.0, *) {
+            floatingToolbar?.isHidden = false
+            floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
+            UIView.animate(withDuration: duration) {
+                self.view.layoutIfNeeded()
+            }
+        }
+    }
+
+    @objc func keyboardWillHide(notification: NSNotification) {
+        guard let userInfo = notification.userInfo,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            textView.contentInset = .zero
+            textView.scrollIndicatorInsets = .zero
+            return
+        }
+        
+        textView.contentInset = .zero
+        textView.scrollIndicatorInsets = .zero
+        
+        if #available(iOS 26.0, *) {
+            UIView.animate(withDuration: duration) {
+                self.floatingToolbarBottomConstraint?.constant = 100
+                self.view.layoutIfNeeded()
+            } completion: { _ in
+                self.floatingToolbar?.isHidden = true
+            }
+        }
     }
     
     @objc func saveText() {
@@ -325,17 +398,6 @@ class CodeEditorViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
     
-    @objc func keyboardWillShow(notification: NSNotification) {
-        guard let userInfo = notification.userInfo,
-              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
-            return
-        }
-
-        let bottomInset = keyboardFrame.height - view.safeAreaInsets.bottom
-        textView.contentInset.bottom = bottomInset
-        textView.scrollIndicatorInsets.bottom = bottomInset
-    }
-    
     @objc private func hardwareKeyboardDidConnect(_ notification: Notification) {
         textView.inputAccessoryView = nil
         textView.reloadInputViews()
@@ -344,11 +406,6 @@ class CodeEditorViewController: UIViewController {
     @objc private func hardwareKeyboardDidDisconnect(_ notification: Notification) {
         setupToolbar(textView: textView)
         textView.reloadInputViews()
-    }
-
-    @objc func keyboardWillHide(notification: NSNotification) {
-        textView.contentInset = .zero
-        textView.scrollIndicatorInsets = .zero
     }
     
     override var keyCommands: [UIKeyCommand]? {
