@@ -133,6 +133,11 @@ class CodeEditorViewController: UIViewController {
         self.textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
         self.textView.lineSelectionDisplayType = .line
         
+        self.textView.showsHorizontalScrollIndicator = false;
+        if #available(iOS 17.4, *) {
+            self.textView.bouncesHorizontally = false
+        }
+        
         self.textView.lineHeightMultiplier = 1.3
         self.textView.keyboardType = .asciiCapable
         self.textView.smartQuotesType = .no

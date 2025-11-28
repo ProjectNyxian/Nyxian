@@ -153,7 +153,7 @@ class Coordinator: NSObject, TextViewDelegate {
             let properties: (String,UIColor) = self.vtkey[Int(item.type)]
             
             DispatchQueue.main.async {
-                let view: UIView = UIView(frame: CGRect(x: 0, y: rect.origin.y, width: parent.textView.bounds.size.width, height: rect.height))
+                let view: UIView = UIView(frame: CGRect(x: 0, y: rect.origin.y, width: 3000, height: rect.height))
                 view.backgroundColor = properties.1
                 view.isUserInteractionEnabled = false
                 
