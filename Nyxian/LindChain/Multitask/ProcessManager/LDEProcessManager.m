@@ -171,11 +171,13 @@
     dispatch_sync(_syncQueue, ^{
         klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"unregistering pid %d", pid);
         [self.processes removeObjectForKey:@(pid)];
-        /*ksurface_error_t error = proc_exit_for_pid(pid);
+        ksurface_proc_info_thread_register();
+        ksurface_error_t error = proc_remove_by_pid(pid);
         if(error != kSurfaceErrorSuccess)
         {
-            klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"failed to exit with pid %d", pid);
-        }*/
+            klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"failed to remove pid %d", pid);
+        }
+        ksurface_proc_info_thread_unregister();
     });
 }
 
