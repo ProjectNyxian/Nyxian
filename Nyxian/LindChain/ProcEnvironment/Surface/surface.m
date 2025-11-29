@@ -30,6 +30,32 @@
 
 ksurface_mapping_t *ksurface = NULL;
 
+int ksurface_proc_info_thread_register(void)
+{
+    return ksurface ? rcu_register_thread(&(ksurface->proc_info.rcu)) : -1;
+}
+
+void ksurface_proc_info_thread_unregister(void)
+{
+    if(ksurface == NULL)
+    {
+        rcu_unregister_thread(&ksurface->proc_info.rcu);
+    }
+}
+
+int ksurface_host_info_thread_register(void)
+{
+    return ksurface ? rcu_register_thread(&(ksurface->host_info.rcu)) : -1;
+}
+
+void ksurface_host_info_thread_unregister(void)
+{
+    if(ksurface == NULL)
+    {
+        rcu_unregister_thread(&ksurface->host_info.rcu);
+    }
+}
+
 /*
  Experimental hooks & implementations
  */
@@ -96,6 +122,32 @@ static inline void ksurface_kinit(void)
     strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
 }
 
+static inline void ksurface_kproc_init(void)
+{
+    ksurface_proc_info_thread_register();
+    
+    /* creating kproc */
+    ksurface_proc_t *proc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] bundlePath] UTF8String]);
+    if(proc == NULL)
+    {
+        ksurface_proc_info_thread_unregister();
+        return;
+    }
+    
+    /* inserting kproc */
+    ksurface_error_t error = proc_insert(proc);
+    if(error != kSurfaceErrorSuccess)
+    {
+        /* Should never happen, panic! */
+        environment_panic();
+    }
+    
+    /* releaing our reference to kproc */
+    proc_release(proc);
+    
+    ksurface_proc_info_thread_unregister();
+}
+
 void ksurface_init(void)
 {
     static dispatch_once_t onceToken;
@@ -104,6 +156,7 @@ void ksurface_init(void)
         {
             ksurface_kalloc();
             ksurface_kinit();
+            ksurface_kproc_init();
         }
     });
 }

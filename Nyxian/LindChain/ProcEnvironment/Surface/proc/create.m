@@ -54,4 +54,3 @@ ksurface_proc_t *proc_create(pid_t pid,
     return proc;
 }
 
-

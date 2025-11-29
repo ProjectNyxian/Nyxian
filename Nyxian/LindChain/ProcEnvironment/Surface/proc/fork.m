@@ -58,6 +58,7 @@ ksurface_proc_t *proc_fork(pid_t ppid,
         }
         else
         {
+            /* Not found in trustcache. */
             proc_setentitlements(child, PEEntitlementSandboxedApplication);
         }
     }

@@ -91,4 +91,10 @@ extern ksurface_mapping_t *ksurface;
 void kern_sethostname(NSString *hostname);
 void ksurface_init(void);
 
+/* The ways to commit to the kernels rcu's */
+int ksurface_proc_info_thread_register(void);
+void ksurface_proc_info_thread_unregister(void);
+int ksurface_host_info_thread_register(void);
+void ksurface_host_info_thread_unregister(void);
+
 #endif /* PROCENVIRONMENT_SURFACE_H */
