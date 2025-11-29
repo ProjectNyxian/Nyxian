@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-/*int sysctl_kernmaxproc(sysctl_req_t *req)
+int sysctl_kernmaxproc(sysctl_req_t *req)
 {
     if(req->oldp && req->oldlenp && *(req->oldlenp) >= sizeof(int))
     {
@@ -38,4 +38,3 @@
     errno = EINVAL;
     return -1;
 }
-*/

@@ -49,7 +49,6 @@ static const int mib_hw_memsize[]           = { CTL_HW, HW_MEMSIZE };           
 static const int mib_hw_machine[]           = { CTL_HW, HW_MACHINE };                       /* Needs implementation */
 static const int mib_hw_model[]             = { CTL_HW, HW_MODEL };                         /* Needs implementation */
 
-/*
 static const sysctl_map_entry_t sysctl_map[] = {
     { mib_kern_maxproc,   2, sysctl_kernmaxproc },
     { mib_kern_proc_all,  3, sysctl_kernprocall },
@@ -118,4 +117,3 @@ void environment_sysctl_init(void)
         DO_HOOK_GLOBAL(sysctl)
     }
 }
-*/

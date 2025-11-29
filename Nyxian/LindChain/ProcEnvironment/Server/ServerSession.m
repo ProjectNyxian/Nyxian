@@ -425,5 +425,12 @@
     return;
 }
 
+- (void)getProcessTableWithReply:(void (^)(NSData *result))reply
+{
+    kinfo_proc_t *proc = malloc(sizeof(kinfo_proc_t));
+    reply([[NSData alloc] initWithBytes:proc length:sizeof(kinfo_proc_t)]);
+    free(proc);
+    return;
+}
 
 @end

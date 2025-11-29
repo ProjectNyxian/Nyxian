@@ -20,28 +20,31 @@
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/proxy.h>
 #include <errno.h>
 
-/*enum SYS_PROC_FLAVOUR {
+enum SYS_PROC_FLAVOUR {
     SYS_PROC_FLAVOUR_ALL = 0,
     SYS_PROC_FLAVOUR_UID = 1,
     SYS_PROC_FLAVOUR_RUID = 2
 };
 
-static inline uint32_t sysctl_proc_buf_helper_cnt(int flavour,
+static inline uint32_t sysctl_proc_buf_helper_cnt(kinfo_proc_t *pt,
+                                                  uint32_t pt_cnt,
+                                                  int flavour,
                                                   uid_t uid)
 {
     uint32_t count = 0;
     switch(flavour)
     {
         case SYS_PROC_FLAVOUR_ALL:
-            count = surface->proc_info.proc_count;
+            count = pt_cnt;
             break;
         case SYS_PROC_FLAVOUR_UID:
         {
-            for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
+            for(uint32_t i = 0; i < pt_cnt; i++)
             {
-                if(proc_getuid(surface->proc_info.proc[i]) == uid)
+                if(pt[i].kp_eproc.e_ucred.cr_uid == uid)
                 {
                     count++;
                 }
@@ -50,9 +53,9 @@ static inline uint32_t sysctl_proc_buf_helper_cnt(int flavour,
         }
         case SYS_PROC_FLAVOUR_RUID:
         {
-            for(uint32_t i = 0; i < surface->proc_info.proc_count; i++)
+            for(uint32_t i = 0; i < pt_cnt; i++)
             {
-                if(proc_getruid(surface->proc_info.proc[i]) == uid)
+                if(pt[i].kp_eproc.e_pcred.p_ruid == uid)
                 {
                     count++;
                 }
@@ -65,7 +68,9 @@ static inline uint32_t sysctl_proc_buf_helper_cnt(int flavour,
     return count;
 }
 
-static inline size_t sysctl_proc_buf_helper_cpy(int flavour,
+static inline size_t sysctl_proc_buf_helper_cpy(kinfo_proc_t *pt,
+                                                uint32_t pt_cnt,
+                                                int flavour,
                                                 uid_t uid,
                                                 void *buffer,
                                                 uint32_t count)
@@ -77,32 +82,30 @@ static inline size_t sysctl_proc_buf_helper_cpy(int flavour,
     {
         case SYS_PROC_FLAVOUR_ALL:
         {
-            for(uint32_t i = 0; i < surface->proc_info.proc_count && written_structures < count; i++)
+            for(uint32_t i = 0; i < pt_cnt && written_structures < pt_cnt; i++)
             {
-                memset(&kprocs[i], 0, sizeof(kinfo_proc_t));
-                memcpy(&kprocs[i], &surface->proc_info.proc[i].bsd, sizeof(struct kinfo_proc));
-                written_structures++;
+                memcpy(&kprocs[written_structures++], &pt[i], sizeof(kinfo_proc_t));
             }
             break;
         }
         case SYS_PROC_FLAVOUR_UID:
         {
-            for(uint32_t i = 0; i < surface->proc_info.proc_count && written_structures < count; i++)
+            for(uint32_t i = 0; i < pt_cnt; i++)
             {
-                if(proc_getuid(surface->proc_info.proc[i]) == uid)
+                if(pt[i].kp_eproc.e_ucred.cr_uid == uid)
                 {
-                    memcpy(&kprocs[written_structures++], &surface->proc_info.proc[i].bsd, sizeof(kinfo_proc_t));
+                    memcpy(&kprocs[written_structures++], &pt[i], sizeof(kinfo_proc_t));
                 }
             }
             break;
         }
         case SYS_PROC_FLAVOUR_RUID:
         {
-            for(uint32_t i = 0; i < surface->proc_info.proc_count && written_structures < count; i++)
+            for(uint32_t i = 0; i < pt_cnt; i++)
             {
-                if(proc_getruid(surface->proc_info.proc[i]) == uid)
+                if(pt[i].kp_eproc.e_pcred.p_ruid == uid)
                 {
-                    memcpy(&kprocs[written_structures++], &surface->proc_info.proc[i].bsd, sizeof(kinfo_proc_t));
+                    memcpy(&kprocs[written_structures++], &pt[i], sizeof(kinfo_proc_t));
                 }
             }
             break;
@@ -120,42 +123,38 @@ static inline int sysctl_proc_buf_helper(void *buffer,
                                          int flavour,
                                          uid_t uid)
 {
-    // Dont use if uninitilized
-    if(surface == NULL) return 0;
+    kinfo_proc_t *pt = NULL;
+    uint32_t pt_cnt = 0;
+    environment_proxy_getproctable(&pt, &pt_cnt);
+    if(pt == NULL)
+    {
+        errno = EACCES;
+        return -1;
+    }
     
     size_t needed_bytes = 0;
-    int ret = 0;
     
     // Sequence
     unsigned long seq;
     
-    do {
-        seq = reflock_read_begin(&(surface->reflock));
-        
-        uint32_t count = sysctl_proc_buf_helper_cnt(flavour, uid);
-        needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
-        
-        if(needed_out)
-            *needed_out = needed_bytes;
-        
-        if(buffer == NULL || buffersize == 0)
-        {
-            ret = (int)needed_bytes;
-            break;
-        }
-        
-        if(buffersize < needed_bytes)
-        {
-            errno = ENOMEM;
-            ret = -1;
-            break;
-        }
-        
-        ret = (int)sysctl_proc_buf_helper_cpy(flavour, uid, buffer, count);
-    }
-    while(reflock_read_retry(&(surface->reflock), seq));
+    uint32_t count = sysctl_proc_buf_helper_cnt(pt, pt_cnt, flavour, uid);
+    needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
     
-    return ret;
+    if(needed_out)
+        *needed_out = needed_bytes;
+    
+    if(buffer == NULL || buffersize == 0)
+    {
+        return (int)needed_bytes;
+    }
+    
+    if(buffersize < needed_bytes)
+    {
+        errno = ENOMEM;
+        return -1;
+    }
+    
+    return (int)sysctl_proc_buf_helper_cpy(pt, pt_cnt, flavour, uid, buffer, count);
 }
 
 int sysctl_kernprocall(sysctl_req_t *req)
@@ -225,14 +224,15 @@ int sysctl_kernprocpid(sysctl_req_t *req)
 
     pid_t pid = req->name[3];
 
-    ksurface_proc_t proc;
+    // TODO: Fix this
+    /*ksurface_proc_t proc;
     ksurface_error_t error = proc_for_pid(pid, &proc);
     if(error != kSurfaceErrorSuccess)
     {
         return -1;
     }
 
-    memcpy(req->oldp, &(proc.bsd), needed);
+    memcpy(req->oldp, &(proc.bsd), needed);*/
     *req->oldlenp = needed;
 
     return 0;
@@ -297,4 +297,3 @@ int sysctl_kernprocruid(sysctl_req_t *req)
     *(req->oldlenp) = written;
     return 0;
 }
-*/

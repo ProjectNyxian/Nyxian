@@ -50,6 +50,9 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments
 /// Sets process credential
 int environment_proxy_setprocinfo(ProcessInfo info, unsigned int identifier);
 
+/// Gets process table
+void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt);
+
 /// Gets process credential
 unsigned long environment_proxy_getprocinfo(ProcessInfo info);
 

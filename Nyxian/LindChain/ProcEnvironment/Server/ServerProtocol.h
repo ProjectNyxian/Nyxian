@@ -70,6 +70,7 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
  */
 - (void)setProcessInfoWithOption:(ProcessInfo)option withIdentifier:(unsigned int)uid withReply:(void (^)(unsigned int result))reply;
 - (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned long result))reply;
+- (void)getProcessTableWithReply:(void (^)(NSData *result))reply;
 
 /*
  Signer

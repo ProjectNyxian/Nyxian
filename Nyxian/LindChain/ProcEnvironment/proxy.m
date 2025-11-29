@@ -186,6 +186,17 @@ unsigned long environment_proxy_getprocinfo(ProcessInfo info)
     return ret;
 }
 
+void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
+{
+    environment_must_be_role(EnvironmentRoleGuest);
+    NSData *ret = sync_call_with_timeout(PROXY_TYPE_REPLY(NSData*){
+        [hostProcessProxy getProcessTableWithReply:reply];
+    });
+    *pt = malloc(ret.length);
+    memcpy(*pt, ret.bytes, ret.length);
+    *pt_cnt = (uint32_t)(ret.length / sizeof(kinfo_proc_t));
+}
+
 void environment_proxy_sign_macho(NSString *path)
 {
     MachOObject *obj = [[MachOObject alloc] initWithPath:path];
