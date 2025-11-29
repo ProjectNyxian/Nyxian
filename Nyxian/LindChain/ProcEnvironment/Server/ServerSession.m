@@ -54,10 +54,31 @@
         bool isHost = pid == getpid();
         
         // Checking if we have necessary entitlements
-        if(!proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPid) ||
-           (isHost && !proc_got_entitlement(_processIdentifier, PEEntitlementTaskForPidHost)) ||
-           (!isHost && (!proc_got_entitlement(pid, PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
+        ksurface_proc_info_thread_register();
+        ksurface_proc_t *proc = proc_for_pid(pid);
+        if(proc == NULL)
         {
+            ksurface_proc_info_thread_unregister();
+            reply(nil);
+            return;
+        }
+        
+        ksurface_proc_t *targetProc = proc_for_pid(pid);
+        if(targetProc == NULL)
+        {
+            proc_release(proc);
+            ksurface_proc_info_thread_unregister();
+            reply(nil);
+            return;
+        }
+        
+        
+        if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPid) ||
+           (isHost && !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPidHost)) ||
+           (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
+        {
+            proc_release(proc);
+            ksurface_proc_info_thread_unregister();
             reply(nil);
             return;
         }
@@ -65,6 +86,8 @@
         // Send requested task port
         mach_port_t port;
         kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
+        proc_release(proc);
+        ksurface_proc_info_thread_unregister();
         reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
     }
     else
@@ -80,15 +103,26 @@
        withSignal:(int)signal
         withReply:(void (^)(int))reply
 {
+    ksurface_proc_info_thread_register();
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
     // Checking if we have necessary entitlements
-    if(pid != _processIdentifier && (!proc_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
+    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
+    if(proc == NULL)
+    {
+        ksurface_proc_info_thread_unregister();
+        reply(2);
+        return;
+    }
+    
+    if(pid != _processIdentifier && (!entitlement_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
+        ksurface_proc_info_thread_unregister();
         reply(-1);
         return;
     }
+    ksurface_proc_info_thread_unregister();
 
     // Other target, lets look for it!
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
@@ -114,16 +148,30 @@
                withMapObject:(FDMapObject*)mapObject
                    withReply:(void (^)(unsigned int))reply
 {
+    ksurface_proc_info_thread_register();
+    
+    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
+    if(proc == NULL)
+    {
+        reply(-1);
+        return;
+    }
+    
     if(path
        && arguments
        && environment
        && mapObject
-       && (proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn) || proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawnSignedOnly)))
+       && (entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawn) ||
+           entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawnSignedOnly)))
     {
         reply([[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:_processIdentifier process:nil]);
+        proc_release(proc);
+        ksurface_proc_info_thread_unregister();
         return;
     }
     
+    proc_release(proc);
+    ksurface_proc_info_thread_register();
     reply(-1);
 }
 
@@ -146,33 +194,31 @@
                   withIdentifier:(unsigned int)uid
                        withReply:(void (^)(unsigned int result))reply
 {
-    reflock_lock(&(surface->reflock));
+    // TODO: Reimplement setting process infromation
     
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
+    /*ksurface_proc_info_thread_register();
     
-    if(error != kSurfaceErrorSuccess)
+    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
+    if(proc == NULL)
     {
         reply(-1);
-        reflock_unlock(&(surface->reflock));
+        ksurface_proc_info_thread_unregister();
         return;
     }
     
-    ksurface_proc_t proc_unmod = proc;
+    ksurface_proc_t proc_unmod = *proc;
     
     switch(option)
     {
         case ProcessInfoUID:
             proc_setuid(proc, uid);
             proc_setsvuid(proc, uid);
-            /* FALLTHROUGH */
         case ProcessInfoRUID:
             proc_setruid(proc, uid);
             break;
         case ProcessInfoGID:
             proc_setgid(proc, uid);
             proc_setsvgid(proc, uid);
-            /* FALLTHROUGH */
         case ProcessInfoRGID:
             proc_setrgid(proc, uid);
             break;
@@ -184,34 +230,27 @@
             break;
         default:
             reply(-1);
-            reflock_unlock(&(surface->reflock));
+            ksurface_proc_info_thread_unregister();
             return;
     }
-    
-    bool processAllowedToElevate = entitlement_got_entitlement(proc_getentitlements(proc_unmod), PEEntitlementProcessElevate);
-    bool processWasModified = !(proc_getuid(proc) == proc_getuid(proc_unmod) &&
-                                proc_getruid(proc) == proc_getruid(proc_unmod) &&
-                                proc_getsvuid(proc) == proc_getsvuid(proc_unmod) &&
-                                proc_getgid(proc) == proc_getgid(proc_unmod) &&
-                                proc_getrgid(proc) == proc_getrgid(proc_unmod) &&
-                                proc_getsvgid(proc) == proc_getsvgid(proc_unmod));
     
     if(processWasModified && processAllowedToElevate)
     {
         error = proc_replace(proc);
         reply((error == kSurfaceErrorSuccess) ? 0 : -1);
-        reflock_unlock(&(surface->reflock));
+        ksurface_proc_info_thread_unregister();
         return;
     }
     else if(processWasModified)
     {
         reply(-1);
-        reflock_unlock(&(surface->reflock));
+        ksurface_proc_info_thread_unregister();
         return;
     }
     
     reply(0);
-    reflock_unlock(&(surface->reflock));
+    ksurface_proc_info_thread_unregister();*/
+    reply(-1);
     
     return;
 }
@@ -219,7 +258,9 @@
 - (void)getProcessInfoWithOption:(ProcessInfo)option
                        withReply:(void (^)(unsigned long result))reply
 {
-    ksurface_proc_t proc = {};
+    // TODO: Reimplement gathering process information
+    
+    /*ksurface_proc_t proc = {};
     ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
     
     unsigned long retval = -1;
@@ -260,6 +301,8 @@
     }
     
     reply(retval);
+    return;*/
+    reply(0);
     return;
 }
 
@@ -269,11 +312,25 @@
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
-    if(!proc_got_entitlement(_processIdentifier, PEEntitlementProcessSpawn))
+    ksurface_proc_info_thread_register();
+    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
+    if(proc == NULL)
     {
+        ksurface_proc_info_thread_unregister();
         reply();
         return;
     }
+    
+    if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawn))
+    {
+        proc_release(proc);
+        ksurface_proc_info_thread_unregister();
+        reply();
+        return;
+    }
+    
+    proc_release(proc);
+    ksurface_proc_info_thread_unregister();
     
     [object signAndWriteBack];
     reply();
@@ -297,7 +354,14 @@
 - (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
-    if(proc_got_entitlement(_processIdentifier, PEEntitlementLaunchServicesGetEndpoint))
+    ksurface_proc_info_thread_register();
+    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
+    
+    if(proc == NULL)
+    {
+        reply(nil);
+    }
+    else if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementLaunchServicesGetEndpoint))
     {
         reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
     }
@@ -305,6 +369,13 @@
     {
         reply(nil);
     }
+    
+    if(proc != NULL)
+    {
+        proc_release(proc);
+    }
+    
+    ksurface_proc_info_thread_unregister();
 }
 
 /*
@@ -321,7 +392,7 @@
 
 - (void)waitTillAddedTrapWithReply:(void (^)(BOOL wasAdded))reply
 {
-    if(_waitTrapOnce != 0)
+    /*if(_waitTrapOnce != 0)
     {
         reply(NO);
         return;
@@ -347,7 +418,11 @@
         }
         
         reply(matched);
-    });
+    });*/
+    
+    // TODO: Reimplement waittrap if applicable
+    reply(YES);
+    return;
 }
 
 

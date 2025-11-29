@@ -147,12 +147,12 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
                         // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
                         ksurface_error_t error = kSurfaceErrorUndefined;
-                        error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
+                        /*error = proc_new_child_proc(parentProcessIdentifier, weakSelf.pid, weakSelf.executablePath);
                         
                         if(error != kSurfaceErrorSuccess)
                         {
                             [weakSelf terminate];
-                        }
+                        }*/
                     });
                 }
             }];

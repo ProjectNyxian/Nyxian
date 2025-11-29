@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 
-int proc_libproc_pid_rusage(pid_t pid,
+/*int proc_libproc_pid_rusage(pid_t pid,
                             int flavor,
                             struct rusage_info_v2 *ri)
 {
@@ -95,3 +95,4 @@ int proc_libproc_pid_rusage(pid_t pid,
     }
     return 0;
 }
+*/

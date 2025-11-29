@@ -120,7 +120,7 @@ void UIKitFixesInit(void)
         self.backgroundEnforcementTimer = nil;
     }
     
-    ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_NONE);
+    /*ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_NONE);
 
     // Checking error
     if(error != kSurfaceErrorSuccess)
@@ -128,7 +128,7 @@ void UIKitFixesInit(void)
         // Terminate if its not succeeded
         [self.process terminate];
         return;
-    }
+    }*/
     
     // Resume if applicable
     [self.process resume];
@@ -151,15 +151,15 @@ void UIKitFixesInit(void)
         if([self.process suspend])
         {
             // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
-            ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_DARWINBG_APPLICATION);
+            //ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_DARWINBG_APPLICATION);
  
             // Checking error
-            if(error != kSurfaceErrorSuccess)
+            /*if(error != kSurfaceErrorSuccess)
             {
                 // Terminate if its not succeeded
                 [self.process terminate];
                 return;
-            }
+            }*/
         }
     }];
 }

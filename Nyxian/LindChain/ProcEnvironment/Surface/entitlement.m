@@ -20,26 +20,6 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-bool proc_got_entitlement(pid_t pid,
-                          PEEntitlement entitlement)
-{
-    // TODO: Check if proc exists
-    // Get proc
-    ksurface_proc_t *proc = proc_for_pid(pid);
-    if(proc == NULL)
-    {
-        proc_release(proc);
-        // If it was not successful then we return false, basically denying every entitlement no matter what
-        return false;
-    }
-    
-    PEEntitlement procEntitlements = proc_getentitlements(proc);
-    proc_release(proc);
-    
-    // Now check entitlements
-    return(procEntitlements & entitlement) == entitlement;
-}
-
 bool entitlement_got_entitlement(PEEntitlement present,
                                  PEEntitlement needed)
 {

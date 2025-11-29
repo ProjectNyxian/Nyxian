@@ -74,39 +74,6 @@ kern_return_t environment_task_for_pid(mach_port_name_t taskPort,
     return KERN_SUCCESS;
 }
 
-DEFINE_HOOK(task_policy_get, kern_return_t,(task_policy_get_t task,
-                                            task_policy_flavor_t flavor,
-                                            task_policy_t policy_info,
-                                            mach_msg_type_number_t *policy_infoCnt,
-                                            boolean_t *get_default))
-{
-    kern_return_t kr = ORIG_FUNC(task_policy_get)(task, flavor, policy_info, policy_infoCnt, get_default);
-    
-    if(kr == KERN_SUCCESS
-       && flavor == TASK_CATEGORY_POLICY)
-    {
-        pid_t pid = 0;
-        kr = pid_for_task(task, &pid);
-        if(kr == KERN_SUCCESS)
-        {
-            ksurface_proc_info_thread_register();
-            ksurface_proc_t *proc = proc_for_pid(pid);
-            if(proc != NULL)
-            {
-                if(proc->nyx.force_task_role_override)
-                {
-                    task_category_policy_data_t *data = (task_category_policy_data_t*)policy_info;
-                    data->role = proc->nyx.task_role_override;
-                }
-                proc_release(proc);
-            }
-            ksurface_proc_info_thread_unregister();
-        }
-    }
-    
-    return kr;
-}
-
 void environment_host_take_client_task_port(TaskPortObject *machPort)
 {
     environment_must_be_role(EnvironmentRoleHost);
@@ -147,7 +114,6 @@ void environment_tfp_init(void)
             // MARK: Guest Init
             [hostProcessProxy sendPort:[TaskPortObject taskPortSelf]];
             litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
-            DO_HOOK_GLOBAL(task_policy_get);
         }
         else
         {

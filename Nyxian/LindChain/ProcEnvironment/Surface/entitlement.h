@@ -110,8 +110,6 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     PEEntitlementKernel                     = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementSurfaceManager | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
 };
 
-bool proc_got_entitlement(pid_t pid, PEEntitlement entitlement);
-
 bool entitlement_got_entitlement(PEEntitlement present, PEEntitlement needed);
 
 #endif /* PROC_ENTITLEMENT_H */

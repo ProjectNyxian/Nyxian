@@ -26,7 +26,7 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-int proc_libproc_listallpids(void *buffer,
+/*int proc_libproc_listallpids(void *buffer,
                              int buffersize)
 {
     if(buffersize < 0)
@@ -147,18 +147,18 @@ int proc_libproc_pidinfo(pid_t pid,
         errno = ENOTSUP;
         return 0;
     }
-}
+}*/
 
 void environment_libproc_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
         // MARK: GUEST Init
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_listallpids, proc_libproc_listallpids, nil);
+        /*litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_listallpids, proc_libproc_listallpids, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_name, proc_libproc_name, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidpath, proc_libproc_pidpath, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidinfo, proc_libproc_pidinfo, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pid_rusage, proc_libproc_pid_rusage, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, kill, environment_proxy_proc_kill_process_identifier, nil);
+        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, kill, environment_proxy_proc_kill_process_identifier, nil);*/
     }
 }
