@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 #include <sys/sysctl.h>
 #include <limits.h>
-#include <LindChain/ProcEnvironment/Surface/lock/legacy/reflock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/rcu/rcu.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
@@ -36,14 +36,15 @@ enum kSurfaceError {
     kSurfaceErrorNotHoldingLock = 4,
     kSurfaceErrorOutOfBounds    = 5,
     kSurfaceErrorDenied         = 6,
-    kSurfaceErrorAlreadyExists  = 7
+    kSurfaceErrorAlreadyExists  = 7,
+    kSurfaceErrorFailed         = 8
 };
 
 typedef unsigned char ksurface_error_t;
 
 #define PROC_MAX 750
 #define CHILD_PROC_MAX PROC_MAX
-#define SURFACE_MAGIC 0xFABCDEFB
+#define SURFACE_MAGIC 0xDEADBEEF
 
 /// BSD process structure
 typedef struct kinfo_proc kinfo_proc_t;
@@ -65,25 +66,26 @@ typedef struct {
 
 /// Host information
 typedef struct {
+    rcu_state_t rcu;
     char hostname[MAXHOSTNAMELEN];
 } ksurface_host_info_t;
 
 /// Process information
 typedef struct {
+    rcu_state_t rcu;
     uint32_t proc_count;
-    ksurface_proc_t proc[PROC_MAX];
+    ksurface_proc_t *proc[PROC_MAX];
 } ksurface_proc_info_t;
 
 /// Structure that holds surface information and other structures
 typedef struct {
     uint32_t magic;
-    reflock_t reflock;
     ksurface_host_info_t host_info;
     ksurface_proc_info_t proc_info;
 } ksurface_mapping_t;
 
 /* Internal kernel information */
-extern ksurface_mapping_t *surface;
+extern ksurface_mapping_t *ksurface;
 
 void kern_sethostname(NSString *hostname);
 void ksurface_init(void);

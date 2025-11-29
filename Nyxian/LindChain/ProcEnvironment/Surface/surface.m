@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/proxy.h>
@@ -27,47 +28,70 @@
 #import <mach-o/dyld.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
-ksurface_mapping_t *surface = NULL;
+ksurface_mapping_t *ksurface = NULL;
 
 /*
  Experimental hooks & implementations
  */
 DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
 {
-    unsigned long seq;
+    /*unsigned long seq;
     
     do
     {
         seq = reflock_read_begin(&(surface->reflock));
         strlcpy(buf, surface->host_info.hostname, bufsize);
     }
-    while(reflock_read_retry(&(surface->reflock), seq));
+    while(reflock_read_retry(&(surface->reflock), seq));*/
     
     return 0;
 }
 
 void kern_sethostname(NSString *hostname)
 {
-    klog_log(@"surface", @"setting hostname to %@", hostname);
-    reflock_lock(&(surface->reflock));
+    /*klog_log(@"surface", @"setting hostname to %@", hostname);
     hostname = hostname ?: @"localhost";
-    strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
-    reflock_unlock(&(surface->reflock));
+    strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);*/
+    
+    
 }
 
-static inline ksurface_mapping_t *ksurface_alloc(void)
+static inline void ksurface_kalloc(void)
 {
-    ksurface_mapping_t *ksurface = malloc(sizeof(ksurface_mapping_t));
+    /* allocate surface */
+    ksurface = malloc(sizeof(ksurface_mapping_t));
+    if(ksurface == NULL)
+    {
+        /* in case allocation failed we go */
+        environment_panic();
+    }
+}
+
+static inline void ksurface_kinit(void)
+{
+    /* setting magic */
     ksurface->magic = SURFACE_MAGIC;
+    
+    /* setting up rcu state's */
+    rcu_state_t *states[2] = { &(ksurface->proc_info.rcu), &(ksurface->host_info.rcu) };
+    for(unsigned char i = 0; i < 2; i++)
+    {
+        states[i]->current_epoch = 0;
+        pthread_mutex_init(&(states[i]->gp_lock), NULL);
+        pthread_mutex_init(&(states[i]->registry_lock), NULL);
+        memset(states[i]->thread_state, 0, sizeof(states[i]->thread_state));
+    }
+    
+    /* setting up process table */
     ksurface->proc_info.proc_count = 0;
-    return ksurface;
-}
-
-static inline void ksurface_hostname_init(void)
-{
+    for(int i = 0; i < PROC_MAX; i++)
+    {
+        ksurface->proc_info.proc[i] = NULL;
+    }
+    
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
     if(hostname == nil) hostname = @"localhost";
-    strlcpy(surface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
+    strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
 }
 
 void ksurface_init(void)
@@ -76,11 +100,8 @@ void ksurface_init(void)
     dispatch_once(&onceToken, ^{
         if(environment_must_be_role(EnvironmentRoleHost))
         {
-            // Allocate internal surface
-            surface = ksurface_alloc();
-            
-            // Initilize hostname
-            ksurface_hostname_init();
+            ksurface_kalloc();
+            ksurface_kinit();
         }
     });
 }
