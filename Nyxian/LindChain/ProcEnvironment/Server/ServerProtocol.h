@@ -28,19 +28,7 @@
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-
-typedef NS_OPTIONS(uint64_t, ProcessInfo) {
-    ProcessInfoUID              = 0,
-    ProcessInfoEUID             = 1,
-    ProcessInfoRUID             = 2,
-    ProcessInfoGID              = 3,
-    ProcessInfoEGID             = 4,
-    ProcessInfoRGID             = 5,
-    ProcessInfoPID              = 6,
-    ProcessInfoPPID             = 7,
-    ProcessInfoEntitlements     = 8,
-    ProcessInfoMAX              = 9,
-};
+#import <LindChain/ProcEnvironment/Surface/proc/userapi/cred.h>
 
 @protocol ServerProtocol
 

@@ -33,6 +33,13 @@
 
 @implementation ServerSession
 
+- (instancetype)initWithProcessidentifier:(pid_t)pid
+{
+    self = [super init];
+    _processIdentifier = pid;
+    return self;
+}
+
 /*
  tfp_userspace
  */
@@ -195,116 +202,19 @@
                   withIdentifier:(unsigned int)uid
                        withReply:(void (^)(unsigned int result))reply
 {
-    // TODO: Reimplement setting process infromation
-    
-    /*ksurface_proc_info_thread_register();
-    
-    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
-    if(proc == NULL)
-    {
-        reply(-1);
-        ksurface_proc_info_thread_unregister();
-        return;
-    }
-    
-    ksurface_proc_t proc_unmod = *proc;
-    
-    switch(option)
-    {
-        case ProcessInfoUID:
-            proc_setuid(proc, uid);
-            proc_setsvuid(proc, uid);
-        case ProcessInfoRUID:
-            proc_setruid(proc, uid);
-            break;
-        case ProcessInfoGID:
-            proc_setgid(proc, uid);
-            proc_setsvgid(proc, uid);
-        case ProcessInfoRGID:
-            proc_setrgid(proc, uid);
-            break;
-        case ProcessInfoEUID:
-            proc_setuid(proc, uid);
-            break;
-        case ProcessInfoEGID:
-            proc_setgid(proc, uid);
-            break;
-        default:
-            reply(-1);
-            ksurface_proc_info_thread_unregister();
-            return;
-    }
-    
-    if(processWasModified && processAllowedToElevate)
-    {
-        error = proc_replace(proc);
-        reply((error == kSurfaceErrorSuccess) ? 0 : -1);
-        ksurface_proc_info_thread_unregister();
-        return;
-    }
-    else if(processWasModified)
-    {
-        reply(-1);
-        ksurface_proc_info_thread_unregister();
-        return;
-    }
-    
-    reply(0);
-    ksurface_proc_info_thread_unregister();*/
-    reply(-1);
-    
-    return;
+    ksurface_proc_info_thread_register();
+    unsigned int retval = (unsigned int)proc_cred_set(_proc, option, uid);
+    ksurface_proc_info_thread_unregister();
+    reply(retval);
 }
 
 - (void)getProcessInfoWithOption:(ProcessInfo)option
                        withReply:(void (^)(unsigned long result))reply
 {
-    // TODO: Reimplement gathering process information
-    
-    /*ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
-    
-    unsigned long retval = -1;
-    
-    if(error != kSurfaceErrorSuccess)
-    {
-        reply(retval);
-        return;
-    }
-    
-    switch(option)
-    {
-        case ProcessInfoUID:
-        case ProcessInfoEUID:
-            retval = proc_getuid(proc);
-            break;
-        case ProcessInfoGID:
-        case ProcessInfoEGID:
-            retval = proc_getgid(proc);
-            break;
-        case ProcessInfoRUID:
-            retval = proc_getruid(proc);
-            break;
-        case ProcessInfoRGID:
-            retval = proc_getrgid(proc);
-            break;
-        case ProcessInfoPID:
-            retval = proc_getpid(proc);
-            break;
-        case ProcessInfoPPID:
-            retval = proc_getppid(proc);
-            break;
-        case ProcessInfoEntitlements:
-            retval = proc_getentitlements(proc);
-            break;
-        default:
-            break;
-    }
-    
+    ksurface_proc_info_thread_register();
+    unsigned long retval = proc_cred_get(_proc, option);
+    ksurface_proc_info_thread_unregister();
     reply(retval);
-    return;*/
-    reply(0);
-    return;
 }
 
 /*
@@ -393,24 +303,16 @@
 
 - (void)waitTillAddedTrapWithReply:(void (^)(BOOL wasAdded))reply
 {
-    /*if(_waitTrapOnce != 0)
-    {
-        reply(NO);
-        return;
-    }
-    
     dispatch_once(&_waitTrapOnce, ^{
         const uint64_t start = mach_absolute_time();
         const uint64_t timeoutNs = 1 * NSEC_PER_SEC;
         
-        ksurface_proc_t proc = {};
         BOOL matched = NO;
-        
         while (mach_absolute_time() - start < timeoutNs)
         {
-            ksurface_error_t error = proc_for_pid(_processIdentifier, &proc);
-            if(error == kSurfaceErrorSuccess
-               && proc.bsd.kp_proc.p_pid == _processIdentifier)
+            _proc = proc_for_pid(_processIdentifier);
+            if(_proc != NULL &&
+               proc_getpid(_proc) == _processIdentifier)
             {
                 matched = YES;
                 break;
@@ -419,11 +321,7 @@
         }
         
         reply(matched);
-    });*/
-    
-    // TODO: Reimplement waittrap if applicable
-    reply(YES);
-    return;
+    });
 }
 
 - (void)getProcessTableWithReply:(void (^)(NSData *result))reply

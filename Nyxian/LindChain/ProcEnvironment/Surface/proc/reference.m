@@ -32,18 +32,18 @@ bool proc_retain(ksurface_proc_t *proc)
         int current = atomic_load(&proc->refcount);
         if(current <= 0 || atomic_load(&proc->dead))
         {
-            klog_log(@"proc:retain", @"retention failed, process %p already dead", proc);
+            //klog_log(@"proc:retain", @"retention failed, process %p already dead", proc);
             return false;
         }
         if(atomic_compare_exchange_weak(&proc->refcount, &current, current + 1))
         {
             if(atomic_load(&proc->dead))
             {
-                klog_log(@"proc:retain", @"retention failed, process %p already dead", proc);
+                //klog_log(@"proc:retain", @"retention failed, process %p already dead", proc);
                 atomic_fetch_sub(&proc->refcount, 1);
                 return false;
             }
-            klog_log(@"proc:retain", @"retained process %p to refcount %d", proc, current + 1);
+            //klog_log(@"proc:retain", @"retained process %p to refcount %d", proc, current + 1);
             return true;
         }
     }
@@ -53,10 +53,10 @@ void proc_release(ksurface_proc_t *proc)
 {
     if(proc == NULL) return;
     int old = atomic_fetch_sub(&proc->refcount, 1);
-    klog_log(@"proc:release", @"releasing process %p to refcount %d", proc, old - 1);
+    //klog_log(@"proc:release", @"releasing process %p to refcount %d", proc, old - 1);
     if(old == 1)
     {
-        klog_log(@"proc:release", @"freeing process %p", proc);
+        //klog_log(@"proc:release", @"freeing process %p", proc);
         free(proc);
     }
     else if(old <= 0)
