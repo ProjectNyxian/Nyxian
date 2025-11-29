@@ -50,17 +50,20 @@ typedef unsigned char ksurface_error_t;
 /// BSD process structure
 typedef struct kinfo_proc kinfo_proc_t;
 
+/// Nyxian process structure
+typedef struct {
+    char executable_path[PATH_MAX];
+    bool force_task_role_override;
+    task_role_t task_role_override;
+    PEEntitlement entitlements;
+} knyx_proc_t;
+
 /// Structure that holds process information
 typedef struct {
     _Atomic int refcount;
     _Atomic bool dead;
     kinfo_proc_t bsd;
-    struct {
-        char executable_path[PATH_MAX];
-        bool force_task_role_override;
-        task_role_t task_role_override;
-        PEEntitlement entitlements;
-    } nyx;
+    knyx_proc_t nyx;
 } ksurface_proc_t;
 
 /// Host information

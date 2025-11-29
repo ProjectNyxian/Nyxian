@@ -105,3 +105,25 @@ void proc_snapshot_free(proc_snapshot_t *snap)
 {
     free(snap);
 }
+
+bool proc_nyx_copy(ksurface_proc_t *proc,
+                   pid_t targetPid,
+                   knyx_proc_t *nyx)
+{
+    /* getting visibility */
+    proc_visibility_t vis = get_proc_visibility(proc);
+    if(vis == PROC_VIS_NONE)
+    {
+        return false;
+    }
+    
+    /* getting process of targetpid */
+    ksurface_proc_t *targetProc = proc_for_pid(targetPid);
+    if(targetProc != NULL &&
+       can_see_process(proc, targetProc, vis))
+    {
+        *nyx = targetProc->nyx;
+        return true;
+    }
+    return false;
+}

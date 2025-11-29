@@ -81,7 +81,7 @@ void environment_init(EnvironmentRole role,
         environmentRole = role;
         
         // Initilizing environment base
-        //environment_libproc_init();
+        environment_libproc_init();
         environment_application_init();
         environment_posix_spawn_init();
         environment_fork_init();

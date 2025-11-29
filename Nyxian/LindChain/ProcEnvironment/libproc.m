@@ -87,7 +87,7 @@ int proc_libproc_name(pid_t pid,
     strlcpy((char*)buffer, proc.bsd.kp_proc.p_comm, buffersize);
     
     return (int)strlen((char*)buffer);
-}
+}*/
 
 int proc_libproc_pidpath(pid_t pid,
                          void * buffer,
@@ -98,18 +98,13 @@ int proc_libproc_pidpath(pid_t pid,
         return 0;
     }
     
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(pid, &proc);
-    if(error != kSurfaceErrorSuccess)
-    {
-        return 0;
-    }
+    knyx_proc_t nyx = environment_proxy_nyxcopy(pid);
 
-    strlcpy((char*)buffer, proc.nyx.executable_path, buffersize);
+    strlcpy((char*)buffer, nyx.executable_path, buffersize);
     return (int)strlen((char*)buffer);
 }
 
-int proc_libproc_pidinfo(pid_t pid,
+/*int proc_libproc_pidinfo(pid_t pid,
                          int flavor,
                          uint64_t arg,
                          void * buffer,
@@ -155,9 +150,9 @@ void environment_libproc_init(void)
     {
         // MARK: GUEST Init
         /*litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_listallpids, proc_libproc_listallpids, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_name, proc_libproc_name, nil);
+        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_name, proc_libproc_name, nil);*/
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidpath, proc_libproc_pidpath, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidinfo, proc_libproc_pidinfo, nil);
+        /*litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidinfo, proc_libproc_pidinfo, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pid_rusage, proc_libproc_pid_rusage, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, kill, environment_proxy_proc_kill_process_identifier, nil);*/
     }

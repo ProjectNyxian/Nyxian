@@ -67,4 +67,6 @@ void environment_proxy_set_snapshot(UIImage *snapshot);
 
 void environment_proxy_waittrap(void);
 
+knyx_proc_t environment_proxy_nyxcopy(pid_t pid);
+
 #endif /* PROCENVIRONMENT_PROXY_H */

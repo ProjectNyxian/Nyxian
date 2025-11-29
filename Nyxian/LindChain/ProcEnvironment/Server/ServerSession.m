@@ -217,6 +217,22 @@
     reply(retval);
 }
 
+- (void)getProcessNyxWithIdentifier:(pid_t)pid
+                          withReply:(void (^)(NSData*))reply
+{
+    ksurface_proc_info_thread_register();
+    knyx_proc_t nyx;
+    if(!proc_nyx_copy(_proc, pid, &nyx))
+    {
+        reply(nil);
+    }
+    else
+    {
+        reply([[NSData alloc] initWithBytes:&nyx length:sizeof(nyx)]);
+    }
+    ksurface_proc_info_thread_unregister();
+}
+
 /*
  Signer
  */
