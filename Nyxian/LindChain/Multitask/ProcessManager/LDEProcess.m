@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
@@ -150,8 +151,10 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         ksurface_proc_t *child = proc_fork(parentProcessIdentifier, weakSelf.pid, [weakSelf.executablePath UTF8String]);
                         if(child == NULL)
                         {
+                            klog_log(@"LDEProcess", @"failed to create child process with proc api");
                             [weakSelf terminate];
                         }
+                        klog_log(@"LDEProcess", @"created child process with proc api %p", child);
                         ksurface_proc_info_thread_unregister();
                     });
                 }
