@@ -42,6 +42,14 @@ ksurface_proc_t *proc_fork(pid_t ppid,
         return NULL;
     }
     
+    /* Permitives */
+    if(ppid == proc_getpid(kernel_proc_))
+    {
+        /* Dont inherite easily */
+        proc_setmobilecred(child);
+    }
+    
+    /* Entitilements */
     if(entitlement_got_entitlement(proc_getentitlements(parent), PEEntitlementProcessSpawnInheriteEntitlements))
     {
         /* Child inherits entitlements from parent */

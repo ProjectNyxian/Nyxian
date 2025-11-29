@@ -26,7 +26,7 @@
 
 /* Rate limitation */
 #define RATE_LIMIT_TOKENS_MAX    1000
-#define RATE_LIMIT_REFILL_MS     100
+#define RATE_LIMIT_REFILL_MS     50
 #define RATE_LIMIT_TOKENS_INIT   10
 
 /* Rate limitation structure */

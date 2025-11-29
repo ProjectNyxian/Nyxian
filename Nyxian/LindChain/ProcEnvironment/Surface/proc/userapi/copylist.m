@@ -183,7 +183,6 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
     snap->timestamp = _get_time_ms();
     
     proc_visibility_t vis = get_proc_visibility(caller);
-    uint32_t visible_count = 0;
     rcu_read_lock(&(ksurface->proc_info.rcu));
     uint32_t proc_count = atomic_load(&(ksurface->proc_info.proc_count));
     for(uint32_t i = 0; i < proc_count; i++) {
@@ -192,9 +191,8 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
         {
             if(can_see_process(caller, p, vis))
             {
-                visible_count++;
+                copy_proc_to_user(p, &snap->kp[snap->count++]);
             }
-            copy_proc_to_user(p, &snap->kp[snap->count++]);
             proc_release(p);
         }
     }
