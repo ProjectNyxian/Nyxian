@@ -43,6 +43,19 @@ ksurface_proc_t *proc_create(pid_t pid,
     proc_setppid(proc, ppid);
     proc_setentitlements(proc, 0);
     
+    /* setting other bsd shit */
+    proc->bsd.kp_eproc.e_ucred.cr_groups[0] = 0;
+    proc->bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
+    proc->bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
+    proc->bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
+    proc->bsd.kp_eproc.e_ucred.cr_ref = 5;
+    proc->bsd.kp_proc.p_priority = PUSER;
+    proc->bsd.kp_proc.p_usrpri = PUSER;
+    proc->bsd.kp_eproc.e_tdev = -1;
+    proc->bsd.kp_eproc.e_flag = 2;
+    proc->bsd.kp_proc.p_stat = SRUN;
+    proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+    
     if(path)
     {
         strncpy(proc->nyx.executable_path, path, PATH_MAX - 1);
