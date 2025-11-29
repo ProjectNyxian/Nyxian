@@ -41,7 +41,7 @@ ksurface_proc_t *proc_create(pid_t pid,
     /* setting bsd process information that are relevant currently */
     proc_setpid(proc, pid);
     proc_setppid(proc, ppid);
-    proc_setentitlements(proc, PEEntitlementKernel);
+    proc_setentitlements(proc, 0);
     
     if(path)
     {
