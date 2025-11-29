@@ -46,10 +46,7 @@
     newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(ServerProtocol)];
     
     // Setting up server session
-    ServerSession *serverSession = [[ServerSession alloc] init];
-    
-    // Assign process identifier
-    serverSession.processIdentifier = newConnection.processIdentifier;
+    ServerSession *serverSession = [[ServerSession alloc] initWithProcessidentifier:newConnection.processIdentifier];
     
     // Set exported object to the created server session
     newConnection.exportedObject = serverSession;

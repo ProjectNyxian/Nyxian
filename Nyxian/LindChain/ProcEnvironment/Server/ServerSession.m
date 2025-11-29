@@ -346,4 +346,11 @@
     return;
 }
 
+- (void)dealloc
+{
+    ksurface_proc_info_thread_register();
+    proc_release(_proc);
+    ksurface_proc_info_thread_unregister();
+}
+
 @end
