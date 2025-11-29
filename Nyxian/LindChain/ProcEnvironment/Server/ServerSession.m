@@ -114,15 +114,6 @@
     ksurface_proc_info_thread_register();
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
-    // Checking if we have necessary entitlements
-    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
-    if(proc == NULL)
-    {
-        ksurface_proc_info_thread_unregister();
-        reply(2);
-        return;
-    }
-    
     if(pid != _processIdentifier && (!entitlement_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
@@ -156,29 +147,23 @@
                withMapObject:(FDMapObject*)mapObject
                    withReply:(void (^)(unsigned int))reply
 {
+    klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
     ksurface_proc_info_thread_register();
-    
-    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
-    if(proc == NULL)
-    {
-        reply(-1);
-        return;
-    }
     
     if(path
        && arguments
        && environment
        && mapObject
-       && (entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawn) ||
-           entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawnSignedOnly)))
+       && (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
+           entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
-        reply([[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:_processIdentifier process:nil]);
-        proc_release(proc);
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:_processIdentifier process:nil];
+        reply(pid);
+        klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
         ksurface_proc_info_thread_unregister();
         return;
     }
     
-    proc_release(proc);
     ksurface_proc_info_thread_register();
     reply(-1);
 }
