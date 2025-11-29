@@ -22,8 +22,11 @@
 
 bool proc_retain(ksurface_proc_t *proc)
 {
-    if (proc == NULL) return false;
-    while (1)
+    if(proc == NULL)
+    {
+        return false;
+    }
+    while(1)
     {
         int current = atomic_load(&proc->refcount);
         if(current <= 0 || atomic_load(&proc->dead))
@@ -32,7 +35,7 @@ bool proc_retain(ksurface_proc_t *proc)
         }
         if(atomic_compare_exchange_weak(&proc->refcount, &current, current + 1))
         {
-            if (atomic_load(&proc->dead))
+            if(atomic_load(&proc->dead))
             {
                 atomic_fetch_sub(&proc->refcount, 1);
                 return false;
@@ -44,7 +47,7 @@ bool proc_retain(ksurface_proc_t *proc)
 
 void proc_release(ksurface_proc_t *proc)
 {
-    if (proc == NULL) return;
+    if(proc == NULL) return;
     int old = atomic_fetch_sub(&proc->refcount, 1);
     if(old == 1)
     {
@@ -52,7 +55,7 @@ void proc_release(ksurface_proc_t *proc)
     }
     else if(old <= 0)
     {
-        /* Released more than retained -> panic*/
+        /* Released more than retained -> panicg*/
         environment_panic();
     }
 }
