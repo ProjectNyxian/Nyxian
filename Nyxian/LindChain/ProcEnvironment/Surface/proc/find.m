@@ -23,17 +23,17 @@
 ksurface_error_t proc_for_pid(pid_t pid,
                               ksurface_proc_t **proc)
 {
-    if (ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
+    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
     *proc = NULL;
     rcu_read_lock(&(ksurface->proc_info.rcu));
-    for (unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
+    for(unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
     {
         ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
-        if (p != NULL && p->bsd.kp_proc.p_pid == pid)
+        if(p != NULL && p->bsd.kp_proc.p_pid == pid)
         {
-            if (proc_retain(p))
+            if(proc_retain(p))
             {
-                if (p->bsd.kp_proc.p_pid == pid)
+                if(p->bsd.kp_proc.p_pid == pid)
                 {
                     *proc = p;
                 }
@@ -46,5 +46,22 @@ ksurface_error_t proc_for_pid(pid_t pid,
         }
     }
     rcu_read_unlock(&(ksurface->proc_info.rcu));
+    return (*proc == NULL) ? kSurfaceErrorNotFound : kSurfaceErrorSuccess;
+}
+
+ksurface_error_t proc_for_pid_unsafe(pid_t pid,
+                                     ksurface_proc_t **proc)
+{
+    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
+    *proc = NULL;
+    for(unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
+    {
+        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
+        if(p != NULL && p->bsd.kp_proc.p_pid == pid)
+        {
+            *proc = p;
+            break;
+        }
+    }
     return (*proc == NULL) ? kSurfaceErrorNotFound : kSurfaceErrorSuccess;
 }
