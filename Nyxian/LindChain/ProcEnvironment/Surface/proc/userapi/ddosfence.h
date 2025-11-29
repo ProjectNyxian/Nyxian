@@ -35,6 +35,7 @@ typedef struct {
     _Atomic uint64_t last_refill_ms;
 } ddos_fence_t;
 
+uint64_t _get_time_ms(void);
 void rate_limiter_init(ddos_fence_t *df);
 bool rate_limiter_try(ddos_fence_t *df);
 

@@ -18,3 +18,197 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
+
+proc_visibility_t get_proc_visibility(ksurface_proc_t *caller)
+{
+    if(caller == NULL) return PROC_VIS_NONE;
+    uid_t uid = proc_getuid(caller);
+    if(uid == 0) return PROC_VIS_ALL;
+    if(entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessEnumeration)) return PROC_VIS_ALL;
+    return PROC_VIS_SAME_UID;
+}
+
+bool can_see_process(ksurface_proc_t *caller,
+                     ksurface_proc_t *target,
+                     proc_visibility_t vis)
+{
+    switch (vis) {
+        case PROC_VIS_ALL:
+            return true;
+        case PROC_VIS_SAME_UID:
+            return proc_getuid(caller) == proc_getuid(target);
+        case PROC_VIS_SELF:
+            return caller->bsd.kp_proc.p_pid == target->bsd.kp_proc.p_pid;
+        case PROC_VIS_NONE:
+        default:
+            return false;
+    }
+}
+
+void copy_proc_to_user(ksurface_proc_t *proc,
+                       kinfo_proc_t *kp)
+{
+    memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
+}
+
+proc_list_err_t proc_list_get(pid_t caller_pid,
+                              ddos_fence_t *df,
+                              kinfo_proc_t *kp,
+                              uint32_t buffer_size,
+                              uint32_t *count_out)
+{
+    if(kp == NULL || count_out == NULL)
+    {
+        return PROC_LIST_ERR_NULL;
+    }
+    
+    if(df != NULL && !rate_limiter_try(df)) {
+        return PROC_LIST_ERR_RATE_LIMIT;
+    }
+    
+    ksurface_proc_t *caller = proc_for_pid(caller_pid);
+    if(caller == NULL)
+    {
+        return PROC_LIST_ERR_PERM;
+    }
+    
+    proc_visibility_t vis = get_proc_visibility(caller);
+    *count_out = 0;
+    
+    rcu_read_lock(&ksurface->proc_info.rcu);
+    
+    uint32_t proc_count = atomic_load(&ksurface->proc_info.proc_count);
+    for (uint32_t i = 0; i < proc_count && *count_out < buffer_size; i++)
+    {
+        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
+        if(p == NULL || atomic_load(&p->dead))
+        {
+            continue;
+        }
+        if(!proc_retain(p))
+        {
+            continue;
+        }
+        if(!can_see_process(caller, p, vis))
+        {
+            proc_release(p);
+            continue;
+        }
+        copy_proc_to_user(p, &kp[*count_out]);
+        (*count_out)++;
+        proc_release(p);
+    }
+    
+    rcu_read_unlock(&ksurface->proc_info.rcu);
+    
+    proc_release(caller);
+    
+    return PROC_LIST_OK;
+}
+
+proc_list_err_t proc_list_count(pid_t caller_pid,
+                                ddos_fence_t *df,
+                                uint32_t *count_out)
+{
+    if(count_out == NULL)
+    {
+        return PROC_LIST_ERR_NULL;
+    }
+    
+    if(df != NULL && !rate_limiter_try(df))
+    {
+        return PROC_LIST_ERR_RATE_LIMIT;
+    }
+    
+    ksurface_proc_t *caller = proc_for_pid(caller_pid);
+    if(caller == NULL)
+    {
+        return PROC_LIST_ERR_PERM;
+    }
+    
+    proc_visibility_t vis = get_proc_visibility(caller);
+    
+    *count_out = 0;
+    
+    rcu_read_lock(&(ksurface->proc_info.rcu));
+    
+    uint32_t proc_count = atomic_load(&ksurface->proc_info.proc_count);
+    for(uint32_t i = 0; i < proc_count; i++)
+    {
+        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
+        if(!proc_retain(p))
+        {
+            continue;
+        }
+        if(p != NULL && !atomic_load(&p->dead) && can_see_process(caller, p, vis))
+        {
+            (*count_out)++;
+        }
+        proc_release(p);
+    }
+    
+    rcu_read_unlock(&(ksurface->proc_info.rcu));
+    
+    proc_release(caller);
+    
+    return PROC_LIST_OK;
+}
+
+proc_list_err_t proc_snapshot_create(pid_t caller_pid,
+                                     ddos_fence_t *df,
+                                     proc_snapshot_t **snapshot_out)
+{
+    if(snapshot_out == NULL)
+    {
+        return PROC_LIST_ERR_NULL;
+    }
+    
+    *snapshot_out = NULL;
+    
+    if(df != NULL && !rate_limiter_try(df))
+    {
+        return PROC_LIST_ERR_RATE_LIMIT;
+    }
+    
+    ksurface_proc_t *caller = proc_for_pid(caller_pid);
+    if(caller == NULL)
+    {
+        return PROC_LIST_ERR_PERM;
+    }
+    
+    proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
+    if(snap == NULL)
+    {
+        proc_release(caller);
+        return PROC_LIST_ERR_NO_SPACE;
+    }
+    
+    snap->count = 0;
+    snap->timestamp = _get_time_ms();
+    
+    proc_visibility_t vis = get_proc_visibility(caller);
+    uint32_t visible_count = 0;
+    rcu_read_lock(&(ksurface->proc_info.rcu));
+    uint32_t proc_count = atomic_load(&(ksurface->proc_info.proc_count));
+    for(uint32_t i = 0; i < proc_count; i++) {
+        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
+        if(proc_retain(p))
+        {
+            if(can_see_process(caller, p, vis))
+            {
+                visible_count++;
+            }
+            copy_proc_to_user(p, &snap->kp[snap->count++]);
+            proc_release(p);
+        }
+    }
+    rcu_read_unlock(&(ksurface->proc_info.rcu));
+    proc_release(caller);
+    *snapshot_out = snap;
+    return PROC_LIST_OK;
+}
+
+void proc_snapshot_free(proc_snapshot_t *snap)
+{
+    free(snap);
+}
