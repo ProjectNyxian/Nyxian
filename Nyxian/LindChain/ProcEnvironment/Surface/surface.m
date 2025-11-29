@@ -28,29 +28,6 @@
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
 ksurface_mapping_t *surface = NULL;
-static MappingPortObject *surfaceMappingPortObject = NULL;
-
-MappingPortObject *proc_surface_for_pid(pid_t pid)
-{
-    environment_must_be_role(EnvironmentRoleHost);
-    // TODO: Enforce entitlements
-    uint32_t flags = VM_PROT_NONE;
-    
-    // Check entitlements and go
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(pid, &proc);
-    if(error == kSurfaceErrorSuccess)
-    {
-        // If gathering the process was successful, only then we gonna add permitives to the mapping port we going to distribute to the process
-        PEEntitlement proc_ent = proc_getentitlements(proc);
-        if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceRead)) flags = flags | VM_PROT_READ;
-        
-        // MARK: PEEntitlementSurfaceWrite Banned because of reflock implementation, no child process shall be able to alter the ksurface memory at all
-        //if(entitlement_got_entitlement(proc_ent, PEEntitlementSurfaceWrite)) flags = flags | VM_PROT_WRITE;
-    }
-    
-    return [surfaceMappingPortObject copyWithProt:flags];
-}
 
 /*
  Experimental hooks & implementations
@@ -78,47 +55,32 @@ void kern_sethostname(NSString *hostname)
     reflock_unlock(&(surface->reflock));
 }
 
-void proc_surface_init(void)
+static inline ksurface_mapping_t *ksurface_alloc(void)
+{
+    ksurface_mapping_t *ksurface = malloc(sizeof(ksurface_mapping_t));
+    ksurface->magic = SURFACE_MAGIC;
+    ksurface->proc_info.proc_count = 0;
+    return ksurface;
+}
+
+static inline void ksurface_hostname_init(void)
+{
+    NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
+    if(hostname == nil) hostname = @"localhost";
+    strlcpy(surface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
+}
+
+void ksurface_init(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(environment_is_role(EnvironmentRoleHost))
+        if(environment_must_be_role(EnvironmentRoleHost))
         {
-            // Allocate surface and spinface
-            surfaceMappingPortObject = [[MappingPortObject alloc] initWithSize:sizeof(ksurface_mapping_t) withProt:VM_PROT_READ | VM_PROT_WRITE];
-            surface = surfaceMappingPortObject.addr;
+            // Allocate internal surface
+            surface = ksurface_alloc();
             
-            // Setup surface
-            surface->magic = SURFACE_MAGIC;
-            NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
-            if(hostname == nil) hostname = @"localhost";
-            strlcpy(surface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
-            surface->proc_info.proc_count = 0;
-            
-            // Initilize kernel process
-            proc_init_kproc();
-            
-            // Setup spinface
-            reflock_init(&(surface->reflock));
-        }
-        else
-        {
-            // Get surface object
-            MappingPortObject *surfaceMapObject = environment_proxy_get_surface_mapping();
-            
-            if(surfaceMapObject != nil)
-            {
-                // Now map em
-                if(surfaceMapObject.prot == VM_PROT_NONE) return;
-                void *surfacePtr = [surfaceMapObject map];
-                
-                if(surfacePtr != MAP_FAILED ||
-                   ((ksurface_mapping_t*)surfacePtr)->magic != SURFACE_MAGIC)
-                {
-                    surface = surfacePtr;
-                    DO_HOOK_GLOBAL(gethostname);
-                }
-            }
+            // Initilize hostname
+            ksurface_hostname_init();
         }
     });
 }

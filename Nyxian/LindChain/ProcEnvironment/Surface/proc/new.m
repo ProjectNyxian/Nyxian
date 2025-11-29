@@ -27,7 +27,7 @@
 #import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
-ksurface_error_t proc_init_kproc(void)
+void kproc_init(void)
 {
 #ifdef HOST_ENV
     reflock_lock(&(surface->reflock));
@@ -38,10 +38,6 @@ ksurface_error_t proc_init_kproc(void)
     {
         // Its not nyxian adding it self to the list... This shall never happen under no condition
         environment_panic();
-        
-        // Incase we return from panic... which shall never happen under no condition
-        reflock_unlock(&(surface->reflock));
-        return kSurfaceErrorUndefined;
     }
     
     ksurface_proc_t proc = {};
@@ -57,8 +53,7 @@ ksurface_error_t proc_init_kproc(void)
     // Set bsd process stuff
     if(gettimeofday(&proc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
     {
-        reflock_unlock(&(surface->reflock));
-        return kSurfaceErrorUndefined;
+        environment_panic();
     }
     proc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
     proc.bsd.kp_proc.p_stat = SRUN;
@@ -92,10 +87,7 @@ ksurface_error_t proc_init_kproc(void)
     
     // Adding/Inserting proc
     reflock_unlock(&(surface->reflock));
-    
-    return error;
 #else
-    return kSurfaceErrorUndefined;
 #endif /* HOST_ENV */
 }
 

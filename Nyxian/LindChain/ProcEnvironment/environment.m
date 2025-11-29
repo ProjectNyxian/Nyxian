@@ -92,8 +92,11 @@ void environment_init(EnvironmentRole role,
             environment_proxy_waittrap();
         }
         
-        // We do proc_surface_init() before environment_tfp_init(), because otherwise a other process could get the task port of this process and suspend it and abuse its NSXPCConnection to gather write access to the proc surface
-        proc_surface_init();
+        if(environment_is_role(EnvironmentRoleHost))
+        {
+            ksurface_init();
+            kproc_init();
+        }
         
         environment_tfp_init();
         

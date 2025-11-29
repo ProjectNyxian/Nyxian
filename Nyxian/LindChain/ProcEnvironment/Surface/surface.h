@@ -57,12 +57,6 @@ typedef struct {
     PEEntitlement entitlements;
 } knyx_proc_t;
 
-/// Structure that holds child process lists
-typedef struct {
-    void *children_proc[CHILD_PROC_MAX];
-    unsigned long children_cnt;
-} ksurface_proc_children_t;
-
 /// Structure that holds process information
 typedef struct {
     kinfo_proc_t bsd;
@@ -88,14 +82,10 @@ typedef struct {
     ksurface_proc_info_t proc_info;
 } ksurface_mapping_t;
 
-/* Shared mapping */
+/* Internal kernel information */
 extern ksurface_mapping_t *surface;
 
-/* Handoff */
-MappingPortObject *proc_surface_for_pid(pid_t pid);
-
 void kern_sethostname(NSString *hostname);
-
-void proc_surface_init(void);
+void ksurface_init(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */
