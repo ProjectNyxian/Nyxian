@@ -27,7 +27,6 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/ddosfence.h>
 #include <pthread.h>
 
 enum kSurfaceError {
@@ -61,7 +60,6 @@ typedef struct {
         bool force_task_role_override;
         task_role_t task_role_override;
         PEEntitlement entitlements;
-        ddos_fence_t fence;
     } nyx;
 } ksurface_proc_t;
 

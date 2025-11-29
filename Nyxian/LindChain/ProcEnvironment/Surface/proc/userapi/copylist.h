@@ -21,7 +21,6 @@
 #define PROC_USERAPI_COPYLIST_H
 
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/ddosfence.h>
 
 typedef enum {
     PROC_LIST_OK = 0,
@@ -52,8 +51,6 @@ bool can_see_process(ksurface_proc_t *caller, ksurface_proc_t *target, proc_visi
 static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
-proc_list_err_t proc_list_get(pid_t caller_pid, ddos_fence_t *df, kinfo_proc_t *kp, uint32_t buffer_size, uint32_t *count_out);
-proc_list_err_t proc_list_count(pid_t caller_pid, ddos_fence_t *df, uint32_t *count_out);
 proc_list_err_t proc_snapshot_create(pid_t caller_pid, proc_snapshot_t **snapshot_out);
 void proc_snapshot_free(proc_snapshot_t *snap);
 
