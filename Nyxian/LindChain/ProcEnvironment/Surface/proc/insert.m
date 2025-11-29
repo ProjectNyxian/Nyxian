@@ -17,18 +17,30 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 ksurface_error_t proc_insert(ksurface_proc_t *proc)
 {
+    /* Null pointer check */
     if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
+    
+    /* Aquire rw lock */
     pthread_mutex_lock(&(ksurface->proc_info.wl));
+    
+    /* Bounds check */
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
+        /* Its out of bounds */
         pthread_mutex_unlock(&(ksurface->proc_info.wl));
         return kSurfaceErrorOutOfBounds;
     }
+    
+    /* Retaining process */
+    proc_retain(proc);
+    
+    /* Adding process */
     rcu_assign_pointer(ksurface->proc_info.proc[ksurface->proc_info.proc_count++], proc);
     pthread_mutex_unlock(&(ksurface->proc_info.wl));
     return kSurfaceErrorSuccess;

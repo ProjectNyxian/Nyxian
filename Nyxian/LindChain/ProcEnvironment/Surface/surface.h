@@ -74,7 +74,7 @@ typedef struct {
 typedef struct {
     rcu_state_t rcu;
     pthread_mutex_t wl;
-    uint32_t proc_count;
+    _Atomic uint32_t proc_count;
     ksurface_proc_t *proc[PROC_MAX];
 } ksurface_proc_info_t;
 
