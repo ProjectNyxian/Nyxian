@@ -89,14 +89,18 @@ DEFINE_HOOK(task_policy_get, kern_return_t,(task_policy_get_t task,
         kr = pid_for_task(task, &pid);
         if(kr == KERN_SUCCESS)
         {
-            ksurface_proc_t proc = {};
-            ksurface_error_t error = proc_for_pid(pid, &proc);
-            if(error == kSurfaceErrorSuccess &&
-               proc.nyx.force_task_role_override)
+            ksurface_proc_info_thread_register();
+            ksurface_proc_t *proc = proc_for_pid(pid);
+            if(proc != NULL)
             {
-                task_category_policy_data_t *data = (task_category_policy_data_t*)policy_info;
-                data->role = proc.nyx.task_role_override;
+                if(proc->nyx.force_task_role_override)
+                {
+                    task_category_policy_data_t *data = (task_category_policy_data_t*)policy_info;
+                    data->role = proc->nyx.task_role_override;
+                }
+                proc_release(proc);
             }
+            ksurface_proc_info_thread_unregister();
         }
     }
     
