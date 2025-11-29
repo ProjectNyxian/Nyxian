@@ -128,19 +128,6 @@
 }
 
 /*
- surface
- */
-- (void)handinSurfaceMappingPortObjectViaReply:(void (^)(MappingPortObject *))reply
-{
-    dispatch_once(&_handoffSurfaceOnce, ^{
-        reply(proc_surface_for_pid(_processIdentifier));
-        return;
-    });
-    
-    if(_handoffSurfaceOnce != 0) reply(nil);
-}
-
-/*
  Background mode fixup
  */
 - (void)setAudioBackgroundModeActive:(BOOL)active

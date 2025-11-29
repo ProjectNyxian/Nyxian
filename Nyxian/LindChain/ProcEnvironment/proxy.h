@@ -47,9 +47,6 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
-/// Returns the proc surfaces handle
-MappingPortObject *environment_proxy_get_surface_mapping(void);
-
 /// Sets process credential
 int environment_proxy_setprocinfo(ProcessInfo info, unsigned int identifier);
 

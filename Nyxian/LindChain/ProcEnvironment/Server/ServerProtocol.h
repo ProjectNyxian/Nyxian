@@ -61,11 +61,6 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;
 
 /*
- surface
- */
-- (void)handinSurfaceMappingPortObjectViaReply:(void (^)(MappingPortObject *))reply;
-
-/*
  Background mode fixup
  */
 - (void)setAudioBackgroundModeActive:(BOOL)active;

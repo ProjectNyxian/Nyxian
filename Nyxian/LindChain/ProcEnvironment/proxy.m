@@ -165,14 +165,6 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path,
     });
 }
 
-MappingPortObject *environment_proxy_get_surface_mapping(void)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout(PROXY_TYPE_REPLY(MappingPortObject*){
-        [hostProcessProxy handinSurfaceMappingPortObjectViaReply:reply];
-    });
-}
-
 int environment_proxy_setprocinfo(ProcessInfo info,
                                   unsigned int identifier)
 {

@@ -80,6 +80,7 @@ void environment_init(EnvironmentRole role,
         // Setting environment properties
         environmentRole = role;
         
+        // Initilizing environment base
         environment_libproc_init();
         environment_application_init();
         environment_posix_spawn_init();
@@ -87,15 +88,17 @@ void environment_init(EnvironmentRole role,
         environment_sysctl_init();
         environment_cred_init();
         
-        if(environment_is_role(EnvironmentRoleGuest))
-        {
-            environment_proxy_waittrap();
-        }
-        
         if(environment_is_role(EnvironmentRoleHost))
         {
+            // We are the kernel so we initilize the kernel
             ksurface_init();
             kproc_init();
+        }
+        
+        if(environment_is_role(EnvironmentRoleGuest))
+        {
+            // In case its a guest we wait till the guest process has been added by the kernel which this "waittrap" does
+            environment_proxy_waittrap();
         }
         
         environment_tfp_init();
