@@ -17,11 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_REMOVE_H
-#define PROC_REMOVE_H
+#ifndef PROC_REFERENCE_H
+#define PROC_REFERENCE_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_error_t proc_remove_by_pid(pid_t pid);
+bool proc_retain(ksurface_proc_t *proc);
+void proc_release(ksurface_proc_t *proc);
 
-#endif /* PROC_REMOVE_H */
+#endif /* PROC_REFERENCE_H */

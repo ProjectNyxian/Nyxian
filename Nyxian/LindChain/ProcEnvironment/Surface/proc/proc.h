@@ -16,17 +16,3 @@
  You should have received a copy of the GNU General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
-
-#ifndef PROC_H
-#define PROC_H
-
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/append.h>
-#import <LindChain/ProcEnvironment/Surface/proc/replace.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/new.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fetch.h>
-#import <LindChain/ProcEnvironment/Surface/proc/exit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/edit.h>
-
-#endif /* PROC_H */
