@@ -91,6 +91,7 @@ static inline void ksurface_kalloc(void)
         /* in case allocation failed we go */
         environment_panic();
     }
+    klog_log(@"ksurface:kalloc", @"allocated surface at %p", ksurface);
 }
 
 static inline void ksurface_kinit(void)
@@ -103,20 +104,24 @@ static inline void ksurface_kinit(void)
     rcu_state_t *states[2] = { &(ksurface->proc_info.rcu), &(ksurface->host_info.rcu) };
     for(unsigned char i = 0; i < 2; i++)
     {
+        klog_log(@"ksurface:kinit", @"setting up rcu state %p", states[i]);
         pthread_mutex_init(wls[i], NULL);
         states[i]->current_epoch = 0;
         pthread_mutex_init(&(states[i]->gp_lock), NULL);
         pthread_mutex_init(&(states[i]->registry_lock), NULL);
+        klog_log(@"ksurface:kinit", @"setting up mutex %p", wls[i]);
         memset(states[i]->thread_state, 0, sizeof(states[i]->thread_state));
     }
     
     /* setting up process table */
+    klog_log(@"ksurface:kinit", @"setting up process table");
     ksurface->proc_info.proc_count = 0;
     for(int i = 0; i < PROC_MAX; i++)
     {
         ksurface->proc_info.proc[i] = NULL;
     }
     
+    klog_log(@"ksurface:kinit", @"setting up hostname");
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
     if(hostname == nil) hostname = @"localhost";
     strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
@@ -127,6 +132,7 @@ static inline void ksurface_kproc_init(void)
     ksurface_proc_info_thread_register();
     
     /* creating kproc */
+    klog_log(@"ksurface:kproc:init", @"creating kernel process");
     ksurface_proc_t *proc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] bundlePath] UTF8String]);
     if(proc == NULL)
     {
@@ -135,6 +141,7 @@ static inline void ksurface_kproc_init(void)
     }
     
     /* inserting kproc */
+    klog_log(@"ksurface:kproc:init", @"inserting kernel process");
     ksurface_error_t error = proc_insert(proc);
     if(error != kSurfaceErrorSuccess)
     {
