@@ -73,9 +73,11 @@ static inline void ksurface_kinit(void)
     ksurface->magic = SURFACE_MAGIC;
     
     /* setting up rcu state's */
+    pthread_mutex_t *wls[2] = { &(ksurface->proc_info.wl),  &(ksurface->host_info.wl) };
     rcu_state_t *states[2] = { &(ksurface->proc_info.rcu), &(ksurface->host_info.rcu) };
     for(unsigned char i = 0; i < 2; i++)
     {
+        pthread_mutex_init(wls[i], NULL);
         states[i]->current_epoch = 0;
         pthread_mutex_init(&(states[i]->gp_lock), NULL);
         pthread_mutex_init(&(states[i]->registry_lock), NULL);

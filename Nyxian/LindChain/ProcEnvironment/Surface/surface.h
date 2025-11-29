@@ -27,6 +27,7 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#include <pthread.h>
 
 enum kSurfaceError {
     kSurfaceErrorSuccess        = 0,
@@ -67,12 +68,14 @@ typedef struct {
 /// Host information
 typedef struct {
     rcu_state_t rcu;
+    pthread_mutex_t wl;
     char hostname[MAXHOSTNAMELEN];
 } ksurface_host_info_t;
 
 /// Process information
 typedef struct {
     rcu_state_t rcu;
+    pthread_mutex_t wl;
     uint32_t proc_count;
     ksurface_proc_t *proc[PROC_MAX];
 } ksurface_proc_info_t;
