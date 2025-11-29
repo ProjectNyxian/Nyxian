@@ -17,17 +17,30 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_PROC_H
-#define PROC_PROC_H
-
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/create.h>
-#import <LindChain/ProcEnvironment/Surface/proc/find.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fork.h>
-#import <LindChain/ProcEnvironment/Surface/proc/insert.h>
-#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/flow.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
-#endif /* PROC_PROC_H */
+ksurface_error_t proc_suspend(ksurface_proc_t *proc)
+{
+    if(proc == NULL) return kSurfaceErrorNullPtr;
+    LDEProcess *process = [LDEProcessManager shared].processes[@(proc_getpid(proc))];
+    if(process == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
+    [process suspend];
+    return kSurfaceErrorSuccess;
+}
+
+ksurface_error_t proc_resume(ksurface_proc_t *proc)
+{
+    if(proc == NULL) return kSurfaceErrorNullPtr;
+    LDEProcess *process = [LDEProcessManager shared].processes[@(proc_getpid(proc))];
+    if(process == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
+    [process resume];
+    return kSurfaceErrorSuccess;
+}

@@ -18,6 +18,8 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/ddosfence.h>
+#import <LindChain/ProcEnvironment/Surface/proc/flow.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #include <time.h>
 
 uint64_t _get_time_ms(void)
@@ -58,10 +60,50 @@ bool rate_limiter_try(ddos_fence_t *df)
     int tokens = atomic_load(&df->tokens);
     while(tokens > 0)
     {
-        if (atomic_compare_exchange_weak(&df->tokens, &tokens, tokens - 1)) {
+        if(atomic_compare_exchange_weak(&df->tokens, &tokens, tokens - 1))
+        {
             return true;
         }
     }
     
     return false;
+}
+
+void rate_limiter_enforce(void *ptr)
+{
+    ksurface_proc_t *proc = ptr;
+    uint64_t now = _get_time_ms();
+    uint64_t last = atomic_load(&(proc->nyx.fence.last_refill_ms));
+    
+    uint64_t elapsed = now - last;
+    int refill = (int)(elapsed / RATE_LIMIT_REFILL_MS);
+    
+    if(refill > 0)
+    {
+        if(atomic_compare_exchange_weak(&(proc->nyx.fence.last_refill_ms), &last, now))
+        {
+            int current = atomic_load(&(proc->nyx.fence.tokens));
+            int new_tokens = current + refill;
+            if(new_tokens > RATE_LIMIT_TOKENS_MAX)
+            {
+                new_tokens = RATE_LIMIT_TOKENS_MAX;
+            }
+            atomic_store(&(proc->nyx.fence.tokens), new_tokens);
+        }
+    }
+    
+    int tokens = atomic_load(&(proc->nyx.fence.tokens));
+    while(tokens > 0)
+    {
+        if(atomic_compare_exchange_weak(&(proc->nyx.fence.tokens), &tokens, tokens - 1))
+        {
+            proc_resume(proc);
+            return;
+        }
+    }
+    
+    proc_suspend(proc);
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, RATE_LIMIT_REFILL_MS));
+    rate_limiter_enforce(proc);
 }

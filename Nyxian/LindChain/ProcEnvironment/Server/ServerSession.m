@@ -426,23 +426,15 @@
     return;
 }
 
-- (void)prepareFence
-{
-    dispatch_once(&_prepareFenceOnce, ^{
-        rate_limiter_init(&_fence);
-    });
-}
-
 - (void)getProcessTableWithReply:(void (^)(NSData *result))reply
 {
-    [self prepareFence];
     proc_snapshot_t *snap;
     ksurface_proc_info_thread_register();
-    proc_list_err_t error = proc_snapshot_create(_processIdentifier, &_fence, &snap);
+    proc_list_err_t error = proc_snapshot_create(_processIdentifier, &snap);
     if(error != PROC_LIST_OK)
     {
         ksurface_proc_info_thread_unregister();
-        reply(_data);
+        reply(nil);
         return;
     }
     ksurface_proc_info_thread_unregister();
@@ -450,8 +442,8 @@
     size_t len = snap->count * sizeof(kinfo_proc_t);
     kinfo_proc_t *proc = malloc(len);
     memcpy(proc, snap->kp, len);
-    _data = [[NSData alloc] initWithBytes:proc length:len];
-    reply(_data);
+    NSData *data = [[NSData alloc] initWithBytes:proc length:len];
+    reply(data);
     proc_snapshot_free(snap);
     return;
 }

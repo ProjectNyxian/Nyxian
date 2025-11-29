@@ -33,9 +33,6 @@
 @property (nonatomic) dispatch_once_t makeWindowVisibleOnce;
 @property (nonatomic) dispatch_once_t sendPortOnce;
 @property (nonatomic) dispatch_once_t waitTrapOnce;
-@property (nonatomic) dispatch_once_t prepareFenceOnce;
-@property (nonatomic) ddos_fence_t fence;
-@property (nonatomic) NSData *data;
 
 @end
 

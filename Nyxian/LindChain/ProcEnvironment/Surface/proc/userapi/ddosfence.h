@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 /* Rate limitation */
-#define RATE_LIMIT_TOKENS_MAX    10
+#define RATE_LIMIT_TOKENS_MAX    1000
 #define RATE_LIMIT_REFILL_MS     100
 #define RATE_LIMIT_TOKENS_INIT   10
 
@@ -38,5 +38,7 @@ typedef struct {
 uint64_t _get_time_ms(void);
 void rate_limiter_init(ddos_fence_t *df);
 bool rate_limiter_try(ddos_fence_t *df);
+
+void rate_limiter_enforce(void *proc);
 
 #endif /* PROC_USERAPI_DDOSFENCE_H */

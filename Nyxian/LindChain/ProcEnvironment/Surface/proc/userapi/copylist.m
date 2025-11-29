@@ -155,7 +155,6 @@ proc_list_err_t proc_list_count(pid_t caller_pid,
 }
 
 proc_list_err_t proc_snapshot_create(pid_t caller_pid,
-                                     ddos_fence_t *df,
                                      proc_snapshot_t **snapshot_out)
 {
     if(snapshot_out == NULL)
@@ -165,16 +164,13 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
     
     *snapshot_out = NULL;
     
-    if(df != NULL && !rate_limiter_try(df))
-    {
-        return PROC_LIST_ERR_RATE_LIMIT;
-    }
-    
     ksurface_proc_t *caller = proc_for_pid(caller_pid);
     if(caller == NULL)
     {
         return PROC_LIST_ERR_PERM;
     }
+    
+    rate_limiter_enforce((void*)caller);
     
     proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
     if(snap == NULL)
