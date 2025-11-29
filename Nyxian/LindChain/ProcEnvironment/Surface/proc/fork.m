@@ -81,5 +81,8 @@ ksurface_proc_t *proc_fork(pid_t ppid,
         return NULL;
     }
     
+    // MARK: Forgotten release
+    proc_release(child);
+    
     return child;
 }

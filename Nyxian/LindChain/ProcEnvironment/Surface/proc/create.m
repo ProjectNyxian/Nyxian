@@ -25,7 +25,7 @@ ksurface_proc_t *proc_create(pid_t pid,
                              const char *path)
 {
     /* allocating process */
-    ksurface_proc_t *proc = calloc(1, sizeof(*proc));
+    ksurface_proc_t *proc = malloc(sizeof(*proc));
     if(proc == NULL)
     {
         return NULL;
