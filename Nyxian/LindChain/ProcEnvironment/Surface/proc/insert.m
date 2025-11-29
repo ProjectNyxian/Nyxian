@@ -17,12 +17,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_FIND_H
-#define PROC_FIND_H
+#import <LindChain/ProcEnvironment/Surface/proc/insert.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-
-ksurface_proc_t *proc_for_pid(pid_t pid);
-ksurface_proc_t *proc_for_pid_unsafe(pid_t pid);
-
-#endif /* PROC_FIND_H */
+ksurface_error_t proc_insert(ksurface_proc_t *proc)
+{
+    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
+    pthread_mutex_lock(&(ksurface->proc_info.wl));
+    if(ksurface->proc_info.proc_count >= PROC_MAX)
+    {
+        pthread_mutex_unlock(&(ksurface->proc_info.wl));
+        return kSurfaceErrorOutOfBounds;
+    }
+    rcu_assign_pointer(ksurface->proc_info.proc[ksurface->proc_info.proc_count++], proc);
+    pthread_mutex_unlock(&(ksurface->proc_info.wl));
+    return kSurfaceErrorSuccess;
+}

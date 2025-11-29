@@ -20,22 +20,21 @@
 #import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
 
-ksurface_error_t proc_for_pid(pid_t pid,
-                              ksurface_proc_t **proc)
+ksurface_proc_t *proc_for_pid(pid_t pid)
 {
-    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
-    *proc = NULL;
+    if(ksurface == NULL) return NULL;
+    ksurface_proc_t *proc = NULL;
     rcu_read_lock(&(ksurface->proc_info.rcu));
     for(unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
     {
         ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
-        if(p != NULL && p->bsd.kp_proc.p_pid == pid)
+        if(p != NULL && p->bsd.kp_proc.p_pid == pid && !atomic_load(&p->dead))
         {
             if(proc_retain(p))
             {
                 if(p->bsd.kp_proc.p_pid == pid)
                 {
-                    *proc = p;
+                    proc = p;
                 }
                 else
                 {
@@ -46,22 +45,21 @@ ksurface_error_t proc_for_pid(pid_t pid,
         }
     }
     rcu_read_unlock(&(ksurface->proc_info.rcu));
-    return (*proc == NULL) ? kSurfaceErrorNotFound : kSurfaceErrorSuccess;
+    return proc;
 }
 
-ksurface_error_t proc_for_pid_unsafe(pid_t pid,
-                                     ksurface_proc_t **proc)
+ksurface_proc_t *proc_for_pid_unsafe(pid_t pid)
 {
-    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
-    *proc = NULL;
+    if(ksurface == NULL) return NULL;
+    ksurface_proc_t *proc = NULL;
     for(unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
     {
         ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
         if(p != NULL && p->bsd.kp_proc.p_pid == pid)
         {
-            *proc = p;
+            proc = p;
             break;
         }
     }
-    return (*proc == NULL) ? kSurfaceErrorNotFound : kSurfaceErrorSuccess;
+    return proc;
 }

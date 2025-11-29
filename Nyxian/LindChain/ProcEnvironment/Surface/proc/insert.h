@@ -17,12 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_FIND_H
-#define PROC_FIND_H
+#ifndef PROC_INSERT_H
+#define PROC_INSERT_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_proc_t *proc_for_pid(pid_t pid);
-ksurface_proc_t *proc_for_pid_unsafe(pid_t pid);
+ksurface_error_t proc_insert(ksurface_proc_t *proc);
 
-#endif /* PROC_FIND_H */
+#endif /* PROC_INSERT_H */
