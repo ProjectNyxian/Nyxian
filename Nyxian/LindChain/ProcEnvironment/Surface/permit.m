@@ -26,20 +26,17 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
     // Only let host proceed
     environment_must_be_role(EnvironmentRoleHost);
     
-    // Place holder for the processes
-    ksurface_proc_t callerProc = {};
-    ksurface_proc_t targetProc = {};
-    
     // Get the objects of both pids
-    ksurface_error_t error = proc_for_pid(callerPid, &callerProc);
-    if(error != kSurfaceErrorSuccess)
+    ksurface_proc_t *callerProc = proc_for_pid(callerPid);
+    if(callerProc == NULL)
     {
         return NO;
     }
     
-    error = proc_for_pid(targetPid, &targetProc);
-    if(error != kSurfaceErrorSuccess)
+    ksurface_proc_t *targetProc = proc_for_pid(targetPid);
+    if(targetProc == NULL)
     {
+        proc_release(callerProc);
         return NO;
     }
     
@@ -51,13 +48,20 @@ BOOL permitive_over_process_allowed(pid_t callerPid,
        !entitlement_got_entitlement(proc_getentitlements(callerProc), PEEntitlementPlatform))
     {
         // If the target got platform but the caller doesnt it gets denied
+        proc_release(callerProc);
+        proc_release(targetProc);
         return NO;
     }
     
     // Gets if its allowed in the first place
     if((caller_uid == 0) ||
        (caller_uid == proc_getuid(targetProc)) ||
-       (caller_uid == proc_getruid(targetProc))) return YES;
+       (caller_uid == proc_getruid(targetProc)))
+    {
+        proc_release(callerProc);
+        proc_release(targetProc);
+        return YES;
+    }
     
     return NO;
 }
