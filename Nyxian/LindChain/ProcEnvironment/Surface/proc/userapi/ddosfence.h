@@ -26,8 +26,8 @@
 
 /* Rate limitation */
 #define RATE_LIMIT_TOKENS_MAX    10
-#define RATE_LIMIT_REFILL_MS     1000
-#define RATE_LIMIT_TOKENS_INIT   5
+#define RATE_LIMIT_REFILL_MS     100
+#define RATE_LIMIT_TOKENS_INIT   10
 
 /* Rate limitation structure */
 typedef struct {

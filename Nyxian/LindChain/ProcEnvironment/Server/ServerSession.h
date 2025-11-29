@@ -23,6 +23,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/ProcEnvironment/Server/ServerProtocol.h>
+#import <LindChain/ProcEnvironment/Surface/proc/userapi/ddosfence.h>
 
 @interface ServerSession: NSObject <ServerProtocol>
 
@@ -32,6 +33,9 @@
 @property (nonatomic) dispatch_once_t makeWindowVisibleOnce;
 @property (nonatomic) dispatch_once_t sendPortOnce;
 @property (nonatomic) dispatch_once_t waitTrapOnce;
+@property (nonatomic) dispatch_once_t prepareFenceOnce;
+@property (nonatomic) ddos_fence_t fence;
+@property (nonatomic) NSData *data;
 
 @end
 

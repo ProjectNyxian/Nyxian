@@ -29,6 +29,7 @@
 #import <mach/mach.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 
 @implementation ServerSession
 
@@ -425,11 +426,33 @@
     return;
 }
 
+- (void)prepareFence
+{
+    dispatch_once(&_prepareFenceOnce, ^{
+        rate_limiter_init(&_fence);
+    });
+}
+
 - (void)getProcessTableWithReply:(void (^)(NSData *result))reply
 {
-    kinfo_proc_t *proc = malloc(sizeof(kinfo_proc_t));
-    reply([[NSData alloc] initWithBytes:proc length:sizeof(kinfo_proc_t)]);
-    free(proc);
+    [self prepareFence];
+    proc_snapshot_t *snap;
+    ksurface_proc_info_thread_register();
+    proc_list_err_t error = proc_snapshot_create(_processIdentifier, &_fence, &snap);
+    if(error != PROC_LIST_OK)
+    {
+        ksurface_proc_info_thread_unregister();
+        reply(_data);
+        return;
+    }
+    ksurface_proc_info_thread_unregister();
+    
+    size_t len = snap->count * sizeof(kinfo_proc_t);
+    kinfo_proc_t *proc = malloc(len);
+    memcpy(proc, snap->kp, len);
+    _data = [[NSData alloc] initWithBytes:proc length:len];
+    reply(_data);
+    proc_snapshot_free(snap);
     return;
 }
 

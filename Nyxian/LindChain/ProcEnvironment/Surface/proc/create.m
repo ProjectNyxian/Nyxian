@@ -42,6 +42,7 @@ ksurface_proc_t *proc_create(pid_t pid,
     proc_setpid(proc, pid);
     proc_setppid(proc, ppid);
     proc_setentitlements(proc, 0);
+    rate_limiter_init(&(proc->nyx.fence));
     
     if(path)
     {
