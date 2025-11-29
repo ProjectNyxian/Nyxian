@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 #include <sys/sysctl.h>
 #include <limits.h>
-#include <LindChain/ProcEnvironment/Surface/lock/reflock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/legacy/reflock.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>

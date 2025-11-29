@@ -28,7 +28,7 @@
 /* ----------------------------------------------------------------------
  *  Environment API Headers
  * -------------------------------------------------------------------- */
-#include <LindChain/ProcEnvironment/Surface/lock/spinlock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/legacy/spinlock.h>
 
 /*!
  @struct seqlock_t

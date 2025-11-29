@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/lock/reflock.h>
+#import <LindChain/ProcEnvironment/Surface/lock/legacy/reflock.h>
 #include <mach/mach.h>
 
 void reflock_init(reflock_t *r)

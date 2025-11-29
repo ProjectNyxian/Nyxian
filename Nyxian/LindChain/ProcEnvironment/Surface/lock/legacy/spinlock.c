@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/lock/spinlock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/legacy/spinlock.h>
 #include <LindChain/ProcEnvironment/Surface/extra/relax.h>
 
 void spinlock_init(spinlock_t *s)

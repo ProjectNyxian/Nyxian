@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/lock/seqlock.h>
+#include <LindChain/ProcEnvironment/Surface/lock/legacy/seqlock.h>
 #include <LindChain/ProcEnvironment/Surface/extra/relax.h>
 
 void seqlock_init(seqlock_t *s)
