@@ -49,17 +49,13 @@ static const int mib_hw_memsize[]           = { CTL_HW, HW_MEMSIZE };           
 static const int mib_hw_machine[]           = { CTL_HW, HW_MACHINE };                       /* Needs implementation */
 static const int mib_hw_model[]             = { CTL_HW, HW_MODEL };                         /* Needs implementation */
 
+/*
 static const sysctl_map_entry_t sysctl_map[] = {
-    /* Basic process queries */
     { mib_kern_maxproc,   2, sysctl_kernmaxproc },
     { mib_kern_proc_all,  3, sysctl_kernprocall },
     { mib_kern_proc_pid,  3, sysctl_kernprocpid },
-    
-    /* Process filtering by category */
     { mib_kern_proc_uid,  3, sysctl_kernprocuid },
     { mib_kern_proc_ruid, 3, sysctl_kernprocruid },
-    
-    /* Process arguments and environment */
     { mib_kern_procargs2, 2, sysctl_kernprocargs2 }
 };
 
@@ -122,3 +118,4 @@ void environment_sysctl_init(void)
         DO_HOOK_GLOBAL(sysctl)
     }
 }
+*/

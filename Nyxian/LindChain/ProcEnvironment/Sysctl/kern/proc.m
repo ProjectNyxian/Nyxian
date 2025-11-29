@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #include <errno.h>
 
-enum SYS_PROC_FLAVOUR {
+/*enum SYS_PROC_FLAVOUR {
     SYS_PROC_FLAVOUR_ALL = 0,
     SYS_PROC_FLAVOUR_UID = 1,
     SYS_PROC_FLAVOUR_RUID = 2
@@ -297,3 +297,4 @@ int sysctl_kernprocruid(sysctl_req_t *req)
     *(req->oldlenp) = written;
     return 0;
 }
+*/

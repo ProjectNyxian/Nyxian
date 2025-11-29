@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <errno.h>
 
-int sysctl_kernprocargs2(sysctl_req_t *req)
+/*int sysctl_kernprocargs2(sysctl_req_t *req)
 {
     if(req->oldlenp)
     {
@@ -37,3 +37,4 @@ int sysctl_kernprocargs2(sysctl_req_t *req)
     errno = EINVAL;
     return -1;
 }
+*/
