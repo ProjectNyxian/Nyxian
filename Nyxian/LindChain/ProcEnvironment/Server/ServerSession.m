@@ -223,24 +223,16 @@
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
-    ksurface_proc_info_thread_register();
-    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
-    if(proc == NULL)
+    ksurface_proc_info_thread_register();    
+    if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
     {
+        proc_release(_proc);
         ksurface_proc_info_thread_unregister();
         reply();
         return;
     }
     
-    if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessSpawn))
-    {
-        proc_release(proc);
-        ksurface_proc_info_thread_unregister();
-        reply();
-        return;
-    }
-    
-    proc_release(proc);
+    proc_release(_proc);
     ksurface_proc_info_thread_unregister();
     
     [object signAndWriteBack];
@@ -266,24 +258,13 @@
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
     ksurface_proc_info_thread_register();
-    ksurface_proc_t *proc = proc_for_pid(_processIdentifier);
-    
-    if(proc == NULL)
-    {
-        reply(nil);
-    }
-    else if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementLaunchServicesGetEndpoint))
+    if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementLaunchServicesGetEndpoint))
     {
         reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
     }
     else
     {
         reply(nil);
-    }
-    
-    if(proc != NULL)
-    {
-        proc_release(proc);
     }
     
     ksurface_proc_info_thread_unregister();
@@ -311,8 +292,7 @@
         while (mach_absolute_time() - start < timeoutNs)
         {
             _proc = proc_for_pid(_processIdentifier);
-            if(_proc != NULL &&
-               proc_getpid(_proc) == _processIdentifier)
+            if(_proc != NULL)
             {
                 matched = YES;
                 break;
@@ -328,7 +308,7 @@
 {
     proc_snapshot_t *snap;
     ksurface_proc_info_thread_register();
-    proc_list_err_t error = proc_snapshot_create(_processIdentifier, &snap);
+    proc_list_err_t error = proc_snapshot_create(_proc, &snap);
     if(error != PROC_LIST_OK)
     {
         ksurface_proc_info_thread_unregister();

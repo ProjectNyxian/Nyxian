@@ -84,9 +84,6 @@
 - (BOOL)getTaskAllowed { return [self readBooleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]; }
 - (BOOL)taskForPid { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]; }
 - (BOOL)taskForPidHost { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid_host" withDefaultValue:NO]; }
-- (BOOL)surfaceRead { return [self readBooleanForKey:@"com.nyxian.pe.surface_read" withDefaultValue:YES]; }
-- (BOOL)surfaceWrite { return [self readBooleanForKey:@"com.nyxian.pe.surface_write" withDefaultValue:NO]; }
-- (BOOL)surfaceManager { return [self readBooleanForKey:@"com.nyxian.pe.surface_write" withDefaultValue:NO]; }
 - (BOOL)processEnumeration { return [self readBooleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]; }
 - (BOOL)processKill { return [self readBooleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]; }
 - (BOOL)processSpawn { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]; }
@@ -113,9 +110,6 @@
     if([self getTaskAllowed]) entitlements = entitlements | PEEntitlementGetTaskAllowed;
     if([self taskForPid]) entitlements = entitlements | PEEntitlementTaskForPid;
     if([self taskForPidHost]) entitlements = entitlements | PEEntitlementTaskForPidHost;
-    if([self surfaceRead]) entitlements = entitlements | PEEntitlementSurfaceRead;
-    if([self surfaceWrite]) entitlements = entitlements | PEEntitlementSurfaceWrite;
-    if([self surfaceManager]) entitlements = entitlements | PEEntitlementSurfaceManager;
     if([self processEnumeration]) entitlements = entitlements | PEEntitlementProcessEnumeration;
     if([self processKill]) entitlements = entitlements | PEEntitlementProcessKill;
     if([self processSpawn]) entitlements = entitlements | PEEntitlementProcessSpawn;

@@ -63,9 +63,6 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 @property (nonatomic,readonly) BOOL getTaskAllowed;
 @property (nonatomic,readonly) BOOL taskForPid;
 @property (nonatomic,readonly) BOOL taskForPidHost;
-@property (nonatomic,readonly) BOOL surfaceRead;
-@property (nonatomic,readonly) BOOL surfaceWrite;
-@property (nonatomic,readonly) BOOL surfaceManager;
 @property (nonatomic,readonly) BOOL processEnumeration;
 @property (nonatomic,readonly) BOOL processKill;
 @property (nonatomic,readonly) BOOL processSpawn;

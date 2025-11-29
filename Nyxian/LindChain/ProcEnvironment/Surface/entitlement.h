@@ -37,17 +37,16 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Grants process to get task port of Nyxian it self. */
     PEEntitlementTaskForPidHost             = 1ull << 2,
     
-    /*! Grants process to read surface. */
-    PEEntitlementSurfaceRead                = 1ull << 3,
-    
-    /*! Grants process to write to surface. (cautions: never use this) */
-    PEEntitlementSurfaceWrite               = 1ull << 4,
-    
-    /*! Grants process to manage surface. (cautions: never use this) */
-    PEEntitlementSurfaceManager             = PEEntitlementSurfaceRead | PEEntitlementSurfaceWrite,
+    /*
+     MARK: Discontinued due to a modern new kernel api UwU
+     
+    //PEEntitlementSurfaceRead                = 1ull << 3,
+    //PEEntitlementSurfaceWrite               = 1ull << 4,
+    //PEEntitlementSurfaceManager             = PEEntitlementSurfaceRead | PEEntitlementSurfaceWrite,
+     */
     
     /*! Grants process to enumerate processes. */
-    PEEntitlementProcessEnumeration         = PEEntitlementSurfaceRead,
+    PEEntitlementProcessEnumeration         = 1ull << 3,
     
     /*! Grants process to kill other processes. */
     PEEntitlementProcessKill                = 1ull << 5,
@@ -104,10 +103,10 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     PEEntitlementPlatform                         = 1ull << 20,
     
     PEEntitlementSandboxedApplication       = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements,
-    PEEntitlementUserApplication            = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
-    PEEntitlementSystemApplication          = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
-    PEEntitlementSystemDaemon               = PEEntitlementTaskForPid | PEEntitlementSurfaceRead | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
-    PEEntitlementKernel                     = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementSurfaceManager | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
+    PEEntitlementUserApplication            = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSystemApplication          = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSystemDaemon               = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
+    PEEntitlementKernel                     = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
 };
 
 bool entitlement_got_entitlement(PEEntitlement present, PEEntitlement needed);

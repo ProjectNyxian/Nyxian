@@ -58,7 +58,7 @@ void copy_proc_to_user(ksurface_proc_t *proc,
     memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
 }
 
-proc_list_err_t proc_snapshot_create(pid_t caller_pid,
+proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
                                      proc_snapshot_t **snapshot_out)
 {
     if(snapshot_out == NULL)
@@ -68,8 +68,7 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
     
     *snapshot_out = NULL;
     
-    ksurface_proc_t *caller = proc_for_pid(caller_pid);
-    if(caller == NULL)
+    if(proc == NULL)
     {
         return PROC_LIST_ERR_PERM;
     }
@@ -77,21 +76,20 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
     proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
     if(snap == NULL)
     {
-        proc_release(caller);
         return PROC_LIST_ERR_NO_SPACE;
     }
     
     snap->count = 0;
     snap->timestamp = _get_time_ms();
     
-    proc_visibility_t vis = get_proc_visibility(caller);
+    proc_visibility_t vis = get_proc_visibility(proc);
     rcu_read_lock(&(ksurface->proc_info.rcu));
     uint32_t proc_count = atomic_load(&(ksurface->proc_info.proc_count));
     for(uint32_t i = 0; i < proc_count; i++) {
         ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
         if(proc_retain(p))
         {
-            if(can_see_process(caller, p, vis))
+            if(can_see_process(proc, p, vis))
             {
                 copy_proc_to_user(p, &snap->kp[snap->count++]);
             }
@@ -99,7 +97,6 @@ proc_list_err_t proc_snapshot_create(pid_t caller_pid,
         }
     }
     rcu_read_unlock(&(ksurface->proc_info.rcu));
-    proc_release(caller);
     *snapshot_out = snap;
     return PROC_LIST_OK;
 }
