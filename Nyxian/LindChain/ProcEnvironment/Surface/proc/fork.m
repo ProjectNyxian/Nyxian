@@ -25,64 +25,85 @@
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 ksurface_proc_t *proc_fork(pid_t ppid,
                            pid_t child_pid,
                            const char *path)
 {
-    if(ksurface == NULL) return NULL;
-    
-    ksurface_proc_t *parent = proc_for_pid(ppid);
-    if(parent == NULL) return NULL;
-    
-    ksurface_proc_t *child = proc_create(child_pid, ppid, path);
-    if(!child)
+    /* null pointer check */
+    if(ksurface == NULL)
     {
-        proc_release(parent);
         return NULL;
     }
     
-    /* Permitives */
-    if(ppid == proc_getpid(kernel_proc_))
+    /* getting parent of the child it wants to create */
+    ksurface_proc_t *parent = proc_for_pid(ppid);
+    if(parent == NULL)
     {
-        /* Dont inherite easily */
+        return NULL;
+    }
+    
+    /* creating copy of the parent for safe state copy */
+    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent);
+    
+    /* doesnt matter if copying parent was successful, but we release the parent, cuz after copy we are done with it */
+    proc_release(parent);
+    
+    if(parent_copy == NULL)
+    {
+        return NULL;
+    }
+    
+    /* creating child process */
+    ksurface_proc_t *child = proc_create(child_pid, ppid, path);
+    if(!child)
+    {
+        /* destroying the copy of the parent that references the parent */
+        proc_copy_destroy(parent_copy);
+        return NULL;
+    }
+    
+    /* checking if parent process is kernel_proc_ */
+    if(parent_copy->original == kernel_proc_)
+    {
+        /* dropping permitives to the movile user */
         proc_setmobilecred(child);
     }
     
-    /* Entitilements */
-    if(entitlement_got_entitlement(proc_getentitlements(parent), PEEntitlementProcessSpawnInheriteEntitlements))
+    /* checking if the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
+    if(entitlement_got_entitlement(proc_getentitlements(parent_copy), PEEntitlementProcessSpawnInheriteEntitlements))
     {
-        /* Child inherits entitlements from parent */
-        proc_setentitlements(child, proc_getentitlements(parent));
+        /* child inherits entitlements from parent */
+        proc_setentitlements(child, proc_getentitlements(parent_copy));
     }
     else
     {
-        /* Child gets entitlements from trustcache */
+        /* child doesnt inherite entitlements from parent and gets them from trust cache */
         NSString *processHash = [LDETrust entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
         if(processHash != NULL)
         {
-            PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:processHash];
-            proc_setentitlements(child, entitlement);
+            /* setting entitlements according to the hash of the process returned by trustd */
+            proc_setentitlements(child, [[TrustCache shared] getEntitlementsForHash:processHash]);
         }
         else
         {
-            /* Not found in trustcache. */
+            /* trustd said the process has no entitlements so we drop down to sandboxed application */
             proc_setentitlements(child, PEEntitlementSandboxedApplication);
         }
     }
     
-    /* Done with the parent */
-    proc_release(parent);
+    /* destroying the copy of the parent that references the parent */
+    proc_copy_destroy(parent_copy);
     
-    /* Insert will retain the child process */
+    /* insert will retain the child process */
     if(proc_insert(child) != kSurfaceErrorSuccess)
     {
-        proc_release(child);  /* Release creations ref */
+        /* releasing child process because of failed insert */
+        proc_release(child);
         return NULL;
     }
     
-    // MARK: Forgotten release
-    proc_release(child);
-    
+    /* child stays retained fro the caller */
     return child;
 }

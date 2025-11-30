@@ -154,6 +154,11 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             klog_log(@"LDEProcess", @"failed to create child process with proc api");
                             [weakSelf terminate];
                         }
+                        else
+                        {
+                            /* releasing the child, for now we dont use its reference on this level, but in the future might be good for performance */
+                            proc_release(child);
+                        }
                         klog_log(@"LDEProcess", @"created child process with proc api %p", child);
                         ksurface_proc_info_thread_unregister();
                     });
