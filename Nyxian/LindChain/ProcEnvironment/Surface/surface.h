@@ -62,10 +62,16 @@ typedef struct {
 typedef struct {
     _Atomic int refcount;
     _Atomic bool dead;
-    pthread_mutex_t mutex;
+    pthread_rwlock_t rwlock;
     kinfo_proc_t bsd;
     knyx_proc_t nyx;
 } ksurface_proc_t;
+
+typedef struct {
+    kinfo_proc_t bsd;
+    knyx_proc_t nyx;
+    ksurface_proc_t *original;
+} ksurface_proc_copy_t;
 
 /// Host information
 typedef struct {

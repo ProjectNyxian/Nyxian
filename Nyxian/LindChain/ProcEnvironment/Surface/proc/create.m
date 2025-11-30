@@ -65,7 +65,7 @@ ksurface_proc_t *proc_create(pid_t pid,
     }
     gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL);
     
-    pthread_mutex_init(&(proc->mutex), NULL);
+    pthread_rwlock_init(&(proc->rwlock), NULL);
     
     return proc;
 }

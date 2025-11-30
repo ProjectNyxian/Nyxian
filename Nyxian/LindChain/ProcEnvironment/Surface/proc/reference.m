@@ -57,7 +57,7 @@ void proc_release(ksurface_proc_t *proc)
     if(old == 1)
     {
         klog_log(@"proc:release", @"freeing process %p", proc);
-        pthread_mutex_destroy(&(proc->mutex));
+        pthread_rwlock_destroy(&(proc->rwlock));
         free(proc);
     }
     else if(old <= 0)

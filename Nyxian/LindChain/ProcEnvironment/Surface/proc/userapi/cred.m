@@ -18,12 +18,14 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/cred.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 /*
  * Helper
  */
 
-bool proc_is_privileged(ksurface_proc_t *proc)
+bool proc_is_privileged(ksurface_proc_copy_t *proc)
 {
     /* Checking if process is entitled to elevate. */
     if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessElevate))
@@ -39,7 +41,7 @@ bool proc_is_privileged(ksurface_proc_t *proc)
  * User identifier shit :3
  */
 
-int proc_setuid_user(ksurface_proc_t *proc,
+int proc_setuid_user(ksurface_proc_copy_t *proc,
                      uid_t uid)
 {
     if(proc_is_privileged(proc))
@@ -61,7 +63,7 @@ int proc_setuid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_seteuid_user(ksurface_proc_t *proc,
+int proc_seteuid_user(ksurface_proc_copy_t *proc,
                       uid_t euid)
 {
     if(proc_is_privileged(proc))
@@ -82,7 +84,7 @@ int proc_seteuid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_setruid_user(ksurface_proc_t *proc,
+int proc_setruid_user(ksurface_proc_copy_t *proc,
                       uid_t ruid)
 {
     if(proc_is_privileged(proc))
@@ -102,7 +104,7 @@ int proc_setruid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_setreuid_user(ksurface_proc_t *proc,
+int proc_setreuid_user(ksurface_proc_copy_t *proc,
                        uid_t ruid,
                        uid_t euid)
 {
@@ -143,7 +145,7 @@ int proc_setreuid_user(ksurface_proc_t *proc,
     return 0;
 }
 
-int proc_setresuid_user(ksurface_proc_t *proc,
+int proc_setresuid_user(ksurface_proc_copy_t *proc,
                         uid_t ruid,
                         uid_t euid,
                         uid_t svuid)
@@ -183,7 +185,7 @@ int proc_setresuid_user(ksurface_proc_t *proc,
  Group identifier shit :3
  */
 
-int proc_setgid_user(ksurface_proc_t *proc,
+int proc_setgid_user(ksurface_proc_copy_t *proc,
                      gid_t gid)
 {
     if(proc_is_privileged(proc))
@@ -205,7 +207,7 @@ int proc_setgid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_setegid_user(ksurface_proc_t *proc,
+int proc_setegid_user(ksurface_proc_copy_t *proc,
                       gid_t egid)
 {
     if(proc_is_privileged(proc))
@@ -226,7 +228,7 @@ int proc_setegid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_setrgid_user(ksurface_proc_t *proc,
+int proc_setrgid_user(ksurface_proc_copy_t *proc,
                       gid_t rgid)
 {
     if(proc_is_privileged(proc))
@@ -246,7 +248,7 @@ int proc_setrgid_user(ksurface_proc_t *proc,
     return -1;
 }
 
-int proc_setregid_user(ksurface_proc_t *proc,
+int proc_setregid_user(ksurface_proc_copy_t *proc,
                        gid_t rgid,
                        gid_t egid)
 {
@@ -287,7 +289,7 @@ int proc_setregid_user(ksurface_proc_t *proc,
     return 0;
 }
 
-int proc_setresgid_user(ksurface_proc_t *proc,
+int proc_setresgid_user(ksurface_proc_copy_t *proc,
                         gid_t rgid,
                         gid_t egid,
                         gid_t svgid)
@@ -340,7 +342,7 @@ unsigned long proc_cred_get(ksurface_proc_t *proc,
     proc_retain(proc);
     
     /* locking the processes mutex so no one can copy or modify it until done */
-    pthread_mutex_lock(&(proc->mutex));
+    proc_read_lock(proc);
     
     unsigned long retval = -1;
     
@@ -374,7 +376,7 @@ unsigned long proc_cred_get(ksurface_proc_t *proc,
     }
     
     /* unlocking the processes mutex so now other actions can be performed on it */
-    pthread_mutex_unlock(&(proc->mutex));
+    proc_unlock(proc);
     
     /* releasing process so, we dont mess up reference counting */
     proc_release(proc);
@@ -394,55 +396,56 @@ unsigned long proc_cred_set(ksurface_proc_t *proc,
         return -1;
     }
     
-    /* retaining process so it cannot get freed until this symbol ran entirely through */
-    proc_retain(proc);
-    
-    /* locking the processes mutex so no one can copy or modify it until done */
-    pthread_mutex_lock(&(proc->mutex));
+    /* creating a copy that references the process */
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc);
+    if(proc_copy == NULL)
+    {
+        return -1;
+    }
     
     unsigned long retval = -1;
 
     switch(Op)
     {
         case ProcessCredOpSetUID:
-            retval = proc_setuid_user(proc, ida);
+            retval = proc_setuid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetEUID:
-            retval = proc_seteuid_user(proc, ida);
+            retval = proc_seteuid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetRUID:
-            retval = proc_setruid_user(proc, ida);
+            retval = proc_setruid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetREUID:
-            retval = proc_setreuid_user(proc, ida, idb);
+            retval = proc_setreuid_user(proc_copy, ida, idb);
             break;
         case ProcessCredOpSetRESUID:
-            retval = proc_setresuid_user(proc, ida, idb, idc);
+            retval = proc_setresuid_user(proc_copy, ida, idb, idc);
             break;
         case ProcessCredOpSetGID:
-            retval = proc_setgid_user(proc, ida);
+            retval = proc_setgid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetEGID:
-            retval = proc_setegid_user(proc, ida);
+            retval = proc_setegid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetRGID:
-            retval = proc_setrgid_user(proc, ida);
+            retval = proc_setrgid_user(proc_copy, ida);
             break;
         case ProcessCredOpSetREGID:
-            retval = proc_setregid_user(proc, ida, idb);
+            retval = proc_setregid_user(proc_copy, ida, idb);
             break;
         case ProcessCredOpSetRESGID:
-            retval = proc_setresgid_user(proc, ida, idb, idc);
+            retval = proc_setresgid_user(proc_copy, ida, idb, idc);
             break;
         default:
             break;
     }
     
-    /* unlocking the processes mutex so now other actions can be performed on it */
-    pthread_mutex_unlock(&(proc->mutex));
+    /* update the original process with the copy */
+    proc_copy_update(proc_copy);
     
-    /* releasing process so, we dont mess up reference counting */
-    proc_release(proc);
+    /* destroying the copy and with that the reference to the process */
+    proc_copy_destroy(proc_copy);
     
     return retval;
 }
