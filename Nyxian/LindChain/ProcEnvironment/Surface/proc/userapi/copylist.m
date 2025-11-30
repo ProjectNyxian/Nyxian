@@ -110,6 +110,8 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
                    pid_t targetPid,
                    knyx_proc_t *nyx)
 {
+    ksurface_proc_info_thread_register();
+    
     /* getting visibility */
     proc_visibility_t vis = get_proc_visibility(proc);
     if(vis == PROC_VIS_NONE)
@@ -123,7 +125,9 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
        can_see_process(proc, targetProc, vis))
     {
         *nyx = targetProc->nyx;
+        ksurface_proc_info_thread_unregister();
         return true;
     }
+    ksurface_proc_info_thread_unregister();
     return false;
 }

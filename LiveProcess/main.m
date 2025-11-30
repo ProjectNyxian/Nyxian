@@ -142,8 +142,8 @@ int LiveProcessMain(int argc, char *argv[]) {
     {
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
 
-        if(environment_proxy_setprocinfo(ProcessInfoUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
-           environment_proxy_setprocinfo(ProcessInfoGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
+        if(environment_proxy_setprocinfo(ProcessCredOpSetUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue], 0, 0) != 0 ||
+           environment_proxy_setprocinfo(ProcessCredOpSetGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue], 0, 0) != 0)
         {
             exit(1);
         }

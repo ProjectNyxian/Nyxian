@@ -183,12 +183,14 @@
 /*
  Set credentials
  */
-- (void)setProcessInfoWithOption:(ProcessInfo)option
-                  withIdentifier:(unsigned int)uid
+- (void)setProcessCredWithOption:(ProcessCredOp)option
+                 withIdentifierA:(unsigned int)ida
+                 withIdentifierB:(unsigned int)idb
+                 withIdentifierC:(unsigned int)idc
                        withReply:(void (^)(unsigned int result))reply
 {
     ksurface_proc_info_thread_register();
-    unsigned int retval = (unsigned int)proc_cred_set(_proc, option, uid);
+    unsigned int retval = (unsigned int)proc_cred_set(_proc, option, ida, idb, idc);
     ksurface_proc_info_thread_unregister();
     reply(retval);
 }
@@ -205,17 +207,12 @@
 - (void)getProcessNyxWithIdentifier:(pid_t)pid
                           withReply:(void (^)(NSData*))reply
 {
-    ksurface_proc_info_thread_register();
     knyx_proc_t nyx;
-    if(!proc_nyx_copy(_proc, pid, &nyx))
-    {
-        reply(nil);
-    }
-    else
+    if(proc_nyx_copy(_proc, pid, &nyx))
     {
         reply([[NSData alloc] initWithBytes:&nyx length:sizeof(nyx)]);
     }
-    ksurface_proc_info_thread_unregister();
+    reply(nil);
 }
 
 /*

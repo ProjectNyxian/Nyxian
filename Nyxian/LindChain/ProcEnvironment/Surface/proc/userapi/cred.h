@@ -35,7 +35,20 @@ typedef NS_OPTIONS(uint64_t, ProcessInfo) {
     ProcessInfoMAX              = 9,
 };
 
+typedef NS_OPTIONS(uint64_t, ProcessCredOp) {
+    ProcessCredOpSetUID         = 0,
+    ProcessCredOpSetEUID        = 1,
+    ProcessCredOpSetRUID        = 2,
+    ProcessCredOpSetREUID       = 3,
+    ProcessCredOpSetRESUID      = 4,
+    ProcessCredOpSetGID         = 5,
+    ProcessCredOpSetEGID        = 6,
+    ProcessCredOpSetRGID        = 7,
+    ProcessCredOpSetREGID       = 8,
+    ProcessCredOpSetRESGID      = 9,
+};
+
 unsigned long proc_cred_get(ksurface_proc_t *proc, ProcessInfo Info);
-unsigned long proc_cred_set(ksurface_proc_t *proc, ProcessInfo Info, uid_t uid);
+unsigned long proc_cred_set(ksurface_proc_t *proc, ProcessCredOp Op, id_t ida, id_t idb, id_t idc);
 
 #endif /* PROC_USERAPI_CRED_H */

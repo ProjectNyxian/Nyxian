@@ -48,7 +48,7 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int
 pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
 /// Sets process credential
-int environment_proxy_setprocinfo(ProcessInfo info, unsigned int identifier);
+int environment_proxy_setprocinfo(ProcessCredOp Op, id_t a, id_t b, id_t c);
 
 /// Gets process table
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt);
