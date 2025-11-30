@@ -116,17 +116,26 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
     proc_visibility_t vis = get_proc_visibility(proc);
     if(vis == PROC_VIS_NONE)
     {
+        ksurface_proc_info_thread_unregister();
         return false;
     }
     
     /* getting process of targetpid */
     ksurface_proc_t *targetProc = proc_for_pid(targetPid);
-    if(targetProc != NULL &&
-       can_see_process(proc, targetProc, vis))
+    if(targetProc != NULL)
     {
-        *nyx = targetProc->nyx;
-        ksurface_proc_info_thread_unregister();
-        return true;
+        if(can_see_process(proc, targetProc, vis))
+        {
+            *nyx = targetProc->nyx;
+            
+            /* releasing process */
+            proc_release(targetProc);
+            
+            ksurface_proc_info_thread_unregister();
+            return true;
+        }
+        /* releasing process */
+        proc_release(targetProc);
     }
     ksurface_proc_info_thread_unregister();
     return false;
