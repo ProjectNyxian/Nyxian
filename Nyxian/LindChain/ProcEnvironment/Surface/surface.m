@@ -133,7 +133,7 @@ static inline void ksurface_kproc_init(void)
     
     /* creating kproc */
     klog_log(@"ksurface:kproc:init", @"creating kernel process");
-    ksurface_proc_t *proc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] bundlePath] UTF8String]);
+    ksurface_proc_t *proc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
     if(proc == NULL)
     {
         ksurface_proc_info_thread_unregister();
