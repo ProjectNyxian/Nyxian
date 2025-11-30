@@ -114,7 +114,8 @@
     ksurface_proc_info_thread_register();
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
-    if(pid != _processIdentifier && (!entitlement_got_entitlement(_processIdentifier, PEEntitlementProcessKill) || !permitive_over_process_allowed(_processIdentifier, pid)))
+    if(pid != _processIdentifier && (!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessKill) ||
+                                     !permitive_over_process_allowed(_processIdentifier, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
         ksurface_proc_info_thread_unregister();
