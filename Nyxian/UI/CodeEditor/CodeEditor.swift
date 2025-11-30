@@ -168,8 +168,8 @@ class CodeEditorViewController: UIViewController {
         switch fileURL.pathExtension {
         case "m","h":
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
-                "\(Bundle.main.bundlePath)/TreeSitterObjc_TreeSitterObjc.bundle/queries/highlights.scm".URLGet(),
-                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()
+                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
+                "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm".URLGet()
             ])
             break
         case "c":
