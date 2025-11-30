@@ -20,6 +20,7 @@
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 @implementation LaunchService
 
@@ -36,16 +37,10 @@
 - (void)ignition
 {
     // Spawn process
-    NSNumber *userIdentifierObject = [_dictionary objectForKey:@"LSUserIdentifier"];
-    NSNumber *groupIdentifierObject = [_dictionary objectForKey:@"LSGroupIdentifier"];
-    
-    uid_t userIdentifier = (userIdentifierObject == nil) ? 501 : userIdentifierObject.unsignedIntValue;
-    gid_t groupIdentifier = (groupIdentifierObject == nil) ? 501 : groupIdentifierObject.unsignedIntValue;
-    
     NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
     [mutableDictionary setObject:[Server getTicket] forKey:@"LSEndpoint"];
     
-    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withParentProcessIdentifier:getpid()];
+    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withParentProcessIdentifier:proc_getpid(kernel_proc_)];
     if(pid == 0) [self ignition];
     
     // Get process
