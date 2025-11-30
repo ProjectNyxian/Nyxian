@@ -441,8 +441,12 @@ unsigned long proc_cred_set(ksurface_proc_t *proc,
             break;
     }
     
-    /* update the original process with the copy */
-    proc_copy_update(proc_copy);
+    /* only update on succession */
+    if(retval == 0)
+    {
+        /* update the original process with the copy */
+        proc_copy_update(proc_copy);
+    }
     
     /* destroying the copy and with that the reference to the process */
     proc_copy_destroy(proc_copy);
