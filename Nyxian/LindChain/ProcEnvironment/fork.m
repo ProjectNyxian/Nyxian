@@ -24,6 +24,34 @@
 #import <pthread.h>
 #include <stdarg.h>
 
+/*
+ There is a better approach..
+ 
+ 1. forkfix.dylib gets loaded at a fixed high memory address where images get never loaded to
+ 2. forkfix.dylib gets jumped too with the dyld list
+ 3. forkfix.dylib rebases the main thread to a new "stack memory" that is allocated in the upper regions
+ 4. all heap allocations of forkfix.dylib happen above the scene via mmap
+ 5. forkfix.dylib destroys the main image and all memory underneath destroys all library loads
+ 6. forkfix.dylib atp uses its own libc traps and syscall traps it took when it arrived in the address space
+ 7. forkfix.dylib reloads all dylibs using mmap at fixed addresses and loads the main image where it was for the child and data mappings via mach memory entries
+ 8. forkfix.dylib jumps back to a symbol in the main image
+ the main image unloads forkfix.dylib
+ 9. the main image does again the ProcEnvironment setup and invoked a thread restore state thread
+ 10. the thread restores all threads by suspending them and create suspended threads and then it resumes all threads and exits
+
+ Who ever can do this is a absoulute genius... why I wont do it... atleast for now
+ 
+ in theory its possible
+ but im not masochistical enough
+ this kind of work requires you to really hate your self and your life and everyone so much that you need to vent this by torturing your self
+ because building this would be extreme torture
+ no debugging
+ even debugging it, no chance
+ everything would have to be build on assumptioons and logical thinking
+ fixing bugs in forkfix.dylib would take eternaties
+ because many thing would be written in low level assembly
+ */
+
 #pragma mark - Threading black magic
 
 extern char **environ;
