@@ -34,7 +34,6 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Support/TargetSelect.h"
-#include <pthread.h>
 
 using namespace clang;
 using namespace clang::driver;

@@ -38,6 +38,5 @@
 
 - (void)reparseFile:(NSString*)content;
 - (NSArray<Synitem *> *)getDiagnostics;
-- (void)updateBuffer:(NSString *)content;
 
 @end

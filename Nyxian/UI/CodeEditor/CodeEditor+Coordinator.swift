@@ -43,7 +43,7 @@ class Coordinator: NSObject, TextViewDelegate {
         self.parent = parent
         super.init()
         guard self.parent?.synpushServer != nil else { return }
-        self.debounce = Debouncer(delay: 1.5) { [weak self] in
+        self.debounce = Debouncer(delay: 0.3) { [weak self] in
             guard let self = self else { return }
             self.isProcessing = true
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in

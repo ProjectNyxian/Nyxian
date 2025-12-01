@@ -153,17 +153,20 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 
 - (void)reparseFile:(NSString*)content
 {
-    pthread_mutex_lock(&_mutex);
-
     NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
-    if (!newData) { pthread_mutex_unlock(&_mutex); return; }
+    if(!newData)
+    {
+        return;
+    }
+    
+    pthread_mutex_lock(&_mutex);
+    
     _contentData = newData;
 
     _unsaved.Filename = _cFilename;
     _unsaved.Contents = (const char*)_contentData.bytes;
     _unsaved.Length   = (unsigned long)_contentData.length;
-
-    clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit));
+    clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit) | CXReparse_None);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -212,24 +215,6 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 
     pthread_mutex_unlock(&_mutex);
     return items;
-}
-
-#pragma mark - Code Completion
-
-- (void)updateBuffer:(NSString *)content
-{
-    pthread_mutex_lock(&_mutex);
-
-    NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding
-                           allowLossyConversion:NO];
-    if (newData) {
-        _contentData = newData;
-        _unsaved.Filename = _cFilename;
-        _unsaved.Contents = (const char *)_contentData.bytes;
-        _unsaved.Length   = (unsigned long)_contentData.length;
-    }
-
-    pthread_mutex_unlock(&_mutex);
 }
 
 - (void)dealloc

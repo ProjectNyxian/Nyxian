@@ -300,9 +300,6 @@ class CodeEditorViewController: UIViewController {
                 bottomConstraint
             ])
             
-            toolbar.layer.cornerRadius = 12
-            toolbar.clipsToBounds = true
-            
             self.floatingToolbar = toolbar
             self.floatingToolbarBottomConstraint = bottomConstraint
         } else {
@@ -331,9 +328,9 @@ class CodeEditorViewController: UIViewController {
             return
         }
 
-        let bottomInset = keyboardFrame.height - view.safeAreaInsets.bottom
+        let bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (self.floatingToolbar!.frame.height + 10)
         textView.contentInset.bottom = bottomInset
-        textView.scrollIndicatorInsets.bottom = bottomInset
+        textView.verticalScrollIndicatorInsets.bottom = bottomInset
         
         if #available(iOS 26.0, *) {
             floatingToolbar?.isHidden = false

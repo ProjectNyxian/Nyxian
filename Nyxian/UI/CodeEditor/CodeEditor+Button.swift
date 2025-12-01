@@ -40,13 +40,14 @@ class SymbolButton: UIButton {
         let theme: LDETheme = LDEThemeReader.shared.currentlySelectedTheme()
         
         self.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
-        self.addTarget(self, action: #selector(touchDown), for: .touchDown)
-        self.addTarget(self, action: #selector(touchUp), for: [.touchUpInside, .touchDragExit, .touchCancel])
         
         self.tintColor = theme.textColor //.label
         self.setTitleColor(theme.textColor, for: .normal)
         
         if #unavailable(iOS 26.0) {
+            self.addTarget(self, action: #selector(touchDown), for: .touchDown)
+            self.addTarget(self, action: #selector(touchUp), for: [.touchUpInside, .touchDragExit, .touchCancel])
+            
             self.layer.cornerRadius = 5
             self.layer.borderWidth = 1
             self.layer.borderColor = theme.gutterHairlineColor.cgColor
