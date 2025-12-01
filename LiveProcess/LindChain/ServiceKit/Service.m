@@ -17,7 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Services/Service.h>
+#import <LindChain/ServiceKit/Service.h>
+#import <LindChain/ProcEnvironment/proxy.h>
 
 static ServiceServer *singletonServiceServer = nil;
 
@@ -69,3 +70,21 @@ static ServiceServer *singletonServiceServer = nil;
 }
 
 @end
+
+int LDEServiceMain(int argc,
+                   char *argv[],
+                   Class<LDEServiceProtocol> serviceClass)
+{
+    NSString *serviceIdentifier = [serviceClass servcieIdentifier];
+    Protocol *serviceProtocol = [serviceClass serviceProtocol];
+    
+    if(serviceIdentifier != nil &&
+       serviceProtocol != nil)
+    {
+        ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:serviceClass withProtocol:serviceProtocol];
+        environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], serviceIdentifier);
+        CFRunLoopRun();
+    }
+    
+    return 1;
+}

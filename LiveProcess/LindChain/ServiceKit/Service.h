@@ -17,15 +17,27 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETRUSTPROXY_H
-#define LDETRUSTPROXY_H
+#ifndef SERVICEKIT_SERVICE_H
+#define SERVICEKIT_SERVICE_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <LindChain/ServiceKit/ServiceProtocol.h>
 
-@interface LDETrustProxy: NSObject <LDETrustProtocol,LDEServiceProtocol>
+@interface ServiceServer : NSObject <NSXPCListenerDelegate>
+
+@property (nonatomic,strong) Protocol *protocol;
+@property (nonatomic,strong) Class instanceClass;
+@property (nonatomic,strong) NSXPCListener *listener;
+@property (nonatomic) dispatch_once_t anonymousCraftOnce;
+
+- (instancetype)initWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
++ (instancetype)serverWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
++ (instancetype)sharedService;
+
+- (NSXPCListenerEndpoint*)getEndpointForConnection;
 
 @end
 
-#endif /* LDETRUSTPROXY_H */
+int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass);
+
+#endif /* SERVICEKIT_SERVICE_H */

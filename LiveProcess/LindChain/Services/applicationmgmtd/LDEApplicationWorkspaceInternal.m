@@ -21,7 +21,6 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/Utils/Zip.h>
 #import <Security/Security.h>
-#import <LindChain/Services/Service.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
 bool checkCodeSignature(const char* path);
@@ -355,11 +354,14 @@ bool checkCodeSignature(const char* path);
     return;
 }
 
-@end
-
-void ApplicationManagementDaemonEntry(void)
++ (NSString*)servcieIdentifier
 {
-    ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:[LDEApplicationWorkspaceProxy class] withProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
-    environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], @"com.cr4zy.installd");
-    CFRunLoopRun();
+    return @"com.cr4zy.installd";
 }
+
++ (Protocol*)serviceProtocol
+{
+    return @protocol(LDEApplicationWorkspaceProxyProtocol);
+}
+
+@end

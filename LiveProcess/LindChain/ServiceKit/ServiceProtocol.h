@@ -17,19 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef SERVICEKIT_SERVICEPROTOCOL_H
+#define SERVICEKIT_SERVICEPROTOCOL_H
+
 #import <Foundation/Foundation.h>
 
-@interface ServiceServer : NSObject <NSXPCListenerDelegate>
+@protocol LDEServiceProtocol <NSObject>
 
-@property (nonatomic,strong) Protocol *protocol;
-@property (nonatomic,strong) Class instanceClass;
-@property (nonatomic,strong) NSXPCListener *listener;
-@property (nonatomic) dispatch_once_t anonymousCraftOnce;
-
-- (instancetype)initWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
-+ (instancetype)serverWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
-+ (instancetype)sharedService;
-
-- (NSXPCListenerEndpoint*)getEndpointForConnection;
++ (NSString*)servcieIdentifier;
++ (Protocol*)serviceProtocol;
 
 @end
+
+#endif /* SERVICEKIT_SERVICEPROTOCOL_H */

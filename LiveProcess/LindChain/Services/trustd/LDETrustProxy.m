@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/Services/Service.h>
+#import <LindChain/ServiceKit/Service.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <CommonCrypto/CommonCrypto.h>
@@ -74,11 +74,13 @@ NSString *hashOfFileAtPath(NSString *path)
     reply(checkCodeSignature([path UTF8String]));
 }
 
-@end
-
-void TrustDaemonDaemonEntry(void)
-{
-    ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:[LDETrustProxy class] withProtocol:@protocol(LDETrustProtocol)];
-    environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], @"com.cr4zy.trustd");
-    CFRunLoopRun();
++ (NSString *)servcieIdentifier {
+    return @"com.cr4zy.trustd";
 }
+
++ (Protocol*)serviceProtocol
+{
+    return @protocol(LDETrustProtocol);
+}
+
+@end

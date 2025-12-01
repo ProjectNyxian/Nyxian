@@ -22,13 +22,15 @@
 #import <mach-o/dyld.h>
 #import <objc/runtime.h>
 #import "LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h"
-#import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+
+#import <LindChain/ServiceKit/Service.h>
+#import <LindChain/Services/trustd/LDETrustProxy.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
@@ -150,10 +152,10 @@ int LiveProcessMain(int argc, char *argv[]) {
         
         if([service isEqualToString:@"installd"])
         {
-            ApplicationManagementDaemonEntry();
+            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]));
         } else if([service isEqualToString:@"trustd"])
         {
-            TrustDaemonDaemonEntry();
+            exit(LDEServiceMain(argc, argv, [LDETrustProxy class]));
         }
     }
     else if([mode isEqualToString:@"spawn"])

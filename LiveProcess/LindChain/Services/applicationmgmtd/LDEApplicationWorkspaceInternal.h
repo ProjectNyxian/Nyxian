@@ -21,6 +21,7 @@
 #define LDEAPPLICATIONWORKSPACE_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/ServiceKit/Service.h>
 #import "LDEApplicationObject.h"
 #import "LDEApplicationWorkspaceProxyProtocol.h"
 #import "MIBundle.h"
@@ -42,9 +43,7 @@
 
 @end
 
-@interface LDEApplicationWorkspaceProxy : NSObject <LDEApplicationWorkspaceProxyProtocol>
+@interface LDEApplicationWorkspaceProxy : NSObject <LDEApplicationWorkspaceProxyProtocol,LDEServiceProtocol>
 @end
-
-void ApplicationManagementDaemonEntry(void);
 
 #endif /* LDEAPPLICATIONWORKSPACE_H */
