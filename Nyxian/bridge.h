@@ -18,47 +18,48 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/* Apple Private API Headers */
+#import <LindChain/Private/UIKitPrivate.h>
+
+/* LindChain Core Headers */
 #import <LindChain/Compiler/Compiler.h>
+#import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
-#import <LindChain/Linker/linker.h>
+#import <LindChain/Core/LDEThreadControl.h>
+#import <LindChain/Core/LDEFilesFinder.h>
+#import <LindChain/Utils/Zip.h>
+#import <LindChain/Utils/LDEDebouncer.h>
+
+/* LiveContainer Headers */
 #import <LindChain/LiveContainer/LCAppInfo.h>
 #import <LindChain/LiveContainer/LCUtils.h>
-#import <LindChain/LiveContainer/ZSign/zsigner.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
-#import <LindChain/Debugger/Logger.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/LiveContainer/ZSign/zsigner.h>
+
+/* Daemon Interfaces Headers */
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
-#import <LindChain/Utils/Zip.h>
-#import <LindChain/Private/UIKitPrivate.h>
+
+/* Multitask Headers */
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/LiveContainer/ZSign/zsigner.h>
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
-#import <LindChain/LaunchServices/LaunchService.h>
-#import <LindChain/ProcEnvironment/Object/MachOObject.h>
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/LaunchServices/LaunchService.h>
 
-/*
- Project
- */
+/* Kernel Virtualisation Layer Headers */
+#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <LindChain/ProcEnvironment/Server/Trust.h>
+#import <LindChain/ProcEnvironment/Object/MachOObject.h>
+
+/* Project Headers */
 #import <Project/NXUser.h>
 #import <Project/NXCodeTemplate.h>
 #import <Project/NXPlistHelper.h>
 #import <Project/NXProject.h>
 
-/*
- Core
- */
-#import <LindChain/Core/LDEThreadControl.h>
-#import <LindChain/Core/LDEFilesFinder.h>
-
-/*
- UI
- */
+/* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>
 #import <UI/XCodeButton.h>

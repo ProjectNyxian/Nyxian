@@ -31,7 +31,7 @@ class Coordinator: NSObject, TextViewDelegate {
     private(set) var isInvalidated: Bool = false
     private(set) var needsAnotherProcess: Bool = false
 
-    private var debounce: Debouncer?
+    private var debounce: LDEDebouncer?
     private(set) var diag: [Synitem] = []
     private let vtkey: [(String,UIColor)] = [
         ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
@@ -43,18 +43,19 @@ class Coordinator: NSObject, TextViewDelegate {
         self.parent = parent
         super.init()
         guard self.parent?.synpushServer != nil else { return }
-        self.debounce = Debouncer(delay: 0.3) { [weak self] in
-            guard let self = self else { return }
-            self.isProcessing = true
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self = self else { return }
-                self.parent?.synpushServer?.reparseFile(self.parent?.textView.text)
-                self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
-                self.updateDiag()
-            }
-        }
+        self.debounce = LDEDebouncer(delay: 0.3, with: DispatchQueue.main, withTarget: self, with: #selector(typecheckCode))
         if let textView = self.parent?.textView {
             self.textViewDidChange(textView)
+        }
+    }
+    
+    @objc func typecheckCode() {
+        self.isProcessing = true
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            self.parent?.synpushServer?.reparseFile(self.parent?.textView.text)
+            self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
+            self.updateDiag()
         }
     }
     
@@ -352,29 +353,6 @@ class Coordinator: NSObject, TextViewDelegate {
                 }
             }
             super.willMove(toSuperview: newSuperview)
-        }
-    }
-    
-    class Debouncer {
-        private var workItem: DispatchWorkItem?
-        private let queue: DispatchQueue
-        private let delay: TimeInterval
-        private let action: () -> Void
-
-        init(delay: TimeInterval,
-             queue: DispatchQueue = .main,
-             action: @escaping () -> Void) {
-            self.delay = delay
-            self.queue = queue
-            self.action = action
-        }
-
-        func debounce() {
-            workItem?.cancel()
-            workItem = DispatchWorkItem(block: action)
-            if let workItem = workItem {
-                queue.asyncAfter(deadline: .now() + delay, execute: workItem)
-            }
         }
     }
 }
