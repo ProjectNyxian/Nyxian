@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
+		79A3A9482EDDAD3D00C0342E /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
+		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
@@ -19,6 +21,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		79A3A94A2EDDAD3D00C0342E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 79A3A9382EDDABAE00C0342E;
+			remoteInfo = ServiceKit;
+		};
 		79BF98022E6291EE00C60D4C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
@@ -46,6 +55,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -77,16 +87,39 @@
 		7944B5632DEC712700834134 /* PrivateConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PrivateConfig.xcconfig; sourceTree = "<group>"; };
 		7944B5652DEC74EA00834134 /* Nyxian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nyxian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		79A3A9392EDDABAE00C0342E /* ServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF97F72E6291EE00C60D4C /* LiveProcess.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveProcess.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = usr/lib/libarchive.tbd; sourceTree = SDKROOT; };
 		AF99171F2DC8EA3C00DDF895 /* Shared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shared; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		79A3A93D2EDDABAE00C0342E /* Exceptions for "ServiceKit" folder in "ServiceKit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			publicHeaders = (
+				Service.h,
+				ServiceKit.h,
+				ServiceProtocol.h,
+			);
+			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
+		};
+		79A3A9432EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "Nyxian" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Service.m,
+			);
+			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
+		};
+		79A3A9442EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "LiveProcess" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Service.m,
+			);
+			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
+		};
 		79BF983D2E62930600C60D4C /* Exceptions for "LiveProcess" folder in "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/ServiceKit/Service.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationObject.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
 				LindChain/Services/trustd/LDETrustProxy.m,
@@ -97,7 +130,6 @@
 		79BF98402E62931E00C60D4C /* Exceptions for "LiveProcess" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/ServiceKit/Service.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationObject.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
@@ -196,6 +228,16 @@
 			path = LiveProcess;
 			sourceTree = "<group>";
 		};
+		79A3A93A2EDDABAE00C0342E /* ServiceKit */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				79A3A9432EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "Nyxian" target */,
+				79A3A9442EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "LiveProcess" target */,
+				79A3A93D2EDDABAE00C0342E /* Exceptions for "ServiceKit" folder in "ServiceKit" target */,
+			);
+			path = ServiceKit;
+			sourceTree = "<group>";
+		};
 		AF9916DB2DC8C42200DDF895 /* Nyxian */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -209,10 +251,18 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		79A3A9362EDDABAE00C0342E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		79BF97F42E6291EE00C60D4C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79A3A9482EDDAD3D00C0342E /* ServiceKit.framework in Frameworks */,
 				79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,15 +300,50 @@
 				AF99171F2DC8EA3C00DDF895 /* Shared */,
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
 				798692F02E627A3B00390D7E /* LiveProcess */,
+				79A3A93A2EDDABAE00C0342E /* ServiceKit */,
 				7944B5662DEC74FC00834134 /* Frameworks */,
 				79BF97F72E6291EE00C60D4C /* LiveProcess.appex */,
 				7944B5652DEC74EA00834134 /* Nyxian.app */,
+				79A3A9392EDDABAE00C0342E /* ServiceKit.framework */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		79A3A9342EDDABAE00C0342E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		79A3A9382EDDABAE00C0342E /* ServiceKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 79A3A93E2EDDABAE00C0342E /* Build configuration list for PBXNativeTarget "ServiceKit" */;
+			buildPhases = (
+				79A3A9342EDDABAE00C0342E /* Headers */,
+				79A3A9352EDDABAE00C0342E /* Sources */,
+				79A3A9362EDDABAE00C0342E /* Frameworks */,
+				79A3A9372EDDABAE00C0342E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				79A3A93A2EDDABAE00C0342E /* ServiceKit */,
+			);
+			name = ServiceKit;
+			packageProductDependencies = (
+			);
+			productName = ServiceKit;
+			productReference = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		79BF97F62E6291EE00C60D4C /* LiveProcess */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 79BF98062E6291EE00C60D4C /* Build configuration list for PBXNativeTarget "LiveProcess" */;
@@ -271,6 +356,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				79A3A94B2EDDAD3D00C0342E /* PBXTargetDependency */,
 			);
 			name = LiveProcess;
 			packageProductDependencies = (
@@ -317,9 +403,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					79A3A9382EDDABAE00C0342E = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					79BF97F62E6291EE00C60D4C = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -351,11 +440,19 @@
 			targets = (
 				AF9916D82DC8C42200DDF895 /* Nyxian */,
 				79BF97F62E6291EE00C60D4C /* LiveProcess */,
+				79A3A9382EDDABAE00C0342E /* ServiceKit */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		79A3A9372EDDABAE00C0342E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		79BF97F52E6291EE00C60D4C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -374,6 +471,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		79A3A9352EDDABAE00C0342E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		79BF97F32E6291EE00C60D4C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -391,6 +495,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		79A3A94B2EDDAD3D00C0342E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
+			targetProxy = 79A3A94A2EDDAD3D00C0342E /* PBXContainerItemProxy */;
+		};
 		79BF98032E6291EE00C60D4C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
@@ -399,6 +508,84 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		79A3A93F2EDDABAE00C0342E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.ServiceKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		79A3A9402EDDABAE00C0342E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.ServiceKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		79BF98072E6291EE00C60D4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -931,6 +1118,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		79A3A93E2EDDABAE00C0342E /* Build configuration list for PBXNativeTarget "ServiceKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				79A3A93F2EDDABAE00C0342E /* Debug */,
+				79A3A9402EDDABAE00C0342E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		79BF98062E6291EE00C60D4C /* Build configuration list for PBXNativeTarget "LiveProcess" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

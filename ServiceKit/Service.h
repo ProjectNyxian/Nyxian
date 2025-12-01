@@ -21,7 +21,7 @@
 #define SERVICEKIT_SERVICE_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/ServiceKit/ServiceProtocol.h>
+#import <ServiceKit/ServiceProtocol.h>
 
 @interface ServiceServer : NSObject <NSXPCListenerDelegate>
 

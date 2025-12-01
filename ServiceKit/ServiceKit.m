@@ -17,15 +17,4 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETRUSTPROXY_H
-#define LDETRUSTPROXY_H
-
-#import <Foundation/Foundation.h>
-#import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <ServiceKit/ServiceKit.h>
-
-@interface LDETrustProxy: NSObject <LDETrustProtocol,LDEServiceProtocol>
-
-@end
-
-#endif /* LDETRUSTPROXY_H */

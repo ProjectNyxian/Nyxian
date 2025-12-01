@@ -29,7 +29,7 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
-#import <LindChain/ServiceKit/Service.h>
+#import <ServiceKit/ServiceKit.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);

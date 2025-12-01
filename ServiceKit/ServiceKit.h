@@ -17,15 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETRUSTPROXY_H
-#define LDETRUSTPROXY_H
-
 #import <Foundation/Foundation.h>
-#import <LindChain/Services/trustd/LDETrustProtocol.h>
-#import <ServiceKit/ServiceKit.h>
 
-@interface LDETrustProxy: NSObject <LDETrustProtocol,LDEServiceProtocol>
+//! Project version number for ServiceKit.
+FOUNDATION_EXPORT double ServiceKitVersionNumber;
 
-@end
+//! Project version string for ServiceKit.
+FOUNDATION_EXPORT const unsigned char ServiceKitVersionString[];
 
-#endif /* LDETRUSTPROXY_H */
+// In this header, you should import all the public headers of your framework using statements like #import <ServiceKit/PublicHeader.h>
+#import <ServiceKit/Service.h>

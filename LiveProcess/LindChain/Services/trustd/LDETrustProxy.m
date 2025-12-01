@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/ServiceKit/Service.h>
+#import <ServiceKit/ServiceKit.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <CommonCrypto/CommonCrypto.h>
