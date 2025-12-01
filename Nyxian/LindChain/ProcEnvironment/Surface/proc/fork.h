@@ -22,6 +22,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_proc_t *proc_fork(pid_t ppid, pid_t child_pid, const char *path);
+ksurface_proc_t *proc_fork(ksurface_proc_t *parent, pid_t child_pid, const char *path);
 
 #endif /* PROC_FORK_H */

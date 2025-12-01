@@ -25,6 +25,7 @@
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 @interface LDEProcess : NSObject <FBSceneDelegate>
 
@@ -58,8 +59,8 @@
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
-- (instancetype)initWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier;
-- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withParentProcessIdentifier:(pid_t)parentProcessIdentifier;
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
+- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc;
 
 - (void)sendSignal:(int)signal;
 - (BOOL)suspend;

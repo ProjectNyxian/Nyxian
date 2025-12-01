@@ -76,11 +76,11 @@
 }
 
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
-   withParentProcessIdentifier:(pid_t)parentProcessIdentifier
+      withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
     [self enforceSpawnCooldown];
     
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withParentProcessIdentifier:parentProcessIdentifier];
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc];
     if(!process) return 0;
     pid_t pid = process.pid;
     [self.processes setObject:process forKey:@(pid)];
@@ -140,7 +140,7 @@
         LDEProcess *process = nil;
         retval = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
             @"HOME": applicationObject.containerPath
-        } withMapObject:nil withParentProcessIdentifier:parentProcessIdentifier process:&process];
+        } withMapObject:nil withKernelSurfaceProcess:kernel_proc_ process:&process];
     });
     return retval;
 }
@@ -149,11 +149,11 @@
                 withArguments:(NSArray *)arguments
      withEnvironmentVariables:(NSDictionary*)environment
                 withMapObject:(FDMapObject*)mapObject
-  withParentProcessIdentifier:(pid_t)parentProcessIdentifier
+     withKernelSurfaceProcess:(ksurface_proc_t*)proc
                       process:(LDEProcess**)processReply
 {
     [self enforceSpawnCooldown];
-    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:parentProcessIdentifier];
+    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:proc];
     if(!process) return 0;
     pid_t pid = process.pid;
     [self.processes setObject:process forKey:@(pid)];

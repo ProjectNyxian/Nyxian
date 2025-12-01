@@ -26,43 +26,37 @@
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
-ksurface_proc_t *proc_fork(pid_t ppid,
+ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
                            const char *path)
 {
     /* null pointer check */
-    if(ksurface == NULL)
+    if(ksurface == NULL || parent == NULL)
     {
         return NULL;
     }
     
-    /* getting parent of the child it wants to create */
-    ksurface_proc_t *parent = proc_for_pid(ppid);
-    if(parent == NULL)
-    {
-        return NULL;
-    }
-    
-    /* creating copy of the parent for safe state copy */
-    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent);
-    
-    /* doesnt matter if copying parent was successful, but we release the parent, cuz after copy we are done with it */
-    proc_release(parent);
-    
+    /* creating copy of the parent for safe state copy which consumes the reference we got from proc_for_pid(1) */
+    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetain);
     if(parent_copy == NULL)
     {
         return NULL;
     }
     
     /* creating child process */
-    ksurface_proc_t *child = proc_create(child_pid, ppid, path);
+    ksurface_proc_t *child = proc_create_from_proc_copy(parent_copy);
     if(!child)
     {
         /* destroying the copy of the parent that references the parent */
         proc_copy_destroy(parent_copy);
         return NULL;
     }
+    
+    /* setting child process properties */
+    proc_setpid(child, child_pid);
+    proc_setppid(child, proc_getpid(parent_copy));
     
     /* checking if parent process is kernel_proc_ */
     if(parent_copy->original == kernel_proc_)
@@ -96,9 +90,21 @@ ksurface_proc_t *proc_fork(pid_t ppid,
     /* destroying the copy of the parent that references the parent */
     proc_copy_destroy(parent_copy);
     
+    /* copying the path */
+    if(path)
+    {
+        strncpy(child->nyx.executable_path, path, PATH_MAX - 1);
+        const char *name = strrchr(path, '/');
+        name = name ? name + 1 : path;
+        strncpy(child->bsd.kp_proc.p_comm, name, MAXCOMLEN);
+    }
+    
     /* insert will retain the child process */
     if(proc_insert(child) != kSurfaceErrorSuccess)
     {
+        /* logging if enabled */
+        klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
+        
         /* releasing child process because of failed insert */
         proc_release(child);
         return NULL;

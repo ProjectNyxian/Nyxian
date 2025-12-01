@@ -21,7 +21,8 @@
 #import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
-ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc)
+ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
+                                         enum kProcCopyOption option)
 {
     /* null pointer check */
     if(proc == NULL)
@@ -32,7 +33,20 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc)
     /* retaining process before doing anything */
     if(!proc_retain(proc))
     {
+        /* in-case it consume the processes reference then there is no tolerance consume is consume */
+        if(option == kProcCopyOptionConsumeReference)
+        {
+            /* release to "consume" */
+            proc_release(proc);
+        }
         return NULL;
+    }
+    
+    /* checking if the option is to consume reference */
+    if(option == kProcCopyOptionConsumeReference)
+    {
+        /* release to "consume" */
+        proc_release(proc);
     }
     
     /* allocating copy */
@@ -61,7 +75,10 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc)
 ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
 {
     /* null pointer check */
-    if(proc_copy == NULL || proc_copy->original == NULL) return kSurfaceErrorNullPtr;
+    if(proc_copy == NULL || proc_copy->original == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
     
     /* update the original reference */
     proc_write_lock(proc_copy->original);
@@ -72,10 +89,30 @@ ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
     return kSurfaceErrorSuccess;
 }
 
+ksurface_error_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy)
+{
+    /* null pointer check */
+    if(proc_copy == NULL || proc_copy->original == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
+    
+    /* update the copy */
+    proc_read_lock(proc_copy->original);
+    memcpy(&(proc_copy->bsd), &(proc_copy->original->bsd), sizeof(kinfo_proc_t));
+    memcpy(&(proc_copy->nyx), &(proc_copy->original->nyx), sizeof(knyx_proc_t));
+    proc_unlock(proc_copy->original);
+    
+    return kSurfaceErrorSuccess;
+}
+
 ksurface_error_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy)
 {
     /* null pointer check */
-    if(proc_copy == NULL) return kSurfaceErrorNullPtr;
+    if(proc_copy == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
     
     /* release reference to process */
     proc_release(proc_copy->original);

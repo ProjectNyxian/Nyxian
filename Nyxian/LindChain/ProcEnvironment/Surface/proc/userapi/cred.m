@@ -397,7 +397,7 @@ unsigned long proc_cred_set(ksurface_proc_t *proc,
     }
     
     /* creating a copy that references the process */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc);
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionRetain);
     if(proc_copy == NULL)
     {
         return -1;

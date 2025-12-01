@@ -22,8 +22,14 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc);
+enum kProcCopyOption {
+    kProcCopyOptionRetain = 0,
+    kProcCopyOptionConsumeReference = 1,
+};
+
+ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc, enum kProcCopyOption option);
 ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy);
+ksurface_error_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy);
 ksurface_error_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy);
 
 #endif /* PROC_COPY_H */

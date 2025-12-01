@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/create.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 ksurface_proc_t *proc_create(pid_t pid,
@@ -37,6 +38,9 @@ ksurface_proc_t *proc_create(pid_t pid,
     /* marking process as referenced once */
     atomic_store(&proc->refcount, 1);
     atomic_store(&proc->dead, false);
+    
+    /* initilizing rw lock */
+    pthread_rwlock_init(&(proc->rwlock), NULL);
     
     /* setting bsd process information that are relevant currently */
     proc_setpid(proc, pid);
@@ -65,8 +69,61 @@ ksurface_proc_t *proc_create(pid_t pid,
     }
     gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL);
     
+    return proc;
+}
+
+ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
+{
+    /* null pointer check */
+    if(proc_copy == NULL)
+    {
+        return NULL;
+    }
+    
+    /* allocating process */
+    ksurface_proc_t *proc = malloc(sizeof(*proc));
+    if(proc == NULL)
+    {
+        return NULL;
+    }
+    
+    /* nullify process structure */
+    memset(proc, 0, sizeof(*proc));
+    
+    /* marking process as referenced once */
+    atomic_store(&proc->refcount, 1);
+    atomic_store(&proc->dead, false);
+    
+    /* initilizing rw lock */
     pthread_rwlock_init(&(proc->rwlock), NULL);
+    
+    /* 1:1 rest copy */
+    memcpy(&(proc->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));
+    memcpy(&(proc->nyx), &(proc_copy->nyx), sizeof(kinfo_proc_t));
     
     return proc;
 }
 
+ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc)
+{
+    /* null pointer check */
+    if(proc == NULL)
+    {
+        return NULL;
+    }
+    
+    /* creating a copy from the process passed */
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionRetain);
+    if(proc_copy == NULL)
+    {
+        return NULL;
+    }
+    
+    /* creating process from copy of the original */
+    ksurface_proc_t *nproc = proc_create_from_proc_copy(proc_copy);
+    
+    /* destroying copy that references the original process */
+    proc_copy_destroy(proc_copy);
+    
+    return nproc;
+}

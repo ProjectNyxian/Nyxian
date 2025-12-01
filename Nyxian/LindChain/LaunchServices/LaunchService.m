@@ -40,7 +40,7 @@
     NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
     [mutableDictionary setObject:[Server getTicket] forKey:@"LSEndpoint"];
     
-    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withParentProcessIdentifier:proc_getpid(kernel_proc_)];
+    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withKernelSurfaceProcess:kernel_proc_];
     if(pid == 0) [self ignition];
     
     // Get process

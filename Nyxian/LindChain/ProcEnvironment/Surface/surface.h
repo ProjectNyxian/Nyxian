@@ -26,7 +26,6 @@
 #include <LindChain/ProcEnvironment/Surface/lock/rcu/rcu.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #include <pthread.h>
 
 enum kSurfaceError {

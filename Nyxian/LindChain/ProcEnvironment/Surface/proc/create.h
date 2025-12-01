@@ -23,5 +23,7 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_proc_t *proc_create(pid_t pid, pid_t ppid, const char *path);
+ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy);
+ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc);
 
 #endif /* PROC_CREATE_H */

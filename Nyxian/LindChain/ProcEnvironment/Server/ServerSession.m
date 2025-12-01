@@ -151,14 +151,13 @@
     klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
     ksurface_proc_info_thread_register();
     
-    if(path
-       && arguments
-       && environment
-       && mapObject
-       && (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
-           entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
+    if(path &&
+       arguments &&
+       environment &&
+       (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
+        entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withParentProcessIdentifier:_processIdentifier process:nil];
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:nil];
         reply(pid);
         klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
         ksurface_proc_info_thread_unregister();
@@ -293,6 +292,15 @@
                 break;
             }
             usleep(50 * 1000);
+        }
+        
+        if(!matched)
+        {
+            klog_log(@"syscall:waittrap", @"waittrap for pid %d failed", _processIdentifier);
+        }
+        else
+        {
+            klog_log(@"syscall:waittrap", @"waittrap for pid %d succeeded", _processIdentifier);
         }
         
         reply(matched);

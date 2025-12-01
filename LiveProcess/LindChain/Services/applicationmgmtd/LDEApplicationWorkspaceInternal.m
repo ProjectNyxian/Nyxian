@@ -22,6 +22,7 @@
 #import <LindChain/Utils/Zip.h>
 #import <Security/Security.h>
 #import <LindChain/Services/Service.h>
+#import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
 bool checkCodeSignature(const char* path);
 
@@ -289,6 +290,38 @@ bool checkCodeSignature(const char* path);
     
     LDEApplicationObject *application = [[LDEApplicationObject alloc] initWithBundle:bundle];
     reply(application);
+}
+
+- (void)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier
+                                  withReply:(void (^)(BOOL))reply
+{
+    /* finding application with bundle identifier */
+    MIBundle *applicationBundle = [[LDEApplicationWorkspaceInternal shared] applicationBundleForBundleID:bundleIdentifier];
+    
+    /* checking for null pointer */
+    if(applicationBundle == nil)
+    {
+        reply(NO);
+        return;
+    }
+    
+    /* creating a executable bundle */
+    NSError *error = nil;
+    MIExecutableBundle *execBundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleURL:applicationBundle.bundleURL error:&error];
+    
+    /* checking for null pointer */
+    if(execBundle == nil)
+    {
+        reply(NO);
+        return;
+    }
+    
+    /* get pid */
+    pid_t pid = environment_proxy_spawn_process_at_path([[execBundle executableURL] path], @[[[execBundle executableURL] path]], @{}, nil);
+    
+    /* and the return */
+    reply(pid != -1);
+    return;
 }
 
 @end

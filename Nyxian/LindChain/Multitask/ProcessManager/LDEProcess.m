@@ -21,7 +21,6 @@
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
@@ -30,7 +29,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 
 @implementation LDEProcess
 
-- (instancetype)initWithItems:(NSDictionary*)items withParentProcessIdentifier:(pid_t)parentProcessIdentifier
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
     self = [super init];
     
@@ -80,6 +79,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                 {
                     // Remove Once
                     dispatch_once(&strongSelf->_removeOnce, ^{
+                        klog_log(@"LDEProcess", @"pid %d died", strongSelf.pid);
                         if(strongSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
@@ -148,7 +148,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
                         // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
                         ksurface_proc_info_thread_register();
-                        ksurface_proc_t *child = proc_fork(parentProcessIdentifier, weakSelf.pid, [weakSelf.executablePath UTF8String]);
+                        ksurface_proc_t *child = proc_fork(proc, weakSelf.pid, [weakSelf.executablePath UTF8String]);
                         if(child == NULL)
                         {
                             klog_log(@"LDEProcess", @"failed to create child process with proc api");
@@ -176,7 +176,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                withArguments:(NSArray *)arguments
     withEnvironmentVariables:(NSDictionary*)environment
                withMapObject:(FDMapObject*)mapObject
- withParentProcessIdentifier:(pid_t)parentProcessIdentifier
+    withKernelSurfaceProcess:(ksurface_proc_t *)proc
 {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
         @"LSEndpoint": [Server getTicket],
@@ -191,7 +191,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
         [dictionary setObject:mapObject forKey:@"LSMapObject"];
     }
     
-    self = [self initWithItems:[dictionary copy] withParentProcessIdentifier:parentProcessIdentifier];
+    self = [self initWithItems:[dictionary copy] withKernelSurfaceProcess:proc];
     
     return self;
 }

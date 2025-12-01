@@ -35,6 +35,7 @@
 + (BOOL)clearContainerForBundleID:(NSString*)bundleID;
 + (NSString*)fastpathUtility:(NSString*)utilityPath;
 + (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath;
++ (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier;
 
 @end
 

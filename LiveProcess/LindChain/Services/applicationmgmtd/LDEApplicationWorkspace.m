@@ -154,4 +154,18 @@
     return application;
 }
 
++ (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier
+{
+    __block BOOL retval = NO;
+    [[LaunchServices shared] execute:^(NSObject<LDEApplicationWorkspaceProxyProtocol> *remoteProxy){
+        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+        [remoteProxy openApplicationWithBundleIdentifier:bundleIdentifier withReply:^(BOOL result){
+            retval = result;
+            dispatch_semaphore_signal(sema);
+        }];
+        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.installd" compliantToProtocol:@protocol(LDEApplicationWorkspaceProxyProtocol)];
+    return retval;
+}
+
 @end
