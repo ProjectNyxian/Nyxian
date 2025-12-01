@@ -43,7 +43,7 @@ class Coordinator: NSObject, TextViewDelegate {
         self.parent = parent
         super.init()
         guard self.parent?.synpushServer != nil else { return }
-        self.debounce = LDEDebouncer(delay: 0.3, with: DispatchQueue.main, withTarget: self, with: #selector(typecheckCode))
+        self.debounce = LDEDebouncer(delay: 1.5, with: DispatchQueue.main, withTarget: self, with: #selector(typecheckCode))
         if let textView = self.parent?.textView {
             self.textViewDidChange(textView)
         }
