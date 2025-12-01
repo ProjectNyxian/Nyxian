@@ -61,6 +61,8 @@
 
 + (instancetype)emptyMap;
 
++ (instancetype)stdfdMap;
+
 - (void)insertStdPipe:(int*)stdoutPipe StdErrPipe:(int*)stderrPipe StdInPipe:(int*)stdinPipe;
 
 /*!

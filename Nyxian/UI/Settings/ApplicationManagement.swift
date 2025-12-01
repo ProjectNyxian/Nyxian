@@ -21,7 +21,8 @@ import UIKit
 import UniformTypeIdentifiers
 
 class ApplicationManagementViewController: UIThemedTableViewController, UITextFieldDelegate, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
-    static var applications: [LDEApplicationObject] = []
+    @objc static var shared: ApplicationManagementViewController = ApplicationManagementViewController(style: .insetGrouped)
+    var applications: [LDEApplicationObject] = []
     static let lock: NSLock = NSLock()
     
     let entitlementsContextMenuMappings: [(key: String, value: [(String, PEEntitlement)])] = [
@@ -61,6 +62,15 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         ])
     ]
     
+    override init(style: UITableView.Style) {
+        super.init(style: style)
+        LDEApplicationWorkspace.shared().ping()
+    }
+    
+    @MainActor required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Applications"
@@ -69,34 +79,24 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if ApplicationManagementViewController.lock.try() {
-            DispatchQueue.global().async { [weak self] in
-                let newApplications: [LDEApplicationObject] = LDEApplicationWorkspace.shared().allApplicationObjects()
-                ApplicationManagementViewController.applications = newApplications
-                DispatchQueue.main.async {
-                    self?.tableView.reloadData()
-                    ApplicationManagementViewController.lock.unlock()
-                }
-            }
-        }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return ApplicationManagementViewController.applications.count
+        return self.applications.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return NXProjectTableCell(appObject: ApplicationManagementViewController.applications[indexPath.row])
+        return NXProjectTableCell(appObject: self.applications[indexPath.row])
     }
     
     override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        let application = ApplicationManagementViewController.applications[indexPath.row]
+        let application = self.applications[indexPath.row]
         
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak application] _ in
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: application.bundleIdentifier)
+                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -133,8 +133,8 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                       let application = application else { return }
                 LDEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
                 if(LDEApplicationWorkspace.shared().deleteApplication(withBundleID: application.bundleIdentifier)) {
-                    if let index = ApplicationManagementViewController.applications.firstIndex(where: { $0.bundleIdentifier == application.bundleIdentifier }) {
-                        ApplicationManagementViewController.applications.remove(at: index)
+                    if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == application.bundleIdentifier }) {
+                        self.applications.remove(at: index)
                         self.tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
                     }
                 }
@@ -148,8 +148,8 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let application = ApplicationManagementViewController.applications[indexPath.row]
-        LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: application.bundleIdentifier)
+        let application = self.applications[indexPath.row]
+        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
     }
     
     @objc func plusButtonPressed() {
@@ -158,7 +158,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         documentPicker.modalPresentationStyle = .formSheet
         self.present(documentPicker, animated: true)
     }
-
+    
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         DispatchQueue.global().async {
             guard let selectedURL = urls.first else { return }
@@ -191,10 +191,10 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                         DispatchQueue.main.async {
                             LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: bundleId)
                             let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: miBundle.identifier)
-                            if let index = ApplicationManagementViewController.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
-                                ApplicationManagementViewController.applications[index] = appObject
+                            if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
+                                self.applications[index] = appObject
                             } else {
-                                ApplicationManagementViewController.applications.append(appObject)
+                                self.applications.append(appObject)
                             }
                             self.tableView.reloadData()
                         }
@@ -221,6 +221,39 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             let entHash: String = LDETrust.entHashOfExecutable(atPath: application.executablePath)
             TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: entitlement)
             LDEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
+        }
+    }
+    
+    @objc func applicationWasInstalled(_ app: LDEApplicationObject!) {
+        DispatchQueue.main.async {
+            if let index = self.applications.firstIndex(of: app) {
+                self.applications[index] = app
+                self.tableView.reloadRows(
+                    at: [IndexPath(row: index, section: 0)],
+                    with: .automatic
+                )
+            } else {
+                self.applications.append(app)
+                let index = self.applications.count - 1
+                self.tableView.insertRows(
+                    at: [IndexPath(row: index, section: 0)],
+                    with: .automatic
+                )
+            }
+        }
+    }
+    
+    @objc func application(withBundleIdentifierWasUninstalled bundleIdentifier: String!) {
+        DispatchQueue.main.async {
+            let temp = LDEApplicationObject()
+            temp.bundleIdentifier = bundleIdentifier
+            if let index = self.applications.firstIndex(of: temp) {
+                self.applications.remove(at: index)
+                self.tableView.deleteRows(
+                    at: [IndexPath(row: index, section: 0)],
+                    with: .automatic
+                )
+            }
         }
     }
 }

@@ -32,6 +32,7 @@
 - (instancetype)init;
 + (instancetype)shared;
 
+- (void)ping;
 - (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath;
 - (BOOL)installApplicationAtPackagePath:(NSString*)packagePath;
 - (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;

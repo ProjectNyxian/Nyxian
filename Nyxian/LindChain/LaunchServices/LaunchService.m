@@ -39,6 +39,7 @@
     // Spawn process
     NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
     [mutableDictionary setObject:[Server getTicket] forKey:@"LSEndpoint"];
+    [mutableDictionary setObject:[FDMapObject stdfdMap] forKey:@"LSMapObject"];
     
     pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withKernelSurfaceProcess:kernel_proc_];
     if(pid == 0) [self ignition];

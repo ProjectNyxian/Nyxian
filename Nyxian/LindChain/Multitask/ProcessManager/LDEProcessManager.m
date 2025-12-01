@@ -88,7 +88,7 @@
 }
 
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
-              withParentProcessIdentifier:(pid_t)parentProcessIdentifier
+                 withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
     __block pid_t retval = 0;

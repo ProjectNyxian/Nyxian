@@ -131,6 +131,19 @@
     return self;
 }
 
+- (BOOL)isEqual:(id)object
+{
+    if (self == object) return YES;
+    if (![object isKindOfClass:[LDEApplicationObject class]]) return NO;
+    LDEApplicationObject *other = (LDEApplicationObject *)object;
+    return [self.bundleIdentifier isEqualToString:other.bundleIdentifier];
+}
+
+- (NSUInteger)hash
+{
+    return self.bundleIdentifier.hash;
+}
+
 @end
 
 @implementation LDEApplicationObjectArray

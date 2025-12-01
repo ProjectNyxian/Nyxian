@@ -24,6 +24,13 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/LaunchServices/LaunchService.h>
+#import <Nyxian-Swift.h>
+
+@interface LDEApplicationWorkspace ()
+
+@property (nonatomic,strong) NSMutableArray<LDEApplicationObject*> *apps;
+
+@end
 
 @implementation LDEApplicationWorkspace
 
@@ -32,6 +39,7 @@
     self = [super init];
     if(self)
     {
+        _apps = [[NSMutableArray alloc] init];
         [self connect];
     }
     return self;
@@ -49,11 +57,17 @@
 
 - (void)connect
 {
+    NSLog(@"Connecting to installd...");
     __weak typeof(self) weakSelf = self;
     _connection = [[LaunchServices shared] connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
     _connection.invalidationHandler = ^{
         [weakSelf connect];
     };
+}
+
+- (void)ping
+{
+    [_connection.remoteObjectProxy ping];
 }
 
 - (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath
@@ -120,14 +134,7 @@
 
 - (NSArray<LDEApplicationObject*>*)allApplicationObjects
 {
-    __block NSArray<LDEApplicationObject*> *result = nil;
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy allApplicationObjectsWithReply:^(LDEApplicationObjectArray *replyResult) {
-        result = replyResult.applicationObjects;
-        dispatch_semaphore_signal(sema);
-    }];
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    return result;
+    return _apps;
 }
 
 - (BOOL)clearContainerForBundleID:(NSString *)bundleID
@@ -168,6 +175,20 @@
 
 - (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier
 {
+    
+    
+    for(NSNumber *key in [LDEProcessManager shared].processes)
+    {
+        LDEProcess *process = [LDEProcessManager shared].processes[key];
+        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier])
+        {
+            [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
+        }
+        else
+        {
+            [process terminate];
+        }
+    }
     __block BOOL retval = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy openApplicationWithBundleIdentifier:bundleIdentifier withReply:^(BOOL result){
@@ -178,19 +199,14 @@
     return retval;
 }
 
-- (void)applicationsInitial:(LDEApplicationObjectArray*)array
-{
-    NSLog(@"Received %@",array.applicationObjects);
-}
-
 - (void)applicationWasInstalled:(LDEApplicationObject*)app
 {
-    NSLog(@"Installed: %@", app);
+    [[ApplicationManagementViewController shared] applicationWasInstalled:app];
 }
 
-- (void)applicationWasUninstalled:(LDEApplicationObject*)app
+- (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier
 {
-    NSLog(@"Uninstalled: %@", app);
+    [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
 }
 
 @end

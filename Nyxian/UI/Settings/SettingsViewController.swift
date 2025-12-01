@@ -83,7 +83,7 @@ class SettingsViewController: UIThemedTableViewController {
             case 0:
                 return ToolChainController(style: .insetGrouped)
             case 1:
-                return ApplicationManagementViewController(style: .insetGrouped)
+                return ApplicationManagementViewController.shared
             case 2:
                 return CustomizationViewController(style: .insetGrouped)
             case 3:

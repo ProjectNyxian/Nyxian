@@ -17,17 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-#ifndef LDEAPPLICATIONWORKSPACEPROTOCOL_H
-#define LDEAPPLICATIONWORKSPACEPROTOCOL_H
-
-#import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
-
-@protocol LDEApplicationWorkspaceProtocol <NSObject>
-
-- (void)applicationWasInstalled:(LDEApplicationObject*)app;
-- (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier;
-
-@end
-
-#endif /* LDEAPPLICATIONWORKSPACEPROTOCOL_H */
+ksurface_proc_t *kernel_proc(void)
+{
+    return kernel_proc_;
+}

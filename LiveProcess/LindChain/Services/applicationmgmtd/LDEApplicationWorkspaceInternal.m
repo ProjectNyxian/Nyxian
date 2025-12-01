@@ -151,9 +151,9 @@ bool checkCodeSignature(const char* path);
         LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithBundle:miBundle];
         if(object != nil)
         {
-            for(id<LDEApplicationWorkspaceProtocol> client in [[ServiceServer sharedService] clients])
+            for(NSXPCConnection *client in [[ServiceServer sharedService] clients])
             {
-                [client applicationWasInstalled:object];
+                [client.remoteObjectProxy applicationWasInstalled:object];
             }
         }
     }
@@ -181,9 +181,9 @@ bool checkCodeSignature(const char* path);
     [[NSFileManager defaultManager] removeItemAtPath:[appObject containerPath] error:nil];
     [self.bundles removeObjectForKey:bundleID];
     
-    for(id<LDEApplicationWorkspaceProtocol> client in [[ServiceServer sharedService] clients])
+    for(NSXPCConnection *client in [[ServiceServer sharedService] clients])
     {
-        [client applicationWithBundleIdentifierWasUninstalled:appObject.bundleIdentifier];
+        [client.remoteObjectProxy applicationWithBundleIdentifierWasUninstalled:appObject.bundleIdentifier];
     }
     
     return YES;
@@ -229,6 +229,11 @@ bool checkCodeSignature(const char* path);
 @end
 
 @implementation LDEApplicationWorkspaceProxy
+
+- (void)ping
+{
+    return;
+}
 
 - (void)applicationInstalledWithBundleID:(NSString *)bundleID
                                withReply:(void (^)(BOOL))reply {
@@ -403,11 +408,11 @@ bool checkCodeSignature(const char* path);
     NSMutableArray<LDEApplicationObject*> *objects = [NSMutableArray array];
     for (NSString *bundleID in workspace.bundles) {
         MIBundle *bundle = workspace.bundles[bundleID];
-        if (bundle) {
-            [objects addObject:[[LDEApplicationObject alloc] initWithBundle:bundle]];
+        if(bundle)
+        {
+            [clientObject applicationWasInstalled:[[LDEApplicationObject alloc] initWithBundle:bundle]];
         }
     }
-    [clientObject applicationsInitial:[[LDEApplicationObjectArray alloc] initWithApplicationObjects:[objects copy]]];
 }
 
 @end

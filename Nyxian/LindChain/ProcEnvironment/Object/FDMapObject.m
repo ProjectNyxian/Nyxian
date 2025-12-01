@@ -37,6 +37,32 @@
     return map;
 }
 
++ (instancetype)stdfdMap
+{
+    FDMapObject *map = [self emptyMap];
+    map.fd_map = xpc_array_create_empty();
+    
+    // Stdout
+    xpc_object_t dict = xpc_dictionary_create_empty();
+    xpc_dictionary_set_fd(dict, "actual_fd", STDOUT_FILENO);
+    xpc_dictionary_set_int64(dict, "wished_fd", STDOUT_FILENO);
+    xpc_array_append_value(map.fd_map, dict);
+    
+    // Stderr
+    dict = xpc_dictionary_create_empty();
+    xpc_dictionary_set_fd(dict, "actual_fd", STDERR_FILENO);
+    xpc_dictionary_set_int64(dict, "wished_fd", STDERR_FILENO);
+    xpc_array_append_value(map.fd_map, dict);
+    
+    // Stdin
+    dict = xpc_dictionary_create_empty();
+    xpc_dictionary_set_fd(dict, "actual_fd", STDIN_FILENO);
+    xpc_dictionary_set_int64(dict, "wished_fd", STDIN_FILENO);
+    xpc_array_append_value(map.fd_map, dict);
+    
+    return map;
+}
+
 #pragma mark - Copying and applying file descriptor map (Unlike NSFileHandle this is used to transfer entire file descriptor maps)
 
 - (void)insertStdPipe:(int*)stdoutPipe

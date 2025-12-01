@@ -30,4 +30,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/flow.h>
 
+ksurface_proc_t *kernel_proc(void);
+
 #endif /* PROC_PROC_H */
