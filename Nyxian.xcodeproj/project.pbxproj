@@ -360,6 +360,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AF9916E72DC8C42400DDF895 /* Build configuration list for PBXNativeTarget "Nyxian" */;
 			buildPhases = (
+				79DFFD432EDE05B9002E1EF1 /* ShellScript */,
 				AF9916D52DC8C42200DDF895 /* Sources */,
 				AF9916D62DC8C42200DDF895 /* Frameworks */,
 				AF9916D72DC8C42200DDF895 /* Resources */,
@@ -462,6 +463,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		79DFFD432EDE05B9002E1EF1 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Nyxian/config.h",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Nyxian/config.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "INPUT=\"${SRCROOT}/Nyxian/config.h\"\nOUTPUT=\"${SRCROOT}/Nyxian/config.xcconfig\"\n\nFLAGS=\"\"\n\nwhile IFS= read -r line; do\n    if [[ \"$line\" =~ ^#define[[:space:]]+([A-Z_]+)[[:space:]]+1[[:space:]]*$ ]]; then\n        name=\"${BASH_REMATCH[1]}\"\n        FLAGS=\"$FLAGS $name\"\n    fi\ndone < \"$INPUT\"\n\necho \"SWIFT_ACTIVE_COMPILATION_CONDITIONS = \\$(inherited)$FLAGS\" > \"$OUTPUT\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		79A3A9352EDDABAE00C0342E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -507,6 +530,8 @@
 /* Begin XCBuildConfiguration section */
 		79A3A93F2EDDABAE00C0342E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -546,6 +571,8 @@
 		};
 		79A3A9402EDDABAE00C0342E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -585,6 +612,8 @@
 		};
 		79BF98072E6291EE00C60D4C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LiveProcess/LiveProcess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -674,6 +703,8 @@
 		};
 		79BF98082E6291EE00C60D4C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LiveProcess/LiveProcess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -763,6 +794,8 @@
 		};
 		AF9916E52DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -830,6 +863,8 @@
 		};
 		AF9916E62DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -890,6 +925,8 @@
 		};
 		AF9916E82DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1003,6 +1040,8 @@
 		};
 		AF9916E92DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
+			baseConfigurationReferenceRelativePath = config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;

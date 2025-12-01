@@ -27,7 +27,11 @@ class SettingsViewController: UIThemedTableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // To enable kernel logging entirely, change return value to 6!
+#if KSURFACE_KLOG_ENABLED
         return 6
+#else
+        return 5
+#endif // KSURFACE_KLOG_ENABLED
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -90,8 +94,10 @@ class SettingsViewController: UIThemedTableViewController {
                 return CertificateController(style: .insetGrouped)
             case 4:
                 return AppInfoViewController(style: .insetGrouped)
+#if KSURFACE_KLOG_ENABLED
             case 5:
                 return KernelLogViewController()
+#endif // KSURFACE_KLOG_ENABLED
             default:
                 return nil
             }

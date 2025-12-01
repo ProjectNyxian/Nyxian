@@ -19,6 +19,8 @@
 
 import UIKit
 
+#if KSURFACE_KLOG_ENABLED
+
 class KernelLogViewController: UIViewController {
 
     private let scrollView: UIScrollView = {
@@ -103,3 +105,5 @@ class KernelLogViewController: UIViewController {
         present(alert, animated: true)
     }
 }
+
+#endif // KSURFACE_KLOG_ENABLED
