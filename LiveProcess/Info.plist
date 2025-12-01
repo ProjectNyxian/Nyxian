@@ -41,10 +41,6 @@
 	<array>
 		<string>_googlecast._tcp</string>
 	</array>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
-	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -63,8 +59,6 @@
 	</dict>
 	<key>NSLocationDefaultAccuracyReduced</key>
 	<true/>
-	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
 	<key>SBAppUsesLocalNotifications</key>
 	<integer>1</integer>
 	<key>UIApplicationSceneManifest</key>

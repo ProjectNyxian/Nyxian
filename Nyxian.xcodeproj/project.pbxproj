@@ -83,7 +83,6 @@
 
 /* Begin PBXFileReference section */
 		79281CBF2E3A44CA00E983C9 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
-		7944B5632DEC712700834134 /* PrivateConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PrivateConfig.xcconfig; sourceTree = "<group>"; };
 		7944B5652DEC74EA00834134 /* Nyxian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nyxian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		79A3A9392EDDABAE00C0342E /* ServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -101,20 +100,6 @@
 				ServiceProtocol.h,
 			);
 			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
-		};
-		79A3A9432EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "Nyxian" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Service.m,
-			);
-			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
-		};
-		79A3A9442EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "LiveProcess" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Service.m,
-			);
-			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
 		};
 		79BF983D2E62930600C60D4C /* Exceptions for "LiveProcess" folder in "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -230,8 +215,6 @@
 		79A3A93A2EDDABAE00C0342E /* ServiceKit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				79A3A9432EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "Nyxian" target */,
-				79A3A9442EDDAC0B00C0342E /* Exceptions for "ServiceKit" folder in "LiveProcess" target */,
 				79A3A93D2EDDABAE00C0342E /* Exceptions for "ServiceKit" folder in "ServiceKit" target */,
 			);
 			path = ServiceKit;
@@ -294,7 +277,6 @@
 		AF9916D02DC8C42200DDF895 = {
 			isa = PBXGroup;
 			children = (
-				7944B5632DEC712700834134 /* PrivateConfig.xcconfig */,
 				AF99171F2DC8EA3C00DDF895 /* Shared */,
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
 				798692F02E627A3B00390D7E /* LiveProcess */,
@@ -605,7 +587,9 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSBluetoothWhileInUseUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSContactsUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "The guest app is requesting for this permission.";
@@ -636,6 +620,7 @@
 				INFOPLIST_KEY_NSNetworkVolumesUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSSensorKitPrivacyPolicyURL = "The guest app is requesting for this permission.";
@@ -661,7 +646,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian123456.LiveProcess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian.LiveProcess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -691,7 +676,9 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSBluetoothWhileInUseUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSContactsUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSDesktopFolderUsageDescription = "The guest app is requesting for this permission.";
@@ -722,6 +709,7 @@
 				INFOPLIST_KEY_NSNetworkVolumesUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "The guest app is requesting for this permission.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "The guest app is requesting for this permission.";
 				INFOPLIST_KEY_NSSensorKitPrivacyPolicyURL = "The guest app is requesting for this permission.";
@@ -747,7 +735,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian123456.LiveProcess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian.LiveProcess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -758,7 +746,6 @@
 		};
 		AF9916E52DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7944B5632DEC712700834134 /* PrivateConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -826,7 +813,6 @@
 		};
 		AF9916E62DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7944B5632DEC712700834134 /* PrivateConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -887,7 +873,6 @@
 		};
 		AF9916E82DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7944B5632DEC712700834134 /* PrivateConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -989,7 +974,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian123456;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1001,7 +986,6 @@
 		};
 		AF9916E92DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7944B5632DEC712700834134 /* PrivateConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1103,7 +1087,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian123456;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;

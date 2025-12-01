@@ -27,3 +27,4 @@ FOUNDATION_EXPORT const unsigned char ServiceKitVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <ServiceKit/PublicHeader.h>
 #import <ServiceKit/Service.h>
+#import <ServiceKit/ServiceObserver.h>

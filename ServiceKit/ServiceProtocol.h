@@ -22,7 +22,16 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol LDEObserverProtocol <NSObject>
+
+- (void)observerDidConnect;
+- (void)observerDidDisconnect;
+
+@end
+
 @protocol LDEServiceProtocol <NSObject>
+
+@property (nonatomic,strong) NSArray<id<LDEObserverProtocol>> *observers;
 
 + (NSString*)servcieIdentifier;
 + (Protocol*)serviceProtocol;
