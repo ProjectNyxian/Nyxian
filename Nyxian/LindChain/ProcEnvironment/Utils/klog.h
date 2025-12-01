@@ -21,10 +21,9 @@
 #define KLOG_H
 
 #import <Foundation/Foundation.h>
+#import <config.h>
 
-#define KLOG_ENABLED 1
-
-#if KLOG_ENABLED
+#if KSURFACE_KLOG_ENABLED
 
 #define klog_log(system, format, ...) \
     klog_log_internal((system), (format), ##__VA_ARGS__)
