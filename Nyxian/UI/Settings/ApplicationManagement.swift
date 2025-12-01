@@ -189,7 +189,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     let bundleId = lcapp!.bundleIdentifier()
                     if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
                         DispatchQueue.main.async {
-                            LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: bundleId)
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
                             let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: miBundle.identifier)
                             if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
                                 self.applications[index] = appObject
