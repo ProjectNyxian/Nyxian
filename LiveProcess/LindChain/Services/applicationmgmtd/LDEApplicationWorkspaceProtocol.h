@@ -17,13 +17,18 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
 
-//! Project version number for ServiceKit.
-FOUNDATION_EXPORT double ServiceKitVersionNumber;
+#ifndef LDEAPPLICATIONWORKSPACEPROTOCOL_H
+#define LDEAPPLICATIONWORKSPACEPROTOCOL_H
 
-//! Project version string for ServiceKit.
-FOUNDATION_EXPORT const unsigned char ServiceKitVersionString[];
+#import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
 
-// In this header, you should import all the public headers of your framework using statements like #import <ServiceKit/PublicHeader.h>
-#import <ServiceKit/Service.h>
+@protocol LDEApplicationWorkspaceProtocol <NSObject>
+
+- (void)applicationsInitial:(LDEApplicationObjectArray*)array;
+- (void)applicationWasInstalled:(LDEApplicationObject*)app;
+- (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier;
+
+@end
+
+#endif /* LDEAPPLICATIONWORKSPACEPROTOCOL_H */

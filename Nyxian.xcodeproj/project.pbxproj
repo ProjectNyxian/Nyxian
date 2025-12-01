@@ -10,6 +10,8 @@
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		79A3AE382EDDDBB000C0342E /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
+		79A3AE392EDDDBB000C0342E /* ServiceKit.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
@@ -21,6 +23,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		79A3A94A2EDDAD3D00C0342E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 79A3A9382EDDABAE00C0342E;
+			remoteInfo = ServiceKit;
+		};
+		79A3AE3A2EDDDBB000C0342E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
 			proxyType = 1;
@@ -75,6 +84,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				79A3AE392EDDDBB000C0342E /* ServiceKit.framework in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -253,6 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF9FD5892DC935F400411E1A /* Runestone in Frameworks */,
+				79A3AE382EDDDBB000C0342E /* ServiceKit.framework in Frameworks */,
 				AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */,
 				793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */,
 				AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */,
@@ -360,6 +371,7 @@
 			);
 			dependencies = (
 				79BF98032E6291EE00C60D4C /* PBXTargetDependency */,
+				79A3AE3B2EDDDBB000C0342E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
@@ -479,6 +491,11 @@
 			isa = PBXTargetDependency;
 			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
 			targetProxy = 79A3A94A2EDDAD3D00C0342E /* PBXContainerItemProxy */;
+		};
+		79A3AE3B2EDDDBB000C0342E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
+			targetProxy = 79A3AE3A2EDDDBB000C0342E /* PBXContainerItemProxy */;
 		};
 		79BF98032E6291EE00C60D4C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

@@ -21,21 +21,27 @@
 #define LDEAPPLICATIONWORKSPACEPROXY_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceProtocol.h>
 #import "LDEApplicationObject.h"
 #import "LDEApplicationWorkspaceProxyProtocol.h"
 
-@interface LDEApplicationWorkspace : NSObject
+@interface LDEApplicationWorkspace : NSObject <LDEApplicationWorkspaceProtocol>
 
-+ (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath;
-+ (BOOL)installApplicationAtPackagePath:(NSString*)packagePath;
-+ (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;
-+ (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID;
-+ (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID;
-+ (NSArray<LDEApplicationObject*>*)allApplicationObjects;
-+ (BOOL)clearContainerForBundleID:(NSString*)bundleID;
-+ (NSString*)fastpathUtility:(NSString*)utilityPath;
-+ (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath;
-+ (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier;
+@property (nonatomic,strong) NSXPCConnection *connection;
+
+- (instancetype)init;
++ (instancetype)shared;
+
+- (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath;
+- (BOOL)installApplicationAtPackagePath:(NSString*)packagePath;
+- (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;
+- (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID;
+- (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID;
+- (NSArray<LDEApplicationObject*>*)allApplicationObjects;
+- (BOOL)clearContainerForBundleID:(NSString*)bundleID;
+- (NSString*)fastpathUtility:(NSString*)utilityPath;
+- (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath;
+- (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier;
 
 @end
 

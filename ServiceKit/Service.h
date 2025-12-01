@@ -25,19 +25,21 @@
 
 @interface ServiceServer : NSObject <NSXPCListenerDelegate>
 
-@property (nonatomic,strong) Protocol *protocol;
+@property (nonatomic,strong) Protocol *serverProtocol;
+@property (nonatomic,strong) Protocol *observerProtocol;
 @property (nonatomic,strong) Class instanceClass;
+@property (nonatomic,strong) id instance;
 @property (nonatomic,strong) NSXPCListener *listener;
 @property (nonatomic) dispatch_once_t anonymousCraftOnce;
+@property (nonatomic) NSMutableArray<NSXPCConnection*> *clients;
 
-- (instancetype)initWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
-+ (instancetype)serverWithClass:(Class)instanceClass withProtocol:(Protocol*)instanceProtocol;
+- (instancetype)initWithClass:(Class)instanceClass withServerProtocol:(Protocol *)serverProtocol withObserverProtocol:(Protocol *)observerProtocol;
 + (instancetype)sharedService;
 
 - (NSXPCListenerEndpoint*)getEndpointForConnection;
 
 @end
 
-int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass);
+int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass, Protocol *clientProtocol);
 
 #endif /* SERVICEKIT_SERVICE_H */

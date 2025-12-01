@@ -54,7 +54,7 @@ void UIKitFixesInit(void)
     _process = process;
     
     // FIXME: This crashes when installd is not running yet
-    LDEApplicationObject *applicationObject = [LDEApplicationWorkspace applicationObjectForExecutablePath:self.process.executablePath];
+    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.process.executablePath];
     if(applicationObject != nil)
     {
         self.process.displayName = applicationObject.displayName;

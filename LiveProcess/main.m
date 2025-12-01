@@ -21,7 +21,6 @@
 #import <UIKit/UIKit.h>
 #import <mach-o/dyld.h>
 #import <objc/runtime.h>
-#import "LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h"
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/proxy.h>
@@ -31,6 +30,8 @@
 
 #import <ServiceKit/ServiceKit.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceProtocol.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
@@ -152,10 +153,10 @@ int LiveProcessMain(int argc, char *argv[]) {
         
         if([service isEqualToString:@"installd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]));
+            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class], @protocol(LDEApplicationWorkspaceProtocol)));
         } else if([service isEqualToString:@"trustd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDETrustProxy class]));
+            exit(LDEServiceMain(argc, argv, [LDETrustProxy class], nil));
         }
     }
     else if([mode isEqualToString:@"spawn"])

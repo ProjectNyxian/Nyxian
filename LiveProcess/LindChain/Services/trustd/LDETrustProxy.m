@@ -83,4 +83,14 @@ NSString *hashOfFileAtPath(NSString *path)
     return @protocol(LDETrustProtocol);
 }
 
++ (Protocol*)observerProtocol
+{
+    return nil;
+}
+
+- (void)clientDidConnectWithConnection:(NSXPCConnection*)client
+{
+    return;
+}
+
 @end

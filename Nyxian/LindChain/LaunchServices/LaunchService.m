@@ -186,4 +186,21 @@
     [connection invalidate];
 }
 
+- (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier
+                             protocol:(Protocol *)protocol
+                             observer:(id)observer
+                     observerProtocol:(Protocol *)observerProtocol
+{
+    NSXPCListenerEndpoint *endpoint = [self getEndpointForServiceIdentifier:serviceIdentifier];
+    if (!endpoint) return nil;
+    
+    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
+    connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:protocol];
+    connection.exportedInterface = [NSXPCInterface interfaceWithProtocol:observerProtocol];
+    connection.exportedObject = observer;
+    [connection resume];
+    
+    return connection;
+}
+
 @end

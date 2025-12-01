@@ -71,7 +71,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         super.viewDidAppear(animated)
         if ApplicationManagementViewController.lock.try() {
             DispatchQueue.global().async { [weak self] in
-                let newApplications: [LDEApplicationObject] = LDEApplicationWorkspace.allApplicationObjects()
+                let newApplications: [LDEApplicationObject] = LDEApplicationWorkspace.shared().allApplicationObjects()
                 ApplicationManagementViewController.applications = newApplications
                 DispatchQueue.main.async {
                     self?.tableView.reloadData()
@@ -96,7 +96,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                LDEApplicationWorkspace.openApplication(withBundleIdentifier: application.bundleIdentifier)
+                LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: application.bundleIdentifier)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -125,14 +125,14 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             let clearContainerAction = UIAction(title: "Clear Data Container", image: UIImage(systemName: "arrow.up.trash.fill")) { _ in
                 guard let application = application else { return }
                 LDEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
-                LDEApplicationWorkspace.clearContainer(forBundleID: application.bundleIdentifier)
+                LDEApplicationWorkspace.shared().clearContainer(forBundleID: application.bundleIdentifier)
             }
             
             let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash.fill"), attributes: .destructive) { [weak self] _ in
                 guard let self = self,
                       let application = application else { return }
                 LDEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
-                if(LDEApplicationWorkspace.deleteApplication(withBundleID: application.bundleIdentifier)) {
+                if(LDEApplicationWorkspace.shared().deleteApplication(withBundleID: application.bundleIdentifier)) {
                     if let index = ApplicationManagementViewController.applications.firstIndex(where: { $0.bundleIdentifier == application.bundleIdentifier }) {
                         ApplicationManagementViewController.applications.remove(at: index)
                         self.tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
@@ -149,7 +149,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let application = ApplicationManagementViewController.applications[indexPath.row]
-        LDEApplicationWorkspace.openApplication(withBundleIdentifier: application.bundleIdentifier)
+        LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: application.bundleIdentifier)
     }
     
     @objc func plusButtonPressed() {
@@ -187,10 +187,10 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     lcapp!.save()
                     let bundlePath = lcapp!.bundlePath()
                     let bundleId = lcapp!.bundleIdentifier()
-                    if LDEApplicationWorkspace.installApplication(atBundlePath: bundlePath) {
+                    if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
                         DispatchQueue.main.async {
-                            LDEApplicationWorkspace.openApplication(withBundleIdentifier: bundleId)
-                            let appObject: LDEApplicationObject = LDEApplicationWorkspace.applicationObject(forBundleID: miBundle.identifier)
+                            LDEApplicationWorkspace.shared().openApplication(withBundleIdentifier: bundleId)
+                            let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: miBundle.identifier)
                             if let index = ApplicationManagementViewController.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
                                 ApplicationManagementViewController.applications[index] = appObject
                             } else {

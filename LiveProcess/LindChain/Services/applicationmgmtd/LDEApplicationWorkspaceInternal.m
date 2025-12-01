@@ -22,6 +22,7 @@
 #import <LindChain/Utils/Zip.h>
 #import <Security/Security.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceProtocol.h>
 
 bool checkCodeSignature(const char* path);
 
@@ -142,7 +143,20 @@ bool checkCodeSignature(const char* path);
     if(![fileManager moveItemAtURL:bundle.bundleURL toURL:installURL error:nil]) return NO;
     
     // If existed we add object
-    [self.bundles setObject:[PrivClass(MIExecutableBundle) bundleForURL:installURL error:nil] forKey:bundle.identifier];
+    NSError *error = nil;
+    MIBundle *miBundle = [[PrivClass(MIBundle) alloc] initWithBundleURL:installURL error:&error];
+    if(miBundle != nil)
+    {
+        [self.bundles setObject:[PrivClass(MIExecutableBundle) bundleForURL:installURL error:nil] forKey:bundle.identifier];
+        LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithBundle:miBundle];
+        if(object != nil)
+        {
+            for(id<LDEApplicationWorkspaceProtocol> client in [[ServiceServer sharedService] clients])
+            {
+                [client applicationWasInstalled:object];
+            }
+        }
+    }
     
     return YES;
 }
@@ -150,15 +164,29 @@ bool checkCodeSignature(const char* path);
 - (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
 {
     MIBundle *previousApplication = [self applicationBundleForBundleID:bundleID];
-    if(previousApplication)
+    
+    if(previousApplication == nil)
     {
-        NSURL *container = [self applicationContainerForBundleID:bundleID];
-        [[NSFileManager defaultManager] removeItemAtURL:[[previousApplication bundleURL] URLByDeletingLastPathComponent] error:nil];
-        [[NSFileManager defaultManager] removeItemAtURL:container error:nil];
-        [self.bundles removeObjectForKey:bundleID];
-        return YES;
+        return NO;
     }
-    return NO;
+    
+    LDEApplicationObject *appObject = [[LDEApplicationObject alloc] initWithBundle:previousApplication];
+    
+    if(appObject == nil)
+    {
+        return NO;
+    }
+    
+    [[NSFileManager defaultManager] removeItemAtURL:[[previousApplication bundleURL] URLByDeletingLastPathComponent] error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:[appObject containerPath] error:nil];
+    [self.bundles removeObjectForKey:bundleID];
+    
+    for(id<LDEApplicationWorkspaceProtocol> client in [[ServiceServer sharedService] clients])
+    {
+        [client applicationWithBundleIdentifierWasUninstalled:appObject.bundleIdentifier];
+    }
+    
+    return YES;
 }
 
 - (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID
@@ -362,6 +390,24 @@ bool checkCodeSignature(const char* path);
 + (Protocol*)serviceProtocol
 {
     return @protocol(LDEApplicationWorkspaceProxyProtocol);
+}
+
++ (Protocol *)observerProtocol { 
+    return @protocol(LDEApplicationWorkspaceProtocol);
+}
+
+- (void)clientDidConnectWithConnection:(NSXPCConnection*)client
+{
+    id<LDEApplicationWorkspaceProtocol> clientObject = client.remoteObjectProxy;
+    LDEApplicationWorkspaceInternal *workspace = [LDEApplicationWorkspaceInternal shared];
+    NSMutableArray<LDEApplicationObject*> *objects = [NSMutableArray array];
+    for (NSString *bundleID in workspace.bundles) {
+        MIBundle *bundle = workspace.bundles[bundleID];
+        if (bundle) {
+            [objects addObject:[[LDEApplicationObject alloc] initWithBundle:bundle]];
+        }
+    }
+    [clientObject applicationsInitial:[[LDEApplicationObjectArray alloc] initWithApplicationObjects:[objects copy]]];
 }
 
 @end

@@ -25,25 +25,21 @@ static ServiceServer *singletonServiceServer = nil;
 @implementation ServiceServer
 
 - (instancetype)initWithClass:(Class)instanceClass
-                 withProtocol:(Protocol *)instanceProtocol
+           withServerProtocol:(Protocol *)serverProtocol
+         withObserverProtocol:(Protocol *)observerProtocol
 {
     self = [super init];
     
-    _protocol = instanceProtocol;
+    _serverProtocol = serverProtocol;
+    _observerProtocol = observerProtocol;
     _instanceClass = instanceClass;
     _listener = [[NSXPCListener alloc] init];
-    
+    _clients = [[NSMutableArray alloc] init];
+    _instance = [[_instanceClass alloc] init];
     
     singletonServiceServer = self;
     
     return self;
-}
-
-+ (instancetype)serverWithClass:(Class)instanceClass
-                   withProtocol:(Protocol *)instanceProtocol
-{
-    return [[ServiceServer alloc] initWithClass:instanceClass
-                                   withProtocol:instanceProtocol];
 }
 
 + (instancetype)sharedService
@@ -53,9 +49,12 @@ static ServiceServer *singletonServiceServer = nil;
 
 - (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)newConnection
 {
-    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:_protocol];
-    newConnection.exportedObject = [[_instanceClass alloc] init];;
+    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:_serverProtocol];
+    newConnection.exportedObject = _instance;
+    newConnection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:_observerProtocol];
+    [self.clients addObject:newConnection];
     [newConnection resume];
+    [_instance clientDidConnectWithConnection:newConnection];
     return YES;
 }
 
@@ -73,7 +72,8 @@ static ServiceServer *singletonServiceServer = nil;
 
 int LDEServiceMain(int argc,
                    char *argv[],
-                   Class<LDEServiceProtocol> serviceClass)
+                   Class<LDEServiceProtocol> serviceClass,
+                   Protocol *clientProtocol)
 {
     NSString *serviceIdentifier = [serviceClass servcieIdentifier];
     Protocol *serviceProtocol = [serviceClass serviceProtocol];
@@ -81,7 +81,7 @@ int LDEServiceMain(int argc,
     if(serviceIdentifier != nil &&
        serviceProtocol != nil)
     {
-        ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:serviceClass withProtocol:serviceProtocol];
+        ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:serviceClass withServerProtocol:serviceProtocol withObserverProtocol:clientProtocol];
         void (*environment_proxy_set_endpoint_for_service_identifier)(NSXPCListenerEndpoint *endpoint, NSString *serviceIdentifier) = dlsym(RTLD_DEFAULT, "environment_proxy_set_endpoint_for_service_identifier");
         environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], serviceIdentifier);
         CFRunLoopRun();
