@@ -157,7 +157,7 @@
        (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
         entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:nil];
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil];
         reply(pid);
         klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
         ksurface_proc_info_thread_unregister();
