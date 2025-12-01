@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
-		79A3A9482EDDAD3D00C0342E /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
@@ -262,7 +261,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79A3A9482EDDAD3D00C0342E /* ServiceKit.framework in Frameworks */,
 				79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
