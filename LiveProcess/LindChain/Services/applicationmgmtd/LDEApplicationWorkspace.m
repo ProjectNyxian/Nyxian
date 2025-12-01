@@ -173,32 +173,6 @@
     return application;
 }
 
-- (BOOL)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier
-{
-    
-    
-    for(NSNumber *key in [LDEProcessManager shared].processes)
-    {
-        LDEProcess *process = [LDEProcessManager shared].processes[key];
-        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier])
-        {
-            [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
-        }
-        else
-        {
-            [process terminate];
-        }
-    }
-    __block BOOL retval = NO;
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy openApplicationWithBundleIdentifier:bundleIdentifier withReply:^(BOOL result){
-        retval = result;
-        dispatch_semaphore_signal(sema);
-    }];
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    return retval;
-}
-
 - (void)applicationWasInstalled:(LDEApplicationObject*)app
 {
     [[ApplicationManagementViewController shared] applicationWasInstalled:app];

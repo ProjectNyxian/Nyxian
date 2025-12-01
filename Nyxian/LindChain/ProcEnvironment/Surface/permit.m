@@ -19,49 +19,61 @@
 
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
-BOOL permitive_over_process_allowed(pid_t callerPid,
+BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
                                     pid_t targetPid)
 {
     // Only let host proceed
     environment_must_be_role(EnvironmentRoleHost);
     
-    // Get the objects of both pids
-    ksurface_proc_t *callerProc = proc_for_pid(callerPid);
-    if(callerProc == NULL)
-    {
-        return NO;
-    }
-    
+    // Get target process
     ksurface_proc_t *targetProc = proc_for_pid(targetPid);
     if(targetProc == NULL)
     {
-        proc_release(callerProc);
         return NO;
     }
     
+    // Locking processes
+    proc_read_lock(proc);
+    proc_read_lock(targetProc);
+    
     // Gets creds
-    uid_t caller_uid = proc_getuid(callerProc);
+    uid_t caller_uid = proc_getuid(proc);
+    
+    // Root check
+    if(caller_uid == 0)
+    {
+        proc_unlock(targetProc);
+        proc_release(targetProc);
+        proc_unlock(proc);
+        return YES;
+    }
     
     // Platform check
     if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
-       !entitlement_got_entitlement(proc_getentitlements(callerProc), PEEntitlementPlatform))
+       !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
         // If the target got platform but the caller doesnt it gets denied
-        proc_release(callerProc);
+        proc_unlock(targetProc);
         proc_release(targetProc);
+        proc_unlock(proc);
         return NO;
     }
     
     // Gets if its allowed in the first place
-    if((caller_uid == 0) ||
-       (caller_uid == proc_getuid(targetProc)) ||
+    if((caller_uid == proc_getuid(targetProc)) ||
        (caller_uid == proc_getruid(targetProc)))
     {
-        proc_release(callerProc);
+        proc_unlock(targetProc);
         proc_release(targetProc);
+        proc_unlock(proc);
         return YES;
     }
     
+    // Unlocking processes locks
+    proc_unlock(targetProc);
+    proc_release(targetProc);
+    proc_unlock(proc);
     return NO;
 }

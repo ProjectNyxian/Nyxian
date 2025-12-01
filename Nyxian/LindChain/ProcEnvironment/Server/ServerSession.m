@@ -83,7 +83,7 @@
         
         if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPid) ||
            (isHost && !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPidHost)) ||
-           (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_processIdentifier, pid))))
+           (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))))
         {
             proc_release(proc);
             ksurface_proc_info_thread_unregister();
@@ -114,8 +114,9 @@
     ksurface_proc_info_thread_register();
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
-    if(pid != _processIdentifier && (!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessKill) ||
-                                     !permitive_over_process_allowed(_processIdentifier, pid)))
+    if(pid != _processIdentifier &&
+       (!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessKill) ||
+        !permitive_over_process_allowed(_proc, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
         ksurface_proc_info_thread_unregister();

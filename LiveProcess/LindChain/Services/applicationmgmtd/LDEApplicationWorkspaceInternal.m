@@ -355,38 +355,6 @@ bool checkCodeSignature(const char* path);
     reply(application);
 }
 
-- (void)openApplicationWithBundleIdentifier:(NSString*)bundleIdentifier
-                                  withReply:(void (^)(BOOL))reply
-{
-    /* finding application with bundle identifier */
-    MIBundle *applicationBundle = [[LDEApplicationWorkspaceInternal shared] applicationBundleForBundleID:bundleIdentifier];
-    
-    /* checking for null pointer */
-    if(applicationBundle == nil)
-    {
-        reply(NO);
-        return;
-    }
-    
-    /* creating a executable bundle */
-    NSError *error = nil;
-    MIExecutableBundle *execBundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleURL:applicationBundle.bundleURL error:&error];
-    
-    /* checking for null pointer */
-    if(execBundle == nil)
-    {
-        reply(NO);
-        return;
-    }
-    
-    /* get pid */
-    pid_t pid = environment_proxy_spawn_process_at_path([[execBundle executableURL] path], @[[[execBundle executableURL] path]], @{}, nil);
-    
-    /* and the return */
-    reply(pid != -1);
-    return;
-}
-
 + (NSString*)servcieIdentifier
 {
     return @"com.cr4zy.installd";
@@ -405,8 +373,8 @@ bool checkCodeSignature(const char* path);
 {
     id<LDEApplicationWorkspaceProtocol> clientObject = client.remoteObjectProxy;
     LDEApplicationWorkspaceInternal *workspace = [LDEApplicationWorkspaceInternal shared];
-    NSMutableArray<LDEApplicationObject*> *objects = [NSMutableArray array];
-    for (NSString *bundleID in workspace.bundles) {
+    for(NSString *bundleID in workspace.bundles)
+    {
         MIBundle *bundle = workspace.bundles[bundleID];
         if(bundle)
         {
