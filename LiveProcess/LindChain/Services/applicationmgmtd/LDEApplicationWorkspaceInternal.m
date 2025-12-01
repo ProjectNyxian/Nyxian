@@ -26,22 +26,17 @@
 
 bool checkCodeSignature(const char* path);
 
-/*
- Internal class
- */
 @interface LDEApplicationWorkspaceInternal ()
 
 @property (nonatomic,strong) NSURL *applicationsURL;
 @property (nonatomic,strong) NSURL *containersURL;
 @property (nonatomic,strong) NSURL *binaryURL;
+@property (nonatomic, strong) dispatch_queue_t workspaceQueue;
 
 @end
 
 @implementation LDEApplicationWorkspaceInternal
 
-/*
- Init
- */
 - (instancetype)init
 {
     self = [super init];
@@ -83,6 +78,8 @@ bool checkCodeSignature(const char* path);
         else
             [[NSFileManager defaultManager] removeItemAtURL:uuidURL error:nil];
     }
+    
+    self.workspaceQueue = dispatch_queue_create("com.cr4zy.installd.workspace", DISPATCH_QUEUE_SERIAL);
     
     return self;
 }
@@ -167,12 +164,20 @@ bool checkCodeSignature(const char* path);
 
 - (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID
 {
-    return [self.bundles objectForKey:bundleID] ? YES : NO;
+    __block BOOL result = NO;
+    dispatch_sync(self.workspaceQueue, ^{
+        result = [self.bundles objectForKey:bundleID] ? YES : NO;
+    });
+    return result;
 }
 
 - (MIBundle*)applicationBundleForBundleID:(NSString *)bundleID
 {
-    return [self.bundles objectForKey:bundleID];
+    __block MIBundle *result = nil;
+    dispatch_sync(self.workspaceQueue, ^{
+        result = [self.bundles objectForKey:bundleID];
+    });
+    return result;
 }
 
 - (NSURL*)applicationContainerForBundleID:(NSString *)bundleID
@@ -210,11 +215,37 @@ bool checkCodeSignature(const char* path);
 
 - (void)installApplicationWithArchiveObject:(ArchiveObject*)archiveObject
                                   withReply:(void (^)(BOOL))reply {
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSString *tempBundle = [archiveObject extractArchive];
-    BOOL didInstall = [[LDEApplicationWorkspaceInternal shared] installApplicationWithPayloadPath:tempBundle];
-    [fileManager removeItemAtPath:tempBundle error:nil];
-    reply(didInstall);
+    /* validate object*/
+    if(archiveObject == NULL)
+    {
+        reply(NO);
+        return;
+    }
+    
+    /* running installation on background queue */
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        NSString *tempBundle = nil;
+        BOOL didInstall = NO;
+        
+        @try {
+            tempBundle = [archiveObject extractArchive];
+            if(tempBundle != NULL)
+            {
+                didInstall = [[LDEApplicationWorkspaceInternal shared]
+                              installApplicationWithPayloadPath:tempBundle];
+            }
+        } @catch (NSException *exception) {
+            NSLog(@"[installd] Exception during install: %@", exception);
+            didInstall = NO;
+        } @finally {
+            if(tempBundle != NULL)
+            {
+                [fileManager removeItemAtPath:tempBundle error:nil];
+            }
+            reply(didInstall);
+        }
+    });
 }
 
 - (void)applicationObjectForBundleID:(NSString *)bundleID
