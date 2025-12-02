@@ -131,6 +131,7 @@ proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
     proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
     memcpy(snap, &(ctx->snap), sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
     *snapshot_out = snap;
+    free(ctx);
     
     return PROC_LIST_OK;
 }
@@ -157,7 +158,9 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
     {
         if(can_see_process(proc, targetProc, vis))
         {
+            proc_read_lock(targetProc);
             *nyx = targetProc->nyx;
+            proc_unlock(targetProc);
             
             /* releasing process */
             proc_release(targetProc);
