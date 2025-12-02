@@ -231,16 +231,7 @@ class Builder {
     }
     
     func link() throws {
-        let ldArgs: [String] = [
-            "-platform_version",
-            "ios",
-            project.projectConfig.platformMinimumVersion!,
-            project.projectConfig.platformVersion!,
-            "-arch",
-            "arm64",
-            "-syslibroot",
-            Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.1.sdk")
-        ] + self.project.projectConfig.linkerFlags as! [String] + [
+        let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() + self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
         ] + objectFiles

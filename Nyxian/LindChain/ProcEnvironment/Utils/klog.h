@@ -22,7 +22,7 @@
 
 #import <Foundation/Foundation.h>
 
-#define KLOG_ENABLED 1
+#define KLOG_ENABLED 0
 
 #if KLOG_ENABLED
 

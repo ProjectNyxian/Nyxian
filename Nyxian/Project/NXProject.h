@@ -55,6 +55,7 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 @property (nonatomic,readonly) BOOL debug;
 
 - (NSMutableArray*)generateCompilerFlags;
+- (NSMutableArray*)generateLinkerFlags;
 
 @end
 

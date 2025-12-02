@@ -70,6 +70,26 @@
     return flags;
 }
 
+- (NSMutableArray*)generateLinkerFlags
+{
+    NSMutableArray *flags = [[NSMutableArray alloc] initWithArray:[self linkerFlags]];
+    
+    [flags addObjectsFromArray:@[
+        @"-platform_version",
+        @"ios",
+        [self platformMinimumVersion],
+        [self platformVersion],
+        @"-arch",
+        @"arm64",
+        @"-syslibroot",
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
+        [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
+        [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]]
+    ]];
+    
+    return flags;
+}
+
 // NONE PUBLIC FEATURES - NOT READY FOR PUBLIC
 - (BOOL)debug
 {
