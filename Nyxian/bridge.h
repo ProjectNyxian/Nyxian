@@ -18,9 +18,6 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* Config */
-#import <config.h>
-
 /* Apple Private API Headers */
 #import <LindChain/Private/UIKitPrivate.h>
 

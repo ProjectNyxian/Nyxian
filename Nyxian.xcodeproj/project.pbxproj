@@ -360,7 +360,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AF9916E72DC8C42400DDF895 /* Build configuration list for PBXNativeTarget "Nyxian" */;
 			buildPhases = (
-				79DFFD432EDE05B9002E1EF1 /* ShellScript */,
 				AF9916D52DC8C42200DDF895 /* Sources */,
 				AF9916D62DC8C42200DDF895 /* Frameworks */,
 				AF9916D72DC8C42200DDF895 /* Resources */,
@@ -462,28 +461,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		79DFFD432EDE05B9002E1EF1 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Nyxian/config.h",
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Nyxian/config.xcconfig",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "INPUT=\"${SRCROOT}/Nyxian/config.h\"\nOUTPUT=\"${SRCROOT}/Nyxian/config.xcconfig\"\n\nFLAGS=\"\"\n\nwhile IFS= read -r line; do\n    if [[ \"$line\" =~ ^#define[[:space:]]+([A-Z_]+)[[:space:]]+1[[:space:]]*$ ]]; then\n        name=\"${BASH_REMATCH[1]}\"\n        FLAGS=\"$FLAGS $name\"\n    fi\ndone < \"$INPUT\"\n\necho \"SWIFT_ACTIVE_COMPILATION_CONDITIONS = \\$(inherited)$FLAGS\" > \"$OUTPUT\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		79A3A9352EDDABAE00C0342E /* Sources */ = {
