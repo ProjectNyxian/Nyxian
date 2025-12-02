@@ -61,28 +61,18 @@
         // Prepare
         bool isHost = pid == getpid();
         
-        // Checking if we have necessary entitlements
-        ksurface_proc_t *proc = proc_for_pid(pid);
-        if(proc == NULL)
-        {
-            reply(nil);
-            return;
-        }
-        
         ksurface_proc_t *targetProc = proc_for_pid(pid);
         if(targetProc == NULL)
         {
-            proc_release(proc);
             reply(nil);
             return;
         }
         
         
-        if(!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPid) ||
-           (isHost && !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementTaskForPidHost)) ||
+        if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPid) ||
+           (isHost && !entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPidHost)) ||
            (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))))
         {
-            proc_release(proc);
             reply(nil);
             return;
         }
@@ -90,7 +80,6 @@
         // Send requested task port
         mach_port_t port;
         kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
-        proc_release(proc);
         reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
     }
     else
