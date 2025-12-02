@@ -209,12 +209,9 @@
 {
     if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
     {
-        proc_release(_proc);
         reply();
         return;
     }
-    
-    proc_release(_proc);
     
     [object signAndWriteBack];
     reply();
