@@ -339,7 +339,10 @@ unsigned long proc_cred_get(ksurface_proc_t *proc,
     }
     
     /* retaining process so it cannot get freed until this symbol ran entirely through */
-    proc_retain(proc);
+    if(!proc_retain(proc))
+    {
+        return -1;
+    }
     
     /* locking the processes mutex so no one can copy or modify it until done */
     proc_read_lock(proc);
