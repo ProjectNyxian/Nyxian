@@ -101,7 +101,7 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
     
     /* 1:1 rest copy */
     memcpy(&(proc->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));
-    memcpy(&(proc->nyx), &(proc_copy->nyx), sizeof(kinfo_proc_t));
+    memcpy(&(proc->nyx), &(proc_copy->nyx), sizeof(knyx_proc_t));
     
     return proc;
 }
