@@ -118,6 +118,7 @@
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
 				LindChain/Services/trustd/LDETrustProxy.m,
 				main.m,
+				ResecureDecoder.m,
 			);
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
 		};

@@ -32,6 +32,8 @@
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
 
+#import <ResecureDecoder.h>
+
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
@@ -189,10 +191,9 @@ void hook_do_nothing(void) {}
 
 // Extension entry point
 int NSExtensionMain(int argc, char * argv[]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    method_setImplementation(class_getInstanceMethod(NSClassFromString(@"NSXPCDecoder"), @selector(_validateAllowedClass:forKey:allowingInvocations:)), (IMP)hook_do_nothing);
-#pragma clang diagnostic pop
+    /* resecure decoder, instead of bluntly removing validation entirely */
+    ResecureDecoder();
+    
     // hook dlopen UIKit
     performHookDyldApi("dlopen", 2, (void**)&orig_dlopen, hook_dlopen);
     // call the real one
