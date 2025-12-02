@@ -24,37 +24,38 @@
 
 ksurface_error_t proc_insert(ksurface_proc_t *proc)
 {
-    /* Null pointer check */
+    ksurface_error_t err = kSurfaceErrorSuccess;
+    
+    /* null pointer check */
     if(ksurface == NULL || proc == NULL)
     {
         return kSurfaceErrorNullPtr;
     }
     
-    /* Get pid of process */
+    /* get pid of process */
     pid_t pid = proc_getpid(proc);
     
     /* Aquire rw lock */
     proc_table_write_lock();
     
-    /* Looking up the radix tree */
+    /* looking up the radix tree */
     if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
-        proc_table_unlock();
-        return kSurfaceErrorPidInUse;
+        err = kSurfaceErrorPidInUse;
+        goto out_unlock;
     }
     
-    /* Insert into tree*/
+    /* insert into tree*/
     if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
     {
-        proc_table_unlock();
-        return kSurfaceErrorNoMemory;
+        err = kSurfaceErrorNoMemory;
+        goto out_unlock;
     }
     
-    /* Retaining process */
+    /* retaining process */
     proc_retain(proc);
     
-    /* Releasing table lock */
+out_unlock:
     proc_table_unlock();
-    
-    return kSurfaceErrorSuccess;
+    return err;
 }

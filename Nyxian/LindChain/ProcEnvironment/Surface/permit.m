@@ -20,60 +20,82 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
+#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 
 BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
                                     pid_t targetPid)
 {
-    // Only let host proceed
-    environment_must_be_role(EnvironmentRoleHost);
+    /* null pointer check */
+    if(proc == NULL)
+    {
+        return NO;
+    }
     
-    // Get target process
+    BOOL allowed = NO;
+    
+    /* locking process read */
+    proc_read_lock(proc);
+    
+    /* getting uid */
+    uid_t caller_uid = proc_getuid(proc);
+    
+    /* if proc is root its automatically allowed */
+    if(caller_uid == 0)
+    {
+        allowed = YES;
+        goto out_unlock_proc;
+    }
+    
+    /* getting target process */
     ksurface_proc_t *targetProc = proc_for_pid(targetPid);
     if(targetProc == NULL)
     {
-        return NO;
+        allowed = NO;
+        goto out_unlock_proc;
     }
     
-    // Locking processes
-    proc_read_lock(proc);
+    /* checking if proc is targetProc */
+    if(proc == targetProc)
+    {
+        allowed = NO;
+        goto out_release_target;
+    }
+    
+    /* locking target process aswell */
     proc_read_lock(targetProc);
     
-    // Gets creds
-    uid_t caller_uid = proc_getuid(proc);
-    
-    // Root check
-    if(caller_uid == 0)
-    {
-        proc_unlock(targetProc);
-        proc_release(targetProc);
-        proc_unlock(proc);
-        return YES;
-    }
-    
-    // Platform check
+    /* checking if target process is a platformised process and therefore can only be decided at by a other process that is platformised */
     if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
-        // If the target got platform but the caller doesnt it gets denied
-        proc_unlock(targetProc);
-        proc_release(targetProc);
-        proc_unlock(proc);
-        return NO;
+        /* nope! */
+        allowed = NO;
+        goto out_unlock;
     }
     
-    // Gets if its allowed in the first place
+    /* getting visibility */
+    proc_visibility_t vis = get_proc_visibility(proc);
+    
+    /* checking if process can even see the target */
+    if(!can_see_process(proc, targetProc, vis))
+    {
+        allowed = NO;
+        goto out_unlock;
+    }
+    
+    /* checking if the process is allowed to gain permitives naturally over the target */
     if((caller_uid == proc_getuid(targetProc)) ||
        (caller_uid == proc_getruid(targetProc)))
     {
-        proc_unlock(targetProc);
-        proc_release(targetProc);
-        proc_unlock(proc);
-        return YES;
+        allowed = YES;
+        goto out_unlock;
     }
     
-    // Unlocking processes locks
+out_unlock:
     proc_unlock(targetProc);
+out_release_target:
     proc_release(targetProc);
+out_unlock_proc:
     proc_unlock(proc);
-    return NO;
+    return allowed;
 }
