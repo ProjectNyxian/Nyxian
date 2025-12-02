@@ -22,6 +22,20 @@
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #include <stdatomic.h>
 
+static void proc_create_mutual_init(ksurface_proc_t *proc)
+{
+    /* nullify process structure */
+    memset(proc, 0, sizeof(*proc));
+    
+    /* marking process as referenced once */
+    atomic_store(&proc->refcount, 1);
+    atomic_store(&proc->dead, false);
+    
+    /* initilizing rw lock and mutex */
+    pthread_rwlock_init(&(proc->rwlock), NULL);
+    pthread_mutex_init(&(proc->cld.mutex), NULL);
+}
+
 ksurface_proc_t *proc_create(pid_t pid,
                              pid_t ppid,
                              const char *path)
@@ -33,16 +47,8 @@ ksurface_proc_t *proc_create(pid_t pid,
         return NULL;
     }
     
-    /* nullify process structure */
-    memset(proc, 0, sizeof(*proc));
-    
-    /* marking process as referenced once */
-    atomic_store(&proc->refcount, 1);
-    atomic_store(&proc->dead, false);
-    
-    /* initilizing rw lock and mutex */
-    pthread_rwlock_init(&(proc->rwlock), NULL);
-    pthread_mutex_init(&(proc->cld.mutex), NULL);
+    /* initilizing with mutual init */
+    proc_create_mutual_init(proc);
     
     /* setting bsd process information that are relevant currently */
     proc_setpid(proc, pid);
@@ -89,16 +95,8 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
         return NULL;
     }
     
-    /* nullify process structure */
-    memset(proc, 0, sizeof(*proc));
-    
-    /* marking process as referenced once */
-    atomic_store(&proc->refcount, 1);
-    atomic_store(&proc->dead, false);
-    
-    /* initilizing rw lock */
-    pthread_rwlock_init(&(proc->rwlock), NULL);
-    pthread_mutex_init(&(proc->cld.mutex), NULL);
+    /* initilizing with mutual init */
+    proc_create_mutual_init(proc);
     
     /* 1:1 rest copy */
     memcpy(&(proc->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));
