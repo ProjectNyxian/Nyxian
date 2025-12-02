@@ -72,11 +72,11 @@ static ServiceServer *singletonServiceServer = nil;
 
 int LDEServiceMain(int argc,
                    char *argv[],
-                   Class<LDEServiceProtocol> serviceClass,
-                   Protocol *clientProtocol)
+                   Class<LDEServiceProtocol> serviceClass)
 {
     NSString *serviceIdentifier = [serviceClass servcieIdentifier];
     Protocol *serviceProtocol = [serviceClass serviceProtocol];
+    Protocol *clientProtocol = [serviceClass observerProtocol];
     
     if(serviceIdentifier != nil &&
        serviceProtocol != nil)

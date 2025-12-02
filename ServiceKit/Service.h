@@ -40,6 +40,6 @@
 
 @end
 
-int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass, Protocol *clientProtocol);
+int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass);
 
 #endif /* SERVICEKIT_SERVICE_H */

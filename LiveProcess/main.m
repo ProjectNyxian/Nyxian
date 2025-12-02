@@ -30,7 +30,6 @@
 
 #import <ServiceKit/ServiceKit.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceProtocol.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
@@ -153,10 +152,10 @@ int LiveProcessMain(int argc, char *argv[]) {
         
         if([service isEqualToString:@"installd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class], @protocol(LDEApplicationWorkspaceProtocol)));
+            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]));
         } else if([service isEqualToString:@"trustd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDETrustProxy class], nil));
+            exit(LDEServiceMain(argc, argv, [LDETrustProxy class]));
         }
     }
     else if([mode isEqualToString:@"spawn"])
