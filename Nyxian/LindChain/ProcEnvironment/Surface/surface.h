@@ -23,9 +23,9 @@
 #import <Foundation/Foundation.h>
 #include <sys/sysctl.h>
 #include <limits.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/rcu.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
+#include <LindChain/ProcEnvironment/Surface/radix/radix.h>
 #include <pthread.h>
 
 enum kSurfaceError {
@@ -38,12 +38,15 @@ enum kSurfaceError {
     kSurfaceErrorDenied         = 6,
     kSurfaceErrorAlreadyExists  = 7,
     kSurfaceErrorFailed         = 8,
-    kSurfaceErrorProcessDead    = 9
+    kSurfaceErrorProcessDead    = 9,
+    kSurfaceErrorPidInUse       = 10,
+    kSurfaceErrorNoMemory       = 11
 };
 
 typedef unsigned char ksurface_error_t;
 
 #define PROC_MAX 750
+#define PID_MAX 1048575
 #define CHILD_PROC_MAX PROC_MAX
 #define SURFACE_MAGIC 0xDEADBEEF
 
@@ -87,17 +90,15 @@ typedef struct {
 
 /// Host information
 typedef struct {
-    rcu_state_t rcu;
-    pthread_mutex_t wl;
+    pthread_rwlock_t rwlock;
     char hostname[MAXHOSTNAMELEN];
 } ksurface_host_info_t;
 
 /// Process information
 typedef struct {
-    rcu_state_t rcu;
-    pthread_mutex_t wl;
-    _Atomic uint32_t proc_count;
-    ksurface_proc_t *proc[PROC_MAX];
+    pthread_rwlock_t rwlock;
+    ksurface_proc_t *kproc;
+    radix_tree_t tree;
 } ksurface_proc_info_t;
 
 /// Structure that holds surface information and other structures
@@ -112,11 +113,5 @@ extern ksurface_mapping_t *ksurface;
 
 void kern_sethostname(NSString *hostname);
 void ksurface_init(void);
-
-/* The ways to commit to the kernels rcu's */
-int ksurface_proc_info_thread_register(void);
-void ksurface_proc_info_thread_unregister(void);
-int ksurface_host_info_thread_register(void);
-void ksurface_host_info_thread_unregister(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */

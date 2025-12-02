@@ -62,11 +62,9 @@
         bool isHost = pid == getpid();
         
         // Checking if we have necessary entitlements
-        ksurface_proc_info_thread_register();
         ksurface_proc_t *proc = proc_for_pid(pid);
         if(proc == NULL)
         {
-            ksurface_proc_info_thread_unregister();
             reply(nil);
             return;
         }
@@ -75,7 +73,6 @@
         if(targetProc == NULL)
         {
             proc_release(proc);
-            ksurface_proc_info_thread_unregister();
             reply(nil);
             return;
         }
@@ -86,7 +83,6 @@
            (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))))
         {
             proc_release(proc);
-            ksurface_proc_info_thread_unregister();
             reply(nil);
             return;
         }
@@ -95,7 +91,6 @@
         mach_port_t port;
         kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
         proc_release(proc);
-        ksurface_proc_info_thread_unregister();
         reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
     }
     else
@@ -111,7 +106,6 @@
        withSignal:(int)signal
         withReply:(void (^)(int))reply
 {
-    ksurface_proc_info_thread_register();
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
     if(pid != _processIdentifier &&
@@ -119,11 +113,9 @@
         !permitive_over_process_allowed(_proc, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
-        ksurface_proc_info_thread_unregister();
         reply(-1);
         return;
     }
-    ksurface_proc_info_thread_unregister();
 
     // Other target, lets look for it!
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
@@ -150,7 +142,6 @@
                    withReply:(void (^)(unsigned int))reply
 {
     klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
-    ksurface_proc_info_thread_register();
     
     if(path &&
        arguments &&
@@ -161,11 +152,9 @@
         pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil];
         reply(pid);
         klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
-        ksurface_proc_info_thread_unregister();
         return;
     }
     
-    ksurface_proc_info_thread_register();
     reply(-1);
 }
 
@@ -218,17 +207,14 @@
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
-    ksurface_proc_info_thread_register();    
     if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
     {
         proc_release(_proc);
-        ksurface_proc_info_thread_unregister();
         reply();
         return;
     }
     
     proc_release(_proc);
-    ksurface_proc_info_thread_unregister();
     
     [object signAndWriteBack];
     reply();
@@ -252,7 +238,6 @@
 - (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
-    ksurface_proc_info_thread_register();
     if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementLaunchServicesGetEndpoint))
     {
         reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
@@ -261,8 +246,6 @@
     {
         reply(nil);
     }
-    
-    ksurface_proc_info_thread_unregister();
 }
 
 /*
@@ -311,15 +294,12 @@
 - (void)getProcessTableWithReply:(void (^)(NSData *result))reply
 {
     proc_snapshot_t *snap;
-    ksurface_proc_info_thread_register();
     proc_list_err_t error = proc_snapshot_create(_proc, &snap);
     if(error != PROC_LIST_OK)
     {
-        ksurface_proc_info_thread_unregister();
         reply(nil);
         return;
     }
-    ksurface_proc_info_thread_unregister();
     
     size_t len = snap->count * sizeof(kinfo_proc_t);
     kinfo_proc_t *proc = malloc(len);
@@ -332,9 +312,7 @@
 
 - (void)dealloc
 {
-    ksurface_proc_info_thread_register();
     proc_release(_proc);
-    ksurface_proc_info_thread_unregister();
 }
 
 @end

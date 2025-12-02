@@ -17,11 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RCU_SYNCHRONIZE_H
-#define RCU_SYNCHRONIZE_H
+#ifndef RADIX_TREE_NODE_H
+#define RADIX_TREE_NODE_H
 
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/type/state.h>
+#import <LindChain/ProcEnvironment/Surface/radix/type/node.h>
 
-void synchronize_rcu(rcu_state_t *state);
+typedef struct radix_tree {
+    radix_node_t *root;
+} radix_tree_t;
 
-#endif /* RCU_SYNCHRONIZE_H */
+#endif /* RADIX_TREE_NODE_H */

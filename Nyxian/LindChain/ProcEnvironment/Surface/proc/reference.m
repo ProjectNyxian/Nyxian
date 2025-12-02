@@ -20,6 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#include <stdatomic.h>
 
 bool proc_retain(ksurface_proc_t *proc)
 {

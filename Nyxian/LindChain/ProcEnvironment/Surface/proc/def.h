@@ -53,6 +53,6 @@
 
 #define PID_LAUNCHD 1
 
-#define kernel_proc_ ksurface->proc_info.proc[0]
+#define kernel_proc_ ksurface->proc_info.kproc
 
 #endif /* PROC_DEF_H */

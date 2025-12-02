@@ -21,15 +21,60 @@
 
 void proc_read_lock(ksurface_proc_t *proc)
 {
+    if(proc == NULL)
+    {
+        return;
+    }
+    
     pthread_rwlock_rdlock(&(proc->rwlock));
 }
 
 void proc_write_lock(ksurface_proc_t *proc)
 {
+    if(proc == NULL)
+    {
+        return;
+    }
+    
     pthread_rwlock_wrlock(&(proc->rwlock));
 }
 
 void proc_unlock(ksurface_proc_t *proc)
 {
+    if(proc == NULL)
+    {
+        return;
+    }
+    
     pthread_rwlock_unlock(&(proc->rwlock));
+}
+
+void proc_table_read_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_rdlock(&(ksurface->proc_info.rwlock));
+}
+
+void proc_table_write_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_wrlock(&(ksurface->proc_info.rwlock));
+}
+
+void proc_table_unlock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_unlock(&(ksurface->proc_info.rwlock));
 }

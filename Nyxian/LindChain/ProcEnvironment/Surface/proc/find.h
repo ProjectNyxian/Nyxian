@@ -23,6 +23,5 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_proc_t *proc_for_pid(pid_t pid);
-ksurface_proc_t *proc_for_pid_unsafe(pid_t pid);
 
 #endif /* PROC_FIND_H */

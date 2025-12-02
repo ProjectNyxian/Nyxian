@@ -17,14 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RCU_RCU_H
-#define RCU_RCU_H
+#ifndef RADIX_TYPE_NODE_H
+#define RADIX_TYPE_NODE_H
 
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/config.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/type/thread_state.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/type/state.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/read.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/synchronize.h>
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/thread.h>
+#import <LindChain/ProcEnvironment/Surface/radix/config.h>
 
-#endif /* RCU_RCU_H */
+typedef struct radix_node {
+    void *slots[RADIX_SIZE];
+} radix_node_t;
+
+#endif /* RADIX_TYPE_NODE_H */

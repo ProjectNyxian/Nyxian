@@ -20,6 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/create.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <stdatomic.h>
 
 ksurface_proc_t *proc_create(pid_t pid,
                              pid_t ppid,

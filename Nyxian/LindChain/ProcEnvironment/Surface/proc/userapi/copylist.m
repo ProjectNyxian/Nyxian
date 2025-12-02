@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 proc_visibility_t get_proc_visibility(ksurface_proc_t *caller)
 {
@@ -58,46 +59,79 @@ void copy_proc_to_user(ksurface_proc_t *proc,
     memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
 }
 
+// typedef void (*radix_walk_fn)(pid_t pid, void *value, void *ctx);
+void proc_snapshot_create_radix_walk(pid_t pid,
+                                     void *value,
+                                     void *ctx)
+{
+    /* getting ctx back */
+    proc_snapshot_radix_ctx *rctx = ctx;
+    ksurface_proc_t *proc = value;
+    
+    /* trying to retain process */
+    if(!proc_retain(proc))
+    {
+        /* continue */
+        return;
+    }
+    
+    /* lock read */
+    proc_read_lock(proc);
+    
+    if(can_see_process(rctx->caller, proc, rctx->vis))
+    {
+        copy_proc_to_user(proc, &(rctx->snap.kp[rctx->snap.count++]));
+    }
+    
+    /* unlock */
+    proc_unlock(proc);
+    proc_release(proc);
+}
+
 proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
                                      proc_snapshot_t **snapshot_out)
-{
+{    
+    /* null pointer check */
     if(snapshot_out == NULL)
     {
         return PROC_LIST_ERR_NULL;
     }
     
+    /* setting it to null */
     *snapshot_out = NULL;
     
+    /* checking if proc is null*/
     if(proc == NULL)
     {
         return PROC_LIST_ERR_PERM;
     }
     
-    proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
-    if(snap == NULL)
+    /* allocate context */
+    proc_snapshot_radix_ctx *ctx = malloc(sizeof(proc_snapshot_radix_ctx) + (PROC_MAX * sizeof(kinfo_proc_t)));
+    if(ctx == NULL)
     {
         return PROC_LIST_ERR_NO_SPACE;
     }
     
-    snap->count = 0;
-    snap->timestamp = _get_time_ms();
+    /* setting up snapshot */
+    ctx->caller = proc;
+    ctx->snap.count = 0;
+    ctx->snap.timestamp = _get_time_ms();
+    ctx->vis = get_proc_visibility(proc);
     
-    proc_visibility_t vis = get_proc_visibility(proc);
-    rcu_read_lock(&(ksurface->proc_info.rcu));
-    uint32_t proc_count = atomic_load(&(ksurface->proc_info.proc_count));
-    for(uint32_t i = 0; i < proc_count; i++) {
-        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
-        if(proc_retain(p))
-        {
-            if(can_see_process(proc, p, vis))
-            {
-                copy_proc_to_user(p, &snap->kp[snap->count++]);
-            }
-            proc_release(p);
-        }
-    }
-    rcu_read_unlock(&(ksurface->proc_info.rcu));
+    /* invoke read */
+    proc_table_read_lock();
+    
+    /* invoke walk */
+    radix_walk(&(ksurface->proc_info.tree), proc_snapshot_create_radix_walk, ctx);
+    
+    /* unlocking proc table */
+    proc_table_unlock();
+    
+    proc_snapshot_t *snap = malloc(sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
+    memcpy(snap, &(ctx->snap), sizeof(proc_snapshot_t) + (PROC_MAX * sizeof(kinfo_proc_t)));
     *snapshot_out = snap;
+    
     return PROC_LIST_OK;
 }
 
@@ -110,13 +144,10 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
                    pid_t targetPid,
                    knyx_proc_t *nyx)
 {
-    ksurface_proc_info_thread_register();
-    
     /* getting visibility */
     proc_visibility_t vis = get_proc_visibility(proc);
     if(vis == PROC_VIS_NONE)
     {
-        ksurface_proc_info_thread_unregister();
         return false;
     }
     
@@ -130,13 +161,10 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
             
             /* releasing process */
             proc_release(targetProc);
-            
-            ksurface_proc_info_thread_unregister();
             return true;
         }
         /* releasing process */
         proc_release(targetProc);
     }
-    ksurface_proc_info_thread_unregister();
     return false;
 }

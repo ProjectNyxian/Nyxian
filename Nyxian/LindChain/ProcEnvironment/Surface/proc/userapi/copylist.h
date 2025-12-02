@@ -45,6 +45,14 @@ typedef struct {
     kinfo_proc_t kp[];
 } proc_snapshot_t;
 
+/* Radix tree context */
+typedef struct {
+    ksurface_proc_t *caller;
+    proc_visibility_t vis;
+    uid_t uid;
+    proc_snapshot_t snap;
+} proc_snapshot_radix_ctx;
+
 /* Side quests xD */
 proc_visibility_t get_proc_visibility(ksurface_proc_t *caller);
 bool can_see_process(ksurface_proc_t *caller, ksurface_proc_t *target, proc_visibility_t vis);

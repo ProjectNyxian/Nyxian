@@ -17,19 +17,17 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/lock/legacy/seqlock.h>
+#ifndef RADIX_H
+#define RADIX_H
 
-typedef struct {
-    unsigned char lock;
-    unsigned long seq;
-    unsigned long ref;
-    unsigned long tid;
-} reflock_t;
+#import <LindChain/ProcEnvironment/Surface/radix/type/tree.h>
+#include <stdlib.h>
 
-void reflock_init(reflock_t *r);
-void reflock_lock(reflock_t *r);
-void reflock_unlock(reflock_t *r);
-unsigned long reflock_read_begin(reflock_t *r);
-bool reflock_read_retry(reflock_t *r, unsigned long seq);
-bool reflock_is_locked(reflock_t *r);
-bool reflock_is_locked_by_machthreadself(reflock_t *r);
+typedef void (*radix_walk_fn)(pid_t pid, void *value, void *ctx);
+
+void *radix_lookup(radix_tree_t *tree, pid_t pid);
+int radix_insert(radix_tree_t *tree, pid_t pid, void *value);
+void *radix_remove(radix_tree_t *tree, pid_t pid);
+void radix_walk(radix_tree_t *tree, radix_walk_fn callback, void *ctx);
+
+#endif /* RADIX_H */

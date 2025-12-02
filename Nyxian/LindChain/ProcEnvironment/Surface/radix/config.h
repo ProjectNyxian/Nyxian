@@ -17,21 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RCU_TYPE_THREAD_STATE_H
-#define RCU_TYPE_THREAD_STATE_H
+#ifndef RADIX_CONFIG_H
+#define RADIX_CONFIG_H
 
-#include <LindChain/ProcEnvironment/Surface/lock/rcu/config.h>
-#include <stdbool.h>
+#define RADIX_BITS   5
+#define RADIX_SIZE   32
+#define RADIX_MASK   0x1F
+#define RADIX_LEVELS 4
 
-struct rcu_thread_state {
-    _Atomic unsigned int rcu_nesting;
-    _Atomic unsigned long epoch_seen;
-    _Atomic bool active;
-    char padding[RCU_CACHE_LINE_SIZE - sizeof(_Atomic unsigned int)
-                                 - sizeof(_Atomic unsigned long)
-                                 - sizeof(_Atomic bool)];
-} __attribute__((aligned(RCU_CACHE_LINE_SIZE)));
-
-typedef struct rcu_thread_state rcu_thread_state_t;
-
-#endif /* RCU_TYPE_THREAD_STATE_H */
+#endif /* RADIX_CONFIG_H */

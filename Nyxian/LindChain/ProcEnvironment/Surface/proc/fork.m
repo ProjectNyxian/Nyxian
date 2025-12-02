@@ -147,6 +147,13 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         return kSurfaceErrorNullPtr;
     }
     
+    /* checking if proc is kernel */
+    if(proc == kernel_proc_)
+    {
+        klog_log(@"proc:exit", @"cannot terminate the kernel");
+        return kSurfaceErrorDenied;
+    }
+    
     /* retain process that wants to exit*/
     if(!proc_retain(proc))
     {

@@ -30,32 +30,6 @@
 
 ksurface_mapping_t *ksurface = NULL;
 
-int ksurface_proc_info_thread_register(void)
-{
-    return ksurface ? rcu_register_thread(&(ksurface->proc_info.rcu)) : -1;
-}
-
-void ksurface_proc_info_thread_unregister(void)
-{
-    if(ksurface == NULL)
-    {
-        rcu_unregister_thread(&ksurface->proc_info.rcu);
-    }
-}
-
-int ksurface_host_info_thread_register(void)
-{
-    return ksurface ? rcu_register_thread(&(ksurface->host_info.rcu)) : -1;
-}
-
-void ksurface_host_info_thread_unregister(void)
-{
-    if(ksurface == NULL)
-    {
-        rcu_unregister_thread(&ksurface->host_info.rcu);
-    }
-}
-
 /*
  Experimental hooks & implementations
  */
@@ -100,26 +74,31 @@ static inline void ksurface_kinit(void)
     ksurface->magic = SURFACE_MAGIC;
     
     /* setting up rcu state's */
-    pthread_mutex_t *wls[2] = { &(ksurface->proc_info.wl),  &(ksurface->host_info.wl) };
-    rcu_state_t *states[2] = { &(ksurface->proc_info.rcu), &(ksurface->host_info.rcu) };
+    pthread_rwlock_t *wls[2] = { &(ksurface->proc_info.rwlock),  &(ksurface->host_info.rwlock) };
+    //rcu_state_t *states[2] = { &(ksurface->proc_info.rcu), &(ksurface->host_info.rcu) };
     for(unsigned char i = 0; i < 2; i++)
     {
-        klog_log(@"ksurface:kinit", @"setting up rcu state %p", states[i]);
-        pthread_mutex_init(wls[i], NULL);
-        states[i]->current_epoch = 0;
-        pthread_mutex_init(&(states[i]->gp_lock), NULL);
-        pthread_mutex_init(&(states[i]->registry_lock), NULL);
-        klog_log(@"ksurface:kinit", @"setting up mutex %p", wls[i]);
-        memset(states[i]->thread_state, 0, sizeof(states[i]->thread_state));
+        //klog_log(@"ksurface:kinit", @"setting up rcu state %p", states[i]);
+        pthread_rwlock_init(wls[i], NULL);
+        //states[i]->current_epoch = 0;
+        //pthread_mutex_init(&(states[i]->gp_lock), NULL);
+        //pthread_mutex_init(&(states[i]->registry_lock), NULL);
+        pthread_rwlock_init(wls[i], NULL);
+        klog_log(@"ksurface:kinit", @"setting up rwlock %p", wls[i]);
+        //memset(states[i]->thread_state, 0, sizeof(states[i]->thread_state));
     }
     
     /* setting up process table */
-    klog_log(@"ksurface:kinit", @"setting up process table");
+    /*klog_log(@"ksurface:kinit", @"setting up process table");
     ksurface->proc_info.proc_count = 0;
     for(int i = 0; i < PROC_MAX; i++)
     {
         ksurface->proc_info.proc[i] = NULL;
-    }
+    }*/
+    
+    /* setting up process radix tree*/
+    ksurface->proc_info.tree.root = NULL;
+    
     
     klog_log(@"ksurface:kinit", @"setting up hostname");
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
@@ -129,16 +108,16 @@ static inline void ksurface_kinit(void)
 
 static inline void ksurface_kproc_init(void)
 {
-    ksurface_proc_info_thread_register();
-    
     /* creating kproc */
     klog_log(@"ksurface:kproc:init", @"creating kernel process");
     ksurface_proc_t *proc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
     if(proc == NULL)
     {
-        ksurface_proc_info_thread_unregister();
         return;
     }
+    
+    /* storing kproc */
+    ksurface->proc_info.kproc = proc;
     
     /* inserting kproc */
     klog_log(@"ksurface:kproc:init", @"inserting kernel process");
@@ -151,8 +130,6 @@ static inline void ksurface_kproc_init(void)
     
     /* releaing our reference to kproc */
     proc_release(proc);
-    
-    ksurface_proc_info_thread_unregister();
 }
 
 void ksurface_init(void)

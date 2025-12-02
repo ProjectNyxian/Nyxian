@@ -19,48 +19,50 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
+#include <stdatomic.h>
 
 ksurface_proc_t *proc_for_pid(pid_t pid)
 {
-    if(ksurface == NULL) return NULL;
-    ksurface_proc_t *proc = NULL;
-    rcu_read_lock(&(ksurface->proc_info.rcu));
-    uint32_t count = atomic_load(&(ksurface->proc_info.proc_count));
-    for(uint32_t i = 0; i < count; i++)
+    /* null pointer check */
+    if(ksurface == NULL)
     {
-        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
-        if(p != NULL && p->bsd.kp_proc.p_pid == pid && !atomic_load(&p->dead))
+        return NULL;
+    }
+    
+    /* lock proc table */
+    proc_table_read_lock();
+    
+    /* black magic~~ */
+    ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
+    if(proc == NULL)
+    {
+        proc_table_unlock();
+        return NULL;
+    }
+    
+    /* trying to retain the process */
+    if(proc != NULL &&
+       proc_getpid(proc) == pid &&
+       !atomic_load(&proc->dead))
+    {
+        if(proc_retain(proc))
         {
-            if(proc_retain(p))
+            if(proc_getpid(proc) == pid)
             {
-                if(p->bsd.kp_proc.p_pid == pid)
-                {
-                    proc = p;
-                }
-                else
-                {
-                    proc_release(p);
-                }
+                proc_table_unlock();
+                return proc;
             }
-            break;
+            else
+            {
+                proc_release(proc);
+                proc_table_unlock();
+                return NULL;
+            }
         }
     }
-    rcu_read_unlock(&(ksurface->proc_info.rcu));
-    return proc;
-}
-
-ksurface_proc_t *proc_for_pid_unsafe(pid_t pid)
-{
-    if(ksurface == NULL) return NULL;
-    ksurface_proc_t *proc = NULL;
-    for(unsigned long i = 0; i < ksurface->proc_info.proc_count; i++)
-    {
-        ksurface_proc_t *p = rcu_dereference(ksurface->proc_info.proc[i]);
-        if(p != NULL && p->bsd.kp_proc.p_pid == pid)
-        {
-            proc = p;
-            break;
-        }
-    }
-    return proc;
+    
+    proc_table_unlock();
+    return NULL;
 }

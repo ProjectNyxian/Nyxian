@@ -19,29 +19,42 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 ksurface_error_t proc_insert(ksurface_proc_t *proc)
 {
     /* Null pointer check */
-    if(ksurface == NULL || proc == NULL) return kSurfaceErrorNullPtr;
+    if(ksurface == NULL || proc == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
+    
+    /* Get pid of process */
+    pid_t pid = proc_getpid(proc);
     
     /* Aquire rw lock */
-    pthread_mutex_lock(&(ksurface->proc_info.wl));
+    proc_table_write_lock();
     
-    /* Bounds check */
-    if(ksurface->proc_info.proc_count >= PROC_MAX)
+    /* Looking up the radix tree */
+    if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
-        /* Its out of bounds */
-        pthread_mutex_unlock(&(ksurface->proc_info.wl));
-        return kSurfaceErrorOutOfBounds;
+        proc_table_unlock();
+        return kSurfaceErrorPidInUse;
+    }
+    
+    /* Insert into tree*/
+    if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
+    {
+        proc_table_unlock();
+        return kSurfaceErrorNoMemory;
     }
     
     /* Retaining process */
     proc_retain(proc);
     
-    /* Adding process */
-    rcu_assign_pointer(ksurface->proc_info.proc[ksurface->proc_info.proc_count++], proc);
-    pthread_mutex_unlock(&(ksurface->proc_info.wl));
+    /* Releasing table lock */
+    proc_table_unlock();
+    
     return kSurfaceErrorSuccess;
 }
