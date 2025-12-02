@@ -39,8 +39,9 @@ ksurface_proc_t *proc_create(pid_t pid,
     atomic_store(&proc->refcount, 1);
     atomic_store(&proc->dead, false);
     
-    /* initilizing rw lock */
+    /* initilizing rw lock and mutex */
     pthread_rwlock_init(&(proc->rwlock), NULL);
+    pthread_mutex_init(&(proc->cld.mutex), NULL);
     
     /* setting bsd process information that are relevant currently */
     proc_setpid(proc, pid);

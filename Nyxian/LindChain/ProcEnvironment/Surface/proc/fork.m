@@ -27,6 +27,8 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
@@ -87,9 +89,6 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         }
     }
     
-    /* destroying the copy of the parent that references the parent */
-    proc_copy_destroy(parent_copy);
-    
     /* copying the path */
     if(path)
     {
@@ -109,7 +108,149 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         proc_release(child);
         return NULL;
     }
+    else
+    {
+        /* referencing the child and the parent once more */
+        if(proc_retain(parent) && proc_retain(child))
+        {
+            /* due to the copy we already own a reference, but next we gonna claim the mutex of cld */
+            pthread_mutex_lock(&(parent->cld.mutex));
+            pthread_mutex_lock(&(child->cld.mutex));
+            
+            /* storing parent */
+            child->cld.parent = parent;
+            
+            /* storing index of where the child pointer is */
+            child->cld.parent_cld_idx = parent->cld.children_cnt++;
+            
+            /* storing the child pointer */
+            parent->cld.children[child->cld.parent_cld_idx] = child;
+            
+            /* unlocking the parents child structure */
+            pthread_mutex_unlock(&(child->cld.mutex));
+            pthread_mutex_unlock(&(parent->cld.mutex));
+        }
+    }
+    
+    /* destroying the copy of the parent that references the parent */
+    proc_copy_destroy(parent_copy);
     
     /* child stays retained fro the caller */
     return child;
+}
+
+ksurface_error_t proc_exit(ksurface_proc_t *proc)
+{
+    /* null pointer check */
+    if(proc == NULL)
+    {
+        return kSurfaceErrorNullPtr;
+    }
+    
+    /* retain process that wants to exit*/
+    if(!proc_retain(proc))
+    {
+        return kSurfaceErrorProcessDead;
+    }
+    
+    /* lock mutex */
+    pthread_mutex_lock(&(proc->cld.mutex));
+    
+    /* killing all children of the exiting process */
+    while(proc->cld.children_cnt > 0)
+    {
+        /* get index of last child */
+        uint64_t idx = proc->cld.children_cnt - 1;
+        ksurface_proc_t *child = proc->cld.children[idx];
+        
+        /* retaining child */
+        if(!proc_retain(child))
+        {
+            /* in case we cannot retain the child, we skip the child */
+            continue;
+        }
+        
+        /* unlocking our mutex */
+        pthread_mutex_unlock(&(proc->cld.mutex));
+        
+        /* calling exit on the child */
+        proc_exit(child);
+        
+        /* releasing reference previously retained */
+        proc_release(child);
+        
+        /* relocking */
+        pthread_mutex_lock(&(proc->cld.mutex));
+    }
+    
+    /* lock */
+    pthread_mutex_unlock(&(proc->cld.mutex));
+    
+    /* remove from parent */
+    ksurface_proc_t *parent = proc->cld.parent;
+    
+    /* null pointer checking parent */
+    if(parent != NULL)
+    {
+        /* retaining the parent */
+        if(!proc_retain(parent))
+        {
+            /* releasing child */
+            proc_release(proc);
+            return kSurfaceErrorFailed;
+        }
+        
+        /* lock order: parent → child */
+        pthread_mutex_lock(&(parent->cld.mutex));
+        pthread_mutex_lock(&(proc->cld.mutex));
+        
+        uint64_t my_idx = proc->cld.parent_cld_idx;
+        uint64_t last_idx = parent->cld.children_cnt - 1;
+        
+        /* swap with last if needed */
+        if(my_idx != last_idx)
+        {
+            ksurface_proc_t *last_proc = parent->cld.children[last_idx];
+            
+            pthread_mutex_lock(&(last_proc->cld.mutex));
+            parent->cld.children[my_idx] = last_proc;
+            last_proc->cld.parent_cld_idx = my_idx;
+            pthread_mutex_unlock(&(last_proc->cld.mutex));
+        }
+        
+        /* clear slot and decrement */
+        parent->cld.children[last_idx] = NULL;
+        parent->cld.children_cnt--;
+        
+        /* clear our parent reference */
+        proc->cld.parent = NULL;
+        proc->cld.parent_cld_idx = 0;
+        
+        pthread_mutex_unlock(&(proc->cld.mutex));
+        pthread_mutex_unlock(&(parent->cld.mutex));
+        
+        /* release relationship references */
+        proc_release(proc);
+        proc_release(parent);
+        
+        /* release working ref */
+        proc_release(parent);
+    }
+    
+    pid_t pid = proc_getpid(proc);
+    
+    /* TODO: Completely move to tree-based system, which is possible now */
+    proc_remove_by_pid(pid);  /* remove from global table */
+    
+    /* release our working reference */
+    proc_release(proc);
+    
+    /* terminate process */
+    LDEProcess *process = [[LDEProcessManager shared].processes objectForKey:@(pid)];
+    if(process != NULL)
+    {
+        [process terminate];
+    }
+    
+    return kSurfaceErrorSuccess;
 }

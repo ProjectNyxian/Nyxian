@@ -37,7 +37,8 @@ enum kSurfaceError {
     kSurfaceErrorOutOfBounds    = 5,
     kSurfaceErrorDenied         = 6,
     kSurfaceErrorAlreadyExists  = 7,
-    kSurfaceErrorFailed         = 8
+    kSurfaceErrorFailed         = 8,
+    kSurfaceErrorProcessDead    = 9
 };
 
 typedef unsigned char ksurface_error_t;
@@ -57,11 +58,23 @@ typedef struct {
     PEEntitlement entitlements;
 } knyx_proc_t;
 
+/// Structure that holds children of each process.. and a reference to each of those
+/// This cannot be copied!!! This structure is extremely sensitive
+/// The parent pointer and children pointer must all be referenced to eachother
+typedef struct {
+    void *parent;
+    void *children[CHILD_PROC_MAX];
+    uint64_t parent_cld_idx;
+    uint64_t children_cnt;
+    pthread_mutex_t mutex;
+} ksurface_proc_children_t;
+
 /// Structure that holds process information
 typedef struct {
     _Atomic int refcount;
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
+    ksurface_proc_children_t cld;
     kinfo_proc_t bsd;
     knyx_proc_t nyx;
 } ksurface_proc_t;

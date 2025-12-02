@@ -19,15 +19,15 @@
 
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
-#if KSURFACE_KLOG_ENABLED
+#if KLOG_ENABLED
 #ifdef HOST_ENV
 static int kfd = -1;
 #endif /* HOST_ENV */
-#endif /* KSURFACE_KLOG_ENABLED */
+#endif /* KLOG_ENABLED */
 
 void klog_log_internal(NSString *system, NSString *format, ...)
 {
-#if KSURFACE_KLOG_ENABLED
+#if KLOG_ENABLED
 #ifdef HOST_ENV
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -59,12 +59,12 @@ void klog_log_internal(NSString *system, NSString *format, ...)
         fsync(kfd);
     }
 #endif /* HOST_ENV */
-#endif /* KSURFACE_KLOG_ENABLED */
+#endif /* KLOG_ENABLED */
 }
 
 NSString *klog_dump(void)
 {
-#if KSURFACE_KLOG_ENABLED
+#if KLOG_ENABLED
 #ifdef HOST_ENV
     if(kfd == -1)
     {
@@ -105,5 +105,5 @@ NSString *klog_dump(void)
 #endif /* HOST_ENV */
 #else
     return nil;
-#endif /* KSURFACE_KLOG_ENABLED */
+#endif /* KLOG_ENABLED */
 }

@@ -36,6 +36,7 @@
 @property (nonatomic,strong) NSString *sceneID;
 @property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
 @property (nonatomic,strong) UIImage *snapshot;
+@property (nonatomic) ksurface_proc_t *proc;
 
 // Process properties
 @property (nonatomic,strong) NSUUID *identifier;

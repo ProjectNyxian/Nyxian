@@ -27,7 +27,7 @@ class SettingsViewController: UIThemedTableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // To enable kernel logging entirely, change return value to 6!
-        return 5
+        return 6
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

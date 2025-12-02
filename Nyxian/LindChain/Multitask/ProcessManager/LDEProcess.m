@@ -25,6 +25,8 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
+// TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
+
 extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
 @implementation LDEProcess
@@ -80,6 +82,14 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                     // Remove Once
                     dispatch_once(&strongSelf->_removeOnce, ^{
                         klog_log(@"LDEProcess", @"pid %d died", strongSelf.pid);
+                        ksurface_proc_info_thread_register();
+                        ksurface_error_t error = proc_exit(strongSelf.proc);
+                        if(error != kSurfaceErrorSuccess && error != kSurfaceErrorProcessDead)
+                        {
+                            klog_log(@"LDEProcess", @"failed to remove pid %d", strongSelf.pid);
+                        }
+                        ksurface_proc_info_thread_unregister();
+                        proc_release(strongSelf.proc);
                         if(strongSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
                         if(strongSelf.exitingCallback) strongSelf.exitingCallback();
@@ -156,8 +166,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         }
                         else
                         {
-                            /* releasing the child, for now we dont use its reference on this level, but in the future might be good for performance */
-                            proc_release(child);
+                            weakSelf.proc = child;
                         }
                         klog_log(@"LDEProcess", @"created child process with proc api %p", child);
                         ksurface_proc_info_thread_unregister();
