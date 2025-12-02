@@ -98,6 +98,7 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
     
     /* initilizing rw lock */
     pthread_rwlock_init(&(proc->rwlock), NULL);
+    pthread_mutex_init(&(proc->cld.mutex), NULL);
     
     /* 1:1 rest copy */
     memcpy(&(proc->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));

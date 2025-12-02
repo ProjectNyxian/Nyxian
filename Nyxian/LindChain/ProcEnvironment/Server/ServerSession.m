@@ -58,6 +58,13 @@
 {
     if(environment_supports_tfp())
     {
+        /* null pointer check */
+        if(_proc == NULL)
+        {
+            reply(nil);
+            return;
+        }
+        
         // Prepare
         bool isHost = pid == getpid();
         
@@ -95,6 +102,13 @@
        withSignal:(int)signal
         withReply:(void (^)(int))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(-1);
+        return;
+    }
+    
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
     if(pid != _processIdentifier &&
@@ -111,7 +125,7 @@
     if(!process)
     {
         klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
-        reply(1);
+        reply(-1);
         return;
     }
     
@@ -130,6 +144,13 @@
                withMapObject:(FDMapObject*)mapObject
                    withReply:(void (^)(unsigned int))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(-1);
+        return;
+    }
+    
     klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
     
     if(path &&
@@ -168,6 +189,13 @@
                  withIdentifierC:(unsigned int)idc
                        withReply:(void (^)(unsigned int result))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(-1);
+        return;
+    }
+    
     unsigned int retval = (unsigned int)proc_cred_set(_proc, option, ida, idb, idc);
     reply(retval);
 }
@@ -175,6 +203,13 @@
 - (void)getProcessInfoWithOption:(ProcessInfo)option
                        withReply:(void (^)(unsigned long result))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(-1);
+        return;
+    }
+    
     unsigned long retval = proc_cred_get(_proc, option);
     reply(retval);
 }
@@ -182,6 +217,13 @@
 - (void)getProcessNyxWithIdentifier:(pid_t)pid
                           withReply:(void (^)(NSData*))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(nil);
+        return;
+    }
+    
     knyx_proc_t nyx;
     if(proc_nyx_copy(_proc, pid, &nyx))
     {
@@ -196,6 +238,13 @@
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply();
+        return;
+    }
+    
     if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
     {
         reply();
@@ -211,6 +260,12 @@
  */
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        return;
+    }
+    
     for(LaunchService *ls in [[LaunchServices shared] launchServices])
     {
         if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process != nil && ls.process.pid == _processIdentifier)
@@ -224,6 +279,13 @@
 - (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(nil);
+        return;
+    }
+    
     if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementLaunchServicesGetEndpoint))
     {
         reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
@@ -239,6 +301,12 @@
  */
 - (void)setSnapshot:(UIImage*)image
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        return;
+    }
+    
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
     if(process != nil)
     {
@@ -279,6 +347,13 @@
 
 - (void)getProcessTableWithReply:(void (^)(NSData *result))reply
 {
+    /* null pointer check */
+    if(_proc == NULL)
+    {
+        reply(nil);
+        return;
+    }
+    
     proc_snapshot_t *snap;
     proc_list_err_t error = proc_snapshot_create(_proc, &snap);
     if(error != PROC_LIST_OK)
@@ -298,7 +373,11 @@
 
 - (void)dealloc
 {
-    proc_release(_proc);
+    /* null pointer check */
+    if(_proc != NULL)
+    {
+        proc_release(_proc);
+    }
 }
 
 @end
