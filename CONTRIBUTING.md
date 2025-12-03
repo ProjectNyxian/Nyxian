@@ -11,11 +11,11 @@ Thank you soooo much for your interest in Nyxian and contributing to it, I had t
 - The certificate used to sign Nyxian (you can get that from keychain after installing nyxian over Xcode).
 
 ### Setup
-1. Run this code in your terminal:
+1. Run this script in your terminal:
 
 ```bash
 # clone the repository
-git https://github.com/ProjectNyxian/Nyxian
+git clone https://github.com/ProjectNyxian/Nyxian
 cd Nyxian
 
 # downloading dependency from my server using setup script
