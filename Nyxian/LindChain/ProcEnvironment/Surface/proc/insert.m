@@ -53,7 +53,10 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     }
     
     /* retaining process */
-    proc_retain(proc);
+    if(!proc_retain(proc))
+    {
+        err = kSurfaceErrorFailed;
+    }
     
 out_unlock:
     proc_table_unlock();
