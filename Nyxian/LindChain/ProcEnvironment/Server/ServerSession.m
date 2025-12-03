@@ -354,6 +354,7 @@
         return;
     }
     
+    /* snapshot creation */
     proc_snapshot_t *snap;
     proc_list_err_t error = proc_snapshot_create(_proc, &snap);
     if(error != PROC_LIST_OK)
@@ -362,13 +363,15 @@
         return;
     }
     
+    /* copy the buffer into NSData */
     size_t len = snap->count * sizeof(kinfo_proc_t);
-    kinfo_proc_t *proc = malloc(len);
-    memcpy(proc, snap->kp, len);
-    NSData *data = [[NSData alloc] initWithBytes:proc length:len];
-    reply(data);
+    NSData *data = [[NSData alloc] initWithBytes:&(snap->kp) length:len];
+    
+    /* free the snapshot */
     proc_snapshot_free(snap);
-    return;
+    
+    /* reply with the XPC safe buffer to the client */
+    reply(data);
 }
 
 - (void)dealloc
