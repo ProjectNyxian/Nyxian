@@ -280,18 +280,25 @@
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
     /* null pointer check */
-    if(_proc == NULL)
+    if(_proc == NULL ||
+       serviceIdentifier == NULL)
     {
         reply(nil);
         return;
     }
     
+    /* checking if process got entitlement to obtain the endpoint of a launch service */
     if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementLaunchServicesGetEndpoint))
     {
-        reply([[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier]);
+        /* it got it so we as the kernel try to obtain the endpoint first our selves */
+        NSXPCListenerEndpoint *endpoint = [[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier];
+        
+        /* replying with the endpoint, no further ecaluation needed, if its nil then its nil */
+        reply(endpoint);
     }
     else
     {
+        /* process is not entitled so returning nil */
         reply(nil);
     }
 }
@@ -302,36 +309,57 @@
 - (void)setSnapshot:(UIImage*)image
 {
     /* null pointer check */
-    if(_proc == NULL)
+    if(_proc == NULL ||
+       image == NULL)
     {
         return;
     }
     
+    /* finding process */
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
     if(process != nil)
     {
+        /* setting snapshot */
         process.snapshot = image;
     }
 }
 
 - (void)waitTillAddedTrapWithReply:(void (^)(BOOL wasAdded))reply
 {
+    /* dispatching once per ServerSession */
     dispatch_once(&_waitTrapOnce, ^{
+        /* getting start time */
         const uint64_t start = mach_absolute_time();
+        
+        /*
+         * waittrap timeout is 1 second, this is to prevent ddos.
+         * processes are hardwired to go into this waittrap
+         * it exists so the ServerSession can safely obtain a
+         * reference to the process object of the owner of this
+         * server session.
+         */
         const uint64_t timeoutNs = 1 * NSEC_PER_SEC;
         
+        /* trying to obtain a reference to the process */
         BOOL matched = NO;
-        while (mach_absolute_time() - start < timeoutNs)
+        while(mach_absolute_time() - start < timeoutNs)
         {
+            /* proc_for_pid(1) references automatically if it finds */
             _proc = proc_for_pid(_processIdentifier);
+            
+            /* null pointer check */
             if(_proc != NULL)
             {
+                /* its not null so it got a reference to the process */
                 matched = YES;
                 break;
             }
+            
+            /* to not waste cpu time */
             usleep(50 * 1000);
         }
         
+#if KLOG_ENABLED
         if(!matched)
         {
             klog_log(@"syscall:waittrap", @"waittrap for pid %d failed", _processIdentifier);
@@ -340,7 +368,13 @@
         {
             klog_log(@"syscall:waittrap", @"waittrap for pid %d succeeded", _processIdentifier);
         }
+#endif /* KLOG_ENABLED */
         
+        /*
+         * replying if matched, and also only once
+         * there is only a single time where this waittrap is used
+         * its only used to sychronise process creation
+         */
         reply(matched);
     });
 }
