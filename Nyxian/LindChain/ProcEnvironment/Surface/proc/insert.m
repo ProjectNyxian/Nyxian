@@ -45,9 +45,6 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
         goto out_unlock;
     }
     
-    /* counting up */
-    ksurface->proc_info.pcnt++;
-    
     /* looking up the radix tree */
     if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
@@ -67,6 +64,9 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     {
         err = kSurfaceErrorFailed;
     }
+    
+    /* counting up */
+    ksurface->proc_info.pcnt++;
     
 out_unlock:
     proc_table_unlock();
