@@ -34,6 +34,9 @@ static void proc_create_mutual_init(ksurface_proc_t *proc)
     /* initilizing rw lock and mutex */
     pthread_rwlock_init(&(proc->rwlock), NULL);
     pthread_mutex_init(&(proc->cld.mutex), NULL);
+    
+    /* reseting the start time */
+    gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL);
 }
 
 ksurface_proc_t *proc_create(pid_t pid,
@@ -75,7 +78,6 @@ ksurface_proc_t *proc_create(pid_t pid,
         name = name ? name + 1 : path;
         strncpy(proc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
     }
-    gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL);
     
     return proc;
 }
