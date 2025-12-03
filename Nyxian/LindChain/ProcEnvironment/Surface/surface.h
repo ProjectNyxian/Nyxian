@@ -97,6 +97,7 @@ typedef struct {
 /// Process information
 typedef struct {
     pthread_rwlock_t rwlock;
+    uint32_t pcnt;
     ksurface_proc_t *kproc;
     radix_tree_t tree;
 } ksurface_proc_info_t;

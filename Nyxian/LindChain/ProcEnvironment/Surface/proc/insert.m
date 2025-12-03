@@ -38,6 +38,16 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     /* Aquire rw lock */
     proc_table_write_lock();
     
+    /* checking process count */
+    if(ksurface->proc_info.pcnt >= PROC_MAX)
+    {
+        err = kSurfaceErrorFailed;
+        goto out_unlock;
+    }
+    
+    /* counting up */
+    ksurface->proc_info.pcnt++;
+    
     /* looking up the radix tree */
     if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
