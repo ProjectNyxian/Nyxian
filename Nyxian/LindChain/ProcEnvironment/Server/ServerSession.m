@@ -45,9 +45,19 @@
  */
 - (void)sendPort:(TaskPortObject*)machPort API_AVAILABLE(ios(26.0));
 {
+    /*
+     * this is also sensitive, mainly because this is the main bridge
+     * how processes handoff their task ports to the kernel process.
+     */
     dispatch_once(&_sendPortOnce, ^{
+        /*
+         * checking if environment supports tfp cuz apple added support
+         * for tfp transmittion in iOS 26.0 and removed it again in
+         * iOS 26.1, sadly!
+         */
         if(environment_supports_tfp())
         {
+            /* taking the passed task port */
             environment_host_take_client_task_port(machPort);
         }
     });
@@ -56,43 +66,73 @@
 - (void)getPort:(pid_t)pid
       withReply:(void (^)(TaskPortObject*))reply API_AVAILABLE(ios(26.0));
 {
+    /*
+     * this is one of the most sensitive syscalls in all of nyxian
+     * the security checks decide if a process can control nyxian
+     * or not!
+     */
+    
+    /*
+     * checking if environment supports tfp cuz apple added support
+     * for tfp transmittion in iOS 26.0 and removed it again in
+     * iOS 26.1, sadly!
+     */
     if(environment_supports_tfp())
     {
         /* null pointer check */
         if(_proc == NULL)
         {
-            reply(nil);
-            return;
+            goto reply_nil;
         }
         
-        // Prepare
-        bool isHost = pid == getpid();
+        /* checking if the pid passed is the kernel process */
+        bool isHost = pid == proc_getpid(kernel_proc_);
         
+        /* getting the target process */
         ksurface_proc_t *targetProc = proc_for_pid(pid);
         if(targetProc == NULL)
         {
-            reply(nil);
-            return;
+            goto reply_nil;
         }
         
-        
-        if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPid) ||
-           (isHost && !entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPidHost)) ||
-           (!isHost && (!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))))
+        /* checking if the caller process got the entitlement to use tfp */
+        if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPid))
         {
-            reply(nil);
-            return;
+            goto reply_nil;
         }
         
-        // Send requested task port
+        /*
+         * it got the entitlement, now we check if the caller process got
+         * the permitives to use PEEntitlementTaskForPidHost in case it
+         * targets the kernel process. If it doesnt target the kernel process
+         * it will check if the target process got PEEntitlementGetTaskAllowed
+         * and in that case if the process got necessary permitives to gain
+         * permitives over the target process.
+         */
+        if(isHost)
+        {
+            if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPidHost))
+            {
+                goto reply_nil;
+            }
+        }
+        else
+        {
+            if(!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))
+            {
+                goto reply_nil;
+            }
+        }
+        
+        /* it passed all security check points so it is indeed allowed to gain those permitives */
         mach_port_t port;
         kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
         reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
+        return;
     }
-    else
-    {
-        reply(nil);
-    }
+    
+reply_nil:
+    reply(nil);
 }
 
 /*
@@ -111,7 +151,12 @@
     
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
     
-    if(pid != _processIdentifier &&
+    /*
+     * checking if the caller process that makes the call is the same process,
+     * also checks if the caller process has the entitlement to kill
+     * and checks if the process has permitive over the other process.
+     */
+    if(pid != proc_getpid(_proc) &&
        (!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessKill) ||
         !permitive_over_process_allowed(_proc, pid)))
     {
@@ -120,15 +165,20 @@
         return;
     }
 
-    // Other target, lets look for it!
+    /* getting the processes high level structure */
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
     if(!process)
     {
+        /*
+         * returns the same value as normal failure to prevent deterministic exploitation,
+         * of process reference counting.
+         */
         klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
         reply(-1);
         return;
     }
     
+    /* signaling the process */
     [process sendSignal:signal];
     klog_log(@"syscall:kill", @"pid %d signaled pid %d", _processIdentifier, pid);
     
@@ -159,9 +209,22 @@
        (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
         entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
+        /* invoking spawn */
         pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil];
+        
+        /* replying with pid of spawn */
         reply(pid);
-        klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
+        
+#if KLOG_ENABLED
+        if(pid != -1)
+        {
+            klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
+        }
+        else
+        {
+            klog_log(@"syscall:spawn", @"pid %d failed to spawn process", _processIdentifier);
+        }
+#endif /* KLOG_ENABLED */
         return;
     }
     
@@ -173,6 +236,9 @@
  */
 - (void)setAudioBackgroundModeActive:(BOOL)active
 {
+    /* blindly activating audiobackground mode */
+    // TODO: Track which process holds audio background mode, only one shall...
+    // MARK: This also bypasses proc_suspend(1) and proc_resume(1) assumptions
     LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
     if(process)
     {
@@ -196,7 +262,10 @@
         return;
     }
     
+    /* making proc userapi call  */
     unsigned int retval = (unsigned int)proc_cred_set(_proc, option, ida, idb, idc);
+    
+    /* replying with what ever the userapi replied with */
     reply(retval);
 }
 
@@ -210,7 +279,10 @@
         return;
     }
     
+    /* making proc userapi call */
     unsigned long retval = proc_cred_get(_proc, option);
+    
+    /* replying with what ever the userapi replied with */
     reply(retval);
 }
 
@@ -224,33 +296,51 @@
         return;
     }
     
+    /* attempting to copy process nyx structure */
     knyx_proc_t nyx;
     if(proc_nyx_copy(_proc, pid, &nyx))
     {
+        /* replying with copy of nyx */
         reply([[NSData alloc] initWithBytes:&nyx length:sizeof(nyx)]);
+        
+        /* returning to prevent double reply,
+         * which likely caused undefined behaviour before
+         */
+        return;
     }
+    
+    /* replying with nothing cause copy failed */
     reply(nil);
 }
 
 /*
  Signer
  */
+// TODO: reply with a boolean value.. lazy frida!
 - (void)signMachO:(MachOObject *)object
         withReply:(void (^)(void))reply
 {
     /* null pointer check */
-    if(_proc == NULL)
+    if(_proc == NULL ||
+       object == NULL)
     {
         reply();
         return;
     }
     
+    /*
+     * checking process entitlements if spawning is allowed,
+     * because it is not PEEntitlementProcessSpawnSignedOnly
+     * and PEEntitlementProcessSpawn means that the process
+     * is entitlement to dlopen and spawn arbitarily
+     */
     if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
     {
         reply();
         return;
     }
     
+    /* signing and write back */
     [object signAndWriteBack];
     reply();
 }
@@ -258,18 +348,30 @@
 /*
  Server
  */
+// TODO: Implement reply.. lazy frida!
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier
 {
     /* null pointer check */
-    if(_proc == NULL)
+    if(_proc == NULL ||
+       endpoint == NULL ||
+       serviceIdentifier == NULL)
     {
         return;
     }
     
+    /* iterrating through launchservices */
     for(LaunchService *ls in [[LaunchServices shared] launchServices])
     {
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier] && ls.process != nil && ls.process.pid == _processIdentifier)
+        /*
+         * this sequence checks if the service identifier passed is matching
+         * and if the process is valid and assigned of the launch service we
+         * check and if the process identifier its process has matches ours
+         */
+        if([ls isServiceWithServiceIdentifier:serviceIdentifier] &&
+            ls.process != nil &&
+            ls.process.pid == proc_getpid(_proc))
         {
+            /* telling launchservices to set the endpoint for the passed service identifier */
             [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
             return;
         }
