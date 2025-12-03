@@ -23,66 +23,47 @@
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
+#import <LindChain/ProcEnvironment/tpod.h>
 
-static NSMutableDictionary <NSNumber*,TaskPortObject*> *tfp_userspace_ports;
-
-kern_return_t environment_task_for_pid(mach_port_name_t taskPort,
+kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is almost ignored because its obsolete for nyxians security model */
                                        pid_t pid,
-                                       mach_port_name_t *requestTaskPort)
+                                       mach_port_name_t *tp_out)
 {
-    // Ignore input task port, literally take from `tfp_userspace_ports`
-    MachPortObject *machPortObject = [tfp_userspace_ports objectForKey:@(pid)];
-    if(machPortObject)
+    /* checking if tp_in is valid to match real behaviour */
+    if(tp_out == NULL ||
+       ![[[TaskPortObject alloc] initWithPort:tp_in] isUsable])
     {
-        if([machPortObject isUsable])
-        {
-            // We got machPortObject so insert it into `requestedTask`
-            *requestTaskPort = [machPortObject port];
-        }
-        else
-        {
-            [tfp_userspace_ports removeObjectForKey:@(pid)];
-            return KERN_FAILURE;
-        }
+        /* its not valid so failure */
+        return KERN_FAILURE;
     }
-    else
+    
+    /* trying to first get tp_out from our userspace task port database */
+    TaskPortObject *tpo = get_tpo_for_pid(pid);
+    
+    /* null pointer check */
+    if(tpo == NULL)
     {
-        if(environment_is_role(EnvironmentRoleHost))
+        /*
+         * if tpo is null it either means it was unusable or that it was never in our database,
+         * in that case we have to ask the kernel virtualisation layer nicely
+         */
+        tpo = environment_proxy_tfp_get_port_object_for_process_identifier(pid);
+        
+        /* trying to add tpo to tpod */
+        if(!set_tpo_for_pid(pid, tpo))
         {
-            // No machPortObject, so deny
+            /* we didnt so return KERN_FAILURE */
             return KERN_FAILURE;
-        }
-        else
-        {
-            // Asking the host application for the port object that contains the task port of the pid
-            TaskPortObject *portObject = environment_proxy_tfp_get_port_object_for_process_identifier(pid);
-            
-            // If the port is valid, we save it
-            if(!portObject)
-                return KERN_FAILURE;
-            else
-                [tfp_userspace_ports setObject:portObject forKey:@(pid)];
-            
-            // now we set `requestTaskPort`
-            *requestTaskPort = [portObject port];
         }
     }
     
-    // MARK: Possibly fixes the bug we had
-    mach_port_mod_refs(mach_task_self(), *requestTaskPort, MACH_PORT_RIGHT_SEND, 1);
+    /* setting tp_out to tpo */
+    *tp_out = [tpo port];
+    
+    /* increment the task port reference */
+    mach_port_mod_refs(mach_task_self(), *tp_out, MACH_PORT_RIGHT_SEND, 1);
     
     return KERN_SUCCESS;
-}
-
-void environment_host_take_client_task_port(TaskPortObject *machPort)
-{
-    environment_must_be_role(EnvironmentRoleHost);
-    if([machPort isUsable] && [machPort port] != mach_task_self())
-    {
-        pid_t pid = 0;
-        kern_return_t kr = pid_for_task([machPort port], &pid);
-        if(kr == KERN_SUCCESS && pid != getpid()) [tfp_userspace_ports setObject:machPort forKey:@(pid)];
-    }
 }
 
 bool environment_supports_tfp(void)
@@ -107,18 +88,20 @@ void environment_tfp_init(void)
 {
     if(environment_supports_tfp())
     {
-        tfp_userspace_ports = [[NSMutableDictionary alloc] init];
+        tpod_init();
         
         if(environment_is_role(EnvironmentRoleGuest))
         {
-            // MARK: Guest Init
+            /* sending our task port to the task port system */
             [hostProcessProxy sendPort:[TaskPortObject taskPortSelf]];
+            
+            /* hooking task_for_pid(3) */
             litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
         }
         else
         {
-            // MARK: Host Init
-            [tfp_userspace_ports setObject:[TaskPortObject taskPortSelf] forKey:@(getpid())];
+            /* setting tpo entry of our selves */
+            set_tpo_for_pid(getpid(), [TaskPortObject taskPortSelf]);
         }
     }
 }

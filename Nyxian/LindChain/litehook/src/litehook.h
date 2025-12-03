@@ -46,7 +46,7 @@ extern global_rebind *gRebinds;
     static return_type hook_##func signature
 
 #define DO_HOOK(func, type) \
-    litehook_rebind_symbol(type, func, hook_##func, nil);
+    litehook_rebind_symbol(type, func, hook_##func, nil)
 
 #define DO_HOOK_GLOBAL(func) \
     DO_HOOK(func,LITEHOOK_REBIND_GLOBAL)

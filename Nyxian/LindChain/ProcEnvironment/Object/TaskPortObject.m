@@ -27,4 +27,24 @@
     return [[TaskPortObject alloc] initWithPort:mach_task_self()];
 }
 
+- (pid_t)pid
+{
+    /* checking port */
+    if(![self isUsable])
+    {
+        return -1;
+    }
+    
+    /* asking mach kernel for pid of task_t */
+    pid_t pid = -1;
+    kern_return_t kr = pid_for_task([self port], &pid);
+    if(kr != KERN_SUCCESS)
+    {
+        return -1;
+    }
+    
+    /* returning pid */
+    return pid;
+}
+
 @end

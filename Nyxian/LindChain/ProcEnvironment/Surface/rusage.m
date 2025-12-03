@@ -27,7 +27,7 @@
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 
-/*int proc_libproc_pid_rusage(pid_t pid,
+int proc_libproc_pid_rusage(pid_t pid,
                             int flavor,
                             struct rusage_info_v2 *ri)
 {
@@ -76,12 +76,12 @@
             ri->ri_pageins = tei.pageins;
         }
         
-        struct proc_taskallinfo tai;
+        /*struct proc_taskallinfo tai;
         if(proc_libproc_pidinfo(pid, PROC_PIDTASKALLINFO, 0, &tai, sizeof(tai)) == sizeof(tai))
         {
             ri->ri_proc_start_abstime = tai.pbsd.pbi_start_tvsec * NSEC_PER_SEC +
             tai.pbsd.pbi_start_tvusec * NSEC_PER_USEC;
-        }
+        }*/
         
         struct task_power_info tpi;
         count = TASK_POWER_INFO_COUNT;
@@ -95,4 +95,3 @@
     }
     return 0;
 }
-*/

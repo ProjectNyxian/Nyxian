@@ -57,7 +57,7 @@ BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
     /* checking if proc is targetProc */
     if(proc == targetProc)
     {
-        allowed = NO;
+        allowed = YES;
         goto out_release_target;
     }
     

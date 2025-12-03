@@ -319,11 +319,11 @@ void DyldHooksInit(void)
         }
         lcMainBundlePath = lcMainBundle.bundlePath.fileSystemRepresentation;
         
-        DO_HOOK_GLOBAL(dlsym)
-        DO_HOOK_GLOBAL(_dyld_image_count)
-        DO_HOOK_GLOBAL(_dyld_get_image_header)
-        DO_HOOK_GLOBAL(_dyld_get_image_vmaddr_slide)
-        DO_HOOK_GLOBAL(_dyld_get_image_name)
+        DO_HOOK_GLOBAL(dlsym);
+        DO_HOOK_GLOBAL(_dyld_image_count);
+        DO_HOOK_GLOBAL(_dyld_get_image_header);
+        DO_HOOK_GLOBAL(_dyld_get_image_vmaddr_slide);
+        DO_HOOK_GLOBAL(_dyld_get_image_name);
         DO_HOOK_GLOBAL(dlopen);
         
         guestAppSdkVersion = getDyldImageBuildVersion(getGuestAppHeader()).version;

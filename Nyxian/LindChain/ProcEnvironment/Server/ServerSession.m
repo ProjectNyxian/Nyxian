@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <mach/mach.h>
 #import <LindChain/ProcEnvironment/Server/ServerSession.h>
-#import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Debugger/Logger.h>
@@ -26,10 +26,11 @@
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/LaunchServices/LaunchService.h>
-#import <mach/mach.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
+#import <LindChain/ProcEnvironment/tfp.h>
+#import <LindChain/ProcEnvironment/tpod.h>
 
 @implementation ServerSession
 
@@ -42,7 +43,7 @@
 
 /*
  tfp_userspace
- */
+*/
 - (void)sendPort:(TaskPortObject*)machPort API_AVAILABLE(ios(26.0));
 {
     /*
@@ -57,8 +58,8 @@
          */
         if(environment_supports_tfp())
         {
-            /* taking the passed task port */
-            environment_host_take_client_task_port(machPort);
+            /* appending passed tpo to tpod */
+            add_tpo(machPort);
         }
     });
 }
@@ -124,10 +125,20 @@
             }
         }
         
-        /* it passed all security check points so it is indeed allowed to gain those permitives */
-        mach_port_t port;
-        kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &port);
-        reply((kr == KERN_SUCCESS) ? [[TaskPortObject alloc] initWithPort:port] : nil);
+        /* asking tpod for tpo */
+        TaskPortObject *tpo = get_tpo_for_pid(pid);
+        
+        /* null pointer check */
+        if(tpo == NULL)
+        {
+            goto reply_nil;
+        }
+        
+        /* retaining port */
+        mach_port_mod_refs(mach_task_self(), [tpo port], MACH_PORT_RIGHT_SEND, 1);
+        
+        /* giving port caller */
+        reply(tpo);
         return;
     }
     

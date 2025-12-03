@@ -114,6 +114,6 @@ void environment_sysctl_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
-        DO_HOOK_GLOBAL(sysctl)
+        DO_HOOK_GLOBAL(sysctl);
     }
 }

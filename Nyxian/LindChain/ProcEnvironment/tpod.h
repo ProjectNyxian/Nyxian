@@ -17,26 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-// MARK: This needs TXM support on-device
+#ifndef PROCENVIRONMENT_TPOD_H
+#define PROCENVIRONMENT_TPOD_H
 
-#ifndef PROCENVIRONMENT_TFP_H
-#define PROCENVIRONMENT_TFP_H
-
-/* ----------------------------------------------------------------------
- *  Apple API Headers
- * -------------------------------------------------------------------- */
 #import <Foundation/Foundation.h>
-#import <mach/mach.h>
-
-/* ----------------------------------------------------------------------
- *  Environment API Headers
- * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
 
-kern_return_t environment_task_for_pid(mach_port_name_t tp_in, pid_t pid,  mach_port_name_t *tp_out);
+TaskPortObject *get_tpo_for_pid(pid_t pid);
+bool set_tpo_for_pid(pid_t pid, TaskPortObject *tpo);
+void rm_tpo_for_pid(pid_t pid);
+bool add_tpo(TaskPortObject *tpo);
+void tpod_init(void);
 
-bool environment_supports_tfp(void);
-
-void environment_tfp_init(void);
-
-#endif /* PROCENVIRONMENT_TFP_H */
+#endif /* PROCENVIRONMENT_TPOD_H */
