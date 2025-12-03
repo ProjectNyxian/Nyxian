@@ -31,6 +31,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/ProcEnvironment/tpod.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 @implementation ServerSession
 
@@ -96,6 +97,16 @@
             goto reply_nil;
         }
         
+        /* lock target */
+        proc_read_lock(targetProc);
+        
+        /* get targets entitlements atomically */
+        PEEntitlement targetEntitlement = proc_getentitlements(targetProc);
+        
+        /* were done with the target */
+        proc_unlock(targetProc);
+        proc_release(targetProc);
+        
         /* checking if the caller process got the entitlement to use tfp */
         if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementTaskForPid))
         {
@@ -119,7 +130,7 @@
         }
         else
         {
-            if(!entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))
+            if(!entitlement_got_entitlement(targetEntitlement, PEEntitlementGetTaskAllowed) || !permitive_over_process_allowed(_proc, pid))
             {
                 goto reply_nil;
             }
