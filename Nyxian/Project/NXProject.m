@@ -64,7 +64,14 @@
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
         [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
         [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
-        [NSString stringWithFormat:@"-I%@", [[Bootstrap shared] bootstrapPath:@"/Include/include"]]
+        @"-resource-dir",
+        [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Shared"],
+        @"-mcpu=apple-a12",
+        @"-march=armv8.3-a+fp16",
+        @"-Xclang", @"-target-feature", @"-Xclang", @"+neon",
+        @"-Xclang", @"-target-feature", @"-Xclang", @"+fullfp16",
+        @"-Xclang", @"-target-feature", @"-Xclang", @"+fp16fml",
+        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12"
     ]];
     
     return flags;

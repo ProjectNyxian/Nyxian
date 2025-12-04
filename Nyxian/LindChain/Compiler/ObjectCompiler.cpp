@@ -41,14 +41,15 @@ using namespace clang::driver;
 int CompileObject(int argc,
                   const char **argv,
                   const char *outputFilePath,
-                  const char *platformTripple,
+                  const char *platformTriple,
                   char **errorStringSet)
 {
+    /* error string setup */
     std::string errorString;
     llvm::raw_string_ostream errorOutputStream(errorString);
 
+    /* setting up diagnostic options */
     auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
-    
     DiagOpts->ShowColors = false;
     DiagOpts->ShowLevel = true;
     DiagOpts->ShowOptionNames = false;
@@ -57,58 +58,112 @@ int CompileObject(int argc,
     DiagOpts->ShowPresumedLoc = false;
     DiagOpts->ShowCarets = false;
     
+    /* setting up diagnostic engine */
     auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*DiagOpts);
     auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
     DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient.get());
     
-    llvm::Triple TargetTriple(platformTripple);
+    /* setting up platform triple */
+    llvm::Triple TargetTriple(platformTriple);
     
+    /* setting up clang driver */
     Driver TheDriver(argv[0], TargetTriple.str(), Diags);
 
-    SmallVector<const char *, 16> Args(argv, argv + argc);
-    Args.push_back("-fsyntax-only");
+    /* setting up argument */
+    SmallVector<const char *, 64> Args(argv, argv + argc);
+    Args.push_back("-c");
+    Args.push_back("-o");
+    Args.push_back(outputFilePath);
 
+    /* building compilation */
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));
     
-    if(!C)
-        return 0;
-
-    // FIXME: Crash in here
-    const JobList &Jobs = C->getJobs();
-    if(Jobs.size() != 1 || !isa<Command>(*Jobs.begin()))
+    /* null pointer check */
+    if(C == NULL)
     {
+        /* setting error string */
+        *errorStringSet = strdup(errorString.c_str());
+        return 1;
+    }
+
+    /* getting jobs */
+    const JobList &Jobs = C->getJobs();
+    
+    /* checking job properties */
+    if(Jobs.size() != 1 ||
+       !isa<Command>(*Jobs.begin()))
+    {
+        /* too many */
         llvm::SmallString<256> Msg;
         llvm::raw_svector_ostream OS(Msg);
         Jobs.Print(OS, "; ", true);
-        puts(Msg.c_str());
+        *errorStringSet = strdup(Msg.c_str());
         return 1;
     }
 
+    /* getting command */
     const Command &Cmd = cast<Command>(*Jobs.begin());
+    
+    /* checking if its clang */
     if(std::strcmp(Cmd.getCreator().getName(), "clang") != 0)
     {
+        /* its not */
         Diags.Report(diag::err_fe_expected_clang_command);
+        *errorStringSet = strdup(errorString.c_str());
         return 1;
     }
 
+    /* getting ccargs */
     const auto &CCArgs = Cmd.getArguments();
+    
+    /* creating clang invocation */
     auto CI = std::make_unique<CompilerInvocation>();
     CompilerInvocation::CreateFromArgs(*CI, CCArgs, Diags);
 
+    /*
+     * disabling free
+     *
+     * this is very important to prevent memory leak, clang is usually
+     * designed to run in a one hit way, but this is a iOS app so it
+     * cannot run in one hit.
+     */
     CI->getFrontendOpts().DisableFree = false;
-    CI->getFrontendOpts().OutputFile = outputFilePath;
-
+    
+    /* getting target options */
+    auto &TargetOpts = CI->getTargetOpts();
+    
+    /* setting triple again */
+    TargetOpts.Triple = platformTriple;
+    
+    /* fixing simd */
+    TargetOpts.Features.push_back("+neon");
+    TargetOpts.Features.push_back("+fp-armv8");
+    TargetOpts.Features.push_back("+fullfp16");
+    TargetOpts.Features.push_back("+fp16fml");
+    TargetOpts.Features.push_back("+zcm");
+    TargetOpts.Features.push_back("+zcz");
+    
+    /* set cpu target to A12 SoC */
+    TargetOpts.CPU = "apple-a12";
+    
+    /* creating clang instance */
     CompilerInstance Clang;
     Clang.setInvocation(std::move(CI));
     Clang.createDiagnostics(DiagClient.release(), false);
+    
+    /* hopefully this check is successful */
     if(!Clang.hasDiagnostics())
+    {
+        /* failed :c */
+        *errorStringSet = strdup("Failed to create diagnostics");
         return 1;
+    }
 
+    /* compiling */
     auto Act = std::make_unique<EmitObjAction>();
+    bool success = Clang.ExecuteAction(*Act);
     
-    Clang.ExecuteAction(*Act);
-    
+    /* creating error string */
     *errorStringSet = strdup(errorString.c_str());
-
-    return Clang.getDiagnostics().hasErrorOccurred();
+    return !success || Clang.getDiagnostics().hasErrorOccurred();
 }
