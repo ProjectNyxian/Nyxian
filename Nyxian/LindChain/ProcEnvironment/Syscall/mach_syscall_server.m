@@ -75,7 +75,8 @@ static bool get_caller(mach_msg_header_t *msg,
 static void send_reply(mach_msg_header_t *request,
                        int64_t result,
                        uint8_t *payload,
-                       uint32_t payload_len)
+                       uint32_t payload_len,
+                       errno_t err)
 {
     /* allocating a reply */
     syscall_reply_t reply;
@@ -90,6 +91,7 @@ static void send_reply(mach_msg_header_t *request,
     
     /* storing syscall result */
     reply.result = result;
+    reply.err = err;
     
     /* validating payload */
     if(payload &&
@@ -149,7 +151,7 @@ static void* worker_thread(void *ctx)
         if(!get_caller(&buffer.header, &caller) ||
            caller.proc == NULL)
         {
-            send_reply(&buffer.header, -1, NULL, 0);
+            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
             continue;
         }
         
@@ -159,7 +161,7 @@ static void* worker_thread(void *ctx)
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
-            send_reply(&buffer.header, -1, NULL, 0);
+            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
             continue;
         }
         
@@ -169,22 +171,23 @@ static void* worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            send_reply(&buffer.header, -1, NULL, 0);
+            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
             continue;
         }
         
         /* creating out payload buffer to be sent back */
         uint8_t out_payload[SYSCALL_MAX_PAYLOAD];
         uint32_t out_len = 0;
+        errno_t err;
         
         /* calling syscall */
-        int64_t result = handler(&caller, req->args, req->payload, req->payload_len, out_payload, &out_len);
+        int64_t result = handler(&caller, req->args, req->payload, req->payload_len, out_payload, &out_len, &err);
         
         /* release process */
         proc_release(caller.proc);
         
         /* replying to the guest */
-        send_reply(&buffer.header, result, out_payload, out_len);
+        send_reply(&buffer.header, result, out_payload, out_len, err);
     }
     
     return NULL;

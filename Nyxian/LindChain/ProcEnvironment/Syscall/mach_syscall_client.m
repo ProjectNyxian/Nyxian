@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 struct syscall_client {
     mach_port_t server_port;
@@ -165,7 +166,11 @@ int64_t syscall_invoke(syscall_client_t *client,
         *out_len = buffer.reply.payload_len;
     }
     
-    // TODO: Add errno setter to the handler so the kernel syscalls can set errno
+    /* if the result is not 0 we set errno >~< */
+    if(buffer.reply.result != 0)
+    {
+        errno = buffer.reply.err;
+    }
     
     /* done ;3 */
     return buffer.reply.result;

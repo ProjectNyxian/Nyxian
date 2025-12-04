@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
     mach_msg_header_t   header;
     int64_t             result;
+    errno_t             err;
     uint32_t            payload_len;
     uint8_t             payload[SYSCALL_MAX_PAYLOAD];
 } syscall_reply_t;
@@ -63,10 +64,11 @@ typedef int64_t (*syscall_handler_t)(
     uint8_t             *in_payload,
     uint32_t            in_len,
     uint8_t             *out_payload,
-    uint32_t            *out_len
+    uint32_t            *out_len,
+    errno_t             *err
 );
 
-#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname(syscall_caller_t *caller, int64_t *args, uint8_t *in_payload, uint32_t in_len, uint8_t *out_payload, uint32_t *out_len)
+#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname(syscall_caller_t *caller, int64_t *args, uint8_t *in_payload, uint32_t in_len, uint8_t *out_payload, uint32_t *out_len, errno_t *err)
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
 
 typedef struct syscall_server syscall_server_t;
