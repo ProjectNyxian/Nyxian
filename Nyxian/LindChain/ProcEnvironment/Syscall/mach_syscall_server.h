@@ -30,6 +30,10 @@
 #define SYSCALL_SERVER_THREADS  4
 #define SYSCALL_QUEUE_LIMIT     32
 
+#ifndef round_msg
+#define round_msg(x) (((x) + sizeof(natural_t) - 1) & ~(sizeof(natural_t) - 1))
+#endif
+
 typedef struct {
     pid_t   pid;
     uid_t   euid;

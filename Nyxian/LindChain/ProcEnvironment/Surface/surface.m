@@ -28,6 +28,7 @@
 #import <mach-o/dyld.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
+#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 
 ksurface_mapping_t *ksurface = NULL;
 
@@ -142,18 +143,13 @@ static inline void ksurface_kinit_kproc(void)
     proc_release(kproc);
 }
 
-DEFINE_SYSCALL_HANDLER(test) {
-    klog_log(@"syscall:test", @"ping from pid %d", caller->pid);
-    return 0;
-}
-
 void ksurface_kinit_kserver(void)
 {
     ksurface->sys_server = syscall_server_create();
     klog_log(@"ksurface:kinit:kserver", @"allocated syscall server @ %p", ksurface->sys_server);
     
-    syscall_server_register(ksurface->sys_server, 0, GET_SYSCALL_HANDLER(test));
-    klog_log(@"ksurface:kinit:kserver", @"registered test syscall");
+    syscall_server_register(ksurface->sys_server, SYS_KILL, GET_SYSCALL_HANDLER(kill));
+    klog_log(@"ksurface:kinit:kserver", @"registered SYS_KILL");
     
     syscall_server_start(ksurface->sys_server);
     klog_log(@"ksurface:kinit:kserver", @"started syscall server");

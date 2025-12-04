@@ -21,11 +21,13 @@
 #import <LindChain/ProcEnvironment/proxy.h>
 #include <signal.h>
 #include <errno.h>
+#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 
 #define PROXY_MAX_DISPATCH_TIME 1.0
 #define PROXY_TYPE_REPLY(type) ^(void (^reply)(type))
 
 NSObject<ServerProtocol> *hostProcessProxy = nil;
+syscall_client_t *syscallProxy = NULL;
 
 static id _Nullable sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
 {
@@ -133,6 +135,28 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
 {
     environment_must_be_role(EnvironmentRoleGuest);
 
+    /* null pointer check */
+    if(syscallProxy == NULL)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    /* perform syscall */
+    /* allocate args */
+    int64_t args[6] = { process_identifier, signal, 0, 0, 0, 0 };
+    int64_t retval = syscall_invoke(syscallProxy, SYS_KILL, args, NULL, 0, NULL, NULL);
+    
+    /* failure check */
+    if(retval == -1)
+    {
+        errno = EPERM;
+    }
+    
+    return (int)retval;
+    
+    /*
+    // TODO: Move this into the kernel
     if(signal <= 0 || signal >= NSIG)
     {
         errno = EINVAL;
@@ -149,9 +173,9 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
     {
         errno = result;
         return -1;
-    }
+    }*/
 
-    return 0;
+    //return 0;
 }
 
 pid_t environment_proxy_spawn_process_at_path(NSString *path,

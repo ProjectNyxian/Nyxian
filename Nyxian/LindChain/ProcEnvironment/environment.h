@@ -84,7 +84,20 @@ typedef NS_ENUM(NSInteger, EnvironmentExec) {
  @param endpoint
     Endpoint send by the host environment to the guest to connect to.
  */
-void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint);
+void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attribute__((deprecated("Use environment_client_connect_to_syscall_proxy(1) instead")));
+
+/*!
+ @function environment_client_connect_to_syscall_proxy
+ @abstract Connects the client to the syscall proxy using a preshipped mach port object(mpo).
+ @discussion
+    This function establishes a connection between a guest process and
+    its host environments syscall proxy. The provided endpoint must have been exported
+    by the host.
+
+ @param mpo
+    Mach port send by the host environment to the guest to connect to.
+ */
+void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
 
 /*!
  @function environment_client_attach_debugger

@@ -32,6 +32,7 @@
 
 // Applicable for child process
 extern NSObject<ServerProtocol> *hostProcessProxy;
+extern syscall_client_t *syscallProxy;
 
 // MARK: Helper symbols that are intended stabilizing the proc environment api proxy wise and reduce the amount of deadlocking in the future
 

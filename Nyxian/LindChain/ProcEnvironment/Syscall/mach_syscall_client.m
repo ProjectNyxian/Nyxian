@@ -20,11 +20,20 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 struct syscall_client {
     mach_port_t server_port;
     mach_port_t reply_port;
 };
+
+typedef struct {
+    union {
+        syscall_request_t req;
+        syscall_reply_t   reply;
+    };
+    mach_msg_max_trailer_t trailer;
+} syscall_msg_buffer_t;
 
 syscall_client_t *syscall_client_create(mach_port_t port)
 {
@@ -101,42 +110,44 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* building syscall request :3c */
-    syscall_request_t req;
+    syscall_msg_buffer_t buffer;
     
-    /* nullfying request */
-    memset(&req, 0, sizeof(req));
+    /* nullfying buffer */
+    memset(&buffer, 0, sizeof(buffer));
     
     /* stuffing the request ;3 */
-    req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND,MACH_MSG_TYPE_MAKE_SEND_ONCE);
-    req.header.msgh_remote_port = client->server_port;
-    req.header.msgh_local_port = client->reply_port;
-    req.header.msgh_size = sizeof(req);
-    req.header.msgh_id = syscall_num;
+    buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE);
+    buffer.req.header.msgh_remote_port = client->server_port;
+    buffer.req.header.msgh_local_port = client->reply_port;
+    buffer.req.header.msgh_size = sizeof(syscall_request_t);
+    buffer.req.header.msgh_id = syscall_num;
     
     /* telling cutie patootie XNU what syscall we wanna call ^^ */
-    req.syscall_num = syscall_num;
+    buffer.req.syscall_num = syscall_num;
     
     /* checking for args to copy them possibly over, otherwise they stay nullified */
     if(args)
     {
         /* copy */
-        memcpy(req.args, args, sizeof(req.args));
+        memcpy(buffer.req.args, args, sizeof(buffer.req.args));
     }
     
     /* checking for payload, if present writing it to the request */
     if(in_payload && in_len > 0)
     {
         /* copy again, rawrr */
-        req.payload_len = (in_len > SYSCALL_MAX_PAYLOAD) ? SYSCALL_MAX_PAYLOAD : in_len;
-        memcpy(req.payload, in_payload, req.payload_len);
+        buffer.req.payload_len = (in_len > SYSCALL_MAX_PAYLOAD) ? SYSCALL_MAX_PAYLOAD : in_len;
+        memcpy(buffer.req.payload, in_payload, buffer.req.payload_len);
     }
     
-    /* allocatin the reply */
-    syscall_reply_t reply;
-    memset(&reply, 0, sizeof(reply));
-    
-    /* now lets call da cutie >.< */
-    kern_return_t kr = mach_msg(&req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(req), sizeof(reply), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    /*
+     * now lets call da cutie >.<
+     *
+     * NOTE: when using MACH_SEND_MSG | MACH_RCV_MSG together, the kernel
+     * uses the same buffer for both operations. The receive buffer size
+     * must be large enough to hold the reply plus any trailer.
+     */
+    kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(syscall_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
     
     /* checking for succession */
     if(kr != KERN_SUCCESS)
@@ -146,14 +157,16 @@ int64_t syscall_invoke(syscall_client_t *client,
     
     /* payload validation */
     if(out_payload && out_len &&
-       reply.payload_len > 0)
+       buffer.reply.payload_len > 0)
     {
         /* copying reply */
-        uint32_t copy_len = (*out_len < reply.payload_len) ? *out_len : reply.payload_len;
-        memcpy(out_payload, reply.payload, copy_len);
-        *out_len = reply.payload_len;
+        uint32_t copy_len = (*out_len < buffer.reply.payload_len) ? *out_len : buffer.reply.payload_len;
+        memcpy(out_payload, buffer.reply.payload, copy_len);
+        *out_len = buffer.reply.payload_len;
     }
     
+    // TODO: Add errno setter to the handler so the kernel syscalls can set errno
+    
     /* done ;3 */
-    return reply.result;
+    return buffer.reply.result;
 }

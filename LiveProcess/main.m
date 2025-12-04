@@ -133,14 +133,6 @@ int LiveProcessMain(int argc, char *argv[]) {
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
     
-    MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
-    if(syscallPort)
-    {
-        syscall_client_t *client = syscall_client_create(syscallPort.port);
-        syscall_invoke(client, 0, NULL, NULL, 0, NULL, NULL);
-        syscall_client_destroy(client);
-    }
-    
     // Setup fd map
     if(mapObject) [mapObject apply_fd_map];
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -148,6 +140,12 @@ int LiveProcessMain(int argc, char *argv[]) {
     
     // Setting up environment
     environment_client_connect_to_host(endpoint);
+    
+    MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
+    if(syscallPort != NULL)
+    {
+        environment_client_connect_to_syscall_proxy(syscallPort);
+    }
     
     if(environmentDictionary && environmentDictionary.count > 0) overwriteEnvironmentProperties(environmentDictionary);
     if(argumentDictionary && argumentDictionary.count > 0) createArgv(argumentDictionary, &argc, &argv);

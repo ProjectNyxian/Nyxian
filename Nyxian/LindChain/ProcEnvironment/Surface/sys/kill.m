@@ -1,0 +1,77 @@
+/*
+ Copyright (C) 2025 cr4zyengineer
+
+ This file is part of Nyxian.
+
+ Nyxian is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Nyxian is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#import <LindChain/ProcEnvironment/Surface/sys/kill.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/permit.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+
+DEFINE_SYSCALL_HANDLER(kill)
+{
+    /* getting process of the caller */
+    ksurface_proc_t *proc = proc_for_pid(caller->pid);
+    
+    /* null pointer check */
+    if(proc == NULL ||
+       args == NULL)
+    {
+        return -1;
+    }
+    
+    /* casting and check */
+    pid_t pid = (pid_t)args[0];
+    int signal = (int)args[1];
+    
+    klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", caller->pid, pid, signal);
+    
+    /*
+     * checking if the caller process that makes the call is the same process,
+     * also checks if the caller process has the entitlement to kill
+     * and checks if the process has permitive over the other process.
+     */
+    if(pid != proc_getpid(proc) &&
+       (!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessKill) ||
+        !permitive_over_process_allowed(proc, pid)))
+    {
+        klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", caller->pid, pid);
+        return -1;
+    }
+
+    /* getting the processes high level structure */
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
+    if(!process)
+    {
+        /*
+         * returns the same value as normal failure to prevent deterministic exploitation,
+         * of process reference counting.
+         */
+        klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
+        return -1;
+    }
+    
+    /* signaling the process */
+    [process sendSignal:signal];
+    klog_log(@"syscall:kill", @"pid %d signaled pid %d", caller->pid, pid);
+    
+    
+    /* releasing process */
+    proc_release(proc);
+    return 0;
+}
