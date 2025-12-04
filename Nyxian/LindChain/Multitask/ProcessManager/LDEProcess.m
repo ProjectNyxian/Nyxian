@@ -170,7 +170,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         {
                             weakSelf.proc = child;
                         }
-                        klog_log(@"LDEProcess", @"created child process with proc api %p", child);
+                        klog_log(@"LDEProcess", @"forked process @ %p of process @ %p", child, proc);
                     });
                 }
             }];
