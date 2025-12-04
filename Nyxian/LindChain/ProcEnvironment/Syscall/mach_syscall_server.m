@@ -148,10 +148,16 @@ static void* worker_thread(void *ctx)
         
         /* getting the callers identity from the payload */
         syscall_caller_t caller;
-        if(!get_caller(&buffer.header, &caller) ||
-           caller.proc == NULL)
+        if(!get_caller(&buffer.header, &caller))
         {
             send_reply(&buffer.header, -1, NULL, 0, EINVAL);
+            continue;
+        }
+        
+        /* null pointer check */
+        if(caller.proc == NULL)
+        {
+            send_reply(&buffer.header, -1, NULL, 0, EAGAIN);
             continue;
         }
         
