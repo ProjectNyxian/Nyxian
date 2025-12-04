@@ -154,6 +154,9 @@ void ksurface_kinit_kserver(void)
     syscall_server_register(ksurface->sys_server, SYS_BAMSET, GET_SYSCALL_HANDLER(bamset));
     klog_log(@"ksurface:kinit:kserver", @"registered SYS_BAMSET");
     
+    syscall_server_register(ksurface->sys_server, SYS_PROCTB, GET_SYSCALL_HANDLER(proctb));
+    klog_log(@"ksurface:kinit:kserver", @"registered SYS_PROCTB");
+    
     syscall_server_start(ksurface->sys_server);
     klog_log(@"ksurface:kinit:kserver", @"started syscall server");
 }

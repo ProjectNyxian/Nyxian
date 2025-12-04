@@ -17,17 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_SYSCALL_H
-#define SURFACE_SYS_SYSCALL_H
+#ifndef SURFACE_SYS_PROCTB_H
+#define SURFACE_SYS_PROCTB_H
 
-/* headers to syscall handlers*/
-#import <LindChain/ProcEnvironment/Surface/sys/kill.h>
-#import <LindChain/ProcEnvironment/Surface/sys/bamset.h>
-#import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-/* syscalls */
-#define SYS_KILL 1          /* killing other processes */
-#define SYS_BAMSET 2        /* setting audio background mode */
-#define SYS_PROCTB 3        /* getting process table MARK: will be SYS_SYSCTL later */
+DEFINE_SYSCALL_HANDLER(proctb);
 
-#endif /* SURFACE_SYS_SYSCALL_H */
+#endif /* SURFACE_SYS_PROCTB_H */

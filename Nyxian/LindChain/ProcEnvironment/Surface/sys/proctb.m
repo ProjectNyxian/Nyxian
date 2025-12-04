@@ -17,17 +17,26 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_SYSCALL_H
-#define SURFACE_SYS_SYSCALL_H
-
-/* headers to syscall handlers*/
-#import <LindChain/ProcEnvironment/Surface/sys/kill.h>
-#import <LindChain/ProcEnvironment/Surface/sys/bamset.h>
 #import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
+#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 
-/* syscalls */
-#define SYS_KILL 1          /* killing other processes */
-#define SYS_BAMSET 2        /* setting audio background mode */
-#define SYS_PROCTB 3        /* getting process table MARK: will be SYS_SYSCTL later */
-
-#endif /* SURFACE_SYS_SYSCALL_H */
+DEFINE_SYSCALL_HANDLER(proctb)
+{
+    /* snapshot creation */
+    proc_snapshot_t *snap;
+    proc_list_err_t error = proc_snapshot_create(sys_proc_, &snap);
+    if(error != PROC_LIST_OK)
+    {
+        return -1;
+        *err = EPERM;
+    }
+    
+    /* copy the buffer into NSData */
+    *out_len = snap->count * sizeof(kinfo_proc_t);
+    memcpy(out_payload, snap->kp, *out_len);
+    
+    /* free the snapshot */
+    proc_snapshot_free(snap);
+    
+    return 0;
+}

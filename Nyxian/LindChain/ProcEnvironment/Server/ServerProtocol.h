@@ -48,7 +48,6 @@
  */
 - (void)setProcessCredWithOption:(ProcessCredOp)option withIdentifierA:(unsigned int)ida withIdentifierB:(unsigned int)idb withIdentifierC:(unsigned int)idc withReply:(void (^)(unsigned int result))reply;
 - (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned long result))reply;
-- (void)getProcessTableWithReply:(void (^)(NSData *result))reply;
 - (void)getProcessNyxWithIdentifier:(pid_t)pid withReply:(void (^)(NSData*))reply;
 
 /*

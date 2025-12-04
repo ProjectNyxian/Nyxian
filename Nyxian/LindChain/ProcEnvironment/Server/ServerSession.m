@@ -438,35 +438,6 @@ reply_nil:
     });
 }
 
-- (void)getProcessTableWithReply:(void (^)(NSData *result))reply
-{
-    /* null pointer check */
-    if(_proc == NULL)
-    {
-        reply(nil);
-        return;
-    }
-    
-    /* snapshot creation */
-    proc_snapshot_t *snap;
-    proc_list_err_t error = proc_snapshot_create(_proc, &snap);
-    if(error != PROC_LIST_OK)
-    {
-        reply(nil);
-        return;
-    }
-    
-    /* copy the buffer into NSData */
-    size_t len = snap->count * sizeof(kinfo_proc_t);
-    NSData *data = [[NSData alloc] initWithBytes:&(snap->kp) length:len];
-    
-    /* free the snapshot */
-    proc_snapshot_free(snap);
-    
-    /* reply with the XPC safe buffer to the client */
-    reply(data);
-}
-
 - (void)dealloc
 {
     /* null pointer check */
