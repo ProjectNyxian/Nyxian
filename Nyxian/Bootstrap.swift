@@ -35,7 +35,7 @@ import Foundation
 @objc class Bootstrap: NSObject {
     var semaphore: DispatchSemaphore?
     let rootPath: String = "\(NSHomeDirectory())/Documents"
-    let newestBootstrapVersion: Int = 8
+    let newestBootstrapVersion: Int = 9
     
     var bootstrapVersion: Int {
         get {
@@ -95,19 +95,8 @@ import Foundation
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Certificates"), withIntermediateDirectories: false)
                         
-                        if !fdownload("https://nyxian.app/bootstrap/include.zip", "include.zip") {
-                            print("[*] Bootstrap download failed\n")
-                            throw NSError(
-                                domain: "",
-                                code: 0,
-                                userInfo: [NSLocalizedDescriptionKey: "Download failed!"]
-                            )
-                        }
-                        
                         // Now extract Include and SDK
                         print("[*] Bootstrapping folder structures")
-                        print("[*] Extracting include.zip")
-                        unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
                         self.bootstrapVersion = 1
                     }
                     
@@ -169,6 +158,28 @@ import Foundation
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
                         
                         self.bootstrapVersion = 8
+                    }
+                    
+                    if self.bootstrapVersion == 8 {
+                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
+                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
+                        }
+                        
+                        print("[*] bootstrap upgrade patch for version 9")
+                        
+                        if !fdownload("https://nyxian.app/bootstrap/include.zip", "include.zip") {
+                            print("[*] Bootstrap download failed\n")
+                            throw NSError(
+                                domain: "",
+                                code: 0,
+                                userInfo: [NSLocalizedDescriptionKey: "Download failed!"]
+                            )
+                        }
+                        
+                        print("[*] Extracting include.zip")
+                        unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
+                        
+                        self.bootstrapVersion = 9
                     }
                     
                     self.bootstrapVersion = self.newestBootstrapVersion

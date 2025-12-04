@@ -65,7 +65,7 @@
         [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
         [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
         @"-resource-dir",
-        [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Shared"],
+        [[Bootstrap shared] bootstrapPath:@"/Include"],
         @"-mcpu=apple-a12",
         @"-march=armv8.3-a+fp16",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+neon",
