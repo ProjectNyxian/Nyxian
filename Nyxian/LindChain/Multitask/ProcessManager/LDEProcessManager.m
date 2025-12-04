@@ -23,10 +23,12 @@
 #import <LindChain/ProcEnvironment/panic.h>
 #import <Nyxian-Swift.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <os/lock.h>
 
 @implementation LDEProcessManager {
     NSTimeInterval _lastSpawnTime;
     NSTimeInterval _spawnCooldown;
+    os_unfair_lock processes_array_lock;
 }
 
 - (instancetype)init
@@ -78,12 +80,31 @@
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
       withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
+    /* enforcing spawn cooldown */
     [self enforceSpawnCooldown];
     
+    /* creating a process */
     LDEProcess *process = [[LDEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc];
-    if(!process) return 0;
+    
+    /* null pointer check */
+    if(process == nil)
+    {
+        return -1;
+    }
+    
+    /* getting process identifier */
     pid_t pid = process.pid;
+    
+    /* aquiring lock */
+    os_unfair_lock_lock(&processes_array_lock);
+    
+    /* set process object */
     [self.processes setObject:process forKey:@(pid)];
+    
+    /* releasing lock */
+    os_unfair_lock_unlock(&processes_array_lock);
+    
+    /* returning pid */
     return pid;
 }
 
@@ -91,58 +112,55 @@
                  withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
-    __block pid_t retval = 0;
-    dispatch_sync(_syncQueue, ^{
-        for(NSNumber *key in self.processes)
+    os_unfair_lock_lock(&processes_array_lock);
+    for(NSNumber *key in self.processes)
+    {
+        LDEProcess *process = self.processes[key];
+        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
+        else
         {
-            LDEProcess *process = self.processes[key];
-            if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
-            else
+            if(doRestartIfRunning)
             {
-                if(doRestartIfRunning)
+                [process terminate];
+                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
                 {
-                    [process terminate];
-                    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-                    {
-                        // FIXME: If we store two values at the same time then this goes terribly wrong in LDEWindowSessionApplication
-                        usleep(300000);
-                    }
-                }
-                else
-                {
-                    if(process.wid != (wid_t)-1)
-                    {
-                        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-                        {
-                            [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
-                        }
-                        else
-                        {
-                            [[LDEWindowServer shared] activateWindowForIdentifier:process.wid animated:YES withCompletion:nil];
-                        }
-                    }
-                    retval = process.pid;
-                    return;
+                    // FIXME: If we store two values at the same time then this goes terribly wrong in LDEWindowSessionApplication
+                    usleep(300000);
                 }
             }
+            else
+            {
+                if(process.wid != (wid_t)-1)
+                {
+                    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+                    {
+                        [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
+                    }
+                    else
+                    {
+                        [[LDEWindowServer shared] activateWindowForIdentifier:process.wid animated:YES withCompletion:nil];
+                    }
+                }
+                os_unfair_lock_unlock(&processes_array_lock);
+                return process.pid;
+            }
         }
-        
-        LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
-        if(!applicationObject.isLaunchAllowed)
-        {
-            [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
-            retval = 0;
-            return;
-        }
-        
-        [self enforceSpawnCooldown];
-        
-        LDEProcess *process = nil;
-        retval = [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
-            @"HOME": applicationObject.containerPath
-        } withMapObject:nil withKernelSurfaceProcess:kernel_proc_ process:&process];
-    });
-    return retval;
+    }
+    os_unfair_lock_unlock(&processes_array_lock);
+    
+    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
+    if(!applicationObject.isLaunchAllowed)
+    {
+        [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
+        return -1;
+    }
+    
+    [self enforceSpawnCooldown];
+    
+    LDEProcess *process = nil;
+    return [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
+        @"HOME": applicationObject.containerPath
+    } withMapObject:nil withKernelSurfaceProcess:kernel_proc_ process:&process];
 }
 
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
@@ -152,12 +170,38 @@
      withKernelSurfaceProcess:(ksurface_proc_t*)proc
                       process:(LDEProcess**)processReply
 {
+    /* enforce cooldown */
     [self enforceSpawnCooldown];
+    
+    /* creating process */
     LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:proc];
-    if(!process) return 0;
+    
+    /* null pointer check */
+    if(process == nil)
+    {
+        return 0;
+    }
+    
+    /* getting pid of process */
     pid_t pid = process.pid;
+    
+    /* aquiring lock */
+    os_unfair_lock_lock(&processes_array_lock);
+    
+    /* setting process */
     [self.processes setObject:process forKey:@(pid)];
-    if(processReply) *processReply = process;
+    
+    /* release lock */
+    os_unfair_lock_unlock(&processes_array_lock);
+    
+    /* checking if its non-null */
+    if(processReply != NULL)
+    {
+        /* replying with the process */
+        *processReply = process;
+    }
+    
+    /* returning process identifier */
     return pid;
 }
 
@@ -168,14 +212,21 @@
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
-    dispatch_sync(_syncQueue, ^{
-        klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"unregistering pid %d", pid);
-        [self.processes removeObjectForKey:@(pid)];
-    });
+    /* locking */
+    os_unfair_lock_lock(&processes_array_lock);
+    
+    klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"unregistering pid %d", pid);
+    [self.processes removeObjectForKey:@(pid)];
+    
+    /* unlocking */
+    os_unfair_lock_unlock(&processes_array_lock);
 }
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier
 {
+    /* locking */
+    os_unfair_lock_lock(&processes_array_lock);
+    
     for(NSNumber *key in self.processes)
     {
         LDEProcess *process = self.processes[key];
@@ -185,6 +236,9 @@
             [process terminate];
         }
     }
+    
+    /* unlocking */
+    os_unfair_lock_unlock(&processes_array_lock);
 }
 
 @end
