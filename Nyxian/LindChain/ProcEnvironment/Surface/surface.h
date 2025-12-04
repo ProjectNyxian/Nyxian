@@ -26,6 +26,8 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #include <LindChain/ProcEnvironment/Surface/radix/radix.h>
+#import <LindChain/Private/FoundationPrivate.h>
+#import <LindChain/Private/UIKitPrivate.h>
 #include <pthread.h>
 
 enum kSurfaceError {
@@ -61,6 +63,15 @@ typedef struct {
     PEEntitlement entitlements;
 } knyx_proc_t;
 
+/// Structure to honor Duy Trans contributions
+/// Why? Because his research is in this structure
+typedef struct {
+    __strong NSExtension *nsExtension;
+    __strong RBSProcessHandle *rbsProcessHandle;
+    __strong RBSProcessMonitor *processMonitor;
+    __strong FBScene *fbScene;
+} kduy_proc_t;
+
 /// Structure that holds children of each process.. and a reference to each of those
 /// This cannot be copied!!! This structure is extremely sensitive
 /// The parent pointer and children pointer must all be referenced to eachother
@@ -80,6 +91,7 @@ typedef struct {
     ksurface_proc_children_t cld;
     kinfo_proc_t bsd;
     knyx_proc_t nyx;
+    kduy_proc_t duy;
 } ksurface_proc_t;
 
 typedef struct {

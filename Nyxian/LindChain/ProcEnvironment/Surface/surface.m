@@ -130,7 +130,7 @@ static inline void ksurface_kinit_kproc(void)
     ksurface->proc_info.kproc = kproc;
     
     /* inserting kproc */
-    klog_log(@"ksurface:kproc:kinit", @"inserting kernel process");
+    klog_log(@"ksurface:kinit:kproc", @"inserting kernel process");
     ksurface_error_t error = proc_insert(kproc);
     if(error != kSurfaceErrorSuccess)
     {
