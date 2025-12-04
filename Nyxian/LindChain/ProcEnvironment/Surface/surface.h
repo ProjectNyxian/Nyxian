@@ -113,6 +113,6 @@ typedef struct {
 extern ksurface_mapping_t *ksurface;
 
 void kern_sethostname(NSString *hostname);
-void ksurface_init(void);
+void ksurface_kinit(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */

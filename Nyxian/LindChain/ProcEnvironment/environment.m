@@ -89,7 +89,7 @@ void environment_init(EnvironmentRole role,
          environment_cred_init();
         
 #if HOST_ENV
-        ksurface_init();
+        ksurface_kinit();
 #else
         environment_proxy_waittrap();
 #endif
