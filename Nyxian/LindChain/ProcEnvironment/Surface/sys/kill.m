@@ -25,12 +25,8 @@
 
 DEFINE_SYSCALL_HANDLER(kill)
 {
-    /* getting process of the caller */
-    ksurface_proc_t *proc = proc_for_pid(caller->pid);
-    
     /* null pointer check */
-    if(proc == NULL ||
-       args == NULL)
+    if(args == NULL)
     {
         return -1;
     }
@@ -46,9 +42,9 @@ DEFINE_SYSCALL_HANDLER(kill)
      * also checks if the caller process has the entitlement to kill
      * and checks if the process has permitive over the other process.
      */
-    if(pid != proc_getpid(proc) &&
-       (!entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessKill) ||
-        !permitive_over_process_allowed(proc, pid)))
+    if(pid != caller->pid &&
+       (!entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementProcessKill) ||
+        !permitive_over_process_allowed(sys_proc_, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", caller->pid, pid);
         return -1;
@@ -70,8 +66,5 @@ DEFINE_SYSCALL_HANDLER(kill)
     [process sendSignal:signal];
     klog_log(@"syscall:kill", @"pid %d signaled pid %d", caller->pid, pid);
     
-    
-    /* releasing process */
-    proc_release(proc);
     return 0;
 }

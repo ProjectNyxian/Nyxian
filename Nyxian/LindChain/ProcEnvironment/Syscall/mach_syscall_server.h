@@ -30,9 +30,8 @@
 #define SYSCALL_SERVER_THREADS  4
 #define SYSCALL_QUEUE_LIMIT     32
 
-#ifndef round_msg
-#define round_msg(x) (((x) + sizeof(natural_t) - 1) & ~(sizeof(natural_t) - 1))
-#endif
+/* macro for extremely easy process usage from syscalls */
+#define sys_proc_ ((ksurface_proc_t*)caller->proc)
 
 typedef struct {
     pid_t   pid;
@@ -40,6 +39,7 @@ typedef struct {
     gid_t   egid;
     uid_t   ruid;
     gid_t   rgid;
+    void    *proc;
 } syscall_caller_t;
 
 typedef struct {

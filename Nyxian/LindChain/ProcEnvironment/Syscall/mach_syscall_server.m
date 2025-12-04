@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,6 +64,7 @@ static bool get_caller(mach_msg_header_t *msg,
     caller->ruid = (uid_t)token->val[3];
     caller->rgid = (gid_t)token->val[4];
     caller->pid  = (pid_t)token->val[5];
+    caller->proc = proc_for_pid(caller->pid);
     
     return true;
 }
@@ -144,7 +146,8 @@ static void* worker_thread(void *ctx)
         
         /* getting the callers identity from the payload */
         syscall_caller_t caller;
-        if(!get_caller(&buffer.header, &caller))
+        if(!get_caller(&buffer.header, &caller) ||
+           caller.proc == NULL)
         {
             send_reply(&buffer.header, -1, NULL, 0);
             continue;
@@ -176,6 +179,9 @@ static void* worker_thread(void *ctx)
         
         /* calling syscall */
         int64_t result = handler(&caller, req->args, req->payload, req->payload_len, out_payload, &out_len);
+        
+        /* release process */
+        proc_release(caller.proc);
         
         /* replying to the guest */
         send_reply(&buffer.header, result, out_payload, out_len);
