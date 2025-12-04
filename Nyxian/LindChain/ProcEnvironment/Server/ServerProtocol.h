@@ -39,11 +39,6 @@
 - (void)getPort:(pid_t)pid withReply:(void (^)(TaskPortObject*))reply;
 
 /*
- libproc_userspace
- */
-- (void)proc_kill:(pid_t)pid withSignal:(int)signal withReply:(void (^)(int))reply;
-
-/*
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;

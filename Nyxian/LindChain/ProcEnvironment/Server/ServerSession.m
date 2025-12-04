@@ -158,56 +158,6 @@ reply_nil:
 }
 
 /*
- libproc_userspace
- */
-- (void)proc_kill:(pid_t)pid
-       withSignal:(int)signal
-        withReply:(void (^)(int))reply
-{
-    /* null pointer check */
-    if(_proc == NULL)
-    {
-        reply(-1);
-        return;
-    }
-    
-    klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", _processIdentifier, pid, signal);
-    
-    /*
-     * checking if the caller process that makes the call is the same process,
-     * also checks if the caller process has the entitlement to kill
-     * and checks if the process has permitive over the other process.
-     */
-    if(pid != proc_getpid(_proc) &&
-       (!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessKill) ||
-        !permitive_over_process_allowed(_proc, pid)))
-    {
-        klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", _processIdentifier, pid);
-        reply(-1);
-        return;
-    }
-
-    /* getting the processes high level structure */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
-    if(!process)
-    {
-        /*
-         * returns the same value as normal failure to prevent deterministic exploitation,
-         * of process reference counting.
-         */
-        klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
-        reply(-1);
-        return;
-    }
-    
-    /* signaling the process */
-    [process sendSignal:signal];
-    klog_log(@"syscall:kill", @"pid %d signaled pid %d", _processIdentifier, pid);
-    
-    reply(0);
-}
-
-/*
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path
