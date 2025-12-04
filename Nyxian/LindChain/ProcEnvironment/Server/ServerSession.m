@@ -204,21 +204,6 @@ reply_nil:
 }
 
 /*
- Background mode fixup
- */
-- (void)setAudioBackgroundModeActive:(BOOL)active
-{
-    /* blindly activating audiobackground mode */
-    // TODO: Track which process holds audio background mode, only one shall...
-    // MARK: This also bypasses proc_suspend(1) and proc_resume(1) assumptions
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
-    if(process)
-    {
-        process.audioBackgroundModeUsage = active;
-    }
-}
-
-/*
  Set credentials
  */
 - (void)setProcessCredWithOption:(ProcessCredOp)option

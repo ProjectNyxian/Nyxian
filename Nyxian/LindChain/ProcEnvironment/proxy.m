@@ -134,13 +134,6 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
                                                    int signal)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-
-    /* null pointer check */
-    if(syscallProxy == NULL)
-    {
-        errno = EINVAL;
-        return -1;
-    }
     
     /* perform syscall */
     /* allocate args */
@@ -154,28 +147,6 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
     }
     
     return (int)retval;
-    
-    /*
-    // TODO: Move this into the kernel
-    if(signal <= 0 || signal >= NSIG)
-    {
-        errno = EINVAL;
-        return -1;
-    }
-
-    int result = sync_call_with_timeout_int(PROXY_TYPE_REPLY(int){
-        [hostProcessProxy proc_kill:process_identifier
-                          withSignal:signal
-                           withReply:reply];
-    });
-
-    if(result != 0)
-    {
-        errno = result;
-        return -1;
-    }*/
-
-    //return 0;
 }
 
 pid_t environment_proxy_spawn_process_at_path(NSString *path,

@@ -28,6 +28,7 @@ DEFINE_SYSCALL_HANDLER(kill)
     /* null pointer check */
     if(args == NULL)
     {
+        *err = EINVAL;
         return -1;
     }
     

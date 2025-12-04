@@ -44,11 +44,6 @@
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;
 
 /*
- Background mode fixup
- */
-- (void)setAudioBackgroundModeActive:(BOOL)active;
-
-/*
  Process Info
  */
 - (void)setProcessCredWithOption:(ProcessCredOp)option withIdentifierA:(unsigned int)ida withIdentifierB:(unsigned int)idb withIdentifierC:(unsigned int)idc withReply:(void (^)(unsigned int result))reply;
