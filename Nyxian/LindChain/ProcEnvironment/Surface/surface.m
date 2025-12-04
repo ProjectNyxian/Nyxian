@@ -66,7 +66,7 @@ static inline void ksurface_kinit_kalloc(void)
         /* in case allocation failed we go */
         environment_panic();
     }
-    klog_log(@"ksurface:kinit:kalloc", @"allocated ksurface at %p", ksurface);
+    klog_log(@"ksurface:kinit:kalloc", @"allocated ksurface @ %p", ksurface);
 }
 
 static inline void ksurface_kinit_kinfo(void)
@@ -80,7 +80,7 @@ static inline void ksurface_kinit_kinfo(void)
     pthread_rwlock_t *wls[2] = { &(ksurface->proc_info.rwlock),  &(ksurface->host_info.rwlock) };
     for(unsigned char i = 0; i < 2; i++)
     {
-        klog_log(@"ksurface:kinit:kinfo", @"setting up rwlock at %p", wls[i]);
+        klog_log(@"ksurface:kinit:kinfo", @"initilizing rwlock @ %p", wls[i]);
         pthread_rwlock_init(wls[i], NULL);
     }
     
@@ -142,62 +142,21 @@ static inline void ksurface_kinit_kproc(void)
     proc_release(kproc);
 }
 
-void ksurface_kinit_kdump(void)
+DEFINE_SYSCALL_HANDLER(test) {
+    klog_log(@"syscall:test", @"ping from pid %d", caller->pid);
+    return 0;
+}
+
+void ksurface_kinit_kserver(void)
 {
-    klog_log(@"ksurface:kinit:kdump", @"dumping information");
+    ksurface->sys_server = syscall_server_create();
+    klog_log(@"ksurface:kinit:kserver", @"allocated syscall server @ %p", ksurface->sys_server);
     
-    /* null pointer check */
-    if(ksurface == NULL)
-    {
-        klog_log(@"ksurface:kinit:kdump", @"ERROR: ksurface is NULL!");
-        return;
-    }
+    syscall_server_register(ksurface->sys_server, 0, GET_SYSCALL_HANDLER(test));
+    klog_log(@"ksurface:kinit:kserver", @"registered test syscall");
     
-    /* main structure */
-    klog_log(@"ksurface:kinit:kdump", @"[ksurface_mapping_t] @ %p (size: %zu bytes)", ksurface, sizeof(ksurface_mapping_t));
-    klog_log(@"ksurface:kinit:kdump", @"  magic: 0x%08X (%s)", ksurface->magic, ksurface->magic == SURFACE_MAGIC ? "VALID" : "INVALID");
-    
-    /* host information */
-    klog_log(@"ksurface:kinit:kdump", @"");
-    klog_log(@"ksurface:kinit:kdump", @"[ksurface_host_info_t] @ %p (size: %zu bytes)", &ksurface->host_info, sizeof(ksurface_host_info_t));
-    klog_log(@"ksurface:kinit:kdump", @"  hostname: \"%s\"", ksurface->host_info.hostname);
-    klog_log(@"ksurface:kinit:kdump", @"  rwlock: %p", &ksurface->host_info.rwlock);
-    
-    /* process information */
-    klog_log(@"ksurface:kinit:kdump", @"");
-    klog_log(@"ksurface:kinit:kdump", @"[ksurface_proc_info_t] @ %p (size: %zu bytes)",
-             &ksurface->proc_info, sizeof(ksurface_proc_info_t));
-    klog_log(@"ksurface:kinit:kdump", @"  pcnt: %u / %d (PROC_MAX)", ksurface->proc_info.pcnt, PROC_MAX);
-    klog_log(@"ksurface:kinit:kdump", @"  kproc: %p", ksurface->proc_info.kproc);
-    klog_log(@"ksurface:kinit:kdump", @"  tree: %p", &ksurface->proc_info.tree);
-    klog_log(@"ksurface:kinit:kdump", @"  rwlock: %p", &ksurface->proc_info.rwlock);
-    
-    /* size information */
-    klog_log(@"ksurface:kinit:kdump", @"");
-    klog_log(@"ksurface:kinit:kdump", @"--- Structure Sizes ---");
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(ksurface_mapping_t):      %zu bytes", sizeof(ksurface_mapping_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(ksurface_host_info_t):    %zu bytes", sizeof(ksurface_host_info_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(ksurface_proc_info_t):    %zu bytes", sizeof(ksurface_proc_info_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(ksurface_proc_t):         %zu bytes", sizeof(ksurface_proc_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(ksurface_proc_children_t):%zu bytes", sizeof(ksurface_proc_children_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(knyx_proc_t):             %zu bytes", sizeof(knyx_proc_t));
-    klog_log(@"ksurface:kinit:kdump", @"  sizeof(kinfo_proc_t):            %zu bytes", sizeof(kinfo_proc_t));
-    
-    /* limits */
-    klog_log(@"ksurface:kinit:kdump", @"");
-    klog_log(@"ksurface:kinit:kdump", @"--- Configuration Limits ---");
-    klog_log(@"ksurface:kinit:kdump", @"  PROC_MAX:       %d", PROC_MAX);
-    klog_log(@"ksurface:kinit:kdump", @"  PID_MAX:        %d", PID_MAX);
-    klog_log(@"ksurface:kinit:kdump", @"  CHILD_PROC_MAX: %d", CHILD_PROC_MAX);
-    klog_log(@"ksurface:kinit:kdump", @"  PATH_MAX:       %d", PATH_MAX);
-    klog_log(@"ksurface:kinit:kdump", @"  MAXHOSTNAMELEN: %d", MAXHOSTNAMELEN);
-    
-    /* memory footprint estimation*/
-    size_t kproc_total = sizeof(ksurface_proc_t) * PROC_MAX;
-    klog_log(@"ksurface:kinit:kdump", @"");
-    klog_log(@"ksurface:kinit:kdump", @"--- Memory Footprint ---");
-    klog_log(@"ksurface:kinit:kdump", @"  radix tree (max): %zu bytes (%.2f MB)", kproc_total, (double)kproc_total / (1024.0 * 1024.0));
-    klog_log(@"ksurface:kinit:kdump", @"------------------------");
+    syscall_server_start(ksurface->sys_server);
+    klog_log(@"ksurface:kinit:kserver", @"started syscall server");
 }
 
 void ksurface_kinit(void)
@@ -223,14 +182,14 @@ void ksurface_kinit(void)
             ksurface_kinit_kinfo();
             
             /*
-             * creats the kernel process kproc
+             * creates the kernel process kproc
              */
             ksurface_kinit_kproc();
             
             /*
-             * dumps structure information
+             * creates syscall server
              */
-            ksurface_kinit_kdump();
+            ksurface_kinit_kserver();
         }
     });
 }

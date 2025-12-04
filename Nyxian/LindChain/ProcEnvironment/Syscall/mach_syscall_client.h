@@ -17,14 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
-#import <Nyxian-Swift.h>
-#import "bridge.h"
+#ifndef MACH_SYSCALL_CLIENT_H
+#define MACH_SYSCALL_CLIENT_H
 
-int main(int argc, char * argv[])
-{
-    @autoreleasepool {
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-    }
-}
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
+
+typedef struct syscall_client syscall_client_t;
+
+syscall_client_t *syscall_client_create(mach_port_t port);
+void syscall_client_destroy(syscall_client_t *client);
+int64_t syscall_invoke(syscall_client_t *client, uint32_t syscall_num, int64_t args[6], void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len);
+
+#endif /* MACH_SYSCALL_CLIENT_H */

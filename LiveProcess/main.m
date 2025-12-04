@@ -34,6 +34,8 @@
 
 #import <ResecureDecoder.h>
 
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
+
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
@@ -130,6 +132,14 @@ int LiveProcessMain(int argc, char *argv[]) {
     NSDictionary *environmentDictionary = appInfo[@"LSEnvironment"];
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
+    
+    MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
+    if(syscallPort)
+    {
+        syscall_client_t *client = syscall_client_create(syscallPort.port);
+        syscall_invoke(client, 0, NULL, NULL, 0, NULL, NULL);
+        syscall_client_destroy(client);
+    }
     
     // Setup fd map
     if(mapObject) [mapObject apply_fd_map];

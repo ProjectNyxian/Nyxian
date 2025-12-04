@@ -28,6 +28,8 @@
 #include <LindChain/ProcEnvironment/Surface/radix/radix.h>
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #include <pthread.h>
 
 enum kSurfaceError {
@@ -119,6 +121,7 @@ typedef struct {
     uint32_t magic;
     ksurface_host_info_t host_info;
     ksurface_proc_info_t proc_info;
+    syscall_server_t *sys_server;
 } ksurface_mapping_t;
 
 /* Internal kernel information */

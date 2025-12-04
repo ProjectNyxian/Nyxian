@@ -24,6 +24,7 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 
 // TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
 
@@ -34,6 +35,10 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
     self = [super init];
+    
+    NSMutableDictionary *mutableItems = [items mutableCopy];
+    mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
+    items = [mutableItems copy];
     
     if(runtimeStoredRectValuesByBundleIdentifier == nil)
     {
