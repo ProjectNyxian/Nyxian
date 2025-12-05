@@ -42,7 +42,8 @@ extern uint32_t gRebindCount;
 extern global_rebind *gRebinds;
 
 #define DEFINE_HOOK(func, return_type, signature) \
-    static return_type (*orig_##func)signature = (return_type (*) signature)func; \
+    static return_type (*orig_##func) signature __attribute__((unused)) = \
+        (return_type (*) signature)func; \
     static return_type hook_##func signature
 
 #define DO_HOOK(func, type) \

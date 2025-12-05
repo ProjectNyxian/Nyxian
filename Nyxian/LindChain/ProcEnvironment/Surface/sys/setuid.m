@@ -63,10 +63,12 @@ DEFINE_SYSCALL_HANDLER(setuid)
             goto out_update;
         }
     }
+    
+    /* setting errno on failure */
+    *err = EPERM;
     return -1;
     
 out_update:
-    *err = EPERM;
     proc_copy_update(sys_proc_copy_);
     return 0;
 }
@@ -98,10 +100,12 @@ DEFINE_SYSCALL_HANDLER(seteuid)
             goto out_update;
         }
     }
+    
+    /* setting errno on failure */
+    *err = EPERM;
     return -1;
     
 out_update:
-    *err = EPERM;
     proc_copy_update(sys_proc_copy_);
     return 0;
 }

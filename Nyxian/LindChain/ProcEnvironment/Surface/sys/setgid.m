@@ -18,18 +18,137 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/setgid.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+
+extern bool proc_is_privileged(ksurface_proc_copy_t *proc);
 
 DEFINE_SYSCALL_HANDLER(setgid)
 {
+    /* getting arguments */
+    gid_t gid = (gid_t)args[0];
+    
+    /* checking privelege */
+    if(proc_is_privileged(sys_proc_copy_))
+    {
+        /* updating credentials */
+        proc_setgid(sys_proc_copy_, gid);
+        proc_setrgid(sys_proc_copy_, gid);
+        proc_setsvgid(sys_proc_copy_, gid);
+        
+        /* update and return */
+        goto out_update;
+    }
+    else
+    {
+        if(gid == proc_getrgid(sys_proc_copy_) ||
+           gid == proc_getsvgid(sys_proc_copy_))
+        {
+            /* updating credentials */
+            proc_setgid(sys_proc_copy_, gid);
+            
+            /* update and return */
+            goto out_update;
+        }
+    }
+    
+    /* setting errno on failure */
+    *err = EPERM;
+    return -1;
+    
+out_update:
+    proc_copy_update(sys_proc_copy_);
     return 0;
 }
 
 DEFINE_SYSCALL_HANDLER(setegid)
 {
+    /* getting arguments */
+    gid_t egid = (gid_t)args[0];
+    
+    /* checking privelege */
+    if(proc_is_privileged(sys_proc_copy_))
+    {
+        /* updating credentials */
+        proc_setgid(sys_proc_copy_, egid);
+        
+        /* update and return */
+        goto out_update;
+    }
+    else
+    {
+        if(egid == proc_getrgid(sys_proc_copy_) ||
+           egid == proc_getgid(sys_proc_copy_) ||
+           egid == proc_getsvgid(sys_proc_copy_))
+        {
+            /* updating credentials */
+            proc_setgid(sys_proc_copy_, egid);
+            
+            /* update and return */
+            goto out_update;
+        }
+    }
+    
+    /* setting errno on failure */
+    *err = EPERM;
+    return -1;
+    
+out_update:
+    proc_copy_update(sys_proc_copy_);
     return 0;
 }
 
 DEFINE_SYSCALL_HANDLER(setregid)
 {
+    /* getting arguments */
+    gid_t rgid = (gid_t)args[0];
+    gid_t egid = (gid_t)args[1];
+    
+    /* getting current credentials */
+    gid_t cur_rgid = proc_getrgid(sys_proc_copy_);
+    gid_t cur_egid = proc_getgid(sys_proc_copy_);
+    gid_t cur_svgid = proc_getsvgid(sys_proc_copy_);
+    
+    /* getting privele status of the process */
+    bool privileged = proc_is_privileged(sys_proc_copy_);
+    
+    /* performing rgid priv check */
+    if(rgid != (gid_t)-1 && !privileged)
+    {
+        if(rgid != cur_rgid && rgid != cur_egid)
+        {
+            *err = EPERM;
+            return -1;
+        }
+    }
+    
+    /* performing egid priv check */
+    if(egid != (gid_t)-1 && !privileged)
+    {
+        if(egid != cur_rgid && egid != cur_egid && egid != cur_svgid)
+        {
+            *err = EPERM;
+            return -1;
+        }
+    }
+    
+    /* setting credential */
+    if(rgid != (gid_t)-1)
+    {
+        proc_setrgid(sys_proc_copy_, rgid);
+    }
+    
+    /* setting credential */
+    if(egid != (gid_t)-1)
+    {
+        proc_setgid(sys_proc_copy_, egid);
+        if(rgid != (gid_t)-1)
+        {
+            proc_setsvgid(sys_proc_copy_, egid);
+        }
+    }
+    
+    proc_copy_update(sys_proc_copy_);
     return 0;
 }
