@@ -35,6 +35,7 @@
 #import <ResecureDecoder.h>
 
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
@@ -154,8 +155,8 @@ int LiveProcessMain(int argc, char *argv[]) {
     {
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
 
-        if(environment_proxy_setprocinfo(ProcessCredOpSetUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue], 0, 0) != 0 ||
-           environment_proxy_setprocinfo(ProcessCredOpSetGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue], 0, 0) != 0)
+        if(environment_syscall(SYS_SETUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
+           environment_syscall(SYS_SETGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
         {
             exit(1);
         }

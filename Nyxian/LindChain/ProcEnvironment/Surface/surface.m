@@ -124,8 +124,8 @@ static inline void ksurface_kinit_kproc(void)
     klog_log(@"ksurface:kinit:kproc", @"entitlements = %d", proc_getentitlements(kproc));
     klog_log(@"ksurface:kinit:kproc", @"pid = %d", proc_getpid(kproc));
     klog_log(@"ksurface:kinit:kproc", @"ppid = %d", proc_getppid(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"uid = %d", proc_getuid(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"gid = %d", proc_getgid(kproc));
+    klog_log(@"ksurface:kinit:kproc", @"uid = %d", proc_getruid(kproc));
+    klog_log(@"ksurface:kinit:kproc", @"gid = %d", proc_getrgid(kproc));
     
     /* storing kproc */
     ksurface->proc_info.kproc = kproc;

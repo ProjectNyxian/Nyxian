@@ -160,29 +160,6 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path,
     });
 }
 
-int environment_proxy_setprocinfo(ProcessCredOp Op,
-                                  id_t a,
-                                  id_t b,
-                                  id_t c)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    int ret = sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
-        [hostProcessProxy setProcessCredWithOption:Op withIdentifierA:a withIdentifierB:b withIdentifierC:c withReply:reply];
-    });
-    if(ret == -1) errno = EPERM;
-    return ret;
-}
-
-unsigned long environment_proxy_getprocinfo(ProcessInfo info)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    unsigned long ret = sync_call_with_timeout_ul(PROXY_TYPE_REPLY(unsigned long){
-        [hostProcessProxy getProcessInfoWithOption:info withReply:reply];
-    });
-    if(ret == -1) errno = EPERM;
-    return ret;
-}
-
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
 {
     /*environment_must_be_role(EnvironmentRoleGuest);

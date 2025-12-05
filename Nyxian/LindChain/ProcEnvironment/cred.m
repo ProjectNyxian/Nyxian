@@ -24,27 +24,32 @@
 
 DEFINE_HOOK(getuid, uid_t, (void))
 {
-    return environment_proxy_getprocinfo(ProcessInfoUID);
+    return (uid_t)environment_syscall(SYS_GETUID);
 }
 
 DEFINE_HOOK(getgid, gid_t, (void))
 {
-    return environment_proxy_getprocinfo(ProcessInfoGID);
+    return (uid_t)environment_syscall(SYS_GETGID);
 }
 
 DEFINE_HOOK(geteuid, uid_t, (void))
 {
-    return environment_proxy_getprocinfo(ProcessInfoEUID);
+    return (uid_t)environment_syscall(SYS_GETEUID);
 }
 
 DEFINE_HOOK(getegid, gid_t, (void))
 {
-    return environment_proxy_getprocinfo(ProcessInfoEGID);
+    return (uid_t)environment_syscall(SYS_GETEGID);
+}
+
+DEFINE_HOOK(getpid, pid_t, (void))
+{
+    return (uid_t)environment_syscall(SYS_GETPID);
 }
 
 DEFINE_HOOK(getppid, pid_t, (void))
 {
-    return environment_proxy_getprocinfo(ProcessInfoPPID);
+    return (uid_t)environment_syscall(SYS_GETPPID);
 }
 
 DEFINE_HOOK(setuid, int, (uid_t uid))
@@ -107,6 +112,7 @@ void environment_cred_init(void)
             DO_HOOK_GLOBAL(seteuid);
             DO_HOOK_GLOBAL(setegid);
             DO_HOOK_GLOBAL(setregid);
+            DO_HOOK_GLOBAL(getpid);
         }
     });
 }

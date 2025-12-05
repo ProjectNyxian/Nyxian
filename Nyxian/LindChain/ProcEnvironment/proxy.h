@@ -48,14 +48,8 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
-/// Sets process credential
-int environment_proxy_setprocinfo(ProcessCredOp Op, id_t a, id_t b, id_t c);
-
 /// Gets process table
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt);
-
-/// Gets process credential
-unsigned long environment_proxy_getprocinfo(ProcessInfo info);
 
 /// Signs a MachO at a given path
 void environment_proxy_sign_macho(NSString *path);

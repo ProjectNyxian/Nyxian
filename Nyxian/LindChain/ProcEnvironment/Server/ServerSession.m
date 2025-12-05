@@ -203,46 +203,6 @@ reply_nil:
     reply(-1);
 }
 
-/*
- Set credentials
- */
-- (void)setProcessCredWithOption:(ProcessCredOp)option
-                 withIdentifierA:(unsigned int)ida
-                 withIdentifierB:(unsigned int)idb
-                 withIdentifierC:(unsigned int)idc
-                       withReply:(void (^)(unsigned int result))reply
-{
-    /* null pointer check */
-    if(_proc == NULL)
-    {
-        reply(-1);
-        return;
-    }
-    
-    /* making proc userapi call  */
-    unsigned int retval = (unsigned int)proc_cred_set(_proc, option, ida, idb, idc);
-    
-    /* replying with what ever the userapi replied with */
-    reply(retval);
-}
-
-- (void)getProcessInfoWithOption:(ProcessInfo)option
-                       withReply:(void (^)(unsigned long result))reply
-{
-    /* null pointer check */
-    if(_proc == NULL)
-    {
-        reply(-1);
-        return;
-    }
-    
-    /* making proc userapi call */
-    unsigned long retval = proc_cred_get(_proc, option);
-    
-    /* replying with what ever the userapi replied with */
-    reply(retval);
-}
-
 - (void)getProcessNyxWithIdentifier:(pid_t)pid
                           withReply:(void (^)(NSData*))reply
 {

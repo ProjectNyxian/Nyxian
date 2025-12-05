@@ -26,20 +26,33 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
 #import <LindChain/ProcEnvironment/Surface/sys/setuid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/setgid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/getent.h>
+#import <LindChain/ProcEnvironment/Surface/sys/getpid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/getuid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/getgid.h>
 #include <sys/syscall.h>
 
 /* syscalls */
 #define SYS_KILL SYS_kill           /* killing other processes */
-#define SYS_BAMSET 2                /* setting audio background mode */
-#define SYS_PROCTB 3                /* getting process table MARK: will be SYS_SYSCTL later */
 #define SYS_SETUID SYS_setuid       /* sets user identifier of a process */
 #define SYS_SETEUID SYS_seteuid     /* sets effective user identifier of a process */
 #define SYS_SETGID SYS_setgid       /* sets group identifier of a process */
 #define SYS_SETEGID SYS_setegid     /* sets effective group identifier of a process */
 #define SYS_SETREUID SYS_setreuid   /* sets real and effective user identifier, used for setruid() too */
 #define SYS_SETREGID SYS_setregid   /* sets real and effective group identifier, used for setrgid() too */
+#define SYS_GETPID SYS_getpid
+#define SYS_GETPPID SYS_getppid
+#define SYS_GETUID SYS_getuid
+#define SYS_GETEUID SYS_geteuid
+#define SYS_GETGID SYS_getgid
+#define SYS_GETEGID SYS_getegid
 
-#define SYS_N 9
+/* nyxian syscalls for now */
+#define SYS_BAMSET 200              /* setting audio background mode */
+#define SYS_PROCTB 201              /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_GETENT 202              /* getting processes entitlements */
+
+#define SYS_N 16
 
 typedef struct {
     const char *name;

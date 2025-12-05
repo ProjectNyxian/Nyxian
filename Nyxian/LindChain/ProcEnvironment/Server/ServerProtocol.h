@@ -28,7 +28,6 @@
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/cred.h>
 
 @protocol ServerProtocol
 
@@ -46,8 +45,6 @@
 /*
  Process Info
  */
-- (void)setProcessCredWithOption:(ProcessCredOp)option withIdentifierA:(unsigned int)ida withIdentifierB:(unsigned int)idb withIdentifierC:(unsigned int)idc withReply:(void (^)(unsigned int result))reply;
-- (void)getProcessInfoWithOption:(ProcessInfo)option withReply:(void (^)(unsigned long result))reply;
 - (void)getProcessNyxWithIdentifier:(pid_t)pid withReply:(void (^)(NSData*))reply;
 
 /*

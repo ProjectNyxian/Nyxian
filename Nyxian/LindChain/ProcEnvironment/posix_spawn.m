@@ -27,6 +27,7 @@
 #import <sys/sysctl.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 #pragma mark - posix_spawn helper
 
@@ -114,7 +115,8 @@ int environment_posix_spawn(pid_t *process_identifier,
                             char *const envp[])
 {
     // Getting entitlement list and checking it
-    PEEntitlement entitlement = environment_proxy_getprocinfo(ProcessInfoEntitlements);
+    int64_t retval = environment_syscall(SYS_GETENT);
+    PEEntitlement entitlement = (retval == -1) ? 0 : retval;
     if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
          entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
     {

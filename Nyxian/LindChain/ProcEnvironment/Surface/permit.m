@@ -37,7 +37,7 @@ BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
     proc_read_lock(proc);
     
     /* getting uid */
-    uid_t caller_uid = proc_getuid(proc);
+    uid_t caller_uid = proc_getruid(proc);
     
     /* if proc is root its automatically allowed */
     if(caller_uid == 0)
@@ -84,8 +84,7 @@ BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
     }
     
     /* checking if the process is allowed to gain permitives naturally over the target */
-    if((caller_uid == proc_getuid(targetProc)) ||
-       (caller_uid == proc_getruid(targetProc)))
+    if(caller_uid == proc_getruid(targetProc))
     {
         allowed = YES;
         goto out_unlock;

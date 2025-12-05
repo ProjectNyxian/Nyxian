@@ -31,7 +31,7 @@ bool proc_is_privileged(ksurface_proc_copy_t *proc)
     }
     
     /* It's not, so we check if the process is root. */
-    return proc_getuid(proc) == 0;
+    return proc_getruid(proc) == 0;
 }
 
 DEFINE_SYSCALL_HANDLER(setuid)
@@ -43,8 +43,8 @@ DEFINE_SYSCALL_HANDLER(setuid)
     if(proc_is_privileged(sys_proc_copy_))
     {
         /* process is privelegedm updating credentials */
-        proc_setuid(sys_proc_copy_, uid);
         proc_setruid(sys_proc_copy_, uid);
+        proc_seteuid(sys_proc_copy_, uid);
         proc_setsvuid(sys_proc_copy_, uid);
         
         /* update and return */
@@ -57,7 +57,7 @@ DEFINE_SYSCALL_HANDLER(setuid)
            uid == proc_getsvuid(sys_proc_copy_))
         {
             /* updating credentials */
-            proc_setuid(sys_proc_copy_, uid);
+            proc_seteuid(sys_proc_copy_, uid);
             
             /* update and return */
             goto out_update;
@@ -82,7 +82,7 @@ DEFINE_SYSCALL_HANDLER(seteuid)
     if(proc_is_privileged(sys_proc_copy_))
     {
         /* updating credentials */
-        proc_setuid(sys_proc_copy_, euid);
+        proc_seteuid(sys_proc_copy_, euid);
         
         /* update and return */
         goto out_update;
@@ -90,11 +90,11 @@ DEFINE_SYSCALL_HANDLER(seteuid)
     else
     {
         if(euid == proc_getruid(sys_proc_copy_) ||
-           euid == proc_getuid(sys_proc_copy_) ||
+           euid == proc_geteuid(sys_proc_copy_) ||
            euid == proc_getsvuid(sys_proc_copy_))
         {
             /* updating credentials */
-            proc_setuid(sys_proc_copy_, euid);
+            proc_seteuid(sys_proc_copy_, euid);
             
             /* update and return */
             goto out_update;
@@ -118,14 +118,15 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     
     /* getting current credentials from copy */
     uid_t cur_ruid = proc_getruid(sys_proc_copy_);
-    uid_t cur_euid = proc_getuid(sys_proc_copy_);
+    uid_t cur_euid = proc_geteuid(sys_proc_copy_);
     uid_t cur_svuid = proc_getsvuid(sys_proc_copy_);
     
     /* performing privelege test */
     bool privileged = proc_is_privileged(sys_proc_copy_);
     
     /* performing ruid priv check */
-    if(ruid != (uid_t)-1 && !privileged)
+    if(ruid != (uid_t)-1 &&
+       !privileged)
     {
         if(ruid != cur_ruid && ruid != cur_euid)
         {
@@ -135,9 +136,12 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     }
     
     /* performing euid priv check */
-    if(euid != (uid_t)-1 && !privileged)
+    if(euid != (uid_t)-1 &&
+       !privileged)
     {
-        if(euid != cur_ruid && euid != cur_euid && euid != cur_svuid)
+        if(euid != cur_ruid &&
+           euid != cur_euid &&
+           euid != cur_svuid)
         {
             *err = EPERM;
             return -1;
@@ -153,8 +157,8 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     /* setting credential */
     if(euid != (uid_t)-1)
     {
-        proc_setuid(sys_proc_copy_, euid);
-        if(ruid != (uid_t)-1)
+        proc_seteuid(sys_proc_copy_, euid);
+        if(privileged)
         {
             proc_setsvuid(sys_proc_copy_, euid);
         }

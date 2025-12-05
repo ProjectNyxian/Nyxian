@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/fork.h>
 #import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/litehook/src/litehook.h>
 #include <mach/mach.h>
 #import <pthread.h>
@@ -137,7 +138,8 @@ void *helper_thread(void *args)
 DEFINE_HOOK(fork, pid_t, (void))
 {
     // Getting entitlement list and checking it
-    PEEntitlement entitlement = environment_proxy_getprocinfo(ProcessInfoEntitlements);
+    int64_t retval = environment_syscall(SYS_GETENT);
+    PEEntitlement entitlement = (retval == -1) ? 0 : retval;
     if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
          entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
     {

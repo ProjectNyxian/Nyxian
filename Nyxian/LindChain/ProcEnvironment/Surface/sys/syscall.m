@@ -30,5 +30,12 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_SETGID", .sysnum = SYS_SETGID, .hndl = GET_SYSCALL_HANDLER(setgid) },
     { .name = "SYS_SETEGID", .sysnum = SYS_SETEGID, .hndl = GET_SYSCALL_HANDLER(setegid) },
     { .name = "SYS_SETREUID", .sysnum = SYS_SETREUID, .hndl = GET_SYSCALL_HANDLER(setreuid) },
-    { .name = "SYS_SETREGID", .sysnum = SYS_SETREGID, .hndl = GET_SYSCALL_HANDLER(setregid) }
+    { .name = "SYS_SETREGID", .sysnum = SYS_SETREGID, .hndl = GET_SYSCALL_HANDLER(setregid) },
+    { .name = "SYS_GETENT", .sysnum = SYS_GETENT, .hndl = GET_SYSCALL_HANDLER(getent) },
+    { .name = "SYS_GETPID", .sysnum = SYS_GETPID, .hndl = GET_SYSCALL_HANDLER(getpid) },
+    { .name = "SYS_GETPPID", .sysnum = SYS_GETPPID, .hndl = GET_SYSCALL_HANDLER(getppid) },
+    { .name = "SYS_GETUID", .sysnum = SYS_GETUID, .hndl = GET_SYSCALL_HANDLER(getuid) },
+    { .name = "SYS_GETEUID", .sysnum = SYS_GETEUID, .hndl = GET_SYSCALL_HANDLER(geteuid) },
+    { .name = "SYS_GETGID", .sysnum = SYS_GETGID, .hndl = GET_SYSCALL_HANDLER(getgid) },
+    { .name = "SYS_GETEGID", .sysnum = SYS_GETEGID, .hndl = GET_SYSCALL_HANDLER(getegid) }
 };

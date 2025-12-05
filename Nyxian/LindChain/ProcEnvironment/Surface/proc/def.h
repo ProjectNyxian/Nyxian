@@ -30,24 +30,24 @@
 #define proc_setentitlements(proc, entitlement) proc->nyx.entitlements = entitlement
 
 /// UID Helper macros
-#define proc_getuid(proc) proc->bsd.kp_eproc.e_ucred.cr_uid
 #define proc_getruid(proc) proc->bsd.kp_eproc.e_pcred.p_ruid
+#define proc_geteuid(proc) proc->bsd.kp_eproc.e_ucred.cr_uid
 #define proc_getsvuid(proc) proc->bsd.kp_eproc.e_pcred.p_svuid
 
-#define proc_setuid(proc, uid) proc->bsd.kp_eproc.e_ucred.cr_uid = uid
 #define proc_setruid(proc, ruid) proc->bsd.kp_eproc.e_pcred.p_ruid = ruid
+#define proc_seteuid(proc, uid) proc->bsd.kp_eproc.e_ucred.cr_uid = uid
 #define proc_setsvuid(proc, svuid) proc->bsd.kp_eproc.e_pcred.p_svuid = svuid
 
 /// GID Helper macros
-#define proc_getgid(proc) proc->bsd.kp_eproc.e_ucred.cr_groups[0]
 #define proc_getrgid(proc) proc->bsd.kp_eproc.e_pcred.p_rgid
+#define proc_getegid(proc) proc->bsd.kp_eproc.e_ucred.cr_groups[0]
 #define proc_getsvgid(proc) proc->bsd.kp_eproc.e_pcred.p_svgid
 
-#define proc_setgid(proc, gid) proc->bsd.kp_eproc.e_ucred.cr_groups[0] = gid
 #define proc_setrgid(proc, rgid) proc->bsd.kp_eproc.e_pcred.p_rgid = rgid
+#define proc_setegid(proc, gid) proc->bsd.kp_eproc.e_ucred.cr_groups[0] = gid
 #define proc_setsvgid(proc, svgid) proc->bsd.kp_eproc.e_pcred.p_svgid = svgid
 
-#define proc_setmobilecred(proc) proc_setuid(proc, 501); proc_setruid(proc, 501); proc_setsvuid(proc, 501); proc_setgid(proc, 501); proc_setrgid(proc, 501); proc_setsvgid(proc, 501)
+#define proc_setmobilecred(proc) proc_setruid(proc, 501); proc_seteuid(proc, 501); proc_setsvuid(proc, 501); proc_setrgid(proc, 501); proc_setegid(proc, 501); proc_setsvgid(proc, 501)
 
 #define pid_is_launchd(pid) pid == 1
 

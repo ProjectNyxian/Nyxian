@@ -23,7 +23,7 @@
 proc_visibility_t get_proc_visibility(ksurface_proc_t *caller)
 {
     if(caller == NULL) return PROC_VIS_NONE;
-    uid_t uid = proc_getuid(caller);
+    uid_t uid = proc_getruid(caller);
     if(uid == 0) return PROC_VIS_ALL;
     if(entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessEnumeration)) return PROC_VIS_ALL;
     return PROC_VIS_SAME_UID;
@@ -37,7 +37,7 @@ bool can_see_process(ksurface_proc_t *caller,
         case PROC_VIS_ALL:
             return true;
         case PROC_VIS_SAME_UID:
-            return proc_getuid(caller) == proc_getuid(target);
+            return proc_getruid(caller) == proc_getruid(target);
         case PROC_VIS_SELF:
             return caller->bsd.kp_proc.p_pid == target->bsd.kp_proc.p_pid;
         case PROC_VIS_NONE:

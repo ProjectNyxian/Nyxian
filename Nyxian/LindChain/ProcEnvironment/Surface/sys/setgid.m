@@ -33,8 +33,8 @@ DEFINE_SYSCALL_HANDLER(setgid)
     if(proc_is_privileged(sys_proc_copy_))
     {
         /* updating credentials */
-        proc_setgid(sys_proc_copy_, gid);
         proc_setrgid(sys_proc_copy_, gid);
+        proc_setegid(sys_proc_copy_, gid);
         proc_setsvgid(sys_proc_copy_, gid);
         
         /* update and return */
@@ -46,7 +46,7 @@ DEFINE_SYSCALL_HANDLER(setgid)
            gid == proc_getsvgid(sys_proc_copy_))
         {
             /* updating credentials */
-            proc_setgid(sys_proc_copy_, gid);
+            proc_setegid(sys_proc_copy_, gid);
             
             /* update and return */
             goto out_update;
@@ -71,7 +71,7 @@ DEFINE_SYSCALL_HANDLER(setegid)
     if(proc_is_privileged(sys_proc_copy_))
     {
         /* updating credentials */
-        proc_setgid(sys_proc_copy_, egid);
+        proc_setegid(sys_proc_copy_, egid);
         
         /* update and return */
         goto out_update;
@@ -79,11 +79,11 @@ DEFINE_SYSCALL_HANDLER(setegid)
     else
     {
         if(egid == proc_getrgid(sys_proc_copy_) ||
-           egid == proc_getgid(sys_proc_copy_) ||
+           egid == proc_getegid(sys_proc_copy_) ||
            egid == proc_getsvgid(sys_proc_copy_))
         {
             /* updating credentials */
-            proc_setgid(sys_proc_copy_, egid);
+            proc_setegid(sys_proc_copy_, egid);
             
             /* update and return */
             goto out_update;
@@ -107,16 +107,18 @@ DEFINE_SYSCALL_HANDLER(setregid)
     
     /* getting current credentials */
     gid_t cur_rgid = proc_getrgid(sys_proc_copy_);
-    gid_t cur_egid = proc_getgid(sys_proc_copy_);
+    gid_t cur_egid = proc_getegid(sys_proc_copy_);
     gid_t cur_svgid = proc_getsvgid(sys_proc_copy_);
     
     /* getting privele status of the process */
     bool privileged = proc_is_privileged(sys_proc_copy_);
     
     /* performing rgid priv check */
-    if(rgid != (gid_t)-1 && !privileged)
+    if(rgid != (gid_t)-1 &&
+       !privileged)
     {
-        if(rgid != cur_rgid && rgid != cur_egid)
+        if(rgid != cur_rgid &&
+           rgid != cur_egid)
         {
             *err = EPERM;
             return -1;
@@ -124,9 +126,11 @@ DEFINE_SYSCALL_HANDLER(setregid)
     }
     
     /* performing egid priv check */
-    if(egid != (gid_t)-1 && !privileged)
+    if(egid != (gid_t)-1 &&
+       !privileged)
     {
-        if(egid != cur_rgid && egid != cur_egid && egid != cur_svgid)
+        if(egid != cur_rgid &&
+           egid != cur_egid && egid != cur_svgid)
         {
             *err = EPERM;
             return -1;
@@ -142,8 +146,8 @@ DEFINE_SYSCALL_HANDLER(setregid)
     /* setting credential */
     if(egid != (gid_t)-1)
     {
-        proc_setgid(sys_proc_copy_, egid);
-        if(rgid != (gid_t)-1)
+        proc_setegid(sys_proc_copy_, egid);
+        if(privileged)
         {
             proc_setsvgid(sys_proc_copy_, egid);
         }
