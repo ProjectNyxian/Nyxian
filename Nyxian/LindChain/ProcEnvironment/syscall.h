@@ -20,6 +20,7 @@
 #ifndef PROCENVIRONMENT_SYSCALL_H
 #define PROCENVIRONMENT_SYSCALL_H
 
+#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 #import <stdint.h>
 
 int64_t environment_syscall(uint32_t syscall_num, ...);

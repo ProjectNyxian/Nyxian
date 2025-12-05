@@ -20,6 +20,7 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/litehook/src/litehook.h>
 #import <LindChain/ProcEnvironment/cred.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 DEFINE_HOOK(getuid, uid_t, (void))
 {
@@ -48,42 +49,42 @@ DEFINE_HOOK(getppid, pid_t, (void))
 
 DEFINE_HOOK(setuid, int, (uid_t uid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetUID, uid, 0, 0);
+    return (int)environment_syscall(SYS_SETUID, uid);
 }
 
-DEFINE_HOOK(seteuid, int, (uid_t uid))
+DEFINE_HOOK(seteuid, int, (uid_t euid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetEUID, uid, 0, 0);
+    return (int)environment_syscall(SYS_SETEUID, euid);
 }
 
 DEFINE_HOOK(setruid, int, (uid_t uid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetRUID, uid, 0, 0);
+    return (int)environment_syscall(SYS_SETREUID, uid, -1);
 }
 
 DEFINE_HOOK(setreuid, int, (uid_t ruid, uid_t euid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetREUID, ruid, euid, 0);
+    return (int)environment_syscall(SYS_SETREUID, ruid, euid);
 }
 
 DEFINE_HOOK(setgid, int, (gid_t gid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetGID, gid, 0, 0);
+    return (int)environment_syscall(SYS_SETGID, gid);
 }
 
 DEFINE_HOOK(setegid, int, (gid_t gid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetEGID, gid, 0, 0);
+    return (int)environment_syscall(SYS_SETEGID, gid);
 }
 
 DEFINE_HOOK(setrgid, int, (gid_t gid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetRGID, gid, 0, 0);
+    return (int)environment_syscall(SYS_SETREGID, gid, -1);
 }
 
-DEFINE_HOOK(setregid, int, (gid_t egid, gid_t regid))
+DEFINE_HOOK(setregid, int, (gid_t egid, gid_t rgid))
 {
-    return environment_proxy_setprocinfo(ProcessCredOpSetREGID, egid, regid, 0);
+    return (int)environment_syscall(SYS_SETREGID, egid, rgid);
 }
 
 void environment_cred_init(void)
