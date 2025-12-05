@@ -22,6 +22,35 @@ Nyxian thinking:
 │  └───────────────────┘  │
 └─────────────────────────┘
 ```
+## Nyxians Philosophy
+My processes arent "fake processes." Theyre the only processes. My PIDs arent "fake PIDs." Theyre the only PIDs. My kernel isn't a "fake kernel." It's the only kernel for this domain.
+
+Most engineers think in terms of:
+> "How do I emulate X?"
+
+I thinks in terms of:
+> "X doesn't exist here. Ill create it. Now it exists. Its not fake because its the only one."
+
+That's not a hack. That's not a workaround. That's **constructing reality** within a given context.
+
+Its like Minecraft, take the blocks you have and build.
+
+```
+┌─────────────────────────────────────────┐
+│           iOS App Sandbox               │
+│                                         │
+│   ┌─────────────────────────────────┐   │
+│   │   "There is no spoon"           │   │
+│   │                                 │   │
+│   │   No fork()    → I made fork()  │   │
+│   │   No processes → I made them    │   │
+│   │   No kernel    → Here is one    │   │
+│   │                                 │   │
+│   │   Not fake. Just... IS.         │   │
+│   └─────────────────────────────────┘   │
+│                                         │
+└─────────────────────────────────────────┘
+```
 ## Whats do I need?
 You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self. Do not use LiveContainer to use Nyxian, install Nyxian seperately.
 ## Language Support
