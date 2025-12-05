@@ -25,6 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 
+// MARK: Todo.. right before suspending.. justify one more push to get the request out of our way, otherwise it might fill up all 4 threads.. or break the request up and then sent the reply on process wakeup (complex shit)
+
 #define MAX_SYSCALLS 256
 
 struct syscall_server {
@@ -117,8 +119,14 @@ static void send_reply(mach_msg_header_t *request,
     if(payload &&
        payload_len > 0)
     {
-        reply.payload_len = payload_len;
-        memcpy(reply.payload, payload, payload_len);
+        /* creating ool descriptor */
+        reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        reply.body.msgh_descriptor_count = 1;
+        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
+        reply.ool.address = payload;
+        reply.ool.copy = MACH_MSG_VIRTUAL_COPY;
+        reply.ool.size = payload_len;
+        reply.ool.deallocate = TRUE;
     }
     
     /* sending reply to child */
@@ -195,12 +203,19 @@ static void* worker_thread(void *ctx)
         }
         
         /* creating out payload buffer to be sent back */
-        uint8_t out_payload[SYSCALL_MAX_PAYLOAD];
+        uint8_t *out_payload = NULL;
         uint32_t out_len = 0;
         errno_t err;
         
-        /* calling syscall */
-        int64_t result = handler(&caller, req->args, req->payload, req->payload_len, out_payload, &out_len, &err);
+        /* calling syscall handler */
+        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, &err);
+        
+        /* deallocate input payload because otherwise it will eat our ram sticks :c */
+        if(req->ool.address != VM_MIN_ADDRESS)
+        {
+            /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
+            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
+        }
         
         /* destroying copy of process */
         proc_copy_destroy(caller.proc_cpy);

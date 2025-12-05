@@ -32,12 +32,21 @@ DEFINE_SYSCALL_HANDLER(proctb)
         *err = EPERM;
     }
     
-    /* copy the buffer into NSData */
+    /* copy the buffer */
     *out_len = snap->count * sizeof(kinfo_proc_t);
-    memcpy(out_payload, snap->kp, *out_len);
+    
+    /* allocating outgoing payload (and copy in one step) */
+    kern_return_t kr = mach_syscall_payload_create(snap->kp, *out_len, (vm_address_t*)out_payload);
+    
+    /* checking what the kernel wants to say */
+    if(kr != KERN_SUCCESS)
+    {
+        /* idk where all that memory has gone */
+        *err = ENOMEM;
+        return -1;
+    }
     
     /* free the snapshot */
     proc_snapshot_free(snap);
-    SYS_setreuid;
     return 0;
 }

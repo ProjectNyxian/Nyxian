@@ -20,6 +20,7 @@
 #ifndef MACH_SYSCALL_SERVER_H
 #define MACH_SYSCALL_SERVER_H
 
+#import <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <mach/mach.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -46,19 +47,19 @@ typedef struct {
 } syscall_caller_t;
 
 typedef struct {
-    mach_msg_header_t   header;
-    uint32_t            syscall_num;
-    int64_t             args[6];
-    uint32_t            payload_len;
-    uint8_t             payload[SYSCALL_MAX_PAYLOAD];
+    mach_msg_header_t           header;
+    mach_msg_body_t             body;
+    mach_msg_ool_descriptor_t   ool;
+    uint32_t                    syscall_num;
+    int64_t                     args[6];
 } syscall_request_t;
 
 typedef struct {
-    mach_msg_header_t   header;
-    int64_t             result;
-    errno_t             err;
-    uint32_t            payload_len;
-    uint8_t             payload[SYSCALL_MAX_PAYLOAD];
+    mach_msg_header_t           header;
+    mach_msg_body_t             body;
+    mach_msg_ool_descriptor_t   ool;
+    int64_t                     result;
+    errno_t                     err;
 } syscall_reply_t;
 
 typedef int64_t (*syscall_handler_t)(
@@ -66,12 +67,12 @@ typedef int64_t (*syscall_handler_t)(
     int64_t             *args,
     uint8_t             *in_payload,
     uint32_t            in_len,
-    uint8_t             *out_payload,
+    uint8_t             **out_payload,
     uint32_t            *out_len,
     errno_t             *err
 );
 
-#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname(syscall_caller_t *caller, int64_t *args, uint8_t *in_payload, uint32_t in_len, uint8_t *out_payload, uint32_t *out_len, errno_t *err)
+#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname(syscall_caller_t *caller, int64_t *args, uint8_t *in_payload, uint32_t in_len, uint8_t **out_payload, uint32_t *out_len, errno_t *err)
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
 
 typedef struct syscall_server syscall_server_t;

@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
+#import <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -133,12 +134,17 @@ int64_t syscall_invoke(syscall_client_t *client,
         memcpy(buffer.req.args, args, sizeof(buffer.req.args));
     }
     
-    /* checking for payload, if present writing it to the request */
+    /* checking for payload, if present creating ool descriptor */
     if(in_payload && in_len > 0)
     {
-        /* copy again, rawrr */
-        buffer.req.payload_len = (in_len > SYSCALL_MAX_PAYLOAD) ? SYSCALL_MAX_PAYLOAD : in_len;
-        memcpy(buffer.req.payload, in_payload, buffer.req.payload_len);
+        /* creating ool descriptor */
+        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        buffer.req.body.msgh_descriptor_count = 1;
+        buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
+        buffer.req.ool.address = in_payload;
+        buffer.req.ool.copy = MACH_MSG_VIRTUAL_COPY;
+        buffer.req.ool.size = in_len;
+        buffer.req.ool.deallocate = FALSE;
     }
     
     /*
@@ -156,14 +162,22 @@ int64_t syscall_invoke(syscall_client_t *client,
         return -1;
     }
     
-    /* payload validation */
-    if(out_payload && out_len &&
-       buffer.reply.payload_len > 0)
+    /* payload validation & copying it to user allocated memory */
+    if(buffer.reply.body.msgh_descriptor_count > 0)
     {
         /* copying reply */
-        uint32_t copy_len = (*out_len < buffer.reply.payload_len) ? *out_len : buffer.reply.payload_len;
-        memcpy(out_payload, buffer.reply.payload, copy_len);
-        *out_len = buffer.reply.payload_len;
+        uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
+        memcpy(out_payload, (void*)(buffer.reply.ool.address), copy_len);
+        if(out_len != NULL)
+        {
+            *out_len = buffer.reply.ool.size;
+        }
+    }
+    
+    /* deallocate mapping */
+    if(buffer.reply.ool.address != VM_MIN_ADDRESS)
+    {
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
     }
     
     /* if the result is not 0 we set errno >~< */
