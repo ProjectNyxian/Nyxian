@@ -28,7 +28,7 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_SETUID", .sysnum = SYS_SETUID, .hndl = GET_SYSCALL_HANDLER(setuid) },
     { .name = "SYS_SETEUID", .sysnum = SYS_SETEUID, .hndl = GET_SYSCALL_HANDLER(seteuid) },
     { .name = "SYS_SETGID", .sysnum = SYS_SETGID, .hndl = GET_SYSCALL_HANDLER(setgid) },
-    { .name = "SYS_SETEGID", .sysnum = SYS_KILL, .hndl = GET_SYSCALL_HANDLER(setegid) },
-    { .name = "SYS_SETREUID", .sysnum = SYS_KILL, .hndl = GET_SYSCALL_HANDLER(setreuid) },
-    { .name = "SYS_SETREGID", .sysnum = SYS_KILL, .hndl = GET_SYSCALL_HANDLER(setregid) }
+    { .name = "SYS_SETEGID", .sysnum = SYS_SETEGID, .hndl = GET_SYSCALL_HANDLER(setegid) },
+    { .name = "SYS_SETREUID", .sysnum = SYS_SETREUID, .hndl = GET_SYSCALL_HANDLER(setreuid) },
+    { .name = "SYS_SETREGID", .sysnum = SYS_SETREGID, .hndl = GET_SYSCALL_HANDLER(setregid) }
 };
