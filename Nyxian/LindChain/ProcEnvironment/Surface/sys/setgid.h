@@ -17,13 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_SETUID_H
-#define SURFACE_SYS_SETUID_H
+#ifndef SURFACE_SYS_SETGID_H
+#define SURFACE_SYS_SETGID_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_SYSCALL_HANDLER(setuid);
-DEFINE_SYSCALL_HANDLER(seteuid);
-DEFINE_SYSCALL_HANDLER(setreuid);
+DEFINE_SYSCALL_HANDLER(setgid);
+DEFINE_SYSCALL_HANDLER(setegid);
+DEFINE_SYSCALL_HANDLER(setregid);
 
-#endif /* SURFACE_SYS_SETUID_H */
+#endif /* SURFACE_SYS_SETGID_H */

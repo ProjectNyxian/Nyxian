@@ -18,8 +18,144 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/setuid.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+
+bool proc_is_privileged(ksurface_proc_copy_t *proc)
+{
+    /* Checking if process is entitled to elevate. */
+    if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessElevate))
+    {
+        return true;
+    }
+    
+    /* It's not, so we check if the process is root. */
+    return proc_getuid(proc) == 0;
+}
 
 DEFINE_SYSCALL_HANDLER(setuid)
 {
+    /* getting args, nu checks needed the syscall server does them */
+    uid_t uid = (uid_t)args[0];
+    
+    /* checking if process is priveleged enough */
+    if(proc_is_privileged(sys_proc_copy_))
+    {
+        /* process is privelegedm updating credentials */
+        proc_setuid(sys_proc_copy_, uid);
+        proc_setruid(sys_proc_copy_, uid);
+        proc_setsvuid(sys_proc_copy_, uid);
+        
+        /* update and return */
+        goto out_update;
+    }
+    else
+    {
+        /* setting if ruid or svuid matches the wished uid */
+        if(uid == proc_getruid(sys_proc_copy_) ||
+           uid == proc_getsvuid(sys_proc_copy_))
+        {
+            /* updating credentials */
+            proc_setuid(sys_proc_copy_, uid);
+            
+            /* update and return */
+            goto out_update;
+        }
+    }
+    return -1;
+    
+out_update:
+    *err = EPERM;
+    proc_copy_update(sys_proc_copy_);
+    return 0;
+}
+
+DEFINE_SYSCALL_HANDLER(seteuid)
+{
+    /* getting args, nu checks needed the syscall server does them */
+    uid_t euid = (uid_t)args[0];
+    
+    /* checking if process is priveleged enough */
+    if(proc_is_privileged(sys_proc_copy_))
+    {
+        /* updating credentials */
+        proc_setuid(sys_proc_copy_, euid);
+        
+        /* update and return */
+        goto out_update;
+    }
+    else
+    {
+        if(euid == proc_getruid(sys_proc_copy_) ||
+           euid == proc_getuid(sys_proc_copy_) ||
+           euid == proc_getsvuid(sys_proc_copy_))
+        {
+            /* updating credentials */
+            proc_setuid(sys_proc_copy_, euid);
+            
+            /* update and return */
+            goto out_update;
+        }
+    }
+    return -1;
+    
+out_update:
+    *err = EPERM;
+    proc_copy_update(sys_proc_copy_);
+    return 0;
+}
+
+DEFINE_SYSCALL_HANDLER(setreuid)
+{
+    /* getting args, nu checks needed the syscall server does them */
+    uid_t ruid = (uid_t)args[0];
+    uid_t euid = (uid_t)args[1];
+    
+    /* getting current credentials from copy */
+    uid_t cur_ruid = proc_getruid(sys_proc_copy_);
+    uid_t cur_euid = proc_getuid(sys_proc_copy_);
+    uid_t cur_svuid = proc_getsvuid(sys_proc_copy_);
+    
+    /* performing privelege test */
+    bool privileged = proc_is_privileged(sys_proc_copy_);
+    
+    /* performing ruid priv check */
+    if(ruid != (uid_t)-1 && !privileged)
+    {
+        if(ruid != cur_ruid && ruid != cur_euid)
+        {
+            *err = EPERM;
+            return -1;
+        }
+    }
+    
+    /* performing euid priv check */
+    if(euid != (uid_t)-1 && !privileged)
+    {
+        if(euid != cur_ruid && euid != cur_euid && euid != cur_svuid)
+        {
+            *err = EPERM;
+            return -1;
+        }
+    }
+    
+    /* setting credential */
+    if(ruid != (uid_t)-1)
+    {
+        proc_setruid(sys_proc_copy_, ruid);
+    }
+    
+    /* setting credential */
+    if(euid != (uid_t)-1)
+    {
+        proc_setuid(sys_proc_copy_, euid);
+        if(ruid != (uid_t)-1)
+        {
+            proc_setsvuid(sys_proc_copy_, euid);
+        }
+    }
+    
+    proc_copy_update(sys_proc_copy_);
     return 0;
 }

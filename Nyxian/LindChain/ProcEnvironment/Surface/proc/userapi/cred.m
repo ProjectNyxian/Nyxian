@@ -25,7 +25,7 @@
  * Helper
  */
 
-bool proc_is_privileged(ksurface_proc_copy_t *proc)
+bool proc_is_privileged_old(ksurface_proc_copy_t *proc)
 {
     /* Checking if process is entitled to elevate. */
     if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessElevate))
@@ -44,7 +44,7 @@ bool proc_is_privileged(ksurface_proc_copy_t *proc)
 int proc_setuid_user(ksurface_proc_copy_t *proc,
                      uid_t uid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
         proc_setuid(proc, uid);
         proc_setruid(proc, uid);
@@ -66,7 +66,7 @@ int proc_setuid_user(ksurface_proc_copy_t *proc,
 int proc_seteuid_user(ksurface_proc_copy_t *proc,
                       uid_t euid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
         proc_setuid(proc, euid);
         return 0;
@@ -87,7 +87,7 @@ int proc_seteuid_user(ksurface_proc_copy_t *proc,
 int proc_setruid_user(ksurface_proc_copy_t *proc,
                       uid_t ruid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
         proc_setruid(proc, ruid);
         return 0;
@@ -111,7 +111,7 @@ int proc_setreuid_user(ksurface_proc_copy_t *proc,
     uid_t cur_ruid = proc_getruid(proc);
     uid_t cur_euid = proc_getuid(proc);
     uid_t cur_svuid = proc_getsvuid(proc);
-    bool privileged = proc_is_privileged(proc);
+    bool privileged = proc_is_privileged_old(proc);
     
     if(ruid != (uid_t)-1 && !privileged)
     {
@@ -153,7 +153,7 @@ int proc_setresuid_user(ksurface_proc_copy_t *proc,
     uid_t cur_ruid = proc_getruid(proc);
     uid_t cur_euid = proc_getuid(proc);
     uid_t cur_svuid = proc_getsvuid(proc);
-    bool privileged = proc_is_privileged(proc);
+    bool privileged = proc_is_privileged_old(proc);
     
     if(!privileged)
     {
@@ -188,7 +188,7 @@ int proc_setresuid_user(ksurface_proc_copy_t *proc,
 int proc_setgid_user(ksurface_proc_copy_t *proc,
                      gid_t gid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
        proc_setgid(proc, gid);
        proc_setrgid(proc, gid);
@@ -210,7 +210,7 @@ int proc_setgid_user(ksurface_proc_copy_t *proc,
 int proc_setegid_user(ksurface_proc_copy_t *proc,
                       gid_t egid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
         proc_setgid(proc, egid);
         return 0;
@@ -231,7 +231,7 @@ int proc_setegid_user(ksurface_proc_copy_t *proc,
 int proc_setrgid_user(ksurface_proc_copy_t *proc,
                       gid_t rgid)
 {
-    if(proc_is_privileged(proc))
+    if(proc_is_privileged_old(proc))
     {
         proc_setrgid(proc, rgid);
         return 0;
@@ -255,7 +255,7 @@ int proc_setregid_user(ksurface_proc_copy_t *proc,
     gid_t cur_rgid = proc_getrgid(proc);
     gid_t cur_egid = proc_getgid(proc);
     gid_t cur_svgid = proc_getsvgid(proc);
-    bool privileged = proc_is_privileged(proc);
+    bool privileged = proc_is_privileged_old(proc);
     
     if(rgid != (gid_t)-1 && !privileged)
     {
@@ -297,7 +297,7 @@ int proc_setresgid_user(ksurface_proc_copy_t *proc,
     gid_t cur_rgid = proc_getrgid(proc);
     gid_t cur_egid = proc_getgid(proc);
     gid_t cur_svgid = proc_getsvgid(proc);
-    bool privileged = proc_is_privileged(proc);
+    bool privileged = proc_is_privileged_old(proc);
     
     if(!privileged)
     {

@@ -25,14 +25,7 @@
 
 DEFINE_SYSCALL_HANDLER(kill)
 {
-    /* null pointer check */
-    if(args == NULL)
-    {
-        *err = EINVAL;
-        return -1;
-    }
-    
-    /* casting and check */
+    /* getting args, nu checks needed the syscall server does them */
     pid_t pid = (pid_t)args[0];
     int signal = (int)args[1];
     
