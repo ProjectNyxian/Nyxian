@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,26 @@ static bool get_caller(mach_msg_header_t *msg,
     caller->ruid = (uid_t)token->val[3];
     caller->rgid = (gid_t)token->val[4];
     caller->pid  = (pid_t)token->val[5];
-    caller->proc = proc_for_pid(caller->pid);
+
+    /* getting process */
+    ksurface_proc_t *proc = proc_for_pid(caller->pid);
+    
+    /* null pointer check */
+    if(proc == NULL)
+    {
+        return false;
+    }
+    
+    /* creating process copy with process reference consumption */
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionConsumeReference);
+    
+    /* null pointer check */
+    if(proc_copy == NULL)
+    {
+        return false;
+    }
+    
+    caller->proc_cpy = proc_copy;
     
     return true;
 }
@@ -150,14 +170,7 @@ static void* worker_thread(void *ctx)
         syscall_caller_t caller;
         if(!get_caller(&buffer.header, &caller))
         {
-            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
-            continue;
-        }
-        
-        /* null pointer check */
-        if(caller.proc == NULL)
-        {
-            send_reply(&buffer.header, -1, NULL, 0, EAGAIN);
+            send_reply(&buffer.header, -1, NULL, 0, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
             continue;
         }
         
@@ -189,8 +202,8 @@ static void* worker_thread(void *ctx)
         /* calling syscall */
         int64_t result = handler(&caller, req->args, req->payload, req->payload_len, out_payload, &out_len, &err);
         
-        /* release process */
-        proc_release(caller.proc);
+        /* destroying copy of process */
+        proc_copy_destroy(caller.proc_cpy);
         
         /* replying to the guest */
         send_reply(&buffer.header, result, out_payload, out_len, err);

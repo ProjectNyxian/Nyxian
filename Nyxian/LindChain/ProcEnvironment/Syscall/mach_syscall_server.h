@@ -31,7 +31,10 @@
 #define SYSCALL_QUEUE_LIMIT     32
 
 /* macro for extremely easy process usage from syscalls */
-#define sys_proc_ ((ksurface_proc_t*)caller->proc)
+#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)caller->proc_cpy)->original))
+
+/* accessing safe snapshot */
+#define sys_proc_copy_ ((ksurface_proc_copy_t*)caller->proc_cpy)
 
 typedef struct {
     pid_t   pid;
@@ -39,7 +42,7 @@ typedef struct {
     gid_t   egid;
     uid_t   ruid;
     gid_t   rgid;
-    void    *proc;
+    void    *proc_cpy;
 } syscall_caller_t;
 
 typedef struct {

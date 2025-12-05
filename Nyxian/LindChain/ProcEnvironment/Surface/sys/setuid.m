@@ -17,27 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
-#include <sys/syscall.h>
+#import <LindChain/ProcEnvironment/Surface/sys/setuid.h>
 
-DEFINE_SYSCALL_HANDLER(proctb)
+DEFINE_SYSCALL_HANDLER(setuid)
 {
-    /* snapshot creation */
-    proc_snapshot_t *snap;
-    proc_list_err_t error = proc_snapshot_create(sys_proc_, &snap);
-    if(error != PROC_LIST_OK)
-    {
-        return -1;
-        *err = EPERM;
-    }
-    
-    /* copy the buffer into NSData */
-    *out_len = snap->count * sizeof(kinfo_proc_t);
-    memcpy(out_payload, snap->kp, *out_len);
-    
-    /* free the snapshot */
-    proc_snapshot_free(snap);
-    SYS_setreuid;
     return 0;
 }

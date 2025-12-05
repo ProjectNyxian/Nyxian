@@ -24,10 +24,19 @@
 #import <LindChain/ProcEnvironment/Surface/sys/kill.h>
 #import <LindChain/ProcEnvironment/Surface/sys/bamset.h>
 #import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
+#include <sys/syscall.h>
 
 /* syscalls */
-#define SYS_KILL 1          /* killing other processes */
-#define SYS_BAMSET 2        /* setting audio background mode */
-#define SYS_PROCTB 3        /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_KILL SYS_kill       /* killing other processes */
+#define SYS_BAMSET 2            /* setting audio background mode */
+#define SYS_PROCTB 3            /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_SETUID SYS_setuid   /* sets user identifier of a process */
+#define SYS_SETRUID SYS_setruid /* sets real user identifier of a process */
+#define SYS_SETEUID SYS_seteuid /* sets effective user identifier of a process */
+#define SYS_SETGID SYS_setgid   /* sets group identifier of a process */
+#define SYS_SETRGID SYS_setrgid /* sets real group identifier of a process */
+#define SYS_SETEGID SYS_setegid /* sets effective group identifier of a process */
+#define SYS_SETREUID SYS_setreuid
+#define SYS_SETREGID SYS_setregid
 
 #endif /* SURFACE_SYS_SYSCALL_H */
