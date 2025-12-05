@@ -62,12 +62,8 @@ static bool get_caller(mach_msg_header_t *msg,
     
     /* yep clear to go */
     audit_token_t *token = &trailer->msgh_audit;
-    caller->euid = (uid_t)token->val[1];
-    caller->egid = (gid_t)token->val[2];
-    caller->ruid = (uid_t)token->val[3];
-    caller->rgid = (gid_t)token->val[4];
     caller->pid  = (pid_t)token->val[5];
-
+    
     /* getting process */
     ksurface_proc_t *proc = proc_for_pid(caller->pid);
     
@@ -87,6 +83,12 @@ static bool get_caller(mach_msg_header_t *msg,
     }
     
     caller->proc_cpy = proc_copy;
+    
+    /* take the auth properties from proc copy */
+    caller->euid = proc_geteuid(proc_copy);
+    caller->egid = proc_getegid(proc_copy);
+    caller->ruid = proc_getruid(proc_copy);
+    caller->rgid = proc_getrgid(proc_copy);
     
     return true;
 }
