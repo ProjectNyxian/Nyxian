@@ -50,21 +50,6 @@
 
 #pragma mark - Initilizer
 
-UIViewController *TopViewController(UIViewController *rootVC) {
-    if (rootVC.presentedViewController) {
-        return TopViewController(rootVC.presentedViewController);
-    }
-    if ([rootVC isKindOfClass:[UINavigationController class]]) {
-        UINavigationController *nav = (UINavigationController *)rootVC;
-        return TopViewController(nav.visibleViewController);
-    }
-    if ([rootVC isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *tab = (UITabBarController *)rootVC;
-        return TopViewController(tab.selectedViewController);
-    }
-    return rootVC;
-}
-
 void environment_signal_child_handler(int code)
 {
     UIApplication *sharedApplication = [PrivClass(UIApplication) sharedApplication];
@@ -75,40 +60,68 @@ void environment_signal_child_handler(int code)
         {
             dispatch_async(dispatch_get_main_queue(), ^{
                 // TODO: Shall be done by the runLoop and not by the handler, this could lead to some strange behaviour
-                UIWindow *keyWindow = nil;
+                
+                /* finding active scene */
+                UIWindowScene *activeScene = nil;
                 for(UIWindowScene *scene in sharedApplication.connectedScenes)
                 {
                     if(scene.activationState == UISceneActivationStateForegroundActive)
                     {
-                        keyWindow = scene.windows.firstObject;
+                        activeScene = scene;
                         break;
                     }
                 }
-                if(!keyWindow)
+
+                /* null pointer check */
+                if(!activeScene)
                 {
-                    keyWindow = sharedApplication.keyWindow;
+                    return;
                 }
                 
-                UIView *rootView = keyWindow.rootViewController.view;
+                /* getting view we wanna capture with our own eyes ^^ */
+                UIWindow *rootWindow = activeScene.keyWindow;
+                UIViewController *topVC = rootWindow.rootViewController;
+                UIView *viewToCapture = topVC.view ?: rootWindow;
                 
-                UIViewController *topVC = keyWindow.rootViewController;
-                UIView *viewToCapture = topVC.view ?: rootView;
-                
+                /* preparing format for renderer */
                 CGFloat scale = [UIScreen mainScreen].scale;
                 UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
                 format.scale = scale;
                 format.opaque = viewToCapture.isOpaque;
                 
-                UIGraphicsImageRenderer *renderer =
-                [[UIGraphicsImageRenderer alloc] initWithSize:viewToCapture.bounds.size format:format];
+                /* creating renderer */
+                UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:viewToCapture.bounds.size format:format];
                 
+                /* and snapshotting... */
                 UIImage *snapshot = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
-                    [viewToCapture.layer renderInContext:rendererContext.CGContext];
+                    /* crafting screenshot */
+                    [viewToCapture drawViewHierarchyInRect:viewToCapture.bounds afterScreenUpdates:YES];
                 }];
+                
+                /* sending to host */
                 environment_proxy_set_snapshot(snapshot);
                 
-                // TODO: Signal didEnterBackground
-                //[[sharedApplication delegate] applicationDidEnterBackground:sharedApplication];*/
+                /* notifying application/scene delegate about background entrance */
+                if(sharedApplication.connectedScenes.count > 0)
+                {
+                    /* its scene based */
+                    for(UIWindowScene *scene in sharedApplication.connectedScenes)
+                    {
+                        if(![scene isKindOfClass:[UIWindowScene class]])
+                        {
+                            continue;
+                        }
+                        
+                        [[NSNotificationCenter defaultCenter] postNotificationName:UISceneWillDeactivateNotification object:scene];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:UISceneDidEnterBackgroundNotification object:scene];
+                    }
+                }
+                else
+                {
+                    /* ugh a legacyyy iOS app again */
+                    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationWillResignActiveNotification object:sharedApplication];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidEnterBackgroundNotification object:sharedApplication];
+                }
             });
         }
         return;
