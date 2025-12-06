@@ -124,7 +124,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     buffer.req.header.msgh_size = sizeof(syscall_request_t);
     buffer.req.header.msgh_id = syscall_num;
     
-    /* telling cutie patootie XNU what syscall we wanna call ^^ */
+    /* telling cutie patootie ksurface what syscall we wanna call ^^ */
     buffer.req.syscall_num = syscall_num;
     
     /* checking for args to copy them possibly over, otherwise they stay nullified */
@@ -150,7 +150,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     /*
      * now lets call da cutie >.<
      *
-     * NOTE: when using MACH_SEND_MSG | MACH_RCV_MSG together, the kernel
+     * MARK: when using MACH_SEND_MSG | MACH_RCV_MSG together, the kernel
      * uses the same buffer for both operations. The receive buffer size
      * must be large enough to hold the reply plus any trailer.
      */

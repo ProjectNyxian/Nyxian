@@ -109,15 +109,14 @@ static inline void ksurface_kinit_kproc(void)
         environment_panic();
     }
     
-    /* FIXME: PEEntitlementKernel breaks spawning daemons */
     /* locking kproc write */
-    //proc_write_lock(kproc);
+    proc_write_lock(kproc);
     
     /* setting entitlements */
-    //proc_setentitlements(kproc, PEEntitlementKernel);
+    proc_setentitlements(kproc, PEEntitlementKernel);
     
     /* unlocking */
-    //proc_read_lock(kproc);
+    proc_unlock(kproc);
     
     /* logging */
     klog_log(@"ksurface:kinit:kproc", @"executable_path = %s", kproc->nyx.executable_path);
