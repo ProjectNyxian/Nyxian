@@ -101,13 +101,15 @@ static inline void ksurface_kinit_kinfo(void)
 static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
-    klog_log(@"ksurface:kinit:kproc", @"creating kernel process");
     ksurface_proc_t *kproc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
     if(kproc == NULL)
     {
         /* Should never happen, panic! */
         environment_panic();
     }
+    
+    /* logging allocation*/
+    klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
     /* locking kproc write */
     proc_write_lock(kproc);
@@ -117,14 +119,6 @@ static inline void ksurface_kinit_kproc(void)
     
     /* unlocking */
     proc_unlock(kproc);
-    
-    /* logging */
-    klog_log(@"ksurface:kinit:kproc", @"executable_path = %s", kproc->nyx.executable_path);
-    klog_log(@"ksurface:kinit:kproc", @"entitlements = %d", proc_getentitlements(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"pid = %d", proc_getpid(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"ppid = %d", proc_getppid(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"uid = %d", proc_getruid(kproc));
-    klog_log(@"ksurface:kinit:kproc", @"gid = %d", proc_getrgid(kproc));
     
     /* storing kproc */
     ksurface->proc_info.kproc = kproc;
