@@ -181,7 +181,16 @@ static void* worker_thread(void *ctx)
         syscall_caller_t caller;
         if(!get_caller(&buffer.header, &caller))
         {
-            send_reply(&buffer.header, -1, NULL, 0, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
+            /* checking if proc copy is null */
+            if(caller.proc_cpy != NULL)
+            {
+                proc_copy_destroy(caller.proc_cpy);
+                send_reply(&buffer.header, -1, NULL, 0, EINVAL);
+            }
+            else
+            {
+                send_reply(&buffer.header, -1, NULL, 0, EAGAIN);
+            }
             continue;
         }
         
@@ -191,6 +200,7 @@ static void* worker_thread(void *ctx)
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
+            proc_copy_destroy(caller.proc_cpy);
             send_reply(&buffer.header, -1, NULL, 0, EINVAL);
             continue;
         }
@@ -201,6 +211,7 @@ static void* worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
+            proc_copy_destroy(caller.proc_cpy);
             send_reply(&buffer.header, -1, NULL, 0, EINVAL);
             continue;
         }
