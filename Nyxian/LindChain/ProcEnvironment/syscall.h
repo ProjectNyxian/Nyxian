@@ -23,6 +23,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 #import <stdint.h>
 
-int64_t environment_syscall(uint32_t syscall_num, void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len, ...);
+int64_t environment_syscall(uint32_t syscall_num, ...);
 
 #endif /* PROCENVIRONMENT_SYSCALL_H */

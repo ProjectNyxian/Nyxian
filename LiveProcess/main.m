@@ -155,8 +155,8 @@ int LiveProcessMain(int argc, char *argv[]) {
     {
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
 
-        if(environment_syscall(SYS_SETUID, NULL, 0, NULL, NULL, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
-           environment_syscall(SYS_SETGID, NULL, 0, NULL, NULL, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
+        if(environment_syscall(SYS_SETUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
+           environment_syscall(SYS_SETGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
         {
             exit(1);
         }

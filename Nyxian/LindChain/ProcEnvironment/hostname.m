@@ -30,7 +30,7 @@ DEFINE_HOOK(gethostname, int, (char *name,
     uint32_t len32 = (uint32_t)len;
     
     /* calling ksurface syscall server */
-    return (int)environment_syscall(SYS_GETHOSTNAME, NULL, 0, name, &len32);
+    return (int)environment_syscall(SYS_GETHOSTNAME, name, &len32);
 }
 
 DEFINE_HOOK(sethostname, int, (const char *name,
@@ -40,7 +40,7 @@ DEFINE_HOOK(sethostname, int, (const char *name,
     uint32_t len32 = (uint32_t)len;
     
     /* calling ksurface syscall server */
-    return (int)environment_syscall(SYS_SETHOSTNAME, (void*)name, len32, NULL, NULL);
+    return (int)environment_syscall(SYS_SETHOSTNAME, (void*)name, len32);
 }
 
 void environment_hostname_init(void)
