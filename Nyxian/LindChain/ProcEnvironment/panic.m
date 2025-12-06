@@ -22,6 +22,6 @@
 
 void environment_panic(void)
 {
-    // MARK: Incase we change something in future, like adding a crash log producer
-    exit(1);
+    /* trap the system */
+    __builtin_trap();
 }

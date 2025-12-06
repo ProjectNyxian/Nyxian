@@ -20,6 +20,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/panic.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +28,7 @@
 
 // MARK: Todo.. right before suspending.. justify one more push to get the request out of our way, otherwise it might fill up all 4 threads.. or break the request up and then sent the reply on process wakeup (complex shit)
 
-#define MAX_SYSCALLS 256
+#define MAX_SYSCALLS 512
 
 struct syscall_server {
     mach_port_t port;
@@ -233,6 +234,7 @@ syscall_server_t* syscall_server_create(void)
 {
     /* allocating server */
     syscall_server_t *server = malloc(sizeof(syscall_server_t));
+    memset(server, 0, sizeof(syscall_server_t));
     return server;
 }
 
@@ -259,7 +261,18 @@ void syscall_server_register(syscall_server_t *server,
     if(server == NULL ||
        syscall_num >= MAX_SYSCALLS)
     {
-        return;
+        /* shall never ever happen */
+        environment_panic();
+    }
+    
+    /* trying to get syscall handler */
+    syscall_handler_t phandler = server->handlers[syscall_num];
+    
+    /* if its already present panic */
+    if(phandler != NULL)
+    {
+        /* shall never ever happen */
+        environment_panic();
     }
     
     /* setting syscall handler */
