@@ -93,7 +93,9 @@ typedef struct {
     ksurface_proc_children_t cld;
     kinfo_proc_t bsd;
     knyx_proc_t nyx;
-    kduy_proc_t duy;
+    
+    /* will be used later */
+    //kduy_proc_t duy;
 } ksurface_proc_t;
 
 typedef struct {
