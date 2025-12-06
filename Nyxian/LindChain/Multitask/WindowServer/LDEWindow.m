@@ -109,59 +109,45 @@
 
 - (void)handlePullDown:(UIPanGestureRecognizer *)gesture
 {
-    // TODO: Fix this up
-    static BOOL isAnimating = NO;
-    
     UIView *windowView = self.view;
-    CGPoint translation = [gesture translationInView:windowView.superview];
-    CGFloat offsetY = MAX(translation.y, 0); // never allow negative
-    CGFloat velocityY = [gesture velocityInView:windowView.superview].y;
-
-    switch (gesture.state) {
-        case UIGestureRecognizerStateChanged: {
-            // Only move downward
+    
+    switch(gesture.state)
+    {
+        case UIGestureRecognizerStateBegan:
+            [windowView.layer removeAllAnimations];
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            CGPoint translation = [gesture translationInView:windowView.superview];
+            CGFloat offsetY = MAX(translation.y, 0);
             windowView.transform = CGAffineTransformMakeTranslation(0, offsetY);
             break;
         }
         case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled: {
-            if (isAnimating) return;
-            isAnimating = YES;
+        case UIGestureRecognizerStateCancelled:
+        {
+            CGPoint translation = [gesture translationInView:windowView.superview];
+            CGFloat offsetY = MAX(translation.y, 0);
+            CGFloat velocityY = [gesture velocityInView:windowView.superview].y;
             BOOL shouldDismiss = (offsetY > 150 || velocityY > 600);
-
-            if (shouldDismiss) {
-                [UIView animateWithDuration:0.3
-                                      delay:0
-                                    options:UIViewAnimationOptionCurveEaseInOut
-                                 animations:^{
+            if(shouldDismiss)
+            {
+                [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState animations:^{
                     windowView.transform = CGAffineTransformMakeTranslation(0, windowView.bounds.size.height + 100);
                     windowView.alpha = 0;
                 } completion:^(BOOL finished) {
-                    if(finished)
-                    {
-                        windowView.transform = CGAffineTransformIdentity;
-                        windowView.alpha = 1.0;
-                        [windowView removeFromSuperview];
-                        [self.session deactivateWindow];
-                        [self.delegate userDidMinimizeWindow:self];
-                        isAnimating = NO;
-                    }
+                    windowView.transform = CGAffineTransformIdentity;
+                    windowView.alpha = 1.0;
+                    [windowView removeFromSuperview];
+                    [self.session deactivateWindow];
+                    [self.delegate userDidMinimizeWindow:self];
                 }];
-            } else {
-                // Snap back
-                [UIView animateWithDuration:0.6
-                                      delay:0
-                     usingSpringWithDamping:0.8
-                      initialSpringVelocity:0.6
-                                    options:UIViewAnimationOptionCurveEaseInOut
-                                 animations:^{
-                                     windowView.transform = CGAffineTransformIdentity;
-                } completion:^(BOOL finished){
-                    if(finished)
-                    {
-                        isAnimating = NO;
-                    }
-                }];
+            }
+            else
+            {
+                [UIView animateWithDuration:0.6 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:velocityY / 1000.0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+                    windowView.transform = CGAffineTransformIdentity;
+                } completion:nil];
             }
             break;
         }
