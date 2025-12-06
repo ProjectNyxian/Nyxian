@@ -101,7 +101,8 @@ void environment_init(EnvironmentRole role,
         environment_posix_spawn_init();
         environment_fork_init();
         environment_sysctl_init();
-         environment_cred_init();
+        environment_cred_init();
+        environment_hostname_init();
         
 #if HOST_ENV
         ksurface_kinit();

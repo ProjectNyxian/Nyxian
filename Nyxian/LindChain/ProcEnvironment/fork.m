@@ -138,7 +138,7 @@ void *helper_thread(void *args)
 DEFINE_HOOK(fork, pid_t, (void))
 {
     // Getting entitlement list and checking it
-    int64_t retval = environment_syscall(SYS_GETENT);
+    int64_t retval = environment_syscall(SYS_GETENT, NULL, 0, NULL, NULL);
     PEEntitlement entitlement = (retval == -1) ? 0 : retval;
     if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
          entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))

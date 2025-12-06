@@ -159,6 +159,7 @@
 				LindChain/ProcEnvironment/cred.m,
 				LindChain/ProcEnvironment/environment.m,
 				LindChain/ProcEnvironment/fork.m,
+				LindChain/ProcEnvironment/hostname.m,
 				LindChain/ProcEnvironment/kysapple.m,
 				LindChain/ProcEnvironment/libproc.m,
 				LindChain/ProcEnvironment/Object/ArchiveObject.m,

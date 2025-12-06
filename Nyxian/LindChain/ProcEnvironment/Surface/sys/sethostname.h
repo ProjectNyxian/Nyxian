@@ -17,12 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SYSCALL_H
-#define PROCENVIRONMENT_SYSCALL_H
+#ifndef SURFACE_SYS_SETHOSTNAME_H
+#define SURFACE_SYS_SETHOSTNAME_H
 
-#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
-#import <stdint.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-int64_t environment_syscall(uint32_t syscall_num, void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len, ...);
+DEFINE_SYSCALL_HANDLER(sethostname);
 
-#endif /* PROCENVIRONMENT_SYSCALL_H */
+#endif /* SURFACE_SYS_SETHOSTNAME_H */

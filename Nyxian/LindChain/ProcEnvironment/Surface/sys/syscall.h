@@ -30,6 +30,8 @@
 #import <LindChain/ProcEnvironment/Surface/sys/getpid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/getuid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/getgid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/gethostname.h>
+#import <LindChain/ProcEnvironment/Surface/sys/sethostname.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -51,8 +53,10 @@
 #define SYS_BAMSET 200              /* setting audio background mode */
 #define SYS_PROCTB 201              /* getting process table MARK: will be SYS_SYSCTL later */
 #define SYS_GETENT 202              /* getting processes entitlements */
+#define SYS_GETHOSTNAME 203         /* later replaced with XNU SYSCTL semantics */
+#define SYS_SETHOSTNAME 204         /* later replaced with XNU SYSCTL semantics */
 
-#define SYS_N 16
+#define SYS_N 18
 
 typedef struct {
     const char *name;

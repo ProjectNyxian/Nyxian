@@ -17,12 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SYSCALL_H
-#define PROCENVIRONMENT_SYSCALL_H
+#ifndef PROCENVIRONMENT_HOSTNAME_H
+#define PROCENVIRONMENT_HOSTNAME_H
 
-#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
-#import <stdint.h>
+void environment_hostname_init(void);
 
-int64_t environment_syscall(uint32_t syscall_num, void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len, ...);
-
-#endif /* PROCENVIRONMENT_SYSCALL_H */
+#endif /* PROCENVIRONMENT_HOSTNAME_H */

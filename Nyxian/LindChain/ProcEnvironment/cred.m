@@ -24,72 +24,72 @@
 
 DEFINE_HOOK(getuid, uid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETUID);
+    return (uid_t)environment_syscall(SYS_GETUID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(getgid, gid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETGID);
+    return (uid_t)environment_syscall(SYS_GETGID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(geteuid, uid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETEUID);
+    return (uid_t)environment_syscall(SYS_GETEUID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(getegid, gid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETEGID);
+    return (uid_t)environment_syscall(SYS_GETEGID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(getpid, pid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETPID);
+    return (uid_t)environment_syscall(SYS_GETPID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(getppid, pid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_GETPPID);
+    return (uid_t)environment_syscall(SYS_GETPPID, NULL, 0, NULL, NULL);
 }
 
 DEFINE_HOOK(setuid, int, (uid_t uid))
 {
-    return (int)environment_syscall(SYS_SETUID, uid);
+    return (int)environment_syscall(SYS_SETUID, NULL, 0, NULL, NULL, uid);
 }
 
 DEFINE_HOOK(seteuid, int, (uid_t euid))
 {
-    return (int)environment_syscall(SYS_SETEUID, euid);
+    return (int)environment_syscall(SYS_SETEUID, NULL, 0, NULL, NULL, euid);
 }
 
 DEFINE_HOOK(setruid, int, (uid_t uid))
 {
-    return (int)environment_syscall(SYS_SETREUID, uid, -1);
+    return (int)environment_syscall(SYS_SETREUID, NULL, 0, NULL, NULL, uid, -1);
 }
 
 DEFINE_HOOK(setreuid, int, (uid_t ruid, uid_t euid))
 {
-    return (int)environment_syscall(SYS_SETREUID, ruid, euid);
+    return (int)environment_syscall(SYS_SETREUID, NULL, 0, NULL, NULL, ruid, euid);
 }
 
 DEFINE_HOOK(setgid, int, (gid_t gid))
 {
-    return (int)environment_syscall(SYS_SETGID, gid);
+    return (int)environment_syscall(SYS_SETGID, NULL, 0, NULL, NULL, gid);
 }
 
 DEFINE_HOOK(setegid, int, (gid_t gid))
 {
-    return (int)environment_syscall(SYS_SETEGID, gid);
+    return (int)environment_syscall(SYS_SETEGID, NULL, 0, NULL, NULL, gid);
 }
 
 DEFINE_HOOK(setrgid, int, (gid_t gid))
 {
-    return (int)environment_syscall(SYS_SETREGID, gid, -1);
+    return (int)environment_syscall(SYS_SETREGID, NULL, 0, NULL, NULL, gid, -1);
 }
 
 DEFINE_HOOK(setregid, int, (gid_t egid, gid_t rgid))
 {
-    return (int)environment_syscall(SYS_SETREGID, egid, rgid);
+    return (int)environment_syscall(SYS_SETREGID, NULL, 0, NULL, NULL, egid, rgid);
 }
 
 void environment_cred_init(void)
