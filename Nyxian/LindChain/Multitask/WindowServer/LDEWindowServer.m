@@ -542,7 +542,10 @@
     UIImageView *reflection = [tileContainer viewWithTag:9999];
     UILabel *title = [tileContainer viewWithTag:8888];
     
+    UIVisualEffectView *tileMaterial = tileWrapper.subviews.firstObject;
+    
     CGPoint translation = [pan translationInView:tileContainer];
+    CGPoint velocity = [pan velocityInView:tileContainer];
     
     if(pan.state == UIGestureRecognizerStateChanged)
     {
@@ -551,23 +554,57 @@
             CGFloat lift = fabs(translation.y);
             CGFloat maxLift = 250.0;
             CGFloat progress = MIN(1.0, lift / maxLift);
-
-            tileWrapper.transform = CGAffineTransformMakeTranslation(0, translation.y);
+            
+            CATransform3D transform = CATransform3DIdentity;
+            transform.m34 = -1.0 / 800.0;
+            transform = CATransform3DTranslate(transform, 0, translation.y, 0);
+            
+            CGFloat tiltAngle = progress * 0.4;
+            transform = CATransform3DRotate(transform, tiltAngle, 1, 0, 0);
+            
+            CGFloat maxYRotation = 0.15;
+            CGFloat yRotation = (velocity.x / 2000.0) * maxYRotation;
+            yRotation = MAX(-maxYRotation, MIN(maxYRotation, yRotation));
+            transform = CATransform3DRotate(transform, yRotation, 0, 1, 0);
+            
+            CGFloat scale = 1.0 - (progress * 0.1);
+            transform = CATransform3DScale(transform, scale, scale, scale);
+            
+            CGFloat zTranslate = -progress * 50;
+            transform = CATransform3DTranslate(transform, 0, 0, zTranslate);
+            
+            CGFloat horizontalDrift = (velocity.x / 1500.0) * 15.0;
+            horizontalDrift = MAX(-20, MIN(20, horizontalDrift));
+            transform = CATransform3DTranslate(transform, horizontalDrift, 0, 0);
+            
+            tileWrapper.layer.transform = transform;
+            
+            tileWrapper.alpha = 1.0 - (progress * 0.5);
+            
+            tileMaterial.layer.shadowOpacity = 0.25 + (progress * 0.15);
+            tileMaterial.layer.shadowRadius = 12 + (progress * 6);
+            tileMaterial.layer.shadowOffset = CGSizeMake(horizontalDrift * 0.2, 6 + (progress * 15));
             
             title.alpha = 1.0 - progress;
-            title.transform = CGAffineTransformMakeTranslation(0, translation.y * 0.3);
+            CATransform3D titleTransform = CATransform3DIdentity;
+            titleTransform.m34 = -1.0 / 800.0;
+            titleTransform = CATransform3DTranslate(titleTransform, horizontalDrift * 0.3, translation.y * 0.25, 0);
+            titleTransform = CATransform3DScale(titleTransform, 1.0 - (progress * 0.15), 1.0 - (progress * 0.15), 1);
+            title.layer.transform = titleTransform;
             
             CGFloat scaleY = 1.0 + (progress * 0.8);
             reflection.transform = CGAffineTransformConcat(
                 CGAffineTransformMakeScale(1, -scaleY),
                 CGAffineTransformMakeTranslation(0, lift)
             );
-            reflection.alpha = 0.35 * (1.0 - (progress * 0.5));
+            reflection.alpha = 0.35 * (1.0 - (progress * 0.6));
         }
     }
-    else if(pan.state == UIGestureRecognizerStateEnded || pan.state == UIGestureRecognizerStateCancelled)
+    else if(pan.state == UIGestureRecognizerStateEnded ||
+            pan.state == UIGestureRecognizerStateCancelled)
     {
-        CGFloat velocityY = [pan velocityInView:tileContainer].y;
+        CGFloat velocityY = velocity.y;
+        CGFloat velocityX = velocity.x;
         CGFloat offsetY = translation.y;
         
         BOOL shouldDismiss = (offsetY < -100) || (velocityY < -500);
@@ -578,12 +615,31 @@
             CGFloat progress = MIN(1.0, lift / 250.0);
             CGFloat currentScale = 1.0 + (progress * 0.8);
             
-            [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-                tileWrapper.transform = CGAffineTransformMakeTranslation(0, -tileContainer.bounds.size.height);
+            CGFloat exitYRotation = (velocityX / 800.0) * 0.5;
+            exitYRotation = MAX(-0.6, MIN(0.6, exitYRotation));
+            CGFloat exitDriftX = (velocityX / 800.0) * 100;
+            exitDriftX = MAX(-150, MIN(150, exitDriftX));
+            
+            UIStackView *stack = self.stackView;
+            
+            [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+                CATransform3D exitTransform = CATransform3DIdentity;
+                exitTransform.m34 = -1.0 / 600.0;
+                exitTransform = CATransform3DTranslate(exitTransform, exitDriftX, -tileContainer.bounds.size.height * 0.8, -200);
+                exitTransform = CATransform3DRotate(exitTransform, 0.7, 1, 0, 0);
+                exitTransform = CATransform3DRotate(exitTransform, exitYRotation, 0, 1, 0);
+                exitTransform = CATransform3DScale(exitTransform, 0.5, 0.5, 0.5);
+                tileWrapper.layer.transform = exitTransform;
                 tileWrapper.alpha = 0;
                 
+                tileMaterial.layer.shadowOpacity = 0;
+                
                 title.alpha = 0;
-                title.transform = CGAffineTransformMakeTranslation(0, -50);
+                CATransform3D titleExit = CATransform3DIdentity;
+                titleExit.m34 = -1.0 / 800.0;
+                titleExit = CATransform3DTranslate(titleExit, exitDriftX * 0.3, -100, -50);
+                titleExit = CATransform3DScale(titleExit, 0.7, 0.7, 1);
+                title.layer.transform = titleExit;
                 
                 reflection.transform = CGAffineTransformConcat(
                     CGAffineTransformMakeScale(1, -(currentScale + 0.5)),
@@ -599,21 +655,38 @@
                     [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
                 }
                 
-                [tileContainer removeFromSuperview];
+                tileContainer.hidden = YES;
                 
-                if(self.windows.count == 1 &&
-                   self.placeholderStack)
-                {
-                    self.placeholderStack.hidden = NO;
-                }
+                [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    [stack removeArrangedSubview:tileContainer];
+                    [tileContainer removeFromSuperview];
+                    [stack layoutIfNeeded];
+                    [stack.superview layoutIfNeeded];
+                } completion:^(BOOL finished) {
+                    if(self.windows.count == 0 &&
+                       self.placeholderStack)
+                    {
+                        self.placeholderStack.alpha = 0;
+                        self.placeholderStack.hidden = NO;
+                        [UIView animateWithDuration:0.3 animations:^{
+                            self.placeholderStack.alpha = 1;
+                        }];
+                    }
+                }];
             }];
         }
         else
         {
-            [UIView animateWithDuration:0.4 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-                tileWrapper.transform = CGAffineTransformIdentity;
+            [UIView animateWithDuration:0.7 delay:0 usingSpringWithDamping:0.55 initialSpringVelocity:0.9 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+                tileWrapper.layer.transform = CATransform3DIdentity;
+                tileWrapper.alpha = 1.0;
+                tileMaterial.layer.shadowOpacity = 0.25;
+                tileMaterial.layer.shadowRadius = 12;
+                tileMaterial.layer.shadowOffset = CGSizeMake(0, 6);
+                
                 title.alpha = 1.0;
-                title.transform = CGAffineTransformIdentity;
+                title.layer.transform = CATransform3DIdentity;
+                
                 reflection.transform = CGAffineTransformMakeScale(1, -1);
                 reflection.alpha = 0.35;
             } completion:nil];
