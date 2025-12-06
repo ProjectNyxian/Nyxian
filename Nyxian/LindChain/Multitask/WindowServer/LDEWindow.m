@@ -286,7 +286,12 @@
     
     self.contentStack.axis = UILayoutConstraintAxisVertical;
     self.contentStack.backgroundColor = UIColor.systemBackgroundColor;
+    
     self.contentStack.layer.cornerRadius = 20;
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+    {
+        self.contentStack.layer.maskedCorners = kCALayerMinXMinYCorner | kCALayerMaxXMinYCorner;
+    }
     self.contentStack.layer.masksToBounds = YES;
     [self.view addSubview:self.contentStack];
     
@@ -381,7 +386,10 @@
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
             self.windowBar.frame = newNavigationBar;
-            self.contentStack.layer.cornerRadius = 20;
+            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+            {
+                self.contentStack.layer.cornerRadius = 20;
+            }
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
             self.resizeHandle.hidden = NO;
@@ -398,7 +406,10 @@
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
             self.windowBar.frame = newNavigationBar;
-            self.contentStack.layer.cornerRadius = 0;
+            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+            {
+                self.contentStack.layer.cornerRadius = 0;
+            }
             self.contentStack.layer.borderWidth = 0;
             self.view.layer.shadowOpacity = 0;
             self.resizeHandle.hidden = YES;
