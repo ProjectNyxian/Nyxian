@@ -49,6 +49,9 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     /* write to hostname */
     strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);
     
+    /* updating NSUserDefaults */
+    [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithCString:ksurface->host_info.hostname encoding:NSUTF8StringEncoding] forKey:@"LDEHostname"];
+    
     /* unlocking lock */
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
     return 0;
