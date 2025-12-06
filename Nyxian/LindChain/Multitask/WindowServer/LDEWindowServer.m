@@ -252,17 +252,22 @@
     }
 }
 
+// TODO: FRIDA! PLS MAKE LDEWINDOWSERVERTILEVIEW!!!! IM SO LAZY ONG
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
-    if(_activeWindowIdentifier == (wid_t)-1 && (recognizer.state == UIGestureRecognizerStateBegan || recognizer == nil))
+    if(_activeWindowIdentifier == (wid_t)-1 &&
+       (recognizer.state == UIGestureRecognizerStateBegan || recognizer == nil))
     {
         if(!self.appSwitcherView)
         {
             UIVisualEffectView *effectView;
-            if (@available(iOS 26.0, *)) {
+            if(@available(iOS 26.0, *))
+            {
                 UIGlassEffect *glassEffect = [[UIGlassEffect alloc] init];
                 effectView = [[UIVisualEffectView alloc] initWithEffect:glassEffect];
-            } else {
+            }
+            else
+            {
                 UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
                 effectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
             }
@@ -289,12 +294,14 @@
             UIScrollView *scrollView = [[UIScrollView alloc] init];
             scrollView.translatesAutoresizingMaskIntoConstraints = NO;
             scrollView.showsHorizontalScrollIndicator = NO;
+            scrollView.clipsToBounds = NO;
 
             UIStackView *stack = [[UIStackView alloc] init];
             stack.axis = UILayoutConstraintAxisHorizontal;
             stack.alignment = UIStackViewAlignmentCenter;
             stack.spacing = 20;
             stack.translatesAutoresizingMaskIntoConstraints = NO;
+            stack.clipsToBounds = NO;
             self.stackView = stack;
 
             [scrollView addSubview:stack];
@@ -315,7 +322,7 @@
                 [stack.heightAnchor constraintEqualToAnchor:scrollView.heightAnchor]
             ]];
 
-            if (!self.placeholderStack)
+            if(!self.placeholderStack)
             {
                 UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:48 weight:UIImageSymbolWeightRegular];
                 UIImage *symbol = [UIImage systemImageNamed:@"app.dashed" withConfiguration:config];
@@ -345,51 +352,153 @@
 
             if(self.windows.count > 0)
             {
-                for (NSNumber *pidKey in self.windowOrder)
+                for(NSNumber *pidKey in self.windowOrder)
                 {
                     LDEWindow *window = self.windows[pidKey];
                     
                     UIView *tileContainer = [[UIView alloc] init];
                     tileContainer.translatesAutoresizingMaskIntoConstraints = NO;
-                    
-                    UIImageView *tile = [[UIImageView alloc] init];
-                    UIImage *snapshot = [window.session snapshotWindow];
-                    if(snapshot != nil) tile.image = snapshot;
-                    tile.clipsToBounds = YES;
-                    tile.translatesAutoresizingMaskIntoConstraints = NO;
-                    tile.backgroundColor = UIColor.systemBackgroundColor;
-                    tile.layer.cornerRadius = 16;
-                    tile.layer.shadowColor = [UIColor blackColor].CGColor;
-                    tile.layer.shadowOpacity = 0.15;
-                    tile.layer.shadowRadius = 6;
-                    tile.layer.shadowOffset = CGSizeMake(0, 3);
+                    tileContainer.clipsToBounds = NO;
                     
                     UILabel *title = [[UILabel alloc] init];
                     title.translatesAutoresizingMaskIntoConstraints = NO;
                     title.text = window.windowName ?: @"App";
                     title.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
                     title.textAlignment = NSTextAlignmentCenter;
+                    title.tag = 8888;
                     
-                    [tileContainer addSubview:tile];
+                    UIView *tileWrapper = [[UIView alloc] init];
+                    tileWrapper.translatesAutoresizingMaskIntoConstraints = NO;
+                    tileWrapper.clipsToBounds = NO;
+                    tileWrapper.tag = pidKey.intValue;
+                    
+                    UIVisualEffectView *tileMaterial;
+                    if(@available(iOS 26.0, *))
+                    {
+                        UIGlassEffect *glass = [[UIGlassEffect alloc] init];
+                        tileMaterial = [[UIVisualEffectView alloc] initWithEffect:glass];
+                    }
+                    else
+                    {
+                        UIBlurEffect *blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterial];
+                        tileMaterial = [[UIVisualEffectView alloc] initWithEffect:blur];
+                    }
+                    tileMaterial.translatesAutoresizingMaskIntoConstraints = NO;
+                    tileMaterial.layer.cornerRadius = 16;
+                    tileMaterial.layer.masksToBounds = YES;
+                    
+                    UIImageView *tile = [[UIImageView alloc] init];
+                    UIImage *snapshot = [window.session snapshotWindow];
+                    if(snapshot != nil) tile.image = snapshot;
+                    tile.clipsToBounds = YES;
+                    tile.translatesAutoresizingMaskIntoConstraints = NO;
+                    tile.contentMode = UIViewContentModeScaleAspectFill;
+                    tile.layer.cornerRadius = 14;
+                    tile.alpha = 0.92;
+                    
+                    UIView *shineView = [[UIView alloc] init];
+                    shineView.translatesAutoresizingMaskIntoConstraints = NO;
+                    shineView.userInteractionEnabled = NO;
+                    shineView.layer.cornerRadius = 14;
+                    shineView.clipsToBounds = YES;
+                    
+                    CAGradientLayer *shineGradient = [CAGradientLayer layer];
+                    shineGradient.colors = @[
+                        (id)[UIColor colorWithWhite:1.0 alpha:0.0].CGColor,
+                        (id)[UIColor colorWithWhite:1.0 alpha:0.08].CGColor,
+                        (id)[UIColor colorWithWhite:1.0 alpha:0.10].CGColor,
+                        (id)[UIColor colorWithWhite:1.0 alpha:0.04].CGColor,
+                        (id)[UIColor colorWithWhite:1.0 alpha:0.0].CGColor
+                    ];
+                    shineGradient.locations = @[@0.0, @0.3, @0.45, @0.7, @1.0];
+                    shineGradient.startPoint = CGPointMake(0, 0);
+                    shineGradient.endPoint = CGPointMake(1, 1);
+                    shineView.layer.mask = nil;
+                    [shineView.layer insertSublayer:shineGradient atIndex:0];
+                    shineView.tag = 7777;
+                    
+                    tileWrapper.layer.shadowColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
+                    tileWrapper.layer.shadowOpacity = 0.15;
+                    tileWrapper.layer.shadowRadius = 8;
+                    tileWrapper.layer.shadowOffset = CGSizeZero;
+                    
+                    tileMaterial.layer.shadowColor = [UIColor blackColor].CGColor;
+                    tileMaterial.layer.shadowOpacity = 0.25;
+                    tileMaterial.layer.shadowRadius = 12;
+                    tileMaterial.layer.shadowOffset = CGSizeMake(0, 6);
+                    
+                    UIImageView *reflection = [[UIImageView alloc] init];
+                    if(snapshot != nil) reflection.image = snapshot;
+                    reflection.translatesAutoresizingMaskIntoConstraints = NO;
+                    reflection.contentMode = UIViewContentModeScaleAspectFill;
+                    reflection.clipsToBounds = YES;
+                    reflection.layer.cornerRadius = 16;
+                    reflection.transform = CGAffineTransformMakeScale(1, -1);
+                    reflection.alpha = 0.35;
+                    reflection.tag = 9999;
+                    
+                    [tileMaterial.contentView addSubview:tile];
+                    [tileMaterial.contentView addSubview:shineView];
+                    [tileWrapper addSubview:tileMaterial];
+                    [tileContainer addSubview:reflection];
+                    [tileContainer addSubview:tileWrapper];
                     [tileContainer addSubview:title];
+                    
                     [NSLayoutConstraint activateConstraints:@[
                         [tileContainer.widthAnchor constraintEqualToConstant:150],
-                        [tileContainer.heightAnchor constraintEqualToConstant:320],
-                        [tile.widthAnchor constraintEqualToConstant:150],
-                        [tile.heightAnchor constraintEqualToConstant:300],
+                        [tileContainer.heightAnchor constraintEqualToConstant:380],
+                        
+                        [title.topAnchor constraintEqualToAnchor:tileContainer.topAnchor],
                         [title.centerXAnchor constraintEqualToAnchor:tileContainer.centerXAnchor],
-                        [title.bottomAnchor constraintEqualToAnchor:tile.topAnchor constant: -5],
-                        [title.widthAnchor constraintEqualToConstant:140]
+                        [title.widthAnchor constraintEqualToConstant:140],
+                        
+                        [tileWrapper.topAnchor constraintEqualToAnchor:title.bottomAnchor constant:8],
+                        [tileWrapper.centerXAnchor constraintEqualToAnchor:tileContainer.centerXAnchor],
+                        [tileWrapper.widthAnchor constraintEqualToConstant:150],
+                        [tileWrapper.heightAnchor constraintEqualToConstant:280],
+                        
+                        [tileMaterial.topAnchor constraintEqualToAnchor:tileWrapper.topAnchor],
+                        [tileMaterial.leadingAnchor constraintEqualToAnchor:tileWrapper.leadingAnchor],
+                        [tileMaterial.trailingAnchor constraintEqualToAnchor:tileWrapper.trailingAnchor],
+                        [tileMaterial.bottomAnchor constraintEqualToAnchor:tileWrapper.bottomAnchor],
+                        
+                        [tile.topAnchor constraintEqualToAnchor:tileMaterial.contentView.topAnchor constant:2],
+                        [tile.leadingAnchor constraintEqualToAnchor:tileMaterial.contentView.leadingAnchor constant:2],
+                        [tile.trailingAnchor constraintEqualToAnchor:tileMaterial.contentView.trailingAnchor constant:-2],
+                        [tile.bottomAnchor constraintEqualToAnchor:tileMaterial.contentView.bottomAnchor constant:-2],
+                        
+                        [shineView.topAnchor constraintEqualToAnchor:tile.topAnchor],
+                        [shineView.leadingAnchor constraintEqualToAnchor:tile.leadingAnchor],
+                        [shineView.trailingAnchor constraintEqualToAnchor:tile.trailingAnchor],
+                        [shineView.bottomAnchor constraintEqualToAnchor:tile.bottomAnchor],
+                        
+                        [reflection.bottomAnchor constraintEqualToAnchor:tileContainer.bottomAnchor],
+                        [reflection.centerXAnchor constraintEqualToAnchor:tileContainer.centerXAnchor],
+                        [reflection.widthAnchor constraintEqualToConstant:150],
+                        [reflection.heightAnchor constraintEqualToConstant:60]
                     ]];
                     
-                    tileContainer.userInteractionEnabled = YES;
-                    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileTap:)];
-                    tileContainer.tag = pidKey.intValue;
-                    [tileContainer addGestureRecognizer:tap];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        shineGradient.frame = shineView.bounds;
+                        
+                        CAGradientLayer *gradientMask = [CAGradientLayer layer];
+                        gradientMask.frame = CGRectMake(0, 0, 150, 60);
+                        gradientMask.colors = @[
+                            (id)[UIColor whiteColor].CGColor,
+                            (id)[UIColor clearColor].CGColor
+                        ];
+                        gradientMask.startPoint = CGPointMake(0.5, 0);
+                        gradientMask.endPoint = CGPointMake(0.5, 1);
+                        reflection.layer.mask = gradientMask;
+                    });
                     
-                    UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self
-                                                                                                  action:@selector(handleTileVerticalSwipe:)];
-                    [tileContainer addGestureRecognizer:verticalPan];
+                    tileWrapper.userInteractionEnabled = YES;
+                    
+                    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileTap:)];
+                    [tileWrapper addGestureRecognizer:tap];
+                    
+                    UIPanGestureRecognizer *verticalPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleTileVerticalSwipe:)];
+                    [tileWrapper addGestureRecognizer:verticalPan];
                     verticalPan.delegate = self;
                     
                     [stack addArrangedSubview:tileContainer];
@@ -402,15 +511,14 @@
             [NSLayoutConstraint activateConstraints:@[
                 [self.appSwitcherView.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
                 [self.appSwitcherView.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
-                [self.appSwitcherView.heightAnchor constraintEqualToAnchor:self.heightAnchor multiplier:0.5]
+                [self.appSwitcherView.heightAnchor constraintEqualToAnchor:self.heightAnchor multiplier:0.55]
             ]];
 
             self.appSwitcherTopConstraint = [self.appSwitcherView.topAnchor constraintEqualToAnchor:self.bottomAnchor];
             self.appSwitcherTopConstraint.active = YES;
             [self layoutIfNeeded];
 
-            UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self
-                                                                                  action:@selector(handlePan:)];
+            UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
             [self.appSwitcherView addGestureRecognizer:pan];
             pan.delegate = self;
 
@@ -424,43 +532,77 @@
 
 - (void)handleTileVerticalSwipe:(UIPanGestureRecognizer *)pan
 {
-    UIView *tile = pan.view;
-    if(!tile) return;
+    UIView *tileWrapper = pan.view;
+    if(!tileWrapper)
+    {
+        return;
+    }
     
-    CGPoint translation = [pan translationInView:tile.superview];
+    UIView *tileContainer = tileWrapper.superview;
+    UIImageView *reflection = [tileContainer viewWithTag:9999];
+    UILabel *title = [tileContainer viewWithTag:8888];
+    
+    CGPoint translation = [pan translationInView:tileContainer];
     
     if(pan.state == UIGestureRecognizerStateChanged)
     {
         if(translation.y < 0)
         {
-            tile.transform = CGAffineTransformMakeTranslation(0, translation.y);
+            CGFloat lift = fabs(translation.y);
+            CGFloat maxLift = 250.0;
+            CGFloat progress = MIN(1.0, lift / maxLift);
+
+            tileWrapper.transform = CGAffineTransformMakeTranslation(0, translation.y);
+            
+            title.alpha = 1.0 - progress;
+            title.transform = CGAffineTransformMakeTranslation(0, translation.y * 0.3);
+            
+            CGFloat scaleY = 1.0 + (progress * 0.8);
+            reflection.transform = CGAffineTransformConcat(
+                CGAffineTransformMakeScale(1, -scaleY),
+                CGAffineTransformMakeTranslation(0, lift)
+            );
+            reflection.alpha = 0.35 * (1.0 - (progress * 0.5));
         }
     }
     else if(pan.state == UIGestureRecognizerStateEnded || pan.state == UIGestureRecognizerStateCancelled)
     {
-        
-        CGFloat velocityY = [pan velocityInView:tile.superview].y;
+        CGFloat velocityY = [pan velocityInView:tileContainer].y;
         CGFloat offsetY = translation.y;
         
         BOOL shouldDismiss = (offsetY < -100) || (velocityY < -500);
         
         if(shouldDismiss)
         {
-            [UIView animateWithDuration:0.3
-                                  delay:0
-                                options:UIViewAnimationOptionCurveEaseIn
-                             animations:^{
-                tile.transform = CGAffineTransformMakeTranslation(0, -tile.superview.bounds.size.height);
-                tile.alpha = 0;
-            }
-                             completion:^(BOOL finished) {
-                pid_t pid = (pid_t)tile.tag;
-                LDEWindow *window = self.windows[@(pid)];
+            CGFloat lift = fabs(offsetY);
+            CGFloat progress = MIN(1.0, lift / 250.0);
+            CGFloat currentScale = 1.0 + (progress * 0.8);
+            
+            [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+                tileWrapper.transform = CGAffineTransformMakeTranslation(0, -tileContainer.bounds.size.height);
+                tileWrapper.alpha = 0;
                 
-                if(window) [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
-                [tile removeFromSuperview];
+                title.alpha = 0;
+                title.transform = CGAffineTransformMakeTranslation(0, -50);
                 
-                if(self.windows.count == 1 && self.placeholderStack)
+                reflection.transform = CGAffineTransformConcat(
+                    CGAffineTransformMakeScale(1, -(currentScale + 0.5)),
+                    CGAffineTransformMakeTranslation(0, lift + 100)
+                );
+                reflection.alpha = 0;
+            } completion:^(BOOL finished) {
+                wid_t identifier = (wid_t)tileWrapper.tag;
+                LDEWindow *window = self.windows[@(identifier)];
+                
+                if(window)
+                {
+                    [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
+                }
+                
+                [tileContainer removeFromSuperview];
+                
+                if(self.windows.count == 1 &&
+                   self.placeholderStack)
                 {
                     self.placeholderStack.hidden = NO;
                 }
@@ -468,19 +610,25 @@
         }
         else
         {
-            [UIView animateWithDuration:0.3
-                             animations:^{
-                tile.transform = CGAffineTransformIdentity;
-            }];
+            [UIView animateWithDuration:0.4 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+                tileWrapper.transform = CGAffineTransformIdentity;
+                title.alpha = 1.0;
+                title.transform = CGAffineTransformIdentity;
+                reflection.transform = CGAffineTransformMakeScale(1, -1);
+                reflection.alpha = 0.35;
+            } completion:nil];
         }
     }
 }
 
 - (void)handleTileTap:(UITapGestureRecognizer *)recognizer
 {
-    UIView *tile = recognizer.view;
-    if (!tile) return;
-    wid_t identifier = (wid_t)tile.tag;
+    UIView *tileWrapper = recognizer.view;
+    if(tileWrapper == NULL)
+    {
+        return;
+    }
+    wid_t identifier = (wid_t)tileWrapper.tag;
     [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];
 }
 
@@ -572,12 +720,18 @@
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    if([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
-        gestureRecognizer.view.superview == self.stackView)
+    if([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]])
     {
         UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
-        CGPoint velocity = [pan velocityInView:self];
-        return fabs(velocity.y) > fabs(velocity.x);
+        UIView *view = gestureRecognizer.view;
+        
+        BOOL isTilePan = (view.superview.superview == self.stackView);
+        
+        if(isTilePan)
+        {
+            CGPoint velocity = [pan velocityInView:self];
+            return (fabs(velocity.y) > fabs(velocity.x)) && (velocity.y < 0);
+        }
     }
 
     return YES;
