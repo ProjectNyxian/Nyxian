@@ -42,12 +42,13 @@
 #define SYS_SETEGID SYS_setegid     /* sets effective group identifier of a process */
 #define SYS_SETREUID SYS_setreuid   /* sets real and effective user identifier, used for setruid() too */
 #define SYS_SETREGID SYS_setregid   /* sets real and effective group identifier, used for setrgid() too */
-#define SYS_GETPID SYS_getpid
-#define SYS_GETPPID SYS_getppid
-#define SYS_GETUID SYS_getuid
-#define SYS_GETEUID SYS_geteuid
-#define SYS_GETGID SYS_getgid
-#define SYS_GETEGID SYS_getegid
+#define SYS_GETPID SYS_getpid       /* gets the process identifier of the calling process */
+#define SYS_GETPPID SYS_getppid     /* gets the parent process identifier of the calling process */
+#define SYS_GETUID SYS_getuid       /* gets the user identifier of the calling process */
+#define SYS_GETEUID SYS_geteuid     /* gets the effective user identifier of the calling process */
+#define SYS_GETGID SYS_getgid       /* gets the group identifier of the calling process */
+#define SYS_GETEGID SYS_getegid     /* gets the effective group identifier of the calling process */
+#define SYS_PROCINFO SYS_procinfo   /* MARK: Implement this the next! */
 
 /* nyxian syscalls for now */
 #define SYS_BAMSET 200              /* setting audio background mode */

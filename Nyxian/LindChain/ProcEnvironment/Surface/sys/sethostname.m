@@ -36,16 +36,15 @@ DEFINE_SYSCALL_HANDLER(sethostname)
         return -1;
     }
     
-    /* lock the lock for writing obviously now lol ^^ */
-    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
-    
     /* null pointer check */
     if(in_payload == NULL)
     {
-        pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
         *err = EINVAL;
         return -1;
     }
+    
+    /* lock the lock for writing obviously now lol ^^ */
+    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
     
     /* write to hostname */
     strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);
