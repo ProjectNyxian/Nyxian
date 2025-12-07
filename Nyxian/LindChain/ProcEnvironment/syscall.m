@@ -23,6 +23,8 @@
 #import <errno.h>
 #import <stdarg.h>
 
+#define SYS_ENV_ENTRIES_N 5
+
 enum kESysType {
     kESysTypeInLen = 0,
     kESysTypeOutLen = 1,
@@ -30,9 +32,7 @@ enum kESysType {
     kESysTypeOut = 3,
     kESysTypeNum = 4,
     kESysTypePortIn = 5,
-    kESysTypePortInCnt = 6,
-    kESysTypePortOut = 7,
-    kESysTypePortOutCnt = 8
+    kESysTypePortOut = 6,
 };
 
 typedef struct {
@@ -40,10 +40,12 @@ typedef struct {
     enum kESysType type[6];
 } env_sys_entry_t;
 
-env_sys_entry_t sys_env_entries[3] = {
+env_sys_entry_t sys_env_entries[SYS_ENV_ENTRIES_N] = {
     { .syscall_num = SYS_PROCTB, .type = { kESysTypeOut, kESysTypeOutLen, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }},
     { .syscall_num = SYS_GETHOSTNAME, .type = { kESysTypeOut, kESysTypeOutLen, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }},
-    { .syscall_num = SYS_SETHOSTNAME, .type = { kESysTypeIn, kESysTypeInLen, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }}
+    { .syscall_num = SYS_SETHOSTNAME, .type = { kESysTypeIn, kESysTypeInLen, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }},
+    { .syscall_num = SYS_GETTASK, .type = { kESysTypeNum, kESysTypePortOut, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }},
+    { .syscall_num = SYS_SENDTASK, .type = { kESysTypePortIn, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum, kESysTypeNum }}
 };
 
 int64_t environment_syscall(uint32_t syscall_num, ...)
@@ -65,19 +67,19 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     
     /* building argument buffer */
     int64_t sys_args[6] = { a1, a2, a3, a4, a5, a6 };
+    mach_port_t in_ports[6] = { };
+    uint32_t in_ports_cnt = 0;
+    uint32_t out_ports_cnt = 0;
     
     /* variables for syscall invocation */
     void *in_payload = NULL;        /* input data */
     uint32_t in_len = 0;            /* input length */
     void *out_payload = NULL;       /* out data */
+    mach_port_t *out_port = NULL;          /* out port */
     uint32_t *out_len = NULL;       /* out length */
-    mach_port_t *in_ports = NULL;   /* array of input ports */
-    uint32_t in_ports_cnt = 0;      /* amount of ports in array */
-    mach_port_t *out_ports = NULL;  /* array of input ports */
-    uint32_t out_ports_cnt = 0;     /* amount of ports in array */
     
     /* decoding payloads if applicable */
-    for(uint8_t i = 0; i < 3; i++)
+    for(uint8_t i = 0; i < SYS_ENV_ENTRIES_N; i++)
     {
         /* no copy pointer access */
         env_sys_entry_t *entry = &(sys_env_entries[i]);
@@ -102,6 +104,14 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
                     case kESysTypeOut:
                         out_payload = (void*)sys_args[a];
                         break;
+                    case kESysTypePortIn:
+                        in_ports[in_ports_cnt++] = (mach_port_t)sys_args[a];
+                        break;
+                    case kESysTypePortOut:
+                        // TODO: Improve this shit
+                        out_ports_cnt = 1;
+                        out_port = (mach_port_t*)sys_args[a];
+                        break;
                     default:
                         break;
                 }
@@ -113,5 +123,5 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     }
     
     /* invoking syscall */
-    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_ports, out_ports_cnt);
+    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_port, out_ports_cnt);
 }

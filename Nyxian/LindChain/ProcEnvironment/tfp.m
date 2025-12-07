@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
 #import <LindChain/ProcEnvironment/tpod.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is almost ignored because its obsolete for nyxians security model */
                                        pid_t pid,
@@ -47,7 +48,19 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is 
          * if tpo is null it either means it was unusable or that it was never in our database,
          * in that case we have to ask the kernel virtualisation layer nicely
          */
-        tpo = environment_proxy_tfp_get_port_object_for_process_identifier(pid);
+        task_t task = MACH_PORT_NULL;
+        environment_syscall(SYS_GETTASK, pid, &task);
+        
+        printf("[child] port: %d\n", task);
+        
+        /* craft new TaskPortObject (soon gone structure as well as MappingPortObject) */
+        tpo = [[TaskPortObject alloc] initWithPort:task];
+        
+        /* check its validity */
+        if(![tpo isUsable])
+        {
+            return KERN_FAILURE;
+        }
         
         /* trying to add tpo to tpod */
         if(!set_tpo_for_pid(pid, tpo))
@@ -93,7 +106,7 @@ void environment_tfp_init(void)
         if(environment_is_role(EnvironmentRoleGuest))
         {
             /* sending our task port to the task port system */
-            [hostProcessProxy sendPort:[TaskPortObject taskPortSelf]];
+            environment_syscall(SYS_SENDTASK, mach_task_self());
             
             /* hooking task_for_pid(3) */
             litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);

@@ -36,12 +36,6 @@ extern syscall_client_t *syscallProxy;
 
 // MARK: Helper symbols that are intended stabilizing the proc environment api proxy wise and reduce the amount of deadlocking in the future
 
-/// Sends a task port to the host application to hand it to other requesting processes
-void environment_proxy_tfp_send_port_object(TaskPortObject *port) API_AVAILABLE(ios(26.0));
-
-/// Get a task port from the host application that a other process has handed in using `environment_proxy_tfp_send_port_object(TaskPortObject *port)`
-TaskPortObject *environment_proxy_tfp_get_port_object_for_process_identifier(pid_t process_identifier) API_AVAILABLE(ios(26.0));
-
 /// Sends the `signal` to the process identified by its `process_identifier`
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int signal);
 

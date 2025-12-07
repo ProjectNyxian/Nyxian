@@ -32,12 +32,6 @@
 @protocol ServerProtocol
 
 /*
- tfp_userspace
- */
-- (void)sendPort:(TaskPortObject*)machPort;
-- (void)getPort:(pid_t)pid withReply:(void (^)(TaskPortObject*))reply;
-
-/*
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(unsigned int))reply;

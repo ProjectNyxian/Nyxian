@@ -140,7 +140,8 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* checking for payload, if present creating ool descriptor */
-    if(in_payload && in_len > 0)
+    if(in_payload &&
+       in_len > 0)
     {
         /* creating ool descriptor */
         buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
@@ -160,12 +161,13 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* checking for mach ports, if present creating ool descriptor for mach ports */
-    if(in_ports && in_ports_cnt > 0)
+    if(in_ports &&
+       in_ports_cnt > 0)
     {
         buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
         buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
         buffer.req.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
-        buffer.req.oolp.address = &in_ports;
+        buffer.req.oolp.address = in_ports;
         buffer.req.oolp.count = in_ports_cnt;
         buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
         buffer.req.oolp.deallocate = FALSE;
@@ -194,7 +196,8 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* payload validation & copying it to user allocated memory */
-    if(buffer.reply.body.msgh_descriptor_count > 0)
+    if(buffer.reply.ool.address != VM_MIN_ADDRESS ||
+       buffer.reply.ool.address != NULL)
     {
         /* copying reply */
         uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
@@ -203,12 +206,16 @@ int64_t syscall_invoke(syscall_client_t *client,
         {
             *out_len = buffer.reply.ool.size;
         }
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
     }
     
-    /* deallocate mapping */
-    if(buffer.reply.ool.address != VM_MIN_ADDRESS)
+    /* checking for output ports */
+    if(buffer.reply.oolp.address != VM_MIN_ADDRESS ||
+       buffer.reply.oolp.address != NULL)
     {
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
+        /* copying reply */
+        *out_ports = *((mach_port_t*)(buffer.reply.oolp.address));
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.oolp.address, buffer.reply.ool.size);
     }
     
     /* if the result is not 0 we set errno >~< */

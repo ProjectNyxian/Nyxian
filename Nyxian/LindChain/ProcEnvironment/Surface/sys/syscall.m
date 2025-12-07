@@ -40,5 +40,7 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_GETEGID", .sysnum = SYS_GETEGID, .hndl = GET_SYSCALL_HANDLER(getegid) },
     { .name = "SYS_GETHOSTNAME", .sysnum = SYS_GETHOSTNAME, .hndl = GET_SYSCALL_HANDLER(gethostname) },
     { .name = "SYS_SETHOSTNAME", .sysnum = SYS_SETHOSTNAME, .hndl = GET_SYSCALL_HANDLER(sethostname) },
-    { .name = "SYS_PROC_INFO", .sysnum = SYS_PROC_INFO, .hndl = GET_SYSCALL_HANDLER(kill) }
+    { .name = "SYS_PROC_INFO", .sysnum = SYS_PROC_INFO, .hndl = GET_SYSCALL_HANDLER(kill) },
+    { .name = "SYS_SENDTASK", .sysnum = SYS_SENDTASK, .hndl = GET_SYSCALL_HANDLER(sendtask) },
+    { .name = "SYS_GETTASK", .sysnum = SYS_GETTASK, .hndl = GET_SYSCALL_HANDLER(gettask) }
 };

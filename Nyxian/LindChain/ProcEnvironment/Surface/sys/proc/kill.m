@@ -44,7 +44,7 @@ DEFINE_SYSCALL_HANDLER(kill)
      * and checks if the process has permitive over the other process.
      */
     if(pid != caller->pid &&
-       (!entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementProcessKill) ||
+       (!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessKill) ||
         !permitive_over_process_allowed(sys_proc_, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", caller->pid, pid);

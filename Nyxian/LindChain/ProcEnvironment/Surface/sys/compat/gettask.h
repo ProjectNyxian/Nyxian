@@ -17,11 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_SENDTASK_H
-#define SURFACE_SYS_SENDTASK_H
+#ifndef SURFACE_SYS_GETTASK_H
+#define SURFACE_SYS_GETTASK_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_SYSCALL_HANDLER(sendtask);
+DEFINE_SYSCALL_HANDLER(gettask);
 
-#endif /* SURFACE_SYS_SENDTASK_H */
+#endif /* SURFACE_SYS_GETTASK_H */

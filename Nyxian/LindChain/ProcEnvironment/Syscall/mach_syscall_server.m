@@ -115,6 +115,7 @@ static void send_reply(mach_msg_header_t *request,
     reply.header.msgh_local_port = MACH_PORT_NULL;
     reply.header.msgh_size = sizeof(reply);
     reply.header.msgh_id = request->msgh_id + 100;
+    reply.body.msgh_descriptor_count = 2;
     
     /* storing syscall result */
     reply.result = result;
@@ -126,12 +127,41 @@ static void send_reply(mach_msg_header_t *request,
     {
         /* creating ool descriptor */
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.body.msgh_descriptor_count = 1;
         reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
         reply.ool.address = payload;
         reply.ool.copy = MACH_MSG_VIRTUAL_COPY;
         reply.ool.size = payload_len;
         reply.ool.deallocate = TRUE;
+    }
+    else
+    {
+        /* creating invalid ool */
+        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
+        reply.ool.address = NULL;
+        reply.ool.size = 0;
+        reply.ool.deallocate = FALSE;
+    }
+    
+    /* validating ports */
+    if(out_ports &&
+       out_ports_cnt > 0)
+    {
+        printf("[server] sending ports payload\n");
+        reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
+        reply.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
+        reply.oolp.address = out_ports;
+        reply.oolp.count = out_ports_cnt;
+        reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
+        reply.oolp.deallocate = FALSE;
+    }
+    else
+    {
+        /* create invalid oolp*/
+        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
+        reply.oolp.address = NULL;
+        reply.oolp.count = 0;
+        reply.oolp.deallocate = FALSE;
     }
     
     /* sending reply to child */
@@ -223,16 +253,25 @@ static void* worker_thread(void *ctx)
         uint32_t out_len = 0;
         errno_t err;
         mach_port_t *out_ports = NULL;
-        uint32_t out_ports_cnt;
+        uint32_t out_ports_cnt = 0;
         
         /* calling syscall handler */
         int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
         
         /* deallocate input payload because otherwise it will eat our ram sticks :c */
-        if(req->ool.address != VM_MIN_ADDRESS)
+        if(req->ool.address != VM_MIN_ADDRESS ||
+           req->ool.address != NULL)
         {
             /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
             vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
+        }
+        
+        /* deallocate input ports because otherwise bad things :c */
+        if(req->oolp.address != VM_MIN_ADDRESS ||
+           req->oolp.address != NULL)
+        {
+            /* deallocate */
+            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
         }
         
         /* destroying copy of process */

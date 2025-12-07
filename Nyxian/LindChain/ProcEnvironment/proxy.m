@@ -117,20 +117,6 @@ static unsigned long sync_call_with_timeout_ul(void (^invoke)(void (^reply)(unsi
     return (waited == 0) ? result : -1;
 }
 
-void environment_proxy_tfp_send_port_object(TaskPortObject *port)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    [hostProcessProxy sendPort:port];
-}
-
-TaskPortObject *environment_proxy_tfp_get_port_object_for_process_identifier(pid_t process_identifier)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout(PROXY_TYPE_REPLY(TaskPortObject*){
-        [hostProcessProxy getPort:process_identifier withReply:reply];
-    });
-}
-
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
                                                    int signal)
 {

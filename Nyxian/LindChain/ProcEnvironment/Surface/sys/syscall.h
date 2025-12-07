@@ -32,6 +32,8 @@
 #import <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/gethostname.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/sendtask.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -59,7 +61,7 @@
 #define SYS_SENDTASK    755         /* sends task port */
 #define SYS_GETTASK     756         /* gets task port */
 
-#define SYS_N 19
+#define SYS_N 21
 
 typedef struct {
     const char *name;
