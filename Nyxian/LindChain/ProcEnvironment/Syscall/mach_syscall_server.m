@@ -222,7 +222,7 @@ static void* worker_thread(void *ctx)
         errno_t err;
         
         /* calling syscall handler */
-        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, &err);
+        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, NULL, 0, NULL, 0, &err);
         
         /* deallocate input payload because otherwise it will eat our ram sticks :c */
         if(req->ool.address != VM_MIN_ADDRESS)

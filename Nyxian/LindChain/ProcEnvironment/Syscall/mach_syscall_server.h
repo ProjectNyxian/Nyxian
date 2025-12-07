@@ -75,12 +75,12 @@ typedef int64_t (*syscall_handler_t)(
      * ensurace
      */
     syscall_caller_t    *caller,
-                                     
+
     /*
      * normal syscall arguments
      */
     int64_t             *args,
-                                     
+
     /*
      * a special multipurpose argument, a payload
      * the payload is provided by the guest process
@@ -88,13 +88,26 @@ typedef int64_t (*syscall_handler_t)(
      */
     uint8_t             *in_payload,
     uint32_t            in_len,
-    
+
     /*
      * outgoing payload back to the guest process
      */
     uint8_t             **out_payload,
     uint32_t            *out_len,
-                                     
+
+    /*
+     * a special multipurpose argument, a ports payload
+     * that is guest provided.
+     */
+    mach_port_t         *in_ports,
+    uint32_t            in_ports_cnt,
+
+    /*
+     * outgoing ports back to the guest process
+     */
+    mach_port_t         *out_ports,
+    uint32_t            out_ports_cnt,
+
     /*
      * sets errno in the guest process by the client receiving it
      * and setting errno from the reply
@@ -102,7 +115,20 @@ typedef int64_t (*syscall_handler_t)(
     errno_t             *err
 );
 
-#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname(syscall_caller_t *caller, int64_t *args, uint8_t *in_payload, uint32_t in_len, uint8_t **out_payload, uint32_t *out_len, errno_t *err)
+#define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
+    syscall_caller_t    *caller, \
+    int64_t             *args, \
+    uint8_t             *in_payload, \
+    uint32_t            in_len, \
+    uint8_t             **out_payload, \
+    uint32_t            *out_len, \
+    mach_port_t         *in_ports, \
+    uint32_t            in_ports_cnt, \
+    mach_port_t         *out_ports, \
+    uint32_t            out_ports_cnt, \
+    errno_t             *err \
+)
+
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
 
 typedef struct syscall_server syscall_server_t;
