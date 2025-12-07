@@ -51,7 +51,8 @@ typedef struct {
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
     mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
-    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the guest process */
+    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the guest process MARK: Do not trust guest provided payloads blindly */
+    mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
 } syscall_request_t;
@@ -61,6 +62,7 @@ typedef struct {
     mach_msg_header_t           header;         /* mach message header */
     mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
     mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the kernel virtualization layer */
+    mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of macg ports provided by the kernel virtualization layer */
     int64_t                     result;         /* syscall return value for the guest */
     errno_t                     err;            /* errno result value from the syscall */
 } syscall_reply_t;
