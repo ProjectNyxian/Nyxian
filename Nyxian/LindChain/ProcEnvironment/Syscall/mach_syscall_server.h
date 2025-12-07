@@ -37,38 +37,66 @@
 /* accessing safe snapshot */
 #define sys_proc_copy_ ((ksurface_proc_copy_t*)caller->proc_cpy)
 
+/* process identity provided by XNU and corrected by the kernel virtualization layer */
 typedef struct {
-    pid_t   pid;
-    uid_t   euid;
-    gid_t   egid;
-    uid_t   ruid;
-    gid_t   rgid;
-    void    *proc_cpy;
+    pid_t   pid;                                /* process identifier (in XNU and ksurface the same) */
+    uid_t   euid;                               /* effective user identifier (in ksurface) */
+    gid_t   egid;                               /* effective group identifier (in ksurface) */
+    uid_t   ruid;                               /* real user identifier (in ksurface) */
+    gid_t   rgid;                               /* real group identifier (in ksurface) */
+    void    *proc_cpy;                          /* a ksurface_proc_copy_t from the proc api for safe access MARK: automatically deallocated when syscall is done, do never under any condition destroy the process copy inside of the syscall handler.. otherwise you create undefined behaviour or a memory corruption vulnerability that will lead to a panic when the process exits */
 } syscall_caller_t;
 
+/* request message coming from the client */
 typedef struct {
-    mach_msg_header_t           header;
-    mach_msg_body_t             body;
-    mach_msg_ool_descriptor_t   ool;
-    uint32_t                    syscall_num;
-    int64_t                     args[6];
+    mach_msg_header_t           header;         /* mach message header */
+    mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
+    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the guest process */
+    uint32_t                    syscall_num;    /* syscall the guest process wants to call */
+    int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
 } syscall_request_t;
 
+/* reply message coming from the kernel virtualization layer */
 typedef struct {
-    mach_msg_header_t           header;
-    mach_msg_body_t             body;
-    mach_msg_ool_descriptor_t   ool;
-    int64_t                     result;
-    errno_t                     err;
+    mach_msg_header_t           header;         /* mach message header */
+    mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
+    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the kernel virtualization layer */
+    int64_t                     result;         /* syscall return value for the guest */
+    errno_t                     err;            /* errno result value from the syscall */
 } syscall_reply_t;
 
 typedef int64_t (*syscall_handler_t)(
+    /*
+     * holds information about the process identity
+     * that made the syscall
+     * which is very important, because this is our security
+     * ensurace
+     */
     syscall_caller_t    *caller,
+                                     
+    /*
+     * normal syscall arguments
+     */
     int64_t             *args,
+                                     
+    /*
+     * a special multipurpose argument, a payload
+     * the payload is provided by the guest process
+     * so please do security checks on it!!!
+     */
     uint8_t             *in_payload,
     uint32_t            in_len,
+    
+    /*
+     * outgoing payload back to the guest process
+     */
     uint8_t             **out_payload,
     uint32_t            *out_len,
+                                     
+    /*
+     * sets errno in the guest process by the client receiving it
+     * and setting errno from the reply
+     */
     errno_t             *err
 );
 
