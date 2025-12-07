@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/getuid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 DEFINE_SYSCALL_HANDLER(getuid)

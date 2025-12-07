@@ -21,17 +21,17 @@
 #define SURFACE_SYS_SYSCALL_H
 
 /* headers to syscall handlers*/
-#import <LindChain/ProcEnvironment/Surface/sys/kill.h>
-#import <LindChain/ProcEnvironment/Surface/sys/bamset.h>
-#import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
-#import <LindChain/ProcEnvironment/Surface/sys/setuid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/setgid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/getent.h>
-#import <LindChain/ProcEnvironment/Surface/sys/getpid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/getuid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/getgid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/gethostname.h>
-#import <LindChain/ProcEnvironment/Surface/sys/sethostname.h>
+#import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/bamset.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/proctb.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/setuid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/host/gethostname.h>
+#import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -51,11 +51,11 @@
 #define SYS_PROC_INFO SYS_proc_info   /* MARK: Implement this the next! */
 
 /* nyxian syscalls for now */
-#define SYS_BAMSET 200              /* setting audio background mode */
-#define SYS_PROCTB 201              /* getting process table MARK: will be SYS_SYSCTL later */
-#define SYS_GETENT 202              /* getting processes entitlements */
-#define SYS_GETHOSTNAME 203         /* later replaced with XNU SYSCTL semantics */
-#define SYS_SETHOSTNAME 204         /* later replaced with XNU SYSCTL semantics */
+#define SYS_BAMSET 750              /* setting audio background mode */
+#define SYS_PROCTB 751              /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_GETENT 752              /* getting processes entitlements */
+#define SYS_GETHOSTNAME 753         /* later replaced with XNU SYSCTL semantics */
+#define SYS_SETHOSTNAME 754         /* later replaced with XNU SYSCTL semantics */
 
 #define SYS_N 19
 

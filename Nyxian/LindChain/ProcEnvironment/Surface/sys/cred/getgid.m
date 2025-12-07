@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/getgid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 DEFINE_SYSCALL_HANDLER(getgid)

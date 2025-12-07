@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proctb.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/proctb.h>
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 #include <sys/syscall.h>
 

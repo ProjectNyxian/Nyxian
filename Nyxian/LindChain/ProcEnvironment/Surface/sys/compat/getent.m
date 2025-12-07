@@ -17,15 +17,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/getpid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-DEFINE_SYSCALL_HANDLER(getpid)
+DEFINE_SYSCALL_HANDLER(getent)
 {
-    return proc_getpid(sys_proc_copy_);
-}
-
-DEFINE_SYSCALL_HANDLER(getppid)
-{
-    return proc_getppid(sys_proc_copy_);
+    return proc_getentitlements(sys_proc_copy_);
 }

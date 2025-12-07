@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/bamset.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/bamset.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 

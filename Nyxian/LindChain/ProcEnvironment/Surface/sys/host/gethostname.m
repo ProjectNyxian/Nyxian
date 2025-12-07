@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/gethostname.h>
+#import <LindChain/ProcEnvironment/Surface/sys/host/gethostname.h>
 
 DEFINE_SYSCALL_HANDLER(gethostname)
 {
