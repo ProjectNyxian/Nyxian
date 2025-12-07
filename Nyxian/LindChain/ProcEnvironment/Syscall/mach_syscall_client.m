@@ -106,7 +106,7 @@ int64_t syscall_invoke(syscall_client_t *client,
                        uint32_t *out_len,
                        mach_port_t *in_ports,
                        uint32_t in_ports_cnt,
-                       mach_port_t *out_ports,
+                       mach_port_t **out_ports,
                        uint32_t out_ports_cnt)
 {
     /* null pointer check */
@@ -196,25 +196,30 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* payload validation & copying it to user allocated memory */
-    if(buffer.reply.ool.address != VM_MIN_ADDRESS ||
-       buffer.reply.ool.address != NULL)
+    if(buffer.reply.ool.address != VM_MIN_ADDRESS)
     {
-        /* copying reply */
-        uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
-        memcpy(out_payload, (void*)(buffer.reply.ool.address), copy_len);
+        /* copying reply, but without out_len no copy! */
         if(out_len != NULL)
         {
+            uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
+            memcpy(out_payload, (void*)(buffer.reply.ool.address), copy_len);
             *out_len = buffer.reply.ool.size;
         }
+        
+        /* deallocating that nasty mess */
         vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
     }
     
     /* checking for output ports */
-    if(buffer.reply.oolp.address != VM_MIN_ADDRESS ||
-       buffer.reply.oolp.address != NULL)
+    if(buffer.reply.oolp.address != VM_MIN_ADDRESS)
     {
-        /* copying reply */
-        *out_ports = *((mach_port_t*)(buffer.reply.oolp.address));
+        /* copying ports */
+        for(uint32_t c = 0; c < buffer.reply.oolp.count; c++)
+        {
+            (*out_ports)[c] = ((mach_port_t*)(buffer.reply.oolp.address))[c];
+        }
+        
+        /* deallocating that nasty mess */
         vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.oolp.address, buffer.reply.ool.size);
     }
     
