@@ -63,6 +63,7 @@ typedef struct {
     bool force_task_role_override;
     task_role_t task_role_override;
     PEEntitlement entitlements;
+    semaphore_t child_death_sema;
 } knyx_proc_t;
 
 /// Structure to honor Duy Trans contributions
