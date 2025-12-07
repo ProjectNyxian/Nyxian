@@ -51,8 +51,6 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is 
         task_t task = MACH_PORT_NULL;
         environment_syscall(SYS_GETTASK, pid, &task);
         
-        printf("[child] port: %d\n", task);
-        
         /* craft new TaskPortObject (soon gone structure as well as MappingPortObject) */
         tpo = [[TaskPortObject alloc] initWithPort:task];
         

@@ -27,7 +27,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     if(in_ports == NULL ||
        in_ports_cnt != 1)
     {
-        printf("in port arr empty\n");
         *err = EINVAL;
         return -1;
     }
@@ -38,8 +37,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
         *err = EPERM;
         return -1;
     }
-    
-    printf("port: %d\n", in_ports[0]);
     
     /* adding to tpo if it not already exist */
     add_tpo([[TaskPortObject alloc] initWithPort:in_ports[0]]);

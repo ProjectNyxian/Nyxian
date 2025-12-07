@@ -39,39 +39,49 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* check if the pid passed is the kernel process */
     bool isHost = pid == proc_getpid(kernel_proc_);
     
-    /* getting the target process */
-    ksurface_proc_t *targetProc = proc_for_pid(pid);
-    
-    /* null pointer check */
-    if(targetProc == NULL)
+    /*
+     * if host we can skip this crap :3
+     *
+     * and we shall skip it in that case,
+     * because I dont wanna take another reference
+     * of kernel_proc_, way too much CPU time for
+     * a fact we already know lol.
+     */
+    if(!isHost)
     {
-        *err = EFAULT;
-        return -1;
-    }
-    
-    /* locking target process */
-    proc_read_lock(targetProc);
-    
-    /* getting entitlements of the target process */
-    PEEntitlement targetEntitlements = proc_getentitlements(targetProc);
-    
-    /* unlocking target process */
-    proc_unlock(targetProc);
-    
-    /* releasing target process, cuz were done now with it */
-    proc_release(targetProc);
-    
-    /* checking if the caller process got the entitlement to use tfp */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
-    {
-        *err = EPERM;
-        return -1;
-    }
-    
-    /* main permission check */
-    if(isHost)
-    {
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
+        
+        /* getting the target process */
+        ksurface_proc_t *targetProc = proc_for_pid(pid);
+        
+        /* null pointer check */
+        if(targetProc == NULL)
+        {
+            *err = EFAULT;
+            return -1;
+        }
+        
+        /* locking target process */
+        proc_read_lock(targetProc);
+        
+        /* getting entitlements of the target process */
+        PEEntitlement targetEntitlements = proc_getentitlements(targetProc);
+        
+        /* unlocking target process */
+        proc_unlock(targetProc);
+        
+        /* releasing target process, cuz were done now with it */
+        proc_release(targetProc);
+        
+        /* checking if the caller process got the entitlement to use tfp */
+        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
+        {
+            *err = EPERM;
+            return -1;
+        }
+        
+        /* main permission check */
+        if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
+           !permitive_over_process_allowed(sys_proc_, pid))
         {
             *err = EPERM;
             return -1;
@@ -79,8 +89,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     }
     else
     {
-        if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
-           !permitive_over_process_allowed(sys_proc_, pid))
+        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
         {
             *err = EPERM;
             return -1;
@@ -113,8 +122,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* set port */
     (*out_ports)[0] = [tpo port];
     *out_ports_cnt = 1;
-    
-    printf("sending ports: %d\n", (*out_ports)[0]);
     
     return 0;
 }
