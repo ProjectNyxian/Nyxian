@@ -28,7 +28,11 @@ enum kESysType {
     kESysTypeOutLen = 1,
     kESysTypeIn = 2,
     kESysTypeOut = 3,
-    kESysTypeNum = 4
+    kESysTypeNum = 4,
+    kESysTypePortIn = 5,
+    kESysTypePortInCnt = 6,
+    kESysTypePortOut = 7,
+    kESysTypePortOutCnt = 8
 };
 
 typedef struct {
@@ -63,10 +67,14 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     int64_t sys_args[6] = { a1, a2, a3, a4, a5, a6 };
     
     /* variables for syscall invocation */
-    void *in_payload = NULL;    /* input data */
-    uint32_t in_len = 0;        /* input length */
-    void *out_payload = NULL;   /* out data */
-    uint32_t *out_len = NULL;   /* out length */
+    void *in_payload = NULL;        /* input data */
+    uint32_t in_len = 0;            /* input length */
+    void *out_payload = NULL;       /* out data */
+    uint32_t *out_len = NULL;       /* out length */
+    mach_port_t *in_ports = NULL;   /* array of input ports */
+    uint32_t in_ports_cnt = 0;      /* amount of ports in array */
+    mach_port_t *out_ports = NULL;  /* array of input ports */
+    uint32_t out_ports_cnt = 0;     /* amount of ports in array */
     
     /* decoding payloads if applicable */
     for(uint8_t i = 0; i < 3; i++)
@@ -105,5 +113,5 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     }
     
     /* invoking syscall */
-    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len);
+    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_ports, out_ports_cnt);
 }

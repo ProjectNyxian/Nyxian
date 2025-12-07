@@ -103,7 +103,11 @@ int64_t syscall_invoke(syscall_client_t *client,
                        void *in_payload,
                        uint32_t in_len,
                        void *out_payload,
-                       uint32_t *out_len)
+                       uint32_t *out_len,
+                       mach_port_t *in_ports,
+                       uint32_t in_ports_cnt,
+                       mach_port_t *out_ports,
+                       uint32_t out_ports_cnt)
 {
     /* null pointer check */
     if(client == NULL)
@@ -123,6 +127,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     buffer.req.header.msgh_local_port = client->reply_port;
     buffer.req.header.msgh_size = sizeof(syscall_request_t);
     buffer.req.header.msgh_id = syscall_num;
+    buffer.req.body.msgh_descriptor_count = 2;
     
     /* telling cutie patootie ksurface what syscall we wanna call ^^ */
     buffer.req.syscall_num = syscall_num;
@@ -139,12 +144,38 @@ int64_t syscall_invoke(syscall_client_t *client,
     {
         /* creating ool descriptor */
         buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.body.msgh_descriptor_count = 1;
         buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
         buffer.req.ool.address = in_payload;
         buffer.req.ool.copy = MACH_MSG_VIRTUAL_COPY;
         buffer.req.ool.size = in_len;
         buffer.req.ool.deallocate = FALSE;
+    }
+    else
+    {
+        /* creating ool descriptor payload that is invalid */
+        buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
+        buffer.req.ool.address = NULL;
+        buffer.req.ool.size = 0;
+        buffer.req.ool.deallocate = FALSE;
+    }
+    
+    /* checking for mach ports, if present creating ool descriptor for mach ports */
+    if(in_ports && in_ports_cnt > 0)
+    {
+        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
+        buffer.req.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
+        buffer.req.oolp.address = &in_ports;
+        buffer.req.oolp.count = in_ports_cnt;
+        buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
+        buffer.req.oolp.deallocate = FALSE;
+    }
+    else
+    {
+        buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
+        buffer.req.oolp.address = NULL;
+        buffer.req.oolp.count = 0;
+        buffer.req.oolp.deallocate = FALSE;
     }
     
     /*

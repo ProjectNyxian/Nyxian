@@ -25,6 +25,7 @@
 #import <LindChain/Utils/Swizzle.h>
 #import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 #pragma mark - Audio background mode fix (Fixes playing music in spotify while spotify is not in nyxians foreground)
 
@@ -32,15 +33,13 @@
 
 - (BOOL)hook_setActive:(BOOL)active error:(NSError*)outError
 {
-    int64_t args[6] = { active, 0, 0, 0, 0, 0};
-    syscall_invoke(syscallProxy, SYS_BAMSET, args, NULL, 0, NULL, NULL);
+    environment_syscall(SYS_BAMSET, active);
     return [self hook_setActive:active error:outError];
 }
 
 - (BOOL)hook_setActive:(BOOL)active withOptions:(AVAudioSessionSetActiveOptions)options error:(NSError **)outError
 {
-    int64_t args[6] = { active, 0, 0, 0, 0, 0};
-    syscall_invoke(syscallProxy, SYS_BAMSET, args, NULL, 0, NULL, NULL);
+    environment_syscall(SYS_BAMSET, active);
     return [self hook_setActive:active withOptions:options error:outError];
 }
 

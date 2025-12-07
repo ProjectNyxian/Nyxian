@@ -26,6 +26,6 @@ typedef struct syscall_client syscall_client_t;
 
 syscall_client_t *syscall_client_create(mach_port_t port);
 void syscall_client_destroy(syscall_client_t *client);
-int64_t syscall_invoke(syscall_client_t *client, uint32_t syscall_num, int64_t args[6], void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len);
+int64_t syscall_invoke(syscall_client_t *client, uint32_t syscall_num, int64_t args[6], void *in_payload, uint32_t in_len, void *out_payload, uint32_t *out_len, mach_port_t *in_ports, uint32_t in_ports_cnt, mach_port_t *out_ports, uint32_t out_ports_cnt);
 
 #endif /* MACH_SYSCALL_CLIENT_H */

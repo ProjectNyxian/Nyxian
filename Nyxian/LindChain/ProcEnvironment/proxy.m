@@ -22,6 +22,7 @@
 #include <signal.h>
 #include <errno.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 
 #define PROXY_MAX_DISPATCH_TIME 1.0
 #define PROXY_TYPE_REPLY(type) ^(void (^reply)(type))
@@ -134,19 +135,7 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
                                                    int signal)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    
-    /* perform syscall */
-    /* allocate args */
-    int64_t args[6] = { process_identifier, signal, 0, 0, 0, 0 };
-    int64_t retval = syscall_invoke(syscallProxy, SYS_KILL, args, NULL, 0, NULL, NULL);
-    
-    /* failure check */
-    if(retval == -1)
-    {
-        errno = EPERM;
-    }
-    
-    return (int)retval;
+    return (int)environment_syscall(SYS_KILL, process_identifier, signal);
 }
 
 pid_t environment_proxy_spawn_process_at_path(NSString *path,
@@ -162,20 +151,12 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path,
 
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
 {
-    /*environment_must_be_role(EnvironmentRoleGuest);
-    NSData *ret = sync_call_with_timeout(PROXY_TYPE_REPLY(NSData*){
-        [hostProcessProxy getProcessTableWithReply:reply];
-    });
-    *pt = malloc(ret.length);
-    memcpy(*pt, ret.bytes, ret.length);
-    *pt_cnt = (uint32_t)(ret.length / sizeof(kinfo_proc_t));*/
-    
     environment_must_be_role(EnvironmentRoleGuest);
     
     kinfo_proc_t kp[PROC_MAX];
     uint32_t len;
     
-    int64_t retval = syscall_invoke(syscallProxy, SYS_PROCTB, NULL, NULL, 0, &kp, &len);
+    environment_syscall(SYS_PROCTB, &kp, &len);
     
     *pt = malloc(len);
     memcpy(*pt, kp, len);

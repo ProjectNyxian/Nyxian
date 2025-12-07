@@ -197,6 +197,11 @@ static void* worker_thread(void *ctx)
         /* parsing request */
         syscall_request_t *req = (syscall_request_t *)&buffer.header;
         
+        if(req->oolp.address != NULL)
+        {
+            printf("[*] received port: %d\n", *((mach_port_t*)(req->oolp.address)));
+        }
+        
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
