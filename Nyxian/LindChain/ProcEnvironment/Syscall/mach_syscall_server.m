@@ -101,6 +101,8 @@ static void send_reply(mach_msg_header_t *request,
                        int64_t result,
                        uint8_t *payload,
                        uint32_t payload_len,
+                       mach_port_t *out_ports,
+                       uint32_t out_ports_cnt,
                        errno_t err)
 {
     /* allocating a reply */
@@ -185,11 +187,11 @@ static void* worker_thread(void *ctx)
             if(caller.proc_cpy != NULL)
             {
                 proc_copy_destroy(caller.proc_cpy);
-                send_reply(&buffer.header, -1, NULL, 0, EINVAL);
+                send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
             }
             else
             {
-                send_reply(&buffer.header, -1, NULL, 0, EAGAIN);
+                send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EAGAIN);
             }
             continue;
         }
@@ -197,16 +199,11 @@ static void* worker_thread(void *ctx)
         /* parsing request */
         syscall_request_t *req = (syscall_request_t *)&buffer.header;
         
-        if(req->oolp.address != NULL)
-        {
-            printf("[*] received port: %d\n", *((mach_port_t*)(req->oolp.address)));
-        }
-        
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
             proc_copy_destroy(caller.proc_cpy);
-            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
             continue;
         }
         
@@ -217,7 +214,7 @@ static void* worker_thread(void *ctx)
         if(!handler)
         {
             proc_copy_destroy(caller.proc_cpy);
-            send_reply(&buffer.header, -1, NULL, 0, EINVAL);
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
             continue;
         }
         
@@ -225,9 +222,11 @@ static void* worker_thread(void *ctx)
         uint8_t *out_payload = NULL;
         uint32_t out_len = 0;
         errno_t err;
+        mach_port_t *out_ports = NULL;
+        uint32_t out_ports_cnt;
         
         /* calling syscall handler */
-        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, NULL, 0, NULL, 0, &err);
+        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
         
         /* deallocate input payload because otherwise it will eat our ram sticks :c */
         if(req->ool.address != VM_MIN_ADDRESS)
@@ -240,7 +239,7 @@ static void* worker_thread(void *ctx)
         proc_copy_destroy(caller.proc_cpy);
         
         /* replying to the guest */
-        send_reply(&buffer.header, result, out_payload, out_len, err);
+        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
     }
     
     return NULL;

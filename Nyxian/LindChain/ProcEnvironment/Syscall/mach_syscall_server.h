@@ -105,8 +105,8 @@ typedef int64_t (*syscall_handler_t)(
     /*
      * outgoing ports back to the guest process
      */
-    mach_port_t         *out_ports,
-    uint32_t            out_ports_cnt,
+    mach_port_t         **out_ports,
+    uint32_t            *out_ports_cnt,
 
     /*
      * sets errno in the guest process by the client receiving it
@@ -124,8 +124,8 @@ typedef int64_t (*syscall_handler_t)(
     uint32_t            *out_len, \
     mach_port_t         *in_ports, \
     uint32_t            in_ports_cnt, \
-    mach_port_t         *out_ports, \
-    uint32_t            out_ports_cnt, \
+    mach_port_t         **out_ports, \
+    uint32_t            *out_ports_cnt, \
     errno_t             *err \
 )
 

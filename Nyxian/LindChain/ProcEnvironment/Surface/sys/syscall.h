@@ -48,7 +48,7 @@
 #define SYS_GETEUID SYS_geteuid     /* gets the effective user identifier of the calling process */
 #define SYS_GETGID SYS_getgid       /* gets the group identifier of the calling process */
 #define SYS_GETEGID SYS_getegid     /* gets the effective group identifier of the calling process */
-#define SYS_PROC_INFO SYS_proc_info   /* MARK: Implement this the next! */
+#define SYS_PROC_INFO SYS_proc_info /* MARK: Implement this the next! */
 
 /* nyxian syscalls for now */
 #define SYS_BAMSET 750              /* setting audio background mode */
@@ -56,6 +56,8 @@
 #define SYS_GETENT 752              /* getting processes entitlements */
 #define SYS_GETHOSTNAME 753         /* later replaced with XNU SYSCTL semantics */
 #define SYS_SETHOSTNAME 754         /* later replaced with XNU SYSCTL semantics */
+#define SYS_SENDTASK    755         /* sends task port */
+#define SYS_GETTASK     756         /* gets task port */
 
 #define SYS_N 19
 
