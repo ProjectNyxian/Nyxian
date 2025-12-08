@@ -52,17 +52,19 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
         goto out_unlock;
     }
     
-    /* insert into tree*/
-    if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
-    {
-        err = kSurfaceErrorNoMemory;
-        goto out_unlock;
-    }
-    
     /* retaining process */
     if(!proc_retain(proc))
     {
         err = kSurfaceErrorFailed;
+        goto out_unlock;
+    }
+    
+    /* insert into tree*/
+    if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
+    {
+        proc_release(proc);
+        err = kSurfaceErrorNoMemory;
+        goto out_unlock;
     }
     
     /* counting up */
