@@ -28,8 +28,8 @@ DEFINE_SYSCALL_HANDLER(proctb)
     proc_list_err_t error = proc_snapshot_create(sys_proc_, &snap);
     if(error != PROC_LIST_OK)
     {
-        return -1;
         *err = EPERM;
+        return -1;
     }
     
     /* copy the buffer */
