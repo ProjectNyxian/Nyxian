@@ -146,7 +146,6 @@ static void send_reply(mach_msg_header_t *request,
     if(out_ports &&
        out_ports_cnt > 0)
     {
-        printf("[server] sending ports payload\n");
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
         reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
         reply.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
@@ -209,32 +208,24 @@ static void* worker_thread(void *ctx)
             continue;
         }
         
+        /* parsing request */
+        syscall_request_t *req = (syscall_request_t *)&buffer.header;
+        
         /* getting the callers identity from the payload */
         syscall_caller_t caller;
+        memset(&caller, 0, sizeof(syscall_caller_t));
         if(!get_caller(&buffer.header, &caller))
         {
             /* checking if proc copy is null */
-            if(caller.proc_cpy != NULL)
-            {
-                proc_copy_destroy(caller.proc_cpy);
-                send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
-            }
-            else
-            {
-                send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EAGAIN);
-            }
-            continue;
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
+            goto cleanup;
         }
-        
-        /* parsing request */
-        syscall_request_t *req = (syscall_request_t *)&buffer.header;
         
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
-            proc_copy_destroy(caller.proc_cpy);
             send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
-            continue;
+            goto cleanup;
         }
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */
@@ -243,9 +234,8 @@ static void* worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            proc_copy_destroy(caller.proc_cpy);
             send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
-            continue;
+            goto cleanup;
         }
         
         /* creating out payload buffer to be sent back */
@@ -258,6 +248,10 @@ static void* worker_thread(void *ctx)
         /* calling syscall handler */
         int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
         
+        /* reply before deallocation */
+        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
+        
+    cleanup:
         /* deallocate input payload because otherwise it will eat our ram sticks :c */
         if(req->ool.address != VM_MIN_ADDRESS)
         {
@@ -273,10 +267,10 @@ static void* worker_thread(void *ctx)
         }
         
         /* destroying copy of process */
-        proc_copy_destroy(caller.proc_cpy);
-        
-        /* replying to the guest */
-        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
+        if(caller.proc_cpy != NULL)
+        {
+            proc_copy_destroy(caller.proc_cpy);
+        }
     }
     
     return NULL;
