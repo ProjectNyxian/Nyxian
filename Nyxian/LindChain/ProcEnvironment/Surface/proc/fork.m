@@ -68,12 +68,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* checking if the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
-    if(entitlement_got_entitlement(proc_getentitlements(parent_copy), PEEntitlementProcessSpawnInheriteEntitlements))
-    {
-        /* child inherits entitlements from parent */
-        proc_setentitlements(child, proc_getentitlements(parent_copy));
-    }
-    else
+    if(!entitlement_got_entitlement(proc_getentitlements(parent_copy), PEEntitlementProcessSpawnInheriteEntitlements))
     {
         /* child doesnt inherite entitlements from parent and gets them from trust cache */
         NSString *processHash = [LDETrust entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
