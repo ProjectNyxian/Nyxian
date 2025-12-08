@@ -22,6 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/radix/type/tree.h>
 #import <LindChain/ProcEnvironment/Surface/radix/type/node.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 static inline int radix_chunk(pid_t pid,
                               int level)
@@ -108,6 +109,28 @@ void *radix_remove(radix_tree_t *tree, pid_t pid)
     
     void *old = path[RADIX_LEVELS - 1]->slots[chunks[RADIX_LEVELS - 1]];
     path[RADIX_LEVELS - 1]->slots[chunks[RADIX_LEVELS - 1]] = NULL;
+    
+    for(int level = RADIX_LEVELS - 2; level >= 0; level--)
+    {
+        bool all_null = true;
+        for(int i = 0; i < RADIX_SIZE; i++)
+        {
+            if(path[level]->slots[i] != NULL)
+            {
+                all_null = false;
+                break;
+            }
+        }
+        if(all_null && level > 0)
+        {
+            free(path[level]);
+            path[level - 1]->slots[chunks[level - 1]] = NULL;
+        }
+        else
+        {
+            break;
+        }
+    }
     
     return old;
 }
