@@ -113,8 +113,19 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
                             definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
                             
-                            // FIXME: Handle when the process is not valid anymore, it will cause EXC_BREAKPOINT otherwise because of "Invalid condition not satisfying: processIdentity"
-                            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
+                            @try {
+                                if (!self.processHandle || !self.processHandle.identity) {
+                                    @throw [NSException exceptionWithName:@"InvalidProcessIdentity"
+                                                                   reason:@"Process handle or identity is nil"
+                                                                 userInfo:nil];
+                                }
+                                definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
+                            } @catch (NSException *exception) {
+                                klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", weakSelf.pid, exception.reason);
+                                [weakSelf terminate];
+                                return;
+                            }
+                            
                             definition.specification = [UIApplicationSceneSpecification specification];
                             FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
                             

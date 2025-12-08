@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <objc/runtime.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
@@ -73,15 +74,20 @@ void UIKitFixesInit(void)
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
       withSessionIdentifier:(int)identifier
 {
-    self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
-    [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
-        context.appearanceStyle = 2;
-    }];
+    @try {
+        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
+        [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
+            context.appearanceStyle = 2;
+        }];
+    } @catch (NSException *exception) {
+        klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
+        return NO;
+    }
     
     [self.view addSubview:self.presenter.presentationView];
     self.view.layer.anchorPoint = CGPointMake(0, 0);
     self.view.layer.position = CGPointMake(0, 0);
-
+    
     [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
     return YES;
