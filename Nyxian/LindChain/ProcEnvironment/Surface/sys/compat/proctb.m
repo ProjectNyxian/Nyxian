@@ -38,6 +38,9 @@ DEFINE_SYSCALL_HANDLER(proctb)
     /* allocating outgoing payload (and copy in one step) */
     kern_return_t kr = mach_syscall_payload_create(snap->kp, *out_len, (vm_address_t*)out_payload);
     
+    /* free the snapshot */
+    proc_snapshot_free(snap);
+    
     /* checking what the kernel wants to say */
     if(kr != KERN_SUCCESS)
     {
@@ -46,7 +49,5 @@ DEFINE_SYSCALL_HANDLER(proctb)
         return -1;
     }
     
-    /* free the snapshot */
-    proc_snapshot_free(snap);
     return 0;
 }
