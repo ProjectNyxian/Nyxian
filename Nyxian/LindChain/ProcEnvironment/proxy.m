@@ -135,6 +135,7 @@ pid_t environment_proxy_spawn_process_at_path(NSString *path,
     });
 }
 
+// FIXME: Frida, fix those two following garbage syscall wrappers
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
 {
     environment_must_be_role(EnvironmentRoleGuest);
@@ -151,15 +152,22 @@ void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
 
 void environment_proxy_sign_macho(NSString *path)
 {
-    MachOObject *obj = [[MachOObject alloc] initWithPath:path];
-    if(obj != nil)
+    environment_must_be_role(EnvironmentRoleGuest);
+    
+    /* open file descriptor */
+    int fd = open([path UTF8String], O_RDWR);
+    
+    /* checking file descriptor */
+    if(fd == -1)
     {
-        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        [hostProcessProxy signMachO:obj withReply:^{
-            dispatch_semaphore_signal(sema);
-        }];
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+        return;
     }
+    
+    /* calling syscall */
+    environment_syscall(SYS_SIGNEXEC, fd);
+    
+    /* closing file descriptor */
+    close(fd);
 }
 
 void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint *endpoint,

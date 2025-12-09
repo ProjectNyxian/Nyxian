@@ -24,8 +24,9 @@
 #import <UIKit/UIKit.h>
 #import <Project/NXProject.h>
 #import <LindChain/Multitask/WindowServer/LDEWindow.h>
+#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 
-@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
+@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate,LDEAppLaunchpadDelegate>
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
@@ -43,6 +44,7 @@
 - (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
 - (void)focusWindowForIdentifier:(wid_t)identifier;
 - (void)showAppSwitcherExternal;
+- (LDEAppLaunchpad *)getOrCreateLaunchpad;
 
 @end
 

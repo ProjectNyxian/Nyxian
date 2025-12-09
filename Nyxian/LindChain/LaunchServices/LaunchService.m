@@ -123,6 +123,7 @@
 {
     self = [super init];
     _launchServices = [[NSMutableArray alloc] init];
+    _lock = OS_UNFAIR_LOCK_INIT;
     
     NSFileManager *fm = [[NSFileManager alloc] init];
     NSString *plistPath = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Shared"] stringByAppendingPathComponent:@"LaunchServices"];
@@ -148,25 +149,31 @@
 
 - (NSXPCListenerEndpoint*)getEndpointForServiceIdentifier:(NSString *)serviceIdentifier
 {
+    os_unfair_lock_lock(&_lock);
     for(LaunchService *ls in _launchServices)
     {
         if([ls isServiceWithServiceIdentifier:serviceIdentifier])
         {
+            os_unfair_lock_unlock(&_lock);
             return [ls endpoint];
         }
     }
+    os_unfair_lock_unlock(&_lock);
     return nil;
 }
 
 - (void)setEndpoint:(NSXPCListenerEndpoint *)endpoint forServiceIdentifier:(NSString *)serviceIdentifier
 {
+    os_unfair_lock_lock(&_lock);
     for(LaunchService *ls in _launchServices)
     {
         if([ls isServiceWithServiceIdentifier:serviceIdentifier])
         {
             ls.endpoint = endpoint;
+            break;
         }
     }
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (void)execute:(void (^)(NSObject *remoteProxy))block byEstablishingConnectionToServiceWithServiceIdentifier:(NSString *)serviceIdentifier compliantToProtocol:(Protocol *)protocol

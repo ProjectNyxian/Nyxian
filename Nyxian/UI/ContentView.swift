@@ -27,12 +27,7 @@ import UIKit
     
     @objc init(path: String) {
         RevertUI()
-        
-        LaunchServices.shared()
-        Bootstrap.shared.bootstrap()
-        
         self.path = path
-        
         super.init(style: .insetGrouped)
     }
     

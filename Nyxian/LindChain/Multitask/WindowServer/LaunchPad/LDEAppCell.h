@@ -17,11 +17,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/environment.h>
-#import <mach/mach.h>
+#ifndef LDEAPPCELL_H
+#define LDEAPPCELL_H
 
-__attribute__((constructor))
-void hostProcEnvInit(void)
-{
-    environment_init(EnvironmentRoleHost, EnvironmentExecCustom, NULL, 0, NULL);
-}
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+@interface LDEAppCell : UICollectionViewCell
+
+@property (nonatomic, strong) UIImageView *iconView;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, strong) UIView *glowView;
+@property (nonatomic, strong) UIVisualEffectView *iconContainer;
+
+@end
+
+#endif /* LDEAPPCELL_H */

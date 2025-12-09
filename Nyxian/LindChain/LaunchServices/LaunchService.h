@@ -22,6 +22,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <os/lock.h>
 
 @interface LaunchService : NSObject
 
@@ -46,6 +47,7 @@
 
 @interface LaunchServices : NSObject
 
+@property (nonatomic) os_unfair_lock lock;
 @property (nonatomic) NSMutableArray<LaunchService*> *launchServices;
 
 - (instancetype)init;

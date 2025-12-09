@@ -23,7 +23,6 @@
 #import <LindChain/ProcEnvironment/Object/ArchiveObject.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Object/FileObject.h>
-#import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 #import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
@@ -54,7 +53,6 @@ void ResecureDecoder(void)
                               [ArchiveObject class],
                               [FDMapObject class],
                               [FileObject class],
-                              [MachOObject class],
                               [MachPortObject class],
                               [MappingPortObject class],
                               [TaskPortObject class],

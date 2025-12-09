@@ -175,12 +175,20 @@
 
 - (void)applicationWasInstalled:(LDEApplicationObject*)app
 {
-    [[ApplicationManagementViewController shared] applicationWasInstalled:app];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[ApplicationManagementViewController shared] applicationWasInstalled:app];
+        LDEAppLaunchpad *launchPad = [[LDEWindowServer shared] getOrCreateLaunchpad];
+        [launchPad registerAppWithBundleID:app.bundleIdentifier displayName:app.displayName icon:app.icon appPath:app.executablePath];
+    });
 }
 
 - (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier
 {
-    [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
+        LDEAppLaunchpad *launchPad = [[LDEWindowServer shared] getOrCreateLaunchpad];
+        [launchPad unregisterAppWithBundleID:bundleIdentifier];
+    });
 }
 
 @end

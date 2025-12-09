@@ -71,7 +71,7 @@ import Foundation
         }
     }
     
-    func bootstrap() {
+    @objc func bootstrap() {
         print("[*] Hello LindDE:Bootstrap")
         LDEThreadControl.pthreadDispatch {
             print("[*] install status: \(self.isBootstrapInstalled)")

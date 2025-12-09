@@ -64,7 +64,6 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override init(style: UITableView.Style) {
         super.init(style: style)
-        LDEApplicationWorkspace.shared().ping()
     }
     
     @MainActor required init?(coder: NSCoder) {

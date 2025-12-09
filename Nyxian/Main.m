@@ -17,6 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/environment.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <Nyxian-Swift.h>
@@ -24,7 +25,15 @@
 
 int main(int argc, char * argv[])
 {
-    @autoreleasepool {
+    @autoreleasepool
+    {
+        /* initilizing environment */
+        environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv);
+        
+        /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
+        [[Bootstrap shared] bootstrap];                         /* starts bootstrapping */
+        [LaunchServices shared];                                /* invokes launch services startup*/
+        
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }
 }
