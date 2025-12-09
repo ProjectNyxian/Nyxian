@@ -350,11 +350,10 @@ NSArray *entitlementsMenuStructure = @[
 #pragma mark - Context Menu
 
 - (UIAction*)createEntitlementActionWithTitle:(NSString*)title
+                       withCurrentEntitlement:(PEEntitlement)entitlement
                         withTargetEntitlement:(PEEntitlement)targetEntitlement
                               withApplication:(LDEApplicationObject*)application
 {
-    NSString *entHash = [LDETrust entHashOfExecutableAtPath:application.executablePath];
-    PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
     __block PEEntitlement bEntitlement = entitlement;
     __block PEEntitlement bTargetEntitlement = targetEntitlement;
     return [UIAction actionWithTitle:title image:[UIImage systemImageNamed:entitlement_got_entitlement(entitlement, targetEntitlement) ? @"checkmark.circle.fill" : @"circle"] identifier:nil handler:^(UIAction *action){
@@ -400,6 +399,10 @@ NSArray *entitlementsMenuStructure = @[
         }];
         [subMenus addObject:(UIMenu*)clearContainer];
         
+        LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:app.bundleID];
+        NSString *entHash = [LDETrust entHashOfExecutableAtPath:applicationObject.executablePath];
+        PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
+        
         for(NSDictionary *category in entitlementsMenuStructure)
         {
             NSString *title = category[@"title"];
@@ -412,8 +415,7 @@ NSArray *entitlementsMenuStructure = @[
             {
                 NSString *name = item[@"name"];
                 NSNumber *value = item[@"value"];
-                LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:app.bundleID];
-                [actions addObject:[self createEntitlementActionWithTitle:name withTargetEntitlement:value.unsignedLongLongValue withApplication:applicationObject]];
+                [actions addObject:[self createEntitlementActionWithTitle:name withCurrentEntitlement:entitlement withTargetEntitlement:value.unsignedLongLongValue withApplication:applicationObject]];
             }
             
             UIImage *menuIcon = [UIImage systemImageNamed:iconName];
