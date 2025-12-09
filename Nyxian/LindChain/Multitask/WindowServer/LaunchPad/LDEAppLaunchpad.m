@@ -201,7 +201,7 @@ NSArray *entitlementsMenuStructure = @[
         if([entry.bundleID isEqualToString:bundleID])
         {
             entry.displayName = name ?: bundleID;
-            entry.icon = icon;
+            entry.icon = icon ?: [UIImage imageNamed:@"DefaultIcon"];
             [self reloadApps];
             return;
         }
