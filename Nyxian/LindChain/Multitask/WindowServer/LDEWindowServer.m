@@ -693,6 +693,9 @@ static const NSInteger kTagShineView = 7777;
     CGFloat maxLift = 250.0;
     CGFloat progress = MIN(1.0, lift / maxLift);
     
+    CGFloat segmentProgress = MIN(1.0, progress / 0.15);
+    self.segmentControl.alpha = 1.0 - segmentProgress;
+    
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / 800.0;
     transform = CATransform3DTranslate(transform, 0, translation.y, 0);
@@ -760,6 +763,10 @@ static const NSInteger kTagShineView = 7777;
             tileContainer:tileContainer
                 velocityX:velocityX
                   offsetY:offsetY];
+        
+        [UIView animateWithDuration:0.3 delay:0.25 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.segmentControl.alpha = 1.0;
+        } completion:nil];
     }
     else
     {
@@ -767,6 +774,10 @@ static const NSInteger kTagShineView = 7777;
            tileMaterial:tileMaterial
                   title:title
              reflection:reflection];
+        
+        [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:0 animations:^{
+            self.segmentControl.alpha = 1.0;
+        } completion:nil];
     }
 }
 
