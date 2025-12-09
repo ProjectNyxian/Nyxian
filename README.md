@@ -71,4 +71,11 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 </a>
 
 ## Project Support
-You can only make apps and utilities inside of Nyxian. Its planned to add tweak development support with ElleKIT to Nyxian. Its also planned to add a custom tweak loader into Nyxian and for the kernel virtualisation layer on nyxian it self a kernel extension loader so people can extend the kernel safely. (idk, sounds like a great idea)
+
+- [x] Native iOS app development
+- [x] Native iOS utility development (still needs polishing)
+- [x] Native iOS tweak development
+- [ ] React Native development
+- [ ] Web development
+- [ ] Python development
+- [ ] Lua development
