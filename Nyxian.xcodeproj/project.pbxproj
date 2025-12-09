@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		79277DC12EE8752800F18B30 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
+		79277DC22EE8752800F18B30 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
+		79277DC72EE8761600F18B30 /* version.sh in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC62EE8761000F18B30 /* version.sh */; };
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -92,6 +95,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		79277DC02EE8752800F18B30 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		79277DC62EE8761000F18B30 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
 		79281CBF2E3A44CA00E983C9 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		7944B5652DEC74EA00834134 /* Nyxian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nyxian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
@@ -293,6 +298,8 @@
 		AF9916D02DC8C42200DDF895 = {
 			isa = PBXGroup;
 			children = (
+				79277DC62EE8761000F18B30 /* version.sh */,
+				79277DC02EE8752800F18B30 /* Config.xcconfig */,
 				AF99171F2DC8EA3C00DDF895 /* Shared */,
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
 				798692F02E627A3B00390D7E /* LiveProcess */,
@@ -454,6 +461,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79277DC22EE8752800F18B30 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -461,6 +469,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79277DC72EE8761600F18B30 /* version.sh in Resources */,
+				79277DC12EE8752800F18B30 /* Config.xcconfig in Resources */,
 				AFF4D5D92DC9390B00B1B5F9 /* Shared in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -512,8 +522,7 @@
 /* Begin XCBuildConfiguration section */
 		79A3A93F2EDDABAE00C0342E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -553,8 +562,7 @@
 		};
 		79A3A9402EDDABAE00C0342E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -594,13 +602,12 @@
 		};
 		79BF98072E6291EE00C60D4C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LiveProcess/LiveProcess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -668,7 +675,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DCLIENT_ENV";
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
@@ -685,13 +692,12 @@
 		};
 		79BF98082E6291EE00C60D4C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LiveProcess/LiveProcess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -759,7 +765,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DCLIENT_ENV";
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
@@ -776,8 +782,7 @@
 		};
 		AF9916E52DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -845,8 +850,7 @@
 		};
 		AF9916E62DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -907,8 +911,7 @@
 		};
 		AF9916E82DC8C42400DDF895 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -916,7 +919,7 @@
 				CODE_SIGN_ENTITLEMENTS = Nyxian/Nyxian.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"Nyxian/Preview Content\"";
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_PREVIEWS = YES;
@@ -1002,7 +1005,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
@@ -1022,8 +1025,7 @@
 		};
 		AF9916E92DC8C42400DDF895 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = AF9916DB2DC8C42200DDF895 /* Nyxian */;
-			baseConfigurationReferenceRelativePath = config.xcconfig;
+			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon Drawn Nyxcat Nyxcat2 Nyxcat3";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1031,7 +1033,7 @@
 				CODE_SIGN_ENTITLEMENTS = Nyxian/Nyxian.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"Nyxian/Preview Content\"";
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_PREVIEWS = YES;
@@ -1117,7 +1119,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",

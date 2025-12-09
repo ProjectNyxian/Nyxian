@@ -1,0 +1,12 @@
+//
+//  Config.xcconfig
+//  Nyxian
+//
+//  Created by FridaDEV on 09.12.25.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+VERSION = 0.7.0
+BUILD_NUMBER = 202512098

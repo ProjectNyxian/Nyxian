@@ -23,7 +23,18 @@ import UIKit
 // App
 let buildName: String = "Vendetta"
 let buildStage: String = "Alpha"
-let buildVersion: Double = 0.7
+
+var appVersion: String {
+    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+}
+
+var buildNumber: String {
+    guard let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
+          let number = Int(build) else {
+        return "Unknown"
+    }
+    return String(format: "%X", number)
+}
 
 // AppInfoView
 class AppInfoViewController: UIThemedTableViewController {
@@ -56,7 +67,7 @@ class AppInfoViewController: UIThemedTableViewController {
         case 0:
             return 1
         case 1:
-            return 3
+            return 4
         case 2:
             return credits.count
         default:
@@ -116,11 +127,16 @@ class AppInfoViewController: UIThemedTableViewController {
                 cell.textLabel?.text = "Name"
                 cell.detailTextLabel?.text = buildName
             case 1:
-                cell.textLabel?.text = "Version"
-                cell.detailTextLabel?.text = String(buildVersion)
-            default:
                 cell.textLabel?.text = "Stage"
                 cell.detailTextLabel?.text = buildStage
+            case 2:
+                cell.textLabel?.text = "Version"
+                cell.detailTextLabel?.text = appVersion
+            case 3:
+                cell.textLabel?.text = "Build"
+                cell.detailTextLabel?.text = buildNumber
+            default:
+                cell.textLabel?.text = "Unknown"
             }
             
             cell.selectionStyle = .none
