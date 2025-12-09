@@ -221,7 +221,7 @@ class LDETheme: Theme {
             gutterBackgroundColor = ldeThemeColorGen(colorEntry: theme["gutterBackground"] as! [String:Any])
             gutterHairlineColor = ldeThemeColorGen(colorEntry: theme["gutterHairline"] as! [String:Any])
             lineNumberColor = ldeThemeColorGen(colorEntry: theme["lineNumber"] as! [String:Any])
-            selectedLineBackgroundColor = ldeThemeColorGen(colorEntry: theme["selectedLineBackground"] as! [String:Any])
+            selectedLineBackgroundColor = (ldeThemeColorGen(colorEntry: theme["selectedLineBackground"] as! [String:Any])).withAlphaComponent(0.8)
             selectedLinesLineNumberColor = ldeThemeColorGen(colorEntry: theme["selectedLinesLineNumber"] as! [String:Any])
             selectedLinesGutterBackgroundColor = ldeThemeColorGen(colorEntry: theme["selectedLinesGutterBackground"] as! [String:Any])
             pageGuideHairlineColor = ldeThemeColorGen(colorEntry: theme["pageGuideHairline"] as! [String:Any])
