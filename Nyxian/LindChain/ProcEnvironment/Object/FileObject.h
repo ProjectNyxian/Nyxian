@@ -35,9 +35,9 @@
 @property (nonatomic) NSString *path;
 @property (nonatomic) int fd;
 
-- (instancetype)initWithPath:(NSString*)path
-                   withFlags:(UInt32)flags;
+- (instancetype)initWithPath:(NSString*)path withFlags:(UInt32)flags;
 - (instancetype)initWithPath:(NSString*)path;
+- (instancetype)initWithFileDescriptor:(int)fd withPath:(NSString*)path;
 
 - (BOOL)writeOut:(NSString*)path;
 - (BOOL)writeIn:(NSString*)path;

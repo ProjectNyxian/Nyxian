@@ -42,11 +42,6 @@
 - (void)getProcessNyxWithIdentifier:(pid_t)pid withReply:(void (^)(NSData*))reply;
 
 /*
- Signer
- */
-- (void)signMachO:(MachOObject*)object withReply:(void (^)(void))reply;
-
-/*
  Launch Services
  */
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier;

@@ -34,6 +34,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/sendtask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -60,8 +61,9 @@
 #define SYS_SETHOSTNAME 754         /* later replaced with XNU SYSCTL semantics */
 #define SYS_SENDTASK    755         /* sends task port */
 #define SYS_GETTASK     756         /* gets task port */
+#define SYS_SIGNEXEC    757         /* uses file descriptor passed by guest to sign executable */
 
-#define SYS_N 21
+#define SYS_N 22
 
 typedef struct {
     const char *name;

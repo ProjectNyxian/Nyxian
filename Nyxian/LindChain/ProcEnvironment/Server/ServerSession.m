@@ -116,38 +116,6 @@
 }
 
 /*
- Signer
- */
-// TODO: reply with a boolean value.. lazy frida!
-- (void)signMachO:(MachOObject *)object
-        withReply:(void (^)(void))reply
-{
-    /* null pointer check */
-    if(_proc == NULL ||
-       object == NULL)
-    {
-        reply();
-        return;
-    }
-    
-    /*
-     * checking process entitlements if spawning is allowed,
-     * because it is not PEEntitlementProcessSpawnSignedOnly
-     * and PEEntitlementProcessSpawn means that the process
-     * is entitlement to dlopen and spawn arbitarily
-     */
-    if(!entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn))
-    {
-        reply();
-        return;
-    }
-    
-    /* signing and write back */
-    [object signAndWriteBack];
-    reply();
-}
-
-/*
  Server
  */
 // TODO: Implement reply.. lazy frida!

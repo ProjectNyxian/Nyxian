@@ -38,6 +38,15 @@
     return [self initWithPath:path withFlags:O_RDWR];
 }
 
+- (instancetype)initWithFileDescriptor:(int)fd
+                              withPath:(NSString*)path
+{
+    self = [super init];
+    _path = path;
+    _fd = fd;
+    return self;
+}
+
 - (BOOL)writeOut:(NSString *)path
 {
     // Create destination (truncate if exists)

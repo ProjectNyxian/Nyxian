@@ -20,6 +20,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/ProcEnvironment/proxy.h>
+#import <LindChain/Private/mach/fileport.h>
 #import <errno.h>
 #import <stdarg.h>
 
@@ -31,6 +32,7 @@ enum kESysType {
     kESysTypeNum = 4,
     kESysTypePortIn = 5,
     kESysTypePortOut = 6,
+    kESysTypeFDIn = 7,
 };
 
 typedef struct {
@@ -49,6 +51,7 @@ typedef struct {
 #define T_OLEN  kESysTypeOutLen
 #define T_PIN   kESysTypePortIn
 #define T_POUT  kESysTypePortOut
+#define T_FIN   kESysTypeFDIn
 
 env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_PROCTB,      T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
@@ -56,6 +59,7 @@ env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_SETHOSTNAME, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_GETTASK,     T_NUM,  T_POUT, T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_SENDTASK,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_SIGNEXEC,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */
@@ -120,13 +124,36 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
             /* decoding type for type */
             switch(entry->type[a])
             {
-                case kESysTypeInLen: in_len = (uint32_t)val; break;
-                case kESysTypeOutLen: out_len = (uint32_t *)val; break;
-                case kESysTypeIn: in_payload = (void *)val; break;
-                case kESysTypeOut: out_payload = (void *)val; break;
-                case kESysTypePortIn: in_ports[in_ports_cnt++] = (mach_port_t)val; break;
-                case kESysTypePortOut: out_ports[out_ports_cnt++] = (mach_port_t *)val; break;
-                default: break;
+                case kESysTypeInLen:
+                    in_len = (uint32_t)val;
+                    break;
+                case kESysTypeOutLen:
+                    out_len = (uint32_t *)val;
+                    break;
+                case kESysTypeIn:
+                    in_payload = (void *)val;
+                    break;
+                case kESysTypeOut:
+                    out_payload = (void *)val;
+                    break;
+                case kESysTypePortIn:
+                    in_ports[in_ports_cnt++] = (mach_port_t)val;
+                    break;
+                case kESysTypePortOut:
+                    out_ports[out_ports_cnt++] = (mach_port_t *)val;
+                    break;
+                case kESysTypeFDIn:
+                {
+                    fileport_t fileport = MACH_PORT_NULL;
+                    kern_return_t kr = fileport_makeport((int)val, &fileport);
+                    if(kr == KERN_SUCCESS)
+                    {
+                        in_ports[in_ports_cnt++] = fileport;
+                    }
+                    break;
+                }
+                default:
+                    break;
             }
         }
     }
