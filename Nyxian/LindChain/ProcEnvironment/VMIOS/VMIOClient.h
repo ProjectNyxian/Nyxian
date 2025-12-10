@@ -27,6 +27,7 @@ typedef struct vm_io_client vm_io_client_t;
 typedef struct {
     vm_address_t map_address;
     vm_size_t map_size;
+    mach_port_t mem_port;
 } vm_io_client_map_t;
 
 enum kVMIOClientError {
