@@ -39,7 +39,7 @@ bool can_see_process(ksurface_proc_t *caller,
         case PROC_VIS_SAME_UID:
             return proc_getruid(caller) == proc_getruid(target);
         case PROC_VIS_SELF:
-            return caller->bsd.kp_proc.p_pid == target->bsd.kp_proc.p_pid;
+            return proc_getpid(caller) == proc_getpid(target);
         case PROC_VIS_NONE:
         default:
             return false;
@@ -56,7 +56,7 @@ uint64_t _get_time_ms(void)
 void copy_proc_to_user(ksurface_proc_t *proc,
                        kinfo_proc_t *kp)
 {
-    memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
+    memcpy(kp, &(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t));
 }
 
 // typedef void (*radix_walk_fn)(pid_t pid, void *value, void *ctx);
@@ -159,7 +159,7 @@ bool proc_nyx_copy(ksurface_proc_t *proc,
         if(can_see_process(proc, targetProc, vis))
         {
             proc_read_lock(targetProc);
-            *nyx = targetProc->nyx;
+            *nyx = targetProc->kproc.kcproc.nyx;
             proc_unlock(targetProc);
             
             /* releasing process */

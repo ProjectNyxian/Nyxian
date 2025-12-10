@@ -91,18 +91,24 @@ typedef struct {
     _Atomic int refcount;
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
-    ksurface_proc_children_t cld;
-    kinfo_proc_t bsd;
-    knyx_proc_t nyx;
-    
-    /* will be used later */
-    //kduy_proc_t duy;
+    struct {
+        //kduy_proc_t duy; /* will be used later as the main structure */
+        ksurface_proc_children_t children;
+        struct {
+            kinfo_proc_t bsd;
+            knyx_proc_t nyx;
+        } kcproc;
+    } kproc;
 } ksurface_proc_t;
 
 typedef struct {
-    kinfo_proc_t bsd;
-    knyx_proc_t nyx;
-    ksurface_proc_t *original;
+    ksurface_proc_t *proc;
+    struct {
+        struct {
+            kinfo_proc_t bsd;
+            knyx_proc_t nyx;
+        } kcproc;
+    } kproc;
 } ksurface_proc_copy_t;
 
 /// Host information
@@ -115,7 +121,7 @@ typedef struct {
 typedef struct {
     pthread_rwlock_t rwlock;
     uint32_t pcnt;
-    ksurface_proc_t *kproc;
+    ksurface_proc_t *kern_proc;
     radix_tree_t tree;
 } ksurface_proc_info_t;
 

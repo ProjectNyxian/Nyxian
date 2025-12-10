@@ -35,13 +35,16 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            const char *path)
 {
     /* null pointer check */
-    if(ksurface == NULL || parent == NULL)
+    if(ksurface == NULL ||
+       parent == NULL)
     {
         return NULL;
     }
     
     /* creating copy of the parent for safe state copy which consumes the reference we got from proc_for_pid(1) */
     ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetain);
+    
+    /* null pointer check */
     if(parent_copy == NULL)
     {
         return NULL;
@@ -49,7 +52,9 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     
     /* creating child process */
     ksurface_proc_t *child = proc_create_from_proc_copy(parent_copy);
-    if(!child)
+    
+    /* null pointer check */
+    if(child == NULL)
     {
         /* destroying the copy of the parent that references the parent */
         proc_copy_destroy(parent_copy);
@@ -61,7 +66,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     proc_setppid(child, proc_getpid(parent_copy));
     
     /* checking if parent process is kernel_proc_ */
-    if(parent_copy->original == kernel_proc_)
+    if(parent_copy->proc == kernel_proc_)
     {
         /* dropping permitives to the movile user */
         proc_setmobilecred(child);
@@ -87,10 +92,10 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     /* copying the path */
     if(path)
     {
-        strncpy(child->nyx.executable_path, path, PATH_MAX - 1);
+        strncpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX - 1);
         const char *name = strrchr(path, '/');
         name = name ? name + 1 : path;
-        strncpy(child->bsd.kp_proc.p_comm, name, MAXCOMLEN);
+        strncpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     }
     
     /* insert will retain the child process */
@@ -109,21 +114,21 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         if(proc_retain(parent) && proc_retain(child))
         {
             /* due to the copy we already own a reference, but next we gonna claim the mutex of cld */
-            pthread_mutex_lock(&(parent->cld.mutex));
-            pthread_mutex_lock(&(child->cld.mutex));
+            pthread_mutex_lock(&(parent->kproc.children.mutex));
+            pthread_mutex_lock(&(child->kproc.children.mutex));
             
             /* storing parent */
-            child->cld.parent = parent;
+            child->kproc.children.parent = parent;
             
             /* storing index of where the child pointer is */
-            child->cld.parent_cld_idx = parent->cld.children_cnt++;
+            child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
             
             /* storing the child pointer */
-            parent->cld.children[child->cld.parent_cld_idx] = child;
+            parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
             
             /* unlocking the parents child structure */
-            pthread_mutex_unlock(&(child->cld.mutex));
-            pthread_mutex_unlock(&(parent->cld.mutex));
+            pthread_mutex_unlock(&(child->kproc.children.mutex));
+            pthread_mutex_unlock(&(parent->kproc.children.mutex));
         }
     }
     
@@ -156,14 +161,14 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
     }
     
     /* lock mutex */
-    pthread_mutex_lock(&(proc->cld.mutex));
+    pthread_mutex_lock(&(proc->kproc.children.mutex));
     
     /* killing all children of the exiting process */
-    while(proc->cld.children_cnt > 0)
+    while(proc->kproc.children.children_cnt > 0)
     {
         /* get index of last child */
-        uint64_t idx = proc->cld.children_cnt - 1;
-        ksurface_proc_t *child = proc->cld.children[idx];
+        uint64_t idx = proc->kproc.children.children_cnt - 1;
+        ksurface_proc_t *child = proc->kproc.children.children[idx];
         
         /* retaining child */
         if(!proc_retain(child))
@@ -173,7 +178,7 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         }
         
         /* unlocking our mutex */
-        pthread_mutex_unlock(&(proc->cld.mutex));
+        pthread_mutex_unlock(&(proc->kproc.children.mutex));
         
         /* calling exit on the child */
         proc_exit(child);
@@ -182,14 +187,14 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         proc_release(child);
         
         /* relocking */
-        pthread_mutex_lock(&(proc->cld.mutex));
+        pthread_mutex_lock(&(proc->kproc.children.mutex));
     }
     
     /* lock */
-    pthread_mutex_unlock(&(proc->cld.mutex));
+    pthread_mutex_unlock(&(proc->kproc.children.mutex));
     
     /* remove from parent */
-    ksurface_proc_t *parent = proc->cld.parent;
+    ksurface_proc_t *parent = proc->kproc.children.parent;
     
     /* null pointer checking parent */
     if(parent != NULL)
@@ -203,33 +208,33 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         }
         
         /* lock order: parent → child */
-        pthread_mutex_lock(&(parent->cld.mutex));
-        pthread_mutex_lock(&(proc->cld.mutex));
+        pthread_mutex_lock(&(parent->kproc.children.mutex));
+        pthread_mutex_lock(&(proc->kproc.children.mutex));
         
-        uint64_t my_idx = proc->cld.parent_cld_idx;
-        uint64_t last_idx = parent->cld.children_cnt - 1;
+        uint64_t my_idx = proc->kproc.children.parent_cld_idx;
+        uint64_t last_idx = parent->kproc.children.children_cnt - 1;
         
         /* swap with last if needed */
         if(my_idx != last_idx)
         {
-            ksurface_proc_t *last_proc = parent->cld.children[last_idx];
+            ksurface_proc_t *last_proc = parent->kproc.children.children[last_idx];
             
-            pthread_mutex_lock(&(last_proc->cld.mutex));
-            parent->cld.children[my_idx] = last_proc;
-            last_proc->cld.parent_cld_idx = my_idx;
-            pthread_mutex_unlock(&(last_proc->cld.mutex));
+            pthread_mutex_lock(&(last_proc->kproc.children.mutex));
+            parent->kproc.children.children[my_idx] = last_proc;
+            last_proc->kproc.children.parent_cld_idx = my_idx;
+            pthread_mutex_unlock(&(last_proc->kproc.children.mutex));
         }
         
         /* clear slot and decrement */
-        parent->cld.children[last_idx] = NULL;
-        parent->cld.children_cnt--;
+        parent->kproc.children.children[last_idx] = NULL;
+        parent->kproc.children.children_cnt--;
         
         /* clear our parent reference */
-        proc->cld.parent = NULL;
-        proc->cld.parent_cld_idx = 0;
+        proc->kproc.children.parent = NULL;
+        proc->kproc.children.parent_cld_idx = 0;
         
-        pthread_mutex_unlock(&(proc->cld.mutex));
-        pthread_mutex_unlock(&(parent->cld.mutex));
+        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        pthread_mutex_unlock(&(parent->kproc.children.mutex));
         
         /* release relationship references */
         proc_release(proc);

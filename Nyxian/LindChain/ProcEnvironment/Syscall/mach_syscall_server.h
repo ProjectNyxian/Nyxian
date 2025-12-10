@@ -32,7 +32,7 @@
 #define SYSCALL_QUEUE_LIMIT     32
 
 /* macro for extremely easy process usage from syscalls */
-#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)caller->proc_cpy)->original))
+#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)caller->proc_cpy)->proc))
 
 /* accessing safe snapshot */
 #define sys_proc_copy_ ((ksurface_proc_copy_t*)caller->proc_cpy)

@@ -20,31 +20,35 @@
 #import <LindChain/ProcEnvironment/Surface/proc/create.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#include <stdatomic.h>
 
 static void proc_create_mutual_init(ksurface_proc_t *proc)
 {
-    /* nullify process structure */
-    memset(proc, 0, sizeof(*proc));
-    
     /* marking process as referenced once */
-    atomic_store(&proc->refcount, 1);
-    atomic_store(&proc->dead, false);
+    proc->refcount = 1;
+    proc->dead = false;
     
     /* initilizing rw lock and mutex */
     pthread_rwlock_init(&(proc->rwlock), NULL);
-    pthread_mutex_init(&(proc->cld.mutex), NULL);
+    pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
     
     /* reseting the start time */
-    gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL);
+    gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL);
 }
 
 ksurface_proc_t *proc_create(pid_t pid,
                              pid_t ppid,
                              const char *path)
 {
+    /* null pointer check */
+    if(path == NULL)
+    {
+        return NULL;
+    }
+    
     /* allocating process */
-    ksurface_proc_t *proc = malloc(sizeof(*proc));
+    ksurface_proc_t *proc = calloc(1, sizeof(ksurface_proc_t));
+    
+    /* null pointer check */
     if(proc == NULL)
     {
         return NULL;
@@ -59,25 +63,20 @@ ksurface_proc_t *proc_create(pid_t pid,
     proc_setentitlements(proc, 0);
     
     /* setting other bsd shit */
-    proc->bsd.kp_eproc.e_ucred.cr_groups[0] = 0;
-    proc->bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
-    proc->bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
-    proc->bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
-    proc->bsd.kp_eproc.e_ucred.cr_ref = 5;
-    proc->bsd.kp_proc.p_priority = PUSER;
-    proc->bsd.kp_proc.p_usrpri = PUSER;
-    proc->bsd.kp_eproc.e_tdev = -1;
-    proc->bsd.kp_eproc.e_flag = 2;
-    proc->bsd.kp_proc.p_stat = SRUN;
-    proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+    proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
+    proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
+    proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
+    proc->kproc.kcproc.bsd.kp_proc.p_priority = PUSER;
+    proc->kproc.kcproc.bsd.kp_proc.p_usrpri = PUSER;
+    proc->kproc.kcproc.bsd.kp_eproc.e_tdev = -1;
+    proc->kproc.kcproc.bsd.kp_eproc.e_flag = 2;
+    proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
+    proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
     
-    if(path)
-    {
-        strncpy(proc->nyx.executable_path, path, PATH_MAX - 1);
-        const char *name = strrchr(path, '/');
-        name = name ? name + 1 : path;
-        strncpy(proc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
-    }
+    strlcpy(proc->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
+    const char *name = strrchr(path, '/');
+    name = name ? name + 1 : path;
+    strlcpy(proc->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     return proc;
 }
@@ -91,7 +90,9 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
     }
     
     /* allocating process */
-    ksurface_proc_t *proc = malloc(sizeof(*proc));
+    ksurface_proc_t *proc = calloc(1, sizeof(ksurface_proc_t));
+    
+    /* null pointer check*/
     if(proc == NULL)
     {
         return NULL;
@@ -101,32 +102,7 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
     proc_create_mutual_init(proc);
     
     /* 1:1 rest copy */
-    memcpy(&(proc->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));
-    memcpy(&(proc->nyx), &(proc_copy->nyx), sizeof(knyx_proc_t));
+    memcpy(&(proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(proc->kproc.kcproc));
     
     return proc;
-}
-
-ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc)
-{
-    /* null pointer check */
-    if(proc == NULL)
-    {
-        return NULL;
-    }
-    
-    /* creating a copy from the process passed */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionRetain);
-    if(proc_copy == NULL)
-    {
-        return NULL;
-    }
-    
-    /* creating process from copy of the original */
-    ksurface_proc_t *nproc = proc_create_from_proc_copy(proc_copy);
-    
-    /* destroying copy that references the original process */
-    proc_copy_destroy(proc_copy);
-    
-    return nproc;
 }

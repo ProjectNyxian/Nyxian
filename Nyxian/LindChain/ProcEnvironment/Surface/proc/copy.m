@@ -60,12 +60,11 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     }
     
     /* setting original pointer to reference to the process */
-    proc_copy->original = proc;
+    proc_copy->proc = proc;
     
     /* copying the process to the copy */
     proc_read_lock(proc);
-    memcpy(&(proc_copy->bsd), &(proc->bsd), sizeof(kinfo_proc_t));
-    memcpy(&(proc_copy->nyx), &(proc->nyx), sizeof(knyx_proc_t));
+    memcpy(&(proc_copy->kproc.kcproc), &(proc->kproc.kcproc), sizeof(proc->kproc.kcproc));
     proc_unlock(proc);
     
     /* boom here you go */
@@ -75,16 +74,16 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
 ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
 {
     /* null pointer check */
-    if(proc_copy == NULL || proc_copy->original == NULL)
+    if(proc_copy == NULL ||
+       proc_copy->proc == NULL)
     {
         return kSurfaceErrorNullPtr;
     }
     
     /* update the original reference */
-    proc_write_lock(proc_copy->original);
-    memcpy(&(proc_copy->original->bsd), &(proc_copy->bsd), sizeof(kinfo_proc_t));
-    memcpy(&(proc_copy->original->nyx), &(proc_copy->nyx), sizeof(knyx_proc_t));
-    proc_unlock(proc_copy->original);
+    proc_write_lock(proc_copy->proc);
+    memcpy(&(proc_copy->proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(proc_copy->proc->kproc.kcproc));
+    proc_unlock(proc_copy->proc);
     
     return kSurfaceErrorSuccess;
 }
@@ -92,16 +91,16 @@ ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
 ksurface_error_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy)
 {
     /* null pointer check */
-    if(proc_copy == NULL || proc_copy->original == NULL)
+    if(proc_copy == NULL ||
+       proc_copy->proc == NULL)
     {
         return kSurfaceErrorNullPtr;
     }
     
     /* update the copy */
-    proc_read_lock(proc_copy->original);
-    memcpy(&(proc_copy->bsd), &(proc_copy->original->bsd), sizeof(kinfo_proc_t));
-    memcpy(&(proc_copy->nyx), &(proc_copy->original->nyx), sizeof(knyx_proc_t));
-    proc_unlock(proc_copy->original);
+    proc_read_lock(proc_copy->proc);
+    memcpy(&(proc_copy->kproc.kcproc), &(proc_copy->proc->kproc.kcproc), sizeof(proc_copy->proc->kproc.kcproc));
+    proc_unlock(proc_copy->proc);
     
     return kSurfaceErrorSuccess;
 }
@@ -115,7 +114,7 @@ ksurface_error_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy)
     }
     
     /* release reference to process */
-    proc_release(proc_copy->original);
+    proc_release(proc_copy->proc);
     
     /* freeing copy */
     free(proc_copy);

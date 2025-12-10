@@ -121,7 +121,7 @@ static inline void ksurface_kinit_kproc(void)
     proc_unlock(kproc);
     
     /* storing kproc */
-    ksurface->proc_info.kproc = kproc;
+    ksurface->proc_info.kern_proc = kproc;
     
     /* inserting kproc */
     klog_log(@"ksurface:kinit:kproc", @"inserting kernel process");
