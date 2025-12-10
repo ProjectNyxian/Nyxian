@@ -29,11 +29,16 @@ DEFINE_HOOK(gethostname, int, (char *name,
     /* casting length */
     uint32_t len32 = (uint32_t)len;
     
+    int retval = (int)environment_syscall(SYS_GETHOSTNAME, name, &len32);
+    
+    /* null terminating string */
+    name[len32] = '\0';
+    
     /* calling ksurface syscall server */
-    return (int)environment_syscall(SYS_GETHOSTNAME, name, &len32);
+    return retval;
 }
 
-DEFINE_HOOK(sethostname, int, (const char *name,
+DEFINE_HOOK(sethostname, int, (char *name,
                                size_t len))
 {
     /* casting length */
