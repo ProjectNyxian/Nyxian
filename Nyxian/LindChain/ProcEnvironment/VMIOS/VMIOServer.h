@@ -24,6 +24,33 @@
 
 typedef struct vm_io_server vm_io_server_t;
 
+enum kVMIORequestType {
+    kVMIORequestTypeCopyIn = 0,
+    kVMIORequestTypeCopyOut = 1,
+    kVMIORequestTypePortIn = 2,
+    kVMIORequestTypePortOut = 3
+};
+
+typedef uint8_t vm_io_request_type_t;
+
+typedef struct {
+    mach_msg_header_t           header;
+    mach_msg_body_t             body;
+    mach_msg_port_descriptor_t  port_desc;
+    mach_port_t port;
+    vm_address_t address;
+    vm_size_t size;
+    vm_io_request_type_t type;
+} vm_io_request_t;
+
+typedef struct {
+    mach_msg_header_t           header;
+    mach_msg_body_t             body;
+    mach_msg_port_descriptor_t  port_desc;
+    mach_port_t port;
+    bool suceeded;
+} vm_io_reply_t;
+
 vm_io_server_t *vm_io_server_create(void);
 void vm_io_server_destroy(void);
 void vm_io_server_start(vm_io_server_t *server);

@@ -116,10 +116,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     }
     
     /* building syscall request :3c */
-    syscall_msg_buffer_t buffer;
-    
-    /* nullfying buffer */
-    memset(&buffer, 0, sizeof(buffer));
+    syscall_msg_buffer_t buffer = {};
     
     /* stuffing the request ;3 */
     buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE);

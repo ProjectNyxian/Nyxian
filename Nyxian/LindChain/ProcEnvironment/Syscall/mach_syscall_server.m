@@ -179,7 +179,7 @@ static void* worker_thread(void *ctx)
     syscall_server_t *server = (syscall_server_t *)ctx;
     
     /* receive buffer to receive request from guest */
-    recv_buffer_t buffer;
+    recv_buffer_t buffer = {};
     
     /*
      * setting options, this is what XPC cannot really give us

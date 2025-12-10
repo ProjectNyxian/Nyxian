@@ -38,8 +38,8 @@ enum kVMIOClientError {
 typedef uint8_t kvmio_error_t;
 
 /* connection and destruction */
-vm_io_client_t *vm_io_client_create(mach_port_t port);
-void syscall_client_destroy(vm_io_client_t *client);
+vm_io_client_t *kvmio_client_create(mach_port_t port);
+void kvmio_client_destroy(vm_io_client_t *client);
 
 /* allocation helper for the kernel */
 vm_io_client_map_t *kvmio_alloc(vm_size_t map_size);
@@ -48,7 +48,7 @@ void kvmio_dealloc(vm_io_client_map_t *map);
 /* virtual memory & input/output */
 kvmio_error_t kvmio_copy_in(vm_io_client_t *client, vm_io_client_map_t *map, vm_address_t iovm_address);        /* copying memory from iovm server into kernel */
 kvmio_error_t kvmio_copy_out(vm_io_client_t *client, vm_io_client_map_t *map, vm_address_t iovm_address);       /* copying memory from kernel into iovm server */
-kvmio_error_t kvmio_port_in(vm_io_client_t *client, mach_port_t port_in, mach_port_t *port_out);                /* copying port from iovm server into kernel */
-kvmio_error_t kvmio_port_out(vm_io_client_t *client, mach_port_t *port_in, mach_port_t port_out);               /* copying port from kernel into iovm server */
+kvmio_error_t kvmio_port_in(vm_io_client_t *client, mach_port_t port_krnl, mach_port_t *port_iovm);             /* copying port from iovm server into kernel */
+kvmio_error_t kvmio_port_out(vm_io_client_t *client, mach_port_t *port_krnl, mach_port_t port_iovm);            /* copying port from kernel into iovm server */
 
 #endif /* VMIOCLIENT_H */

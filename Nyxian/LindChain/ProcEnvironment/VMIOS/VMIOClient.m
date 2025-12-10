@@ -17,11 +17,94 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/VMIOS/VMIOServer.h>
 #import <LindChain/ProcEnvironment/VMIOS/VMIOClient.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #import <stdlib.h>
 
-/* allocation helper for the kernel */
+struct vm_io_client {
+    mach_port_t server_port;
+    mach_port_t reply_port;
+};
+
+typedef struct {
+    union {
+        vm_io_request_t req;
+        vm_io_reply_t   reply;
+    };
+} vm_io_msg_buffer_t;
+
+#pragma mark - connection and destruction
+
+vm_io_client_t *kvmio_client_create(mach_port_t port)
+{
+    /* null port check */
+    if(port == MACH_PORT_NULL)
+    {
+        return NULL;
+    }
+    
+    /* allocating client */
+    vm_io_client_t *client = calloc(1, sizeof(vm_io_client_t));
+    
+    /* null pointer check */
+    if(client == NULL)
+    {
+        return NULL;
+    }
+    
+    /* store server port */
+    client->server_port = port;
+    
+    /* allocate reply port for the syscall server to send back a message to */
+    kern_return_t kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &client->reply_port);
+    
+    /* XNU reply check */
+    if(kr != KERN_SUCCESS)
+    {
+        /* deallocating on failure */
+        mach_port_deallocate(mach_task_self(), client->server_port);
+        free(client);
+        return NULL;
+    }
+    
+    return client;
+}
+
+void kvmio_client_destroy(vm_io_client_t *client)
+{
+    /* null pointer check */
+    if(client == NULL)
+    {
+        goto out_panic;
+    }
+    
+    /* validating client */
+    if(client->server_port == MACH_PORT_NULL ||
+       client->reply_port == MACH_PORT_NULL)
+    {
+        goto out_panic;
+    }
+    
+    /* deallocating reply port */
+    kern_return_t kr = mach_port_deallocate(mach_task_self(), client->reply_port);
+    
+    /* checking what mach says */
+    if(kr != KERN_SUCCESS)
+    {
+        goto out_panic;
+    }
+    
+    /* deallocating client it self */
+    free(client);
+    return;
+    
+out_panic:
+    environment_panic(); /* shall never happen */
+}
+
+#pragma mark - allocation helper for the kernel
+
 vm_io_client_map_t *kvmio_alloc(vm_size_t map_size)
 {
     /* null size check */
@@ -146,4 +229,105 @@ out_panic:
      * layer.
      */
     environment_panic(); /* this shall never happen*/
+}
+
+#pragma mark - internal vmio call invocation symbol
+
+static inline bool kvmio_call_invoke_internal(vm_io_client_t *client,
+                                              mach_port_t port_send,
+                                              mach_port_t port_req,
+                                              vm_address_t address,
+                                              vm_size_t size,
+                                              vm_io_request_type_t type,
+                                              mach_port_t *port_recv,
+                                              mach_port_t *port_send_recv)
+{
+    /* null pointer check */
+    if(client == NULL)
+    {
+        return false;
+    }
+    
+    /* msg buffer */
+    vm_io_msg_buffer_t buffer = {};
+    
+    /* stuffing the request ;3 */
+    buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE);
+    buffer.req.header.msgh_remote_port = client->server_port;
+    buffer.req.header.msgh_local_port = client->reply_port;
+    buffer.req.header.msgh_size = sizeof(vm_io_request_t);
+    buffer.req.header.msgh_id = type;
+    buffer.req.body.msgh_descriptor_count = 0;
+    buffer.req.address = address;
+    buffer.req.size = size;
+    buffer.req.type = type;
+    buffer.req.port = port_req;
+    
+    /* now checking for port */
+    if(port_send != MACH_PORT_NULL)
+    {
+        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        buffer.req.body.msgh_descriptor_count++;
+        buffer.req.port_desc.type = MACH_MSG_PORT_DESCRIPTOR;
+        buffer.req.port_desc.name = port_send;
+        buffer.req.port_desc.disposition = MACH_MSG_TYPE_COPY_SEND;
+    }
+    
+    /* sending the message */
+    kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(vm_io_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    
+    /* checking kernel return */
+    if(kr != KERN_SUCCESS ||
+       !buffer.reply.suceeded)
+    {
+        return false;
+    }
+    
+    /* storing results if applicable */
+    if(port_recv != NULL)
+    {
+        *port_recv = buffer.reply.port_desc.name;
+    }
+    
+    if(port_send_recv != NULL)
+    {
+        *port_send_recv = buffer.reply.port;
+    }
+    
+    return true;
+}
+
+
+#pragma mark - kvmio api
+
+kvmio_error_t kvmio_copy_in(vm_io_client_t *client,
+                            vm_io_client_map_t *map,
+                            vm_address_t iovm_address)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyIn, NULL, NULL);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
+}
+
+kvmio_error_t kvmio_copy_out(vm_io_client_t *client,
+                             vm_io_client_map_t *map,
+                             vm_address_t iovm_address)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyOut, NULL, NULL);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
+}
+
+kvmio_error_t kvmio_port_in(vm_io_client_t *client,
+                            mach_port_t port_krnl,
+                            mach_port_t *port_iovm)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypePortIn, NULL, port_iovm);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
+}
+
+kvmio_error_t kvmio_port_out(vm_io_client_t *client,
+                             mach_port_t *port_krnl,
+                             mach_port_t port_iovm)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, port_iovm, VM_MIN_ADDRESS, 0, kVMIORequestTypePortOut, port_krnl, NULL);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }
