@@ -97,7 +97,9 @@ static inline bool vm_copy_out(mach_port_t mem_port,
 static inline void vm_io_reply(mach_msg_header_t *request,
                                mach_port_t reply_port,
                                mach_port_t reply_send_port,
-                               bool succeeded)
+                               bool succeeded,
+                               uint8_t *tiny_payload,
+                               uint8_t tiny_size)
 {
     /* allocating a reply */
     vm_io_reply_t reply;
@@ -123,6 +125,14 @@ static inline void vm_io_reply(mach_msg_header_t *request,
         reply.port_desc.type = MACH_MSG_PORT_DESCRIPTOR;
         reply.port_desc.name = reply_port;
         reply.port_desc.disposition = MACH_MSG_TYPE_COPY_SEND;
+    }
+    
+    /* check for tiny payload presence */
+    if(tiny_payload != NULL &&
+       tiny_size > 0)
+    {
+        memcpy(reply.tiny_payload, tiny_payload, tiny_size);
+        reply.tiny_size = tiny_size;
     }
     
     /* sending reply to child */
@@ -171,6 +181,9 @@ void *vm_io_worker_thread(void *ctx)
         mach_port_t reply_port = MACH_PORT_NULL;
         mach_port_t reply_send_port = MACH_PORT_NULL;
         bool success = false;
+        
+        uint8_t tiny_payload[UINT8_MAX];
+        
         switch(req->type)
         {
             case kVMIORequestTypeCopyIn:
@@ -188,6 +201,12 @@ void *vm_io_worker_thread(void *ctx)
                 mach_port_insert_right(mach_task_self(), reply_send_port, reply_send_port, MACH_MSG_TYPE_MAKE_SEND);
                 success = true;
                 break;
+            case kVMIORequestTypeTinyCopyIn:
+                memcpy((void*)tiny_payload, (void*)req->address, (size_t)req->tiny_size);
+                break;
+            case kVMIORequestTypeTinyCopyOut:
+                memcpy((void*)req->address, (void*)req->tiny_payload, (size_t)req->tiny_size);
+                break;
             default:
                 break;
         }
@@ -200,7 +219,7 @@ void *vm_io_worker_thread(void *ctx)
             mach_port_deallocate(mach_task_self(), req->port_desc.name);
         }
         
-        vm_io_reply(&buffer.header, reply_port, reply_send_port, success);
+        vm_io_reply(&buffer.header, reply_port, reply_send_port, success, tiny_payload, req->tiny_size);
     }
     
     return NULL;

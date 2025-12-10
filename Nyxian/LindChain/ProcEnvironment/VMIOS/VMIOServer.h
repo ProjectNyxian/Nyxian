@@ -28,7 +28,11 @@ enum kVMIORequestType {
     kVMIORequestTypeCopyIn = 0,
     kVMIORequestTypeCopyOut = 1,
     kVMIORequestTypePortIn = 2,
-    kVMIORequestTypePortOut = 3
+    kVMIORequestTypePortOut = 3,
+    //kVMIORequestTypeFDIn = 4,
+    //kVMIORequestTypeFDOut = 5,
+    kVMIORequestTypeTinyCopyIn = 6,
+    kVMIORequestTypeTinyCopyOut = 7
 };
 
 typedef uint8_t vm_io_request_type_t;
@@ -41,6 +45,8 @@ typedef struct {
     vm_address_t address;
     vm_size_t size;
     vm_io_request_type_t type;
+    uint8_t tiny_size;
+    uint8_t tiny_payload[UINT8_MAX];
 } vm_io_request_t;
 
 typedef struct {
@@ -49,6 +55,8 @@ typedef struct {
     mach_msg_port_descriptor_t  port_desc;
     mach_port_t port;
     bool suceeded;
+    uint8_t tiny_size;
+    uint8_t tiny_payload[UINT8_MAX];
 } vm_io_reply_t;
 
 vm_io_server_t *vm_io_server_create(void);

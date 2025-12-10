@@ -240,7 +240,11 @@ static inline bool kvmio_call_invoke_internal(vm_io_client_t *client,
                                               vm_size_t size,
                                               vm_io_request_type_t type,
                                               mach_port_t *port_recv,
-                                              mach_port_t *port_send_recv)
+                                              mach_port_t *port_send_recv,
+                                              uint8_t *tiny_payload,
+                                              uint8_t tiny_size,
+                                              uint8_t *tiny_out,
+                                              uint8_t *tiny_out_size)
 {
     /* null pointer check */
     if(client == NULL)
@@ -273,8 +277,26 @@ static inline bool kvmio_call_invoke_internal(vm_io_client_t *client,
         buffer.req.port_desc.disposition = MACH_MSG_TYPE_COPY_SEND;
     }
     
+    /* checking for tiny ^^ */
+    if(tiny_payload != NULL &&
+       tiny_size > 0)
+    {
+        memcpy(buffer.req.tiny_payload, tiny_payload, tiny_size);
+        buffer.req.tiny_size = tiny_size;
+    }
+    
     /* sending the message */
     kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(vm_io_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    
+    /* checking for tiny ^^ */
+    if(buffer.reply.tiny_size > 0 &&
+       tiny_out != NULL &&
+       tiny_out_size > 0)
+    {
+        /* copying tiny back */
+        memcpy(buffer.req.tiny_payload, tiny_payload, tiny_size);
+        buffer.req.tiny_size = tiny_size;
+    }
     
     /* checking kernel return */
     if(kr != KERN_SUCCESS ||
@@ -300,11 +322,12 @@ static inline bool kvmio_call_invoke_internal(vm_io_client_t *client,
 
 #pragma mark - kvmio api
 
+/* FUCK WE NEED WAY MORE VALIDATION?!?!?! */
 kvmio_error_t kvmio_copy_in(vm_io_client_t *client,
                             vm_io_client_map_t *map,
                             vm_address_t iovm_address)
 {
-    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyIn, NULL, NULL);
+    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyIn, NULL, NULL, NULL, 0, NULL, NULL);
     return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }
 
@@ -312,7 +335,7 @@ kvmio_error_t kvmio_copy_out(vm_io_client_t *client,
                              vm_io_client_map_t *map,
                              vm_address_t iovm_address)
 {
-    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyOut, NULL, NULL);
+    bool succeeded = kvmio_call_invoke_internal(client, map->mem_port, MACH_PORT_NULL, iovm_address, map->map_size, kVMIORequestTypeCopyOut, NULL, NULL, NULL, 0, NULL, NULL);
     return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }
 
@@ -320,7 +343,7 @@ kvmio_error_t kvmio_port_in(vm_io_client_t *client,
                             mach_port_t port_krnl,
                             mach_port_t *port_iovm)
 {
-    bool succeeded = kvmio_call_invoke_internal(client, port_krnl, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypePortIn, NULL, port_iovm);
+    bool succeeded = kvmio_call_invoke_internal(client, port_krnl, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypePortIn, NULL, port_iovm, NULL, 0, NULL, NULL);
     return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }
 
@@ -328,6 +351,18 @@ kvmio_error_t kvmio_port_out(vm_io_client_t *client,
                              mach_port_t *port_krnl,
                              mach_port_t port_iovm)
 {
-    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, port_iovm, VM_MIN_ADDRESS, 0, kVMIORequestTypePortOut, port_krnl, NULL);
+    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, port_iovm, VM_MIN_ADDRESS, 0, kVMIORequestTypePortOut, port_krnl, NULL, NULL, 0, NULL, NULL);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
+}
+
+kvmio_error_t kvmio_tiny_copy_in(vm_io_client_t *client, vm_address_t krnl_address, vm_size_t krnl_size, vm_address_t iovm_address)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, MACH_PORT_NULL, iovm_address, 0, kVMIORequestTypeTinyCopyIn, NULL, NULL, (void*)krnl_address, krnl_size, NULL, NULL);
+    return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
+}
+
+kvmio_error_t kvmio_tiny_copy_out(vm_io_client_t *client, vm_address_t krnl_address, vm_size_t krnl_size, vm_address_t iovm_address)
+{
+    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypeTinyCopyOut, NULL, NULL, NULL, 0, NULL, NULL);
     return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }

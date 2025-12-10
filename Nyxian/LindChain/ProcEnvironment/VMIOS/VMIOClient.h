@@ -50,5 +50,7 @@ kvmio_error_t kvmio_copy_in(vm_io_client_t *client, vm_io_client_map_t *map, vm_
 kvmio_error_t kvmio_copy_out(vm_io_client_t *client, vm_io_client_map_t *map, vm_address_t iovm_address);       /* copying memory from kernel into iovm server */
 kvmio_error_t kvmio_port_in(vm_io_client_t *client, mach_port_t port_krnl, mach_port_t *port_iovm);             /* copying port from iovm server into kernel */
 kvmio_error_t kvmio_port_out(vm_io_client_t *client, mach_port_t *port_krnl, mach_port_t port_iovm);            /* copying port from kernel into iovm server */
+kvmio_error_t kvmio_tiny_copy_in(vm_io_client_t *client, vm_address_t krnl_address, vm_size_t krnl_size, vm_address_t iovm_address);
+kvmio_error_t kvmio_tiny_copy_out(vm_io_client_t *client, vm_address_t krnl_address, vm_size_t krnl_size, vm_address_t iovm_address);
 
 #endif /* VMIOCLIENT_H */
