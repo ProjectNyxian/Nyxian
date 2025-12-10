@@ -29,11 +29,7 @@ var appVersion: String {
 }
 
 var buildNumber: String {
-    guard let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
-          let number = Int(build) else {
-        return "Unknown"
-    }
-    return String(format: "%X", number)
+    return Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
 }
 
 // AppInfoView

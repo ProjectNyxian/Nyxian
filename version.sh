@@ -14,15 +14,16 @@ current_date=$(date "+%Y%m%d")
 previous_build_number=$(awk -F "=" '/BUILD_NUMBER/ {print $2}' Config.xcconfig | tr -d ' ')
 
 # Extract the date part and the counter part from the previous build number.
-previous_date="${previous_build_number:0:8}"
-counter="${previous_build_number:8}"
+# Format is YYYYMMDD.C, so split on the dot.
+previous_date="${previous_build_number%%.*}"
+counter="${previous_build_number##*.}"
 
 # If the current date matches the date from the previous build number,
 # increment the counter. Otherwise, reset the counter to 1.
 new_counter=$((current_date == previous_date ? counter + 1 : 1))
 
 # Combine the current date and the new counter to create the new build number.
-new_build_number="${current_date}${new_counter}"
+new_build_number="${current_date}.${new_counter}"
 
 # Use 'sed' command to replace the previous build number with the new build
 # number in the 'Config.xcconfig' file.
