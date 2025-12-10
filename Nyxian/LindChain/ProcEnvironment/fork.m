@@ -31,7 +31,7 @@ extern char **environ;
 
 __thread fork_thread_snapshot_t *local_fork_thread_snapshot = NULL;
 
-void *helper_thread(void *args)
+void *fork_helper_thread(void *args)
 {
     // Get snapshot
     fork_thread_snapshot_t *snapshot = args;
@@ -85,6 +85,16 @@ void *helper_thread(void *args)
     return NULL;
 }
 
+#pragma mark - helper thread helper
+
+void fork_helper_thread_trap(void)
+{
+    pthread_t nthread;
+    pthread_create(&nthread, NULL, fork_helper_thread, local_fork_thread_snapshot);
+    pthread_detach(nthread);
+    thread_suspend(mach_thread_self());
+}
+
 #pragma mark - fork() fix
 
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
@@ -117,10 +127,7 @@ DEFINE_HOOK(fork, pid_t, (void))
     local_fork_thread_snapshot->thread = mach_thread_self();
     
     // Getting into helper
-    pthread_t nthread;
-    pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
-    pthread_detach(nthread);
-    thread_suspend(mach_thread_self());
+    fork_helper_thread_trap();
     
     pid_t pid = local_fork_thread_snapshot->ret_pid;
     if(pid != 0)
@@ -153,9 +160,13 @@ int environment_execvpa(const char * __path,
     
     // Spawn using my own posix_spawn() fix
     if(find_binary)
+    {
         environment_posix_spawnp(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+    }
     else
+    {
         environment_posix_spawn(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+    }
     
     // Destroy file actions
     free(fileActions);
@@ -163,10 +174,7 @@ int environment_execvpa(const char * __path,
     if(local_fork_thread_snapshot->ret_pid != 0)
     {
         // Create thread and join
-        pthread_t nthread;
-        pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
-        pthread_detach(nthread);
-        thread_suspend(mach_thread_self());
+        fork_helper_thread_trap();
     }
     
     return EFAULT;
@@ -315,9 +323,7 @@ DEFINE_HOOK(_exit, void, (int code))
         local_fork_thread_snapshot->ret_pid = -1;
         
         // Create thread and join
-        pthread_t nthread;
-        pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
-        thread_suspend(mach_thread_self());
+        fork_helper_thread_trap();
     }
     else
     {
