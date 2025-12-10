@@ -9,4 +9,4 @@
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
 VERSION = 0.7.0
-BUILD_NUMBER = 202512105
+BUILD_NUMBER = 202512106

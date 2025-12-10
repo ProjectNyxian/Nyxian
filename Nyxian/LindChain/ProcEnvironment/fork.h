@@ -20,6 +20,29 @@
 #ifndef PROCENVIRONMENT_FORK_H
 #define PROCENVIRONMENT_FORK_H
 
+#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+#include <stdlib.h>
+
+typedef struct {
+    /* Stack properties*/
+    void *stack_recovery_buffer;
+    void *stack_copy_buffer;
+    size_t stack_recovery_size;
+    
+    /* Flags */
+    pid_t ret_pid;
+    BOOL fork_flag;
+    
+    /* ThreadID */
+    mach_msg_type_number_t thread_count;
+    arm_thread_state64_t thread_state;
+    thread_act_t thread;
+    
+    /* File descriptors */
+    FDMapObject *mapObject;
+} fork_thread_snapshot_t;
+
 /*!
  @function environment_fork_init
  @abstract Initializes fork environment.

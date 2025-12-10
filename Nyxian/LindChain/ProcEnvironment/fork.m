@@ -25,63 +25,16 @@
 #import <pthread.h>
 #include <stdarg.h>
 
-/*
- There is a better approach..
- 
- 1. forkfix.dylib gets loaded at a fixed high memory address where images get never loaded to
- 2. forkfix.dylib gets jumped too with the dyld list
- 3. forkfix.dylib rebases the main thread to a new "stack memory" that is allocated in the upper regions
- 4. all heap allocations of forkfix.dylib happen above the scene via mmap
- 5. forkfix.dylib destroys the main image and all memory underneath destroys all library loads
- 6. forkfix.dylib atp uses its own libc traps and syscall traps it took when it arrived in the address space
- 7. forkfix.dylib reloads all dylibs using mmap at fixed addresses and loads the main image where it was for the child and data mappings via mach memory entries
- 8. forkfix.dylib jumps back to a symbol in the main image
- the main image unloads forkfix.dylib
- 9. the main image does again the ProcEnvironment setup and invoked a thread restore state thread
- 10. the thread restores all threads by suspending them and create suspended threads and then it resumes all threads and exits
-
- Who ever can do this is a absoulute genius... why I wont do it... atleast for now
- 
- in theory its possible
- but im not masochistical enough
- this kind of work requires you to really hate your self and your life and everyone so much that you need to vent this by torturing your self
- because building this would be extreme torture
- no debugging
- even debugging it, no chance
- everything would have to be build on assumptioons and logical thinking
- fixing bugs in forkfix.dylib would take eternaties
- because many thing would be written in low level assembly
- */
-
 #pragma mark - Threading black magic
 
 extern char **environ;
 
-typedef struct {
-    /* Stack properties*/
-    void *stack_recovery_buffer;
-    void *stack_copy_buffer;
-    size_t stack_recovery_size;
-    
-    /* Flags */
-    pid_t ret_pid;
-    BOOL fork_flag;
-    
-    /* ThreadID */
-    mach_msg_type_number_t thread_count;
-    arm_thread_state64_t thread_state;
-    thread_act_t thread;
-    
-    /* File descriptors */
-    FDMapObject *mapObject;
-} thread_snapshot_t;
-
-__thread thread_snapshot_t *local_thread_snapshot = NULL;
+__thread fork_thread_snapshot_t *local_fork_thread_snapshot = NULL;
 
 void *helper_thread(void *args)
 {
     // Get snapshot
-    thread_snapshot_t *snapshot = args;
+    fork_thread_snapshot_t *snapshot = args;
     
     if(snapshot->fork_flag)
     {
@@ -148,38 +101,38 @@ DEFINE_HOOK(fork, pid_t, (void))
     }
     
     // Create local snapshot
-    local_thread_snapshot = calloc(1, sizeof(thread_snapshot_t));
+    local_fork_thread_snapshot = calloc(1, sizeof(fork_thread_snapshot_t));
     
     // Null pointer check
-    if(local_thread_snapshot == NULL)
+    if(local_fork_thread_snapshot == NULL)
     {
         errno = ENOMEM;
         return -1;
     }
     
-    local_thread_snapshot->mapObject = [FDMapObject currentMap];
+    local_fork_thread_snapshot->mapObject = [FDMapObject currentMap];
     
     // Create thread and join
-    local_thread_snapshot->fork_flag = true;
-    local_thread_snapshot->thread = mach_thread_self();
+    local_fork_thread_snapshot->fork_flag = true;
+    local_fork_thread_snapshot->thread = mach_thread_self();
     
     // Getting into helper
     pthread_t nthread;
-    pthread_create(&nthread, NULL, helper_thread, local_thread_snapshot);
+    pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
     pthread_detach(nthread);
     thread_suspend(mach_thread_self());
     
-    pid_t pid = local_thread_snapshot->ret_pid;
+    pid_t pid = local_fork_thread_snapshot->ret_pid;
     if(pid != 0)
     {
-        free(local_thread_snapshot);
-        local_thread_snapshot = NULL;
+        free(local_fork_thread_snapshot);
+        local_fork_thread_snapshot = NULL;
     }
     
     return pid;
 }
 
-#pragma mark - exec*() function family fixes
+#pragma mark - exec*() symbol family helpers
 
 // MARK: Helper for all use cases
 int environment_execvpa(const char * __path,
@@ -189,29 +142,29 @@ int environment_execvpa(const char * __path,
 {
     // Check if it was even created
     // TODO: Somehow implement exec family functions without relying on fork()
-    if(!local_thread_snapshot) return EFAULT;
+    if(!local_fork_thread_snapshot) return EFAULT;
     
     // Create file actions
     environment_posix_spawn_file_actions_t *fileActions = malloc(sizeof(environment_posix_spawn_file_actions_t));
     
     // MARK: AHHH Apple, pls dont hate me for the poor none ARC friendly code here
     // MARK: Atleast I hope ARC does reference counting on these structs
-    fileActions->mapObject = local_thread_snapshot->mapObject;
+    fileActions->mapObject = local_fork_thread_snapshot->mapObject;
     
     // Spawn using my own posix_spawn() fix
     if(find_binary)
-        environment_posix_spawnp(&local_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+        environment_posix_spawnp(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
     else
-        environment_posix_spawn(&local_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+        environment_posix_spawn(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
     
     // Destroy file actions
     free(fileActions);
     
-    if(local_thread_snapshot->ret_pid != 0)
+    if(local_fork_thread_snapshot->ret_pid != 0)
     {
         // Create thread and join
         pthread_t nthread;
-        pthread_create(&nthread, NULL, helper_thread, local_thread_snapshot);
+        pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
         pthread_detach(nthread);
         thread_suspend(mach_thread_self());
     }
@@ -219,129 +172,92 @@ int environment_execvpa(const char * __path,
     return EFAULT;
 }
 
-DEFINE_HOOK(execl, int, (const char * __path,
-                         const char * __arg0,
-                         ...))
+static char **argv_from_va(const char *arg0,
+                           va_list ap)
 {
-    // Now create argv
-    va_list ap;
+    va_list ap_copy;
     int argc = 0;
-    
-    // First pass: count arguments
-    va_start(ap, __arg0);
-    const char *arg = __arg0;
-    while(arg != NULL)
+    va_copy(ap_copy, ap);
+    for(const char *a = arg0; a; a = va_arg(ap_copy, const char *))
     {
         argc++;
-        arg = va_arg(ap, const char *);
     }
-    va_end(ap);
-    
-    // Allocate argv
+    va_end(ap_copy);
     char **argv = malloc((argc + 1) * sizeof(char *));
-    if(argv == NULL)
+    if(!argv)
     {
-        perror("malloc");
-        return -1;
+        return NULL;
     }
-    
-    // Stuff argv
-    va_start(ap, __arg0);
-    arg = __arg0;
-    for(int i = 0; i < argc; i++)
+    argv[0] = (char *)arg0;
+    for(int i = 1; i < argc; i++)
     {
-        argv[i] = (char *)arg;
-        arg = va_arg(ap, const char *);
+        argv[i] = va_arg(ap, char *);
     }
     argv[argc] = NULL;
-    va_end(ap);
-    
-    int result = environment_execvpa(__path, argv, environ, false);
-    
-    free(argv);
-    
-    return result;
+    return argv;
 }
 
-DEFINE_HOOK(execle, int, (const char *path,
-                          const char *arg0, ...))
+static inline void cleanup_argv(char ***argv)
+{
+    free(*argv);
+}
+
+#define _cleanup_argv_ __attribute__((cleanup(cleanup_argv)))
+
+#pragma mark - exec*() symbol family fixes
+
+DEFINE_HOOK(execl, int, (const char *path,
+                         const char *arg0,
+                         ...))
 {
     va_list ap;
-    int argc = 0;
-    const char *arg;
-    
-    // First pass: count arguments
     va_start(ap, arg0);
-    for(arg = arg0; arg != NULL; arg = va_arg(ap, const char *))
-    {
-        argc++;
-    }
-    char *const *envp = va_arg(ap, char *const *);
+    _cleanup_argv_ char **argv = argv_from_va(arg0, ap);
     va_end(ap);
     
-    // Allocate argv
-    char **argv = malloc((argc + 1) * sizeof(char *));
     if(!argv)
     {
         return -1;
     }
     
-    // Stuff argv
-    va_start(ap, arg0);
-    for (int i = 0; i < argc; i++)
-    {
-        argv[i] = (char *)va_arg(ap, const char *);
-    }
-    argv[argc] = NULL;
-    va_end(ap);
-    
-    int result = environment_execvpa(path, argv, envp, false);
-    free(argv);
-    return result;
+    return environment_execvpa(path, argv, environ, false);
 }
 
-DEFINE_HOOK(execlp, int, (const char * __path,
-                          const char * __arg0,
+DEFINE_HOOK(execle, int, (const char *path,
+                          const char *arg0,
                           ...))
 {
-    // Now create argv
     va_list ap;
-    int argc = 0;
+    va_start(ap, arg0);
+    _cleanup_argv_ char **argv = argv_from_va(arg0, ap);
     
-    // First pass: count arguments
-    va_start(ap, __arg0);
-    const char *arg = __arg0;
-    while(arg != NULL)
-    {
-        argc++;
-        arg = va_arg(ap, const char *);
-    }
+    while(va_arg(ap, const char *) != NULL);
+    char **envp = va_arg(ap, char **);
     va_end(ap);
     
-    // Allocate argv
-    char **argv = malloc((argc + 1) * sizeof(char *));
-    if(argv == NULL)
+    if(!argv)
     {
-        perror("malloc");
         return -1;
     }
     
-    // Stuff argv
-    va_start(ap, __arg0);
-    arg = __arg0;
-    for(int i = 0; i < argc; i++)
-    {
-        argv[i] = (char *)arg;
-        arg = va_arg(ap, const char *);
-    }
-    argv[argc] = NULL;
+    return environment_execvpa(path, argv, envp, false);
+}
+
+DEFINE_HOOK(execlp, int, (const char *path,
+                          const char *arg0,
+                          ...))
+{
+    va_list ap;
+    va_start(ap, arg0);
+    _cleanup_argv_ char **argv = argv_from_va(arg0, ap);
     va_end(ap);
     
-    int result = environment_execvpa(__path, argv, environ, true);
+    if(!argv)
+    {
+        return -1;
+    }
     
-    free(argv);
-    
-    return result;
+    return environment_execvpa(path, argv, environ, false);
 }
 
 DEFINE_HOOK(execv, int, (const char * __path,
@@ -367,31 +283,40 @@ DEFINE_HOOK(execvp, int, (const char * __file,
 
 DEFINE_HOOK(close, int, (int fd))
 {
-    if(local_thread_snapshot && local_thread_snapshot->fork_flag == 0)
-        return [local_thread_snapshot->mapObject closeWithFileDescriptor:fd];
+    if(local_fork_thread_snapshot && local_fork_thread_snapshot->fork_flag == 0)
+    {
+        return [local_fork_thread_snapshot->mapObject closeWithFileDescriptor:fd];
+    }
     else
+    {
         return ORIG_FUNC(close)(fd);
+    }
 }
 
 DEFINE_HOOK(dup2, int, (int oldFD,
                         int newFD))
 {
-    if(local_thread_snapshot && local_thread_snapshot->fork_flag == 0)
-        return [local_thread_snapshot->mapObject dup2WithOldFileDescriptor:oldFD withNewFileDescriptor:newFD];
+    if(local_fork_thread_snapshot && local_fork_thread_snapshot->fork_flag == 0)
+    {
+        return [local_fork_thread_snapshot->mapObject dup2WithOldFileDescriptor:oldFD withNewFileDescriptor:newFD];
+    }
     else
+    {
         return ORIG_FUNC(dup2)(oldFD,newFD);
+    }
 }
 
 DEFINE_HOOK(_exit, void, (int code))
 {
-    if(local_thread_snapshot && local_thread_snapshot->fork_flag == 0)
+    if(local_fork_thread_snapshot &&
+       local_fork_thread_snapshot->fork_flag == 0)
     {
         // Failed?
-        local_thread_snapshot->ret_pid = -1;
+        local_fork_thread_snapshot->ret_pid = -1;
         
         // Create thread and join
         pthread_t nthread;
-        pthread_create(&nthread, NULL, helper_thread, local_thread_snapshot);
+        pthread_create(&nthread, NULL, helper_thread, local_fork_thread_snapshot);
         thread_suspend(mach_thread_self());
     }
     else
