@@ -189,6 +189,7 @@
 				LindChain/ProcEnvironment/tpod.m,
 				LindChain/ProcEnvironment/Utils/fd.c,
 				LindChain/ProcEnvironment/Utils/klog.m,
+				LindChain/ProcEnvironment/Utils/vm.m,
 				LindChain/Utils/LDEDebouncer.m,
 				LindChain/Utils/Swizzle.m,
 				LindChain/Utils/Zip.m,
