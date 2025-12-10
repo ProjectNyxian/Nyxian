@@ -65,7 +65,7 @@ typedef struct kproc ksurface_kproc_t;
 typedef struct knyx_proc knyx_proc_t;
 
 /// Nyxian process structure
-typedef struct ksurface_proc {
+struct ksurface_proc {
     _Atomic int refcount;
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
@@ -95,7 +95,7 @@ typedef struct ksurface_proc {
             } nyx;
         } kcproc;
     } kproc;
-} ksurface_proc_t;
+};
 
 /// Structure for the copy API
 typedef struct {
@@ -105,26 +105,20 @@ typedef struct {
     } kproc;
 } ksurface_proc_copy_t;
 
-/// Host information
-typedef struct {
-    pthread_rwlock_t rwlock;
-    char hostname[MAXHOSTNAMELEN];
-} ksurface_host_info_t;
-
-/// Process information
-typedef struct {
-    pthread_rwlock_t rwlock;
-    uint32_t pcnt;
-    ksurface_proc_t *kern_proc;
-    radix_tree_t tree;
-} ksurface_proc_info_t;
-
 /// Structure that holds surface information and other structures
 typedef struct {
     uint32_t magic;
-    ksurface_host_info_t host_info;
-    ksurface_proc_info_t proc_info;
     syscall_server_t *sys_server;
+    struct {
+        pthread_rwlock_t rwlock;
+        char hostname[MAXHOSTNAMELEN];
+    } host_info;
+    struct {
+        pthread_rwlock_t rwlock;
+        uint32_t pcnt;
+        ksurface_proc_t *kern_proc;
+        radix_tree_t tree;
+    } proc_info;
 } ksurface_mapping_t;
 
 /* Internal kernel information */
