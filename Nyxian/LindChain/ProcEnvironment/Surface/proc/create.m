@@ -102,7 +102,7 @@ ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
     proc_create_mutual_init(proc);
     
     /* 1:1 rest copy */
-    memcpy(&(proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(proc->kproc.kcproc));
+    memcpy(&(proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(ksurface_kcproc_t));
     
     return proc;
 }

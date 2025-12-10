@@ -49,65 +49,59 @@ enum kSurfaceError {
 
 typedef unsigned char ksurface_error_t;
 
+/// Limits
 #define PROC_MAX 750
 #define PID_MAX 1048575
 #define CHILD_PROC_MAX PROC_MAX
 #define SURFACE_MAGIC 0xDEADBEEF
 
-/// BSD process structure
+/// Nyxian process typedefinitions
+typedef struct ksurface_proc ksurface_proc_t;
+typedef struct kduy_proc kduy_proc_t;
+typedef struct kchildren ksurface_kproc_children_t;
 typedef struct kinfo_proc kinfo_proc_t;
+typedef struct kcproc ksurface_kcproc_t;
+typedef struct kproc ksurface_kproc_t;
+typedef struct knyx_proc knyx_proc_t;
 
 /// Nyxian process structure
-typedef struct {
-    char executable_path[PATH_MAX];
-    bool force_task_role_override;
-    task_role_t task_role_override;
-    PEEntitlement entitlements;
-    semaphore_t child_death_sema;
-} knyx_proc_t;
-
-/// Structure to honor Duy Trans contributions
-/// Why? Because his research is in this structure
-typedef struct {
-    __strong NSExtension *nsExtension;
-    __strong RBSProcessHandle *rbsProcessHandle;
-    __strong RBSProcessMonitor *processMonitor;
-    __strong FBScene *fbScene;
-} kduy_proc_t;
-
-/// Structure that holds children of each process.. and a reference to each of those
-/// This cannot be copied!!! This structure is extremely sensitive
-/// The parent pointer and children pointer must all be referenced to eachother
-typedef struct {
-    void *parent;
-    void *children[CHILD_PROC_MAX];
-    uint64_t parent_cld_idx;
-    uint64_t children_cnt;
-    pthread_mutex_t mutex;
-} ksurface_proc_children_t;
-
-/// Structure that holds process information
-typedef struct {
+typedef struct ksurface_proc {
     _Atomic int refcount;
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
-    struct {
-        //kduy_proc_t duy; /* will be used later as the main structure */
-        ksurface_proc_children_t children;
-        struct {
+    struct kproc {
+        /*
+         MARK: will be used later as the main structure, called duy to honor his work
+         
+         struct kduy_proc {
+             __strong NSExtension *nsExtension;
+             __strong RBSProcessHandle *rbsProcessHandle;
+             __strong RBSProcessMonitor *processMonitor;
+             __strong FBScene *fbScene;
+         } duy;
+         */
+        struct kchildren {
+            ksurface_proc_t *parent;
+            ksurface_proc_t *children[CHILD_PROC_MAX];
+            uint64_t parent_cld_idx;
+            uint64_t children_cnt;
+            pthread_mutex_t mutex;
+        } children;
+        struct kcproc {
             kinfo_proc_t bsd;
-            knyx_proc_t nyx;
+            struct knyx_proc {
+                char executable_path[PATH_MAX];
+                PEEntitlement entitlements;
+            } nyx;
         } kcproc;
     } kproc;
 } ksurface_proc_t;
 
+/// Structure for the copy API
 typedef struct {
     ksurface_proc_t *proc;
     struct {
-        struct {
-            kinfo_proc_t bsd;
-            knyx_proc_t nyx;
-        } kcproc;
+        ksurface_kcproc_t kcproc;
     } kproc;
 } ksurface_proc_copy_t;
 
