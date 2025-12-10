@@ -278,10 +278,7 @@ static void* worker_thread(void *ctx)
 
 syscall_server_t* syscall_server_create(void)
 {
-    /* allocating server */
-    syscall_server_t *server = malloc(sizeof(syscall_server_t));
-    memset(server, 0, sizeof(syscall_server_t));
-    return server;
+    return calloc(1, sizeof(syscall_server_t));
 }
 
 void syscall_server_destroy(syscall_server_t *server)

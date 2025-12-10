@@ -52,8 +52,8 @@ typedef struct {
 } vm_io_reply_t;
 
 vm_io_server_t *vm_io_server_create(void);
-void vm_io_server_destroy(void);
-void vm_io_server_start(vm_io_server_t *server);
+void vm_io_server_destroy(vm_io_server_t *server);
+int vm_io_server_start(vm_io_server_t *server);
 void vm_io_server_stop(vm_io_server_t *server);
 mach_port_t vm_io_server_getport(vm_io_server_t *server);
 
