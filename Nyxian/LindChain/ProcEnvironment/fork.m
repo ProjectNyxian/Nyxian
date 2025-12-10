@@ -100,7 +100,7 @@ void *helper_thread(void *args)
         snapshot->stack_recovery_buffer = (uint8_t *)sp;
         snapshot->stack_recovery_size = (uint8_t *)stack_base - (uint8_t *)sp;
         
-        // Allocate
+        // Allocate FIXME: Handle null pointer
         snapshot->stack_copy_buffer = malloc(snapshot->stack_recovery_size);
         
         // Copy
@@ -143,18 +143,30 @@ DEFINE_HOOK(fork, pid_t, (void))
     if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
          entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
     {
+        errno = EPERM;
         return -1;
     }
     
     // Create local snapshot
-    local_thread_snapshot = malloc(sizeof(thread_snapshot_t));
+    local_thread_snapshot = calloc(1, sizeof(thread_snapshot_t));
+    
+    // Null pointer check
+    if(local_thread_snapshot == NULL)
+    {
+        errno = ENOMEM;
+        return -1;
+    }
+    
     local_thread_snapshot->mapObject = [FDMapObject currentMap];
     
     // Create thread and join
     local_thread_snapshot->fork_flag = true;
     local_thread_snapshot->thread = mach_thread_self();
+    
+    // Getting into helper
     pthread_t nthread;
     pthread_create(&nthread, NULL, helper_thread, local_thread_snapshot);
+    pthread_detach(nthread);
     thread_suspend(mach_thread_self());
     
     pid_t pid = local_thread_snapshot->ret_pid;
@@ -200,6 +212,7 @@ int environment_execvpa(const char * __path,
         // Create thread and join
         pthread_t nthread;
         pthread_create(&nthread, NULL, helper_thread, local_thread_snapshot);
+        pthread_detach(nthread);
         thread_suspend(mach_thread_self());
     }
     
@@ -251,51 +264,39 @@ DEFINE_HOOK(execl, int, (const char * __path,
 }
 
 DEFINE_HOOK(execle, int, (const char *path,
-                        const char *arg0, ...))
+                          const char *arg0, ...))
 {
     va_list ap;
     int argc = 0;
     const char *arg;
-
+    
     // First pass: count arguments
     va_start(ap, arg0);
-    arg = arg0;
-    while(arg != NULL)
+    for(arg = arg0; arg != NULL; arg = va_arg(ap, const char *))
     {
         argc++;
-        arg = va_arg(ap, const char *);
     }
-
-    // Get envp
     char *const *envp = va_arg(ap, char *const *);
     va_end(ap);
-
+    
     // Allocate argv
     char **argv = malloc((argc + 1) * sizeof(char *));
-    if(argv == NULL)
+    if(!argv)
     {
-        perror("malloc");
         return -1;
     }
-
+    
     // Stuff argv
     va_start(ap, arg0);
-    arg = arg0;
-    for(int i = 0; i < argc; i++)
+    for (int i = 0; i < argc; i++)
     {
-        argv[i] = (char *)arg;
-        arg = va_arg(ap, const char *);
+        argv[i] = (char *)va_arg(ap, const char *);
     }
     argv[argc] = NULL;
-
-    (void)va_arg(ap, char *const *);
-    envp = va_arg(ap, char *const *);
     va_end(ap);
-
+    
     int result = environment_execvpa(path, argv, envp, false);
-    
     free(argv);
-    
     return result;
 }
 
