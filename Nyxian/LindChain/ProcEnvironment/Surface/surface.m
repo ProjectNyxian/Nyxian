@@ -32,30 +32,13 @@
 
 ksurface_mapping_t *ksurface = NULL;
 
-/*
- Experimental hooks & implementations
- */
-DEFINE_HOOK(gethostname, int, (char *buf, size_t bufsize))
-{
-    /*unsigned long seq;
-    
-    do
-    {
-        seq = reflock_read_begin(&(surface->reflock));
-        strlcpy(buf, surface->host_info.hostname, bufsize);
-    }
-    while(reflock_read_retry(&(surface->reflock), seq));*/
-    
-    return 0;
-}
-
 void kern_sethostname(NSString *hostname)
 {
-    /*klog_log(@"surface", @"setting hostname to %@", hostname);
+    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
+    klog_log(@"surface", @"setting hostname to %@", hostname);
     hostname = hostname ?: @"localhost";
-    strlcpy(surface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);*/
-    
-    
+    strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
+    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
 }
 
 static inline void ksurface_kinit_kalloc(void)
@@ -173,6 +156,9 @@ void ksurface_kinit_kserver(void)
 
 void ksurface_kinit(void)
 {
+    /*
+     * this symbol shall only run once!!!
+     */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         if(environment_must_be_role(EnvironmentRoleHost))
