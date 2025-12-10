@@ -24,30 +24,30 @@
 DEFINE_SYSCALL_HANDLER(proctb)
 {
     /* snapshot creation */
-    proc_snapshot_t *snap;
+    /*proc_snapshot_t *snap;
     proc_list_err_t error = proc_snapshot_create(sys_proc_, &snap);
     if(error != PROC_LIST_OK)
     {
         *err = EPERM;
         return -1;
-    }
+    }*/
     
     /* copy the buffer */
-    *out_len = snap->count * sizeof(kinfo_proc_t);
+    //*out_len = snap->count * sizeof(kinfo_proc_t);
     
     /* allocating outgoing payload (and copy in one step) */
-    kern_return_t kr = mach_syscall_payload_create(snap->kp, *out_len, (vm_address_t*)out_payload);
+    //kern_return_t kr = mach_syscall_payload_create(snap->kp, *out_len, (vm_address_t*)out_payload);
     
     /* free the snapshot */
-    proc_snapshot_free(snap);
+    //proc_snapshot_free(snap);
     
     /* checking what the kernel wants to say */
-    if(kr != KERN_SUCCESS)
-    {
+    /*if(kr != KERN_SUCCESS)
+    {*/
         /* idk where all that memory has gone */
-        *err = ENOMEM;
+        /**err = ENOMEM;
         return -1;
-    }
+    }*/
     
     return 0;
 }

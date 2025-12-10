@@ -25,54 +25,54 @@
 DEFINE_SYSCALL_HANDLER(signexec)
 {
     /* checking input mach ports, so attacker cannot do silly things */
-    if(in_ports == NULL ||
+    /*if(in_ports == NULL ||
        in_ports_cnt == 0)
     {
         *err = EINVAL;
         return -1;
-    }
+    }*/
     
     /* check entitlements */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
+    /*if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
     {
         *err = EPERM;
         return -1;
-    }
+    }*/
     
     /* creating file descriptor out of mach fileport */
-    int fd = fileport_makefd(in_ports[0]);
+    //int fd = fileport_makefd(in_ports[0]);
     
     /* checking file descriptor */
-    if(fd == -1)
+    /*if(fd == -1)
     {
         *err = EFAULT;
         return -1;
-    }
+    }*/
     
     /*
      * create mach object object out of the file descriptor
      * on return the file descriptor is destroyed by default
      * by ARC on the PEObject
      */
-    MachOObject *machOObject = [[MachOObject alloc] initWithFileDescriptor:fd withPath:@"I am a silly sillyhead ^^"];
+    //MachOObject *machOObject = [[MachOObject alloc] initWithFileDescriptor:fd withPath:@"I am a silly sillyhead ^^"];
     
     /* null pointer check */
-    if(machOObject == NULL)
+    /*if(machOObject == NULL)
     {
         close(fd);
         *err = EFAULT;
         return -1;
-    }
+    }*/
     
     /* signing that shit */
-    BOOL success = [machOObject signAndWriteBack];
+    //BOOL success = [machOObject signAndWriteBack];
     
     /* checking if successful */
-    if(!success)
+    /*if(!success)
     {
         *err = EFAULT;
         return -1;
-    }
+    }*/
     
     /* now it was successful */
     return 0;

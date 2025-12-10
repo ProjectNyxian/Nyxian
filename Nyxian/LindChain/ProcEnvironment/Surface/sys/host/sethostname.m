@@ -36,23 +36,36 @@ DEFINE_SYSCALL_HANDLER(sethostname)
         return -1;
     }
     
+    
+    
     /* null pointer check */
-    if(in_payload == NULL)
+    if(((void*)args[0]) == NULL ||
+       ((size_t)args[1]) == 0)
     {
         *err = EINVAL;
         return -1;
     }
     
+    /* allocating buffer */
+    vm_io_client_map_t *client_map = kvmio_alloc((size_t)args[1]);
+    
+    /* copying memory in */
+    kvmio_copy_in(client, client_map, (vm_address_t)args[0]);
+    
     /* lock the lock for writing obviously now lol ^^ */
     pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
     
     /* write to hostname */
-    strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);
+    strlcpy(ksurface->host_info.hostname, (const char*)client_map->map_address, (size_t)args[1] + 1);
     
     /* updating NSUserDefaults */
     [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithCString:ksurface->host_info.hostname encoding:NSUTF8StringEncoding] forKey:@"LDEHostname"];
     
     /* unlocking lock */
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
+    
+    /* deallocate the map */
+    kvmio_dealloc(client_map);
+    
     return 0;
 }

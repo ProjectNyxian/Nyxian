@@ -24,22 +24,22 @@
 DEFINE_SYSCALL_HANDLER(sendtask)
 {
     /* null pointer and n check */
-    if(in_ports == NULL ||
+    /*if(in_ports == NULL ||
        in_ports_cnt != 1)
     {
         *err = EINVAL;
         return -1;
-    }
+    }*/
     
     /* check if tpo is supported */
-    if(!environment_supports_tfp())
+    /*if(!environment_supports_tfp())
     {
         *err = EPERM;
         return -1;
-    }
+    }*/
     
     /* adding to tpo if it not already exist */
-    add_tpo([[TaskPortObject alloc] initWithPort:in_ports[0]]);
+    //add_tpo([[TaskPortObject alloc] initWithPort:in_ports[0]]);
     
     /* return with succession */
     return 0;

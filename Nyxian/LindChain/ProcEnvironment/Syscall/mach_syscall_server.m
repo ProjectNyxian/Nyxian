@@ -99,10 +99,6 @@ static bool get_caller(mach_msg_header_t *msg,
  */
 static void send_reply(mach_msg_header_t *request,
                        int64_t result,
-                       uint8_t *payload,
-                       uint32_t payload_len,
-                       mach_port_t *out_ports,
-                       uint32_t out_ports_cnt,
                        errno_t err)
 {
     /* allocating a reply */
@@ -115,53 +111,10 @@ static void send_reply(mach_msg_header_t *request,
     reply.header.msgh_local_port = MACH_PORT_NULL;
     reply.header.msgh_size = sizeof(reply);
     reply.header.msgh_id = request->msgh_id + 100;
-    reply.body.msgh_descriptor_count = 2;
     
     /* storing syscall result */
     reply.result = result;
     reply.err = err;
-    
-    /* validating payload */
-    if(payload &&
-       payload_len > 0)
-    {
-        /* creating ool descriptor */
-        reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-        reply.ool.address = payload;
-        reply.ool.copy = MACH_MSG_VIRTUAL_COPY;
-        reply.ool.size = payload_len;
-        reply.ool.deallocate = TRUE;
-    }
-    else
-    {
-        /* creating invalid ool */
-        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-        reply.ool.address = NULL;
-        reply.ool.size = 0;
-        reply.ool.deallocate = FALSE;
-    }
-    
-    /* validating ports */
-    if(out_ports &&
-       out_ports_cnt > 0)
-    {
-        reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-        reply.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
-        reply.oolp.address = out_ports;
-        reply.oolp.count = out_ports_cnt;
-        reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-        reply.oolp.deallocate = FALSE;
-    }
-    else
-    {
-        /* create invalid oolp*/
-        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-        reply.oolp.address = NULL;
-        reply.oolp.count = 0;
-        reply.oolp.deallocate = FALSE;
-    }
     
     /* sending reply to child */
     mach_msg(&reply.header, MACH_SEND_MSG, sizeof(reply), 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
@@ -217,15 +170,25 @@ static void* worker_thread(void *ctx)
         if(!get_caller(&buffer.header, &caller))
         {
             /* checking if proc copy is null */
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
+            send_reply(&buffer.header, -1, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
+            goto cleanup;
+        }
+        
+        /* aquiring client */
+        vm_io_client_t *client = kvmio_client_create(req->vmio_desc.name);
+        
+        /* checking for null pointer */
+        if(client == NULL)
+        {
+            send_reply(&buffer.header, -1, EINVAL);
             goto cleanup;
         }
         
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
-            goto cleanup;
+            send_reply(&buffer.header, -1, EINVAL);
+            goto cleanup_client;
         }
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */
@@ -234,38 +197,22 @@ static void* worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
-            goto cleanup;
+            send_reply(&buffer.header, -1, EINVAL);
+            goto cleanup_client;
         }
         
         /* creating out payload buffer to be sent back */
-        uint8_t *out_payload = NULL;
-        uint32_t out_len = 0;
         errno_t err;
-        mach_port_t *out_ports = NULL;
-        uint32_t out_ports_cnt = 0;
         
         /* calling syscall handler */
-        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
+        int64_t result = handler(&caller, client, req->args, &err);
         
         /* reply before deallocation */
-        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
+        send_reply(&buffer.header, result, err);
         
+    cleanup_client:
+        kvmio_client_destroy(client);
     cleanup:
-        /* deallocate input payload because otherwise it will eat our ram sticks :c */
-        if(req->ool.address != VM_MIN_ADDRESS)
-        {
-            /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
-            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
-        }
-        
-        /* deallocate input ports because otherwise bad things :c */
-        if(req->oolp.address != VM_MIN_ADDRESS)
-        {
-            /* deallocate */
-            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
-        }
-        
         /* destroying copy of process */
         if(caller.proc_cpy != NULL)
         {

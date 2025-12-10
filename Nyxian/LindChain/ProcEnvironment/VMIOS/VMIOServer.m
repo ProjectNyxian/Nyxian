@@ -193,7 +193,9 @@ void *vm_io_worker_thread(void *ctx)
         }
         
         /* cleanup */
-        if(req->port_desc.name != MACH_PORT_NULL)
+        if(MACH_MSGH_BITS_IS_COMPLEX(req->header.msgh_bits) &&
+           req->body.msgh_descriptor_count > 0 &&
+           req->port_desc.name != MACH_PORT_NULL)
         {
             mach_port_deallocate(mach_task_self(), req->port_desc.name);
         }

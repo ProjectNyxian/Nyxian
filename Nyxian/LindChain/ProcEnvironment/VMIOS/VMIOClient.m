@@ -87,7 +87,7 @@ void kvmio_client_destroy(vm_io_client_t *client)
     }
     
     /* deallocating reply port */
-    kern_return_t kr = mach_port_deallocate(mach_task_self(), client->reply_port);
+    kern_return_t kr = mach_port_mod_refs(mach_task_self(), client->reply_port, MACH_PORT_RIGHT_RECEIVE, -1);
     
     /* checking what mach says */
     if(kr != KERN_SUCCESS)
@@ -320,7 +320,7 @@ kvmio_error_t kvmio_port_in(vm_io_client_t *client,
                             mach_port_t port_krnl,
                             mach_port_t *port_iovm)
 {
-    bool succeeded = kvmio_call_invoke_internal(client, MACH_PORT_NULL, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypePortIn, NULL, port_iovm);
+    bool succeeded = kvmio_call_invoke_internal(client, port_krnl, MACH_PORT_NULL, VM_MIN_ADDRESS, 0, kVMIORequestTypePortIn, NULL, port_iovm);
     return succeeded ? kVMIOClientErrorSuccess : kVMIOClientErrorFailure;
 }
 

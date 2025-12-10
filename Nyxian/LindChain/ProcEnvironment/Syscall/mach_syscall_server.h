@@ -20,6 +20,7 @@
 #ifndef MACH_SYSCALL_SERVER_H
 #define MACH_SYSCALL_SERVER_H
 
+#import <LindChain/ProcEnvironment/VMIOS/VMIOClient.h>
 #import <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <mach/mach.h>
 #include <stdint.h>
@@ -51,8 +52,7 @@ typedef struct {
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
     mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
-    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the guest process MARK: Do not trust guest provided payloads blindly */
-    mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
+    mach_msg_port_descriptor_t  vmio_desc;      /* vmio server port descriptor from guest */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
 } syscall_request_t;
@@ -60,9 +60,6 @@ typedef struct {
 /* reply message coming from the kernel virtualization layer */
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
-    mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
-    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the kernel virtualization layer */
-    mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of macg ports provided by the kernel virtualization layer */
     int64_t                     result;         /* syscall return value for the guest */
     errno_t                     err;            /* errno result value from the syscall */
 } syscall_reply_t;
@@ -75,38 +72,16 @@ typedef int64_t (*syscall_handler_t)(
      * ensurace
      */
     syscall_caller_t    *caller,
+                           
+    /*
+     * portal to easy memory access!
+     */
+    vm_io_client_t      *client,
 
     /*
      * normal syscall arguments
      */
     int64_t             *args,
-
-    /*
-     * a special multipurpose argument, a payload
-     * the payload is provided by the guest process
-     * so please do security checks on it!!!
-     */
-    uint8_t             *in_payload,
-    uint32_t            in_len,
-
-    /*
-     * outgoing payload back to the guest process
-     */
-    uint8_t             **out_payload,
-    uint32_t            *out_len,
-
-    /*
-     * a special multipurpose argument, a ports payload
-     * that is guest provided.
-     */
-    mach_port_t         *in_ports,
-    uint32_t            in_ports_cnt,
-
-    /*
-     * outgoing ports back to the guest process
-     */
-    mach_port_t         **out_ports,
-    uint32_t            *out_ports_cnt,
 
     /*
      * sets errno in the guest process by the client receiving it
@@ -117,15 +92,8 @@ typedef int64_t (*syscall_handler_t)(
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
     syscall_caller_t    *caller, \
+    vm_io_client_t      *client, \
     int64_t             *args, \
-    uint8_t             *in_payload, \
-    uint32_t            in_len, \
-    uint8_t             **out_payload, \
-    uint32_t            *out_len, \
-    mach_port_t         *in_ports, \
-    uint32_t            in_ports_cnt, \
-    mach_port_t         **out_ports, \
-    uint32_t            *out_ports_cnt, \
     errno_t             *err \
 )
 

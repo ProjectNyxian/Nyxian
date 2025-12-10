@@ -17,6 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/VMIOS/VMIOServer.h>
+#import <LindChain/ProcEnvironment/VMIOS/VMIOClient.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <stdlib.h>
@@ -99,19 +102,28 @@ void syscall_client_destroy(syscall_client_t *client)
  */
 int64_t syscall_invoke(syscall_client_t *client,
                        uint32_t syscall_num,
-                       int64_t args[6],
-                       void *in_payload,
-                       uint32_t in_len,
-                       void *out_payload,
-                       uint32_t *out_len,
-                       mach_port_t *in_ports,
-                       uint32_t in_ports_cnt,
-                       mach_port_t **out_ports,
-                       uint32_t out_ports_cnt)
+                       int64_t args[6])
 {
     /* null pointer check */
     if(client == NULL)
     {
+        errno = EFAULT;
+        return -1;
+    }
+    
+    /* once run vmios preparer */
+    static mach_port_t vmio_port = MACH_PORT_NULL;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        vm_io_server_t *server = vm_io_server_create();
+        vm_io_server_start(server);
+        vmio_port = vm_io_server_getport(server);
+    });
+    
+    /* checking vmio port */
+    if(vmio_port == MACH_PORT_NULL)
+    {
+        errno = EFAULT;
         return -1;
     }
     
@@ -119,12 +131,17 @@ int64_t syscall_invoke(syscall_client_t *client,
     syscall_msg_buffer_t buffer = {};
     
     /* stuffing the request ;3 */
-    buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE);
+    buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE) | MACH_MSGH_BITS_COMPLEX;
     buffer.req.header.msgh_remote_port = client->server_port;
     buffer.req.header.msgh_local_port = client->reply_port;
     buffer.req.header.msgh_size = sizeof(syscall_request_t);
     buffer.req.header.msgh_id = syscall_num;
-    buffer.req.body.msgh_descriptor_count = 2;
+    
+    /* sending vmio port to syscall server */
+    buffer.req.body.msgh_descriptor_count = 1;
+    buffer.req.vmio_desc.type = MACH_MSG_PORT_DESCRIPTOR;
+    buffer.req.vmio_desc.name = vmio_port;
+    buffer.req.vmio_desc.disposition = MACH_MSG_TYPE_COPY_SEND;
     
     /* telling cutie patootie ksurface what syscall we wanna call ^^ */
     buffer.req.syscall_num = syscall_num;
@@ -134,47 +151,6 @@ int64_t syscall_invoke(syscall_client_t *client,
     {
         /* copy */
         memcpy(buffer.req.args, args, sizeof(buffer.req.args));
-    }
-    
-    /* checking for payload, if present creating ool descriptor */
-    if(in_payload &&
-       in_len > 0)
-    {
-        /* creating ool descriptor */
-        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-        buffer.req.ool.address = in_payload;
-        buffer.req.ool.copy = MACH_MSG_VIRTUAL_COPY;
-        buffer.req.ool.size = in_len;
-        buffer.req.ool.deallocate = FALSE;
-    }
-    else
-    {
-        /* creating ool descriptor payload that is invalid */
-        buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-        buffer.req.ool.address = NULL;
-        buffer.req.ool.size = 0;
-        buffer.req.ool.deallocate = FALSE;
-    }
-    
-    /* checking for mach ports, if present creating ool descriptor for mach ports */
-    if(in_ports &&
-       in_ports_cnt > 0)
-    {
-        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-        buffer.req.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
-        buffer.req.oolp.address = in_ports;
-        buffer.req.oolp.count = in_ports_cnt;
-        buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-        buffer.req.oolp.deallocate = FALSE;
-    }
-    else
-    {
-        buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-        buffer.req.oolp.address = NULL;
-        buffer.req.oolp.count = 0;
-        buffer.req.oolp.deallocate = FALSE;
     }
     
     /*
@@ -189,35 +165,8 @@ int64_t syscall_invoke(syscall_client_t *client,
     /* checking for succession */
     if(kr != KERN_SUCCESS)
     {
+        errno = EFAULT;
         return -1;
-    }
-    
-    /* payload validation & copying it to user allocated memory */
-    if(buffer.reply.ool.address != VM_MIN_ADDRESS)
-    {
-        /* copying reply, but without out_len no copy! */
-        if(out_len != NULL)
-        {
-            uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
-            memcpy(out_payload, (void*)(buffer.reply.ool.address), copy_len);
-            *out_len = buffer.reply.ool.size;
-        }
-        
-        /* deallocating that nasty mess */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
-    }
-    
-    /* checking for output ports */
-    if(buffer.reply.oolp.address != VM_MIN_ADDRESS)
-    {
-        /* copying ports */
-        for(uint32_t c = 0; c < buffer.reply.oolp.count; c++)
-        {
-            (*out_ports)[c] = ((mach_port_t*)(buffer.reply.oolp.address))[c];
-        }
-        
-        /* deallocating that nasty mess */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.oolp.address, buffer.reply.ool.size);
     }
     
     /* if the result is not 0 we set errno >~< */

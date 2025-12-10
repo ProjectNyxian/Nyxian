@@ -34,14 +34,14 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     }
     
     /* allocate buffer */
-    kern_return_t kr = mach_syscall_payload_create(ksurface->host_info.hostname, len + 1, (vm_address_t*)out_payload);
-    *out_len = (uint32_t)len;
+    vm_io_client_map_t *client_map = kvmio_alloc(len + 1);
     
-    /* checking payload return code */
-    if(kr != KERN_SUCCESS)
-    {
-        goto out_fault;
-    }
+    memcpy((void*)client_map->map_address, ksurface->host_info.hostname, len);
+    ((char*)client_map->map_address)[len] = '\0';
+    
+    kvmio_copy_out(client, client_map, (vm_address_t)args[0]);
+    
+    kvmio_dealloc(client_map);
     
     /* unlock the lock */
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));

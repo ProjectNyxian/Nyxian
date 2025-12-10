@@ -27,17 +27,17 @@
 DEFINE_SYSCALL_HANDLER(gettask)
 {
     /* check if environment supports tfp */
-    if(!environment_supports_tfp())
+    /*if(!environment_supports_tfp())
     {
         *err = EPERM;
         return -1;
-    }
+    }*/
     
     /* parse arguments */
-    pid_t pid = (pid_t)args[0];
+    //pid_t pid = (pid_t)args[0];
     
     /* check if the pid passed is the kernel process */
-    bool isHost = pid == proc_getpid(kernel_proc_);
+    //bool isHost = pid == proc_getpid(kernel_proc_);
     
     /*
      * if host we can skip this crap :3
@@ -47,40 +47,40 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * of kernel_proc_, way too much CPU time for
      * a fact we already know lol.
      */
-    if(!isHost)
-    {
+    /*if(!isHost)
+    {*/
         
         /* getting the target process */
-        ksurface_proc_t *targetProc = proc_for_pid(pid);
+        //ksurface_proc_t *targetProc = proc_for_pid(pid);
         
         /* null pointer check */
-        if(targetProc == NULL)
+        /*if(targetProc == NULL)
         {
             *err = EFAULT;
             return -1;
-        }
+        }*/
         
         /* locking target process */
-        proc_read_lock(targetProc);
+        //proc_read_lock(targetProc);
         
         /* getting entitlements of the target process */
-        PEEntitlement targetEntitlements = proc_getentitlements(targetProc);
+        //PEEntitlement targetEntitlements = proc_getentitlements(targetProc);
         
         /* unlocking target process */
-        proc_unlock(targetProc);
+        //proc_unlock(targetProc);
         
         /* releasing target process, cuz were done now with it */
-        proc_release(targetProc);
+        //proc_release(targetProc);
         
         /* checking if the caller process got the entitlement to use tfp */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
+        /*if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
         {
             *err = EPERM;
             return -1;
-        }
+        }*/
         
         /* main permission check */
-        if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
+        /*if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
            !permitive_over_process_allowed(sys_proc_, pid))
         {
             *err = EPERM;
@@ -94,34 +94,34 @@ DEFINE_SYSCALL_HANDLER(gettask)
             *err = EPERM;
             return -1;
         }
-    }
+    }*/
     
     /* asking tpod for tpo */
-    TaskPortObject *tpo = get_tpo_for_pid(pid);
+    //TaskPortObject *tpo = get_tpo_for_pid(pid);
     
     /* null pointer check */
-    if(tpo == NULL)
+    /*if(tpo == NULL)
     {
         *err = EFAULT;
         return -1;
-    }
+    }*/
     
     /* retaining port */
-    mach_port_mod_refs(mach_task_self(), [tpo port], MACH_PORT_RIGHT_SEND, 1);
+    //mach_port_mod_refs(mach_task_self(), [tpo port], MACH_PORT_RIGHT_SEND, 1);
     
     /* allocating syscall payload */
-    kern_return_t kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
+    //kern_return_t kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
     
     /* mach return check */
-    if(kr != KERN_SUCCESS)
+    /*if(kr != KERN_SUCCESS)
     {
         *err = ENOMEM;
         return -1;
-    }
+    }*/
     
     /* set port */
-    (*out_ports)[0] = [tpo port];
-    *out_ports_cnt = 1;
+    /*(*out_ports)[0] = [tpo port];
+    *out_ports_cnt = 1;*/
     
     return 0;
 }
