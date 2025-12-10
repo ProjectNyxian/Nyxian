@@ -36,33 +36,25 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     
     /* black magic~~ */
     ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
+    
+    /* null pointer check */
     if(proc == NULL)
     {
-        proc_table_unlock();
-        return NULL;
+        goto out_unlock;
     }
     
     /* trying to retain the process */
-    if(proc != NULL &&
-       proc_getpid(proc) == pid &&
+    if(proc_getpid(proc) == pid &&
        !atomic_load(&proc->dead))
     {
         if(proc_retain(proc))
         {
-            if(proc_getpid(proc) == pid)
-            {
-                proc_table_unlock();
-                return proc;
-            }
-            else
-            {
-                proc_release(proc);
-                proc_table_unlock();
-                return NULL;
-            }
+            proc_table_unlock();
+            return proc;
         }
     }
     
+out_unlock:
     proc_table_unlock();
     return NULL;
 }
