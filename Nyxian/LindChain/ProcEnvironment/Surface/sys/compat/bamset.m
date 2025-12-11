@@ -33,16 +33,16 @@ DEFINE_SYSCALL_HANDLER(bamset)
     bool active = args[0];
     
     /* getting process */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:caller->pid];
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_copy_)];
     if(process)
     {
-        klog_log(@"syscall:bamset", @"pid %d set background audio mode: %d", caller->pid, active);
+        klog_log(@"syscall:bamset", @"pid %d set background audio mode: %d", proc_getpid(sys_proc_copy_), active);
         process.audioBackgroundModeUsage = active;
     }
 #if KLOG_ENABLED
     else
     {
-        klog_log(@"syscall:bamset", @"failed to find process", caller->pid);
+        klog_log(@"syscall:bamset", @"failed to find process", proc_getpid(sys_proc_copy_));
     }
 #endif /* KLOG_ENABLED */
     

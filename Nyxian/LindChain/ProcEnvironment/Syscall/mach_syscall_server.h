@@ -32,20 +32,10 @@
 #define SYSCALL_QUEUE_LIMIT     32
 
 /* macro for extremely easy process usage from syscalls */
-#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)caller->proc_cpy)->proc))
+#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)proc_copy)->proc))
 
 /* accessing safe snapshot */
-#define sys_proc_copy_ ((ksurface_proc_copy_t*)caller->proc_cpy)
-
-/* process identity provided by XNU and corrected by the kernel virtualization layer */
-typedef struct {
-    pid_t   pid;                                /* process identifier (in XNU and ksurface the same) */
-    uid_t   euid;                               /* effective user identifier (in ksurface) */
-    gid_t   egid;                               /* effective group identifier (in ksurface) */
-    uid_t   ruid;                               /* real user identifier (in ksurface) */
-    gid_t   rgid;                               /* real group identifier (in ksurface) */
-    void    *proc_cpy;                          /* a ksurface_proc_copy_t from the proc api for safe access MARK: automatically deallocated when syscall is done, do never under any condition destroy the process copy inside of the syscall handler.. otherwise you create undefined behaviour or a memory corruption vulnerability that will lead to a panic when the process exits */
-} syscall_caller_t;
+#define sys_proc_copy_ ((ksurface_proc_copy_t*)proc_copy)
 
 /* request message coming from the client */
 typedef struct {
@@ -74,7 +64,7 @@ typedef int64_t (*syscall_handler_t)(
      * which is very important, because this is our security
      * ensurace
      */
-    syscall_caller_t    *caller,
+    void                *proc_copy,
 
     /*
      * normal syscall arguments
@@ -116,7 +106,7 @@ typedef int64_t (*syscall_handler_t)(
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
-    syscall_caller_t    *caller, \
+    void                *proc_copy, \
     int64_t             *args, \
     uint8_t             *in_payload, \
     uint32_t            in_len, \

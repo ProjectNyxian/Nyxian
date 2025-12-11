@@ -47,14 +47,13 @@ typedef struct {
  * To ensure safety in nyxian we rely on the XNU kernel, as asking processes for their pid is extremely stupid
  * So we ensure nothing can be tempered
  */
-static bool get_caller(mach_msg_header_t *msg,
-                       syscall_caller_t *caller)
+static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
 {
     /* checking if audit trailer is within bounds */
     size_t trailer_offset = round_msg(msg->msgh_size);
     if(trailer_offset + sizeof(mach_msg_audit_trailer_t) > sizeof(recv_buffer_t))
     {
-        return false;
+        return NULL;
     }
     
     /* getting mach msg audit trailer which contains audit information */
@@ -65,20 +64,20 @@ static bool get_caller(mach_msg_header_t *msg,
        trailer->msgh_trailer_size < sizeof(mach_msg_audit_trailer_t))
     {
         /* defensive programming, didnt got the caller */
-        return false;
+        return NULL;
     }
     
     /* yep clear to go */
     audit_token_t *token = &trailer->msgh_audit;
-    caller->pid  = (pid_t)token->val[5];
+    pid_t xnu_pid = (pid_t)token->val[5];
     
     /* getting process */
-    ksurface_proc_t *proc = proc_for_pid(caller->pid);
+    ksurface_proc_t *proc = proc_for_pid(xnu_pid);
     
     /* null pointer check */
     if(proc == NULL)
     {
-        return false;
+        return NULL;
     }
     
     /* creating process copy with process reference consumption */
@@ -87,18 +86,10 @@ static bool get_caller(mach_msg_header_t *msg,
     /* null pointer check */
     if(proc_copy == NULL)
     {
-        return false;
+        return NULL;
     }
     
-    caller->proc_cpy = proc_copy;
-    
-    /* take the auth properties from proc copy */
-    caller->euid = proc_geteuid(proc_copy);
-    caller->egid = proc_getegid(proc_copy);
-    caller->ruid = proc_getruid(proc_copy);
-    caller->rgid = proc_getrgid(proc_copy);
-    
-    return true;
+    return proc_copy;
 }
 
 /*
@@ -219,12 +210,13 @@ static void* worker_thread(void *ctx)
         syscall_request_t *req = (syscall_request_t *)&buffer.header;
         
         /* getting the callers identity from the payload */
-        syscall_caller_t caller;
-        memset(&caller, 0, sizeof(syscall_caller_t));
-        if(!get_caller(&buffer.header, &caller))
+        ksurface_proc_copy_t *proc_copy = get_caller_proc_copy(&buffer.header);
+        
+        /* null pointer check */
+        if(proc_copy == NULL)
         {
             /* checking if proc copy is null */
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, (caller.proc_cpy == NULL) ? EAGAIN : EINVAL);
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EAGAIN);
             goto cleanup;
         }
         
@@ -253,7 +245,7 @@ static void* worker_thread(void *ctx)
         uint32_t out_ports_cnt = 0;
         
         /* calling syscall handler */
-        int64_t result = handler(&caller, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
+        int64_t result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
         
         /* reply before deallocation */
         send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
@@ -274,9 +266,9 @@ static void* worker_thread(void *ctx)
         }
         
         /* destroying copy of process */
-        if(caller.proc_cpy != NULL)
+        if(proc_copy != NULL)
         {
-            proc_copy_destroy(caller.proc_cpy);
+            proc_copy_destroy(proc_copy);
         }
     }
     
