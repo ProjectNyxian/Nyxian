@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
-proc_visibility_t get_proc_visibility(ksurface_proc_t *caller)
+proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller)
 {
     if(caller == NULL) return PROC_VIS_NONE;
     uid_t uid = proc_getruid(caller);
@@ -29,7 +29,7 @@ proc_visibility_t get_proc_visibility(ksurface_proc_t *caller)
     return PROC_VIS_SAME_UID;
 }
 
-bool can_see_process(ksurface_proc_t *caller,
+bool can_see_process(ksurface_proc_copy_t *caller,
                      ksurface_proc_t *target,
                      proc_visibility_t vis)
 {
@@ -88,7 +88,7 @@ void proc_snapshot_create_radix_walk(pid_t pid,
     proc_release(proc);
 }
 
-proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
+proc_list_err_t proc_snapshot_create(ksurface_proc_copy_t *proc_copy,
                                      proc_snapshot_t **snapshot_out)
 {    
     /* null pointer check */
@@ -101,7 +101,7 @@ proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
     *snapshot_out = NULL;
     
     /* checking if proc is null*/
-    if(proc == NULL)
+    if(proc_copy == NULL)
     {
         return PROC_LIST_ERR_PERM;
     }
@@ -114,10 +114,10 @@ proc_list_err_t proc_snapshot_create(ksurface_proc_t *proc,
     }
     
     /* setting up snapshot */
-    ctx->caller = proc;
+    ctx->caller = proc_copy;
     ctx->snap.count = 0;
     ctx->snap.timestamp = _get_time_ms();
-    ctx->vis = get_proc_visibility(proc);
+    ctx->vis = get_proc_visibility(proc_copy);
     
     /* invoke read */
     proc_table_read_lock();
@@ -141,7 +141,7 @@ void proc_snapshot_free(proc_snapshot_t *snap)
     free(snap);
 }
 
-bool proc_nyx_copy(ksurface_proc_t *proc,
+bool proc_nyx_copy(ksurface_proc_copy_t *proc,
                    pid_t targetPid,
                    knyx_proc_t *nyx)
 {

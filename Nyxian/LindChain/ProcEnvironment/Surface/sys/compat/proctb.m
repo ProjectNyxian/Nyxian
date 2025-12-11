@@ -25,7 +25,7 @@ DEFINE_SYSCALL_HANDLER(proctb)
 {
     /* snapshot creation */
     proc_snapshot_t *snap;
-    proc_list_err_t error = proc_snapshot_create(sys_proc_, &snap);
+    proc_list_err_t error = proc_snapshot_create(sys_proc_copy_, &snap);
     if(error != PROC_LIST_OK)
     {
         *err = EPERM;

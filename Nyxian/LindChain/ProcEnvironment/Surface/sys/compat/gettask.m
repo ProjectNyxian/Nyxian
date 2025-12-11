@@ -81,7 +81,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         
         /* main permission check */
         if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
-           !permitive_over_process_allowed(sys_proc_, pid))
+           !permitive_over_process_allowed(sys_proc_copy_, pid))
         {
             *err = EPERM;
             return -1;

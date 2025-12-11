@@ -31,10 +31,12 @@
 #define SYSCALL_SERVER_THREADS  4
 #define SYSCALL_QUEUE_LIMIT     32
 
-/* macro for extremely easy process usage from syscalls */
-#define sys_proc_ ((ksurface_proc_t*)(((ksurface_proc_copy_t*)proc_copy)->proc))
-
-/* accessing safe snapshot */
+/*
+ * accessing safe snapshot, accessing the unsafe process structure
+ * is possible but dont do it, its not safe. I and everyone knowing
+ * how nyxian works deeply will agree, thats why sys_proc_ got
+ * removed
+ */
 #define sys_proc_copy_ ((ksurface_proc_copy_t*)proc_copy)
 
 /* request message coming from the client */

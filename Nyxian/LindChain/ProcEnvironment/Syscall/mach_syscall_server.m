@@ -150,7 +150,7 @@ static void send_reply(mach_msg_header_t *request,
         reply.oolp.address = out_ports;
         reply.oolp.count = out_ports_cnt;
         reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-        reply.oolp.deallocate = TRUE;
+        reply.oolp.deallocate = FALSE;
     }
     else
     {

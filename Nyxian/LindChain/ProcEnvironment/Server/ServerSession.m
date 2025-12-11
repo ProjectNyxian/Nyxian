@@ -31,7 +31,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/ProcEnvironment/tpod.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 @implementation ServerSession
 
@@ -98,9 +98,19 @@
         return;
     }
     
+    /* creating copy */
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(_proc, kProcCopyOptionRetain);
+    
+    /* null pointer check */
+    if(proc_copy == NULL)
+    {
+        reply(nil);
+        return;
+    }
+    
     /* attempting to copy process nyx structure */
     knyx_proc_t nyx;
-    if(proc_nyx_copy(_proc, pid, &nyx))
+    if(proc_nyx_copy(proc_copy, pid, &nyx))
     {
         /* replying with copy of nyx */
         reply([[NSData alloc] initWithBytes:&nyx length:sizeof(nyx)]);
@@ -108,11 +118,14 @@
         /* returning to prevent double reply,
          * which likely caused undefined behaviour before
          */
-        return;
+        goto out_proc_copy_destroy;
     }
     
     /* replying with nothing cause copy failed */
     reply(nil);
+out_proc_copy_destroy:
+    proc_copy_destroy(proc_copy);
+    return;
 }
 
 /*

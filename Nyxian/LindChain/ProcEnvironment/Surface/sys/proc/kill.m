@@ -45,7 +45,7 @@ DEFINE_SYSCALL_HANDLER(kill)
      */
     if(pid != proc_getpid(sys_proc_copy_) &&
        (!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessKill) ||
-        !permitive_over_process_allowed(sys_proc_, pid)))
+        !permitive_over_process_allowed(sys_proc_copy_, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", proc_getpid(sys_proc_copy_), pid);
         *err = EPERM;

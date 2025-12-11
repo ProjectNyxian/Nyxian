@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 
-BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
+BOOL permitive_over_process_allowed(ksurface_proc_copy_t *proc,
                                     pid_t targetPid)
 {
     /* null pointer check */
@@ -31,31 +31,26 @@ BOOL permitive_over_process_allowed(ksurface_proc_t *proc,
         return NO;
     }
     
-    BOOL allowed = NO;
-    
-    /* locking process read */
-    proc_read_lock(proc);
-    
     /* getting uid */
     uid_t caller_uid = proc_getruid(proc);
     
     /* if proc is root its automatically allowed */
     if(caller_uid == 0)
     {
-        allowed = YES;
-        goto out_unlock_proc;
+        return YES;
     }
     
     /* getting target process */
     ksurface_proc_t *targetProc = proc_for_pid(targetPid);
     if(targetProc == NULL)
     {
-        allowed = NO;
-        goto out_unlock_proc;
+        return YES;
     }
     
+    BOOL allowed = NO;
+    
     /* checking if proc is targetProc */
-    if(proc == targetProc)
+    if(proc->proc == targetProc)
     {
         allowed = YES;
         goto out_release_target;
@@ -94,7 +89,5 @@ out_unlock:
     proc_unlock(targetProc);
 out_release_target:
     proc_release(targetProc);
-out_unlock_proc:
-    proc_unlock(proc);
     return allowed;
 }
