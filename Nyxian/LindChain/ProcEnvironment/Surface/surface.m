@@ -81,6 +81,41 @@ static inline void ksurface_kinit_kinfo(void)
     strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
 }
 
+static inline void ksurface_kinit_kserver(void)
+{
+    /* allocating syscall server */
+    ksurface->sys_server = syscall_server_create();
+    
+    /* null pointer check */
+    if(ksurface->sys_server == NULL)
+    {
+        environment_panic();
+    }
+    
+    /* printing log */
+    klog_log(@"ksurface:kinit:kserver", @"allocated syscall server @ %p", ksurface->sys_server);
+    
+    /* registration loop */
+    for(uint32_t sys_i = 0; sys_i < SYS_N; sys_i++)
+    {
+        /*
+         * getting entry (dont check anything pointer related, this is not a attack surface, if something is wrong
+         * with the syscall list entries then this shall be patched and not stay hidden
+         */
+        syscall_list_item_t *item = &(sys_list[sys_i]);
+        
+        /* registering syscall */
+        syscall_server_register(ksurface->sys_server, item->sysnum, item->hndl);
+        
+        /* logging */
+        klog_log(@"ksurface:kinit:kserver", @"registered syscall %d(%s)", item->sysnum, item->name);
+    }
+    
+    /* starting server */
+    syscall_server_start(ksurface->sys_server);
+    klog_log(@"ksurface:kinit:kserver", @"started syscall server");
+}
+
 static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
@@ -119,41 +154,6 @@ static inline void ksurface_kinit_kproc(void)
     proc_release(kproc);
 }
 
-void ksurface_kinit_kserver(void)
-{
-    /* allocating syscall server */
-    ksurface->sys_server = syscall_server_create();
-    
-    /* null pointer check */
-    if(ksurface->sys_server == NULL)
-    {
-        environment_panic();
-    }
-    
-    /* printing log */
-    klog_log(@"ksurface:kinit:kserver", @"allocated syscall server @ %p", ksurface->sys_server);
-    
-    /* registration loop */
-    for(uint32_t sys_i = 0; sys_i < SYS_N; sys_i++)
-    {
-        /*
-         * getting entry (dont check anything pointer related, this is not a attack surface, if something is wrong
-         * with the syscall list entries then this shall be patched and not stay hidden
-         */
-        syscall_list_item_t *item = &(sys_list[sys_i]);
-        
-        /* registering syscall */
-        syscall_server_register(ksurface->sys_server, item->sysnum, item->hndl);
-        
-        /* logging */
-        klog_log(@"ksurface:kinit:kserver", @"registered syscall %d(%s)", item->sysnum, item->name);
-    }
-    
-    /* starting server */
-    syscall_server_start(ksurface->sys_server);
-    klog_log(@"ksurface:kinit:kserver", @"started syscall server");
-}
-
 void ksurface_kinit(void)
 {
     /*
@@ -180,14 +180,14 @@ void ksurface_kinit(void)
             ksurface_kinit_kinfo();
             
             /*
-             * creates the kernel process kproc
-             */
-            ksurface_kinit_kproc();
-            
-            /*
              * creates syscall server
              */
             ksurface_kinit_kserver();
+            
+            /*
+             * creates the kernel process kproc
+             */
+            ksurface_kinit_kproc();
         }
     });
 }
