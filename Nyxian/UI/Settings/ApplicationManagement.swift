@@ -72,6 +72,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        LDEApplicationWorkspace.shared().ping()
         self.title = "Applications"
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", image: UIImage(systemName: "plus"), target: self, action: #selector(plusButtonPressed))
     }
