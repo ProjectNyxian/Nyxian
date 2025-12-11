@@ -115,9 +115,9 @@ typedef struct {
     } host_info;
     struct {
         pthread_rwlock_t rwlock;
-        uint32_t pcnt;
-        ksurface_proc_t *kern_proc;
+        uint32_t proc_count;
         radix_tree_t tree;
+        ksurface_proc_t *kern_proc;
     } proc_info;
 } ksurface_mapping_t;
 

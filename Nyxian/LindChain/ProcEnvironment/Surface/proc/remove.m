@@ -42,7 +42,7 @@ ksurface_error_t proc_remove_by_pid(pid_t pid)
     }
     
     /* removed so decrementing process count */
-    ksurface->proc_info.pcnt--;
+    ksurface->proc_info.proc_count--;
     
     /* Marking process as dead */
     atomic_store(&(proc->dead), true);

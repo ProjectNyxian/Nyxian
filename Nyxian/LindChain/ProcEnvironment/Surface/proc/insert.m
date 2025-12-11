@@ -39,7 +39,7 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     proc_table_write_lock();
     
     /* checking process count */
-    if(ksurface->proc_info.pcnt >= PROC_MAX)
+    if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
         err = kSurfaceErrorFailed;
         goto out_unlock;
@@ -68,7 +68,7 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     }
     
     /* counting up */
-    ksurface->proc_info.pcnt++;
+    ksurface->proc_info.proc_count++;
     
 out_unlock:
     proc_table_unlock();
