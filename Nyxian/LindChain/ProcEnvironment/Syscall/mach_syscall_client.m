@@ -149,7 +149,7 @@ int64_t syscall_invoke(syscall_client_t *client,
         buffer.req.ool.address = in_payload;
         buffer.req.ool.copy = MACH_MSG_VIRTUAL_COPY;
         buffer.req.ool.size = in_len;
-        buffer.req.ool.deallocate = FALSE;
+        buffer.req.ool.deallocate = TRUE;
     }
     else
     {
@@ -170,7 +170,7 @@ int64_t syscall_invoke(syscall_client_t *client,
         buffer.req.oolp.address = in_ports;
         buffer.req.oolp.count = in_ports_cnt;
         buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-        buffer.req.oolp.deallocate = FALSE;
+        buffer.req.oolp.deallocate = TRUE;
     }
     else
     {
