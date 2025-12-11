@@ -54,7 +54,7 @@ Its like Minecraft, take the blocks you have and build.
 ## Whats do I need?
 You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self. Do not use LiveContainer to use Nyxian, install Nyxian seperately.
 ## Language Support
-It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 18 SDK. All frameworks work except 3D rendering ones like SceneKIT.
+It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 26.1 SDK. All frameworks work except Metal because I dont have access to apples metal shader compiler.
 ## Installation
 
 ### Requirements
@@ -74,7 +74,7 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 
 - [x] Native iOS app development
 - [x] Native iOS utility development (still needs polishing)
-- [x] Native iOS tweak development
+- [ ] Native iOS tweak development
 - [ ] React Native development
 - [ ] Web development
 - [ ] Python development
