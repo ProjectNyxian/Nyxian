@@ -50,8 +50,15 @@ typedef struct {
 static bool get_caller(mach_msg_header_t *msg,
                        syscall_caller_t *caller)
 {
+    /* checking if audit trailer is within bounds */
+    size_t trailer_offset = round_msg(msg->msgh_size);
+    if(trailer_offset + sizeof(mach_msg_audit_trailer_t) > sizeof(recv_buffer_t))
+    {
+        return false;
+    }
+    
     /* getting mach msg audit trailer which contains audit information */
-    mach_msg_audit_trailer_t *trailer = (mach_msg_audit_trailer_t *)((uint8_t *)msg + round_msg(msg->msgh_size));
+    mach_msg_audit_trailer_t *trailer = (mach_msg_audit_trailer_t *)((uint8_t *)msg + trailer_offset);
     
     /* checking trailer format */
     if(trailer->msgh_trailer_type != MACH_MSG_TRAILER_FORMAT_0 ||
