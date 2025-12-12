@@ -995,15 +995,8 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Runtime/LLVM/FCM/MessyLinker",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/Synpush",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/LLVM/Compiler/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Synpush",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Dybin",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
@@ -1109,15 +1102,8 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Runtime/LLVM/FCM/MessyLinker",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/Synpush",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/LLVM/Compiler/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Runtime/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Dybin",
-					"$(PROJECT_DIR)/LindDE/LindChain/Synpush",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Dybin",
-					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
