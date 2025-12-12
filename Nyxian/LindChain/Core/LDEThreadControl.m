@@ -51,12 +51,14 @@ void *pthreadBlockTrampoline(void *ptr) {
 
 + (int)getOptimalThreadCount
 {
-    int cpuCount = 0;
-    size_t size = sizeof(int);
-    int result = sysctlbyname("hw.logicalcpu_max", &cpuCount, &size, NULL, 0);
-    return (result == 0 && cpuCount > 0)
-    ? cpuCount
-    : (int)[[NSProcessInfo processInfo] activeProcessorCount];
+    static int cpuCount = 0;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        size_t size = sizeof(int);
+        int result = sysctlbyname("hw.logicalcpu_max", &cpuCount, &size, NULL, 0);
+        cpuCount = (result == 0 && cpuCount > 0) ? cpuCount : (int)[[NSProcessInfo processInfo] activeProcessorCount];
+    });
+    return cpuCount;
 }
 
 + (int)getUserSetThreadCount
