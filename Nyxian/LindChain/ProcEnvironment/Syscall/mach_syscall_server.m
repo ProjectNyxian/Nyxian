@@ -86,6 +86,7 @@ static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
     /* null pointer check */
     if(proc_copy == NULL)
     {
+        proc_release(proc);
         return NULL;
     }
     
