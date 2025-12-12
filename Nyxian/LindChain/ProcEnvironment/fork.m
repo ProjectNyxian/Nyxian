@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/fork.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/litehook/src/litehook.h>
+#import <LindChain/litehook/litehook.h>
 #include <mach/mach.h>
 #import <pthread.h>
 #include <stdarg.h>

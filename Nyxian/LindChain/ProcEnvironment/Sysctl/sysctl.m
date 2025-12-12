@@ -19,7 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
 #import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/litehook/src/litehook.h>
+#import <LindChain/litehook/litehook.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Sysctl/kern/kern.h>
 

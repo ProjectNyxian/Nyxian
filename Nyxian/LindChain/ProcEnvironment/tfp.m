@@ -20,7 +20,7 @@
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/proxy.h>
-#import <LindChain/litehook/src/litehook.h>
+#import <LindChain/litehook/litehook.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
 #import <LindChain/ProcEnvironment/tpod.h>

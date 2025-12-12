@@ -146,7 +146,7 @@
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/Init.mm,
-				LindChain/litehook/src/litehook.c,
+				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/dyld_bypass_validation.m,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,

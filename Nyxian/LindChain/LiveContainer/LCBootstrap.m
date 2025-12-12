@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <sys/mman.h>
 #include <stdlib.h>
-#include "../litehook/src/litehook.h"
+#import <LindChain/litehook/litehook.h>
 #import "Tweaks/Tweaks.h"
 #include <mach-o/ldsyms.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>

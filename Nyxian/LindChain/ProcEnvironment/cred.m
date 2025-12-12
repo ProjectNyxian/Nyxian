@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/litehook/src/litehook.h>
+#import <LindChain/litehook/litehook.h>
 #import <LindChain/ProcEnvironment/cred.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 

@@ -10,7 +10,7 @@
 #include <mach-o/dyld.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#import "litehook_internal.h"
+#import <LindChain/litehook/litehook.h>
 #import "LCMachOUtils.h"
 #import "../utils.h"
 #import <LindChain/ProcEnvironment/environment.h>

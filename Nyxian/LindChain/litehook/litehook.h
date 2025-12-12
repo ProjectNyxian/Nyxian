@@ -20,6 +20,7 @@ typedef struct nlist nlist_u;
 const char *litehook_locate_dsc(void);
 
 void *litehook_find_symbol(const mach_header_u *header, const char *symbolName);
+void *litehook_find_symbol_file(const mach_header_u *header, const char *symbolName);
 void *litehook_find_dsc_symbol(const char *imagePath, const char *symbolName);
 kern_return_t litehook_hook_function(void *source, void *target);
 
@@ -29,3 +30,29 @@ void litehook_rebind_symbol(const mach_header_u *targetHeader, void *replacee, v
 bool os_tpro_is_supported(void);
 void os_thread_self_restrict_tpro_to_rw(void);
 void os_thread_self_restrict_tpro_to_ro(void);
+
+typedef struct {
+    const mach_header_u *sourceHeader;
+    void *replacee;
+    void *replacement;
+    bool (*exceptionFilter)(const mach_header_u *header);
+} global_rebind;
+
+extern uint32_t gRebindCount;
+extern global_rebind *gRebinds;
+
+#define DEFINE_HOOK(func, return_type, signature) \
+    static return_type (*orig_##func) signature __attribute__((unused)) = \
+        (return_type (*) signature)func; \
+    static return_type hook_##func signature
+
+#define DO_HOOK(func, type) \
+    litehook_rebind_symbol(type, func, hook_##func, nil)
+
+#define DO_HOOK_GLOBAL(func) \
+    DO_HOOK(func,LITEHOOK_REBIND_GLOBAL)
+/*    orig_##func = func; \
+    litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, func, hook_##func, nil);*/
+
+#define ORIG_FUNC(func) \
+    orig_##func

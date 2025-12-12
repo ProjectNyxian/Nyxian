@@ -21,11 +21,6 @@
 #import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/proxy.h>
-#import <LindChain/litehook/src/litehook.h>
-#import <mach/mach.h>
-#import <sys/sysctl.h>
-#import <mach-o/dyld.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>

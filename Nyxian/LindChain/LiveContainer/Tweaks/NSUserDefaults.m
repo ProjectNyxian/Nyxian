@@ -20,7 +20,7 @@
 #import "FoundationPrivate.h"
 #import "LCMachOUtils.h"
 #import "utils.h"
-#import "litehook_internal.h"
+#import <LindChain/litehook/litehook.h>
 #include "Tweaks.h"
 #import <LindChain/Utils/Swizzle.h>
 

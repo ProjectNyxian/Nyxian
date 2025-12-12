@@ -1,8 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <sys/stat.h>
 #import <libgen.h>
-#import "litehook_internal.h"
-#import <LindChain/litehook/src/litehook.h>
+#import <LindChain/litehook/litehook.h>
 #import "LCUtils.h"
 
 static uint32_t rnd32(uint32_t v,
