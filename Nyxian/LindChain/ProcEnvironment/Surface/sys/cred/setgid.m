@@ -54,8 +54,7 @@ DEFINE_SYSCALL_HANDLER(setgid)
     }
     
     /* setting errno on failure */
-    *err = EPERM;
-    return -1;
+    sys_return_failure(EPERM);
     
 out_update:
     proc_copy_update(sys_proc_copy_);
@@ -91,12 +90,11 @@ DEFINE_SYSCALL_HANDLER(setegid)
     }
     
     /* setting errno on failure */
-    *err = EPERM;
-    return -1;
+    sys_return_failure(EPERM);
     
 out_update:
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }
 
 DEFINE_SYSCALL_HANDLER(setregid)
@@ -120,8 +118,7 @@ DEFINE_SYSCALL_HANDLER(setregid)
         if(rgid != cur_rgid &&
            rgid != cur_egid)
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     
@@ -132,8 +129,7 @@ DEFINE_SYSCALL_HANDLER(setregid)
         if(egid != cur_rgid &&
            egid != cur_egid && egid != cur_svgid)
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     
@@ -154,5 +150,5 @@ DEFINE_SYSCALL_HANDLER(setregid)
     }
     
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }

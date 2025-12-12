@@ -28,15 +28,13 @@ DEFINE_SYSCALL_HANDLER(signexec)
     if(in_ports == NULL ||
        in_ports_cnt == 0)
     {
-        *err = EINVAL;
-        return -1;
+        sys_return_failure(EINVAL);
     }
     
     /* check entitlements */
     if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
     {
-        *err = EPERM;
-        return -1;
+        sys_return_failure(EPERM);
     }
     
     /* creating file descriptor out of mach fileport */
@@ -45,8 +43,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
     /* checking file descriptor */
     if(fd == -1)
     {
-        *err = EFAULT;
-        return -1;
+        sys_return_failure(EFAULT);
     }
     
     /*
@@ -60,8 +57,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
     if(machOObject == NULL)
     {
         close(fd);
-        *err = EFAULT;
-        return -1;
+        sys_return_failure(EFAULT);
     }
     
     /* signing that shit */
@@ -70,8 +66,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
     /* checking if successful */
     if(!success)
     {
-        *err = EFAULT;
-        return -1;
+        sys_return_failure(EFAULT);
     }
     
     /* now it was successful */

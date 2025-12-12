@@ -23,12 +23,6 @@
 
 DEFINE_SYSCALL_HANDLER(bamset)
 {
-    /* null pointer check */
-    if(args == NULL)
-    {
-        return -1;
-    }
-    
     /* getting boolean */
     bool active = args[0];
     
@@ -46,5 +40,5 @@ DEFINE_SYSCALL_HANDLER(bamset)
     }
 #endif /* KLOG_ENABLED */
     
-    return 0;
+    sys_return;
 }

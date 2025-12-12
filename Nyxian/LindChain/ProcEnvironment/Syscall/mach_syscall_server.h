@@ -39,6 +39,16 @@
  */
 #define sys_proc_copy_ ((ksurface_proc_copy_t*)proc_copy)
 
+/*
+ * helping macros for returns and checks
+ */
+#define sys_return_failure(errval) \
+    *err = errval; \
+    return -1
+
+#define sys_return \
+    return 0
+
 /* request message coming from the client */
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */

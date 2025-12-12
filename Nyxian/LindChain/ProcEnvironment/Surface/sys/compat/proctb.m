@@ -28,8 +28,7 @@ DEFINE_SYSCALL_HANDLER(proctb)
     proc_list_err_t error = proc_snapshot_create(sys_proc_copy_, &snap);
     if(error != PROC_LIST_OK)
     {
-        *err = EPERM;
-        return -1;
+        sys_return_failure(EPERM);
     }
     
     /* copy the buffer */
@@ -45,8 +44,7 @@ DEFINE_SYSCALL_HANDLER(proctb)
     if(kr != KERN_SUCCESS)
     {
         /* idk where all that memory has gone */
-        *err = ENOMEM;
-        return -1;
+        sys_return_failure(ENOMEM);
     }
     
     return 0;

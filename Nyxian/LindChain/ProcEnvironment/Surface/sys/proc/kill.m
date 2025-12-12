@@ -32,8 +32,7 @@ DEFINE_SYSCALL_HANDLER(kill)
     /* checking signal bounds */
     if(signal <= 0 || signal >= NSIG)
     {
-        *err = EINVAL;
-        return -1;
+        sys_return_failure(EINVAL);
     }
     
     klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", proc_getpid(sys_proc_copy_), pid, signal);
@@ -48,8 +47,7 @@ DEFINE_SYSCALL_HANDLER(kill)
         !permitive_over_process_allowed(sys_proc_copy_, pid)))
     {
         klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", proc_getpid(sys_proc_copy_), pid);
-        *err = EPERM;
-        return -1;
+        sys_return_failure(EPERM);
     }
 
     /* getting the processes high level structure */
@@ -61,13 +59,12 @@ DEFINE_SYSCALL_HANDLER(kill)
          * of process reference counting.
          */
         klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
-        *err = ESRCH;
-        return -1;
+        sys_return_failure(EPERM);
     }
     
     /* signaling the process */
     [process sendSignal:signal];
     klog_log(@"syscall:kill", @"pid %d signaled pid %d", proc_getpid(sys_proc_copy_), pid);
     
-    return 0;
+    sys_return;
 }

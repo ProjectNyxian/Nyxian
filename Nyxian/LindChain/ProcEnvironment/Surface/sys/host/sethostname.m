@@ -32,15 +32,13 @@ DEFINE_SYSCALL_HANDLER(sethostname)
        !entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementHostManager))
     {
-        *err = EPERM;
-        return -1;
+        sys_return_failure(EPERM);
     }
     
     /* null pointer check */
     if(in_payload == NULL)
     {
-        *err = EINVAL;
-        return -1;
+        sys_return_failure(EINVAL);
     }
     
     /* lock the lock for writing obviously now lol ^^ */

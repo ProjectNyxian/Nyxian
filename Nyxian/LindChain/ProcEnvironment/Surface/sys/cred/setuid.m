@@ -65,12 +65,11 @@ DEFINE_SYSCALL_HANDLER(setuid)
     }
     
     /* setting errno on failure */
-    *err = EPERM;
-    return -1;
+    sys_return_failure(EPERM);
     
 out_update:
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }
 
 DEFINE_SYSCALL_HANDLER(seteuid)
@@ -102,12 +101,11 @@ DEFINE_SYSCALL_HANDLER(seteuid)
     }
     
     /* setting errno on failure */
-    *err = EPERM;
-    return -1;
+    sys_return_failure(EPERM);
     
 out_update:
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }
 
 DEFINE_SYSCALL_HANDLER(setreuid)
@@ -130,8 +128,7 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     {
         if(ruid != cur_ruid && ruid != cur_euid)
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     
@@ -143,8 +140,7 @@ DEFINE_SYSCALL_HANDLER(setreuid)
            euid != cur_euid &&
            euid != cur_svuid)
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     
@@ -165,5 +161,5 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     }
     
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }

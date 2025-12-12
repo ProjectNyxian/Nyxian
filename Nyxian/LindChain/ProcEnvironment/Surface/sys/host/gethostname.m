@@ -45,10 +45,9 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     
     /* unlock the lock */
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
-    return 0;
+    sys_return;
     
 out_fault:
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
-    *err = EFAULT;
-    return -1;
+    sys_return_failure(EFAULT);
 }

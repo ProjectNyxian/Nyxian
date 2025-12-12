@@ -224,7 +224,7 @@ static void* worker_thread(void *ctx)
         /* checking syscall bounds */
         if(req->syscall_num >= MAX_SYSCALLS)
         {
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, ENOSYS);
             goto cleanup;
         }
         
@@ -234,7 +234,7 @@ static void* worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EINVAL);
+            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, ENOSYS);
             goto cleanup;
         }
         

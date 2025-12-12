@@ -29,8 +29,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* check if environment supports tfp */
     if(!environment_supports_tfp())
     {
-        *err = EPERM;
-        return -1;
+        sys_return_failure(EPERM);
     }
     
     /* parse arguments */
@@ -56,8 +55,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         /* null pointer check */
         if(targetProc == NULL)
         {
-            *err = EFAULT;
-            return -1;
+            sys_return_failure(EFAULT);
         }
         
         /* locking target process */
@@ -75,24 +73,21 @@ DEFINE_SYSCALL_HANDLER(gettask)
         /* checking if the caller process got the entitlement to use tfp */
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
         
         /* main permission check */
         if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
            !permitive_over_process_allowed(sys_proc_copy_, pid))
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     else
     {
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
         {
-            *err = EPERM;
-            return -1;
+            sys_return_failure(EPERM);
         }
     }
     
@@ -102,8 +97,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* null pointer check */
     if(tpo == NULL)
     {
-        *err = EFAULT;
-        return -1;
+        sys_return_failure(EFAULT);
     }
     
     /* retaining port */
@@ -115,13 +109,12 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
-        *err = ENOMEM;
-        return -1;
+        sys_return_failure(ENOMEM);
     }
     
     /* set port */
     (*out_ports)[0] = [tpo port];
     *out_ports_cnt = 1;
     
-    return 0;
+    sys_return;
 }
