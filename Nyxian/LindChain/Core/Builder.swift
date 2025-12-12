@@ -192,39 +192,41 @@ class Builder {
     /// Function to build object files
     ///
     func compile() throws {
-        let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
-        guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
-        }
-        
-        for filePath in self.dirtySourceFiles {
-            threader.dispatchExecution( {
-                var issues: NSArray?
-                
-                if self.compiler.compileObject(
-                    filePath,
-                    outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: filePath.URLGet())))",
-                    issues: &issues
-                ) != 0 {
-                    threader.lockdown = true
-                }
-                
-                self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
-                
-                XCButton.incrementProgress(withValue: pstep)
-            }, withCompletion: nil)
-        }
-        
-        threader.wait()
-        
-        if threader.lockdown {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-        }
-        
-        do {
-            try self.argsString.write(to: URL(fileURLWithPath: "\(project.cachePath!)/args.txt"), atomically: false, encoding: .utf8)
-        } catch {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
+        if self.dirtySourceFiles.count > 0 {
+            let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
+            guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
+            }
+            
+            for filePath in self.dirtySourceFiles {
+                threader.dispatchExecution( {
+                    var issues: NSArray?
+                    
+                    if self.compiler.compileObject(
+                        filePath,
+                        outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: filePath.URLGet())))",
+                        issues: &issues
+                    ) != 0 {
+                        threader.lockdown = true
+                    }
+                    
+                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
+                    
+                    XCButton.incrementProgress(withValue: pstep)
+                }, withCompletion: nil)
+            }
+            
+            threader.wait()
+            
+            if threader.lockdown {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+            }
+            
+            do {
+                try self.argsString.write(to: URL(fileURLWithPath: "\(project.cachePath!)/args.txt"), atomically: false, encoding: .utf8)
+            } catch {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
+            }
         }
     }
     
