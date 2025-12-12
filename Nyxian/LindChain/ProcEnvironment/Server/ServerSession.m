@@ -99,7 +99,7 @@
     }
     
     /* creating copy */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(_proc, kProcCopyOptionRetain);
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(_proc, kProcCopyOptionStaticCopy);
     
     /* null pointer check */
     if(proc_copy == NULL)

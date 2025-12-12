@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
-                                         enum kProcCopyOption option)
+                                         kproc_copy_option_t option)
 {
     /* null pointer check */
     if(proc == NULL)
@@ -34,19 +34,7 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     if(!proc_retain(proc))
     {
         /* in-case it consume the processes reference then there is no tolerance consume is consume */
-        if(option == kProcCopyOptionConsumeReference)
-        {
-            /* release to "consume" */
-            proc_release(proc);
-        }
         return NULL;
-    }
-    
-    /* checking if the option is to consume reference */
-    if(option == kProcCopyOptionConsumeReference)
-    {
-        /* release to "consume" */
-        proc_release(proc);
     }
     
     /* allocating copy */
@@ -59,13 +47,23 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
         return NULL;
     }
     
-    /* setting original pointer to reference to the process */
-    proc_copy->proc = proc;
+    /* setting original pointer to reference to the process, but not if its a static copy */
+    if(option != kProcCopyOptionStaticCopy)
+    {
+        proc_copy->proc = proc;
+    }
     
     /* copying the process to the copy */
     proc_read_lock(proc);
     memcpy(&(proc_copy->kproc.kcproc), &(proc->kproc.kcproc), sizeof(ksurface_kcproc_t));
     proc_unlock(proc);
+    
+    /* checking if its consumed reference */
+    if(option == kProcCopyOptionConsumedReferenceCopy ||
+       option == kProcCopyOptionStaticCopy)
+    {
+        proc_release(proc);
+    }
     
     /* boom here you go */
     return proc_copy;
@@ -113,8 +111,11 @@ ksurface_error_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy)
         return kSurfaceErrorNullPtr;
     }
     
-    /* release reference to process */
-    proc_release(proc_copy->proc);
+    /* release reference to process, in case its there */
+    if(proc_copy->proc != NULL)
+    {
+        proc_release(proc_copy->proc);
+    }
     
     /* freeing copy */
     free(proc_copy);

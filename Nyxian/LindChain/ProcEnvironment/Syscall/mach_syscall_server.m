@@ -81,7 +81,7 @@ static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
     }
     
     /* creating process copy with process reference consumption */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionConsumeReference);
+    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionConsumedReferenceCopy);
     
     /* null pointer check */
     if(proc_copy == NULL)

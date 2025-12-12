@@ -42,7 +42,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* creating copy of the parent for safe state copy which consumes the reference we got from proc_for_pid(1) */
-    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetain);
+    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetainedCopy);
     
     /* null pointer check */
     if(parent_copy == NULL)
