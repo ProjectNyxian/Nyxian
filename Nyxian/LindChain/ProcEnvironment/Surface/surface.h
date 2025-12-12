@@ -70,12 +70,12 @@ struct ksurface_proc {
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
     struct kproc {
-         struct kduy_proc {
+         /*struct kduy_proc {
              __strong NSExtension *nsExtension;
              __strong RBSProcessHandle *rbsProcessHandle;
              __strong RBSProcessMonitor *processMonitor;
              __strong FBScene *fbScene;
-         } duy;
+         } duy;*/
         struct kchildren {
             ksurface_proc_t *parent;
             ksurface_proc_t *children[CHILD_PROC_MAX];

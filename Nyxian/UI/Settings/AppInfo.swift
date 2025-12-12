@@ -21,8 +21,8 @@ import Foundation
 import UIKit
 
 // App
-let buildName: String = "Vendetta"
-let buildStage: String = "Alpha"
+let buildName: String = "Kate"
+let buildStage: String = "Pre-Beta"
 
 var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
