@@ -21,7 +21,8 @@
 #include <sys/sysctl.h>
 #include <pthread.h>
 
-void *pthreadBlockTrampoline(void *ptr) {
+static inline void *pthreadBlockTrampoline(void *ptr)
+{
     void (^block)(void) = (__bridge_transfer void (^)(void))ptr;
     block();
     return NULL;
@@ -64,12 +65,8 @@ void *pthreadBlockTrampoline(void *ptr) {
 + (int)getUserSetThreadCount
 {
     NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"cputhreads"];
-    int userSelected = (value && [value isKindOfClass:[NSNumber class]])
-    ? value.intValue
-    : [self getOptimalThreadCount];
-    return (userSelected == 0)
-    ? 1
-    : userSelected;
+    int userSelected = (value && [value isKindOfClass:[NSNumber class]]) ? value.intValue : [self getOptimalThreadCount];
+    return (userSelected == 0) ? 1 : userSelected;
 }
 
 + (void)pthreadDispatch:(void (^)(void))code
@@ -83,7 +80,7 @@ void *pthreadBlockTrampoline(void *ptr) {
 - (void)dispatchExecution:(void (^)(void))code
            withCompletion:(void (^)(void))completion
 {
-    if(self.isLockdown)
+    if(_lockdown)
     {
         completion();
         return;
@@ -91,7 +88,7 @@ void *pthreadBlockTrampoline(void *ptr) {
     
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     
-    if(self.isLockdown)
+    if(_lockdown)
     {
         completion();
         dispatch_semaphore_signal(self.semaphore);
@@ -103,11 +100,6 @@ void *pthreadBlockTrampoline(void *ptr) {
         completion();
         dispatch_semaphore_signal(self.semaphore);
     }];
-}
-
-- (void)lockdown
-{
-    _isLockdown = YES;
 }
 
 @end

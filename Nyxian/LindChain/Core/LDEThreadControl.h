@@ -21,7 +21,7 @@
 
 @interface LDEThreadControl : NSObject
 
-@property (atomic,readonly) BOOL isLockdown;
+@property (atomic,readwrite) BOOL lockdown;
 
 - (instancetype)initWithThreads:(int)threads;
 - (instancetype)init;
@@ -32,6 +32,5 @@
 
 - (void)dispatchExecution:(void (^)(void))code
            withCompletion:(void (^)(void))completion;
-- (void)lockdown;
 
 @end

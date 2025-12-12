@@ -206,7 +206,7 @@ class Builder {
                     outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: filePath.URLGet())))",
                     issues: &issues
                 ) != 0 {
-                    threader?.lockdown()
+                    threader?.lockdown = true
                 }
                 
                 self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
@@ -219,7 +219,7 @@ class Builder {
         
         group.wait()
         
-        if threader?.isLockdown ?? true {
+        if threader?.lockdown ?? true {
             throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
         }
         
