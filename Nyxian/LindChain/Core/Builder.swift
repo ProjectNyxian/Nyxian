@@ -193,14 +193,12 @@ class Builder {
     ///
     func compile() throws {
         let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
-        let group: DispatchGroup = DispatchGroup()
-        guard let threader = LDEThreadControl(threads: UInt32(self.project.projectConfig.threads)) else {
+        guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
             throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
         }
         
         for filePath in self.dirtySourceFiles {
-            group.enter()
-            threader.dispatchExecution {
+            threader.dispatchExecution( {
                 var issues: NSArray?
                 
                 if self.compiler.compileObject(
@@ -214,12 +212,10 @@ class Builder {
                 self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
                 
                 XCButton.incrementProgress(withValue: pstep)
-            } withCompletion: {
-                group.leave()
-            }
+            }, withCompletion: nil)
         }
         
-        group.wait()
+        threader.wait()
         
         if threader.lockdown {
             throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])

@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Core/LDEThreadControl.h>
+#import <LindChain/Utils/LDEThreadController.h>
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 #include <pthread.h>
@@ -36,6 +36,25 @@ void LDEPthreadDispatch(void (^code)(void))
     void *blockPointer = (__bridge_retained void *)code;
     pthread_create(&thread, NULL, pthreadBlockTrampoline, blockPointer);
     pthread_detach(thread);
+}
+
+int LDEGetOptimalThreadCount(void)
+{
+    static int cpuCount = 0;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        size_t size = sizeof(int);
+        int result = sysctlbyname("hw.logicalcpu_max", &cpuCount, &size, NULL, 0);
+        cpuCount = (result == 0 && cpuCount > 0) ? cpuCount : (int)[[NSProcessInfo processInfo] activeProcessorCount];
+    });
+    return cpuCount;
+}
+
+int LDEGetUserSetThreadCount(void)
+{
+    NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"cputhreads"];
+    int userSelected = (value && [value isKindOfClass:[NSNumber class]]) ? value.intValue : LDEGetOptimalThreadCount();
+    return (userSelected == 0) ? 1 : userSelected;
 }
 
 static void *LDEWorkerThreadMain(void *arg)
@@ -96,7 +115,7 @@ static void *LDEWorkerThreadMain(void *arg)
     return NULL;
 }
 
-@interface LDEThreadControl ()
+@interface LDEThreadController ()
 
 @property (nonatomic, strong, readonly) dispatch_semaphore_t semaphore;
 @property (nonatomic, readonly) int threads;
@@ -106,7 +125,7 @@ static void *LDEWorkerThreadMain(void *arg)
 
 @end
 
-@implementation LDEThreadControl
+@implementation LDEThreadController
 
 - (instancetype)initWithThreads:(uint32_t)threads
 {
@@ -118,7 +137,7 @@ static void *LDEWorkerThreadMain(void *arg)
     atomic_init(&_nextWorker, 0);
     for(int i = 0; i < threads; i++)
     {
-        _workers[i].cpuIndex = i % [LDEThreadControl getOptimalThreadCount];
+        _workers[i].cpuIndex = i % LDEGetOptimalThreadCount();
         _workers[i].shouldExit = false;
         _workers[i].hasWork = false;
         pthread_mutex_init(&_workers[i].mutex, NULL);
@@ -130,26 +149,12 @@ static void *LDEWorkerThreadMain(void *arg)
 
 - (instancetype)init
 {
-    return [self initWithThreads:[LDEThreadControl getOptimalThreadCount]];
+    return [self initWithThreads:LDEGetOptimalThreadCount()];
 }
 
-+ (int)getOptimalThreadCount
+- (instancetype)initWithUsersetThreadCount
 {
-    static int cpuCount = 0;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        size_t size = sizeof(int);
-        int result = sysctlbyname("hw.logicalcpu_max", &cpuCount, &size, NULL, 0);
-        cpuCount = (result == 0 && cpuCount > 0) ? cpuCount : (int)[[NSProcessInfo processInfo] activeProcessorCount];
-    });
-    return cpuCount;
-}
-
-+ (int)getUserSetThreadCount
-{
-    NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"cputhreads"];
-    int userSelected = (value && [value isKindOfClass:[NSNumber class]]) ? value.intValue : [self getOptimalThreadCount];
-    return (userSelected == 0) ? 1 : userSelected;
+    return [self initWithThreads:LDEGetUserSetThreadCount()];
 }
 
 - (void)dispatchExecution:(void (^)(void))code

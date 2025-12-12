@@ -18,7 +18,7 @@
 */
 
 #import <Project/NXProject.h>
-#import <LindChain/Core/LDEThreadControl.h>
+#import <LindChain/Utils/LDEThreadController.h>
 #import <Project/NXCodeTemplate.h>
 #import <Nyxian-Swift.h>
 
@@ -38,10 +38,10 @@
 - (int)type { return (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp]; }
 - (int)threads
 {
-    const int maxThreads = [LDEThreadControl getOptimalThreadCount];
-    int pthreads = (int)[self readIntegerForKey:@"LDEOverwriteThreads" withDefaultValue:[LDEThreadControl getUserSetThreadCount]];
+    const int maxThreads = LDEGetOptimalThreadCount();
+    int pthreads = (int)[self readIntegerForKey:@"LDEOverwriteThreads" withDefaultValue:LDEGetUserSetThreadCount()];
     if(pthreads == 0)
-        pthreads = [LDEThreadControl getUserSetThreadCount];
+        pthreads = LDEGetUserSetThreadCount();
     else if(pthreads > maxThreads)
         pthreads = maxThreads;
     return pthreads;

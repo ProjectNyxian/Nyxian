@@ -26,10 +26,10 @@
 #import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
-#import <LindChain/Core/LDEThreadControl.h>
 #import <LindChain/Core/LDEFilesFinder.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
+#import <LindChain/Utils/LDEThreadGroupController.h>
 
 /* LiveContainer Headers */
 #import <LindChain/LiveContainer/LCAppInfo.h>

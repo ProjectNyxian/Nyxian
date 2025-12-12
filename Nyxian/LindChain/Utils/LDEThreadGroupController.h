@@ -17,33 +17,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
+#ifndef LDETHREADGROUPE_H
+#define LDETHREADGROUPE_H
 
-typedef struct {
-    pthread_t thread;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    void (^currentBlock)(void);
-    void (^completionBlock)(void);
-    dispatch_semaphore_t semaphore;
-    int cpuIndex;
-    _Atomic(bool) shouldExit;
-    _Atomic(bool) hasWork;
-} LDEWorkerThread;
+#import <LindChain/Utils/LDEThreadController.h>
 
-@interface LDEThreadControl : NSObject
-
-@property (atomic,readwrite) BOOL lockdown;
+@interface LDEThreadGroupController : LDEThreadController
 
 - (instancetype)initWithThreads:(uint32_t)threads;
 - (instancetype)init;
+- (instancetype)initWithUsersetThreadCount;
 
-+ (int)getOptimalThreadCount;
-+ (int)getUserSetThreadCount;
-
-- (void)dispatchExecution:(void (^)(void))code
-           withCompletion:(void (^)(void))completion;
+- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
+- (void)wait;
 
 @end
 
-void LDEPthreadDispatch(void (^code)(void));
+#endif /* LDETHREADGROUPE_H */
