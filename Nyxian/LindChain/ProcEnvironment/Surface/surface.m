@@ -41,6 +41,27 @@ void kern_sethostname(NSString *hostname)
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
 }
 
+const char *ksurface_error_string(ksurface_error_t error)
+{
+    switch(error)
+    {
+        case kSurfaceErrorSuccess: return "success";
+        case kSurfaceErrorUndefined: return "undefined exception";
+        case kSurfaceErrorNullPtr: return "null pointer exception";
+        case kSurfaceErrorNotFound: return "failed to find requested resource";
+        case kSurfaceErrorNotHoldingLock: return "you aren't holding a certain lock";
+        case kSurfaceErrorOutOfBounds: return "resource request is out of bounds";
+        case kSurfaceErrorDenied: return "request was denied";
+        case kSurfaceErrorAlreadyExists: return "resource already exists";
+        case kSurfaceErrorFailed: return "failure exception";
+        case kSurfaceErrorProcessDead: return "process is already dead";
+        case kSurfaceErrorPidInUse: return "process identifier already in use";
+        case kSurfaceErrorNoMemory: return "no memory left";    /* idk if this string buffer would even print xDDD */
+        case kSurfaceErrorRetentionFailed: return "failed to retain resources";
+        default: return "unknown";
+    }
+}
+
 static inline void ksurface_kinit_kalloc(void)
 {
     /* allocate surface */

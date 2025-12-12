@@ -33,18 +33,19 @@
 #include <pthread.h>
 
 enum kSurfaceError {
-    kSurfaceErrorSuccess        = 0,
-    kSurfaceErrorUndefined      = 1,
-    kSurfaceErrorNullPtr        = 2,
-    kSurfaceErrorNotFound       = 3,
-    kSurfaceErrorNotHoldingLock = 4,
-    kSurfaceErrorOutOfBounds    = 5,
-    kSurfaceErrorDenied         = 6,
-    kSurfaceErrorAlreadyExists  = 7,
-    kSurfaceErrorFailed         = 8,
-    kSurfaceErrorProcessDead    = 9,
-    kSurfaceErrorPidInUse       = 10,
-    kSurfaceErrorNoMemory       = 11
+    kSurfaceErrorSuccess            = 0,
+    kSurfaceErrorUndefined          = 1,
+    kSurfaceErrorNullPtr            = 2,
+    kSurfaceErrorNotFound           = 3,
+    kSurfaceErrorNotHoldingLock     = 4,
+    kSurfaceErrorOutOfBounds        = 5,
+    kSurfaceErrorDenied             = 6,
+    kSurfaceErrorAlreadyExists      = 7,
+    kSurfaceErrorFailed             = 8,
+    kSurfaceErrorProcessDead        = 9,
+    kSurfaceErrorPidInUse           = 10,
+    kSurfaceErrorNoMemory           = 11,
+    kSurfaceErrorRetentionFailed    = 12,
 };
 
 typedef unsigned char ksurface_error_t;
@@ -125,6 +126,8 @@ typedef struct {
 extern ksurface_mapping_t *ksurface;
 
 void kern_sethostname(NSString *hostname);
+const char *ksurface_error_string(ksurface_error_t error);
+
 void ksurface_kinit(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */
