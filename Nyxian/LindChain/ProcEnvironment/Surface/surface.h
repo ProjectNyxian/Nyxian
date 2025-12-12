@@ -24,7 +24,6 @@
 #include <sys/sysctl.h>
 #include <limits.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/ProcEnvironment/Object/MappingPortObject.h>
 #include <LindChain/ProcEnvironment/Surface/radix/radix.h>
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
@@ -71,16 +70,12 @@ struct ksurface_proc {
     _Atomic bool dead;
     pthread_rwlock_t rwlock;
     struct kproc {
-        /*
-         MARK: will be used later as the main structure, called duy to honor his work
-         
          struct kduy_proc {
              __strong NSExtension *nsExtension;
              __strong RBSProcessHandle *rbsProcessHandle;
              __strong RBSProcessMonitor *processMonitor;
              __strong FBScene *fbScene;
          } duy;
-         */
         struct kchildren {
             ksurface_proc_t *parent;
             ksurface_proc_t *children[CHILD_PROC_MAX];

@@ -25,6 +25,7 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
+#import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 
 // TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
 
