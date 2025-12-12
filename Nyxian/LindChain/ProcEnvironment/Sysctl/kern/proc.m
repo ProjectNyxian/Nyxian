@@ -135,8 +135,6 @@ static inline int sysctl_proc_buf_helper(void *buffer,
     size_t needed_bytes = 0;
     
     // Sequence
-    unsigned long seq;
-    
     uint32_t count = sysctl_proc_buf_helper_cnt(pt, pt_cnt, flavour, uid);
     needed_bytes = (size_t)count * sizeof(struct kinfo_proc);
     
@@ -189,7 +187,7 @@ int sysctl_kernprocall(sysctl_req_t *req)
 
 int sysctl_kernprocpid(sysctl_req_t *req)
 {
-    if(!req->oldlenp)
+    /*if(!req->oldlenp)
     {
         errno = EINVAL;
         return -1;
@@ -220,9 +218,9 @@ int sysctl_kernprocpid(sysctl_req_t *req)
         *req->oldlenp = needed;
         errno = ENOMEM;
         return -1;
-    }
+    }*/
 
-    pid_t pid = req->name[3];
+    //pid_t pid = req->name[3];
 
     // TODO: Fix this
     /*ksurface_proc_t proc;
@@ -233,9 +231,10 @@ int sysctl_kernprocpid(sysctl_req_t *req)
     }
 
     memcpy(req->oldp, &(proc.bsd), needed);*/
-    *req->oldlenp = needed;
+    //*req->oldlenp = needed;
 
-    return 0;
+    errno = ENOSYS;
+    return -1;
 }
 
 int sysctl_kernprocuid(sysctl_req_t *req)

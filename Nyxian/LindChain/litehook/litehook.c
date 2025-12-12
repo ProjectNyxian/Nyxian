@@ -73,7 +73,7 @@ void os_thread_self_restrict_tpro_to_ro(void)
 size_t _lth_fstrlen(FILE *f)
 {
     size_t sz = 0;
-    uint32_t prev = ftell(f);
+    uint32_t prev = (uint32_t)ftell(f);
     while (true) {
         char c = 0;
         if (fread(&c, sizeof(c), 1, f) != 1) break;
@@ -220,7 +220,7 @@ void *_litehook_sign_if_executable(void *ptr)
     struct vm_region_submap_short_info_64 info;
     mach_msg_type_number_t info_count = VM_REGION_SUBMAP_SHORT_INFO_COUNT_64;
     natural_t max_depth = 99999;
-    kern_return_t kr = vm_region_recurse_64(mach_task_self(), &region, &region_len, &max_depth, (vm_region_recurse_info_t)&info, &info_count);
+    vm_region_recurse_64(mach_task_self(), &region, &region_len, &max_depth, (vm_region_recurse_info_t)&info, &info_count);
     if (info.protection & PROT_EXEC) {
         return ptrauth_sign_unauthenticated(ptr, ptrauth_key_function_pointer, 0);
     }
@@ -244,7 +244,7 @@ void *litehook_find_symbol(const mach_header_u *header, const char *symbolName)
         else if (lc->cmd == LC_SEGMENT_U) {
             segment_command_u *segCmd = (segment_command_u *)lc;
             if (slide == -1) {
-                slide = (uintptr_t)header - segCmd->vmaddr;
+                slide = (uint32_t)((uintptr_t)header - segCmd->vmaddr);
             }
             if (!strncmp(segCmd->segname, "__LINKEDIT", sizeof(segCmd->segname))) {
                 linkeditSegCommand = segCmd;
@@ -305,7 +305,7 @@ void *litehook_find_symbol_file(const mach_header_u *header, const char *symbolN
         else if (lc->cmd == LC_SEGMENT_U) {
             segment_command_u *segCmd = (segment_command_u *)lc;
             if (slide == -1) {
-                slide = (uintptr_t)header - segCmd->vmaddr;
+                slide = (uint32_t)((uintptr_t)header - segCmd->vmaddr);
             }
         }
 
@@ -357,8 +357,9 @@ void *litehook_find_dsc_symbol(const char *imagePath, const char *symbolName)
     void *symbol = NULL;
 
     FILE *mainDSC = fopen(mainDSCPath, "rb");
+    FILE *symbolDSC = NULL;
     if (!mainDSC) goto end;
-    FILE *symbolDSC = fopen(symbolDSCPath, "rb") ?: mainDSC;
+    symbolDSC = fopen(symbolDSCPath, "rb") ?: mainDSC;
 
     int imageIndex = -1;
 

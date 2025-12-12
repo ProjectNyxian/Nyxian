@@ -29,25 +29,25 @@ static const int mib_kern_proc_all[]        = { CTL_KERN, KERN_PROC, KERN_PROC_A
 static const int mib_kern_proc_pid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_PID };
 
 // Process filtering by category
-static const int mib_kern_proc_pgrp[]       = { CTL_KERN, KERN_PROC, KERN_PROC_PGRP };      /* Needs implementation */
-static const int mib_kern_proc_session[]    = { CTL_KERN, KERN_PROC, KERN_PROC_SESSION };   /* Needs implementation */
-static const int mib_kern_proc_tty[]        = { CTL_KERN, KERN_PROC, KERN_PROC_TTY };       /* Needs implementation */
+//static const int mib_kern_proc_pgrp[]       = { CTL_KERN, KERN_PROC, KERN_PROC_PGRP };      /* Needs implementation */
+//static const int mib_kern_proc_session[]    = { CTL_KERN, KERN_PROC, KERN_PROC_SESSION };   /* Needs implementation */
+//static const int mib_kern_proc_tty[]        = { CTL_KERN, KERN_PROC, KERN_PROC_TTY };       /* Needs implementation */
 static const int mib_kern_proc_uid[]        = { CTL_KERN, KERN_PROC, KERN_PROC_UID };
 static const int mib_kern_proc_ruid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_RUID };
-static const int mib_kern_proc_lcid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_LCID };      /* Needs implementation */
+//static const int mib_kern_proc_lcid[]       = { CTL_KERN, KERN_PROC, KERN_PROC_LCID };      /* Needs implementation */
 
 // Process arguments and environment
-static const int mib_kern_procargs[]       = { CTL_KERN, KERN_PROCARGS };                   /* Needs implementation */
+//static const int mib_kern_procargs[]       = { CTL_KERN, KERN_PROCARGS };                   /* Needs implementation */
 static const int mib_kern_procargs2[]       = { CTL_KERN, KERN_PROCARGS2 };                 /* Needs implementation?*/
 
 // Host information
-static const int mib_kern_hostname[]        = { CTL_KERN, KERN_HOSTNAME };                  /* Needs implementation */
+//static const int mib_kern_hostname[]        = { CTL_KERN, KERN_HOSTNAME };                  /* Needs implementation */
 
 // Machine information
-static const int mib_hw_ncpu[]              = { CTL_HW, HW_NCPU };                          /* Needs implementation */
-static const int mib_hw_memsize[]           = { CTL_HW, HW_MEMSIZE };                       /* Needs implementation */
-static const int mib_hw_machine[]           = { CTL_HW, HW_MACHINE };                       /* Needs implementation */
-static const int mib_hw_model[]             = { CTL_HW, HW_MODEL };                         /* Needs implementation */
+//static const int mib_hw_ncpu[]              = { CTL_HW, HW_NCPU };                          /* Needs implementation */
+//static const int mib_hw_memsize[]           = { CTL_HW, HW_MEMSIZE };                       /* Needs implementation */
+//static const int mib_hw_machine[]           = { CTL_HW, HW_MACHINE };                       /* Needs implementation */
+//static const int mib_hw_model[]             = { CTL_HW, HW_MODEL };                         /* Needs implementation */
 
 static const sysctl_map_entry_t sysctl_map[] = {
     { mib_kern_maxproc,   2, sysctl_kernmaxproc },

@@ -61,28 +61,34 @@ int LCPatchExecSlice(const char *path, struct mach_header_64 *header, bool doInj
     int textSectionOffest = 0;
     struct load_command *command = (struct load_command *)imageHeaderPtr;
     bool codeSignatureCommandFound = false;
-    for(int i = 0; i < header->ncmds; i++) {
-        if(command->cmd == LC_ID_DYLIB) {
-            hasDylibCommand = YES;
-        } else if(command->cmd == LC_LOAD_DYLIB) {
-            struct dylib_command *dylib = (struct dylib_command *)command;
-            char *dylibName = (void *)dylib + dylib->dylib.name.offset;
-        } else if(command->cmd == 0x114514) {
-            dylibLoaderCommand = (struct dylib_command *)command;
-        } else if(command->cmd == LC_SEGMENT_64) {
-            struct segment_command_64* seglc = (struct segment_command_64*)command;
-            if (strcmp("__TEXT", seglc->segname) == 0) {
-                for (uint32_t j = 0; j < seglc->nsects; j++) {
-                    struct section_64* sect = (struct section_64*)(((void*)command + sizeof(struct segment_command_64) + sizeof(struct section_64) * j));
-                    if (0 == strcmp("__text", sect->sectname)) {
-                        textSectionOffest = sect->offset;
+    for(int i = 0; i < header->ncmds; i++)
+    {
+        switch(command->cmd)
+        {
+            case LC_ID_DYLIB:
+                hasDylibCommand = YES;
+                break;
+            case 0x114514:
+                dylibLoaderCommand = (struct dylib_command *)command;
+                break;
+            case LC_SEGMENT_64:
+            {
+                struct segment_command_64* seglc = (struct segment_command_64*)command;
+                if (strcmp("__TEXT", seglc->segname) == 0) {
+                    for (uint32_t j = 0; j < seglc->nsects; j++) {
+                        struct section_64* sect = (struct section_64*)(((void*)command + sizeof(struct segment_command_64) + sizeof(struct section_64) * j));
+                        if (0 == strcmp("__text", sect->sectname)) {
+                            textSectionOffest = sect->offset;
+                        }
                     }
                 }
+                break;
             }
-        } else if (command->cmd == LC_CODE_SIGNATURE) {
-            codeSignatureCommandFound = true;
+            case LC_CODE_SIGNATURE:
+                codeSignatureCommandFound = true;
+            default:
+                break;
         }
-        
         command = (struct load_command *)((void *)command + command->cmdsize);
     }
     long freeLoadCommandCountLeft = (void*)header + textSectionOffest - (void*)command;

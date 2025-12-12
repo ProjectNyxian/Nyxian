@@ -23,11 +23,6 @@ NSUserDefaults *lcUserDefaults;
 NSBundle *lcMainBundle;
 NSBundle *guestMainBundle;
 
-static uint64_t rnd64(uint64_t v, uint64_t r) {
-    r--;
-    return (v + r) & ~r;
-}
-
 void overwriteMainCFBundle(void) {
     // Overwrite CFBundleGetMainBundle
     uint32_t *pc = (uint32_t *)CFBundleGetMainBundle;
@@ -134,10 +129,11 @@ static void *getAppEntryPoint(void *handle) {
     const struct mach_header_64 *header = (struct mach_header_64 *)getGuestAppHeader();
     uint8_t *imageHeaderPtr = (uint8_t*)header + sizeof(struct mach_header_64);
     struct load_command *command = (struct load_command *)imageHeaderPtr;
-    for(int i = 0; i < header->ncmds > 0; ++i) {
+    for (int i = 0; (i < header->ncmds) > 0; ++i)
+    {
         if(command->cmd == LC_MAIN) {
             struct entry_point_command ucmd = *(struct entry_point_command *)imageHeaderPtr;
-            entryoff = ucmd.entryoff;
+            entryoff = (uint32_t)ucmd.entryoff;
             break;
         }
         imageHeaderPtr += command->cmdsize;
@@ -215,9 +211,4 @@ NSString* invokeAppMain(NSString *executablePath,
         return @"Could not find the main entry point";
 
     return [NSString stringWithFormat:@"App returned from its main function with code %d.", appMain(argc, argv)];
-}
-
-static void exceptionHandler(NSException *exception) {
-    NSString *error = [NSString stringWithFormat:@"%@\nCall stack: %@", exception.reason, exception.callStackSymbols];
-    [lcUserDefaults setObject:error forKey:@"error"];
 }

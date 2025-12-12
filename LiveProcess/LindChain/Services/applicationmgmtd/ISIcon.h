@@ -88,9 +88,9 @@
 - (id)initWithBundleURL:(id)arg1 iconDictionary:(id)arg2 options:(unsigned long long)arg3;
 - (void)resolveResources;
 - (id)resourceNamed:(id)arg1;
-- (void)setBundleURL:(id)arg1;
-- (void)setIconDictionary:(id)arg1;
-- (void)setTemplateType:(id)arg1;
+- (void)setBundleURL:(NSURL*)arg1;
+- (void)setIconDictionary:(NSDictionary*)arg1;
+- (void)setTemplateType:(NSString*)arg1;
 - (id)symbol;
 - (id)templateType;
 
@@ -223,7 +223,7 @@
 - (void)setDisableSubtype:(bool)arg1;
 - (void)setLayoutDirection:(long long)arg1;
 - (id)symbolImageForFontSize:(double)arg1 scale:(double)arg2 symbolSize:(unsigned long long)arg3 symbolWeight:(long long)arg4;
-- (id)symbolImageForSize:(struct CGSize { double x1; double x2; })arg1 scale:(double)arg2;
+- (id)symbolImageForSize:(CGSize)arg1 scale:(double)arg2;
 - (id)symbolName;
 
 @end
@@ -252,7 +252,7 @@
 - (id)init;
 - (id)initWithImages:(id)arg1;
 - (void)insertImage:(id)arg1;
-- (void)setImagesByScale:(id)arg1;
+- (void)setImagesByScale:(NSMutableDictionary*)arg1;
 
 // Image: /System/Library/PrivateFrameworks/IconServices.framework/IconServices
 

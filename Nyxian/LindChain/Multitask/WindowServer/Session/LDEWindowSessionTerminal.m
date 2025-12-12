@@ -89,7 +89,7 @@
                    withFrame:(CGRect)rect
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.terminal resignFirstResponder];
+        BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
     [_process terminate];
 }

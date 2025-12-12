@@ -153,10 +153,6 @@ bool zsignMachO(NSString *machoPath,
 
     __block ZMachO* macho = new ZMachO();
     if (!macho->Init(machoPath.UTF8String)) {
-        NSDictionary* userInfo = @{
-            NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Invalid Mach-O file: %@", machoPath]
-        };
-        NSError* error = [NSError errorWithDomain:@"MachOSignError" code:-1 userInfo:userInfo];
         delete macho;
         ZLog::logs.clear();
         return NO;

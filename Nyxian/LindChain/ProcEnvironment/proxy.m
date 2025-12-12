@@ -48,64 +48,12 @@ static id _Nullable sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
     return result;
 }
 
-static NSArray* _Nullable sync_call_with_timeout2(void (^invoke)(void (^reply)(id,id)))
-{
-    __block NSArray *result = nil;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(id obj, id obj2){
-        result = @[obj, obj2];
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    if (waited != 0) return nil;
-    return result;
-}
-
-static int sync_call_with_timeout_int(void (^invoke)(void (^reply)(int)))
-{
-    __block int result = -1;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(int val){
-        result = val;
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    return (waited == 0) ? result : -1;
-}
-
 static unsigned int sync_call_with_timeout_uint(void (^invoke)(void (^reply)(unsigned int)))
 {
     __block unsigned int result = -1;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
     invoke(^(unsigned int val){
-        result = val;
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    return (waited == 0) ? result : -1;
-}
-
-static unsigned long sync_call_with_timeout_ul(void (^invoke)(void (^reply)(unsigned long)))
-{
-    __block unsigned long result = -1;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(unsigned long val){
         result = val;
         dispatch_semaphore_signal(sem);
     });

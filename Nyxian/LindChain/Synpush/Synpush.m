@@ -25,53 +25,6 @@
 
 #pragma mark - Small C helpers
 
-static inline const char* cxstring_to_cstr_dup(CXString s) {
-    const char* cstr = clang_getCString(s);
-    char* result = cstr ? strdup(cstr) : NULL;
-    clang_disposeString(s);
-    return result;
-}
-
-static inline char* build_completion_typed_or_text(CXCompletionString cs) {
-    unsigned n = clang_getNumCompletionChunks(cs);
-
-    for (unsigned i = 0; i < n; ++i) {
-        enum CXCompletionChunkKind kind = clang_getCompletionChunkKind(cs, i);
-        if (kind == CXCompletionChunk_TypedText) {
-            CXString s = clang_getCompletionChunkText(cs, i);
-            const char* c = clang_getCString(s);
-            char* out = c ? strdup(c) : NULL;
-            clang_disposeString(s);
-            return out;
-        }
-    }
-
-    size_t total = 0;
-    for (unsigned i = 0; i < n; ++i) {
-        enum CXCompletionChunkKind kind = clang_getCompletionChunkKind(cs, i);
-        if (kind == CXCompletionChunk_TypedText || kind == CXCompletionChunk_Text) {
-            CXString s = clang_getCompletionChunkText(cs, i);
-            const char* c = clang_getCString(s);
-            if (c) total += strlen(c);
-            clang_disposeString(s);
-        }
-    }
-    if (total == 0) return NULL;
-
-    char* out = (char*)malloc(total + 1);
-    out[0] = '\0';
-    for (unsigned i = 0; i < n; ++i) {
-        enum CXCompletionChunkKind kind = clang_getCompletionChunkKind(cs, i);
-        if (kind == CXCompletionChunk_TypedText || kind == CXCompletionChunk_Text) {
-            CXString s = clang_getCompletionChunkText(cs, i);
-            const char* c = clang_getCString(s);
-            if (c) strcat(out, c);
-            clang_disposeString(s);
-        }
-    }
-    return out;
-}
-
 static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     switch (severity) {
         case CXDiagnostic_Note:    return 0;

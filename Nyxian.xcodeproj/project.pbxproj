@@ -147,7 +147,7 @@
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/Init.mm,
 				LindChain/litehook/litehook.c,
-				LindChain/LiveContainer/dyld_bypass_validation.m,
+				LindChain/LiveContainer/builtin_vm_protect.m,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,
 				LindChain/LiveContainer/Tweaks/Dead10ccFix.m,
