@@ -256,16 +256,6 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     return YES;
 }
 
-- (void)setRequestCancellationBlock:(void(^)(NSUUID *uuid, NSError *error))callback
-{
-    [_extension setRequestCancellationBlock:callback];
-}
-
-- (void)setRequestInterruptionBlock:(void(^)(NSUUID *uuid))callback
-{
-    [_extension setRequestInterruptionBlock:callback];
-}
-
 - (void)setExitingCallback:(void(^)(void))callback
 {
     _exitingCallback = callback;
