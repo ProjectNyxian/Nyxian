@@ -23,6 +23,9 @@
 
 DEFINE_SYSCALL_HANDLER(sethostname)
 {
+    /* checking input payload */
+    sys_need_in_payload_with_len(1);
+    
     /*
      * check permitives
      * root user and platform processes shall be entitled to set hostname
@@ -33,12 +36,6 @@ DEFINE_SYSCALL_HANDLER(sethostname)
        !entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementHostManager))
     {
         sys_return_failure(EPERM);
-    }
-    
-    /* null pointer check */
-    if(in_payload == NULL)
-    {
-        sys_return_failure(EINVAL);
     }
     
     /* lock the lock for writing obviously now lol ^^ */

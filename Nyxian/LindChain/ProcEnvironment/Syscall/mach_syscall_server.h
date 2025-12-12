@@ -39,15 +39,39 @@
  */
 #define sys_proc_copy_ ((ksurface_proc_copy_t*)proc_copy)
 
-/*
- * helping macros for returns and checks
- */
+/* helping macros for returns and checks */
 #define sys_return_failure(errval) \
     *err = errval; \
     return -1
 
 #define sys_return \
     return 0
+
+#define sys_need_in_payload \
+    if(in_payload == NULL) \
+    { \
+        sys_return_failure(EINVAL); \
+    }
+
+#define sys_need_in_payload_with_len(len) \
+    if(in_payload == NULL || \
+       in_len < len) \
+    { \
+        sys_return_failure(EINVAL); \
+    }
+
+#define sys_need_in_ports \
+    if(in_ports == NULL) \
+    { \
+        sys_return_failure(EINVAL); \
+    }
+
+#define sys_need_in_ports_with_cnt(cnt) \
+    if(in_ports == NULL || \
+       in_ports_cnt > cnt) \
+    { \
+        sys_return_failure(EINVAL); \
+    }
 
 /* request message coming from the client */
 typedef struct {

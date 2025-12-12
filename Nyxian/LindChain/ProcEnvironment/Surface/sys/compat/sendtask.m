@@ -24,11 +24,7 @@
 DEFINE_SYSCALL_HANDLER(sendtask)
 {
     /* null pointer and n check */
-    if(in_ports == NULL ||
-       in_ports_cnt != 1)
-    {
-        sys_return_failure(EINVAL);
-    }
+    sys_need_in_ports_with_cnt(1);
     
     /* check if tpo is supported */
     if(!environment_supports_tfp())

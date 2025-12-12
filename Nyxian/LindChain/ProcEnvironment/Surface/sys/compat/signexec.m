@@ -25,11 +25,7 @@
 DEFINE_SYSCALL_HANDLER(signexec)
 {
     /* checking input mach ports, so attacker cannot do silly things */
-    if(in_ports == NULL ||
-       in_ports_cnt == 0)
-    {
-        sys_return_failure(EINVAL);
-    }
+    sys_need_in_ports_with_cnt(1);
     
     /* check entitlements */
     if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
