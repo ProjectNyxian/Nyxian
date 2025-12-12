@@ -19,7 +19,9 @@
 
 #import <LindChain/Core/LDEThreadControl.h>
 #include <sys/sysctl.h>
+#include <mach/mach.h>
 #include <pthread.h>
+#include <stdatomic.h>
 
 static inline void *pthreadBlockTrampoline(void *ptr)
 {
@@ -28,20 +30,101 @@ static inline void *pthreadBlockTrampoline(void *ptr)
     return NULL;
 }
 
+void LDEPthreadDispatch(void (^code)(void))
+{
+    pthread_t thread;
+    void *blockPointer = (__bridge_retained void *)code;
+    pthread_create(&thread, NULL, pthreadBlockTrampoline, blockPointer);
+    pthread_detach(thread);
+}
+
+static void *LDEWorkerThreadMain(void *arg)
+{
+    /* getting thread worker */
+    LDEWorkerThread *worker = (LDEWorkerThread *)arg;
+    
+    /* pin current thread to a certain groups of CPUs */
+    thread_affinity_policy_data_t policy = { .affinity_tag = worker->cpuIndex + 1 };
+    thread_policy_set(pthread_mach_thread_np(pthread_self()), THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, THREAD_AFFINITY_POLICY_COUNT);
+    
+    /* execution flow loop, gives me mach syscall server vibes ^^ */
+    while(!atomic_load(&worker->shouldExit))
+    {
+        pthread_mutex_lock(&worker->mutex);
+        
+        /* waiting on work */
+        while(!atomic_load(&worker->hasWork) && !atomic_load(&worker->shouldExit))
+        {
+            pthread_cond_wait(&worker->cond, &worker->mutex);
+        }
+        
+        /* checking if we shall exit */
+        if(atomic_load(&worker->shouldExit))
+        {
+            pthread_mutex_unlock(&worker->mutex);
+            break;
+        }
+        
+        /* setting blocks up  */
+        void (^code)(void) = worker->currentBlock;
+        void (^completion)(void) = worker->completionBlock;
+        
+        /* getting semaphore */
+        dispatch_semaphore_t sem = worker->semaphore;
+        
+        /* storing that we are working on API request rawrrr x3 */
+        atomic_store(&worker->hasWork, false);
+        
+        pthread_mutex_unlock(&worker->mutex);
+        
+        /* checking if there is code to execute */
+        if(code)
+        {
+            code();
+        }
+        if(completion)
+        {
+            completion();
+        }
+        if(sem)
+        {
+            /* signaling semaphore ofc */
+            dispatch_semaphore_signal(sem);
+        }
+    }
+    
+    return NULL;
+}
+
 @interface LDEThreadControl ()
 
-@property (nonatomic,strong,readonly) dispatch_semaphore_t semaphore;
-@property (nonatomic,readonly) int threads;
+@property (nonatomic, strong, readonly) dispatch_semaphore_t semaphore;
+@property (nonatomic, readonly) int threads;
+@property (nonatomic, assign) LDEWorkerThread *workers;
+@property (nonatomic, assign) int workerCount;
+@property (nonatomic, assign) _Atomic(int) nextWorker;
 
 @end
 
 @implementation LDEThreadControl
 
-- (instancetype)initWithThreads:(int)threads
+- (instancetype)initWithThreads:(uint32_t)threads
 {
     self = [super init];
+    _threads = (threads == 0) ? 1 : threads;
     _semaphore = dispatch_semaphore_create(threads);
-    _threads = threads;
+    _workerCount = threads;
+    _workers = calloc(threads, sizeof(LDEWorkerThread));
+    atomic_init(&_nextWorker, 0);
+    for(int i = 0; i < threads; i++)
+    {
+        _workers[i].cpuIndex = i % [LDEThreadControl getOptimalThreadCount];
+        _workers[i].shouldExit = false;
+        _workers[i].hasWork = false;
+        pthread_mutex_init(&_workers[i].mutex, NULL);
+        pthread_cond_init(&_workers[i].cond, NULL);
+        pthread_create(&_workers[i].thread, NULL, LDEWorkerThreadMain, &_workers[i]);
+    }
     return self;
 }
 
@@ -69,20 +152,13 @@ static inline void *pthreadBlockTrampoline(void *ptr)
     return (userSelected == 0) ? 1 : userSelected;
 }
 
-+ (void)pthreadDispatch:(void (^)(void))code
-{
-    pthread_t thread;
-    void *blockPointer = (__bridge_retained void *)code;
-    pthread_create(&thread, NULL, pthreadBlockTrampoline, blockPointer);
-    pthread_detach(thread);
-}
-
 - (void)dispatchExecution:(void (^)(void))code
            withCompletion:(void (^)(void))completion
 {
-    if(_lockdown)
+    if(code == NULL ||
+       _lockdown)
     {
-        completion();
+        if(completion) completion();
         return;
     }
     
@@ -90,16 +166,38 @@ static inline void *pthreadBlockTrampoline(void *ptr)
     
     if(_lockdown)
     {
-        completion();
+        if(completion) completion();
         dispatch_semaphore_signal(self.semaphore);
         return;
     }
     
-    [LDEThreadControl pthreadDispatch:^{
-        code();
-        completion();
-        dispatch_semaphore_signal(self.semaphore);
-    }];
+    int workerIndex = atomic_fetch_add(&_nextWorker, 1) % _workerCount;
+    LDEWorkerThread *worker = &_workers[workerIndex];
+    pthread_mutex_lock(&worker->mutex);
+    worker->currentBlock = code;
+    worker->completionBlock = completion;
+    worker->semaphore = self.semaphore;
+    atomic_store(&worker->hasWork, true);
+    pthread_cond_signal(&worker->cond);
+    pthread_mutex_unlock(&worker->mutex);
+}
+
+- (void)dealloc
+{
+    for(int i = 0; i < _workerCount; i++)
+    {
+        pthread_mutex_lock(&_workers[i].mutex);
+        atomic_store(&_workers[i].shouldExit, true);
+        pthread_cond_signal(&_workers[i].cond);
+        pthread_mutex_unlock(&_workers[i].mutex);
+    }
+    for(int i = 0; i < _workerCount; i++)
+    {
+        pthread_join(_workers[i].thread, NULL);
+        pthread_mutex_destroy(&_workers[i].mutex);
+        pthread_cond_destroy(&_workers[i].cond);
+    }
+    free(_workers);
 }
 
 @end

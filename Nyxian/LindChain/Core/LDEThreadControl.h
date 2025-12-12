@@ -19,18 +19,31 @@
 
 #import <Foundation/Foundation.h>
 
+typedef struct {
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    void (^currentBlock)(void);
+    void (^completionBlock)(void);
+    dispatch_semaphore_t semaphore;
+    int cpuIndex;
+    _Atomic(bool) shouldExit;
+    _Atomic(bool) hasWork;
+} LDEWorkerThread;
+
 @interface LDEThreadControl : NSObject
 
 @property (atomic,readwrite) BOOL lockdown;
 
-- (instancetype)initWithThreads:(int)threads;
+- (instancetype)initWithThreads:(uint32_t)threads;
 - (instancetype)init;
 
 + (int)getOptimalThreadCount;
 + (int)getUserSetThreadCount;
-+ (void)pthreadDispatch:(void (^)(void))code;
 
 - (void)dispatchExecution:(void (^)(void))code
            withCompletion:(void (^)(void))completion;
 
 @end
+
+void LDEPthreadDispatch(void (^code)(void));

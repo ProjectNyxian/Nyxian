@@ -73,7 +73,7 @@ import Foundation
     
     @objc func bootstrap() {
         print("[*] Hello LindDE:Bootstrap")
-        LDEThreadControl.pthreadDispatch {
+        LDEPthreadDispatch {
             print("[*] install status: \(self.isBootstrapInstalled)")
             print("[*] version: \(self.bootstrapVersion)")
             

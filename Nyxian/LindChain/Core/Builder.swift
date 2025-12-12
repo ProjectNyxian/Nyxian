@@ -194,11 +194,13 @@ class Builder {
     func compile() throws {
         let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
         let group: DispatchGroup = DispatchGroup()
-        let threader = LDEThreadControl(threads: self.project.projectConfig.threads)
+        guard let threader = LDEThreadControl(threads: UInt32(self.project.projectConfig.threads)) else {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
+        }
         
         for filePath in self.dirtySourceFiles {
             group.enter()
-            threader?.dispatchExecution {
+            threader.dispatchExecution {
                 var issues: NSArray?
                 
                 if self.compiler.compileObject(
@@ -206,7 +208,7 @@ class Builder {
                     outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: filePath.URLGet())))",
                     issues: &issues
                 ) != 0 {
-                    threader?.lockdown = true
+                    threader.lockdown = true
                 }
                 
                 self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
@@ -219,7 +221,7 @@ class Builder {
         
         group.wait()
         
-        if threader?.lockdown ?? true {
+        if threader.lockdown {
             throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
         }
         
@@ -306,7 +308,7 @@ class Builder {
         
         XCButton.resetProgress()
         
-        LDEThreadControl.pthreadDispatch {
+        LDEPthreadDispatch {
             Bootstrap.shared.waitTillDone()
             
             var result: Bool = true
