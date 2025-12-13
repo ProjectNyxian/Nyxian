@@ -97,13 +97,35 @@
   ],
   "news": [
     {
+      "title": "Nyxian 0.8 released!",
+      "identifier": "news_8ckhxfh372",
+      "caption": "Kate (Pre-Beta)",
+      "date": "2025-12-13T10:08",
+      "tintColor": "#be99e4",
+      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "notify": true,
+      "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.8.0",
+      "appID": "com.cr4zy.nyxian"
+    },
+    {
+      "title": "Nyxian 0.7 released!",
+      "identifier": "news_ks7so80lmx",
+      "caption": "Vendetta (Indev)",
+      "date": "2025-11-28T16:30",
+      "tintColor": "#be99e4",
+      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "notify": false,
+      "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/20251128a",
+      "appID": "com.cr4zy.nyxian"
+    },
+    {
       "title": "Nyxian 0.6 released!",
       "identifier": "news_wesu0cbrsb",
       "caption": "CottonCandy (Indev)",
       "date": "2025-09-06T00:00",
       "tintColor": "#ff82a4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
-      "notify": true,
+      "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.6.0",
       "appID": "com.cr4zy.nyxian"
     }
