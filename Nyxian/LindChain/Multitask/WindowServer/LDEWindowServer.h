@@ -22,7 +22,6 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <Project/NXProject.h>
 #import <LindChain/Multitask/WindowServer/LDEWindow.h>
 #import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 

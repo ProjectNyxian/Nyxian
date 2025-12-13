@@ -18,7 +18,7 @@
 */
 
 #import <UI/TableCells/NXProjectTableCell.h>
-#import <Project/NXProject.h>
+#import <LindChain/Project/NXProject.h>
 
 @implementation NXProjectTableCell
 

@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Project/NXPlistHelper.h>
+#import <LindChain/Project/NXPlistHelper.h>
 #import <CommonCrypto/CommonDigest.h>
 
 @interface NXPlistHelper ()

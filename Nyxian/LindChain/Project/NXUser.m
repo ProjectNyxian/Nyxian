@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Project/NXUser.h>
+#import <LindChain/Project/NXUser.h>
 
 @interface NXUser ()
 

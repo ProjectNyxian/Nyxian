@@ -55,10 +55,10 @@
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 
 /* Project Headers */
-#import <Project/NXUser.h>
-#import <Project/NXCodeTemplate.h>
-#import <Project/NXPlistHelper.h>
-#import <Project/NXProject.h>
+#import <LindChain/Project/NXUser.h>
+#import <LindChain/Project/NXCodeTemplate.h>
+#import <LindChain/Project/NXPlistHelper.h>
+#import <LindChain/Project/NXProject.h>
 
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>

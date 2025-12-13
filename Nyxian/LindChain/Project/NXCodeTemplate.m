@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Project/NXCodeTemplate.h>
-#import <Project/NXUser.h>
+#import <LindChain/Project/NXCodeTemplate.h>
+#import <LindChain/Project/NXUser.h>
 
 @implementation NXCodeTemplate
 

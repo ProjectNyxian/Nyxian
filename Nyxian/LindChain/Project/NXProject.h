@@ -21,7 +21,7 @@
 #define NXPROJECT_H
 
 #import <Foundation/Foundation.h>
-#import <Project/NXPlistHelper.h>
+#import <LindChain/Project/NXPlistHelper.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 typedef int NXProjectType NS_TYPED_ENUM;

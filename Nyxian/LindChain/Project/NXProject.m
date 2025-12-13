@@ -17,9 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Project/NXProject.h>
+#import <LindChain/Project/NXProject.h>
 #import <LindChain/Utils/LDEThreadController.h>
-#import <Project/NXCodeTemplate.h>
+#import <LindChain/Project/NXCodeTemplate.h>
 #import <Nyxian-Swift.h>
 
 @implementation NXProjectConfig
