@@ -87,9 +87,12 @@ static void *LDEWorkerThreadMain(void *arg)
         /* setting blocks up  */
         void (^code)(void) = worker->currentBlock;
         void (^completion)(void) = worker->completionBlock;
-        
-        /* getting semaphore */
         dispatch_semaphore_t sem = worker->semaphore;
+        
+        /* clear worker references to allow ARC to release captured objects */
+        worker->currentBlock = nil;
+        worker->completionBlock = nil;
+        worker->semaphore = nil;
         
         /* storing that we are working on API request rawrrr x3 */
         atomic_store(&worker->hasWork, false);

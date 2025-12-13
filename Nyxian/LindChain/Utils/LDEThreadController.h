@@ -30,9 +30,9 @@ typedef struct {
     pthread_t thread;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-    void (^currentBlock)(void);
-    void (^completionBlock)(void);
-    dispatch_semaphore_t semaphore;
+    void (^__strong currentBlock)(void);
+    void (^__strong completionBlock)(void);
+    dispatch_semaphore_t __strong semaphore;
     int cpuIndex;
     _Atomic(bool) shouldExit;
     _Atomic(bool) hasWork;
