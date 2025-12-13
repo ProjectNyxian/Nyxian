@@ -21,14 +21,24 @@
       "screenshots": [],
       "versions": [
         {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.0/nyxian_0.8.0_kate.ipa",
+          "size": 148000000,
+          "version": "0.8.0",
+          "buildVersion": "20251212.104",
+          "marketingVersion": "Kate",
+          "date": "2025-12-13T10:08:00+01:00",
+          "localizedDescription": "### Changelog\r\n- Added support for 3D rendering frameworks (simd fix)\r\n- Implemented hardened kernel virtualization layer\r\n- Introduced pointers to the kernel virtualization layer\r\n- Improved a lot of kernel APIs\r\n- Improved compilation speed(introduced `LDEGroupThreadController` and `LDEThreadController` that now work way more managed by the mach API)\r\n- Added actual syscall translation to the kernel virtualization layer that will entirely replace the `ServerSession` NSXPC proxy\r\n- Fixed a ton of race conditions and logic vulnerabilities\r\n- Improved design a lot(especially in app switcher)\r\n- Fixed UNIX semantics(we were treating ruid as euid ;w;)\r\n- Resecuring instead of bypassing the NSExtension security\r\n- Fixed(again) gethostname and sethostname\r\n\r\n### Notes\r\nIn 0.9.x aka the beta of Nyxian we introduce swift support to Nyxian. swift is a mess to patch and optimize for use in iOS and we actually care about user experience.",
+          "minOSVersion": "16.0"
+        },
+        {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/20251128a/nyxian_20251128a.ipa",
           "size": 148000000,
           "version": "1.0",
           "buildVersion": "1",
           "marketingVersion": "20251128a",
           "date": "2025-11-28T16:30:00+01:00",
-          "localizedDescription": "Changelog\n- Fixed keyboard toolbar not floating on iOS 26.\n- Changed application template to use SceneDelegate lifecycle and to be 1:1 with apples swift template.\n- Updated Nyxian to use SceneDelegate lifecycle.\n- Fixed up appearance of menus and UI elements in iOS 26\n- Replaced blur effect with glass effect on app switcher iOS 26\n- Fixed up theming system and added new themes.. \"ForestDusk\",\"TransPride\",\"NeonGlow\",\"OLEDBlack\" and \"Scriptorium",
-          "minOSVersion": "17.0"
+          "localizedDescription": "### Changelog\r\n#### UI & UX\r\n- Added modernized iOS 26 UI\r\n- Rewrote XCButton in ObjC\r\n- Added a app switcher button for iOS 26\r\n#### Kernel Virtualization Layer\r\n- Fixed vulnerability #14 \"Daemon endpoint override\"  (Addressed with improved logic checks)\r\n- Fixed vulnerability #15 \"Duplicated process entries\" (Addressed with improved logic checks)\r\n- Improved proc api\r\n### Note\r\nAlthough the changelog is not that big the change in Nyxian is huge. The fixed vulnerabilities caused tremendous trouble, Nyxians stability is tremendously improved in this build!",
+          "minOSVersion": "16.0"
         }
       ],
       "appPermissions": {
@@ -87,13 +97,35 @@
   ],
   "news": [
     {
+      "title": "Nyxian 0.8 released!",
+      "identifier": "news_8ckhxfh372",
+      "caption": "Kate (Pre-Beta)",
+      "date": "2025-12-13T10:08",
+      "tintColor": "#be99e4",
+      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "notify": true,
+      "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.8.0",
+      "appID": "com.cr4zy.nyxian"
+    },
+    {
+      "title": "Nyxian 0.7 released!",
+      "identifier": "news_ks7so80lmx",
+      "caption": "Vendetta (Indev)",
+      "date": "2025-11-28T16:30",
+      "tintColor": "#be99e4",
+      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "notify": false,
+      "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/20251128a",
+      "appID": "com.cr4zy.nyxian"
+    },
+    {
       "title": "Nyxian 0.6 released!",
       "identifier": "news_wesu0cbrsb",
       "caption": "CottonCandy (Indev)",
       "date": "2025-09-06T00:00",
       "tintColor": "#ff82a4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
-      "notify": true,
+      "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.6.0",
       "appID": "com.cr4zy.nyxian"
     }
