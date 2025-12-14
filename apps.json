@@ -24,8 +24,6 @@
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.1/nyxian_0.8.1_kate.ipa",
           "size": 148000000,
           "version": "0.8.1",
-          "buildVersion": "20251214.2",
-          "marketingVersion": "Kate",
           "date": "2025-12-14T0:00:00+00:00",
           "localizedDescription": "EXTREMELY NECESSARY UPDATE\r\n\r\n### Changelog\r\n- Fixed  `LDEThreadController` object leak causing infinite pthreads to be created\r\n- Fixed sub iOS 26.0 crash in code editor",
           "minOSVersion": "17.0"
