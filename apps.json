@@ -27,7 +27,7 @@
           "buildVersion": "20251214.2",
           "marketingVersion": "Kate",
           "date": "2025-12-14T0:00:00+00:00",
-          "localizedDescription": "### Changelog\r\n- Fixed LDEThreadController object leak causing infinite pthreads to be created\r\n- Fixed sub iOS 26.0 crash in code editor",
+          "localizedDescription": "EXTREMELY NECESSARY UPDATE\r\n\r\n### Changelog\r\n- Fixed  `LDEThreadController` object leak causing infinite pthreads to be created\r\n- Fixed sub iOS 26.0 crash in code editor",
           "minOSVersion": "17.0"
         },
         {
@@ -43,7 +43,7 @@
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/20251128a/nyxian_20251128a.ipa",
           "size": 148000000,
-          "version": "0.7.0",
+          "version": "1.0",
           "buildVersion": "1",
           "marketingVersion": "20251128a",
           "date": "2025-11-28T16:30:00+01:00",
@@ -113,7 +113,7 @@
       "date": "2025-12-13T10:08",
       "tintColor": "#be99e4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
-      "notify": true,
+      "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.8.0",
       "appID": "com.cr4zy.nyxian"
     },
