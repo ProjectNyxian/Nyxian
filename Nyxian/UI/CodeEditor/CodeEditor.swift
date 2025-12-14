@@ -322,27 +322,29 @@ class CodeEditorViewController: UIViewController {
     }
 
     @objc func keyboardWillShow(notification: NSNotification) {
-        guard let userInfo = notification.userInfo,
+        guard #available(iOS 26.0, *),
+              let floatingToolbar = self.floatingToolbar,
+              let userInfo = notification.userInfo,
               let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
             return
         }
-
-        let bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (self.floatingToolbar!.frame.height + 10)
+        
+        let bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (floatingToolbar.frame.height + 10)
         textView.contentInset.bottom = bottomInset
         textView.verticalScrollIndicatorInsets.bottom = bottomInset
         
-        if #available(iOS 26.0, *) {
-            floatingToolbar?.isHidden = false
-            floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
-            UIView.animate(withDuration: duration) {
-                self.view.layoutIfNeeded()
-            }
+        floatingToolbar.isHidden = false
+        floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
+        UIView.animate(withDuration: duration) {
+            self.view.layoutIfNeeded()
         }
     }
 
     @objc func keyboardWillHide(notification: NSNotification) {
-        guard let userInfo = notification.userInfo,
+        guard #available(iOS 26.0, *),
+              let floatingToolbar = self.floatingToolbar,
+              let userInfo = notification.userInfo,
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
             textView.contentInset = .zero
             textView.scrollIndicatorInsets = .zero
@@ -352,13 +354,11 @@ class CodeEditorViewController: UIViewController {
         textView.contentInset = .zero
         textView.scrollIndicatorInsets = .zero
         
-        if #available(iOS 26.0, *) {
-            UIView.animate(withDuration: duration) {
-                self.floatingToolbarBottomConstraint?.constant = 100
-                self.view.layoutIfNeeded()
-            } completion: { _ in
-                self.floatingToolbar?.isHidden = true
-            }
+        UIView.animate(withDuration: duration) {
+            self.floatingToolbarBottomConstraint?.constant = 100
+            self.view.layoutIfNeeded()
+        } completion: { _ in
+            floatingToolbar.isHidden = true
         }
     }
     
