@@ -21,16 +21,6 @@
       "screenshots": [],
       "versions": [
         {
-          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.1/nyxian_0.8.1_kate.ipa",
-          "size": 148000000,
-          "version": "0.8.1",
-          "buildVersion": "20251214.2",
-          "marketingVersion": "Kate",
-          "date": "2025-12-14T0:00:00+00:00",
-          "localizedDescription": "Test",
-          "minOSVersion": "17.0"
-        },
-        {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.0/nyxian_0.8.0_kate.ipa",
           "size": 148000000,
           "version": "0.8.0",
