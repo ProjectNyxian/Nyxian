@@ -27,7 +27,17 @@
           "buildVersion": "20251214.2",
           "marketingVersion": "Kate",
           "date": "2025-12-14T0:00:00+00:00",
-          "localizedDescription": "EXTREMELY NECESSARY UPDATE\r\n\r\n### Changelog\r\n- Fixed  `LDEThreadController` object leak causing infinite pthreads to be created\r\n- Fixed sub iOS 26.0 crash in code editor",
+          "localizedDescription": "Test",
+          "minOSVersion": "17.0"
+        },
+        {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.0/nyxian_0.8.0_kate.ipa",
+          "size": 148000000,
+          "version": "0.8.0",
+          "buildVersion": "20251212.104",
+          "marketingVersion": "Kate",
+          "date": "2025-12-13T10:08:00+01:00",
+          "localizedDescription": "### Changelog\r\n- Added support for 3D rendering frameworks (simd fix)\r\n- Implemented hardened kernel virtualization layer\r\n- Introduced pointers to the kernel virtualization layer\r\n- Improved a lot of kernel APIs\r\n- Improved compilation speed(introduced `LDEGroupThreadController` and `LDEThreadController` that now work way more managed by the mach API)\r\n- Added actual syscall translation to the kernel virtualization layer that will entirely replace the `ServerSession` NSXPC proxy\r\n- Fixed a ton of race conditions and logic vulnerabilities\r\n- Improved design a lot(especially in app switcher)\r\n- Fixed UNIX semantics(we were treating ruid as euid ;w;)\r\n- Resecuring instead of bypassing the NSExtension security\r\n- Fixed(again) gethostname and sethostname\r\n\r\n### Notes\r\nIn 0.9.x aka the beta of Nyxian we introduce swift support to Nyxian. swift is a mess to patch and optimize for use in iOS and we actually care about user experience.",
           "minOSVersion": "17.0"
         }
       ],
