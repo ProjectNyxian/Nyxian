@@ -18,7 +18,26 @@
       "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
       "tintColor": "#aa80dc",
       "category": "developer",
-      "screenshots": [],
+      "screenshots": {
+        "iphone": [],
+        "ipad": [
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5980.png",
+            "width": 2360,
+            "height": 1640
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5983.png",
+            "width": 2360,
+            "height": 1640
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5996.png",
+            "width": 2360,
+            "height": 1640
+          }
+        ]
+      },
       "versions": [
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.1/nyxian_0.8.1_kate.ipa",
@@ -26,7 +45,7 @@
           "version": "0.8.1",
           "buildVersion": "20251214.2",
           "marketingVersion": "Kate",
-          "date": "2025-12-14T0:00:00+00:00",
+          "date": "2025-12-14T00:24:36Z",
           "localizedDescription": "EXTREMELY NECESSARY UPDATE\r\n\r\n### Changelog\r\n- Fixed  `LDEThreadController` object leak causing infinite pthreads to be created\r\n- Fixed sub iOS 26.0 crash in code editor",
           "minOSVersion": "17.0"
         },
@@ -36,7 +55,7 @@
           "version": "0.8.0",
           "buildVersion": "20251212.104",
           "marketingVersion": "Kate",
-          "date": "2025-12-13T10:08:00+01:00",
+          "date": "2025-12-12T20:16:49Z",
           "localizedDescription": "### Changelog\r\n- Added support for 3D rendering frameworks (simd fix)\r\n- Implemented hardened kernel virtualization layer\r\n- Introduced pointers to the kernel virtualization layer\r\n- Improved a lot of kernel APIs\r\n- Improved compilation speed(introduced `LDEGroupThreadController` and `LDEThreadController` that now work way more managed by the mach API)\r\n- Added actual syscall translation to the kernel virtualization layer that will entirely replace the `ServerSession` NSXPC proxy\r\n- Fixed a ton of race conditions and logic vulnerabilities\r\n- Improved design a lot(especially in app switcher)\r\n- Fixed UNIX semantics(we were treating ruid as euid ;w;)\r\n- Resecuring instead of bypassing the NSExtension security\r\n- Fixed(again) gethostname and sethostname\r\n\r\n### Notes\r\nIn 0.9.x aka the beta of Nyxian we introduce swift support to Nyxian. swift is a mess to patch and optimize for use in iOS and we actually care about user experience.",
           "minOSVersion": "17.0"
         },
@@ -46,7 +65,7 @@
           "version": "1.0",
           "buildVersion": "1",
           "marketingVersion": "20251128a",
-          "date": "2025-11-28T16:30:00+01:00",
+          "date": "2025-11-28T17:25:02Z",
           "localizedDescription": "### Changelog\r\n#### UI & UX\r\n- Added modernized iOS 26 UI\r\n- Rewrote XCButton in ObjC\r\n- Added a app switcher button for iOS 26\r\n#### Kernel Virtualization Layer\r\n- Fixed vulnerability #14 \"Daemon endpoint override\"  (Addressed with improved logic checks)\r\n- Fixed vulnerability #15 \"Duplicated process entries\" (Addressed with improved logic checks)\r\n- Improved proc api\r\n### Note\r\nAlthough the changelog is not that big the change in Nyxian is huge. The fixed vulnerabilities caused tremendous trouble, Nyxians stability is tremendously improved in this build!",
           "minOSVersion": "17.0"
         }
@@ -110,7 +129,7 @@
       "title": "Nyxian 0.8 released!",
       "identifier": "news_8ckhxfh372",
       "caption": "Kate (Pre-Beta)",
-      "date": "2025-12-13T10:08",
+      "date": "2025-12-12T20:16:49Z",
       "tintColor": "#be99e4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
@@ -121,7 +140,7 @@
       "title": "Nyxian 0.7 released!",
       "identifier": "news_ks7so80lmx",
       "caption": "Vendetta (Indev)",
-      "date": "2025-11-28T16:30",
+      "date": "2025-11-28T17:25:02Z",
       "tintColor": "#be99e4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
@@ -132,7 +151,7 @@
       "title": "Nyxian 0.6 released!",
       "identifier": "news_wesu0cbrsb",
       "caption": "CottonCandy (Indev)",
-      "date": "2025-09-06T00:00",
+      "date": "2025-09-06T21:25:55Z",
       "tintColor": "#ff82a4",
       "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
