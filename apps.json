@@ -18,7 +18,26 @@
       "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
       "tintColor": "#aa80dc",
       "category": "developer",
-      "screenshots": [],
+      "screenshots": {
+        "iphone": [],
+        "ipad": [
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5980.png",
+            "width": 2360,
+            "height": 1640
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5983.png",
+            "width": 2360,
+            "height": 1640
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5996.png",
+            "width": 2360,
+            "height": 1640
+          }
+        ]
+      },
       "versions": [
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.1/nyxian_0.8.1_kate.ipa",
