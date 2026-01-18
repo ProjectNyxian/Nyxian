@@ -133,6 +133,7 @@
 			membershipExceptions = (
 				LindChain/jbroot.m,
 				LindChain/libroot.a,
+				LindChain/Shell.m,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};
@@ -346,6 +347,7 @@
 				LindChain/ProcEnvironment/tpod.m,
 				LindChain/ProcEnvironment/Utils/fd.c,
 				LindChain/ProcEnvironment/Utils/klog.m,
+				LindChain/Shell.m,
 				LindChain/Utils/LDEDebouncer.m,
 				LindChain/Utils/Swizzle.m,
 				LindChain/Utils/Zip.m,
