@@ -192,6 +192,7 @@ class Builder {
     /// Function to build object files
     ///
     func compile() throws {
+#if !JAILBREAK_ENV
         if self.dirtySourceFiles.count > 0 {
             let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
             guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
@@ -228,9 +229,11 @@ class Builder {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
             }
         }
+#endif // !JAILBREAK_ENV
     }
     
     func link() throws {
+#if !JAILBREAK_ENV
         let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() + self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
@@ -239,9 +242,11 @@ class Builder {
         if self.linker.ld64((ldArgs as NSArray).mutableCopy() as? NSMutableArray) != 0 {
             throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:self.linker.error ?? "Linking object files together to a executable failed"])
         }
+#endif // !JAILBREAK_ENV
     }
     
     func install(buildType: Builder.BuildType) throws {
+#if !JAILBREAK_ENV
         if(buildType == .RunningApp) {
             if self.project.projectConfig.type == NXProjectType.app.rawValue {
                 let semaphore = DispatchSemaphore(value: 0)
@@ -285,6 +290,7 @@ class Builder {
         } else {
             try? self.package()
         }
+#endif // !JAILBREAK_ENV
     }
     
     func package() throws {
@@ -307,7 +313,9 @@ class Builder {
         XCButton.resetProgress()
         
         LDEPthreadDispatch {
+#if !JAILBREAK_ENV
             Bootstrap.shared.waitTillDone()
+#endif // !JAILBREAK_ENV
             
             var result: Bool = true
             let builder: Builder = Builder(

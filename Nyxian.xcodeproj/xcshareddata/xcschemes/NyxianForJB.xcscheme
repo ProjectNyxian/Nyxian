@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AF9916D82DC8C42200DDF895"
-               BuildableName = "Nyxian.app"
-               BlueprintName = "Nyxian"
+               BlueprintIdentifier = "79AF51072F1CBD110055004A"
+               BuildableName = "NyxianForJB.app"
+               BlueprintName = "NyxianForJB"
                ReferencedContainer = "container:Nyxian.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,9 +44,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AF9916D82DC8C42200DDF895"
-            BuildableName = "Nyxian.app"
-            BlueprintName = "Nyxian"
+            BlueprintIdentifier = "79AF51072F1CBD110055004A"
+            BuildableName = "NyxianForJB.app"
+            BlueprintName = "NyxianForJB"
             ReferencedContainer = "container:Nyxian.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,9 +61,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AF9916D82DC8C42200DDF895"
-            BuildableName = "Nyxian.app"
-            BlueprintName = "Nyxian"
+            BlueprintIdentifier = "79AF51072F1CBD110055004A"
+            BuildableName = "NyxianForJB.app"
+            BlueprintName = "NyxianForJB"
             ReferencedContainer = "container:Nyxian.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

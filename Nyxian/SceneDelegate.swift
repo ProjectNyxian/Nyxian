@@ -26,7 +26,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
+#if !JAILBREAK_ENV
         window = LDEWindowServer.shared(with: windowScene)
+#else
+        window = UIWindow(windowScene: windowScene)
+#endif // !JAILBREAK_ENV
         let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
         
         let contentViewController: ContentViewController = ContentViewController(path: "\(NSHomeDirectory())/Documents/Projects")
@@ -58,6 +62,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         window?.makeKeyAndVisible()
     }
     
+#if !JAILBREAK_ENV
     func tabBarController(_ tabBarController: UITabBarController,
                           shouldSelect viewController: UIViewController) -> Bool {
         if viewController.tabBarItem.tag == 2 {
@@ -66,7 +71,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         }
         return true
     }
-
+#endif // !JAILBREAK_ENV
+    
     func sceneDidDisconnect(_ scene: UIScene) { }
     func sceneDidBecomeActive(_ scene: UIScene) { }
     func sceneWillResignActive(_ scene: UIScene) { }

@@ -68,6 +68,7 @@ int CompileObject(int argc,
           outputFile:(NSString*)outputFilePath
               issues:(NSArray<Synitem*> * * _Nonnull)issues
 {
+#if !JAILBREAK_ENV
     // Allocating a C array by the given _flags array
     const int argc = (int)[_flags count] + 2;
     char **argv = (char **)malloc(sizeof(char*) * argc);
@@ -96,6 +97,9 @@ int CompileObject(int argc,
     free(argv);
     
     return result;
+#else
+    return -1;
+#endif /* !JAILBREAK_ENV */
 }
 
 @end

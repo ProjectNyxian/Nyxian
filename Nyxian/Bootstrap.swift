@@ -139,6 +139,7 @@ import Foundation
                     }
                     
                     if self.bootstrapVersion == 7 {
+#if !JAILBREAK_ENV
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
                         }
@@ -156,11 +157,12 @@ import Foundation
                         
                         print("[*] Extracting sdk.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
-                        
+#endif // !JAILBREAK_ENV
                         self.bootstrapVersion = 8
                     }
                     
                     if self.bootstrapVersion == 8 {
+#if !JAILBREAK_ENV
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
                         }
@@ -178,6 +180,7 @@ import Foundation
                         
                         print("[*] Extracting include.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
+#endif // !JAILBREAK_ENV
                         
                         self.bootstrapVersion = 9
                     }

@@ -44,6 +44,7 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
 
 - (int)ld64:(NSMutableArray*)flags
 {
+#if !JAILBREAK_ENV
     // Allocating a C array by the given _flags array
     const int argc = (int)[flags count] + 1;
     char **argv = (char **)malloc(sizeof(char*) * argc);
@@ -76,6 +77,9 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
     free(argv);
     
     return result.retCode;
+#else
+    return -1;
+#endif /* !JAILBREAK_ENV*/
 }
 
 @end

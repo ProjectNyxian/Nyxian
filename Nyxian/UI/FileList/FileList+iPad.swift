@@ -52,10 +52,12 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
 
         self.delegate = self
         
+#if !JAILBREAK_ENV
         if self.project.projectConfig.type == NXProjectType.app.rawValue
         {
             LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
         }
+#endif // !JAILBREAK_ENV
     }
     
     override func viewDidAppear(_ animated: Bool) {

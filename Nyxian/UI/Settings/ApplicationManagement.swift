@@ -20,6 +20,8 @@
 import UIKit
 import UniformTypeIdentifiers
 
+#if !JAILBREAK_ENV
+
 class ApplicationManagementViewController: UIThemedTableViewController, UITextFieldDelegate, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
     @objc static var shared: ApplicationManagementViewController = ApplicationManagementViewController(style: .insetGrouped)
     var applications: [LDEApplicationObject] = []
@@ -267,3 +269,5 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         }
     }
 }
+
+#endif // !JAILBREAK_ENV

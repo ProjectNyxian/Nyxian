@@ -29,12 +29,16 @@
     return self;
 }
 
+#if !JAILBREAK_ENV
+
 - (instancetype)initWithAppObject:(LDEApplicationObject*)applicationObject
 {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];
     [self setupViewsWithDisplayName:applicationObject.displayName withBundleIdentifier:applicationObject.bundleIdentifier withAppIcon:applicationObject.icon showAppIcon:YES showBundleID:YES];
     return self;
 }
+
+#endif /* !JAILBREAK_ENV */
 
 - (void)setupViewsWithDisplayName:(NSString*)displayName
              withBundleIdentifier:(NSString*)bundleIdentifier

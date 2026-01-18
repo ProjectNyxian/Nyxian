@@ -16,7 +16,6 @@
 		79A3AE382EDDDBB000C0342E /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
 		79A3AE392EDDDBB000C0342E /* ServiceKit.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79AF51182F1CBD110055004A /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51102F1CBD110055004A /* Runestone */; settings = {ATTRIBUTES = (Required, ); }; };
-		79AF51192F1CBD110055004A /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
 		79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF510C2F1CBD110055004A /* TreeSitterObjc */; };
 		79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF510E2F1CBD110055004A /* TreeSitterC */; };
@@ -25,8 +24,6 @@
 		79AF51202F1CBD110055004A /* version.sh in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC62EE8761000F18B30 /* version.sh */; };
 		79AF51212F1CBD110055004A /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
 		79AF51222F1CBD110055004A /* Shared in Resources */ = {isa = PBXBuildFile; fileRef = AF99171F2DC8EA3C00DDF895 /* Shared */; };
-		79AF51242F1CBD110055004A /* ServiceKit.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		79AF51272F1CBD110055004A /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
@@ -51,20 +48,6 @@
 			remoteGlobalIDString = 79A3A9382EDDABAE00C0342E;
 			remoteInfo = ServiceKit;
 		};
-		79AF51092F1CBD110055004A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
-			remoteInfo = LiveProcess;
-		};
-		79AF510B2F1CBD110055004A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 79A3A9382EDDABAE00C0342E;
-			remoteInfo = ServiceKit;
-		};
 		79BF98022E6291EE00C60D4C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
@@ -75,36 +58,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		79AF51232F1CBD110055004A /* Embed Libraries */ = {
+		798BBD292F1CFBBE00CBB23F /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				79AF51242F1CBD110055004A /* ServiceKit.framework in Embed Libraries */,
 			);
 			name = "Embed Libraries";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		79AF51252F1CBD110055004A /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
-			dstSubfolderSpec = 16;
-			files = (
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		79AF51262F1CBD110055004A /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				79AF51272F1CBD110055004A /* LiveProcess.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		79BF98092E6291EE00C60D4C /* Embed Foundation Extensions */ = {
@@ -179,24 +140,14 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AppDelegate.swift,
 				Assets.xcassets,
-				Bootstrap.swift,
-				LindChain/Compiler/Compiler.mm,
 				LindChain/Compiler/ObjectCompiler.cpp,
-				LindChain/Core/Builder.swift,
-				LindChain/Core/FolderSync.swift,
-				LindChain/Core/Includation.swift,
-				LindChain/Core/LDEFilesFinder.m,
-				LindChain/Debugger/Logger.m,
 				LindChain/Debugger/MachServer.m,
 				LindChain/Debugger/Utils.m,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
-				LindChain/Downloader/fdownload.m,
 				LindChain/Init.mm,
 				LindChain/LaunchServices/LaunchService.m,
-				LindChain/Linker/Linker.mm,
 				LindChain/litehook/LICENSE,
 				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/builtin_vm_protect.m,
@@ -308,54 +259,11 @@
 				LindChain/ProcEnvironment/tpod.m,
 				LindChain/ProcEnvironment/Utils/fd.c,
 				LindChain/ProcEnvironment/Utils/klog.m,
-				"LindChain/Project/Extensions/String+fileURL.swift",
-				LindChain/Project/NXCodeTemplate.m,
-				LindChain/Project/NXPlistHelper.m,
-				LindChain/Project/NXProject.m,
-				LindChain/Project/NXUser.m,
-				"LindChain/Project/Project+Debug.swift",
-				"LindChain/Project/Project+NotificationServer.swift",
-				LindChain/Synpush/libclang.dylib,
-				LindChain/Synpush/Synitem.m,
-				LindChain/Synpush/Synpush.m,
-				LindChain/Utils/LDEDebouncer.m,
-				LindChain/Utils/LDEThreadController.m,
-				LindChain/Utils/LDEThreadGroupController.m,
 				LindChain/Utils/Swizzle.m,
-				LindChain/Utils/Zip.m,
-				Main.m,
 				"Preview Content/Preview Assets.xcassets",
-				SceneDelegate.swift,
-				UI/CodeEditor/CodeEditor.swift,
-				"UI/CodeEditor/CodeEditor+Button.swift",
-				"UI/CodeEditor/CodeEditor+Coordinator.swift",
-				"UI/CodeEditor/CodeEditor+Theme.swift",
-				UI/ContentView.swift,
-				UI/FileList/FileList.swift,
-				"UI/FileList/FileList+Controller.swift",
-				"UI/FileList/FileList+iPad.swift",
-				"UI/FileList/FileList+PreConstructor.swift",
-				"UI/FileList/FileList+Structure.swift",
-				UI/Settings/AppInfo.swift,
-				UI/Settings/ApplicationManagement.swift,
 				UI/Settings/CertificateManagement.swift,
 				UI/Settings/CertificateViewController.swift,
-				UI/Settings/CustomizationViewController.swift,
 				UI/Settings/KernelLogViewController.swift,
-				UI/Settings/SettingsViewController.swift,
-				UI/Settings/ToolChain.swift,
-				UI/TableCells/ButtonCell.swift,
-				UI/TableCells/CreditCell.swift,
-				UI/TableCells/ImportCell.swift,
-				UI/TableCells/NXProjectTableCell.m,
-				UI/TableCells/PickerCell.swift,
-				UI/TableCells/StepperCell.swift,
-				UI/TableCells/SwitchCell.swift,
-				UI/TableCells/TextFieldCell.swift,
-				UI/TableCells/ThemePickerPreviewCell.swift,
-				UI/UIInit/UIInit.swift,
-				UI/UIInit/UIThemed.swift,
-				UI/XCodeButton.m,
 			);
 			target = 79AF51072F1CBD110055004A /* NyxianForJB */;
 		};
@@ -440,6 +348,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				LindChain/Synpush/libclang.dylib = (CodeSignOnCopy, );
+			};
+			buildPhase = 798BBD292F1CFBBE00CBB23F /* Embed Libraries */;
+			membershipExceptions = (
+				LindChain/Synpush/libclang.dylib,
+			);
+		};
 		79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
@@ -487,6 +405,7 @@
 			exceptions = (
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
+				798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 				79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */,
 			);
@@ -508,7 +427,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				79AF51182F1CBD110055004A /* Runestone in Frameworks */,
-				79AF51192F1CBD110055004A /* ServiceKit.framework in Frameworks */,
 				79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */,
 				79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */,
 				79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */,
@@ -613,15 +531,11 @@
 				79AF51162F1CBD110055004A /* Sources */,
 				79AF51172F1CBD110055004A /* Frameworks */,
 				79AF511F2F1CBD110055004A /* Resources */,
-				79AF51232F1CBD110055004A /* Embed Libraries */,
-				79AF51252F1CBD110055004A /* Embed Foundation Extensions */,
-				79AF51262F1CBD110055004A /* Embed Foundation Extensions */,
+				798BBD292F1CFBBE00CBB23F /* Embed Libraries */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				79AF51082F1CBD110055004A /* PBXTargetDependency */,
-				79AF510A2F1CBD110055004A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
@@ -821,16 +735,6 @@
 			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
 			targetProxy = 79A3AE3A2EDDDBB000C0342E /* PBXContainerItemProxy */;
 		};
-		79AF51082F1CBD110055004A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
-			targetProxy = 79AF51092F1CBD110055004A /* PBXContainerItemProxy */;
-		};
-		79AF510A2F1CBD110055004A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
-			targetProxy = 79AF510B2F1CBD110055004A /* PBXContainerItemProxy */;
-		};
 		79BF98032E6291EE00C60D4C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
@@ -935,8 +839,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
+					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
 					Nyxian/,
-					LiveProcess/,
 				);
 				INFOPLIST_FILE = "Nyxian copy-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
@@ -1009,13 +913,17 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 				);
 				MARKETING_VERSION = "$(VERSION)";
-				OTHER_CFLAGS = "-DHOST_ENV";
+				OTHER_CFLAGS = (
+					"-DHOST_ENV",
+					"-DJAILBREAK_ENV",
+				);
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
 				);
+				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1024,7 +932,8 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = Nyxian/bridge.h;
+				SWIFT_OBJC_BRIDGING_HEADER = "Nyxian/bridge-jb.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Nyxian-Swift.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1046,8 +955,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
+					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
 					Nyxian/,
-					LiveProcess/,
 				);
 				INFOPLIST_FILE = "Nyxian copy-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
@@ -1120,13 +1029,17 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 				);
 				MARKETING_VERSION = "$(VERSION)";
-				OTHER_CFLAGS = "-DHOST_ENV";
+				OTHER_CFLAGS = (
+					"-DHOST_ENV",
+					"-DJAILBREAK_ENV",
+				);
 				OTHER_LDFLAGS = (
 					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
 				);
+				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1135,7 +1048,8 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = Nyxian/bridge.h;
+				SWIFT_OBJC_BRIDGING_HEADER = "Nyxian/bridge-jb.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Nyxian-Swift.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

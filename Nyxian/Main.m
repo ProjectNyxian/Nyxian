@@ -28,11 +28,17 @@ int main(int argc, char * argv[])
     @autoreleasepool
     {
         /* initilizing environment */
+#if !JAILBREAK_ENV
         environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv);
+#endif // !JAILBREAK_ENV
         
-        /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
+        /* do bootstrapping */
         [[Bootstrap shared] bootstrap];                         /* starts bootstrapping */
+        
+#if !JAILBREAK_ENV
+        /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
         [LaunchServices shared];                                /* invokes launch services startup*/
+#endif // !JAILBREAK_ENV
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }

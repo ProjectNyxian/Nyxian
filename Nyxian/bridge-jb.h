@@ -18,6 +18,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/* idk somehow the bridging header needs its own */
+#define JAILBREAK_ENV 1
+
 /* Apple Private API Headers */
 #import <LindChain/Private/UIKitPrivate.h>
 
@@ -30,33 +33,6 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
-
-#if !JAILBREAK_ENV
-
-/* LiveContainer Headers */
-#import <LindChain/LiveContainer/LCAppInfo.h>
-#import <LindChain/LiveContainer/LCUtils.h>
-#import <LindChain/LiveContainer/LCMachOUtils.h>
-#import <LindChain/LiveContainer/ZSign/zsigner.h>
-
-/* Daemon Interfaces Headers */
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Services/trustd/LDETrust.h>
-
-/* Multitask Headers */
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
-#import <LindChain/LaunchServices/LaunchService.h>
-
-/* Kernel Virtualisation Layer Headers */
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
-#import <LindChain/ProcEnvironment/Object/MachOObject.h>
-
-#endif /* !JAILBREAK_ENV */
 
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>

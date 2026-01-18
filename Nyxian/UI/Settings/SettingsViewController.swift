@@ -26,8 +26,12 @@ class SettingsViewController: UIThemedTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+#if !JAILBREAK_ENV
         // To enable kernel logging entirely, change return value to 6!
         return 6
+#else
+        return 3
+#endif /* !JAILBREAK_ENV */
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -80,6 +84,7 @@ class SettingsViewController: UIThemedTableViewController {
     private func navigateToController(for index: Int, animated: Bool) {
         guard let viewController: UIViewController = {
             switch index {
+#if !JAILBREAK_ENV
             case 0:
                 return ToolChainController(style: .insetGrouped)
             case 1:
@@ -92,6 +97,14 @@ class SettingsViewController: UIThemedTableViewController {
                 return AppInfoViewController(style: .insetGrouped)
             case 5:
                 return KernelLogViewController()
+#else
+            case 0:
+                return ToolChainController(style: .insetGrouped)
+            case 1:
+                return CustomizationViewController(style: .insetGrouped)
+            case 3:
+                return AppInfoViewController(style: .insetGrouped)
+#endif /* !JAILBREAK_ENV */
             default:
                 return nil
             }

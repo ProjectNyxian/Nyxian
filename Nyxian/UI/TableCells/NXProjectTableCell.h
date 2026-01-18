@@ -22,12 +22,22 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+
+#if !JAILBREAK_ENV
+
 #import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
+
+#endif /* !JAILBREAK_ENV */
 
 @interface NXProjectTableCell : UITableViewCell
 
 - (instancetype)initWithProject:(id)project;
+
+#if !JAILBREAK_ENV
+
 - (instancetype)initWithAppObject:(LDEApplicationObject*)applicationObject;
+
+#endif /* !JAILBREAK_ENV */
 
 @end
 
