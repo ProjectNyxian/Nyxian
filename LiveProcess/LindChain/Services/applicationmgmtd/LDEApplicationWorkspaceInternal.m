@@ -72,11 +72,22 @@ bool checkCodeSignature(const char* path);
     self.bundles = [[NSMutableDictionary alloc] init];
     for(NSURL *uuidURL in uuidURLs)
     {
-        MIExecutableBundle *bundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleInDirectory:uuidURL withExtension:@"app" error:nil];
-        if(bundle)
-            [self.bundles setObject:bundle forKey:bundle.identifier];
-        else
-            [[NSFileManager defaultManager] removeItemAtURL:uuidURL error:nil];
+        NSArray<NSString *> *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[uuidURL path] error:nil];
+
+        for(NSString *item in contents)
+        {
+            if([[item pathExtension] isEqualToString:@"app"])
+            {
+                NSString *fullPath = [[uuidURL path] stringByAppendingPathComponent:item];
+                NSBundle *bundle = [NSBundle bundleWithPath:fullPath];
+                [self.bundles setObject:bundle forKey:bundle.bundleIdentifier];
+            }
+            else
+            {
+                /* what the user cant manage the user cant manage */
+                [[NSFileManager defaultManager] removeItemAtURL:uuidURL error:nil];
+            }
+        }
     }
     
     self.workspaceQueue = dispatch_queue_create("com.cr4zy.installd.workspace", DISPATCH_QUEUE_SERIAL);
@@ -97,15 +108,15 @@ bool checkCodeSignature(const char* path);
 /*
  Action
  */
-- (BOOL)doWeTrustThatBundle:(MIExecutableBundle*)bundle
+- (BOOL)doWeTrustThatBundle:(NSBundle*)bundle
 {
     if(!bundle) return NO;
-    else if(![bundle validateBundleMetadataWithError:nil]) return NO;
-    else if(![bundle isAppTypeBundle]) return NO;
-    else if(![bundle validateAppMetadataWithError:nil]) return NO;
-    else if(![bundle isApplicableToCurrentOSVersionWithError:nil]) return NO;
-    else if(![bundle isApplicableToCurrentDeviceFamilyWithError:nil]) return NO;
-    else if(![bundle isApplicableToCurrentDeviceCapabilitiesWithError:nil]) return NO;
+    //else if(![bundle validateBundleMetadataWithError:nil]) return NO;
+    //else if(![bundle isAppTypeBundle]) return NO;
+    //else if(![bundle validateAppMetadataWithError:nil]) return NO;
+    //else if(![bundle isApplicableToCurrentOSVersionWithError:nil]) return NO;
+    //else if(![bundle isApplicableToCurrentDeviceFamilyWithError:nil]) return NO;
+    //else if(![bundle isApplicableToCurrentDeviceCapabilitiesWithError:nil]) return NO;
     
     // MARK: Validate certificate using LC`s CS Check
     if(!checkCodeSignature([[bundle.executableURL path] UTF8String])) return NO;
@@ -115,8 +126,19 @@ bool checkCodeSignature(const char* path);
 
 - (BOOL)installApplicationWithPayloadPath:(NSString*)payloadPath
 {
-    // Creating MIBundle of payload
-    MIExecutableBundle *bundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleInDirectory:payloadPath withExtension:@"app" error:nil];
+    // finding bundle
+    NSBundle *bundle = nil;
+    NSArray<NSString *> *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:payloadPath error:nil];
+    
+    for(NSString *item in contents)
+    {
+        if([[item pathExtension] isEqualToString:@"app"])
+        {
+            NSString *fullPath = [payloadPath stringByAppendingPathComponent:item];
+            bundle = [NSBundle bundleWithPath:fullPath];
+            break;
+        }
+    }
     
     // Check if bundle is valid for LDEApplicationWorkspace
     if(!bundle) return NO;
@@ -127,15 +149,18 @@ bool checkCodeSignature(const char* path);
     
     // Now generate installPath
     NSURL *installURL = nil;
-    MIBundle *previousApplication = [self applicationBundleForBundleID:[bundle identifier]];
-    if(previousApplication) {
+    NSBundle *previousApplication = [self applicationBundleForBundleID:[bundle bundleIdentifier]];
+    if(previousApplication)
+    {
         // It existed before, using old path
         installURL = previousApplication.bundleURL;
         [fileManager removeItemAtURL:installURL error:nil];
         previousApplication = nil;
-    } else {
+    }
+    else
+    {
         // It didnt existed before, using new path
-        installURL = [[self.applicationsURL URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]] URLByAppendingPathComponent:[bundle relativePath]];
+        installURL = [[self.applicationsURL URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]] URLByAppendingPathComponent:[bundle.bundleURL lastPathComponent]];
     }
     
     // Now installing at install location
@@ -144,11 +169,13 @@ bool checkCodeSignature(const char* path);
     
     // If existed we add object
     NSError *error = nil;
-    MIBundle *miBundle = [[PrivClass(MIBundle) alloc] initWithBundleURL:installURL error:&error];
-    if(miBundle != nil)
+    bundle = [NSBundle bundleWithURL:installURL];
+    
+    // checking if adding it was successful
+    if(bundle != nil)
     {
-        [self.bundles setObject:[PrivClass(MIExecutableBundle) bundleForURL:installURL error:nil] forKey:bundle.identifier];
-        LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithBundle:miBundle];
+        [self.bundles setObject:bundle forKey:bundle.bundleIdentifier];
+        LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithNSBundle:bundle];
         if(object != nil)
         {
             for(NSXPCConnection *client in [[ServiceServer sharedService] clients])
@@ -156,21 +183,24 @@ bool checkCodeSignature(const char* path);
                 [client.remoteObjectProxy applicationWasInstalled:object];
             }
         }
+        return YES;
     }
-    
-    return YES;
+    else
+    {
+        return NO;
+    }
 }
 
 - (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
 {
-    MIBundle *previousApplication = [self applicationBundleForBundleID:bundleID];
+    NSBundle *previousApplication = [self applicationBundleForBundleID:bundleID];
     
     if(previousApplication == nil)
     {
         return NO;
     }
     
-    LDEApplicationObject *appObject = [[LDEApplicationObject alloc] initWithBundle:previousApplication];
+    LDEApplicationObject *appObject = [[LDEApplicationObject alloc] initWithNSBundle:previousApplication];
     
     if(appObject == nil)
     {
@@ -198,9 +228,9 @@ bool checkCodeSignature(const char* path);
     return result;
 }
 
-- (MIBundle*)applicationBundleForBundleID:(NSString *)bundleID
+- (NSBundle*)applicationBundleForBundleID:(NSString *)bundleID
 {
-    __block MIBundle *result = nil;
+    __block NSBundle *result = nil;
     dispatch_sync(self.workspaceQueue, ^{
         result = [self.bundles objectForKey:bundleID];
     });
@@ -209,7 +239,7 @@ bool checkCodeSignature(const char* path);
 
 - (NSURL*)applicationContainerForBundleID:(NSString *)bundleID
 {
-    MIBundle *bundle = [self applicationBundleForBundleID:bundleID];
+    NSBundle *bundle = [self applicationBundleForBundleID:bundleID];
     if(!bundle) return nil;
     NSString *uuid = [[bundle.bundleURL URLByDeletingLastPathComponent] lastPathComponent];
     return [self.containersURL URLByAppendingPathComponent:uuid];
@@ -283,7 +313,7 @@ bool checkCodeSignature(const char* path);
 - (void)applicationObjectForBundleID:(NSString *)bundleID
                            withReply:(void (^)(LDEApplicationObject *))reply
 {
-    MIBundle *bundle = [[LDEApplicationWorkspaceInternal shared] applicationBundleForBundleID:bundleID];
+    NSBundle *bundle = [[LDEApplicationWorkspaceInternal shared] applicationBundleForBundleID:bundleID];
     
     if(!bundle)
     {
@@ -291,7 +321,7 @@ bool checkCodeSignature(const char* path);
         return;
     }
     
-    reply([[LDEApplicationObject alloc] initWithBundle:bundle]);
+    reply([[LDEApplicationObject alloc] initWithNSBundle:bundle]);
 }
 
 - (void)applicationContainerForBundleID:(NSString*)bundleID
@@ -304,9 +334,9 @@ bool checkCodeSignature(const char* path);
     LDEApplicationWorkspaceInternal *workspace = [LDEApplicationWorkspaceInternal shared];
     NSMutableArray<LDEApplicationObject*> *objects = [NSMutableArray array];
     for (NSString *bundleID in workspace.bundles) {
-        MIBundle *bundle = workspace.bundles[bundleID];
+        NSBundle *bundle = workspace.bundles[bundleID];
         if (bundle) {
-            [objects addObject:[[LDEApplicationObject alloc] initWithBundle:bundle]];
+            [objects addObject:[[LDEApplicationObject alloc] initWithNSBundle:bundle]];
         }
     }
     
@@ -343,15 +373,14 @@ bool checkCodeSignature(const char* path);
                                  withReply:(void (^)(LDEApplicationObject*))reply
 {
     NSString *potentialBundlePath = [executablePath stringByDeletingLastPathComponent];
-    NSError *error = nil;
-    MIBundle *bundle = [[PrivClass(MIBundle) alloc] initWithBundleURL:[NSURL fileURLWithPath:potentialBundlePath] error:&error];
-    if(error != nil)
+    NSBundle *bundle = [NSBundle bundleWithURL:[NSURL fileURLWithPath:potentialBundlePath]];
+    if(bundle == nil)
     {
         reply(nil);
         return;
     }
     
-    LDEApplicationObject *application = [[LDEApplicationObject alloc] initWithBundle:bundle];
+    LDEApplicationObject *application = [[LDEApplicationObject alloc] initWithNSBundle:bundle];
     reply(application);
 }
 
@@ -375,10 +404,10 @@ bool checkCodeSignature(const char* path);
     LDEApplicationWorkspaceInternal *workspace = [LDEApplicationWorkspaceInternal shared];
     for(NSString *bundleID in workspace.bundles)
     {
-        MIBundle *bundle = workspace.bundles[bundleID];
+        NSBundle *bundle = workspace.bundles[bundleID];
         if(bundle)
         {
-            [clientObject applicationWasInstalled:[[LDEApplicationObject alloc] initWithBundle:bundle]];
+            [clientObject applicationWasInstalled:[[LDEApplicationObject alloc] initWithNSBundle:bundle]];
         }
     }
 }

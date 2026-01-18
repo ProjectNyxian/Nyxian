@@ -24,11 +24,11 @@
 #import <ServiceKit/ServiceKit.h>
 #import "LDEApplicationObject.h"
 #import "LDEApplicationWorkspaceProxyProtocol.h"
-#import "MIBundle.h"
+//#import "MIBundle.h"
 
 @interface LDEApplicationWorkspaceInternal : NSObject
 
-@property (atomic,readwrite) NSMutableDictionary<NSString*,MIExecutableBundle*> *bundles;
+@property (atomic,readwrite) NSMutableDictionary<NSString*,NSBundle*> *bundles;
 
 - (instancetype)init;
 + (LDEApplicationWorkspaceInternal*)shared;
@@ -36,9 +36,9 @@
 - (BOOL)installApplicationWithPayloadPath:(NSString*)bundlePath;
 - (BOOL)deleteApplicationWithBundleID:(NSString*)bundleID;
 - (BOOL)applicationInstalledWithBundleID:(NSString*)bundleID;
-- (MIBundle*)applicationBundleForBundleID:(NSString*)bundleID;
+- (NSBundle*)applicationBundleForBundleID:(NSString*)bundleID;
 - (NSURL*)applicationContainerForBundleID:(NSString *)bundleID;
-- (BOOL)doWeTrustThatBundle:(MIExecutableBundle*)bundle;
+- (BOOL)doWeTrustThatBundle:(NSBundle*)bundle;
 - (BOOL)clearContainerForBundleID:(NSString*)bundleID;
 
 @end

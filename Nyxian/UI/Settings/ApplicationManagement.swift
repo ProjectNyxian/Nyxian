@@ -161,51 +161,59 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         DispatchQueue.global().async {
-            guard let selectedURL = urls.first else { return }
-            
-            let fileManager = FileManager.default
-            let tempRoot = NSTemporaryDirectory()
-            let workRoot = (tempRoot as NSString).appendingPathComponent(UUID().uuidString)
-            let unzipRoot = (workRoot as NSString).appendingPathComponent("unzipped")
-            let payloadDir = (unzipRoot as NSString).appendingPathComponent("Payload")
-            
-            guard ((try? fileManager.createDirectory(atPath: unzipRoot, withIntermediateDirectories: true)) != nil) else { return }
-            guard unzipArchiveAtPath(selectedURL.path, unzipRoot) else { return }
-            var miError: AnyObject?
-            guard let miBundle = MIBundle(bundleInDirectory: URL(fileURLWithPath: payloadDir), withExtension: "app", error: &miError) else {
-                if let error: NSError = miError as? NSError {
-                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
+            do {
+                guard let selectedURL = urls.first else { return }
+                
+                let fileManager = FileManager.default
+                let tempRoot = NSTemporaryDirectory()
+                let workRoot = (tempRoot as NSString).appendingPathComponent(UUID().uuidString)
+                let unzipRoot = (workRoot as NSString).appendingPathComponent("unzipped")
+                let payloadDir = (unzipRoot as NSString).appendingPathComponent("Payload")
+                
+                guard ((try? fileManager.createDirectory(atPath: unzipRoot, withIntermediateDirectories: true)) != nil) else { return }
+                guard unzipArchiveAtPath(selectedURL.path, unzipRoot) else { return }
+                let contents: [String] = try FileManager.default.contentsOfDirectory(atPath: payloadDir)
+                
+                guard let appBundlePath = contents.first(where: { $0.URLGet().pathExtension == "app" }) else {
+                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: no .app bundle found")
+                    return
                 }
-                return
-            }
-            
-            let bundleURL = miBundle.bundleURL!
-            let lcapp = LCAppInfo(bundlePath: bundleURL.path)
-            lcapp!.patchExecAndSignIfNeed(completionHandler: { [weak self] result, error in
-                guard let self = self else { return }
-                if result {
-                    lcapp!.save()
-                    let bundlePath = lcapp!.bundlePath()
-                    let bundleId = lcapp!.bundleIdentifier()
-                    if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
-                        DispatchQueue.main.async {
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
-                            let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: miBundle.identifier)
-                            if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
-                                self.applications[index] = appObject
-                            } else {
-                                self.applications.append(appObject)
+                
+                guard let bundle = Bundle(path: appBundlePath) else {
+                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid bundle URL")
+                    return
+                }
+                
+                let bundleURL = bundle.bundleURL
+                let lcapp = LCAppInfo(bundlePath: bundleURL.path)
+                lcapp!.patchExecAndSignIfNeed(completionHandler: { [weak self] result, error in
+                    guard let self = self else { return }
+                    if result {
+                        lcapp!.save()
+                        let bundlePath = lcapp!.bundlePath()
+                        let bundleId = lcapp!.bundleIdentifier()
+                        if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
+                            DispatchQueue.main.async {
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+                                let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: bundle.bundleIdentifier)
+                                if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
+                                    self.applications[index] = appObject
+                                } else {
+                                    self.applications.append(appObject)
+                                }
+                                self.tableView.reloadData()
                             }
-                            self.tableView.reloadData()
+                        } else {
+                            NotificationServer.NotifyUser(level: .error, notification: "Failed to install application.")
                         }
+                        try? fileManager.removeItem(atPath: workRoot)
                     } else {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install application.")
+                        NotificationServer.NotifyUser(level: .error, notification: "Failed to sign application.")
                     }
-                    try? fileManager.removeItem(atPath: workRoot)
-                } else {
-                    NotificationServer.NotifyUser(level: .error, notification: "Failed to sign application.")
-                }
-            }, progressHandler: { _ in }, forceSign: false)
+                }, progressHandler: { _ in }, forceSign: false)
+            } catch {
+                NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
+            }
         }
     }
     

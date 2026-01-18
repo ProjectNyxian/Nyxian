@@ -20,63 +20,26 @@
 #import "LDEApplicationObject.h"
 #import "LDEApplicationWorkspaceInternal.h"
 #import "ISIcon.h"
+#import <LindChain/Private/UIKitPrivate.h>
 
 #import <UIKit/UIKit.h>
 
 @implementation LDEApplicationObject
 
-- (instancetype)initWithBundle:(MIBundle*)miBundle
+- (instancetype)initWithNSBundle:(NSBundle*)bundle
 {
     self = [super init];
     
-    MIExecutableBundle *bundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleURL:miBundle.bundleURL error:nil];
+    self.bundleIdentifier = bundle.bundleIdentifier;
     
-    self.bundleIdentifier = bundle.identifier;
-    self.displayName = bundle.displayName;
+    /* TODO: Fix this */
+    self.displayName = bundle.bundleIdentifier;
     self.isLaunchAllowed = [[LDEApplicationWorkspaceInternal shared] doWeTrustThatBundle:bundle];
     if(self.isLaunchAllowed)
     {
         self.bundlePath = [[bundle bundleURL] path];
         self.executablePath = [[bundle executableURL] path];
-        self.containerPath = [[[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundle.identifier] path];
-    }
-    
-    ISBundleIcon *bundleIcon = [[PrivClass(ISBundleIcon) alloc] initWithBundleURL:bundle.bundleURL type:nil];
-    if(bundleIcon)
-    {
-        ISResourceProvider *provider = [bundleIcon _makeAppResourceProvider];
-        if(provider.isGenericProvider) return self;
-        
-        ISAssetCatalogResource *resources = [provider iconResource];
-        if ([resources isKindOfClass:NSClassFromString(@"IFImageBag")])
-        {
-            IFImageBag *imageBag = (IFImageBag*)resources;
-            IFImage *image = [imageBag imageForSize:CGSizeMake(1024, 1024) scale:3.0];
-            self.icon = [UIImage imageWithCGImage:image.CGImage scale:3.0 orientation:UIImageOrientationUp];
-            return self;
-        }
-        
-        IFImage *image = [resources imageForSize:CGSizeMake(1024, 1024) scale:3.0];
-        self.icon = [UIImage imageWithCGImage:image.CGImage scale:3.0 orientation:UIImageOrientationUp];
-    }
-
-    return self;
-}
-
-- (instancetype)initWithNSBundle:(NSBundle*)nsBundle
-{
-    self = [super init];
-    
-    MIExecutableBundle *bundle = [[PrivClass(MIExecutableBundle) alloc] initWithBundleURL:nsBundle.bundleURL error:nil];
-    
-    self.bundleIdentifier = bundle.identifier;
-    self.displayName = bundle.displayName;
-    self.isLaunchAllowed = [[LDEApplicationWorkspaceInternal shared] doWeTrustThatBundle:bundle];
-    if(self.isLaunchAllowed)
-    {
-        self.bundlePath = [[bundle bundleURL] path];
-        self.executablePath = [[bundle executableURL] path];
-        self.containerPath = [[[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundle.identifier] path];
+        self.containerPath = [[[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundle.bundleIdentifier] path];
     }
     
     ISBundleIcon *bundleIcon = [[PrivClass(ISBundleIcon) alloc] initWithBundleURL:bundle.bundleURL type:nil];
