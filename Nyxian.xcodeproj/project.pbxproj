@@ -128,6 +128,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LindChain/libroot.a,
+			);
+			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
+		};
 		79A3A93D2EDDABAE00C0342E /* Exceptions for "ServiceKit" folder in "ServiceKit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			publicHeaders = (
@@ -401,6 +408,7 @@
 		AF9916DB2DC8C42200DDF895 /* Nyxian */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
 				798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
@@ -909,6 +917,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian",
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -1025,6 +1034,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian",
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -1458,6 +1468,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian",
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
@@ -1569,6 +1580,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian",
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
