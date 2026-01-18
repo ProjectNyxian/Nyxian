@@ -32,8 +32,12 @@
     
     self.bundleIdentifier = bundle.bundleIdentifier;
     
-    /* TODO: Fix this */
-    self.displayName = bundle.bundleIdentifier;
+    NSString *localizedDisplayName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+    if(!localizedDisplayName)
+    {
+        localizedDisplayName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
+    }
+    self.displayName = NSLocalizedStringFromTableInBundle(localizedDisplayName, @"InfoPlist", bundle, localizedDisplayName);
     self.isLaunchAllowed = [[LDEApplicationWorkspaceInternal shared] doWeTrustThatBundle:bundle];
     if(self.isLaunchAllowed)
     {
