@@ -131,6 +131,7 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				LindChain/jbroot.m,
 				LindChain/libroot.a,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
@@ -302,6 +303,7 @@
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/Init.mm,
+				LindChain/jbroot.m,
 				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/builtin_vm_protect.m,
 				LindChain/LiveContainer/LCBootstrap.m,

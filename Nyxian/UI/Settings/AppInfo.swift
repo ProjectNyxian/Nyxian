@@ -63,7 +63,11 @@ class AppInfoViewController: UIThemedTableViewController {
         case 0:
             return 1
         case 1:
+#if !JAILBREAK_ENV
             return 4
+#else
+            return 5
+#endif // !JAILBREAK_ENV
         case 2:
             return credits.count
         default:
@@ -131,6 +135,11 @@ class AppInfoViewController: UIThemedTableViewController {
             case 3:
                 cell.textLabel?.text = "Build"
                 cell.detailTextLabel?.text = buildNumber
+#if JAILBREAK_ENV
+            case 4:
+                cell.textLabel?.text = "JBRoot"
+                cell.detailTextLabel?.text = IGottaNeedTheActualJBRootMate()
+#endif // !JAILBREAK_ENV
             default:
                 cell.textLabel?.text = "Unknown"
             }

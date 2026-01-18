@@ -33,6 +33,7 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
+#import <LindChain/jbroot.h>
 
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>
