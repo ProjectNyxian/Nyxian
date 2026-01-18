@@ -3,7 +3,7 @@
   "subtitle": "Unfolding the power of stock iOS coding.",
   "description": "Nyxian is a iOS app that lets you build and deploy iOS apps directly on-device without owning any computer. Means you can program where ever and when ever and in any type of situation. It currently supports iOS 15.0 upto the latest iOS version. Its designed for people that often find them selves on the go and dont want to take their mac with them selves and for the people who want to get into iOS software development but dont own a mac. Previously such a app didnt exist because no one tried to build something like that, propably because people thought that its not possible.",
   "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
-  "website": "https://github.com/ProjectNyxian/Nyxian",
+  "website": "https://github.com/ProjectNyxian",
   "tintColor": "#6156e2",
   "featuredApps": [
     "com.cr4zy.nyxian"
@@ -13,8 +13,8 @@
       "name": "Nyxian",
       "bundleIdentifier": "com.cr4zy.nyxian",
       "developerName": "cr4zyengineer",
-      "subtitle": "IDE to develop native code iOS apps on unjailbroken iOS",
-      "localizedDescription": "IDE to develop native code iOS apps on unjailbroken iOS it self just via a certificate and a kernel virtualization layer for those apps.",
+      "subtitle": "IDE to develop native code iOS apps on unjailbroken iOS it self just via a certificate and a kernel virtualization layer for those apps.",
+      "localizedDescription": "Nyxian is a iOS application for iOS 17.0 and above(iOS 26.2 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups.",
       "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
       "tintColor": "#aa80dc",
       "category": "developer",
