@@ -140,7 +140,6 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Assets.xcassets,
 				LindChain/Compiler/ObjectCompiler.cpp,
 				LindChain/Debugger/MachServer.m,
 				LindChain/Debugger/Utils.m,
@@ -260,7 +259,6 @@
 				LindChain/ProcEnvironment/Utils/fd.c,
 				LindChain/ProcEnvironment/Utils/klog.m,
 				LindChain/Utils/Swizzle.m,
-				"Preview Content/Preview Assets.xcassets",
 				UI/Settings/CertificateManagement.swift,
 				UI/Settings/CertificateViewController.swift,
 				UI/Settings/KernelLogViewController.swift,

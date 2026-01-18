@@ -39,6 +39,7 @@ class SettingsViewController: UIThemedTableViewController {
         cell.accessoryType = .disclosureIndicator
 
         switch indexPath.row {
+#if !JAILBREAK_ENV
         case 0:
             cell.imageView?.image = UIImage(systemName: {
                 if #available(iOS 16.0, *) {
@@ -69,6 +70,26 @@ class SettingsViewController: UIThemedTableViewController {
             cell.imageView?.image = UIImage(systemName: "info")
             cell.textLabel?.text = "Kernel Log"
             break
+#else
+        case 0:
+            cell.imageView?.image = UIImage(systemName: {
+                if #available(iOS 16.0, *) {
+                    return "wrench.adjustable.fill"
+                } else {
+                    return "gearshape.2.fill"
+                }
+            }())
+            cell.textLabel?.text = "Toolchain"
+            break
+        case 1:
+            cell.imageView?.image = UIImage(systemName: "paintbrush.fill")
+            cell.textLabel?.text = "Customization"
+            break
+        case 2:
+            cell.imageView?.image = UIImage(systemName: "info")
+            cell.textLabel?.text = "Info"
+            break
+#endif /* !JAILBREAK_ENV */
         default:
             break
         }
@@ -102,7 +123,7 @@ class SettingsViewController: UIThemedTableViewController {
                 return ToolChainController(style: .insetGrouped)
             case 1:
                 return CustomizationViewController(style: .insetGrouped)
-            case 3:
+            case 2:
                 return AppInfoViewController(style: .insetGrouped)
 #endif /* !JAILBREAK_ENV */
             default:
