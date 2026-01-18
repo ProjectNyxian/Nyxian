@@ -174,13 +174,15 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 guard unzipArchiveAtPath(selectedURL.path, unzipRoot) else { return }
                 let contents: [String] = try FileManager.default.contentsOfDirectory(atPath: payloadDir)
                 
-                guard let appBundlePath = contents.first(where: { $0.URLGet().pathExtension == "app" }) else {
+                guard let appBundlePathComponent = contents.first(where: { $0.URLGet().pathExtension == "app" }) else {
                     NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: no .app bundle found")
                     return
                 }
                 
-                guard let bundle = Bundle(path: appBundlePath) else {
-                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid bundle URL")
+                let appBundleFullPath = payloadDir.appending("/\(appBundlePathComponent)")
+                
+                guard let bundle = Bundle(path: appBundleFullPath) else {
+                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid bundle path")
                     return
                 }
                 
