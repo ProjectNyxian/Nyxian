@@ -327,43 +327,43 @@ class CodeEditorViewController: UIViewController {
     }
 
     @objc func keyboardWillShow(notification: NSNotification) {
-        guard #available(iOS 26.0, *),
-              let floatingToolbar = self.floatingToolbar,
-              let userInfo = notification.userInfo,
+        guard let userInfo = notification.userInfo,
               let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
-            return
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+
+        let bottomInset: CGFloat
+
+        if #available(iOS 26.0, *), let floatingToolbar = self.floatingToolbar {
+            bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (floatingToolbar.frame.height + 10)
+            floatingToolbar.isHidden = false
+            floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
+            UIView.animate(withDuration: duration) { self.view.layoutIfNeeded() }
+        } else {
+            bottomInset = keyboardFrame.height
         }
-        
-        let bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (floatingToolbar.frame.height + 10)
+
         textView.contentInset.bottom = bottomInset
         textView.verticalScrollIndicatorInsets.bottom = bottomInset
-        
-        floatingToolbar.isHidden = false
-        floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
-        UIView.animate(withDuration: duration) {
-            self.view.layoutIfNeeded()
-        }
     }
 
     @objc func keyboardWillHide(notification: NSNotification) {
-        guard #available(iOS 26.0, *),
-              let floatingToolbar = self.floatingToolbar,
-              let userInfo = notification.userInfo,
+        guard let userInfo = notification.userInfo,
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
             textView.contentInset = .zero
             textView.scrollIndicatorInsets = .zero
             return
         }
-        
+
         textView.contentInset = .zero
-        textView.scrollIndicatorInsets = .zero
-        
-        UIView.animate(withDuration: duration) {
-            self.floatingToolbarBottomConstraint?.constant = 100
-            self.view.layoutIfNeeded()
-        } completion: { _ in
-            floatingToolbar.isHidden = true
+        textView.verticalScrollIndicatorInsets = .zero
+
+        if #available(iOS 26.0, *), let floatingToolbar = self.floatingToolbar {
+            UIView.animate(withDuration: duration) {
+                self.floatingToolbarBottomConstraint?.constant = 100
+                self.view.layoutIfNeeded()
+            } completion: { _ in
+                floatingToolbar.isHidden = true
+            }
         }
     }
     
