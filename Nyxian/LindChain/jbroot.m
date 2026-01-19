@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/jbroot.h>
+#import <LindChain/Shell.h>
 #import <LindChain/libroot.h>
 
 NSString *IGottaNeedTheActualJBRootMate(void)

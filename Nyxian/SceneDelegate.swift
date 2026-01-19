@@ -30,6 +30,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         window = LDEWindowServer.shared(with: windowScene)
 #else
         window = UIWindow(windowScene: windowScene)
+        
+        // jailbroken check
+        if(shell("whoami", 0, nil, nil) != 0) {
+            exit(0)
+        } else {
+            Bootstrap.shared.bootstrap()
+        }
 #endif // !JAILBREAK_ENV
         let tabViewController: UITabBarController = UITabBarController()
         

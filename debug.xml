@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-    <dict>
-        <key>application-identifier</key>
-        <string>com.cr4zy.nyxian</string>
-        <key>com.apple.developer.team-identifier</key>
-        <string>247WTX8N88</string>
-        <key>get-task-allow</key>
-        <true/>
-        <key>UIFileSharingEnabled</key>
-        <true/>
-        <key>com.apple.private.security.no-sandbox</key>
-        <true/>
-        <key>platform-application</key>
-        <true/>
-        <key>com.apple.private.security.container-manager</key>
+<dict>
+    <key>application-identifier</key>
+    <string>L4A6CKH3TV.com.cr4zy.nyxian</string>
+    <key>get-task-allow</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>com.apple.private.security.no-sandbox</key>
+    <true/>
+    <key>platform-application</key>
+    <true/>
+    <key>com.apple.private.security.container-manager</key>
     <true/>
     <key>com.apple.private.MobileContainerManager.allowed</key>
     <true/>
@@ -394,20 +392,20 @@
     <true/>
     <key>com.apple.rootless.volume.iSCPreboot</key>
     <true/>
-<key>com.apple.private.security.storage.AppDataContainers</key>
-        <true/>
-        <key>com.apple.security.exception.files.absolute-path.read-write</key>
-        <true/>
-        <key>com.apple.security.exception.iokit-user-client-class</key>
-        <array>
-            <string>IOSurfaceRootUserClient</string>
-<string>AGXDeviceUserClient</string>
-        </array>
+    <key>com.apple.private.security.storage.AppDataContainers</key>
+    <true/>
+    <key>com.apple.security.exception.files.absolute-path.read-write</key>
+    <true/>
+    <key>com.apple.security.exception.iokit-user-client-class</key>
+    <array>
+        <string>IOSurfaceRootUserClient</string>
+        <string>AGXDeviceUserClient</string>
+    </array>
 	<key>com.apple.developer.kernel.increased-memory-limit</key>
 	<true/>
 	<key>com.apple.developer.kernel.extended-virtual-addressing</key>
 	<true/>
 	<key>com.apple.private.persona-mgmt</key>
 	<true/>
-	</dict>
+</dict>
 </plist>
