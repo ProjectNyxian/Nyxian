@@ -33,7 +33,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
 #endif // !JAILBREAK_ENV
         let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
         
-        let contentViewController: ContentViewController = ContentViewController(path: "\(NSHomeDirectory())/Documents/Projects")
+        let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))
         let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
         
         let projectsNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)

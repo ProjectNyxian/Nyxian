@@ -76,7 +76,8 @@ void createEnvp(NSArray<NSString *> *environment,
 static int runCommand(NSString *command,
                       NSArray<NSString *> *args,
                       uid_t uid,
-                      NSArray<NSString *> *extraEnv)
+                      NSArray<NSString *> *extraEnv,
+                      NSString **output)
 {
     pid_t pid = 0;
 
@@ -106,7 +107,16 @@ static int runCommand(NSString *command,
     int envc = 0;
     char **envp = NULL;
     createEnvp(envStrings, &envc, &envp);
-
+    
+    int outPipe[2];
+    pipe(outPipe);
+    
+    posix_spawn_file_actions_t actions;
+    posix_spawn_file_actions_init(&actions);
+    posix_spawn_file_actions_adddup2(&actions, outPipe[1], STDOUT_FILENO);
+    posix_spawn_file_actions_adddup2(&actions, outPipe[1], STDERR_FILENO);
+    posix_spawn_file_actions_addclose(&actions, outPipe[0]);
+    
     posix_spawnattr_t attr;
     posix_spawnattr_init(&attr);
 
@@ -116,7 +126,7 @@ static int runCommand(NSString *command,
 
     int result = posix_spawn(&pid,
                              [[jbroot stringByAppendingString:command] UTF8String],
-                             NULL,
+                             &actions,
                              &attr,
                              (char * const *)argv,
                              (char * const *)envp);
@@ -134,6 +144,23 @@ static int runCommand(NSString *command,
     waitpid(pid, &status, 0);
 
 cleanup:
+    close(outPipe[1]);
+    
+    NSMutableData *outputData = [NSMutableData data];
+    char buffer[1024];
+    ssize_t bytesRead;
+    
+    while ((bytesRead = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
+        [outputData appendBytes:buffer length:bytesRead];
+    }
+    
+    close(outPipe[0]);
+    
+    if(output != nil)
+    {
+        *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+    }
+    
     for(int i = 0; i < argc; i++)
     {
         free(argv[i]);
@@ -147,8 +174,8 @@ cleanup:
 }
 
 
-int shell(NSString *command, uid_t uid, NSArray<NSString *> *env)
+int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
 {
-    return runCommand(@"/usr/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[]);
+    return runCommand(@"/usr/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[], output);
 }
 

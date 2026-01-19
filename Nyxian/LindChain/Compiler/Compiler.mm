@@ -28,6 +28,13 @@
 #import <LindChain/Compiler/Compiler.h>
 #import <LindChain/Synpush/Synpush.h>
 
+#if JAILBREAK_ENV
+
+
+extern "C" int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
+
+#endif /* JAILBREAK_ENV */
+
 // TODO: Might want to extract a header
 int CompileObject(int argc,
                   const char **argv,
@@ -98,7 +105,18 @@ int CompileObject(int argc,
     
     return result;
 #else
-    return -1;
+    NSString *command = [NSString stringWithFormat:@"clang %@ -c %@ -o %@", [_flags componentsJoinedByString:@" "], filePath, outputFilePath];
+    
+    NSString *output = nil;
+    
+    int retval = shell(command, 501, NULL, &output);
+    
+    if(output)
+    {
+        *issues = [Synitem OfClangErrorWithString:output];
+    }
+    
+    return retval;
 #endif /* !JAILBREAK_ENV */
 }
 

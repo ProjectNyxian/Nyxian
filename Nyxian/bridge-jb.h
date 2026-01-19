@@ -34,6 +34,7 @@
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
 #import <LindChain/jbroot.h>
+#import <LindChain/Shell.h>
 
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>
@@ -44,3 +45,5 @@
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>
 #import <UI/XCodeButton.h>
+
+extern NSString *containerRoot;

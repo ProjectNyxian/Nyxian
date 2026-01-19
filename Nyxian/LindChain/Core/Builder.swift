@@ -192,7 +192,6 @@ class Builder {
     /// Function to build object files
     ///
     func compile() throws {
-#if !JAILBREAK_ENV
         if self.dirtySourceFiles.count > 0 {
             let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
             guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
@@ -229,11 +228,9 @@ class Builder {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
             }
         }
-#endif // !JAILBREAK_ENV
     }
     
     func link() throws {
-#if !JAILBREAK_ENV
         let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() + self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
@@ -242,7 +239,6 @@ class Builder {
         if self.linker.ld64((ldArgs as NSArray).mutableCopy() as? NSMutableArray) != 0 {
             throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:self.linker.error ?? "Linking object files together to a executable failed"])
         }
-#endif // !JAILBREAK_ENV
     }
     
     func install(buildType: Builder.BuildType) throws {
@@ -289,6 +285,18 @@ class Builder {
             }
         } else {
             try? self.package()
+        }
+#else
+        if(buildType == .RunningApp) {
+            if self.project.projectConfig.type == NXProjectType.app.rawValue {
+                shell("ldid -S\(Bundle.main.bundlePath)/Nyxian.entitlements \(self.project.bundlePath ?? "")", 501, nil, nil)
+                zipDirectoryAtPath(self.project.payloadPath, self.project.packagePath, true)
+                var output: NSString? = ""
+                shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output)
+                if let output = output {
+                    NotificationServer.NotifyUser(level: .error, notification: output as String)
+                }
+            }
         }
 #endif // !JAILBREAK_ENV
     }

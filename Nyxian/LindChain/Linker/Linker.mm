@@ -25,6 +25,16 @@
 
 extern "C" void ls_printf(const char *format, ...);
 
+#if JAILBREAK_ENV
+
+extern "C" {
+
+int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
+
+}
+
+#endif /* JAILBREAK_ENV */
+
 namespace lld {
 namespace macho {
 
@@ -78,6 +88,11 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
     
     return result.retCode;
 #else
+    NSString *command = [NSString stringWithFormat:@"ld %@", [flags componentsJoinedByString:@" "]];
+    
+    /* Todo: add a way to retrieve the error string to process it */
+    return shell(command, 501, NULL, NULL);
+    
     return -1;
 #endif /* !JAILBREAK_ENV*/
 }

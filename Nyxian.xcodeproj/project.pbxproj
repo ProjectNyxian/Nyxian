@@ -134,6 +134,7 @@
 				LindChain/jbroot.m,
 				LindChain/libroot.a,
 				LindChain/Shell.m,
+				LindChain/tshelper,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};
@@ -367,6 +368,13 @@
 				LindChain/Synpush/libclang.dylib,
 			);
 		};
+		798BC0822F1D6DC900CBB23F /* Exceptions for "Nyxian" folder in "Copy Bundle Resources" phase from "NyxianForJB" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 79AF511F2F1CBD110055004A /* Resources */;
+			membershipExceptions = (
+				Nyxian.entitlements,
+			);
+		};
 		79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
@@ -415,6 +423,7 @@
 				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
+				798BC0822F1D6DC900CBB23F /* Exceptions for "Nyxian" folder in "Copy Bundle Resources" phase from "NyxianForJB" target */,
 				798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 				79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */,
