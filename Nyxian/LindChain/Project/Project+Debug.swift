@@ -117,7 +117,13 @@ class DebugDatabase: Codable {
     
     func setFileDebug(ofPath path: String, synItems: [Synitem]) {
         // TODO: Last path component is pretty ineffective if the user has files with the same name at a other location in the project
+        // FIXME: Every DebugDatabase shall initilize with a project and not with some path!!!
+#if JAILBREAK_ENV
+        let fixedPath: String = path.trimmingPathToFirstUUID()
+#else
         let fixedPath: String = path.trimmingPathToFirstUUID().trimmingPathToFirstUUID()
+#endif // JAILBREAK_ENV
+        
         let fileObject: DebugObject = DebugObject(title: fixedPath, type: .DebugFile)
         
         for item in synItems {
@@ -132,7 +138,12 @@ class DebugDatabase: Codable {
         var synItems: [Synitem] = []
         
         // Get object
+#if JAILBREAK_ENV
+        let fixedPath: String = path.trimmingPathToFirstUUID()
+#else
         let fixedPath: String = path.trimmingPathToFirstUUID().trimmingPathToFirstUUID()
+#endif // JAILBREAK_ENV
+        
         let fileObject: DebugObject = DebugObject(title: fixedPath, type: .DebugFile)
         
         for item in fileObject.debugItems {

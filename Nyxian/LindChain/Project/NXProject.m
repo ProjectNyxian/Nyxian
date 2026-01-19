@@ -71,7 +71,10 @@
         @"-Xclang", @"-target-feature", @"-Xclang", @"+neon",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fullfp16",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fp16fml",
-        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12"
+        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12",
+#if JAILBREAK_ENV
+        @"-fno-caret-diagnostics"
+#endif /* JAILBREAK_ENV */
     ]];
     
     return flags;
