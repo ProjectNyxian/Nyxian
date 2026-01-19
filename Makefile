@@ -6,7 +6,7 @@ compile:
 	xcodebuild -project Nyxian.xcodeproj -scheme NyxianForJB -configuration Debug -destination 'generic/platform=iOS' -archivePath build/Nyxian.xcarchive archive
 
 sign:
-	ldid -Snyxianforjb.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
+	ldid -Sdebug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
 	ldid -Stshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
 
 package:

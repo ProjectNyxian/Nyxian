@@ -95,7 +95,7 @@ static int runCommand(NSString *command,
         [NSString stringWithFormat:
         @"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot],
         [NSString stringWithFormat:@"HOME=%@", NSHomeDirectory()],
-        [NSString stringWithFormat:@"TMPDIR=%@/tmp", NSTemporaryDirectory()]
+        [NSString stringWithFormat:@"TMPDIR=%@", NSTemporaryDirectory()]
     ];
 
     NSMutableArray *envStrings = [NSMutableArray arrayWithArray:baseEnv];

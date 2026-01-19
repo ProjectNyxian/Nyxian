@@ -289,12 +289,10 @@ class Builder {
 #else
         if(buildType == .RunningApp) {
             if self.project.projectConfig.type == NXProjectType.app.rawValue {
-                shell("ldid -S\(Bundle.main.bundlePath)/Nyxian.entitlements \(self.project.bundlePath ?? "")", 501, nil, nil)
                 zipDirectoryAtPath(self.project.payloadPath, self.project.packagePath, true)
-                var output: NSString? = ""
-                shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output)
-                if let output = output {
-                    NotificationServer.NotifyUser(level: .error, notification: output as String)
+                var output: NSString?
+                if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
+                    throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
                 }
             }
         }
