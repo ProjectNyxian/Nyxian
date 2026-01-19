@@ -47,7 +47,10 @@
     return pthreads;
 }
 
-- (BOOL)increment {
+- (NSDictionary*)entitlements { return [self readSecureFromKey:@"LDEEntitlements" withDefaultValue:[[NSDictionary alloc] init] classType:NSDictionary.class]; }
+
+- (BOOL)increment
+{
     NSNumber *value = [self readKey:@"LDEOverwriteIncrementalBuild"];
     NSNumber *userSetValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"LDEIncrementalBuild"];
     return value ? value.boolValue : userSetValue ? userSetValue.boolValue : YES;
@@ -71,10 +74,7 @@
         @"-Xclang", @"-target-feature", @"-Xclang", @"+neon",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fullfp16",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fp16fml",
-        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12",
-#if JAILBREAK_ENV
-        @"-fno-caret-diagnostics"
-#endif /* JAILBREAK_ENV */
+        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12"
     ]];
     
     return flags;
@@ -225,9 +225,10 @@
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"]
+                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"],
                 },
                 @"/Config/Entitlements.plist": @{
+#if !JAILBREAK_ENV
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
                     @"com.nyxian.pe.task_for_pid_host": @(NO),
@@ -253,6 +254,9 @@
                     @"com.nyxian.pe.device_spoof": @(NO),
                     @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
                     @"com.nyxian.pe.platform": @(NO)
+#else
+                    @"platform-application": @(YES)
+#endif // !JAILBREAK_ENV
                 }
             };
             break;
@@ -263,9 +267,10 @@
                     @"LDEDisplayName": name,
                     @"LDEProjectType": @(type),
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"]
+                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"],
                 },
                 @"/Config/Entitlements.plist": @{
+#if !JAILBREAK_ENV
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
                     @"com.nyxian.pe.task_for_pid_host": @(NO),
@@ -291,6 +296,9 @@
                     @"com.nyxian.pe.device_spoof": @(NO),
                     @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
                     @"com.nyxian.pe.platform": @(NO)
+#else
+                    @"platform-application": @(YES)
+#endif // !JAILBREAK_ENV
                 }
             };
             break;

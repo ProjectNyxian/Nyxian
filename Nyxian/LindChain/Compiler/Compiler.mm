@@ -105,7 +105,7 @@ int CompileObject(int argc,
     
     return result;
 #else
-    NSString *command = [NSString stringWithFormat:@"clang %@ -c %@ -o %@", [_flags componentsJoinedByString:@" "], filePath, outputFilePath];
+    NSString *command = [NSString stringWithFormat:@"clang %@ -fno-caret-diagnostics -c %@ -o %@", [_flags componentsJoinedByString:@" "], filePath, outputFilePath];
     
     NSString *output = nil;
     

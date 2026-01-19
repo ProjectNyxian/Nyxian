@@ -287,14 +287,26 @@ class Builder {
             try? self.package()
         }
 #else
+        var output: NSString?
+        let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
+        
+        if FileManager.default.fileExists(atPath: entitlementsPath),
+           buildType == .RunningApp,
+           self.project.projectConfig.type == NXProjectType.app.rawValue {
+            // pseudo signing executable
+            if shell("ldid -S\(entitlementsPath) \(self.project.bundlePath ?? "")", 501, nil, &output) != 0 {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened signing application"])
+            }
+        }
+        
         try? self.package()
-        if(buildType == .RunningApp),
+        
+        if buildType == .RunningApp,
           self.project.projectConfig.type == NXProjectType.app.rawValue {
             // uninstalling potentially installed app
             shell("\(Bundle.main.bundlePath)/tshelper uninstall \(self.project.projectConfig.bundleid ?? "")", 0, nil, nil)
             
             // installing app
-            var output: NSString?
             if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
