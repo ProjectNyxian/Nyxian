@@ -287,13 +287,12 @@ class Builder {
             try? self.package()
         }
 #else
-        if(buildType == .RunningApp) {
-            if self.project.projectConfig.type == NXProjectType.app.rawValue {
-                zipDirectoryAtPath(self.project.payloadPath, self.project.packagePath, true)
-                var output: NSString?
-                if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
-                    throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
-                }
+        try? self.package()
+        if(buildType == .RunningApp),
+          self.project.projectConfig.type == NXProjectType.app.rawValue {
+            var output: NSString?
+            if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
         }
 #endif // !JAILBREAK_ENV
