@@ -34,6 +34,10 @@ import Foundation
         "/Certificates"
     ]
     
+    let bundleFixupExecutablePaths: [String] = [
+        "/tshelper"
+    ]
+    
     var bootstrapPlistPath: String {
         bootstrapPath("/bootstrap.plist")
     }
@@ -182,6 +186,14 @@ import Foundation
                     if FileManager.default.fileExists(atPath: bootstrapDeleteItem) {
                         try FileManager.default.removeItem(atPath: bootstrapDeleteItem)
                     }
+                }
+                
+                // Executable check
+                print("[*] making executables executable again")
+                
+                // IDK WHY THATS NEEDED LOL
+                for executableItem in self.bundleFixupExecutablePaths {
+                    shell("chmod 0555 \(Bundle.main.bundlePath)\(executableItem)", 0, nil, nil)
                 }
             } catch {
                 print("[!] failed: \(error.localizedDescription)")

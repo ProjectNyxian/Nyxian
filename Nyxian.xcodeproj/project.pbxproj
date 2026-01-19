@@ -7,9 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		79277DC12EE8752800F18B30 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
 		79277DC22EE8752800F18B30 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
-		79277DC72EE8761600F18B30 /* version.sh in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC62EE8761000F18B30 /* version.sh */; };
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -21,8 +19,6 @@
 		79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF510E2F1CBD110055004A /* TreeSitterC */; };
 		79AF511D2F1CBD110055004A /* TreeSitterXML in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51122F1CBD110055004A /* TreeSitterXML */; };
 		79AF511E2F1CBD110055004A /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51142F1CBD110055004A /* SwiftTerm */; };
-		79AF51202F1CBD110055004A /* version.sh in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC62EE8761000F18B30 /* version.sh */; };
-		79AF51212F1CBD110055004A /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
 		79AF51222F1CBD110055004A /* Shared in Resources */ = {isa = PBXBuildFile; fileRef = AF99171F2DC8EA3C00DDF895 /* Shared */; };
 		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
@@ -133,6 +129,7 @@
 			membershipExceptions = (
 				LindChain/jbroot.m,
 				LindChain/libroot.a,
+				LindChain/litehook/LICENSE,
 				LindChain/Shell.m,
 				LindChain/tshelper,
 			);
@@ -368,13 +365,6 @@
 				LindChain/Synpush/libclang.dylib,
 			);
 		};
-		798BC0822F1D6DC900CBB23F /* Exceptions for "Nyxian" folder in "Copy Bundle Resources" phase from "NyxianForJB" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 79AF511F2F1CBD110055004A /* Resources */;
-			membershipExceptions = (
-				Nyxian.entitlements,
-			);
-		};
 		79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
@@ -423,7 +413,6 @@
 				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
-				798BC0822F1D6DC900CBB23F /* Exceptions for "Nyxian" folder in "Copy Bundle Resources" phase from "NyxianForJB" target */,
 				798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 				79BF9ACA2E62BC2200C60D4C /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */,
@@ -686,8 +675,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79AF51202F1CBD110055004A /* version.sh in Resources */,
-				79AF51212F1CBD110055004A /* Config.xcconfig in Resources */,
 				79AF51222F1CBD110055004A /* Shared in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -704,8 +691,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79277DC72EE8761600F18B30 /* version.sh in Resources */,
-				79277DC12EE8752800F18B30 /* Config.xcconfig in Resources */,
 				AFF4D5D92DC9390B00B1B5F9 /* Shared in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
