@@ -187,6 +187,8 @@ import Foundation
                         try FileManager.default.removeItem(atPath: bootstrapDeleteItem)
                     }
                 }
+
+#if JAILBREAK_ENV
                 
                 // Executable check
                 print("[*] making executables executable again")
@@ -195,6 +197,9 @@ import Foundation
                 for executableItem in self.bundleFixupExecutablePaths {
                     shell("chmod 0555 \(Bundle.main.bundlePath)\(executableItem)", 0, nil, nil)
                 }
+
+#endif // JAILBREAK_ENV
+
             } catch {
                 print("[!] failed: \(error.localizedDescription)")
                 NotificationServer.NotifyUser(level: .error, notification: "Bootstrapping failed: \(error.localizedDescription), you will not be able to build any apps. please restart the app to reattempt bootstrapping!")
