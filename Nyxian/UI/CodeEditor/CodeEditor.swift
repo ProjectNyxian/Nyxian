@@ -89,6 +89,11 @@ class CodeEditorViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if #unavailable(iOS 26.0) {
+            self.navigationController?.navigationBar.compactAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
         do {
             self.textView.text = try String(contentsOf: URL(fileURLWithPath: self.path), encoding: .utf8)
         } catch {

@@ -40,7 +40,6 @@ extension UIColor {
 
 var currentTheme: LDETheme?
 var currentNavigationBarAppearance = UINavigationBarAppearance()
-var currentTabBarAppearance = UITabBarAppearance()
 
 func RevertUI() {
     currentTheme = LDEThemeReader.shared.currentlySelectedTheme()
@@ -53,16 +52,6 @@ func RevertUI() {
         currentNavigationBarAppearance.buttonAppearance.normal.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
         currentNavigationBarAppearance.backButtonAppearance = UIBarButtonItemAppearance()
         currentNavigationBarAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor : currentTheme.textColor]
-        
-        UINavigationBar.appearance().compactAppearance = currentNavigationBarAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = currentNavigationBarAppearance
-        
-        if #available(iOS 15.0, *) {
-            currentTabBarAppearance.configureWithOpaqueBackground()
-            currentTabBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
-            UITabBar.appearance().standardAppearance = currentTabBarAppearance
-            UITabBar.appearance().scrollEdgeAppearance = currentTabBarAppearance
-        }
     }
     
     UITableView.appearance().backgroundColor = currentTheme.appTableView

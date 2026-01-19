@@ -31,7 +31,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
 #else
         window = UIWindow(windowScene: windowScene)
 #endif // !JAILBREAK_ENV
-        let tabViewController: UIThemedTabBarController = UIThemedTabBarController()
+        let tabViewController: UITabBarController = UITabBarController()
         
         let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))
         let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)

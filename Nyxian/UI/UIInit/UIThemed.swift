@@ -45,44 +45,6 @@ import UIKit
     }
 }
 
-@objc class UIThemedTabBarController: UITabBarController, UITabBarControllerDelegate {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.delegate = self
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        self.view.backgroundColor = currentTheme?.appTableView
-        super.viewDidAppear(animated)
-    }
-    
-    @objc func handleMyNotification(_ notification: Notification) {
-        if #unavailable(iOS 26.0) {
-            let blurEffect = UIBlurEffect(style: .systemMaterial)
-            
-            if let viewControllers = self.viewControllers {
-                for case let nav as UINavigationController in viewControllers {
-                    nav.navigationBar.standardAppearance = currentNavigationBarAppearance
-                    nav.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
-                    nav.navigationBar.scrollEdgeAppearance?.backgroundEffect = blurEffect
-                }
-            }
-            
-            if #available(iOS 15.0, *) {
-                let appearance = UITabBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = currentTheme?.appTableView
-                self.tabBar.standardAppearance = appearance
-                self.tabBar.scrollEdgeAppearance = appearance
-                UITabBar.appearance().scrollEdgeAppearance = appearance
-                UITabBar.appearance().scrollEdgeAppearance?.backgroundEffect = blurEffect
-            }
-        }
-    }
-}
-
 extension UIViewController {
     func presentConfirmationAlert(
         title: String,
