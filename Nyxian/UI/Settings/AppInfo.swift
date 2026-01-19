@@ -35,6 +35,7 @@ var buildNumber: String {
 // AppInfoView
 class AppInfoViewController: UIThemedTableViewController {
     
+#if !JAILBREAK_ENV
     private var credits: [Credit] = [
         Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "Duy Tran", role: "LiveContainer", githubURL: "https://github.com/khanhduytran0"),
@@ -45,6 +46,15 @@ class AppInfoViewController: UIThemedTableViewController {
         Credit(name: "sxdev", role: "Drawn app icons", githubURL: "https://github.com/SamoXcZ"),
         Credit(name: "xzadik", role: "Nyxcat app icons", githubURL: "https://github.com/xzadik"),
     ]
+#else
+    private var credits: [Credit] = [
+        Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
+        Credit(name: "Lars Fröder", role: "Litehook and Trollstore", githubURL: "https://github.com/opa334"),
+        Credit(name: "ayame09", role: "Original Nyxian app icons", githubURL: "https://github.com/ayayame09"),
+        Credit(name: "sxdev", role: "Drawn app icons", githubURL: "https://github.com/SamoXcZ"),
+        Credit(name: "xzadik", role: "Nyxcat app icons", githubURL: "https://github.com/xzadik"),
+    ]
+#endif // !JAILBREAK_ENV
     
     override func viewDidLoad() {
         super.viewDidLoad()
