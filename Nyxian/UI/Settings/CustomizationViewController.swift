@@ -32,7 +32,8 @@ class CustomizationViewController: UIThemedTableViewController {
         "Drawn",
         "Nyxcat",
         "Nyxcat2",
-        "Nyxcat3"
+        "Nyxcat3",
+        "SillyCoder"
     ]
     
     var themePreviewCell: ThemePickerPreviewCell?
