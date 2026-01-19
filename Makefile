@@ -7,6 +7,7 @@ compile:
 
 sign:
 	ldid -Snyxianforjb.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
+	ldid -Stshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
 
 package:
 	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
