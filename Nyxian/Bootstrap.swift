@@ -19,19 +19,6 @@
 
 import Foundation
 
-/*
- Bootstrap structure
- 
- Documents/
-  ├── Include/
-  ├── SDK/
-  ├── Cache/
-  ├── Config/
-  │   ├── Server/
-  │   └── Signature/
-  └── Projects/
- */
-
 @objc class Bootstrap: NSObject {
     var semaphore: DispatchSemaphore?
 #if !JAILBREAK_ENV
@@ -41,21 +28,35 @@ import Foundation
 #endif // !JAILBREAK_ENV
     let newestBootstrapVersion: Int = 9
     
+    // Paths that we for sure do not need
+    let bootstrapDeletionIfFoundPaths: [String] = [
+        "/Config",
+        "/Certificates"
+    ]
+    
+    var bootstrapPlistPath: String {
+        bootstrapPath("/bootstrap.plist")
+    }
+    
     var bootstrapVersion: Int {
         get {
-            return UserDefaults.standard.integer(forKey: "LDEBootstrapVersion")
+            guard FileManager.default.fileExists(atPath: bootstrapPlistPath),
+                  let dict = NSDictionary(contentsOfFile: bootstrapPlistPath),
+                  let version = dict["BootstrapVersion"] as? Int else {
+                return 0
+            }
+            return version
         }
         set {
             let cstep = 1.0 / Double(self.newestBootstrapVersion)
             XCButton.updateProgress(withValue: cstep * Double(newValue))
-            UserDefaults.standard.set(newValue, forKey: "LDEBootstrapVersion")
+            let dict: NSDictionary = ["BootstrapVersion": newValue]
+            dict.write(to: URL(fileURLWithPath: bootstrapPlistPath), atomically: true)
         }
     }
     
     var isBootstrapInstalled: Bool {
-        get {
-            return self.bootstrapVersion != 0
-        }
+        return FileManager.default.fileExists(atPath: bootstrapPlistPath) && bootstrapVersion > 0
     }
     
     @objc func bootstrapPath(_ path: String) -> String {
@@ -75,9 +76,26 @@ import Foundation
         }
     }
     
+    func migrateToBootstrapPlistIfNeeded() {
+        if FileManager.default.fileExists(atPath: bootstrapPlistPath) {
+            return
+        }
+
+        let legacyVersion = UserDefaults.standard.integer(forKey: "LDEBootstrapVersion")
+        if legacyVersion > 0 && legacyVersion < 10 {
+            print("[*] migrating bootstrap state from UserDefaults (v\(legacyVersion))")
+            bootstrapVersion = legacyVersion
+            UserDefaults.standard.removeObject(forKey: "LDEBootstrapVersion")
+        }
+    }
+    
     @objc func bootstrap() {
-        print("[*] Hello LindDE:Bootstrap")
+        print("[*] checking upon nyxian bootstrap")
+        
         LDEPthreadDispatch {
+            // Bootstrap migration
+            self.migrateToBootstrapPlistIfNeeded()
+            
 #if JAILBREAK_ENV
             if(!FileManager.default.fileExists(atPath: self.rootPath)) {
                 do {
@@ -91,127 +109,93 @@ import Foundation
             print("[*] install status: \(self.isBootstrapInstalled)")
             print("[*] version: \(self.bootstrapVersion)")
             
-            if !self.isBootstrapInstalled ||
-                self.bootstrapVersion != self.newestBootstrapVersion {
+            do {
                 
-                // "e need to clear the entire path if its not installed
-                if !self.isBootstrapInstalled {
-                    print("[*] Bootstrap is not installed, clearing")
-                    self.clearPath(path: "/")
-                }
+                if !self.isBootstrapInstalled ||
+                    self.bootstrapVersion != self.newestBootstrapVersion {
                 
-                do {
-                    if self.bootstrapVersion == 0 {
-                        // Create the folder structure
+                    // "e need to clear the entire path if its not installed
+                    if !self.isBootstrapInstalled {
+                        print("[*] Bootstrap is not installed, clearing")
+                        self.clearPath(path: "/")
+                    }
+                
+                    if self.bootstrapVersion < 1 {
+                        // Creating bootstrap base
                         print("[*] Creating folder structures")
+                    
+                        // We need include to put clangs includations into
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Include"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/SDK"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Certificates"), withIntermediateDirectories: false)
-                        
-                        // Now extract Include and SDK
-                        print("[*] Bootstrapping folder structures")
+                    
                         self.bootstrapVersion = 1
                     }
-                    
-                    if self.bootstrapVersion == 1 {
-                        print("[*] bootstrap upgrade patch for version 1")
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Applications"), withIntermediateDirectories: false)
-                        self.bootstrapVersion = 2
-                    }
-                    
-                    if self.bootstrapVersion == 2 {
-                        print("[*] bootstrap upgrade patch for version 2")
-                        try FileManager.default.removeItem(atPath: self.bootstrapPath("/Applications"))
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Config"), withIntermediateDirectories: false)
-                        self.bootstrapVersion = 3
-                    }
-                    
-                    if self.bootstrapVersion == 3 {
-                        print("[*] bootstrap upgrade patch for version 3")
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Config/Server"), withIntermediateDirectories: false)
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Config/Signature"), withIntermediateDirectories: false)
-                        self.bootstrapVersion = 4
-                    }
-                    
-                    if self.bootstrapVersion == 4 {
-                        print("[*] bootstrap upgrade patch for version 4")
+                
+                    if self.bootstrapVersion < 5 {
+                        print("[*] creating bootstrap cache")
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Cache"), withIntermediateDirectories: false)
                         self.bootstrapVersion = 5
                     }
-                    
-                    if self.bootstrapVersion == 5 {
-                        print("[*] bootstrap upgrade patch for version 6")
-                        // MARK: Placeholder Bootstrap upgrade
-                        //getCertificates()
-                        self.bootstrapVersion = 6
-                    }
-                    
-                    if self.bootstrapVersion == 6 {
-                        print("[*] bootstrap upgrade patch for version 7")
-                        self.bootstrapVersion = 7
-                    }
-                    
-                    if self.bootstrapVersion == 7 {
+                
+                    if self.bootstrapVersion < 7 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
+                            print("[*] removing deprecated sdk")
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
                         }
-                        
-                        print("[*] bootstrap upgrade patch for version 8")
-                        
+                    
+                        print("[*] downloading sdk")
+                    
                         if !fdownload("https://nyxian.app/bootstrap/sdk26.1.zip", "sdk.zip") {
-                            print("[*] Bootstrap download failed\n")
-                            throw NSError(
-                                domain: "",
-                                code: 0,
-                                userInfo: [NSLocalizedDescriptionKey: "Download failed!"]
-                            )
+                            print("[*] sdk download failed")
+                            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
                         }
-                        
-                        print("[*] Extracting sdk.zip")
+                    
+                        print("[*] extracting sdk.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
                         self.bootstrapVersion = 8
                     }
-                    
-                    if self.bootstrapVersion == 8 {
+                
+                    if self.bootstrapVersion < 9 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
                         }
-                        
-                        print("[*] bootstrap upgrade patch for version 9")
-                        
+                    
+                        print("[*] bootstrapping clang includes")
+                    
                         if !fdownload("https://nyxian.app/bootstrap/include.zip", "include.zip") {
                             print("[*] Bootstrap download failed\n")
-                            throw NSError(
-                                domain: "",
-                                code: 0,
-                                userInfo: [NSLocalizedDescriptionKey: "Download failed!"]
-                            )
+                            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
                         }
-                        
-                        print("[*] Extracting include.zip")
+                    
+                        print("[*] extracting include.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
-                        
+                    
                         self.bootstrapVersion = 9
                     }
-                    
-                    self.bootstrapVersion = self.newestBootstrapVersion
-                } catch {
-                    print("[!] failed: \(error.localizedDescription)")
-                    NotificationServer.NotifyUser(level: .error, notification: "Bootstrapping failed: \(error.localizedDescription), you will not be able to build any apps. please restart the app to reattempt bootstrapping!")
-                    self.bootstrapVersion = 0
-                    self.clearPath(path: "/")
                 }
+                
+                // Deletion check
+                print("[*] deleting deprecated parts of the bootstrap")
+                for deleteItem in self.bootstrapDeletionIfFoundPaths {
+                    let bootstrapDeleteItem = self.bootstrapPath(deleteItem)
+                    if FileManager.default.fileExists(atPath: bootstrapDeleteItem) {
+                        try FileManager.default.removeItem(atPath: bootstrapDeleteItem)
+                    }
+                }
+            } catch {
+                print("[!] failed: \(error.localizedDescription)")
+                NotificationServer.NotifyUser(level: .error, notification: "Bootstrapping failed: \(error.localizedDescription), you will not be able to build any apps. please restart the app to reattempt bootstrapping!")
+                self.bootstrapVersion = 0
+                self.clearPath(path: "/")
             }
-            print("[*] Done")
+            
+            print("[*] done")
         }
     }
     
     func waitTillDone() {
         guard Bootstrap.shared.bootstrapVersion != Bootstrap.shared.newestBootstrapVersion else { return }
-        
-        print(Bootstrap.shared.bootstrapVersion)
-        print(Bootstrap.shared.newestBootstrapVersion)
         
         XCButton.switchImage(withSystemName: "archivebox.fill", animated: true)
         XCButton.updateProgress(withValue: 0.1)
