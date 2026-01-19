@@ -321,9 +321,7 @@ class Builder {
         XCButton.resetProgress()
         
         LDEPthreadDispatch {
-#if !JAILBREAK_ENV
             Bootstrap.shared.waitTillDone()
-#endif // !JAILBREAK_ENV
             
             var result: Bool = true
             let builder: Builder = Builder(
