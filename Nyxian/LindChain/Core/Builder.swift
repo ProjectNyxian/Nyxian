@@ -294,6 +294,12 @@ class Builder {
             if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
+            
+            // sleeping for 1 second as a cool down
+            sleep(1)
+            
+            // opening app
+            LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
         }
 #endif // !JAILBREAK_ENV
     }
