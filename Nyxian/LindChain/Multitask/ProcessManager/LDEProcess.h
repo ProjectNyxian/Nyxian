@@ -40,7 +40,6 @@
 
 // Process properties
 @property (nonatomic,strong) NSUUID *identifier;
-@property (nonatomic,strong) NSString *displayName;
 @property (nonatomic,strong) NSString *bundleIdentifier;
 @property (nonatomic,strong) NSString *executablePath;
 

@@ -46,7 +46,6 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
         runtimeStoredRectValuesByBundleIdentifier = [[NSMutableDictionary alloc] init];
     }
     
-    self.displayName = @"LiveProcess";
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
     if(![LDETrust executableAllowedToLaunchAtPath:self.executablePath]) return nil;

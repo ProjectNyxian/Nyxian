@@ -61,7 +61,7 @@
     close(stderrPipe[0]);
     close(stderrPipe[1]);
     
-    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:[process displayName] stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
+    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;

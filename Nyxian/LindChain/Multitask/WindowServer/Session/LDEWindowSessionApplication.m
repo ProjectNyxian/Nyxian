@@ -58,16 +58,15 @@ void UIKitFixesInit(void)
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.process.executablePath];
     if(applicationObject != nil)
     {
-        self.process.displayName = applicationObject.displayName;
+        self.windowName  = applicationObject.displayName;
         self.process.bundleIdentifier = applicationObject.bundleIdentifier;
     }
     else
     {
-        self.process.displayName = [self.process.executablePath lastPathComponent];
+        self.windowName  = [self.process.executablePath lastPathComponent];
         self.process.bundleIdentifier = nil;
     }
-    
-    self.windowName = _process.displayName;
+
     return self;
 }
 
