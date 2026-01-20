@@ -65,20 +65,18 @@ class AppInfoViewController: UIThemedTableViewController {
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return 2
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
-            return 1
-        case 1:
 #if !JAILBREAK_ENV
             return 4
 #else
             return 5
 #endif // !JAILBREAK_ENV
-        case 2:
+        case 1:
             return credits.count
         default:
             return 0
@@ -98,9 +96,7 @@ class AppInfoViewController: UIThemedTableViewController {
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
-        case 0:
-            return 120
-        case 2:
+        case 1:
             return 80
         default:
             return tableView.rowHeight
@@ -110,28 +106,7 @@ class AppInfoViewController: UIThemedTableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell = UITableViewCell(style: .value1, reuseIdentifier: "")
         
-        if(indexPath.section == 0) {
-            cell.contentView.backgroundColor = .clear
-            cell.backgroundColor = .clear
-            
-            let image: UIImage = UIImage(imageLiteralResourceName: "InfoThumbnail")
-            let imageView: UIImageView = UIImageView(image: image)
-            imageView.layer.cornerRadius = 15
-            imageView.layer.masksToBounds = true
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            imageView.contentMode = .scaleAspectFit
-            
-            cell.contentView.addSubview(imageView)
-            
-            NSLayoutConstraint.activate([
-                imageView.heightAnchor.constraint(equalToConstant: 100),
-                imageView.widthAnchor.constraint(equalToConstant: 100),
-                imageView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
-                imageView.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor)
-            ])
-            
-            cell.selectionStyle = .none
-        } else if indexPath.section == 1 {
+        if indexPath.section == 0 {
             switch indexPath.row {
             case 0:
                 cell.textLabel?.text = "Name"
