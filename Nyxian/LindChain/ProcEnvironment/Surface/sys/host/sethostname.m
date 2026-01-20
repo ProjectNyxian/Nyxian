@@ -17,9 +17,41 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#include <regex.h>
+
+bool is_valid_hostname_regex(const char *hostname)
+{
+    /* compiling regex pattern once */
+    static regex_t *regex;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        /* allocating this, dont make me regret this */
+        regex = malloc(sizeof(regex_t));
+        
+        /* compiling regex pattern */
+        if(regcomp(regex, "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$", REG_EXTENDED) != 0)
+        {
+            /* if it fails then freeing regex and setting it to null */
+            free(regex);
+            regex = NULL;
+        }
+    });
+    
+    /* null pointer checking */
+    if(regex == NULL)
+    {
+        return false;
+    }
+    
+    /* regex checking string */
+    int result = regexec(regex, hostname, 0, NULL, 0);
+    
+    return (result == 0 && strlen(hostname) <= MAXHOSTNAMELEN);
+}
 
 DEFINE_SYSCALL_HANDLER(sethostname)
 {
@@ -38,6 +70,13 @@ DEFINE_SYSCALL_HANDLER(sethostname)
         sys_return_failure(EPERM);
     }
     
+    /* validating payload first */
+    size_t hostname_len = strlen((const char*)in_payload);
+    if(!is_valid_hostname_regex((const char*)in_payload))
+    {
+        sys_return_failure(EINVAL);
+    }
+    
     /* lock the lock for writing obviously now lol ^^ */
     pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
     
@@ -49,5 +88,6 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     
     /* unlocking lock */
     pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
-    return 0;
+    
+    sys_return;
 }
