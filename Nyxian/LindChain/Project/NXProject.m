@@ -67,6 +67,7 @@
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
         [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
         [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
+#if !JAILBREAK_ENV
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"],
         @"-mcpu=apple-a12",
@@ -75,6 +76,7 @@
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fullfp16",
         @"-Xclang", @"-target-feature", @"-Xclang", @"+fp16fml",
         @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12"
+#endif /* !JAILBREAK_ENV */
     ]];
     
     return flags;

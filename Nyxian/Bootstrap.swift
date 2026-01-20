@@ -160,6 +160,7 @@ import Foundation
                         self.bootstrapVersion = 8
                     }
                 
+#if !JAILBREAK_ENV
                     if self.bootstrapVersion < 9 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
@@ -177,6 +178,7 @@ import Foundation
                     
                         self.bootstrapVersion = 9
                     }
+#endif // !JAILBREAK_ENV
                 }
                 
                 // Deletion check
