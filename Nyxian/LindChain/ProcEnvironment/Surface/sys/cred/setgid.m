@@ -58,7 +58,7 @@ DEFINE_SYSCALL_HANDLER(setgid)
     
 out_update:
     proc_copy_update(sys_proc_copy_);
-    return 0;
+    sys_return;
 }
 
 DEFINE_SYSCALL_HANDLER(setegid)

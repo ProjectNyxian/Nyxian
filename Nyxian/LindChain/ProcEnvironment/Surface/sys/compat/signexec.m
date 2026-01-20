@@ -33,7 +33,8 @@ DEFINE_SYSCALL_HANDLER(signexec)
      * done by checking if it is entitled to spawn processes, this
      * entitlement is meant to be a arbitary spawn entitlement against
      * equevalents like PEEntitlementProcessSpawnSignedOnly which is
-     * used to only allow the spawn of binaries which are unsigned.
+     * used to only allow the spawn of binaries which are already signed.
+     * all this is done to ensure the user does consent do these things!
      */
     if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
     {
