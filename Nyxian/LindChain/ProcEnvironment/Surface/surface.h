@@ -121,7 +121,6 @@ typedef struct {
 extern ksurface_mapping_t *ksurface;
 
 void kern_sethostname(NSString *hostname);
-const char *ksurface_error_string(ksurface_error_t error);
 
 void ksurface_kinit(void);
 

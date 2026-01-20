@@ -29,43 +29,46 @@ ksurface_mapping_t *ksurface = NULL;
 
 void kern_sethostname(NSString *hostname)
 {
-    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
-    klog_log(@"surface", @"setting hostname to %@", hostname);
-    hostname = hostname ?: @"localhost";
-    strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
-    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
-}
-
-const char *ksurface_error_string(ksurface_error_t error)
-{
-    switch(error)
+    /* sanity check */
+    if(hostname == nil &&
+       [hostname length] > MAXHOSTNAMELEN)
     {
-        case kSurfaceErrorSuccess: return "success";
-        case kSurfaceErrorUndefined: return "undefined exception";
-        case kSurfaceErrorNullPtr: return "null pointer exception";
-        case kSurfaceErrorNotFound: return "failed to find requested resource";
-        case kSurfaceErrorNotHoldingLock: return "you aren't holding a certain lock";
-        case kSurfaceErrorOutOfBounds: return "resource request is out of bounds";
-        case kSurfaceErrorDenied: return "request was denied";
-        case kSurfaceErrorAlreadyExists: return "resource already exists";
-        case kSurfaceErrorFailed: return "failure exception";
-        case kSurfaceErrorProcessDead: return "process is already dead";
-        case kSurfaceErrorPidInUse: return "process identifier already in use";
-        case kSurfaceErrorNoMemory: return "no memory left";    /* idk if this string buffer would even print xDDD */
-        case kSurfaceErrorRetentionFailed: return "failed to retain resources";
-        default: return "unknown";
+        return;
     }
+    
+    /* locking host info so hostname can be set */
+    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
+    
+    /* setting hostname */
+    klog_log(@"surface", @"setting hostname to %@", hostname);
+    
+    /* copying hostname over to hostinfo */
+    strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
+    
+    /* unlocking again */
+    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
 }
 
 static inline void ksurface_kinit_kalloc(void)
 {
+    /* checking if already initilized */
+    if(ksurface != NULL)
+    {
+        /* shall only be initilized once */
+        environment_panic();
+    }
+    
     /* allocate surface */
-    ksurface = calloc(1, (sizeof(ksurface_mapping_t)));
+    ksurface = malloc(sizeof(ksurface_mapping_t));
+    
+    /* null pointer check */
     if(ksurface == NULL)
     {
         /* in case allocation failed we go */
         environment_panic();
     }
+    
+    /* logging allocation */
     klog_log(@"ksurface:kinit:kalloc", @"allocated ksurface @ %p", ksurface);
 }
 
@@ -87,13 +90,22 @@ static inline void ksurface_kinit_kinfo(void)
     /* setting up process radix tree */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing radix tree");
     ksurface->proc_info.tree.root = NULL;
+    ksurface->proc_info.proc_count = 0;
     
+    /* loading hostname from standard user defaults */
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
+    
+    /* checking if hostname is even set */
     if(hostname == nil)
     {
+        /* setting hostname automatically to localhost */
         hostname = @"localhost";
     }
+    
+    /* logging to what it will be set */
     klog_log(@"ksurface:kinit:kinfo", @"setting up hostname with \"%@\"", hostname);
+    
+    /* copying hostname over */
     strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
 }
 
@@ -105,6 +117,7 @@ static inline void ksurface_kinit_kserver(void)
     /* null pointer check */
     if(ksurface->sys_server == NULL)
     {
+        /* should never happen, panic! */
         environment_panic();
     }
     
@@ -136,13 +149,15 @@ static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
     ksurface_proc_t *kproc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
+    
+    /* null pointer check */
     if(kproc == NULL)
     {
-        /* Should never happen, panic! */
+        /* should never happen, panic! */
         environment_panic();
     }
     
-    /* logging allocation*/
+    /* logging allocation* */
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
     /* locking kproc write */
@@ -160,13 +175,15 @@ static inline void ksurface_kinit_kproc(void)
     /* inserting kproc */
     klog_log(@"ksurface:kinit:kproc", @"inserting kernel process");
     ksurface_error_t error = proc_insert(kproc);
+    
+    /* checking if inserting kernel process was successful */
     if(error != kSurfaceErrorSuccess)
     {
-        /* Should never happen, panic! */
+        /* should never happen, panic! */
         environment_panic();
     }
     
-    /* releaing our reference to kproc */
+    /* releaing our reference to kproc, because we return now and kproc is now held by the radix tree */
     proc_release(kproc);
 }
 
