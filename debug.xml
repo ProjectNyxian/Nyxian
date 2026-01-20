@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>application-identifier</key>
-    <string>L4A6CKH3TV.com.cr4zy.nyxian</string>
+    <string>com.cr4zy.nyxian</string>
     <key>get-task-allow</key>
     <true/>
     <key>UIFileSharingEnabled</key>
