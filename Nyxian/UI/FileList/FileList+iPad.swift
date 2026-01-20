@@ -532,6 +532,8 @@ class UIButtonTab: UIButton {
             FileListViewController.addSystemImage(to: iconImageView, name: "doc.fill", height: 13)
         case "ipa":
             FileListViewController.addSystemImage(to: iconImageView, name: "app.gift.fill", height: 13)
+        case "png","jpg","jpeg","gif","svg":
+            FileListViewController.addSystemImage(to: iconImageView, name: "photo.fill")
         default:
             if #unavailable(iOS 17.0) {
                 FileListViewController.addSystemImage(to: iconImageView, name: "text.alignleft")

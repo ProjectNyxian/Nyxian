@@ -449,6 +449,8 @@ import UniformTypeIdentifiers
                 FileListViewController.addSystemImage(to: iconView, name: "doc.fill")
             case "ipa":
                 FileListViewController.addSystemImage(to: iconView, name: "app.gift.fill")
+            case "png","jpg","jpeg","gif","svg":
+                FileListViewController.addSystemImage(to: iconView, name: "photo.fill")
             default:
                 if #unavailable(iOS 17.0) {
                     FileListViewController.addSystemImage(to: iconView, name: "text.alignleft")
