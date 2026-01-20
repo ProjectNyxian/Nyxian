@@ -29,6 +29,12 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* check if environment supports tfp */
     if(!environment_supports_tfp())
     {
+        sys_return_failure(ENOTSUP);
+    }
+    
+    /* checking if the caller process got the entitlement to use tfp */
+    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
+    {
         sys_return_failure(EPERM);
     }
     
@@ -36,7 +42,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     pid_t pid = (pid_t)args[0];
     
     /* check if the pid passed is the kernel process */
-    bool isHost = pid == proc_getpid(kernel_proc_);
+    bool isHost = (pid == proc_getpid(kernel_proc_));
     
     /*
      * if host we can skip this crap :3
@@ -55,7 +61,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         /* null pointer check */
         if(targetProc == NULL)
         {
-            sys_return_failure(EFAULT);
+            sys_return_failure(ESRCH);
         }
         
         /* locking target process */
@@ -69,12 +75,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
         
         /* releasing target process, cuz were done now with it */
         proc_release(targetProc);
-        
-        /* checking if the caller process got the entitlement to use tfp */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
-        {
-            sys_return_failure(EPERM);
-        }
         
         /* main permission check */
         if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
@@ -97,7 +97,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* null pointer check */
     if(tpo == NULL)
     {
-        sys_return_failure(EFAULT);
+        sys_return_failure(ESRCH);
     }
     
     /* retaining port */
