@@ -117,7 +117,6 @@
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		79A3A9392EDDABAE00C0342E /* ServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		79AF512B2F1CBD110055004A /* NyxianForJB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NyxianForJB.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		79AF512D2F1CBD110055004A /* Nyxian copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Nyxian copy-Info.plist"; path = "/Users/seanistethered/Documents/GitHub/NyxianProject/Nyxian copy-Info.plist"; sourceTree = "<absolute>"; };
 		79BF97F72E6291EE00C60D4C /* LiveProcess.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveProcess.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = usr/lib/libarchive.tbd; sourceTree = SDKROOT; };
 		AF99171F2DC8EA3C00DDF895 /* Shared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shared; sourceTree = "<group>"; };
@@ -490,7 +489,6 @@
 				7944B5652DEC74EA00834134 /* Nyxian.app */,
 				79A3A9392EDDABAE00C0342E /* ServiceKit.framework */,
 				79AF512B2F1CBD110055004A /* NyxianForJB.app */,
-				79AF512D2F1CBD110055004A /* Nyxian copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -844,7 +842,7 @@
 					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
 					Nyxian/,
 				);
-				INFOPLIST_FILE = "Nyxian copy-Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
@@ -962,7 +960,7 @@
 					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
 					Nyxian/,
 				);
-				INFOPLIST_FILE = "Nyxian copy-Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
