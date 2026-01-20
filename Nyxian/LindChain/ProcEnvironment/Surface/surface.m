@@ -60,7 +60,7 @@ const char *ksurface_error_string(ksurface_error_t error)
 static inline void ksurface_kinit_kalloc(void)
 {
     /* allocate surface */
-    ksurface = malloc(sizeof(ksurface_mapping_t));
+    ksurface = calloc(1, (sizeof(ksurface_mapping_t)));
     if(ksurface == NULL)
     {
         /* in case allocation failed we go */
