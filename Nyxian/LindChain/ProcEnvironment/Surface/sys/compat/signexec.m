@@ -27,10 +27,24 @@ DEFINE_SYSCALL_HANDLER(signexec)
     /* checking input mach ports, so attacker cannot do silly things */
     sys_need_in_ports_with_cnt(1);
     
-    /* check entitlements */
+    /*
+     * checking entitlements weither the process is entitled enough to
+     * sign unsigned binaries for opening or executing them, this is
+     * done by checking if it is entitled to spawn processes, this
+     * entitlement is meant to be a arbitary spawn entitlement against
+     * equevalents like PEEntitlementProcessSpawnSignedOnly which is
+     * used to only allow the spawn of binaries which are unsigned.
+     */
     if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
     {
         sys_return_failure(EPERM);
+    }
+    
+    /* validating mach port before use */
+    mach_port_type_t type;
+    if(mach_port_type(mach_task_self(), in_ports[0], &type) != KERN_SUCCESS)
+    {
+        sys_return_failure(EINVAL);
     }
     
     /* creating file descriptor out of mach fileport */
@@ -39,7 +53,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
     /* checking file descriptor */
     if(fd == -1)
     {
-        sys_return_failure(EFAULT);
+        sys_return_failure(EBADF);
     }
     
     /*
@@ -53,7 +67,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
     if(machOObject == NULL)
     {
         close(fd);
-        sys_return_failure(EFAULT);
+        sys_return_failure(ENOEXEC);
     }
     
     /* signing that shit */
@@ -62,9 +76,9 @@ DEFINE_SYSCALL_HANDLER(signexec)
     /* checking if successful */
     if(!success)
     {
-        sys_return_failure(EFAULT);
+        sys_return_failure(EIO);
     }
     
     /* now it was successful */
-    return 0;
+    sys_return;
 }
