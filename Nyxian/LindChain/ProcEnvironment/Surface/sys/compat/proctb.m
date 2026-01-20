@@ -26,9 +26,16 @@ DEFINE_SYSCALL_HANDLER(proctb)
     /* snapshot creation */
     proc_snapshot_t *snap;
     proc_list_err_t error = proc_snapshot_create(sys_proc_copy_, &snap);
-    if(error != PROC_LIST_OK)
+    
+    /* evaluating snapshot creation */
+    switch(error)
     {
-        sys_return_failure(EPERM);
+        case PROC_LIST_OK:
+            break;
+        case PROC_LIST_ERR_PERM:
+            sys_return_failure(EPERM);
+        default:
+            sys_return_failure(ENOMEM);
     }
     
     /* copy the buffer */
@@ -47,5 +54,5 @@ DEFINE_SYSCALL_HANDLER(proctb)
         sys_return_failure(ENOMEM);
     }
     
-    return 0;
+    sys_return;
 }
