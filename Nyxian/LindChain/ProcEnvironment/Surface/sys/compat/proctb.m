@@ -38,7 +38,17 @@ DEFINE_SYSCALL_HANDLER(proctb)
             sys_return_failure(ENOMEM);
     }
     
-    /* copy the buffer */
+    /*
+     * checking for integer overflow to prevent a buffer overflow,
+     * which would lead to heap corruption.
+     */
+    if(snap->count > UINT32_MAX / sizeof(kinfo_proc_t))
+    {
+        proc_snapshot_free(snap);
+        sys_return_failure(ENOMEM);
+    }
+    
+    /* copying buffer, first tho we have to safe the size of the buffer */
     *out_len = snap->count * sizeof(kinfo_proc_t);
     
     /* allocating outgoing payload (and copy in one step) */
