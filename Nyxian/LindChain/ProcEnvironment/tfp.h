@@ -28,11 +28,6 @@
 #import <Foundation/Foundation.h>
 #import <mach/mach.h>
 
-/* ----------------------------------------------------------------------
- *  Environment API Headers
- * -------------------------------------------------------------------- */
-#import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
-
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in, pid_t pid,  mach_port_name_t *tp_out);
 
 bool environment_supports_tfp(void);

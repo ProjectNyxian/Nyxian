@@ -24,7 +24,6 @@
 #import <LindChain/Private/UIKitPrivate.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
-#import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>

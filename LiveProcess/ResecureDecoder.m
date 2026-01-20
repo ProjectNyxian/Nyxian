@@ -24,7 +24,6 @@
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Object/FileObject.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
-#import <LindChain/ProcEnvironment/Object/TaskPortObject.h>
 
 void ResecureDecoder(void)
 {
@@ -53,7 +52,6 @@ void ResecureDecoder(void)
                               [FDMapObject class],
                               [FileObject class],
                               [MachPortObject class],
-                              [TaskPortObject class],
                               [NSXPCListenerEndpoint class],
                               nil];
         });

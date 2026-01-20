@@ -19,21 +19,45 @@
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/sendtask.h>
 #import <LindChain/ProcEnvironment/tfp.h>
-#import <LindChain/ProcEnvironment/tpod.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 DEFINE_SYSCALL_HANDLER(sendtask)
 {
+    /* check if environment supports tfp */
+    if(!environment_supports_tfp())
+    {
+        sys_return_failure(ENOTSUP);
+    }
+    
     /* null pointer and n check */
     sys_need_in_ports_with_cnt(1);
     
-    /* check if tpo is supported */
-    if(!environment_supports_tfp())
+    /* getting port type */
+    mach_port_type_t type;
+    kern_return_t kr = mach_port_type(mach_task_self(), in_ports[0], &type);
+
+    /* checking if port is valid in the first place */
+    if(kr != KERN_SUCCESS ||
+       type == MACH_PORT_TYPE_DEAD_NAME ||
+       type == 0)
     {
-        sys_return_failure(ENOSYS);
+        // No rights to the task name?
+        sys_return_failure(EINVAL);
     }
     
-    /* adding to tpo if it not already exist */
-    add_tpo([[TaskPortObject alloc] initWithPort:in_ports[0]]);
+    /* checking if pid of task port is valid */
+    pid_t pid = -1;
+    kr = pid_for_task(in_ports[0], &pid);
+    if(kr != KERN_SUCCESS ||
+       pid != proc_getpid(sys_proc_copy_))
+    {
+        sys_return_failure(EINVAL);
+    }
+    
+    /* setting task */
+    sys_proc_copy_->kproc.kcproc.task = in_ports[0];
+    proc_copy_update(sys_proc_copy_);
     
     /* return with succession */
     sys_return;

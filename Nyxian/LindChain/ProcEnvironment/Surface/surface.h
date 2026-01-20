@@ -84,6 +84,7 @@ struct ksurface_proc {
             pthread_mutex_t mutex;
         } children;
         struct kcproc {
+            task_t task;
             kinfo_proc_t bsd;
             struct knyx_proc {
                 char executable_path[PATH_MAX];

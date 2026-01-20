@@ -22,7 +22,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/tfp.h>
-#import <LindChain/ProcEnvironment/tpod.h>
 
 DEFINE_SYSCALL_HANDLER(gettask)
 {
@@ -44,6 +43,8 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* check if the pid passed is the kernel process */
     bool isHost = (pid == proc_getpid(kernel_proc_));
     
+    ksurface_proc_copy_t *target_copy = NULL;
+    
     /*
      * if host we can skip this crap :3
      *
@@ -64,57 +65,94 @@ DEFINE_SYSCALL_HANDLER(gettask)
             sys_return_failure(ESRCH);
         }
         
-        /* locking target process */
-        proc_read_lock(targetProc);
+        /* making a copy of target process */
+        target_copy = proc_copy_for_proc(targetProc, kProcCopyOptionStaticCopy);
         
-        /* getting entitlements of the target process */
-        PEEntitlement targetEntitlements = proc_getentitlements(targetProc);
-        
-        /* unlocking target process */
-        proc_unlock(targetProc);
-        
-        /* releasing target process, cuz were done now with it */
+        /* release the target process no matter what */
         proc_release(targetProc);
         
-        /* main permission check */
-        if(!entitlement_got_entitlement(targetEntitlements, PEEntitlementGetTaskAllowed) ||
-           !permitive_over_process_allowed(sys_proc_copy_, pid))
+        /* checking if successful */
+        if(target_copy == NULL)
         {
-            sys_return_failure(EPERM);
+            sys_return_failure(ESRCH);
+        }
+        
+        /*
+         * main permission check
+         *
+         * checks if target gives permissions to get the task port of it self
+         * in the first place and if the process allows for it except if the
+         * caller is a special process.
+         */
+        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost) &&
+           (!entitlement_got_entitlement(proc_getentitlements(target_copy), PEEntitlementGetTaskAllowed) ||
+            !permitive_over_process_allowed(sys_proc_copy_, pid)))
+        {
+            goto out_perm;
         }
     }
     else
     {
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
         {
-            sys_return_failure(EPERM);
+            goto out_perm;
+        }
+        
+        /* making a copy of target process */
+        target_copy = proc_copy_for_proc(kernel_proc_, kProcCopyOptionStaticCopy);
+        
+        /* checking if successful */
+        if(target_copy == NULL)
+        {
+            sys_return_failure(ESRCH);
         }
     }
     
-    /* asking tpod for tpo */
-    TaskPortObject *tpo = get_tpo_for_pid(pid);
+    /* getting port type */
+    mach_port_type_t type;
+    kern_return_t kr = mach_port_type(mach_task_self(), target_copy->kproc.kcproc.task, &type);
     
-    /* null pointer check */
-    if(tpo == NULL)
+    /* checking if port is valid in the first place */
+    if(kr != KERN_SUCCESS ||
+       type == MACH_PORT_TYPE_DEAD_NAME ||
+       type == 0)
     {
-        sys_return_failure(ESRCH);
+        // No rights to the task name?
+        goto out_esrch;
     }
     
-    /* retaining port */
-    mach_port_mod_refs(mach_task_self(), [tpo port], MACH_PORT_RIGHT_SEND, 1);
+    /* checking if pid of task port is valid */
+    kr = pid_for_task(target_copy->kproc.kcproc.task, &pid);
+    if(kr != KERN_SUCCESS ||
+       pid != proc_getpid(target_copy))
+    {
+        goto out_esrch;
+    }
     
     /* allocating syscall payload */
-    kern_return_t kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
+    kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
     
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
+        proc_copy_destroy(target_copy);
         sys_return_failure(ENOMEM);
     }
     
+    /* retaining port */
+    mach_port_mod_refs(mach_task_self(), target_copy->kproc.kcproc.task, MACH_PORT_RIGHT_SEND, 1);
+    
     /* set port */
-    (*out_ports)[0] = [tpo port];
+    (*out_ports)[0] = target_copy->kproc.kcproc.task;
     *out_ports_cnt = 1;
     
+    proc_copy_destroy(target_copy);
     sys_return;
+
+out_perm:
+    proc_copy_destroy(target_copy);
+    sys_return_failure(EPERM);
+out_esrch:
+    proc_copy_destroy(target_copy);
+    sys_return_failure(ESRCH);
 }

@@ -150,6 +150,9 @@ static inline void ksurface_kinit_kproc(void)
     /* creating kproc */
     ksurface_proc_t *kproc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
     
+    /* setting taskport */
+    kproc->kproc.kcproc.task = mach_task_self();
+    
     /* null pointer check */
     if(kproc == NULL)
     {
