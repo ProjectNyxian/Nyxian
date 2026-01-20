@@ -533,7 +533,11 @@ class UIButtonTab: UIButton {
         case "ipa":
             FileListViewController.addSystemImage(to: iconImageView, name: "app.gift.fill", height: 13)
         default:
-            FileListViewController.addSystemImage(to: iconImageView, name: "text.page.fill", height: 13)
+            if #unavailable(iOS 17.0) {
+                FileListViewController.addSystemImage(to: iconImageView, name: "text.alignleft")
+            } else {
+                FileListViewController.addSystemImage(to: iconImageView, name: "text.page.fill")
+            }
         }
         
         if label.superview != nil {

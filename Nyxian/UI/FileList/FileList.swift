@@ -450,7 +450,11 @@ import UniformTypeIdentifiers
             case "ipa":
                 FileListViewController.addSystemImage(to: iconView, name: "app.gift.fill")
             default:
-                FileListViewController.addSystemImage(to: iconView, name: "text.page.fill")
+                if #unavailable(iOS 17.0) {
+                    FileListViewController.addSystemImage(to: iconView, name: "text.alignleft")
+                } else {
+                    FileListViewController.addSystemImage(to: iconView, name: "text.page.fill")
+                }
             }
         } else {
             FileListViewController.addSystemImage(to: iconView, name: "folder.fill")
