@@ -22,8 +22,8 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
 
-BOOL permitive_over_process_allowed(ksurface_proc_copy_t *proc,
-                                    pid_t targetPid)
+BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
+                                pid_t targetPid)
 {
     /* null pointer check */
     if(proc == NULL)

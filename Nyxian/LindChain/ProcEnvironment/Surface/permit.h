@@ -23,7 +23,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-BOOL permitive_over_process_allowed(ksurface_proc_copy_t *proc,
-                                    pid_t targetPid);
+BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc, pid_t targetPid);
 
 #endif /* PROCENVIRONMENT_PERMIT_H */

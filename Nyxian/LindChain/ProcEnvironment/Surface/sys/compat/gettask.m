@@ -86,7 +86,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
          */
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost) &&
            (!entitlement_got_entitlement(proc_getentitlements(target_copy), PEEntitlementGetTaskAllowed) ||
-            !permitive_over_process_allowed(sys_proc_copy_, pid)))
+            !permitive_over_pid_allowed(sys_proc_copy_, pid)))
         {
             goto out_perm;
         }
