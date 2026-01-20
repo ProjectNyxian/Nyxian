@@ -89,10 +89,18 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
         if let masterVC = masterVC,
            let detailVC = detailVC {
             guard lock.try() else { return }
-            masterVC.navigationItem.leftBarButtonItem?.isHidden = true
+            if #available(iOS 16.0, *) {
+                masterVC.navigationItem.leftBarButtonItem?.isHidden = true
+            } else {
+                masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
+            }
             buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp) { [weak self] in
                 guard let self = self else { return }
-                masterVC.navigationItem.leftBarButtonItem?.isHidden = false
+                if #available(iOS 16.0, *) {
+                    masterVC.navigationItem.leftBarButtonItem?.isHidden = false
+                } else {
+                    masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
+                }
                 self.lock.unlock()
             }
         }
