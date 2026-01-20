@@ -71,7 +71,6 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     }
     
     /* validating payload first */
-    size_t hostname_len = strlen((const char*)in_payload);
     if(!is_valid_hostname_regex((const char*)in_payload))
     {
         sys_return_failure(EINVAL);
