@@ -211,7 +211,7 @@
     return pid;
 }
 
-#endif /* !JAILBREAK_ENV */
+#else
 
 - (pid_t)spawnProcessWithBundleID:(NSString*)bundleID
 {
@@ -239,6 +239,8 @@
     /* returning pid */
     return pid;
 }
+
+#endif /* !JAILBREAK_ENV */
 
 - (LDEProcess*)processForProcessIdentifier:(pid_t)pid
 {

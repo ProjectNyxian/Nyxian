@@ -80,7 +80,8 @@
 
 @interface LSApplicationWorkspace : NSObject
 + (instancetype)defaultWorkspace;
-- (BOOL)openApplicationWithBundleID:(NSString *)arg1 ;
+- (BOOL)openApplicationWithBundleID:(NSString *)arg1;
+- (id)allInstalledApplications;
 @end
 
 @interface UICustomViewMenuElement : UIMenuElement
@@ -295,6 +296,7 @@
 @interface RBSProcessIdentity : NSObject
 + (instancetype)identityForEmbeddedApplicationIdentifier:(NSString *)identifier;
 + (instancetype)identityForXPCServiceIdentifier:(NSString *)identifier;
++ (id)identityForExecutablePath:(id)arg1 pid:(int)arg2 auid:(unsigned int)arg3;
 @end
 
 @interface RBSProcessPredicate
