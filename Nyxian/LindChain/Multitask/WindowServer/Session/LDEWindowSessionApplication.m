@@ -73,7 +73,7 @@ void UIKitFixesInit(void)
     }
 #else
     /* fix this later */
-    self.windowName  = @"App";
+    self.windowName  = self.process.displayName;
 #endif /* !JAILBREAK_ENV */
 
     return self;

@@ -230,7 +230,24 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 {
     self = [super init];
     
+    LSApplicationProxy *bundleProxy = nil;
+    NSArray<LSApplicationProxy*> *array = LSApplicationWorkspace.defaultWorkspace.allInstalledApplications;
+    for(LSApplicationProxy *proxy in array)
+    {
+        if([proxy.bundleIdentifier isEqualToString:bundleID])
+        {
+            bundleProxy = proxy;
+            break;
+        }
+    }
+    
+    if(bundleProxy == nil)
+    {
+        return nil;
+    }
+    
     self.bundleIdentifier = bundleID;
+    self.displayName = bundleProxy.localizedName;
     
     RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:bundleID];
     RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];

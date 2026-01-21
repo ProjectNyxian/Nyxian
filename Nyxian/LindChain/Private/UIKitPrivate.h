@@ -78,10 +78,12 @@
 - (void)setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force;
 @end
 
+@class LSApplicationProxy;
+
 @interface LSApplicationWorkspace : NSObject
 + (instancetype)defaultWorkspace;
 - (BOOL)openApplicationWithBundleID:(NSString *)arg1;
-- (id)allInstalledApplications;
+- (NSArray<LSApplicationProxy*>*)allInstalledApplications;
 @end
 
 @interface UICustomViewMenuElement : UIMenuElement
