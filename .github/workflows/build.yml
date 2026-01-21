@@ -53,17 +53,17 @@ jobs:
       - name: Upload Jailed
         uses: actions/upload-artifact@v4
         with:
-          path: *.ipa
+          path: '*.ipa'
 
       - name: Upload Rootless
         uses: actions/upload-artifact@v4
         with:
-          path: *iphoneos-arm64.deb
+          path: '*iphoneos-arm64.deb'
 
       - name: Upload Roothide
         uses: actions/upload-artifact@v4
         with:
-          path: *iphoneos-arm64e.deb
+          path: '*iphoneos-arm64e.deb'
 
       - name: Cleanup
         run: |
