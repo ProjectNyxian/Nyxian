@@ -258,6 +258,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
             {
                 // Remove Once
                 dispatch_once(&self->_removeOnce, ^{
+                    if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
                     [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
                 });
             }

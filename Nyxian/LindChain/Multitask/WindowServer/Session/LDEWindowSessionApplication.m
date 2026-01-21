@@ -73,7 +73,7 @@ void UIKitFixesInit(void)
     }
 #else
     /* fix this later */
-    self.windowName  = [self.process.executablePath lastPathComponent];
+    self.windowName  = @"App";
 #endif /* !JAILBREAK_ENV */
 
     return self;
@@ -156,8 +156,12 @@ void UIKitFixesInit(void)
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.foreground = NO;
     }];
-    
+ 
+    /* TODO: implement the jailbreak way of getting a snapshot of a iOS app */
+#if !JAILBREAK_ENV
     [self.process sendSignal:SIGUSR1];
+#endif /* !JAILBREAK_ENV */
+    
     [self.presenter deactivate];
     
     // Do it like on iOS, give application time window for background tasks
