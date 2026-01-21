@@ -37,7 +37,7 @@ void kern_sethostname(NSString *hostname)
     }
     
     /* locking host info so hostname can be set */
-    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
+    host_write_lock();
     
     /* setting hostname */
     klog_log(@"surface", @"setting hostname to %@", hostname);
@@ -46,7 +46,7 @@ void kern_sethostname(NSString *hostname)
     strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
     
     /* unlocking again */
-    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
+    host_unlock();
 }
 
 static inline void ksurface_kinit_kalloc(void)
@@ -80,10 +80,10 @@ static inline void ksurface_kinit_kinfo(void)
     
     /* setting up rcu state's */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing locks");
-    pthread_rwlock_t *wls[2] = { &(ksurface->proc_info.rwlock),  &(ksurface->host_info.rwlock) };
-    for(unsigned char i = 0; i < 2; i++)
+    pthread_rwlock_t *wls[3] = { &(ksurface->proc_info.struct_lock), &(ksurface->proc_info.task_lock),  &(ksurface->host_info.struct_lock) };
+    for(unsigned char i = 0; i < 3; i++)
     {
-        klog_log(@"ksurface:kinit:kinfo", @"initilizing rwlock @ %p", wls[i]);
+        klog_log(@"ksurface:kinit:kinfo", @"initilizing lock @ %p", wls[i]);
         pthread_rwlock_init(wls[i], NULL);
     }
     

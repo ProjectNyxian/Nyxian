@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/tfp.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 DEFINE_SYSCALL_HANDLER(sendtask)
 {
@@ -29,6 +30,9 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     {
         sys_return_failure(ENOTSUP);
     }
+    
+    /* view SYS_gettask note on this */
+    proc_task_write_lock();
     
     /* null pointer and n check */
     sys_need_in_ports_with_cnt(1);
@@ -42,7 +46,8 @@ DEFINE_SYSCALL_HANDLER(sendtask)
        type == MACH_PORT_TYPE_DEAD_NAME ||
        type == 0)
     {
-        // No rights to the task name?
+        /* no rights to the task name? */
+        proc_task_unlock();
         sys_return_failure(EINVAL);
     }
     
@@ -52,6 +57,7 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     if(kr != KERN_SUCCESS ||
        pid != proc_getpid(sys_proc_copy_))
     {
+        proc_task_unlock();
         sys_return_failure(EINVAL);
     }
     
@@ -60,5 +66,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     proc_copy_update(sys_proc_copy_);
     
     /* return with succession */
+    proc_task_unlock();
     sys_return;
 }

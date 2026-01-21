@@ -32,4 +32,14 @@ void proc_table_read_lock(void);
 void proc_table_write_lock(void);
 void proc_table_unlock(void);
 
+/* host */
+void host_read_lock(void);
+void host_write_lock(void);
+void host_unlock(void);
+
+/* task */
+void proc_task_read_lock(void);
+void proc_task_write_lock(void);
+void proc_task_unlock(void);
+
 #endif /* PROC_RW_H */

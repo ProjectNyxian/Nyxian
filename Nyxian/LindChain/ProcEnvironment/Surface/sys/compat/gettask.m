@@ -31,19 +31,41 @@ DEFINE_SYSCALL_HANDLER(gettask)
         sys_return_failure(ENOTSUP);
     }
     
-    /* checking if the caller process got the entitlement to use tfp */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid))
+    /* parse arguments */
+    pid_t pid = (pid_t)args[0];
+    
+    /* check if the pid passed is the caller them selves */
+    bool isCaller = (pid == proc_getpid(sys_proc_copy_));
+    
+    /*
+     * checking if the caller process got the entitlement to
+     * use tfp or if its the caller it self requesting its
+     * own task port which is allowed in any case.
+     */
+    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid) &&
+       !isCaller)
     {
         sys_return_failure(EPERM);
     }
-    
-    /* parse arguments */
-    pid_t pid = (pid_t)args[0];
     
     /* check if the pid passed is the kernel process */
     bool isHost = (pid == proc_getpid(kernel_proc_));
     
     ksurface_proc_copy_t *target_copy = NULL;
+    
+    /*
+     * claiming read onto task so no other process can
+     * at the same time add their task port which could
+     * lead to task port confusion, because of a tiny
+     * window where a process could die while its
+     * task port is requested and another process spawns
+     * at the same time adding their task port which then
+     * leads to this, permissions could be leaked by this
+     * race by for example a root process handing off its
+     * task port and it has the same port number as a port
+     * that was unpriveleged before but not removed before.
+     */
+    proc_task_read_lock();
     
     /*
      * if host we can skip this crap :3
@@ -55,13 +77,13 @@ DEFINE_SYSCALL_HANDLER(gettask)
      */
     if(!isHost)
     {
-        
         /* getting the target process */
         ksurface_proc_t *targetProc = proc_for_pid(pid);
         
         /* null pointer check */
         if(targetProc == NULL)
         {
+            proc_task_unlock();
             sys_return_failure(ESRCH);
         }
         
@@ -74,6 +96,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         /* checking if successful */
         if(target_copy == NULL)
         {
+            proc_task_unlock();
             sys_return_failure(ESRCH);
         }
         
@@ -85,7 +108,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
          * caller is a special process.
          */
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost) &&
-           (!entitlement_got_entitlement(proc_getentitlements(target_copy), PEEntitlementGetTaskAllowed) ||
+           ((!entitlement_got_entitlement(proc_getentitlements(target_copy), PEEntitlementGetTaskAllowed) && !isCaller) ||
             !permitive_over_pid_allowed(sys_proc_copy_, pid)))
         {
             goto out_perm;
@@ -95,6 +118,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     {
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
         {
+            proc_task_unlock();
             sys_return_failure(EPERM);
         }
         
@@ -104,6 +128,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         /* checking if successful */
         if(target_copy == NULL)
         {
+            proc_task_unlock();
             sys_return_failure(ESRCH);
         }
     }
@@ -135,6 +160,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
+        proc_task_unlock();
         proc_copy_destroy(target_copy);
         sys_return_failure(ENOMEM);
     }
@@ -146,13 +172,16 @@ DEFINE_SYSCALL_HANDLER(gettask)
     (*out_ports)[0] = target_copy->kproc.kcproc.task;
     *out_ports_cnt = 1;
     
+    proc_task_unlock();
     proc_copy_destroy(target_copy);
     sys_return;
 
 out_perm:
+    proc_task_unlock();
     proc_copy_destroy(target_copy);
     sys_return_failure(EPERM);
 out_esrch:
+    proc_task_unlock();
     proc_copy_destroy(target_copy);
     sys_return_failure(ESRCH);
 }

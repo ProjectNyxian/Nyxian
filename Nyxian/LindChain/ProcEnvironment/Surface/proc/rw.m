@@ -56,7 +56,7 @@ void proc_table_read_lock(void)
         return;
     }
     
-    pthread_rwlock_rdlock(&(ksurface->proc_info.rwlock));
+    pthread_rwlock_rdlock(&(ksurface->proc_info.struct_lock));
 }
 
 void proc_table_write_lock(void)
@@ -66,7 +66,7 @@ void proc_table_write_lock(void)
         return;
     }
     
-    pthread_rwlock_wrlock(&(ksurface->proc_info.rwlock));
+    pthread_rwlock_wrlock(&(ksurface->proc_info.struct_lock));
 }
 
 void proc_table_unlock(void)
@@ -76,5 +76,65 @@ void proc_table_unlock(void)
         return;
     }
     
-    pthread_rwlock_unlock(&(ksurface->proc_info.rwlock));
+    pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
+}
+
+void host_read_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_rdlock(&(ksurface->host_info.struct_lock));
+}
+
+void host_write_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_wrlock(&(ksurface->host_info.struct_lock));
+}
+
+void host_unlock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_unlock(&(ksurface->host_info.struct_lock));
+}
+
+void proc_task_read_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_rdlock(&(ksurface->proc_info.task_lock));
+}
+
+void proc_task_write_lock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_wrlock(&(ksurface->proc_info.task_lock));
+}
+
+void proc_task_unlock(void)
+{
+    if(ksurface == NULL)
+    {
+        return;
+    }
+    
+    pthread_rwlock_unlock(&(ksurface->proc_info.task_lock));
 }

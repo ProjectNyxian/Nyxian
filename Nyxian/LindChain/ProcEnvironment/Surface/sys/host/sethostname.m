@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <regex.h>
 
 bool is_valid_hostname_regex(const char *hostname)
@@ -77,7 +78,8 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     }
     
     /* lock the lock for writing obviously now lol ^^ */
-    pthread_rwlock_wrlock(&(ksurface->host_info.rwlock));
+    host_write_lock();
+    
     
     /* write to hostname */
     strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);
@@ -86,7 +88,7 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithCString:ksurface->host_info.hostname encoding:NSUTF8StringEncoding] forKey:@"LDEHostname"];
     
     /* unlocking lock */
-    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
+    host_unlock();
     
     sys_return;
 }

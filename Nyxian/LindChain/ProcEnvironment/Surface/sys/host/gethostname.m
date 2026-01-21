@@ -18,11 +18,12 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/host/gethostname.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 DEFINE_SYSCALL_HANDLER(gethostname)
 {
     /* lock the lock */
-    pthread_rwlock_rdlock(&(ksurface->host_info.rwlock));
+    host_read_lock();
     
     /* getting the length of the buffer which is nullterminated (ill cry if someone finds a vulnerability later here) */
     size_t len = strlen(ksurface->host_info.hostname);
@@ -44,10 +45,10 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     }
     
     /* unlock the lock */
-    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
+    host_unlock();
     sys_return;
     
 out_fault:
-    pthread_rwlock_unlock(&(ksurface->host_info.rwlock));
+    host_unlock();
     sys_return_failure(EFAULT);
 }

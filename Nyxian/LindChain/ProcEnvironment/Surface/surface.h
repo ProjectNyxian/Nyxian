@@ -107,11 +107,12 @@ typedef struct {
     uint32_t magic;
     syscall_server_t *sys_server;
     struct {
-        pthread_rwlock_t rwlock;
+        pthread_rwlock_t struct_lock;
         char hostname[MAXHOSTNAMELEN];
     } host_info;
     struct {
-        pthread_rwlock_t rwlock;
+        pthread_rwlock_t struct_lock;
+        pthread_rwlock_t task_lock;
         uint32_t proc_count;
         radix_tree_t tree;
         ksurface_proc_t *kern_proc;
