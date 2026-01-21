@@ -18,6 +18,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        run: |
+          brew install ldid
+
       - name: Build Nyxian Jailed
         run: |
           set -e
