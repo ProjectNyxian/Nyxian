@@ -28,6 +28,6 @@ install:
 	ideviceinstaller install Nyxian.ipa
 
 clean:
-	rm Nyxian.ipa
-	rm -rf Payload
-	rm -rf build
+	-rm Nyxian.ipa
+	-rm -rf Payload
+	-rm -rf build

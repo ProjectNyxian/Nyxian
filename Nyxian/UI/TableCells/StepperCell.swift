@@ -24,13 +24,14 @@ class StepperTableCell: UITableViewCell {
     private let key: String
     private let minValue: Int
     private let maxValue: Int
+    private let defaultValue: Int
 
     var callback: (Int) -> Void = { _ in }
 
     var value: Int {
         get {
             if UserDefaults.standard.object(forKey: key) == nil {
-                UserDefaults.standard.set(minValue, forKey: key)
+                UserDefaults.standard.set(defaultValue, forKey: key)
             }
             return UserDefaults.standard.integer(forKey: key)
         }
@@ -43,6 +44,7 @@ class StepperTableCell: UITableViewCell {
         self.key = key
         self.minValue = minValue
         self.maxValue = maxValue
+        self.defaultValue = defaultValue
         super.init(style: .value1, reuseIdentifier: nil)
 
         selectionStyle = .none

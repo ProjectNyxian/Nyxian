@@ -20,32 +20,29 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # We need ldid to pseudo sign jailbroken version
           brew install ldid
+
+          # Run setup script to download dependencies (LLVM)
+          chmod +x setup.sh
+          ./setup.sh
 
       - name: Build Nyxian Jailed
         run: |
           set -e
 
-          # Run setup script to download dependencies
-          chmod +x setup.sh
-          ./setup.sh
-
           # Build the project (jailed)
           make jailed
-          cp Nyxian.ipa Nyxian-Jailed.ipa
+          mv Nyxian.ipa Nyxian-Jailed.ipa
           make clean
 
       - name: Build Nyxian Jailbroken
         run: |
           set -e
 
-          # Run setup script to download dependencies
-          chmod +x setup.sh
-          ./setup.sh
-
-          # Build the project (jailed)
+          # Build the project (jailbroken)
           make jailbroken
-          cp Nyxian.ipa Nyxian-Jailbroken.ipa
+          mv Nyxian.ipa Nyxian-Jailbroken.ipa
           make clean
 
 
