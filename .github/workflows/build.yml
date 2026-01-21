@@ -22,8 +22,9 @@ jobs:
         run: |
           set -e
 
-          # We need ldid to pseudo sign jailbroken version
+          # Packages we desperately need
           brew install ldid
+          brew install dpkg
 
           # Run setup script to download dependencies (LLVM)
           chmod +x setup.sh
@@ -50,20 +51,12 @@ jobs:
           # Build the project (roothide)
           make roothide
 
-      - name: Upload Jailed
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: '*.ipa'
-
-      - name: Upload Rootless
-        uses: actions/upload-artifact@v4
-        with:
-          path: '*iphoneos-arm64.deb'
-
-      - name: Upload Roothide
-        uses: actions/upload-artifact@v4
-        with:
-          path: '*iphoneos-arm64e.deb'
+          path: |
+            '*.ipa'
+            '*.deb'
 
       - name: Cleanup
         run: |
