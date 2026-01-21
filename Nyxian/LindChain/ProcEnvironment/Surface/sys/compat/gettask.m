@@ -95,7 +95,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     {
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
         {
-            goto out_perm;
+            sys_return_failure(EPERM);
         }
         
         /* making a copy of target process */
