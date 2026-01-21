@@ -92,10 +92,10 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     /* copying the path */
     if(path)
     {
-        strncpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX - 1);
+        strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
         const char *name = strrchr(path, '/');
         name = name ? name + 1 : path;
-        strncpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
+        strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     }
     
     /* insert will retain the child process */
