@@ -1,3 +1,6 @@
+**/.DS_store
 Nyxian/LindChain/LLVM.xcframework
 build/
 install.sh
+*.ipa
+*.deb
