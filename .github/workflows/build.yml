@@ -20,6 +20,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          set -e
+
           # We need ldid to pseudo sign jailbroken version
           brew install ldid
 
@@ -27,33 +29,45 @@ jobs:
           chmod +x setup.sh
           ./setup.sh
 
-      - name: Build Nyxian Jailed
+      - name: Build Jailed
         run: |
           set -e
 
           # Build the project (jailed)
           make jailed
-          mv Nyxian.ipa Nyxian-Jailed.ipa
-          make clean
 
-      - name: Build Nyxian Jailbroken
+      - name: Build Rootless
         run: |
           set -e
 
-          # Build the project (jailbroken)
-          make jailbroken
-          mv Nyxian.ipa Nyxian-Jailbroken.ipa
-          make clean
+          # Build the project (rootless)
+          make rootless
 
+      - name: Build Roothide
+        run: |
+          set -e
 
-      - name: Upload Nyxian Jailed
+          # Build the project (roothide)
+          make roothide
+
+      - name: Upload Jailed
         uses: actions/upload-artifact@v4
         with:
-          name: Nyxian-Jailed.ipa
-          path: Nyxian-Jailed.ipa
+          path: *.ipa
 
-      - name: Upload Nyxian Jailbroken
+      - name: Upload Rootless
         uses: actions/upload-artifact@v4
         with:
-          name: Nyxian-Jailbroken-Testing.ipa
-          path: Nyxian-Jailbroken.ipa
+          path: *iphoneos-arm64.deb
+
+      - name: Upload Roothide
+        uses: actions/upload-artifact@v4
+        with:
+          path: *iphoneos-arm64e.deb
+
+      - name: Cleanup
+        run:
+          set -e
+
+          # Cleanup artifacts
+          make cleanup-artifacts
