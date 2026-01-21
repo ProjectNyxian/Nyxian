@@ -28,7 +28,7 @@ jobs:
 
           # Build the project (jailed)
           make jailed
-          mv Nyxian.ipa Nyxian-Jailed.ipa
+          cp Nyxian.ipa Nyxian-Jailed.ipa
           make clean
 
       - name: Build Nyxian Jailbroken
@@ -41,17 +41,17 @@ jobs:
 
           # Build the project (jailed)
           make jailbroken
-          mv Nyxian.ipa Nyxian-Jailbroken.ipa
+          cp Nyxian.ipa Nyxian-Jailbroken.ipa
           make clean
 
 
-      - name: Upload IPA Artifact
+      - name: Upload Nyxian Jailed
         uses: actions/upload-artifact@v4
         with:
           name: Nyxian-Jailed.ipa
           path: Nyxian-Jailed.ipa
 
-      - name: Upload IPA Artifact
+      - name: Upload Nyxian Jailbroken
         uses: actions/upload-artifact@v4
         with:
           name: Nyxian-Jailbroken-Testing.ipa
