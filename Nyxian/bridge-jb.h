@@ -25,6 +25,7 @@
 #import <LindChain/Private/UIKitPrivate.h>
 
 /* LindChain Core Headers */
+#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Compiler/Compiler.h>
 #import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>

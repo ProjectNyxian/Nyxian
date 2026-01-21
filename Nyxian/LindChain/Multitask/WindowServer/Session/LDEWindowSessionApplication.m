@@ -20,7 +20,11 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+
+#if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#endif /* !JAILBREAK_ENV */
+
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <objc/runtime.h>
 
@@ -54,6 +58,7 @@ void UIKitFixesInit(void)
     self = [super init];
     _process = process;
     
+#if !JAILBREAK_ENV
     // FIXME: This crashes when installd is not running yet
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.process.executablePath];
     if(applicationObject != nil)
@@ -66,6 +71,7 @@ void UIKitFixesInit(void)
         self.windowName  = [self.process.executablePath lastPathComponent];
         self.process.bundleIdentifier = nil;
     }
+#endif /* !JAILBREAK_ENV */
 
     return self;
 }
@@ -79,7 +85,9 @@ void UIKitFixesInit(void)
             context.appearanceStyle = 2;
         }];
     } @catch (NSException *exception) {
+#if !JAILBREAK_ENV
         klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
+#endif /* !JAILBREAK_ENV */
         return NO;
     }
     

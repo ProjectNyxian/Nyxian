@@ -20,12 +20,15 @@
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+
+#if !JAILBREAK_ENV
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#endif /* !JAILBREAK_ENV */
 
 // TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
 
@@ -33,6 +36,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 
 @implementation LDEProcess
 
+#if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
     self = [super init];
@@ -216,6 +220,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     
     return self;
 }
+#endif /* !JAILBREAK_ENV */
 
 /*
  Action

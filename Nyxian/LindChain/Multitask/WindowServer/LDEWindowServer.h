@@ -23,9 +23,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <LindChain/Multitask/WindowServer/LDEWindow.h>
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 
+#if !JAILBREAK_ENV
+#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#endif /* !JAILBREAK_ENV */
+
+#if !JAILBREAK_ENV
 @interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate,LDEAppLaunchpadDelegate>
+#else
+@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
+#endif /* !JAILBREAK_ENV */
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
@@ -43,7 +50,10 @@
 - (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
 - (void)focusWindowForIdentifier:(wid_t)identifier;
 - (void)showAppSwitcherExternal;
+
+#if !JAILBREAK_ENV
 - (LDEAppLaunchpad *)getOrCreateLaunchpad;
+#endif /* !JAILBREAK_ENV */
 
 @end
 

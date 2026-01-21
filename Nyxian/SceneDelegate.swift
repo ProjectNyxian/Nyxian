@@ -26,18 +26,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
-#if !JAILBREAK_ENV
         window = LDEWindowServer.shared(with: windowScene)
-#else
-        window = UIWindow(windowScene: windowScene)
         
+#if JAILBREAK_ENV
         // jailbroken check
         if(shell("whoami", 0, nil, nil) != 0) {
             exit(0)
         } else {
             Bootstrap.shared.bootstrap()
         }
-#endif // !JAILBREAK_ENV
+#endif // JAILBREAK_ENV
+        
         let tabViewController: UITabBarController = UITabBarController()
         
         let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))

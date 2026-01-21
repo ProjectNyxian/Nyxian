@@ -24,7 +24,7 @@
 
 #define KLOG_ENABLED 1
 
-#if KLOG_ENABLED
+#if KLOG_ENABLED && !JAILBREAK_ENV
 
 #define klog_log(system, format, ...) \
     klog_log_internal((system), (format), ##__VA_ARGS__)

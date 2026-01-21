@@ -18,7 +18,11 @@
 */
 
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+
+#if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#endif /* !JAILBREAK_ENV */
+
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #import <Nyxian-Swift.h>
@@ -77,6 +81,7 @@
     _lastSpawnTime = mach_absolute_time();
 }
 
+#if !JAILBREAK_ENV
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
       withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
@@ -204,6 +209,8 @@
     /* returning process identifier */
     return pid;
 }
+
+#endif /* !JAILBREAK_ENV */
 
 - (LDEProcess*)processForProcessIdentifier:(pid_t)pid
 {
