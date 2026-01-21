@@ -312,7 +312,9 @@ class Builder {
             }
             
             // opening app
-            LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
+            //LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
+            
+            LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
         }
 #endif // !JAILBREAK_ENV
     }

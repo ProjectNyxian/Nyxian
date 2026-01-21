@@ -59,6 +59,8 @@
     return processManagerSingletone;
 }
 
+#if !JAILBREAK_ENV
+
 - (void)enforceSpawnCooldown
 {
     uint64_t now = mach_absolute_time();
@@ -81,7 +83,6 @@
     _lastSpawnTime = mach_absolute_time();
 }
 
-#if !JAILBREAK_ENV
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
       withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {
@@ -211,6 +212,33 @@
 }
 
 #endif /* !JAILBREAK_ENV */
+
+- (pid_t)spawnProcessWithBundleID:(NSString*)bundleID
+{
+    /* creating a process */
+    LDEProcess *process = [[LDEProcess alloc] initWithBundleID:bundleID];
+    
+    /* null pointer check */
+    if(process == nil)
+    {
+        return -1;
+    }
+    
+    /* getting process identifier */
+    pid_t pid = process.pid;
+    
+    /* aquiring lock */
+    os_unfair_lock_lock(&processes_array_lock);
+    
+    /* set process object */
+    [self.processes setObject:process forKey:@(pid)];
+    
+    /* releasing lock */
+    os_unfair_lock_unlock(&processes_array_lock);
+    
+    /* returning pid */
+    return pid;
+}
 
 - (LDEProcess*)processForProcessIdentifier:(pid_t)pid
 {

@@ -67,5 +67,3 @@
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>
 #import <UI/XCodeButton.h>
-
-extern NSString *containerRoot;

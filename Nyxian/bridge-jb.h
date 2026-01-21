@@ -25,6 +25,7 @@
 #import <LindChain/Private/UIKitPrivate.h>
 
 /* LindChain Core Headers */
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Compiler/Compiler.h>
 #import <LindChain/Linker/linker.h>
@@ -46,5 +47,3 @@
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>
 #import <UI/XCodeButton.h>
-
-extern NSString *containerRoot;

@@ -407,5 +407,46 @@
 	<true/>
 	<key>com.apple.private.persona-mgmt</key>
 	<true/>
+	<key>com.apple.QuartzCore.displayable-context</key>
+	<true/>
+	<key>com.apple.QuartzCore.secure-mode</key>
+	<true/>
+	<key>com.apple.backboard.client</key>
+	<true/>
+	<key>com.apple.frontboard.launchapplications</key>
+	<true/>
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppBundles</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppDataContainers</key>
+	<true/>
+	<key>com.apple.runningboard.assertions.frontboard</key>
+	<true/>
+	<key>com.apple.runningboard.hereditarygrantoriginator</key>
+	<true/>
+	<key>com.apple.runningboard.launchprocess</key>
+	<true/>
+	<key>com.apple.runningboard.primitiveattribute</key>
+	<true/>
+	<key>com.apple.runningboard.process-state</key>
+	<true/>
+	<key>com.apple.runningboard.targetidentities</key>
+	<true/>
+	<key>com.apple.runningboard.terminateprocess</key>
+	<true/>
+	<key>com.apple.security.exception.mach-lookup.global-name</key>
+    <true/>
+	<key>com.apple.security.iokit-user-client-class</key>
+    <true/>
+	<key>com.apple.springboard-ui.client</key>
+	<true/>
+	<key>com.apple.springboard.statusbarstyleoverrides</key>
+	<true/>
+	<key>com.apple.springboard.statusbarstyleoverrides.coordinator</key>
+	<array>
+		<string>UIStatusBarStyleOverrideDeveloperTools</string>
+		<string>UIStatusBarStyleOverridePlaygrounds</string>
+	</array>
 </dict>
 </plist>

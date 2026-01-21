@@ -29,14 +29,17 @@
 
 @interface LDEProcess : NSObject <FBSceneDelegate>
 
+#if !JAILBREAK_ENV
 @property (nonatomic,strong) NSExtension *extension;
+@property (nonatomic) ksurface_proc_t *proc;
+#endif /* !JAILBREAK_ENV */
+
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
 @property (nonatomic,strong) FBScene *scene;
 @property (nonatomic,strong) NSString *sceneID;
 @property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
 @property (nonatomic,strong) UIImage *snapshot;
-@property (nonatomic) ksurface_proc_t *proc;
 
 // Process properties
 @property (nonatomic,strong) NSUUID *identifier;
@@ -59,8 +62,12 @@
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
+#if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
 - (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc;
+#else
+- (instancetype)initWithBundleID:(NSString*)bundleID;
+#endif /* !JAILBREAK_ENV */
 
 - (void)sendSignal:(int)signal;
 - (BOOL)suspend;

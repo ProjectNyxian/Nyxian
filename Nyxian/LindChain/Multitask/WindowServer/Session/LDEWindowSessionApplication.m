@@ -71,6 +71,9 @@ void UIKitFixesInit(void)
         self.windowName  = [self.process.executablePath lastPathComponent];
         self.process.bundleIdentifier = nil;
     }
+#else
+    /* fix this later */
+    self.windowName  = [self.process.executablePath lastPathComponent];
 #endif /* !JAILBREAK_ENV */
 
     return self;

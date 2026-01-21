@@ -298,6 +298,7 @@
 @end
 
 @interface RBSProcessPredicate
++ (id)predicateMatchingIdentity:(id)arg1;
 + (instancetype)predicateMatchingIdentifier:(NSNumber *)pid;
 @end
 
