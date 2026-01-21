@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and Package IPA
+      - name: Build Nyxian Jailed
         run: |
           set -e
 
@@ -28,11 +28,31 @@ jobs:
 
           # Build the project (jailed)
           make jailed
-          rm -rf build
-          rm -rf Payload
+          mv Nyxian.ipa Nyxian-Jailed.ipa
+          make clean
+
+      - name: Build Nyxian Jailbroken
+        run: |
+          set -e
+
+          # Run setup script to download dependencies
+          chmod +x setup.sh
+          ./setup.sh
+
+          # Build the project (jailed)
+          make jailbroken
+          mv Nyxian.ipa Nyxian-Jailbroken.ipa
+          make clean
+
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Nyxian.ipa
-          path: Nyxian.ipa
+          name: Nyxian-Jailed.ipa
+          path: Nyxian-Jailed.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nyxian-Jailbroken-Testing.ipa
+          path: Nyxian-Jailbroken.ipa
