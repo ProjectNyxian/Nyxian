@@ -10,6 +10,7 @@
 <h6 align="center">
 
 <a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
+[![Build iOS App](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml)
 
 ## What do I need?
 You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
