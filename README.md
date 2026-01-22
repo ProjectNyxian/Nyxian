@@ -10,12 +10,17 @@
 <h6 align="center">
 
 <a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
+[![Build iOS App](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml)
 
-## Whats do I need?
-You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self. Do not use LiveContainer to use Nyxian, install Nyxian seperately.
-## Language Support
-It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 26.1 SDK. All frameworks work except Metal because I dont have access to apples metal shader compiler.
-## Installation
+## What do I need?
+You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
+**Do not use LiveContainer** to use Nyxian, install Nyxian seperately.  
+Jailbroken version is coming soon.
+
+## Language support
+It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support soon. It supports the entire iOS 26.1 SDK. All frameworks work except Metal, because I dont have access to apples metal shader compiler.
+
+## Installation jailed
 
 ### Requirements
 
@@ -30,8 +35,11 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
 </a>
 
+## Installation jailbroken
+Comming soon.
+
 ## What is it?
-Nyxian is a iOS application for iOS 17.0 and above(iOS 26.3 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
+Nyxian is a iOS application for iOS 16.0 and above (iOS 26.3 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
 ```
 Traditional jailbreak thinking:
 ┌─────────────────────────┐
@@ -53,7 +61,7 @@ Nyxian thinking:
 │  └───────────────────┘  │
 └─────────────────────────┘
 ```
-## Nyxians Philosophy
+## Nyxians philosophy
 My processes arent "fake processes." Theyre the only processes. My PIDs arent "fake PIDs." Theyre the only PIDs. My kernel isn't a "fake kernel." It's the only kernel for this domain.
 
 Most engineers think in terms of:
@@ -83,7 +91,7 @@ Its like Minecraft, take the blocks you have and build.
 └─────────────────────────────────────────┘
 ```
 
-## Project Support
+## Project support
 
 - [x] Native iOS app development
 - [x] Native iOS utility development (still needs polishing)
