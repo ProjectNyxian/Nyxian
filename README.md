@@ -1,6 +1,6 @@
 # Nyxian
 ## What is it?
-Nyxian is a iOS application for iOS 17.0 and above(iOS 26.2 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
+Nyxian is a iOS application for iOS 17.0 and above(iOS 26.3 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
 ```
 Traditional jailbreak thinking:
 ┌─────────────────────────┐
@@ -59,7 +59,7 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 
 ### Requirements
 
-- iOS/iPadOS 17+
+- iOS/iPadOS 16+
 - AltStore 2.0+ / SideStore 0.6.0+
 
 ### Download:
