@@ -55,13 +55,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: |
-            'nyxian.ipa'
-            'nyxian_0.8.2_iphoneos-arm64.deb'
-            'nyxian_0.8.2_iphoneos-arm64e.deb'
-
-      - name: Cleanup
-        run: |
-          set -e
-
-          # Cleanup artifacts
-          make clean-artifacts
+            *.ipa
+            *.deb
