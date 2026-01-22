@@ -9,7 +9,7 @@
 </div>
 <h6 align="center">
 
-<a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB" alt=""></a>
+<a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
 
 ## Whats do I need?
 You need a free or paid apple developer account, you have to sign Nyxian using the certificate of your apple developer account and then install it on your device and import the same certificate used for signing Nyxian it self. Do not use LiveContainer to use Nyxian, install Nyxian seperately.
