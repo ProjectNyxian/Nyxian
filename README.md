@@ -1,4 +1,16 @@
-# Nyxian
+<div align="center">
+   <kbd><img width="217" height="217" src="./Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png" alt="Logo"></kbd>
+</div>
+   
+
+<div align="center">
+  <h1><b>Nyxian</b></h1>
+  <p><i>IDE to develop native code iOS apps on unjailbroken iOS</i></p>
+</div>
+<h6 align="center">
+
+<a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB" alt=""></a>
+
 ## What is it?
 Nyxian is a iOS application for iOS 17.0 and above(iOS 26.3 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
 ```
