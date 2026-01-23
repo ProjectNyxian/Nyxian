@@ -32,7 +32,6 @@ typedef struct {
     
     /* Flags */
     pid_t ret_pid;
-    BOOL fork_flag;
     
     /* ThreadID */
     mach_msg_type_number_t thread_count;

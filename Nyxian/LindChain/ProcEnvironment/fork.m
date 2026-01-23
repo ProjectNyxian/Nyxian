@@ -36,7 +36,7 @@ void *fork_helper_thread(void *args)
     // Get snapshot
     fork_thread_snapshot_t *snapshot = args;
     
-    if(snapshot->fork_flag)
+    if(snapshot->ret_pid == 0)
     {
         // MARK: This means the spawn was essentially requested
         // Safe thread state
@@ -59,10 +59,6 @@ void *fork_helper_thread(void *args)
         // Copy
         memcpy(snapshot->stack_copy_buffer, snapshot->stack_recovery_buffer, snapshot->stack_recovery_size);
         
-        // ret_pid to 0 to indicate running as child
-        snapshot->ret_pid = 0;
-        snapshot->fork_flag = false;
-        
         // Unfreeze
         thread_resume(thread);
     }
@@ -75,9 +71,6 @@ void *fork_helper_thread(void *args)
         // Copy back
         memcpy(snapshot->stack_recovery_buffer, snapshot->stack_copy_buffer, snapshot->stack_recovery_size);
         free(snapshot->stack_copy_buffer);
-        
-        // Set flag back
-        snapshot->fork_flag = 1;
         
         // Unfreeze
         thread_resume(snapshot->thread);
@@ -123,7 +116,7 @@ DEFINE_HOOK(fork, pid_t, (void))
     local_fork_thread_snapshot->mapObject = [FDMapObject currentMap];
     
     // Create thread and join
-    local_fork_thread_snapshot->fork_flag = true;
+    local_fork_thread_snapshot->ret_pid = 0;
     local_fork_thread_snapshot->thread = mach_thread_self();
     
     // Getting into helper
@@ -291,7 +284,7 @@ DEFINE_HOOK(execvp, int, (const char * __file,
 
 DEFINE_HOOK(close, int, (int fd))
 {
-    if(local_fork_thread_snapshot && local_fork_thread_snapshot->fork_flag == 0)
+    if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
         return [local_fork_thread_snapshot->mapObject closeWithFileDescriptor:fd];
     }
@@ -304,7 +297,7 @@ DEFINE_HOOK(close, int, (int fd))
 DEFINE_HOOK(dup2, int, (int oldFD,
                         int newFD))
 {
-    if(local_fork_thread_snapshot && local_fork_thread_snapshot->fork_flag == 0)
+    if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
         return [local_fork_thread_snapshot->mapObject dup2WithOldFileDescriptor:oldFD withNewFileDescriptor:newFD];
     }
@@ -316,13 +309,9 @@ DEFINE_HOOK(dup2, int, (int oldFD,
 
 DEFINE_HOOK(_exit, void, (int code))
 {
-    if(local_fork_thread_snapshot &&
-       local_fork_thread_snapshot->fork_flag == 0)
+    if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
-        // Failed?
         local_fork_thread_snapshot->ret_pid = -1;
-        
-        // Create thread and join
         fork_helper_thread_trap();
     }
     else
