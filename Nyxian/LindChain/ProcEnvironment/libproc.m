@@ -19,6 +19,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/ProcEnvironment/libproc.h>
 #import <LindChain/litehook/litehook.h>
@@ -89,9 +90,9 @@ int proc_libproc_name(pid_t pid,
     return (int)strlen((char*)buffer);
 }*/
 
-int proc_libproc_pidpath(pid_t pid,
-                         void * buffer,
-                         uint32_t buffersize)
+DEFINE_HOOK(proc_pidpath, int, (pid_t pid,
+                                void * buffer,
+                                uint32_t buffersize))
 {
     if(buffersize == 0 || buffer == NULL)
     {
@@ -144,16 +145,87 @@ int proc_libproc_pidpath(pid_t pid,
     }
 }*/
 
+DEFINE_HOOK(proc_pid_rusage, int, (pid_t pid,
+                                           int flavor,
+                                           struct rusage_info_v2 *ri))
+{
+    if(environment_supports_tfp())
+    {
+        if (!ri) return -1;
+        memset(ri, 0, sizeof(*ri));
+        
+        task_t task;
+        kern_return_t kr = environment_task_for_pid(mach_task_self(), pid, &task);
+        if(kr != KERN_SUCCESS) return EPERM;
+        
+        struct task_absolutetime_info tai2;
+        mach_msg_type_number_t count = TASK_ABSOLUTETIME_INFO_COUNT;
+        if(task_info(task, TASK_ABSOLUTETIME_INFO, (task_info_t)&tai2, &count) == KERN_SUCCESS)
+        {
+            mach_timebase_info_data_t timebase;
+            mach_timebase_info(&timebase);
+
+            uint64_t user_ns   = (tai2.total_user   * timebase.numer) / timebase.denom;
+            uint64_t system_ns = (tai2.total_system * timebase.numer) / timebase.denom;
+
+            ri->ri_user_time   = user_ns;
+            ri->ri_system_time = system_ns;
+        }
+
+        struct task_basic_info_64 tbi;
+        count = TASK_BASIC_INFO_64_COUNT;
+        if(task_info(task, TASK_BASIC_INFO_64, (task_info_t)&tbi, &count) == KERN_SUCCESS)
+        {
+            ri->ri_resident_size = tbi.resident_size;
+            ri->ri_wired_size    = tbi.resident_size;
+        }
+        
+        struct task_vm_info vmi;
+        count = TASK_VM_INFO_COUNT;
+        if(task_info(task, TASK_VM_INFO, (task_info_t)&vmi, &count) == KERN_SUCCESS)
+        {
+            ri->ri_phys_footprint = vmi.phys_footprint;
+        }
+        
+        struct task_events_info tei;
+        count = TASK_EVENTS_INFO_COUNT;
+        if(task_info(task, TASK_EVENTS_INFO, (task_info_t)&tei, &count) == KERN_SUCCESS)
+        {
+            ri->ri_pageins = tei.pageins;
+        }
+        
+        /*struct proc_taskallinfo tai;
+        if(proc_libproc_pidinfo(pid, PROC_PIDTASKALLINFO, 0, &tai, sizeof(tai)) == sizeof(tai))
+        {
+            ri->ri_proc_start_abstime = tai.pbsd.pbi_start_tvsec * NSEC_PER_SEC +
+            tai.pbsd.pbi_start_tvusec * NSEC_PER_USEC;
+        }*/
+        
+        struct task_power_info tpi;
+        count = TASK_POWER_INFO_COUNT;
+        if(task_info(task, TASK_POWER_INFO, (task_info_t)&tpi, &count) == KERN_SUCCESS)
+        {
+            ri->ri_pkg_idle_wkups   = tpi.task_timer_wakeups_bin_1;
+            ri->ri_interrupt_wkups  = tpi.task_interrupt_wakeups;
+        }
+        
+        mach_port_deallocate(mach_task_self(), task);
+    }
+    return 0;
+}
+
+
+DEFINE_HOOK(kill, int, (pid_t pid, int sig))
+{
+    return (int)environment_syscall(SYS_KILL, pid, sig);
+}
+
 void environment_libproc_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
-        // MARK: GUEST Init
-        /*litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_listallpids, proc_libproc_listallpids, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_name, proc_libproc_name, nil);*/
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidpath, proc_libproc_pidpath, nil);
-        /*litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pidinfo, proc_libproc_pidinfo, nil);*/
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, proc_pid_rusage, proc_libproc_pid_rusage, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, kill, environment_proxy_proc_kill_process_identifier, nil);
+        DO_HOOK_GLOBAL(proc_pidpath);
+        DO_HOOK_GLOBAL(proc_pid_rusage);
+        DO_HOOK_GLOBAL(kill);
     }
 }

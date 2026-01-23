@@ -50,11 +50,18 @@
                withMapObject:(FDMapObject*)mapObject
                    withReply:(void (^)(int64_t))reply
 {
-    /* null pointer check */
+    /* sanity checking proc */
     if(_proc == NULL)
     {
-        reply(-1);
-        return;
+        /* asking kernel for process structure */
+        _proc = proc_for_pid(_processIdentifier);
+        
+        /* sanity check 2 */
+        if(_proc == NULL)
+        {
+            reply(-1);
+            return;
+        }
     }
     
     klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
@@ -92,10 +99,18 @@
                           withReply:(void (^)(NSData*))reply
 {
     /* null pointer check */
+    /* sanity checking proc */
     if(_proc == NULL)
     {
-        reply(nil);
-        return;
+        /* asking kernel for process structure */
+        _proc = proc_for_pid(_processIdentifier);
+        
+        /* sanity check 2 */
+        if(_proc == NULL)
+        {
+            reply(NULL);
+            return;
+        }
     }
     
     /* creating copy */
@@ -134,9 +149,21 @@ out_proc_copy_destroy:
 // TODO: Implement reply.. lazy frida!
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier
 {
+    /* sanity checking proc */
+    if(_proc == NULL)
+    {
+        /* asking kernel for process structure */
+        _proc = proc_for_pid(_processIdentifier);
+        
+        /* sanity check 2 */
+        if(_proc == NULL)
+        {
+            return;
+        }
+    }
+    
     /* null pointer check */
-    if(_proc == NULL ||
-       endpoint == NULL ||
+    if(endpoint == NULL ||
        serviceIdentifier == NULL)
     {
         return;
@@ -164,9 +191,22 @@ out_proc_copy_destroy:
 - (void)getEndpointOfServiceIdentifier:(NSString*)serviceIdentifier
                              withReply:(void (^)(NSXPCListenerEndpoint *result))reply
 {
+    /* sanity checking proc */
+    if(_proc == NULL)
+    {
+        /* asking kernel for process structure */
+        _proc = proc_for_pid(_processIdentifier);
+        
+        /* sanity check 2 */
+        if(_proc == NULL)
+        {
+            reply(nil);
+            return;
+        }
+    }
+    
     /* null pointer check */
-    if(_proc == NULL ||
-       serviceIdentifier == NULL)
+    if(serviceIdentifier == NULL)
     {
         reply(nil);
         return;
@@ -193,9 +233,21 @@ out_proc_copy_destroy:
  */
 - (void)setSnapshot:(UIImage*)image
 {
+    /* sanity checking proc */
+    if(_proc == NULL)
+    {
+        /* asking kernel for process structure */
+        _proc = proc_for_pid(_processIdentifier);
+        
+        /* sanity check 2 */
+        if(_proc == NULL)
+        {
+            return;
+        }
+    }
+    
     /* null pointer check */
-    if(_proc == NULL ||
-       image == NULL)
+    if(image == NULL)
     {
         return;
     }
@@ -207,61 +259,6 @@ out_proc_copy_destroy:
         /* setting snapshot */
         process.snapshot = image;
     }
-}
-
-- (void)waitTillAddedTrapWithReply:(void (^)(BOOL wasAdded))reply
-{
-    /* dispatching once per ServerSession */
-    dispatch_once(&_waitTrapOnce, ^{
-        /* getting start time */
-        const uint64_t start = mach_absolute_time();
-        
-        /*
-         * waittrap timeout is 1 second, this is to prevent ddos.
-         * processes are hardwired to go into this waittrap
-         * it exists so the ServerSession can safely obtain a
-         * reference to the process object of the owner of this
-         * server session.
-         */
-        const uint64_t timeoutNs = 1 * NSEC_PER_SEC;
-        
-        /* trying to obtain a reference to the process */
-        BOOL matched = NO;
-        while(mach_absolute_time() - start < timeoutNs)
-        {
-            /* proc_for_pid(1) references automatically if it finds */
-            _proc = proc_for_pid(_processIdentifier);
-            
-            /* null pointer check */
-            if(_proc != NULL)
-            {
-                /* its not null so it got a reference to the process */
-                matched = YES;
-                break;
-            }
-            
-            /* to not waste cpu time */
-            usleep(50 * 1000);
-        }
-        
-#if KLOG_ENABLED
-        if(!matched)
-        {
-            klog_log(@"syscall:waittrap", @"waittrap for pid %d failed", _processIdentifier);
-        }
-        else
-        {
-            klog_log(@"syscall:waittrap", @"waittrap for pid %d succeeded", _processIdentifier);
-        }
-#endif /* KLOG_ENABLED */
-        
-        /*
-         * replying if matched, and also only once
-         * there is only a single time where this waittrap is used
-         * its only used to sychronise process creation
-         */
-        reply(matched);
-    });
 }
 
 - (void)dealloc

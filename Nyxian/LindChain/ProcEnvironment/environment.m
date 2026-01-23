@@ -18,6 +18,8 @@
 */
 
 #import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/syscall.h>
+#import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <LindChain/Debugger/MachServer.h>
 
 static EnvironmentRole environmentRole = EnvironmentRoleNone;
@@ -107,7 +109,11 @@ void environment_init(EnvironmentRole role,
 #if HOST_ENV
         ksurface_kinit();
 #else
-        environment_proxy_waittrap();
+        /* TODO: waiting till syscalling works */
+        while(environment_syscall(SYS_getpid) < 0)
+        {
+            relax();
+        }
 #endif
         
         environment_tfp_init();

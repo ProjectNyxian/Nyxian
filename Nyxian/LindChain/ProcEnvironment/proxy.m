@@ -82,13 +82,6 @@ static int64_t sync_call_with_timeout_int64(void (^invoke)(void (^reply)(int64_t
     return (waited == 0) ? result : -1;
 }
 
-int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
-                                                   int signal)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    return (int)environment_syscall(SYS_KILL, process_identifier, signal);
-}
-
 int64_t environment_proxy_spawn_process_at_path(NSString *path,
                                                 NSArray *arguments,
                                                 NSDictionary *environment,
@@ -153,23 +146,6 @@ void environment_proxy_set_snapshot(UIImage *snapshot)
 {
     environment_must_be_role(EnvironmentRoleGuest);
     [hostProcessProxy setSnapshot:snapshot];
-}
-
-void environment_proxy_waittrap(void)
-{
-    // MARK: Trapping till the host says it added us to the proc map
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [hostProcessProxy waitTillAddedTrapWithReply:^(BOOL added){
-        if(added)
-        {
-            dispatch_semaphore_signal(sema);
-        }
-        else
-        {
-            exit(0);
-        }
-    }];
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
 }
 
 knyx_proc_t environment_proxy_nyxcopy(pid_t pid)

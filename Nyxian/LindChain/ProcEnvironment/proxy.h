@@ -36,9 +36,6 @@ extern syscall_client_t *syscallProxy;
 
 // MARK: Helper symbols that are intended stabilizing the proc environment api proxy wise and reduce the amount of deadlocking in the future
 
-/// Sends the `signal` to the process identified by its `process_identifier`
-int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int signal);
-
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 int64_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
@@ -53,8 +50,6 @@ void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint
 NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSString *serviceIdentifier);
 
 void environment_proxy_set_snapshot(UIImage *snapshot);
-
-void environment_proxy_waittrap(void);
 
 knyx_proc_t environment_proxy_nyxcopy(pid_t pid);
 

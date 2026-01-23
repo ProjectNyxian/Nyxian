@@ -51,8 +51,6 @@
  */
 - (void)setSnapshot:(UIImage*)image;
 
-- (void)waitTillAddedTrapWithReply:(void (^)(BOOL added))reply;
-
 @end
 
 #endif /* PROCENVIRONMENT_SERVER_SERVERPROTOCOL_H */
