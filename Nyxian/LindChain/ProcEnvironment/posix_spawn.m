@@ -31,45 +31,90 @@
 
 #pragma mark - posix_spawn helper
 
-NSArray<NSString *> *createNSArrayFromArgv(int argc, char *const argv[])
+NSArray<NSString *> *createNSArrayFromArgv(int argc,
+                                           char *const argv[])
 {
+    /* sanity check */
     if(argc <= 0 || argv == NULL)
     {
         return @[];
     }
-
+    
+    /* creating mutable array with predefined argv lenght  */
     NSMutableArray<NSString *> *array = [NSMutableArray arrayWithCapacity:argc];
-    for (int i = 0; i < argc; i++)
+    
+    /*
+     * itterating through each argument and stuff the mutable
+     * array with each argument.
+     */
+    for(int i = 0; i < argc; i++)
     {
-        if(argv[i])
+        /* sanity check */
+        if(argv[i] == NULL)
         {
-            NSString *arg = [NSString stringWithUTF8String:argv[i]];
-            if(arg)
-            {
-                [array addObject:arg];
-            }
+            continue;
+        }
+        
+        /* converting C into NSString */
+        NSString *arg = [NSString stringWithCString:argv[i] encoding:NSUTF8StringEncoding];
+        
+        /* sanity checking arg object */
+        if(arg != NULL)
+        {
+            /* and obviously appending it */
+            [array addObject:arg];
         }
     }
+    
+    /* return immutable array */
     return [array copy];
 }
 
-NSDictionary *EnvironmentDictionaryFromEnvp(char *const envp[]) {
-    if (envp == NULL) {
+NSDictionary *EnvironmentDictionaryFromEnvp(char *const envp[])
+{
+    /* sanity check */
+    if(envp == NULL)
+    {
         return @{};
     }
     
+    /* creating mutable dictionary */
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     
-    for (char *const *p = envp; *p != NULL; p++) {
-        NSString *entry = [NSString stringWithUTF8String:*p];
+    /*
+     * itterating through each environment variable
+     * to convert it into ObjC.
+     */
+    for(char *const *p = envp; *p != NULL; p++)
+    {
+        /*
+         * converting entire environment variable into
+         * ObjC object.
+         */
+        NSString *entry = [NSString stringWithCString:*p encoding:NSUTF8StringEncoding];
+        
+        /* sanity check */
+        if(entry == NULL)
+        {
+            continue;
+        }
+        
+        /* getting range till equation */
         NSRange equalRange = [entry rangeOfString:@"="];
         
-        if (equalRange.location != NSNotFound) {
-            NSString *key = [entry substringToIndex:equalRange.location];
-            NSString *value = [entry substringFromIndex:equalRange.location + 1];
-            if (key && value) {
-                dict[key] = value;
-            }
+        if(equalRange.location == NSNotFound)
+        {
+            continue;
+        }
+        
+        /* crafting other properties  */
+        NSString *key = [entry substringToIndex:equalRange.location];
+        NSString *value = [entry substringFromIndex:equalRange.location + 1];
+            
+        /* sanity check */
+        if(key && value)
+        {
+            dict[key] = value;
         }
     }
     
@@ -78,24 +123,56 @@ NSDictionary *EnvironmentDictionaryFromEnvp(char *const envp[]) {
 
 char *environment_which(const char *name)
 {
-    if(!name) return NULL;
-    if(strchr(name, '/'))
+    /* sanity check */
+    if(name == NULL)
     {
-        if (access(name, X_OK) == 0)
-            return realpath(name, NULL);
         return NULL;
     }
     
-    char *path = getenv("PATH");
-    if (!path) return NULL;
+    /*
+     * checking weither slash exists
+     * in the character buffer.
+     */
+    if(strchr(name, '/'))
+    {
+        if(access(name, X_OK) != 0)
+        {
+            return NULL;
+        }
+        return realpath(name, NULL);
+    }
     
+    /*
+     * getting "PATH" environment variable,
+     * because "PATH" contains all binary
+     * search paths where binaries could
+     * be located.
+     */
+    const char *path = getenv("PATH");
+    
+    /* sanity check */
+    if(!path)
+    {
+        return NULL;
+    }
+    
+    /* create modifable copy of path */
     char *copy = strdup(path);
+    
+    /* sanity checking copy */
+    if(copy == NULL)
+    {
+        return NULL;
+    }
+    
+    /* here we go */
     char *token = strtok(copy, ":");
     while(token)
     {
         char candidate[PATH_MAX];
         snprintf(candidate, sizeof(candidate), "%s/%s", token, name);
-        if (access(candidate, X_OK) == 0) {
+        if(access(candidate, X_OK) == 0)
+        {
             free(copy);
             return realpath(candidate, NULL);
         }
@@ -114,49 +191,52 @@ int environment_posix_spawn(pid_t *process_identifier,
                             char *const argv[],
                             char *const envp[])
 {    
-    // Fixing executing binaries at relative paths
+    /* resolving path of executable */
     char resolved[PATH_MAX];
     realpath(path, resolved);
-    path = resolved;
     
     if(environment_is_role(EnvironmentRoleGuest))
     {
-        // MARK: GUEST Implementation
-        
-        // Check code signature
-        if(!path) return 1;
-        if(!checkCodeSignature(path))
+        /* checking code signature of resolved binary */
+        if(!checkCodeSignature(resolved))
         {
-            // Is not valid, sign it by asking the host to sign it
-            environment_proxy_sign_macho([NSString stringWithCString:path encoding:NSUTF8StringEncoding]);
-            if(!checkCodeSignature(path)) return -1;
+            /* attempt signing */
+            environment_proxy_sign_macho([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
+            
+            /* checking if kernel virt signed executable */
+            if(!checkCodeSignature(resolved))
+            {
+                return -1;
+            }
         }
         
-        // Is argv safe?
-        if(argv == NULL) return 1;
+        /* sanity check */
+        if(argv == NULL)
+        {
+            return 1;
+        }
         
-        // Count argc
+        /* counting arguments */
         int count = 0;
         while(argv[count] != NULL)
         {
             count++;
         }
         
-        // Create fd map object or take it
+        /* create fd map object or take it */
         FDMapObject *mapObject = fa ? (*fa)->mapObject : [FDMapObject currentMap];
         
-        // Now since we have executable path we execute
-        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:path encoding:NSUTF8StringEncoding],
-                                                              createNSArrayFromArgv(count, argv),
-                                                              EnvironmentDictionaryFromEnvp(envp),
-                                                              mapObject);
-        // return value validation
+        /* trying to spawn process */
+        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(count, argv), EnvironmentDictionaryFromEnvp(envp), mapObject);
+        
+        /* return (if its negative then its not a valid pid) */
         if(pid == -1)
         {
             return -1;
         }
         
-        if(process_identifier)
+        /* sanity check */
+        if(process_identifier != NULL)
         {
             *process_identifier = (pid_t)pid;
         }
@@ -172,18 +252,32 @@ int environment_posix_spawnp(pid_t *process_identifier,
                              char *const argv[],
                              char *const envp[])
 {
-    // Itterates through PATH variable
-    // Essentially for dash which uses PATH
+    /* calling the actual posix_spawn() fix but with environment_which(1) */
     return environment_posix_spawn(process_identifier, environment_which(path), file_actions, spawn_attr, argv, envp);
 }
 
 #pragma mark - posix file actions
 
-// MARK: Creation and destruction
 int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actions_t **fa)
 {
-    // Allocate structure and return
+    /* sanity check */
+    if(fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
+    /* allocating file actions */
     *fa = malloc(sizeof(environment_posix_spawn_file_actions_t));
+    
+    /* sanity check */
+    if(*fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
+    /* stuffing the rest */
     (*fa)->mapObject = [[FDMapObject alloc] init];
     [(*fa)->mapObject copy_fd_map];
     
@@ -192,8 +286,17 @@ int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actio
 
 int environment_posix_spawn_file_actions_destroy(environment_posix_spawn_file_actions_t **fa)
 {
-    // Destroy hidden mapObject
+    /* sanity check */
+    if(fa == NULL || *fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
+    /* let ARC do the job */
     (*fa)->mapObject = nil;
+    
+    /* releasing file actions */
     free(*fa);
     return 0;
 }
@@ -203,12 +306,26 @@ int environment_posix_spawn_file_actions_adddup2(environment_posix_spawn_file_ac
                                                  int host_fd,
                                                  int child_fd)
 {
+    /* sanity check */
+    if(fa == NULL || *fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
     return [(*fa)->mapObject dup2WithOldFileDescriptor:host_fd withNewFileDescriptor:child_fd];;
 }
 
 int environment_posix_spawn_file_actions_addclose(environment_posix_spawn_file_actions_t **fa,
                                                   int child_fd)
 {
+    /* sanity check */
+    if(fa == NULL || *fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
     return [(*fa)->mapObject closeWithFileDescriptor:child_fd];
 }
 
