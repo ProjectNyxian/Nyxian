@@ -40,7 +40,7 @@ extern syscall_client_t *syscallProxy;
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier, int signal);
 
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
-pid_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
+int64_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
 /// Gets process table
 void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt);

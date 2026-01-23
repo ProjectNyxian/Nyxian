@@ -40,6 +40,8 @@ typedef struct {
     
     /* File descriptors */
     FDMapObject *mapObject;
+    
+    bool suceeded;
 } fork_thread_snapshot_t;
 
 /*!

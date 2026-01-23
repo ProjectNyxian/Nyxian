@@ -48,7 +48,7 @@
                withArguments:(NSArray*)arguments
     withEnvironmentVariables:(NSDictionary *)environment
                withMapObject:(FDMapObject*)mapObject
-                   withReply:(void (^)(unsigned int))reply
+                   withReply:(void (^)(int64_t))reply
 {
     /* null pointer check */
     if(_proc == NULL)
@@ -68,9 +68,6 @@
         /* invoking spawn */
         pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil];
         
-        /* replying with pid of spawn */
-        reply(pid);
-        
 #if KLOG_ENABLED
         if(pid != -1)
         {
@@ -81,6 +78,10 @@
             klog_log(@"syscall:spawn", @"pid %d failed to spawn process", _processIdentifier);
         }
 #endif /* KLOG_ENABLED */
+        
+        /* replying with pid of spawn */
+        reply(pid);
+        
         return;
     }
     

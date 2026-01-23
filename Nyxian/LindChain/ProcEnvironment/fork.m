@@ -33,59 +33,94 @@ __thread fork_thread_snapshot_t *local_fork_thread_snapshot = NULL;
 
 void *fork_helper_thread(void *args)
 {
-    // Get snapshot
+    /*
+     * getting thread snapshot which has been
+     * passed by the callers thread of it self.
+     */
     fork_thread_snapshot_t *snapshot = args;
+    
+    /* sanity check */
+    if(snapshot == NULL)
+    {
+        return NULL;
+    }
     
     if(snapshot->ret_pid == 0)
     {
-        // MARK: This means the spawn was essentially requested
-        // Safe thread state
+        /* getting arm64 thread state of our own thread. */
         snapshot->thread_count = ARM_THREAD_STATE64_COUNT;
         thread_act_t thread = snapshot->thread;
-        thread_get_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), &snapshot->thread_count); // When ever we set the state back we need to set the PC counter to a other function, it will return normally to the caller, thats for sure.. because we dont create a new stack frame, we dont hit ret in this state for it it looks like its still in helper_thread
+        thread_get_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), &snapshot->thread_count);
         
-        // Get stack properties
+        /* doing the black math */
         pthread_t pthread = pthread_from_mach_thread_np(snapshot->thread);
-        void *stack_base = pthread_get_stackaddr_np(pthread);
-        void *sp = (void*)snapshot->thread_state.__sp;
+        void *stack_top = pthread_get_stackaddr_np(pthread);
+        size_t stack_size = pthread_get_stacksize_np(pthread);
+        void *stack_bottom = stack_top - stack_size;
         
-        // Store live portion of the stack (safer and faster)
-        snapshot->stack_recovery_buffer = (uint8_t *)sp;
-        snapshot->stack_recovery_size = (uint8_t *)stack_base - (uint8_t *)sp;
+        /* storing result */
+        snapshot->stack_recovery_buffer = stack_bottom;
+        snapshot->stack_recovery_size = stack_size;
         
-        // Allocate FIXME: Handle null pointer
+        /* copying stack */
         snapshot->stack_copy_buffer = malloc(snapshot->stack_recovery_size);
         
-        // Copy
+        /* checking for null pointer */
+        if(snapshot->stack_copy_buffer == NULL)
+        {
+            snapshot->suceeded = false;
+            return NULL;
+        }
+        
         memcpy(snapshot->stack_copy_buffer, snapshot->stack_recovery_buffer, snapshot->stack_recovery_size);
         
-        // Unfreeze
+        /* setting succession flag */
+        snapshot->suceeded = true;
+        
+        /* resuming thread */
         thread_resume(thread);
     }
     else
     {
-        // MARK: This means the spawn is happening
-        // Restore thread state
+        /*
+         * spawn it self happens now restoring
+         * thread state.
+         */
         thread_set_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), snapshot->thread_count);
         
-        // Copy back
+        /* restoring stack */
         memcpy(snapshot->stack_recovery_buffer, snapshot->stack_copy_buffer, snapshot->stack_recovery_size);
         free(snapshot->stack_copy_buffer);
         
-        // Unfreeze
+        /* deallocating thread snapshot  */
+        free(local_fork_thread_snapshot);
+        local_fork_thread_snapshot = NULL;
+        
+        /* resuming caller thread */
         thread_resume(snapshot->thread);
     }
+
     return NULL;
 }
 
 #pragma mark - helper thread helper
 
-void fork_helper_thread_trap(void)
+bool fork_helper_thread_trap(void)
 {
+    /* trapping into fork helper thread */
     pthread_t nthread;
     pthread_create(&nthread, NULL, fork_helper_thread, local_fork_thread_snapshot);
     pthread_detach(nthread);
     thread_suspend(mach_thread_self());
+    
+    /* checking thread snapshot for null ptr */
+    if(local_fork_thread_snapshot == NULL)
+    {
+        return false;
+    }
+    
+    /* returning if successful */
+    return local_fork_thread_snapshot->suceeded;
 }
 
 #pragma mark - fork() fix
@@ -93,41 +128,42 @@ void fork_helper_thread_trap(void)
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
 DEFINE_HOOK(fork, pid_t, (void))
 {
-    // Getting entitlement list and checking it
-    int64_t retval = environment_syscall(SYS_GETENT);
-    PEEntitlement entitlement = (retval == -1) ? 0 : retval;
-    if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
-         entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
-    {
-        errno = EPERM;
-        return -1;
-    }
+    /*
+     * allocating local thread snapshot, which
+     * is used to snapshot the current stack
+     * memory of the caller thread to later
+     * restore it so it looks as if its returning
+     * from fork but in reality it did a time
+     * travel.
+     */
+    local_fork_thread_snapshot = malloc(sizeof(fork_thread_snapshot_t));
     
-    // Create local snapshot
-    local_fork_thread_snapshot = calloc(1, sizeof(fork_thread_snapshot_t));
-    
-    // Null pointer check
+    /* sanity check */
     if(local_fork_thread_snapshot == NULL)
     {
         errno = ENOMEM;
         return -1;
     }
     
+    /* creating copy of current fd map */
     local_fork_thread_snapshot->mapObject = [FDMapObject currentMap];
     
-    // Create thread and join
+    /* preparing for thread handoff */
     local_fork_thread_snapshot->ret_pid = 0;
     local_fork_thread_snapshot->thread = mach_thread_self();
     
-    // Getting into helper
-    fork_helper_thread_trap();
+    /* handing off */
+    bool success = fork_helper_thread_trap();
     
-    pid_t pid = local_fork_thread_snapshot->ret_pid;
-    if(pid != 0)
+    /* checking for succession */
+    if(!success)
     {
-        free(local_fork_thread_snapshot);
-        local_fork_thread_snapshot = NULL;
+        errno = EFAULT;
+        return -1;
     }
+    
+    /* we will go here twice! */
+    pid_t pid = local_fork_thread_snapshot->ret_pid;
     
     return pid;
 }
@@ -140,37 +176,42 @@ int environment_execvpa(const char * __path,
                         char *_LIBC_CSTR const *_LIBC_NULL_TERMINATED __envp,
                         bool find_binary)
 {
-    // Check if it was even created
-    // TODO: Somehow implement exec family functions without relying on fork()
-    if(!local_fork_thread_snapshot)
+    /* sanity check */
+    if(local_fork_thread_snapshot == NULL)
     {
         errno = EBADEXEC;
         return -1;
     }
     
-    // Create file actions
+    /* creating file actions structure */
     environment_posix_spawn_file_actions_t *fileActions = malloc(sizeof(environment_posix_spawn_file_actions_t));
     
-    // MARK: AHHH Apple, pls dont hate me for the poor none ARC friendly code here
-    // MARK: Atleast I hope ARC does reference counting on these structs
+    /*
+     * MARK: AHHH Apple, pls dont hate me for the poor none ARC friendly code here
+     * MARK: Atleast I hope ARC does reference counting on these structs
+     */
     fileActions->mapObject = local_fork_thread_snapshot->mapObject;
     
-    // Spawn using my own posix_spawn() fix
-    if(find_binary)
+    /* commiting the posix spawn */
+    int retval = find_binary ? environment_posix_spawnp(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp) :
+                               environment_posix_spawn(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+    
+    /* evaluating return */
+    if(retval != 0)
     {
-        environment_posix_spawnp(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
-    }
-    else
-    {
-        environment_posix_spawn(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+        return -1;
     }
     
-    // Destroy file actions
+    /* destroying file actions, were done with it */
     free(fileActions);
     
+    /*
+     * trapping into fork helper, but only if its
+     * the return process identifier indicates that
+     * were about to spawn.
+     */
     if(local_fork_thread_snapshot->ret_pid != 0)
     {
-        // Create thread and join
         fork_helper_thread_trap();
     }
     

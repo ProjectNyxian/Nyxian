@@ -65,6 +65,23 @@ static unsigned int sync_call_with_timeout_uint(void (^invoke)(void (^reply)(uns
     return (waited == 0) ? result : -1;
 }
 
+static int64_t sync_call_with_timeout_int64(void (^invoke)(void (^reply)(int64_t)))
+{
+    __block int64_t result = -1;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+
+    invoke(^(int64_t val){
+        result = val;
+        dispatch_semaphore_signal(sem);
+    });
+
+    long waited = dispatch_semaphore_wait(
+        sem,
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
+    );
+    return (waited == 0) ? result : -1;
+}
+
 int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
                                                    int signal)
 {
@@ -72,13 +89,13 @@ int environment_proxy_proc_kill_process_identifier(pid_t process_identifier,
     return (int)environment_syscall(SYS_KILL, process_identifier, signal);
 }
 
-pid_t environment_proxy_spawn_process_at_path(NSString *path,
-                                              NSArray *arguments,
-                                              NSDictionary *environment,
-                                              FDMapObject *mapObject)
+int64_t environment_proxy_spawn_process_at_path(NSString *path,
+                                                NSArray *arguments,
+                                                NSDictionary *environment,
+                                                FDMapObject *mapObject)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout_uint(PROXY_TYPE_REPLY(unsigned int){
+    return sync_call_with_timeout_int64(PROXY_TYPE_REPLY(int64_t){
         [hostProcessProxy spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withReply:reply];
     });
 }

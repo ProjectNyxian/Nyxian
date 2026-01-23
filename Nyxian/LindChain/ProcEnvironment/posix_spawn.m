@@ -113,16 +113,7 @@ int environment_posix_spawn(pid_t *process_identifier,
                             const posix_spawnattr_t *spawn_attr,
                             char *const argv[],
                             char *const envp[])
-{
-    // Getting entitlement list and checking it
-    int64_t retval = environment_syscall(SYS_GETENT);
-    PEEntitlement entitlement = (retval == -1) ? 0 : retval;
-    if(!(entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawn) |
-         entitlement_got_entitlement(entitlement, PEEntitlementProcessSpawnSignedOnly)))
-    {
-        return -1;
-    }
-    
+{    
     // Fixing executing binaries at relative paths
     char resolved[PATH_MAX];
     realpath(path, resolved);
@@ -155,14 +146,19 @@ int environment_posix_spawn(pid_t *process_identifier,
         FDMapObject *mapObject = fa ? (*fa)->mapObject : [FDMapObject currentMap];
         
         // Now since we have executable path we execute
-        pid_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:path encoding:NSUTF8StringEncoding],
-                                                            createNSArrayFromArgv(count, argv),
-                                                            EnvironmentDictionaryFromEnvp(envp),
-                                                            mapObject);
+        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:path encoding:NSUTF8StringEncoding],
+                                                              createNSArrayFromArgv(count, argv),
+                                                              EnvironmentDictionaryFromEnvp(envp),
+                                                              mapObject);
+        // return value validation
+        if(pid == -1)
+        {
+            return -1;
+        }
         
         if(process_identifier)
         {
-            *process_identifier = pid;
+            *process_identifier = (pid_t)pid;
         }
     }
     
