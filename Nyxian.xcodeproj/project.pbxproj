@@ -216,7 +216,6 @@
 				LindChain/ProcEnvironment/Surface/proc/copy.m,
 				LindChain/ProcEnvironment/Surface/proc/create.m,
 				LindChain/ProcEnvironment/Surface/proc/find.m,
-				LindChain/ProcEnvironment/Surface/proc/flow.m,
 				LindChain/ProcEnvironment/Surface/proc/fork.m,
 				LindChain/ProcEnvironment/Surface/proc/insert.m,
 				LindChain/ProcEnvironment/Surface/proc/proc.m,
