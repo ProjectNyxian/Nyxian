@@ -41,7 +41,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         return NULL;
     }
     
-    /* creating copy of the parent for safe state copy which consumes the reference we got from proc_for_pid(1) */
+    /* creating a safe to use copy of the parent */
     ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetainedCopy);
     
     /* null pointer check */
@@ -93,6 +93,8 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     if(path)
     {
         strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
+        
+        /* FIXME: argv[0] shall be used for p_comm and not the last path component */
         const char *name = strrchr(path, '/');
         name = name ? name + 1 : path;
         strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
@@ -108,28 +110,55 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         proc_release(child);
         return NULL;
     }
-    else
+    
+    /*
+     * referencing both parent and child, because
+     * the parent gets retained by the child and
+     * the child gets retained by the parent,
+     * basically a retention contract.
+     */
+    if(proc_retain(parent) && proc_retain(child))
     {
-        /* referencing the child and the parent once more */
-        if(proc_retain(parent) && proc_retain(child))
+        /*
+         * due to the copy we already own a reference, but
+         * next we gonna claim the mutex of cld.
+         */
+        pthread_mutex_lock(&(parent->kproc.children.mutex));
+        pthread_mutex_lock(&(child->kproc.children.mutex));
+        
+        /*
+         * bounds check of the children structure, making
+         * sure that a parent cannot exceed the limit of
+         * how many children it can have.
+         */
+        if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX)
         {
-            /* due to the copy we already own a reference, but next we gonna claim the mutex of cld */
-            pthread_mutex_lock(&(parent->kproc.children.mutex));
-            pthread_mutex_lock(&(child->kproc.children.mutex));
-            
-            /* storing parent */
-            child->kproc.children.parent = parent;
-            
-            /* storing index of where the child pointer is */
-            child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
-            
-            /* storing the child pointer */
-            parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
-            
-            /* unlocking the parents child structure */
+            /* unlocking both mutexes first */
             pthread_mutex_unlock(&(child->kproc.children.mutex));
             pthread_mutex_unlock(&(parent->kproc.children.mutex));
+            
+            /* releasing all references */
+            proc_release(parent);
+            proc_release(child);
+            proc_remove_by_pid(proc_getpid(child));
+            proc_copy_destroy(parent_copy);
+            
+            /* got nothing for you */
+            return NULL;
         }
+        
+        /*
+         * doing the reference dance, so child knows where
+         * its referenced in the parent process, who its
+         * parent process is.
+         */
+        child->kproc.children.parent = parent;
+        child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
+        parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
+        
+        /* unlocking the parents child structure */
+        pthread_mutex_unlock(&(child->kproc.children.mutex));
+        pthread_mutex_unlock(&(parent->kproc.children.mutex));
     }
     
     /* destroying the copy of the parent that references the parent */

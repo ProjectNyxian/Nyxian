@@ -50,9 +50,29 @@ enum kSurfaceError {
 typedef unsigned char ksurface_error_t;
 
 /// Limits
+
+/*
+ * im sorry if you complain about the
+ * amount of maximum processes, dont
+ * complain about this to me, complain
+ * about this to apple, their the reason
+ * why, launchd doesnt let us spawn more.
+ */
 #define PROC_MAX 750
+
+/*
+ * the maximum count of pid that the
+ * radix tree supports.
+ */
 #define PID_MAX 1048575
-#define CHILD_PROC_MAX PROC_MAX
+
+/*
+ * why would a process need more than 32
+ * childs?
+ */
+#define CHILD_PROC_MAX 32
+
+/* its just a magic :3 */
 #define SURFACE_MAGIC 0xDEADBEEF
 
 /// Nyxian process typedefinitions
