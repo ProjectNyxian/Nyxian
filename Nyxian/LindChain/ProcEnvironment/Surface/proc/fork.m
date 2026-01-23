@@ -112,54 +112,56 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /*
-     * referencing both parent and child, because
-     * the parent gets retained by the child and
-     * the child gets retained by the parent,
-     * basically a retention contract.
+     * referencing parent first, to
+     * first of all prevent a reference leak
+     * and second of all dont waste cpu cycles
+     * this is basically the part where we
+     * tell the parent who their child is
+     * and the child who their parent is
+     * and create a reference contract.
      */
-    if(proc_retain(parent) && proc_retain(child))
+    if(!proc_retain(parent))
     {
-        /*
-         * due to the copy we already own a reference, but
-         * next we gonna claim the mutex of cld.
-         */
-        pthread_mutex_lock(&(parent->kproc.children.mutex));
-        pthread_mutex_lock(&(child->kproc.children.mutex));
-        
-        /*
-         * bounds check of the children structure, making
-         * sure that a parent cannot exceed the limit of
-         * how many children it can have.
-         */
-        if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX)
-        {
-            /* unlocking both mutexes first */
-            pthread_mutex_unlock(&(child->kproc.children.mutex));
-            pthread_mutex_unlock(&(parent->kproc.children.mutex));
-            
-            /* releasing all references */
-            proc_release(parent);
-            proc_release(child);
-            proc_remove_by_pid(proc_getpid(child));
-            proc_copy_destroy(parent_copy);
-            
-            /* got nothing for you */
-            return NULL;
-        }
-        
-        /*
-         * doing the reference dance, so child knows where
-         * its referenced in the parent process, who its
-         * parent process is.
-         */
-        child->kproc.children.parent = parent;
-        child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
-        parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
-        
-        /* unlocking the parents child structure */
-        pthread_mutex_unlock(&(child->kproc.children.mutex));
-        pthread_mutex_unlock(&(parent->kproc.children.mutex));
+    out_parent_contract_retain_failed:
+        proc_remove_by_pid(proc_getpid(child));
+        proc_copy_destroy(parent_copy);
+        return NULL;
     }
+    
+    /* locking children structure */
+    pthread_mutex_lock(&(parent->kproc.children.mutex));
+    
+    /*
+     * checking if it would exceed maximum amount
+     * of child processes per process.
+     */
+    if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX || !proc_retain(child))
+    {
+        /* unlocking parent mutex again */
+        pthread_mutex_unlock(&(parent->kproc.children.mutex));
+        
+        /* releasing all references */
+        proc_release(parent);
+        goto out_parent_contract_retain_failed;
+        
+        /* got nothing for you */
+        return NULL;
+    }
+    
+    /* locking children structure numero two */
+    pthread_mutex_lock(&(child->kproc.children.mutex));
+    
+    /* performing contract */
+    child->kproc.children.parent = parent;
+    child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
+    parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
+    
+    /*
+     * okay both parties signed the contract so now
+     * releasing both locks we currently hold.
+     */
+    pthread_mutex_unlock(&(child->kproc.children.mutex));
+    pthread_mutex_unlock(&(parent->kproc.children.mutex));
     
     /* destroying the copy of the parent that references the parent */
     proc_copy_destroy(parent_copy);
