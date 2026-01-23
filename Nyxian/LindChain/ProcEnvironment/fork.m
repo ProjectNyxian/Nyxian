@@ -142,7 +142,11 @@ int environment_execvpa(const char * __path,
 {
     // Check if it was even created
     // TODO: Somehow implement exec family functions without relying on fork()
-    if(!local_fork_thread_snapshot) return EFAULT;
+    if(!local_fork_thread_snapshot)
+    {
+        errno = EBADEXEC;
+        return -1;
+    }
     
     // Create file actions
     environment_posix_spawn_file_actions_t *fileActions = malloc(sizeof(environment_posix_spawn_file_actions_t));
@@ -170,7 +174,8 @@ int environment_execvpa(const char * __path,
         fork_helper_thread_trap();
     }
     
-    return EFAULT;
+    errno = EFAULT;
+    return -1;
 }
 
 static char **argv_from_va(const char *arg0,
@@ -218,6 +223,7 @@ DEFINE_HOOK(execl, int, (const char *path,
     
     if(!argv)
     {
+        errno = EFAULT;
         return -1;
     }
     
@@ -238,6 +244,7 @@ DEFINE_HOOK(execle, int, (const char *path,
     
     if(!argv)
     {
+        errno = EFAULT;
         return -1;
     }
     
@@ -255,6 +262,7 @@ DEFINE_HOOK(execlp, int, (const char *path,
     
     if(!argv)
     {
+        errno = EFAULT;
         return -1;
     }
     
