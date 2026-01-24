@@ -26,8 +26,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// MARK: Todo.. right before suspending.. justify one more push to get the request out of our way, otherwise it might fill up all 4 threads.. or break the request up and then sent the reply on process wakeup (complex shit)
-
 #define MAX_SYSCALLS 1024
 
 struct syscall_server {
