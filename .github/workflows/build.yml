@@ -26,9 +26,8 @@ jobs:
           brew install ldid
           brew install dpkg
 
-          # Run setup script to download dependencies (LLVM)
-          chmod +x setup.sh
-          ./setup.sh
+          # Run make command to download dependencies (LLVM)
+          make LazySetup
 
       - name: Build Jailed
         run: |

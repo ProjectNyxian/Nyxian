@@ -19,8 +19,25 @@ roothide: ARCH := iphoneos-arm64e
 roothide: JB_PATH := /
 roothide: compile pseudo-sign package-deb clean
 
-roothide: SCHEME := NyxianForJB
+jbtest+run: SCHEME := NyxianForJB
 jbtest+run: compile pseudo-sign package install clean
+
+# Workflow dependencies
+LazySetup:
+	wget https://nyxian.app/bootstrap/LLVM_3.zip
+	mkdir -p tmp
+	mv LLVM_3.zip tmp/LLVM.zip
+	cd tmp; \
+		unzip LLVM.zip; \
+		mv LLVM.xcframework ../Nyxian/LindChain/LLVM.xcframework;
+	rm -rf tmp
+
+# Dependencies
+# Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
+Nyxian/LindChain/LLVM.xcframework:
+	git clone https://github.com/ProjectNyxian/LLVM-On-iOS
+	make -C LLVM-On-iOS
+	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 
 # Helper
 update-config:
@@ -28,7 +45,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile:
+compile: Nyxian/LindChain/LLVM.xcframework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \
@@ -43,8 +60,8 @@ compile:
 		CODE_SIGNING_ALLOWED=NO
 
 pseudo-sign:
-	ldid -Sdebug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
-	ldid -Stshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
+	ldid -Sent/debug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
+	ldid -Sent/tshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
 
 package:
 	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
@@ -62,10 +79,15 @@ install:
 	ideviceinstaller install Nyxian.ipa
 
 clean:
-	-rm -rf Payload
-	-rm -rf build
-	-rm -rf .package
+	rm -rf Payload
+	rm -rf build
+	rm -rf .package
+	rm -rf tmp
+	rm -rf LLVM-On-iOS
 
 clean-artifacts:
 	-rm *.ipa
 	-rm *.deb
+
+clean-all: clean clean-artifacts
+	rm -rf Nyxian/LindChain/LLVM.xcframework
