@@ -38,6 +38,7 @@ Nyxian/LindChain/LLVM.xcframework:
 	git clone https://github.com/ProjectNyxian/LLVM-On-iOS
 	make -C LLVM-On-iOS
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
+	rm -rf LLVM-On-iOS
 
 # Helper
 update-config:
