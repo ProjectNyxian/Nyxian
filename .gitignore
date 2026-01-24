@@ -3,3 +3,5 @@ Nyxian/LindChain/LLVM.xcframework
 build/
 *.ipa
 *.deb
+Nyxian/LindChain/JBSupport/libroot.a
+Nyxian/LindChain/JBSupport/libroot.h

@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Shell.h>
-#import <LindChain/jbroot.h>
+#import <LindChain/JBSupport/Shell.h>
+#import <LindChain/JBSupport/jbroot.h>
 #import <Foundation/Foundation.h>
 #import <Nyxian-Swift.h>
 #include <spawn.h>

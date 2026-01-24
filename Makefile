@@ -40,13 +40,21 @@ Nyxian/LindChain/LLVM.xcframework:
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 	rm -rf LLVM-On-iOS
 
+# Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
+Nyxian/LindChain/JBSupport/libroot.a:
+	git clone https://github.com/opa334/libroot
+	make -C libroot
+	mv libroot/libroot_dyn_iphoneos-arm64.a Nyxian/LindChain/JBSupport/libroot.a
+	mv libroot/src/libroot.h Nyxian/LindChain/JBSupport/libroot.h
+	rm -rf libroot
+
 # Helper
 update-config:
 	chmod +x version.sh
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/LLVM.xcframework
+compile: Nyxian/LindChain/JBSupport/libroot.a Nyxian/LindChain/LLVM.xcframework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \
@@ -85,6 +93,8 @@ clean:
 	rm -rf .package
 	rm -rf tmp
 	rm -rf LLVM-On-iOS
+	rm -rf libroot
+	-rm -rf *.zip
 
 clean-artifacts:
 	-rm *.ipa
@@ -92,3 +102,4 @@ clean-artifacts:
 
 clean-all: clean clean-artifacts
 	rm -rf Nyxian/LindChain/LLVM.xcframework
+	-rm -rf Nyxian/LindChain/JBSupport/libroot*

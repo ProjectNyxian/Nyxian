@@ -17,9 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/jbroot.h>
-#import <LindChain/Shell.h>
-#import <LindChain/libroot.h>
+#import <LindChain/JBSupport/jbroot.h>
+#import <LindChain/JBSupport/Shell.h>
+#import <LindChain/JBSupport/libroot.h>
 
 NSString *IGottaNeedTheActualJBRootMate(void)
 {
