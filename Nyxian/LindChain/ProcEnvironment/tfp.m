@@ -55,6 +55,9 @@ bool environment_supports_tfp(void)
      * apple made it possible to transfer task ports on iOS 26.0, but
      * the method currently used doesnt work on iOS 26.1 so I guess
      * they reverted the change back.
+     *
+     * it works cause apple messed up to guard task ports with
+     * MPG_IMMOVABLE_RECEIVE which makes the task port unsandable.
      */
     struct utsname systemInfo;
     uname(&systemInfo);

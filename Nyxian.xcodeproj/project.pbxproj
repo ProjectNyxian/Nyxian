@@ -126,6 +126,7 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				LindChain/JBSupport/tshelper,
 				LindChain/litehook/LICENSE,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
