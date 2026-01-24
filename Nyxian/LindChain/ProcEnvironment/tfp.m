@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
 #import <LindChain/ProcEnvironment/syscall.h>
+#import <sys/utsname.h>
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is almost ignored because its obsolete for nyxians security model */
                                        pid_t pid,
@@ -36,7 +37,6 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is 
     }
     
     /* getting task port */
-    task_t task = MACH_PORT_NULL;
     int64_t ret = environment_syscall(SYS_GETTASK, pid, tp_out);
     
     /* checking return */
@@ -51,17 +51,14 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is 
 
 bool environment_supports_tfp(void)
 {
-    // MARK: Apple seems to have implemented mach port transmission into iOS 26, as in iOS 18.7 RC and below it crashes but on iOS 26.0 RC it actually transmitts the task port
-    if(@available(iOS 26.0, *))
-    {
-        if(@available(iOS 26.1, *))
-        {
-            // MARK: TaskPortGate is over?!
-            return false;
-        }
-        return true;
-    }
-    return false;
+    /*
+     * apple made it possible to transfer task ports on iOS 26.0, but
+     * the method currently used doesnt work on iOS 26.1 so I guess
+     * they reverted the change back.
+     */
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    return strncmp(systemInfo.release, "25.0", 4) == 0;
 }
 
 /*
