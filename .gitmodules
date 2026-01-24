@@ -1,0 +1,6 @@
+[submodule "LLVM-On-iOS"]
+	path = LLVM-On-iOS
+	url = https://github.com/ProjectNyxian/LLVM-On-iOS.git
+[submodule "libroot"]
+	path = libroot
+	url = https://github.com/Opa334/libroot.git

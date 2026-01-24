@@ -35,18 +35,14 @@ LazySetup:
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
 Nyxian/LindChain/LLVM.xcframework:
-	git clone https://github.com/ProjectNyxian/LLVM-On-iOS
 	make -C LLVM-On-iOS
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
-	rm -rf LLVM-On-iOS
 
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
 Nyxian/LindChain/JBSupport/libroot.a:
-	git clone https://github.com/opa334/libroot
 	make -C libroot
 	mv libroot/libroot_dyn_iphoneos-arm64.a Nyxian/LindChain/JBSupport/libroot.a
 	mv libroot/src/libroot.h Nyxian/LindChain/JBSupport/libroot.h
-	rm -rf libroot
 
 # Helper
 update-config:
@@ -92,8 +88,6 @@ clean:
 	rm -rf build
 	rm -rf .package
 	rm -rf tmp
-	rm -rf LLVM-On-iOS
-	rm -rf libroot
 	-rm -rf *.zip
 
 clean-artifacts:
