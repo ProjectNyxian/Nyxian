@@ -25,7 +25,7 @@ jbtest+run: compile pseudo-sign package install clean
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
 Nyxian/LindChain/LLVM.xcframework:
-	make -C LLVM-On-iOS
+	cd LLVM-On-iOS; $(MAKE)
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 
 Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
@@ -33,7 +33,7 @@ Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
 
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
 Nyxian/LindChain/JBSupport/libroot.a:
-	make -C libroot
+	cd libroot; $(MAKE)
 	mv libroot/libroot_dyn_iphoneos-arm64.a Nyxian/LindChain/JBSupport/libroot.a
 	mv libroot/src/libroot.h Nyxian/LindChain/JBSupport/libroot.h
 
