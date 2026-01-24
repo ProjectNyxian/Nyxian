@@ -41,6 +41,8 @@ class AppInfoViewController: UIThemedTableViewController {
         Credit(name: "Duy Tran", role: "LiveContainer", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Huge_Black", role: "LiveContainer", githubURL: "https://github.com/hugeBlack"),
         Credit(name: "Stossy11", role: "Helpful advise for the window server", githubURL: "https://github.com/stossy11"),
+        Credit(name: "Vinogradov Daniil", role: "Massive help on LLVM-On-iOS", githubURL: "https://github.com/XITRIX"),
+        Credit(name: "light-tech", role: "LLVM-On-iOS", githubURL: "https://github.com/light-tech"),
         Credit(name: "Lars Fröder", role: "Litehook", githubURL: "https://github.com/opa334"),
         Credit(name: "ayame09", role: "Original Nyxian app icons", githubURL: "https://github.com/ayayame09"),
         Credit(name: "sxdev", role: "Drawn app icons", githubURL: "https://github.com/SamoXcZ"),
@@ -50,7 +52,8 @@ class AppInfoViewController: UIThemedTableViewController {
     private var credits: [Credit] = [
         Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "Duy Tran", role: "FrontBoardAppLauncher", githubURL: "https://github.com/khanhduytran0"),
-        Credit(name: "Lars Fröder", role: "Litehook and Trollstore", githubURL: "https://github.com/opa334"),
+        Credit(name: "Stossy11", role: "Helpful advise for the window server", githubURL: "https://github.com/stossy11"),
+        Credit(name: "Lars Fröder", role: "Litehook,Trollstore and libroot", githubURL: "https://github.com/opa334"),
         Credit(name: "ayame09", role: "Original Nyxian app icons", githubURL: "https://github.com/ayayame09"),
         Credit(name: "sxdev", role: "Drawn app icons", githubURL: "https://github.com/SamoXcZ"),
         Credit(name: "xzadik", role: "Nyxcat app icons", githubURL: "https://github.com/xzadik"),
