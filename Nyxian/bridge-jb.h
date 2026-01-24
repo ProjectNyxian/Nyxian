@@ -35,8 +35,8 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
-#import <LindChain/jbroot.h>
-#import <LindChain/Shell.h>
+#import <LindChain/JBSupport/jbroot.h>
+#import <LindChain/JBSupport/Shell.h>
 
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>

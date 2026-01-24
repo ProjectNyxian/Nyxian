@@ -29,7 +29,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 #else
-#import <LindChain/Shell.h>
+#import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
 // TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
