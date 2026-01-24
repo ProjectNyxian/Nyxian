@@ -61,7 +61,7 @@ Nyxian thinking:
 │  └───────────────────┘  │
 └─────────────────────────┘
 ```
-(Note: Nyxian is not and will never be a jailbreak! If you think Nyxian is malicious then read its code first before judging a book by its cover)
+(Note: Nyxian is not and will never be a jailbreak! If you think Nyxian is malicious then read its code first before judging a book by its cover, yes it uses a precompiled framework, but thats solely to safeup time, the binary framework it self can also be compiled by your self right here https://github.com/ProjectNyxian/LLVM-On-iOS)
 ## Nyxians philosophy
 My processes arent "fake processes." Theyre the only processes. My PIDs arent "fake PIDs." Theyre the only PIDs. My kernel isn't a "fake kernel." It's the only kernel for this domain.
 
