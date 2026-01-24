@@ -28,6 +28,7 @@ jobs:
           brew install ldid
           brew install dpkg
       - name: Build Jailed
+        timeout-minutes: 1200
         run: |
           set -e
 
