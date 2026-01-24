@@ -59,7 +59,13 @@ class SettingsViewController: UIThemedTableViewController {
             cell.textLabel?.text = "Customization"
             break
         case 3:
-            cell.imageView?.image = UIImage(systemName: "checkmark.seal.text.page.fill")
+            cell.imageView?.image = UIImage(systemName: {
+                if #available(iOS 17.0, *) {
+                    return "checkmark.seal.text.page.fill"
+                } else {
+                    return "checkmark.seal.fill"
+                }
+            }())
             cell.textLabel?.text = "Certificate"
             break
         case 4:
