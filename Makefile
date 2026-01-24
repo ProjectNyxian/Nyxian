@@ -29,7 +29,7 @@ Nyxian/LindChain/LLVM.xcframework:
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 
 Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
- 	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
+	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
 
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
 Nyxian/LindChain/JBSupport/libroot.a:
