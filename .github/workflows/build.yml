@@ -27,10 +27,6 @@ jobs:
           # Packages we desperately need
           brew install ldid
           brew install dpkg
-
-          # Run make command to download dependencies (LLVM)
-          make LazySetup
-
       - name: Build Jailed
         run: |
           set -e

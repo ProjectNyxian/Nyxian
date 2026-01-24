@@ -334,26 +334,26 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */ = {
+		7915F9502F249B770096CC41 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
-				LindChain/Synpush/libclang.dylib = (CodeSignOnCopy, );
+				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = 798BBD292F1CFBBE00CBB23F /* Embed Libraries */;
 			membershipExceptions = (
-				LindChain/Synpush/libclang.dylib,
+				LindChain/Clang.xcframework,
 			);
 		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
+				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
-				LindChain/Synpush/libclang.dylib = (CodeSignOnCopy, );
 			};
 			buildPhase = AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */;
 			membershipExceptions = (
+				LindChain/Clang.xcframework,
 				LindChain/OpenSSL.xcframework,
-				LindChain/Synpush/libclang.dylib,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -382,7 +382,7 @@
 				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
-				798BBD2A2F1CFBBE00CBB23F /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
+				7915F9502F249B770096CC41 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 			);
 			path = Nyxian;

@@ -1,5 +1,6 @@
 **/.DS_store
 Nyxian/LindChain/LLVM.xcframework
+Nyxian/LindChain/Clang.xcframework
 build/
 *.ipa
 *.deb

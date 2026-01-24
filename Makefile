@@ -22,21 +22,14 @@ roothide: compile pseudo-sign package-deb clean
 jbtest+run: SCHEME := NyxianForJB
 jbtest+run: compile pseudo-sign package install clean
 
-# Workflow dependencies
-LazySetup:
-	wget https://nyxian.app/bootstrap/LLVM_3.zip
-	mkdir -p tmp
-	mv LLVM_3.zip tmp/LLVM.zip
-	cd tmp; \
-		unzip LLVM.zip; \
-		mv LLVM.xcframework ../Nyxian/LindChain/LLVM.xcframework;
-	rm -rf tmp
-
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
 Nyxian/LindChain/LLVM.xcframework:
 	make -C LLVM-On-iOS
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
+
+Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
+ 	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
 
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
 Nyxian/LindChain/JBSupport/libroot.a:
@@ -50,7 +43,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/JBSupport/libroot.a Nyxian/LindChain/LLVM.xcframework
+compile: Nyxian/LindChain/JBSupport/libroot.a Nyxian/LindChain/LLVM.xcframework Nyxian/LindChain/Clang.xcframework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \
@@ -96,4 +89,5 @@ clean-artifacts:
 
 clean-all: clean clean-artifacts
 	rm -rf Nyxian/LindChain/LLVM.xcframework
+	rm -rf Nyxian/LindChain/Clang.xcframework
 	-rm -rf Nyxian/LindChain/JBSupport/libroot*
