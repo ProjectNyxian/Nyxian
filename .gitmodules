@@ -4,3 +4,6 @@
 [submodule "libroot"]
 	path = libroot
 	url = https://github.com/Opa334/libroot.git
+[submodule "TrollStore"]
+	path = TrollStore
+	url = https://github.com/opa334/TrollStore
