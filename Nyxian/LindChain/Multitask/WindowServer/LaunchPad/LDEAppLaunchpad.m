@@ -52,21 +52,21 @@ NSArray *entitlementsMenuStructure = @[
         @"icon": @"pc",
         @"items": @[
             @{@"name": @"Host Manager", @"value": @(PEEntitlementHostManager)},
-            @{@"name": @"Credentials Manager", @"value": @(PEEntitlementCredentialsManager)}
+            //@{@"name": @"Credentials Manager", @"value": @(PEEntitlementCredentialsManager)}
         ]
     },
     @{
         @"title": @"LaunchServices",
         @"icon": @"bolt.fill",
         @"items": @[
-            @{@"name": @"Start", @"value": @(PEEntitlementLaunchServicesStart)},
+            /*@{@"name": @"Start", @"value": @(PEEntitlementLaunchServicesStart)},
             @{@"name": @"Stop", @"value": @(PEEntitlementLaunchServicesStop)},
-            @{@"name": @"Toggle", @"value": @(PEEntitlementLaunchServicesToggle)},
+            @{@"name": @"Toggle", @"value": @(PEEntitlementLaunchServicesToggle)},*/
             @{@"name": @"Get Endpoint", @"value": @(PEEntitlementLaunchServicesGetEndpoint)},
-            @{@"name": @"Manager", @"value": @(PEEntitlementLaunchServicesManager)}
+            //@{@"name": @"Manager", @"value": @(PEEntitlementLaunchServicesManager)}
         ]
     },
-    @{
+    /*@{
         @"title": @"TrustCache",
         @"icon": @"tray.full.fill",
         @"items": @[
@@ -83,7 +83,7 @@ NSArray *entitlementsMenuStructure = @[
             @{@"name": @"Enforce Device Spoof", @"value": @(PEEntitlementEnforceDeviceSpoof)},
             @{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
         ]
-    }
+    }*/
 ];
 
 @interface LDEAppLaunchpad ()
