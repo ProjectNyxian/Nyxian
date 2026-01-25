@@ -384,6 +384,43 @@ static const NSInteger kTagShineView = 7777;
     
     self.impactGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
     [self.impactGenerator prepare];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShowForSwitcher:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHideForSwitcher:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShowForSwitcher:(NSNotification *)notification
+{
+    if(!self.appSwitcherView)
+    {
+        return;
+    }
+    
+    NSDictionary *userInfo = notification.userInfo;
+    CGRect keyboardFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    CGRect keyboardFrameInWindow = [self.rootViewController.view convertRect:keyboardFrame fromView:nil];
+    CGFloat keyboardHeight = CGRectGetHeight(keyboardFrameInWindow);
+    
+    [UIView animateWithDuration:duration animations:^{
+        self.appSwitcherTopConstraint.constant = -keyboardHeight;
+        [self layoutIfNeeded];
+    }];
+}
+
+- (void)keyboardWillHideForSwitcher:(NSNotification *)notification
+{
+    if(!self.appSwitcherView)
+    {
+        return;
+    }
+    
+    NSDictionary *userInfo = notification.userInfo;
+    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    [UIView animateWithDuration:duration animations:^{
+        self.appSwitcherTopConstraint.constant = 0;
+        [self layoutIfNeeded];
+    }];
 }
 
 - (UIVisualEffectView *)createBlurEffectView
@@ -967,6 +1004,9 @@ static const NSInteger kTagShineView = 7777;
     UIImpactFeedbackGenerator *dismissHaptic = [[UIImpactFeedbackGenerator alloc]
         initWithStyle:UIImpactFeedbackStyleLight];
     [dismissHaptic impactOccurred];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)handlePan:(UIPanGestureRecognizer*)pan
