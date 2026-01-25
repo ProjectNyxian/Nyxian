@@ -25,7 +25,7 @@
 - (instancetype)initWithProject:(NXProject *)project
 {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];
-    [self setupViewsWithDisplayName:project.projectConfig.displayName withBundleIdentifier:project.projectConfig.bundleid withAppIcon:nil showAppIcon:(project.projectConfig.type == NXProjectTypeApp) showBundleID:(project.projectConfig.type == NXProjectTypeApp)];
+    [self setupViewsWithDisplayName:project.projectConfig.displayName withBundleIdentifier:project.projectConfig.bundleid withAppIcon:nil showAppIcon:(project.projectConfig.type == NXProjectTypeApp) showBundleID:(project.projectConfig.type == NXProjectTypeApp) showArrow:(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)];
     return self;
 }
 
@@ -34,7 +34,7 @@
 - (instancetype)initWithAppObject:(LDEApplicationObject*)applicationObject
 {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];
-    [self setupViewsWithDisplayName:applicationObject.displayName withBundleIdentifier:applicationObject.bundleIdentifier withAppIcon:applicationObject.icon showAppIcon:YES showBundleID:YES];
+    [self setupViewsWithDisplayName:applicationObject.displayName withBundleIdentifier:applicationObject.bundleIdentifier withAppIcon:applicationObject.icon showAppIcon:YES showBundleID:YES showArrow:NO];
     return self;
 }
 
@@ -45,6 +45,7 @@
                       withAppIcon:(UIImage*)image
                       showAppIcon:(BOOL)showAppIcon
                       showBundleID:(BOOL)showBundleID
+                        showArrow:(BOOL)showArrow
 {
     if(showAppIcon &&
        showBundleID)
@@ -97,8 +98,10 @@
         self.layoutMargins = UIEdgeInsetsZero;
         self.preservesSuperviewLayoutMargins = NO;
         
-        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+        if(showArrow)
+        {
             self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        }
     }
     else
     {
