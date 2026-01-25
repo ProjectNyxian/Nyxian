@@ -23,23 +23,6 @@
 #import <Nyxian-Swift.h>
 #import "bridge.h"
 
-#if JAILBREAK_ENV
-
-@interface MCMContainer : NSObject
-- (NSURL *)url;
-+ (instancetype)containerWithIdentifier:(NSString *)identifier
-                      createIfNecessary:(BOOL)createIfNecessary
-                                existed:(BOOL *)existed
-                                  error:(NSError **)error;
-@end
-
-@interface MCMAppDataContainer : MCMContainer
-@end
-
-NSString *containerRoot = NULL;
-
-#endif /* JAILBREAK_ENV */
-
 int main(int argc, char * argv[])
 {
     @autoreleasepool
