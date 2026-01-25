@@ -27,6 +27,9 @@ jobs:
           # Packages we desperately need
           brew install ldid
           brew install dpkg
+
+          # We need TheOS for TrollHelper
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
       - name: Build Jailed
         timeout-minutes: 1200
         run: |
