@@ -56,8 +56,15 @@ bool environment_supports_tfp(void)
      * the method currently used doesnt work on iOS 26.1 so I guess
      * they reverted the change back.
      *
-     * it works cause apple messed up to guard task ports with
-     * MPG_IMMOVABLE_RECEIVE which makes the task port unsandable.
+     * it works cause apple messed up to guard receive task ports
+     * with MPG_IMMOVABLE_RECEIVE which is what makes task ports
+     * unsendable on older and newer iOS than iOS 26.0. Another
+     * option would be that apple tightened the send right of the
+     * task port prior and post iOS 26.0. I also wanna say that
+     * this still works on some iOS 26.1 Beta versions, got patched
+     * in iOS 26.0 Beta 2 or 3.
+     *
+     * very saf tho, would have loved to see more of this.
      */
     struct utsname systemInfo;
     uname(&systemInfo);
