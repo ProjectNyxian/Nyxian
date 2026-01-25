@@ -88,7 +88,8 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return NXProjectTableCell(appObject: self.applications[indexPath.row])
+        let application: LDEApplicationObject = self.applications[indexPath.row]
+        return NXProjectTableCell(displayName: application.displayName, withBundleIdentifier: application.bundleIdentifier, withAppIcon: application.icon, showAppIcon: true, showBundleID: true, showArrow: false)
     }
     
     override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {

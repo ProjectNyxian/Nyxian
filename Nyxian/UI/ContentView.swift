@@ -281,7 +281,8 @@ import UIKit
         let keys = Array(self.projectsList.keys).sorted()
         let key = keys[indexPath.section]
         let sectionProjects = self.projectsList[key] ?? []
-        return NXProjectTableCell(project: sectionProjects[indexPath.row])
+        let project: NXProject = sectionProjects[indexPath.row];
+        return NXProjectTableCell(displayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == NXProjectType.app.rawValue, showBundleID: project.projectConfig.type == NXProjectType.app.rawValue, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

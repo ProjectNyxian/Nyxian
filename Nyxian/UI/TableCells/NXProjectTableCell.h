@@ -31,13 +31,7 @@
 
 @interface NXProjectTableCell : UITableViewCell
 
-- (instancetype)initWithProject:(id)project;
-
-#if !JAILBREAK_ENV
-
-- (instancetype)initWithAppObject:(LDEApplicationObject*)applicationObject;
-
-#endif /* !JAILBREAK_ENV */
+- (instancetype)initWithDisplayName:(NSString*)displayName withBundleIdentifier:(NSString*)bundleIdentifier withAppIcon:(UIImage*)image showAppIcon:(BOOL)showAppIcon showBundleID:(BOOL)showBundleID showArrow:(BOOL)showArrow;
 
 @end
 
