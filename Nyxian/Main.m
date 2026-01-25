@@ -48,9 +48,6 @@ int main(int argc, char * argv[])
 #if !JAILBREAK_ENV
         environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv);
         
-        /* do bootstrapping */
-        [[Bootstrap shared] bootstrap];                         /* starts bootstrapping */
-        
         /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
         [LaunchServices shared];                                /* invokes launch services startup*/
 #endif // !JAILBREAK_ENV

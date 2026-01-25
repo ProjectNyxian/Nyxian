@@ -32,10 +32,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         // jailbroken check
         if(shell("whoami", 0, nil, nil) != 0) {
             exit(0)
-        } else {
-            Bootstrap.shared.bootstrap()
         }
 #endif // JAILBREAK_ENV
+        
+        Bootstrap.shared.bootstrap()
         
         let tabViewController: UITabBarController = UITabBarController()
         
