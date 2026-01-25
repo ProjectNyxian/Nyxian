@@ -72,9 +72,6 @@ typedef unsigned char ksurface_error_t;
  */
 #define PID_MAX 1048575
 
-/* its just a magic :3 */
-#define SURFACE_MAGIC 0xDEADBEEF
-
 /// Nyxian process typedefinitions
 typedef struct ksurface_proc ksurface_proc_t;
 typedef struct kduy_proc kduy_proc_t;
@@ -124,7 +121,6 @@ typedef struct {
 
 /// Structure that holds surface information and other structures
 typedef struct {
-    uint32_t magic;
     syscall_server_t *sys_server;
     struct {
         pthread_rwlock_t struct_lock;

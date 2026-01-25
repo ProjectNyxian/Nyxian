@@ -73,11 +73,7 @@ static inline void ksurface_kinit_kalloc(void)
 }
 
 static inline void ksurface_kinit_kinfo(void)
-{
-    /* setting magic */
-    klog_log(@"ksurface:kinit:kinfo", @"writing magic");
-    ksurface->magic = SURFACE_MAGIC;
-    
+{    
     /* setting up rcu state's */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing locks");
     pthread_rwlock_t *wls[3] = { &(ksurface->proc_info.struct_lock), &(ksurface->proc_info.task_lock),  &(ksurface->host_info.struct_lock) };
