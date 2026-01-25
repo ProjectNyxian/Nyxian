@@ -27,6 +27,7 @@ jobs:
           # Packages we desperately need
           brew install ldid
           brew install dpkg
+          brew install libarchive
 
           # We need TheOS for TrollHelper
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
