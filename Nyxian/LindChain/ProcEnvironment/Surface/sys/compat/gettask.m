@@ -88,10 +88,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         }
         
         /* making a copy of target process */
-        target_copy = proc_copy_for_proc(targetProc, kProcCopyOptionStaticCopy);
-        
-        /* release the target process no matter what */
-        proc_release(targetProc);
+        target_copy = proc_copy_for_proc(targetProc, kProcCopyOptionConsumedReferenceCopy);
         
         /* checking if successful */
         if(target_copy == NULL)
