@@ -58,19 +58,19 @@ typedef unsigned char ksurface_error_t;
  * about this to apple, their the reason
  * why, launchd doesnt let us spawn more.
  */
-#define PROC_MAX 750
+#define PROC_MAX 1024
+
+/*
+ * why would a process need more than 128
+ * childs?
+ */
+#define CHILD_PROC_MAX 128
 
 /*
  * the maximum count of pid that the
  * radix tree supports.
  */
 #define PID_MAX 1048575
-
-/*
- * why would a process need more than 32
- * childs?
- */
-#define CHILD_PROC_MAX 32
 
 /* its just a magic :3 */
 #define SURFACE_MAGIC 0xDEADBEEF
