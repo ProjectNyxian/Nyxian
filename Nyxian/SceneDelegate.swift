@@ -68,7 +68,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         window?.makeKeyAndVisible()
     }
     
-#if !JAILBREAK_ENV
     func tabBarController(_ tabBarController: UITabBarController,
                           shouldSelect viewController: UIViewController) -> Bool {
         if viewController.tabBarItem.tag == 2 {
@@ -77,7 +76,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         }
         return true
     }
-#endif // !JAILBREAK_ENV
     
     func sceneDidDisconnect(_ scene: UIScene) { }
     func sceneDidBecomeActive(_ scene: UIScene) { }
