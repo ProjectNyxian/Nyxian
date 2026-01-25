@@ -443,24 +443,24 @@ static const NSInteger kTagShineView = 7777;
     UIImage *symbol = [UIImage systemImageNamed:@"app.dashed" withConfiguration:config];
     UIImageView *symbolView = [[UIImageView alloc] initWithImage:symbol];
     symbolView.tintColor = [UIColor secondaryLabelColor];
-
+    
     UILabel *placeholderLabel = [[UILabel alloc] init];
     placeholderLabel.text = @"No Apps Running";
     placeholderLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold];
     placeholderLabel.textColor = [UIColor secondaryLabelColor];
-
+    
     UIStackView *placeholderStack = [[UIStackView alloc] initWithArrangedSubviews:@[symbolView, placeholderLabel]];
     placeholderStack.axis = UILayoutConstraintAxisVertical;
     placeholderStack.alignment = UIStackViewAlignmentCenter;
     placeholderStack.spacing = 12;
     placeholderStack.translatesAutoresizingMaskIntoConstraints = NO;
     self.placeholderStack = placeholderStack;
-
+    
     [parentView addSubview:placeholderStack];
     
     [NSLayoutConstraint activateConstraints:@[
         [placeholderStack.centerXAnchor constraintEqualToAnchor:self.runningAppsScrollView.centerXAnchor],
-        [placeholderStack.centerYAnchor constraintEqualToAnchor:self.runningAppsScrollView.centerYAnchor]
+        [placeholderStack.centerYAnchor constraintEqualToAnchor:self.runningAppsScrollView.centerYAnchor constant:-20]
     ]];
 }
 
