@@ -18,6 +18,7 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
+#import <LindChain/LiveContainer/LCBootstrap.h>
 
 NSUserDefaults *lcUserDefaults;
 NSBundle *lcMainBundle;
@@ -143,9 +144,9 @@ static void *getAppEntryPoint(void *handle) {
     return (void *)header + entryoff;
 }
 
-NSString* invokeAppMain(NSString *executablePath,
-                        int argc,
-                        char *argv[])
+NSString* LCBootstrapMain(NSString *executablePath,
+                          int argc,
+                          char *argv[])
 {
     // Getting executable path from argv
     if(executablePath == nil) return @"No executable path";

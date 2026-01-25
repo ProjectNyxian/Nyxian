@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <LindChain/Debugger/MachServer.h>
+#import <LindChain/LiveContainer/LCBootstrap.h>
 #include <dlfcn.h>
 
 static EnvironmentRole environmentRole = EnvironmentRoleNone;
@@ -83,9 +84,6 @@ BOOL environment_must_be_role(EnvironmentRole role)
 }
 
 #pragma mark - Initilizer
-NSString* invokeAppMain(NSString *executablePath,
-                        int argc,
-                        char *argv[]);
 
 void environment_init(EnvironmentRole role,
                       EnvironmentExec exec,
@@ -117,6 +115,7 @@ void environment_init(EnvironmentRole role,
         environment_cred_init();
         environment_hostname_init();
         
+        /* kernel start vs handshake */
         if(role == EnvironmentRoleHost)
         {
             /*
@@ -158,7 +157,7 @@ void environment_init(EnvironmentRole role,
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)
         {
-            invokeAppMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
+            LCBootstrapMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
         }
     });
 }
