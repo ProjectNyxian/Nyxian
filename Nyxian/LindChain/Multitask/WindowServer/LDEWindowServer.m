@@ -45,8 +45,9 @@ static const NSInteger kTagShineView = 7777;
 #if !JAILBREAK_ENV
 @property (nonatomic, strong) LDEAppLaunchpad *launchpad;
 @property (nonatomic, strong) UISegmentedControl *segmentControl;
-@property (nonatomic) BOOL isKeyboardVisible;
 #endif /* !JAILBREAK_ENV */
+
+@property (nonatomic) BOOL isKeyboardVisible;
 
 @end
 
@@ -66,6 +67,7 @@ static const NSInteger kTagShineView = 7777;
         _windowOrder = [[NSMutableArray alloc] init];
         _activeWindowIdentifier = (wid_t)-1;
         _appSwitcherView = nil;
+        _isKeyboardVisible = NO;
         
 #if !JAILBREAK_ENV
         _launchpad = nil;
