@@ -73,8 +73,8 @@ static inline void ksurface_kinit_kalloc(void)
 }
 
 static inline void ksurface_kinit_kinfo(void)
-{    
-    /* setting up rcu state's */
+{
+    /* setting up locks */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing locks");
     pthread_rwlock_t *wls[3] = { &(ksurface->proc_info.struct_lock), &(ksurface->proc_info.task_lock),  &(ksurface->host_info.struct_lock) };
     for(unsigned char i = 0; i < 3; i++)
@@ -146,9 +146,6 @@ static inline void ksurface_kinit_kproc(void)
     /* creating kproc */
     ksurface_proc_t *kproc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
     
-    /* setting taskport */
-    kproc->kproc.kcproc.task = mach_task_self();
-    
     /* null pointer check */
     if(kproc == NULL)
     {
@@ -156,7 +153,14 @@ static inline void ksurface_kinit_kproc(void)
         environment_panic();
     }
     
-    /* logging allocation* */
+    /* checking for tfp support */
+    if(environment_supports_tfp())
+    {
+        /* setting task port (for iOS 26.0 functionalities) */
+        kproc->kproc.kcproc.task = mach_task_self();
+    }
+    
+    /* logging allocation */
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
     /* locking kproc write */
