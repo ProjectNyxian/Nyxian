@@ -45,6 +45,7 @@ static const NSInteger kTagShineView = 7777;
 #if !JAILBREAK_ENV
 @property (nonatomic, strong) LDEAppLaunchpad *launchpad;
 @property (nonatomic, strong) UISegmentedControl *segmentControl;
+@property (nonatomic) BOOL isKeyboardVisible;
 #endif /* !JAILBREAK_ENV */
 
 @end
@@ -396,6 +397,8 @@ static const NSInteger kTagShineView = 7777;
         return;
     }
     
+    self.isKeyboardVisible = YES;
+    
     NSDictionary *userInfo = notification.userInfo;
     CGRect keyboardFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
@@ -410,6 +413,8 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)keyboardWillHideForSwitcher:(NSNotification *)notification
 {
+    self.isKeyboardVisible = NO;
+    
     if(!self.appSwitcherView)
     {
         return;
@@ -1013,35 +1018,49 @@ static const NSInteger kTagShineView = 7777;
 {
     CGPoint translation = [pan translationInView:self];
     
-    if(pan.state == UIGestureRecognizerStateChanged)
+    switch(pan.state)
     {
-        CGFloat offset = MAX(0, translation.y);
-        self.appSwitcherTopConstraint.constant = offset;
-        [self layoutIfNeeded];
-    }
-    else if(pan.state == UIGestureRecognizerStateEnded ||
-            pan.state == UIGestureRecognizerStateCancelled)
-    {
-        
-        CGFloat velocityY = [pan velocityInView:self].y;
-        CGFloat offset = self.appSwitcherTopConstraint.constant;
-        
-        if(offset > 100 || velocityY > 500)
+        case UIGestureRecognizerStateBegan:
+            if(self.isKeyboardVisible)
+            {
+                [self.appSwitcherView endEditing:YES];
+                pan.enabled = NO;
+                pan.enabled = YES;
+            }
+            break;
+        case UIGestureRecognizerStateChanged:
         {
-            [self hideAppSwitcher];
+            CGFloat offset = MAX(0, translation.y);
+            self.appSwitcherTopConstraint.constant = offset;
+            [self layoutIfNeeded];
+            break;
         }
-        else
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
         {
-            self.appSwitcherTopConstraint.constant = 0;
-            [UIView animateWithDuration:0.5
-                                  delay:0
-                 usingSpringWithDamping:0.8
-                  initialSpringVelocity:0.7
-                                options:UIViewAnimationOptionCurveEaseInOut
-                             animations:^{
-                [self layoutIfNeeded];
-            } completion:nil];
+            CGFloat velocityY = [pan velocityInView:self].y;
+            CGFloat offset = self.appSwitcherTopConstraint.constant;
+            
+            if(offset > 100 || velocityY > 500)
+            {
+                [self hideAppSwitcher];
+            }
+            else
+            {
+                self.appSwitcherTopConstraint.constant = 0;
+                [UIView animateWithDuration:0.5
+                                      delay:0
+                     usingSpringWithDamping:0.8
+                      initialSpringVelocity:0.7
+                                    options:UIViewAnimationOptionCurveEaseInOut
+                                 animations:^{
+                    [self layoutIfNeeded];
+                } completion:nil];
+            }
+            break;
         }
+        default:
+            break;
     }
 }
 
