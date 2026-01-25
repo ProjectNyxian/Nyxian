@@ -89,9 +89,9 @@ class AppInfoViewController: UIThemedTableViewController {
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
-        case 1:
+        case 0:
             return "Nyxian"
-        case 2:
+        case 1:
             return "Credits"
         default:
             return nil
