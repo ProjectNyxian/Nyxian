@@ -43,16 +43,16 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         ]),
         ("Host:pc", [
             ("Host Manager", .hostManager),
-            ("Credentials Manager", .credentialsManager)
+            //("Credentials Manager", .credentialsManager)
         ]),
         ("LaunchServices:bolt.fill", [
-            ("Start", .launchServicesStart),
+            /*("Start", .launchServicesStart),
             ("Stop", .launchServicesStop),
-            ("Toggle", .launchServicesToggle),
+            ("Toggle", .launchServicesToggle),*/
             ("Get Endpoint", .launchServicesGetEndpoint),
-            ("Manager", .launchServicesManager),
+            //("Manager", .launchServicesManager),
         ]),
-        ("TrustCache:tray.full.fill", [
+        /*("TrustCache:tray.full.fill", [
             ("Read", .trustCacheRead),
             ("Write", .trustCacheWrite),
             ("Manager", .trustCacheManager)
@@ -61,7 +61,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             ("Platform", .enforceDeviceSpoof),
             ("Enforce Device Spoof", .enforceDeviceSpoof),
             ("DYLD Hide LiveProcess", .dyldHideLiveProcess)
-        ])
+        ])*/
     ]
     
     override init(style: UITableView.Style) {
