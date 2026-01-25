@@ -73,7 +73,7 @@ class SettingsViewController: UIThemedTableViewController {
             cell.textLabel?.text = "Info"
             break
         case 5:
-            cell.imageView?.image = UIImage(systemName: "info")
+            cell.imageView?.image = UIImage(systemName: "ant.fill")
             cell.textLabel?.text = "Kernel Log"
             break
 #else
