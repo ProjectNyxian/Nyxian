@@ -170,7 +170,7 @@ static void send_reply(mach_msg_header_t *request,
  * this is the proper way for an kernel virtualisation layer to do it,
  * because we can control raw mach to 100%
  */
-static void* worker_thread(void *ctx)
+static void* syscall_worker_thread(void *ctx)
 {
     /* getting the server */
     syscall_server_t *server = (syscall_server_t *)ctx;
@@ -362,7 +362,7 @@ int syscall_server_start(syscall_server_t *server)
     server->running = true;
     for(int i = 0; i < SYSCALL_SERVER_THREADS; i++)
     {
-        pthread_create(&server->threads[i], NULL, worker_thread, server);
+        pthread_create(&server->threads[i], NULL, syscall_worker_thread, server);
     }
     
     return 0;
