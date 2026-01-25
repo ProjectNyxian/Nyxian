@@ -30,6 +30,10 @@ jobs:
 
           # We need TheOS for TrollHelper
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+
+          # Setting TheOS stuff up
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
       - name: Build Jailed
         timeout-minutes: 1200
         run: |
