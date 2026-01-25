@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <LindChain/Debugger/MachServer.h>
+#include <dlfcn.h>
 
 static EnvironmentRole environmentRole = EnvironmentRoleNone;
 
@@ -92,12 +93,22 @@ void environment_init(EnvironmentRole role,
                       int argc,
                       char *argv[])
 {
+    /* checking role */
+    if(role > EnvironmentRoleGuest)
+    {
+        fprintf(stderr, "[!] invalid role\n");
+        exit(1);
+    }
+    
+    /* making sure this is only initilized once */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // Setting environment properties
+        /* checking role */
+        
+        /* setting environment role */
         environmentRole = role;
         
-        // Initilizing environment base
+        /* initilizing subsystems of environment */
         environment_libproc_init();
         environment_application_init();
         environment_posix_spawn_init();
@@ -106,19 +117,45 @@ void environment_init(EnvironmentRole role,
         environment_cred_init();
         environment_hostname_init();
         
-#if HOST_ENV
-        ksurface_kinit();
-#else
-        /* TODO: waiting till syscalling works */
-        while(environment_syscall(SYS_getpid) < 0)
+        if(role == EnvironmentRoleHost)
         {
-            relax();
+            /*
+             * since guest processes usually dont have
+             * this, we have to dynamically find the
+             * init symbol of the kernel.
+             */
+            void (*ksurface_kinit_dyn)(void) = dlsym(RTLD_DEFAULT, "ksurface_kinit");
+            if(ksurface_kinit_dyn)
+            {
+                ksurface_kinit_dyn();
+            }
+            else
+            {
+                fprintf(stderr, "[!] couldnt find ksurface_kinit\n");
+                exit(1);
+            }
         }
-#endif
+        else
+        {
+            /*
+             * waiting till syscalling starts to work
+             * for this process before handing off
+             * control to some executable.
+             */
+            while(environment_syscall(SYS_getpid) < 0)
+            {
+                relax();
+            }
+        }
         
+        /*
+         * task_for_pid(3) is fixed last, because otherwise
+         * a other process could compromise this process
+         * easily which we ofc shall not let happen.
+         */
         environment_tfp_init();
         
-        // Now execution
+        /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)
         {
             invokeAppMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
