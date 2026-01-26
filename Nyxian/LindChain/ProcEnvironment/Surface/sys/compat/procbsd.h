@@ -17,13 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_LIBPROC_H
-#define PROCENVIRONMENT_LIBPROC_H
+#ifndef SURFACE_SYS_PROCBSD_H
+#define SURFACE_SYS_PROCBSD_H
 
-/*!
- @function environment_libproc_init
- @abstract Initializes the libproc environment.
- */
-void environment_libproc_init(void);
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#endif /* PROCENVIRONMENT_LIBPROC_H */
+DEFINE_SYSCALL_HANDLER(procbsd);
+
+#endif /* SURFACE_SYS_PROCBSD_H */

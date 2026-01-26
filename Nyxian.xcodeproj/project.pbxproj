@@ -225,6 +225,7 @@
 				LindChain/ProcEnvironment/Surface/sys/compat/bamset.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/getent.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/gettask.m,
+				LindChain/ProcEnvironment/Surface/sys/compat/procbsd.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/procpath.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/proctb.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/sendtask.m,

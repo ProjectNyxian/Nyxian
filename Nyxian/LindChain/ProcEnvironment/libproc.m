@@ -27,8 +27,8 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-/*int proc_libproc_listallpids(void *buffer,
-                             int buffersize)
+DEFINE_HOOK(proc_listallpids, int, (void *buffer,
+                                    int buffersize))
 {
     if(buffersize < 0)
     {
@@ -36,30 +36,32 @@
         return -1;
     }
     
+    environment_must_be_role(EnvironmentRoleGuest);
+    
+    kinfo_proc_t kp[PROC_MAX];
+    uint32_t len = sizeof(kp);
+    
+    environment_syscall(SYS_PROCTB, &kp, &len);
+    
+    size_t count = (uint32_t)(len / sizeof(kinfo_proc_t));
+    
     size_t n = 0;
     size_t needed_bytes = 0;
-
-    unsigned long seq;
     
-    do
+    needed_bytes = (size_t)count * sizeof(pid_t);
+    
+    if(buffer != NULL && buffersize > 0)
     {
-        seq = reflock_read_begin(&(surface->reflock));
-
-        uint32_t count = surface->proc_info.proc_count;
-        needed_bytes = (size_t)count * sizeof(pid_t);
-
-        if (buffer != NULL && buffersize > 0) {
-            size_t capacity = (size_t)buffersize / sizeof(pid_t);
-            n = count < capacity ? count : capacity;
-
-            pid_t *pids = (pid_t *)buffer;
-            for (size_t i = 0; i < n; i++) {
-                pids[i] = surface->proc_info.proc[i].bsd.kp_proc.p_pid;
-            }
+        size_t capacity = (size_t)buffersize / sizeof(pid_t);
+        n = count < capacity ? count : capacity;
+        
+        pid_t *pids = (pid_t *)buffer;
+        
+        for(size_t i = 0; i < n; i++)
+        {
+            pids[i] = kp[i].kp_proc.p_pid;
         }
-
     }
-    while (reflock_read_retry(&(surface->reflock), seq));
     
     if(buffer == NULL || buffersize == 0)
     {
@@ -69,26 +71,34 @@
     return (int)(n * sizeof(pid_t));
 }
 
-int proc_libproc_name(pid_t pid,
-                      void * buffer,
-                      uint32_t buffersize)
+DEFINE_HOOK(proc_name, int, (pid_t pid,
+                             void *buffer,
+                             uint32_t buffersize))
 {
     if(buffersize == 0 || buffer == NULL)
     {
         return 0;
     }
     
-    ksurface_proc_t proc = {};
-    ksurface_error_t error = proc_for_pid(pid, &proc);
-    if(error != kSurfaceErrorSuccess)
-    {
-        return 0;
-    }
-        
-    strlcpy((char*)buffer, proc.bsd.kp_proc.p_comm, buffersize);
+    kinfo_proc_t kp;
+    uint32_t olen = sizeof(kp);
     
-    return (int)strlen((char*)buffer);
-}*/
+    /* syscall with SYS_PROCPATH */
+    int64_t retval = environment_syscall(SYS_PROCBSD, pid, &kp, &olen);
+    
+    /* sanity check numero two */
+    if(retval != 0 || olen < sizeof(kp))
+    {
+        return (int)retval;
+    }
+    
+    size_t full_len = strlen(kp.kp_proc.p_comm);
+    size_t copy_len = (full_len >= buffersize) ? buffersize - 1 : full_len;
+    
+    /* copying name over */
+    strlcpy((char*)buffer, kp.kp_proc.p_comm, buffersize);
+    return (int)copy_len;
+}
 
 DEFINE_HOOK(proc_pidpath, int, (pid_t pid,
                                 void *buffer,
@@ -232,6 +242,8 @@ void environment_libproc_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
+        DO_HOOK_GLOBAL(proc_listallpids);
+        DO_HOOK_GLOBAL(proc_name);
         DO_HOOK_GLOBAL(proc_pidpath);
         DO_HOOK_GLOBAL(proc_pid_rusage);
         DO_HOOK_GLOBAL(kill);

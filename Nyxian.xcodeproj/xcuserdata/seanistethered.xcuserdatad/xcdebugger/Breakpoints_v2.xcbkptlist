@@ -7,48 +7,32 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "F5D7F773-B7EF-4678-A16B-B50D63EA4BE8"
+            uuid = "FED3BEB2-CFE2-4820-A04D-8E04918A8463"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/ProcEnvironment/Syscall/mach_syscall_server.m"
+            filePath = "Nyxian/LindChain/ProcEnvironment/Surface/sys/compat/procbsd.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "106"
-            endingLineNumber = "106"
-            landmarkName = "send_reply(request, result, payload, payload_len, out_ports, out_ports_cnt, err)"
+            startingLineNumber = "27"
+            endingLineNumber = "27"
+            landmarkName = "DEFINE_SYSCALL_HANDLER()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "BB3A1075-C0C0-495D-ACCE-7EA37CFA3EEA"
+            uuid = "61E2F2BF-4EF3-4104-A108-C389D6F71DC5"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/ProcEnvironment/Syscall/mach_syscall_server.m"
+            filePath = "Nyxian/LindChain/ProcEnvironment/Surface/sys/compat/procbsd.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "136"
-            endingLineNumber = "136"
-            landmarkName = "send_reply(request, result, payload, payload_len, out_ports, out_ports_cnt, err)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "A1E6445B-E6DE-4EB9-BAD4-C1C97358E576"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/ProcEnvironment/Syscall/mach_syscall_server.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "126"
-            endingLineNumber = "126"
-            landmarkName = "send_reply(request, result, payload, payload_len, out_ports, out_ports_cnt, err)"
+            startingLineNumber = "58"
+            endingLineNumber = "58"
+            landmarkName = "DEFINE_SYSCALL_HANDLER()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

@@ -17,12 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/procbsd.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
-DEFINE_SYSCALL_HANDLER(procpath)
+DEFINE_SYSCALL_HANDLER(procbsd)
 {
     pid_t pid = (pid_t)args[0];
     
@@ -45,25 +45,14 @@ DEFINE_SYSCALL_HANDLER(procpath)
         sys_return_failure(EINVAL);
     }
     
+    /* setting output lenght to payload size */
+    *out_len = sizeof(kinfo_proc_t);
+    
     /* locking process read */
     proc_read_lock(proc);
     
-    /*
-     * getting output layout lenght. We have to add 1 more so the
-     * nullterminator gets copied with it.
-     */
-    *out_len = (uint32_t)strlen(proc->kproc.kcproc.nyx.executable_path) + 1;
-    
-    /* sanity check output lenght */
-    if(*out_len > PATH_MAX)
-    {
-        proc_unlock(proc);
-        proc_release(proc);
-        sys_return_failure(EFAULT);
-    }
-    
     /* copying buffer into mach syscall payload */
-    kern_return_t kr = mach_syscall_payload_create(proc->kproc.kcproc.nyx.executable_path, *out_len, (vm_address_t*)out_payload);
+    kern_return_t kr = mach_syscall_payload_create(&(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t), (vm_address_t*)out_payload);
     
     /* doneee x3 */
     proc_unlock(proc);

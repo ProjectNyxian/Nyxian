@@ -44,5 +44,6 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_SENDTASK", .sysnum = SYS_SENDTASK, .hndl = GET_SYSCALL_HANDLER(sendtask) },
     { .name = "SYS_GETTASK", .sysnum = SYS_GETTASK, .hndl = GET_SYSCALL_HANDLER(gettask) },
     { .name = "SYS_SIGNEXEC", .sysnum = SYS_SIGNEXEC, .hndl = GET_SYSCALL_HANDLER(signexec) },
-    { .name = "SYS_PROCPATH", .sysnum = SYS_PROCPATH, .hndl = GET_SYSCALL_HANDLER(procpath) }
+    { .name = "SYS_PROCPATH", .sysnum = SYS_PROCPATH, .hndl = GET_SYSCALL_HANDLER(procpath) },
+    { .name = "SYS_PROCBSD", .sysnum = SYS_PROCBSD, .hndl = GET_SYSCALL_HANDLER(procbsd) }
 };

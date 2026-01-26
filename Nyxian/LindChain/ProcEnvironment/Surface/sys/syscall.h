@@ -36,6 +36,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/procbsd.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -55,17 +56,18 @@
 #define SYS_PROC_INFO SYS_proc_info /* MARK: Implement this the next! */
 
 /* nyxian syscalls for now */
-#define SYS_BAMSET 750              /* setting audio background mode */
-#define SYS_PROCTB 751              /* getting process table MARK: will be SYS_SYSCTL later */
-#define SYS_GETENT 752              /* getting processes entitlements */
+#define SYS_BAMSET      750         /* setting audio background mode */
+#define SYS_PROCTB      751         /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_GETENT      752         /* getting processes entitlements */
 #define SYS_GETHOSTNAME 753         /* later replaced with XNU SYSCTL semantics */
 #define SYS_SETHOSTNAME 754         /* later replaced with XNU SYSCTL semantics */
 #define SYS_SENDTASK    755         /* sends task port */
 #define SYS_GETTASK     756         /* gets task port */
 #define SYS_SIGNEXEC    757         /* uses file descriptor passed by guest to sign executable */
 #define SYS_PROCPATH    758         /* gets process path of a pid */
+#define SYS_PROCBSD     759         /* gets process bsd of a pid */
 
-#define SYS_N 23
+#define SYS_N 24
 
 typedef struct {
     const char *name;

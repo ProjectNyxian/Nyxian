@@ -146,7 +146,7 @@ struct ksurface_proc {
             uint64_t parent_cld_idx;
             
             /* count of children in the children array */
-             uint64_t children_cnt;
+            uint64_t children_cnt;
         } children;
         
         /*

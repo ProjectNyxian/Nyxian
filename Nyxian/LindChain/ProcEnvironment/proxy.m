@@ -99,7 +99,7 @@ void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
     environment_must_be_role(EnvironmentRoleGuest);
     
     kinfo_proc_t kp[PROC_MAX];
-    uint32_t len;
+    uint32_t len = sizeof(kp);
     
     environment_syscall(SYS_PROCTB, &kp, &len);
     
