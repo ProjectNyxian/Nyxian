@@ -35,6 +35,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/sendtask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -62,8 +63,9 @@
 #define SYS_SENDTASK    755         /* sends task port */
 #define SYS_GETTASK     756         /* gets task port */
 #define SYS_SIGNEXEC    757         /* uses file descriptor passed by guest to sign executable */
+#define SYS_PROCPATH    758         /* gets process path of a pid */
 
-#define SYS_N 22
+#define SYS_N 23
 
 typedef struct {
     const char *name;

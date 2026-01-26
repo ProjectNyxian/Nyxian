@@ -28,8 +28,7 @@
 #import <LindChain/LaunchServices/LaunchService.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
-#import <LindChain/ProcEnvironment/tfp.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 @implementation ServerSession
@@ -93,54 +92,6 @@
     }
     
     reply(-1);
-}
-
-- (void)getProcessNyxWithIdentifier:(pid_t)pid
-                          withReply:(void (^)(NSData*))reply
-{
-    /* null pointer check */
-    /* sanity checking proc */
-    if(_proc == NULL)
-    {
-        /* asking kernel for process structure */
-        _proc = proc_for_pid(_processIdentifier);
-        
-        /* sanity check 2 */
-        if(_proc == NULL)
-        {
-            reply(NULL);
-            return;
-        }
-    }
-    
-    /* creating copy */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(_proc, kProcCopyOptionStaticCopy);
-    
-    /* null pointer check */
-    if(proc_copy == NULL)
-    {
-        reply(nil);
-        return;
-    }
-    
-    /* attempting to copy process nyx structure */
-    knyx_proc_t nyx;
-    if(proc_nyx_copy(proc_copy, pid, &nyx))
-    {
-        /* replying with copy of nyx */
-        reply([[NSData alloc] initWithBytes:&nyx length:sizeof(nyx)]);
-        
-        /* returning to prevent double reply,
-         * which likely caused undefined behaviour before
-         */
-        goto out_proc_copy_destroy;
-    }
-    
-    /* replying with nothing cause copy failed */
-    reply(nil);
-out_proc_copy_destroy:
-    proc_copy_destroy(proc_copy);
-    return;
 }
 
 /*

@@ -147,12 +147,3 @@ void environment_proxy_set_snapshot(UIImage *snapshot)
     environment_must_be_role(EnvironmentRoleGuest);
     [hostProcessProxy setSnapshot:snapshot];
 }
-
-knyx_proc_t environment_proxy_nyxcopy(pid_t pid)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    NSData *ret = sync_call_with_timeout(PROXY_TYPE_REPLY(NSData*){
-        [hostProcessProxy getProcessNyxWithIdentifier:pid withReply:reply];
-    });
-    return *((knyx_proc_t*)(ret.bytes));
-}

@@ -51,6 +51,4 @@ NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSS
 
 void environment_proxy_set_snapshot(UIImage *snapshot);
 
-knyx_proc_t environment_proxy_nyxcopy(pid_t pid);
-
 #endif /* PROCENVIRONMENT_PROXY_H */

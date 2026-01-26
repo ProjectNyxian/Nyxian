@@ -18,7 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/proctb.h>
-#import <LindChain/ProcEnvironment/Surface/proc/userapi/copylist.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #include <sys/syscall.h>
 
 DEFINE_SYSCALL_HANDLER(proctb)

@@ -59,7 +59,8 @@ env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_SETHOSTNAME, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_GETTASK,     T_NUM,  T_POUT, T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_SENDTASK,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_SIGNEXEC,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_SIGNEXEC,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_PROCPATH,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */

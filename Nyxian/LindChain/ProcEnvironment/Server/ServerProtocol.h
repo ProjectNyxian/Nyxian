@@ -36,11 +36,6 @@
 - (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(int64_t))reply;
 
 /*
- Process Info
- */
-- (void)getProcessNyxWithIdentifier:(pid_t)pid withReply:(void (^)(NSData*))reply;
-
-/*
  Launch Services
  */
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier;

@@ -91,17 +91,25 @@ int proc_libproc_name(pid_t pid,
 }*/
 
 DEFINE_HOOK(proc_pidpath, int, (pid_t pid,
-                                void * buffer,
+                                void *buffer,
                                 uint32_t buffersize))
 {
+    /* sanity check */
     if(buffersize == 0 || buffer == NULL)
     {
         return 0;
     }
     
-    knyx_proc_t nyx = environment_proxy_nyxcopy(pid);
-
-    strlcpy((char*)buffer, nyx.executable_path, buffersize);
+    /* syscall with SYS_PROCPATH */
+    int64_t retval = environment_syscall(SYS_PROCPATH, pid, buffer, &buffersize);
+    
+    /* sanity check numero two */
+    if(retval != 0)
+    {
+        return 0;
+    }
+    
+    /* final return of lenght */
     return (int)strlen((char*)buffer);
 }
 
