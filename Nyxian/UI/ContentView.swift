@@ -367,6 +367,10 @@ import UIKit
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let keys = Array(self.projectsList.keys).sorted()
         let key = keys[indexPath.section]
-        return (key == "applications") ? 70 : 44;
+        if #available(iOS 26.0, *) {
+            return (key == "applications") ? 80 : UITableView.automaticDimension
+        } else {
+            return (key == "applications") ? 70 : UITableView.automaticDimension
+        }
     }
 }

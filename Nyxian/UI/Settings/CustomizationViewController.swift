@@ -32,8 +32,7 @@ class CustomizationViewController: UIThemedTableViewController {
         "Drawn",
         "Nyxcat",
         "Nyxcat2",
-        "Nyxcat3",
-        "SillyCoder"
+        "Nyxcat3"
     ]
     
     var themePreviewCell: ThemePickerPreviewCell?
@@ -62,7 +61,11 @@ class CustomizationViewController: UIThemedTableViewController {
         case 1:
             return (indexPath.row == 0) ? 150 : UITableView.automaticDimension
         case 2:
-            return 65
+            if #available(iOS 26.0, *) {
+                return 80
+            } else {
+                return 70
+            }
         default:
             return UITableView.automaticDimension
         }
@@ -95,9 +98,9 @@ class CustomizationViewController: UIThemedTableViewController {
         if indexPath.section == 0 {
 #if !JAILBREAK_ENV
             if indexPath.row == 0 {
-                cell = NXTextFieldTableCell(title: "Username", hint: "i.e Anonymous", key: "LDEUsername", defaultValue: "Anonym")
+                cell = NXTextFieldTableCell(title: "Username", hint: "Anonym", key: "LDEUsername", defaultValue: "Anonym")
             } else {
-                cell = NXTextFieldTableCell(title: "Hostname", hint: "i.e localhost", key: "LDEHostname", defaultValue: "localhost") { newValue in
+                cell = NXTextFieldTableCell(title: "Hostname", hint: "localhost", key: "LDEHostname", defaultValue: "localhost") { newValue in
                     kern_sethostname(newValue)
                 }
             }
