@@ -26,7 +26,7 @@
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <sys/utsname.h>
 
-kern_return_t environment_task_for_pid(mach_port_name_t tp_in,      /* tp_in is almost ignored because its obsolete for nyxians security model */
+kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
                                        pid_t pid,
                                        mach_port_name_t *tp_out)
 {

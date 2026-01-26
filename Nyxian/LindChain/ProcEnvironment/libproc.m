@@ -154,8 +154,8 @@ DEFINE_HOOK(proc_pidpath, int, (pid_t pid,
 }*/
 
 DEFINE_HOOK(proc_pid_rusage, int, (pid_t pid,
-                                           int flavor,
-                                           struct rusage_info_v2 *ri))
+                                   int flavor,
+                                   struct rusage_info_v2 *ri))
 {
     if(environment_supports_tfp())
     {
