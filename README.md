@@ -1,7 +1,6 @@
 <div align="center">
-   <kbd><img width="217" height="217" src="./Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png" alt="Logo"></kbd>
+   <kbd><img width="217" height="217" src="./preview.png" alt="Logo"></kbd>
 </div>
-   
 
 <div align="center">
   <h1><b>Nyxian</b></h1>
