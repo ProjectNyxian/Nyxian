@@ -1117,10 +1117,10 @@ static const NSInteger kTagShineView = 7777;
     CGRect bounds = self.bounds;
     
     CGRect allowed = CGRectMake(
-        bounds.origin.x + insets.left,
+        (bounds.origin.x + insets.left) - (rect.size.width / 1.2),
         bounds.origin.y + insets.top,
-        bounds.size.width - insets.left - insets.right,
-        bounds.size.height - insets.top - insets.bottom
+        (bounds.size.width - insets.left - insets.right) + ((rect.size.width / 1.2) * 2),
+        (bounds.size.height - insets.top - insets.bottom) + (rect.size.height - 50)
     );
     
     if(window.isMaximized)
