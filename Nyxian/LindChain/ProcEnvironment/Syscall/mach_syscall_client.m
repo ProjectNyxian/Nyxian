@@ -220,7 +220,7 @@ int64_t syscall_invoke(syscall_client_t *client,
         }
         
         /* deallocating that nasty mess */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.oolp.address, buffer.reply.ool.size);
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.oolp.address, buffer.reply.oolp.count * sizeof(mach_port_t));
     }
     
     /* if the result is not 0 we set errno >~< */

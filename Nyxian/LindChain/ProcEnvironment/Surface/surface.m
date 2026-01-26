@@ -214,19 +214,13 @@ void ksurface_kinit(void)
              */
             ksurface_kinit_kalloc();
             
-            /*
-             * sets up the surface to make it ready for everything else.
-             */
+            /* sets up the surface to make it ready for everything else */
             ksurface_kinit_kinfo();
             
-            /*
-             * creates syscall server
-             */
+            /* creates syscall server */
             ksurface_kinit_kserver();
             
-            /*
-             * creates the kernel process kproc
-             */
+            /* creates the kernel process kproc */
             ksurface_kinit_kproc();
         }
     });
