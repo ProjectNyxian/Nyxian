@@ -26,7 +26,7 @@ proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller)
     uid_t uid = proc_getruid(caller);
     if(uid == 0) return PROC_VIS_ALL;
     if(entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessEnumeration)) return PROC_VIS_ALL;
-    return PROC_VIS_SAME_UID;
+    return PROC_VIS_SELF;
 }
 
 bool can_see_process(ksurface_proc_copy_t *caller,
