@@ -34,6 +34,13 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     /* view SYS_gettask note on this */
     proc_task_write_lock();
     
+    /* checking if task port was already hand off */
+    if(sys_proc_copy_->proc->kproc.task != MACH_PORT_NULL)
+    {
+        proc_task_unlock();
+        sys_return_failure(EINVAL);
+    }
+    
     /* null pointer and n check */
     sys_need_in_ports_with_cnt(1);
     
@@ -62,7 +69,7 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     }
     
     /* setting task */
-    sys_proc_copy_->kproc.kcproc.task = in_ports[0];
+    sys_proc_copy_->proc->kproc.task = in_ports[0];
     proc_copy_update(sys_proc_copy_);
     
     /* return with succession */

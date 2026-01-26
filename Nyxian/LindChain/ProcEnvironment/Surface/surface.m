@@ -157,7 +157,7 @@ static inline void ksurface_kinit_kproc(void)
     if(environment_supports_tfp())
     {
         /* setting task port (for iOS 26.0 functionalities) */
-        kproc->kproc.kcproc.task = mach_task_self();
+        kproc->kproc.task = mach_task_self();
     }
     
     /* logging allocation */

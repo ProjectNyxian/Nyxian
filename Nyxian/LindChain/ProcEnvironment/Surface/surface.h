@@ -93,15 +93,15 @@ struct ksurface_proc {
              __strong RBSProcessMonitor *processMonitor;
              __strong FBScene *fbScene;
          } duy;*/
+        task_t task;
         struct kchildren {
+            pthread_mutex_t mutex;
             ksurface_proc_t *parent;
             ksurface_proc_t *children[CHILD_PROC_MAX];
             uint64_t parent_cld_idx;
             uint64_t children_cnt;
-            pthread_mutex_t mutex;
         } children;
         struct kcproc {
-            task_t task;
             kinfo_proc_t bsd;
             struct knyx_proc {
                 char executable_path[PATH_MAX];

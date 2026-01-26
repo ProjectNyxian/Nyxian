@@ -23,6 +23,13 @@
 
 static void proc_create_mutual_init(ksurface_proc_t *proc)
 {
+    /*
+     * making sure task port is NULL, so we dont leak
+     * it, which would technically lead to a privelege
+     * escalation.
+     */
+    proc->kproc.task = MACH_PORT_NULL;
+    
     /* marking process as referenced once */
     proc->refcount = 1;
     proc->dead = false;
