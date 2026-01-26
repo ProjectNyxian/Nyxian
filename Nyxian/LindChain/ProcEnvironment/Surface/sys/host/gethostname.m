@@ -26,7 +26,7 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     host_read_lock();
     
     /* getting the length of the buffer which is nullterminated (ill cry if someone finds a vulnerability later here) */
-    size_t len = strlen(ksurface->host_info.hostname);
+    size_t len = strnlen(ksurface->host_info.hostname, MAXHOSTNAMELEN - 1) + 1;
     
     /* check if the length is within bounds */
     if((len + 1) > MAXHOSTNAMELEN)
@@ -35,7 +35,7 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     }
     
     /* allocate buffer */
-    kern_return_t kr = mach_syscall_payload_create(ksurface->host_info.hostname, len + 1, (vm_address_t*)out_payload);
+    kern_return_t kr = mach_syscall_payload_create(ksurface->host_info.hostname, len, (vm_address_t*)out_payload);
     *out_len = (uint32_t)len;
     
     /* checking payload return code */

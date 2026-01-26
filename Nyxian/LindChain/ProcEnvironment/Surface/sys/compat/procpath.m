@@ -52,7 +52,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
      * getting output layout lenght. We have to add 1 more so the
      * nullterminator gets copied with it.
      */
-    *out_len = (uint32_t)strlen(proc->kproc.kcproc.nyx.executable_path) + 1;
+    *out_len = (uint32_t)strnlen(proc->kproc.kcproc.nyx.executable_path, PATH_MAX - 1) + 1;
     
     /* sanity check output lenght */
     if(*out_len > PATH_MAX)
