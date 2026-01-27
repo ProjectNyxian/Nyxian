@@ -356,7 +356,14 @@ int syscall_server_start(syscall_server_t *server)
     mach_port_limits_t limits = { .mpl_qlimit = SYSCALL_QUEUE_LIMIT };
     
     /* setting it as a attribute MARK: fuck XPC */
-    mach_port_set_attributes(mach_task_self(), server->port, MACH_PORT_LIMITS_INFO, (mach_port_info_t)&limits, MACH_PORT_LIMITS_INFO_COUNT);
+    kr = mach_port_set_attributes(mach_task_self(), server->port, MACH_PORT_LIMITS_INFO, (mach_port_info_t)&limits, MACH_PORT_LIMITS_INFO_COUNT);
+    
+    /* mach return check */
+    if(kr != KERN_SUCCESS)
+    {
+        mach_port_deallocate(mach_task_self(), server->port);
+        return -1;
+    }
     
     /* starting syscall server */
     server->running = true;
