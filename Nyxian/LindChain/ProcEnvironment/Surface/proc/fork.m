@@ -108,6 +108,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         
         /* releasing child process because of failed insert */
         proc_release(child);
+        proc_copy_destroy(parent_copy);
         return NULL;
     }
     
@@ -142,10 +143,9 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         
         /* releasing all references */
         proc_release(parent);
-        goto out_parent_contract_retain_failed;
         
-        /* got nothing for you */
-        return NULL;
+        /* does already return */
+        goto out_parent_contract_retain_failed;
     }
     
     /* locking children structure numero two */
