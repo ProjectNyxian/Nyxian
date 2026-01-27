@@ -70,7 +70,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     
     /* setting task */
     sys_proc_copy_->proc->kproc.task = in_ports[0];
-    proc_copy_update(sys_proc_copy_);
     
     /* return with succession */
     proc_task_unlock();

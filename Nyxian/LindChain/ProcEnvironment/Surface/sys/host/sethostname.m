@@ -26,12 +26,24 @@
 
 bool is_valid_hostname_regex(const char *hostname)
 {
+    /* checking string lenght */
+    if(strnlen(hostname, MAXHOSTNAMELEN) >= MAXHOSTNAMELEN)
+    {
+        return false;
+    }
+    
     /* compiling regex pattern once */
     static regex_t *regex;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         /* allocating this, dont make me regret this */
         regex = malloc(sizeof(regex_t));
+        
+        /* null terminator check */
+        if(regex == NULL)
+        {
+            return;
+        }
         
         /* compiling regex pattern */
         if(regcomp(regex, "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$", REG_EXTENDED) != 0)
@@ -48,10 +60,8 @@ bool is_valid_hostname_regex(const char *hostname)
         return false;
     }
     
-    /* regex checking string */
-    int result = regexec(regex, hostname, 0, NULL, 0);
-    
-    return (result == 0 && strlen(hostname) <= MAXHOSTNAMELEN);
+    /* the pattern must be valid */
+    return (regexec(regex, hostname, 0, NULL, 0) == 0);
 }
 
 DEFINE_SYSCALL_HANDLER(sethostname)
@@ -79,7 +89,6 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     
     /* lock the lock for writing obviously now lol ^^ */
     host_write_lock();
-    
     
     /* write to hostname */
     strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);
