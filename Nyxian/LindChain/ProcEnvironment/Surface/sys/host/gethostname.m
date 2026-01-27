@@ -29,7 +29,7 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     size_t len = strnlen(ksurface->host_info.hostname, MAXHOSTNAMELEN - 1) + 1;
     
     /* check if the length is within bounds */
-    if((len + 1) > MAXHOSTNAMELEN)
+    if(len > MAXHOSTNAMELEN)
     {
         goto out_fault;
     }
