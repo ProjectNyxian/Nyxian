@@ -41,6 +41,8 @@ class CreditsViewController: UIThemedTableViewController {
         Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "Duy Tran", role: "FrontBoardAppLauncher", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Stossy11", role: "Helpful advise for the window server", githubURL: "https://github.com/stossy11"),
+        Credit(name: "Vinogradov Daniil", role: "Massive help on LLVM-On-iOS", githubURL: "https://github.com/XITRIX"),
+        Credit(name: "light-tech", role: "LLVM-On-iOS", githubURL: "https://github.com/light-tech"),
         Credit(name: "Lars Fröder", role: "Litehook,Trollstore and libroot", githubURL: "https://github.com/opa334"),
         Credit(name: "ayame09", role: "Original Nyxian app icons", githubURL: "https://github.com/ayayame09"),
         Credit(name: "sxdev", role: "Drawn app icons", githubURL: "https://github.com/SamoXcZ"),
