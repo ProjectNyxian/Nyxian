@@ -69,12 +69,12 @@ class SettingsViewController: UIThemedTableViewController {
             cell.textLabel?.text = "Certificate"
             break
         case 4:
-            cell.imageView?.image = UIImage(systemName: "info")
-            cell.textLabel?.text = "Info"
-            break
-        case 5:
             cell.imageView?.image = UIImage(systemName: "ant.fill")
             cell.textLabel?.text = "Kernel Log"
+            break
+        case 5:
+            cell.imageView?.image = UIImage(systemName: "person.3.fill")
+            cell.textLabel?.text = "Credits"
             break
 #else
         case 0:
@@ -92,8 +92,8 @@ class SettingsViewController: UIThemedTableViewController {
             cell.textLabel?.text = "Customization"
             break
         case 2:
-            cell.imageView?.image = UIImage(systemName: "info")
-            cell.textLabel?.text = "Info"
+            cell.imageView?.image = UIImage(systemName: "person.3.fill")
+            cell.textLabel?.text = "Credits"
             break
 #endif /* !JAILBREAK_ENV */
         default:
@@ -121,16 +121,16 @@ class SettingsViewController: UIThemedTableViewController {
             case 3:
                 return CertificateController(style: .insetGrouped)
             case 4:
-                return AppInfoViewController(style: .insetGrouped)
-            case 5:
                 return KernelLogViewController()
+            case 5:
+                return CreditsViewController(style: .insetGrouped)
 #else
             case 0:
                 return ToolChainController(style: .insetGrouped)
             case 1:
                 return CustomizationViewController(style: .insetGrouped)
             case 2:
-                return AppInfoViewController(style: .insetGrouped)
+                return CreditsViewController(style: .insetGrouped)
 #endif /* !JAILBREAK_ENV */
             default:
                 return nil
@@ -138,5 +138,9 @@ class SettingsViewController: UIThemedTableViewController {
         }() else { return }
 
         navigationController?.pushViewController(viewController, animated: animated)
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        return "Nyxian Kate \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")) (Beta)"
     }
 }

@@ -20,20 +20,8 @@
 import Foundation
 import UIKit
 
-// App
-let buildName: String = "Kate"
-let buildStage: String = "Pre-Beta"
-
-var appVersion: String {
-    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-}
-
-var buildNumber: String {
-    return Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-}
-
 // AppInfoView
-class AppInfoViewController: UIThemedTableViewController {
+class CreditsViewController: UIThemedTableViewController {
     
 #if !JAILBREAK_ENV
     private var credits: [Credit] = [
@@ -63,91 +51,34 @@ class AppInfoViewController: UIThemedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.title = "Info"
+        self.title = "Credits"
         
         self.tableView.register(CreditCell.self, forCellReuseIdentifier: CreditCell.identifier)
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
+        return 1
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-#if !JAILBREAK_ENV
-            return 4
-#else
-            return 5
-#endif // !JAILBREAK_ENV
-        case 1:
-            return credits.count
-        default:
-            return 0
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0:
-            return "Nyxian"
-        case 1:
-            return "Credits"
-        default:
-            return nil
-        }
+        return credits.count
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch indexPath.section {
-        case 1:
-            return 80
-        default:
-            return tableView.rowHeight
-        }
+        return 80
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell: UITableViewCell = UITableViewCell(style: .value1, reuseIdentifier: "")
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CreditCell.identifier, for: indexPath) as? CreditCell else {
+            return UITableViewCell()
+        }
         
-        if indexPath.section == 0 {
-            switch indexPath.row {
-            case 0:
-                cell.textLabel?.text = "Name"
-                cell.detailTextLabel?.text = buildName
-            case 1:
-                cell.textLabel?.text = "Stage"
-                cell.detailTextLabel?.text = buildStage
-            case 2:
-                cell.textLabel?.text = "Version"
-                cell.detailTextLabel?.text = appVersion
-            case 3:
-                cell.textLabel?.text = "Build"
-                cell.detailTextLabel?.text = buildNumber
-#if JAILBREAK_ENV
-            case 4:
-                cell.textLabel?.text = "JBRoot"
-                cell.detailTextLabel?.text = IGottaNeedTheActualJBRootMate()
-#endif // !JAILBREAK_ENV
-            default:
-                cell.textLabel?.text = "Unknown"
-            }
-            
-            cell.selectionStyle = .none
-        } else {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: CreditCell.identifier, for: indexPath) as? CreditCell else {
-                return UITableViewCell()
-            }
-            
-            let credit = credits[indexPath.row]
-            cell.nameLabel.text = credit.name
-            cell.roleLabel.text = credit.role
-            
-            downloadImage(from: "\(credit.githubURL).png") { image in
-                cell.profileImageView.image = image ?? UIImage(systemName: "person.circle")
-            }
-            
-            return cell
+        let credit = credits[indexPath.row]
+        cell.nameLabel.text = credit.name
+        cell.roleLabel.text = credit.role
+        
+        downloadImage(from: "\(credit.githubURL).png") { image in
+            cell.profileImageView.image = image ?? UIImage(systemName: "person.circle")
         }
         
         return cell
