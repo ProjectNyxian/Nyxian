@@ -135,6 +135,13 @@ class SplitScreenDetailViewController: UIViewController {
             }
 
             childVCMaster = newValue
+            
+            if let newValue: CodeEditorViewController = newValue as? CodeEditorViewController {
+                if let coordinator: Coordinator = newValue.coordinator {
+                    coordinator.textViewDidChange(newValue.textView)
+                }
+            }
+            
             if let vc = newValue {
                 self.addChild(vc)
                 vc.view.alpha = 0 // Start invisible
