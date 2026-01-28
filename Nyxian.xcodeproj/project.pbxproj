@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		79277DC22EE8752800F18B30 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 79277DC02EE8752800F18B30 /* Config.xcconfig */; };
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -630,7 +629,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79277DC22EE8752800F18B30 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -303,7 +303,8 @@ void syscall_server_register(syscall_server_t *server,
 {
     /* null pointer check */
     if(server == NULL ||
-       syscall_num >= MAX_SYSCALLS)
+       syscall_num >= MAX_SYSCALLS ||
+       server->running)
     {
         /* shall never ever happen */
         environment_panic();
