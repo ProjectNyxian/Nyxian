@@ -22,10 +22,16 @@
 
 DEFINE_SYSCALL_HANDLER(getgid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_getgid");
+    
     return proc_getrgid(sys_proc_copy_);
 }
 
 DEFINE_SYSCALL_HANDLER(getegid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_getegid");
+    
     return proc_getegid(sys_proc_copy_);
 }

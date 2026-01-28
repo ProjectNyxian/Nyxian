@@ -20,11 +20,13 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(kill)
 {
+    /* syscall wrapper */
+    sys_name("SYS_kill");
+    
     /* getting args, nu checks needed the syscall server does them */
     pid_t pid = (pid_t)args[0];
     int signal = (int)args[1];
@@ -35,8 +37,6 @@ DEFINE_SYSCALL_HANDLER(kill)
         sys_return_failure(EINVAL);
     }
     
-    klog_log(@"syscall:kill", @"pid %d requested to signal pid %d with %d", proc_getpid(sys_proc_copy_), pid, signal);
-    
     /*
      * checking if the caller process that makes the call is the same process,
      * also checks if the caller process has the entitlement to kill
@@ -46,7 +46,6 @@ DEFINE_SYSCALL_HANDLER(kill)
        (!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessKill) ||
         !permitive_over_pid_allowed(sys_proc_copy_, pid)))
     {
-        klog_log(@"syscall:kill", @"pid %d not autorized to kill pid %d", proc_getpid(sys_proc_copy_), pid);
         sys_return_failure(EPERM);
     }
 
@@ -58,13 +57,11 @@ DEFINE_SYSCALL_HANDLER(kill)
          * returns the same value as normal failure to prevent deterministic exploitation,
          * of process reference counting.
          */
-        klog_log(@"syscall:kill", @"pid %d not found on high level process manager", pid);
         sys_return_failure(EPERM);
     }
     
     /* signaling the process */
     [process sendSignal:signal];
-    klog_log(@"syscall:kill", @"pid %d signaled pid %d", proc_getpid(sys_proc_copy_), pid);
     
     sys_return;
 }

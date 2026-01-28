@@ -22,6 +22,9 @@
 
 DEFINE_SYSCALL_HANDLER(gethostname)
 {
+    /* syscall wrapper */
+    sys_name("SYS_gethostname");
+    
     /* lock the lock */
     host_read_lock();
     

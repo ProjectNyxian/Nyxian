@@ -24,7 +24,8 @@
 
 DEFINE_SYSCALL_HANDLER(signexec)
 {
-    /* checking input mach ports, so attacker cannot do silly things */
+    /* syscall wrapper */
+    sys_name("SYS_signexec");
     sys_need_in_ports_with_cnt(1);
     
     /*

@@ -24,6 +24,9 @@
 
 DEFINE_SYSCALL_HANDLER(procbsd)
 {
+    /* syscall wrapper */
+    sys_name("SYS_procbsd");
+    
     pid_t pid = (pid_t)args[0];
     
     /* getting process */

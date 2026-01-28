@@ -24,6 +24,9 @@
 
 DEFINE_SYSCALL_HANDLER(procpath)
 {
+    /* syscall wrapper */
+    sys_name("SYS_procpath");
+    
     pid_t pid = (pid_t)args[0];
     
     /* getting process */

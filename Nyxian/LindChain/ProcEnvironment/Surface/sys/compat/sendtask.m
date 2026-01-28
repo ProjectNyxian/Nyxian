@@ -25,6 +25,10 @@
 
 DEFINE_SYSCALL_HANDLER(sendtask)
 {
+    /* syscall wrapper */
+    sys_name("SYS_sendtask");
+    sys_need_in_ports_with_cnt(1);
+    
     /* check if environment supports tfp */
     if(!environment_supports_tfp())
     {
@@ -40,9 +44,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
         proc_task_unlock();
         sys_return_failure(EINVAL);
     }
-    
-    /* null pointer and n check */
-    sys_need_in_ports_with_cnt(1);
     
     /* getting port type */
     mach_port_type_t type;

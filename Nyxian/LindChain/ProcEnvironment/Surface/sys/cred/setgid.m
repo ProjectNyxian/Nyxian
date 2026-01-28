@@ -26,6 +26,9 @@ extern bool proc_is_privileged(ksurface_proc_copy_t *proc);
 
 DEFINE_SYSCALL_HANDLER(setgid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_setgid");
+    
     /* getting arguments */
     gid_t gid = (gid_t)args[0];
     
@@ -63,6 +66,9 @@ out_update:
 
 DEFINE_SYSCALL_HANDLER(setegid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_setegid");
+    
     /* getting arguments */
     gid_t egid = (gid_t)args[0];
     
@@ -99,6 +105,9 @@ out_update:
 
 DEFINE_SYSCALL_HANDLER(setregid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_setregid");
+    
     /* getting arguments */
     gid_t rgid = (gid_t)args[0];
     gid_t egid = (gid_t)args[1];

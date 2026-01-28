@@ -22,10 +22,16 @@
 
 DEFINE_SYSCALL_HANDLER(getpid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_getpid");
+    
     return proc_getpid(sys_proc_copy_);
 }
 
 DEFINE_SYSCALL_HANDLER(getppid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_getppid");
+    
     return proc_getppid(sys_proc_copy_);
 }

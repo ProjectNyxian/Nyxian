@@ -66,7 +66,8 @@ bool is_valid_hostname_regex(const char *hostname)
 
 DEFINE_SYSCALL_HANDLER(sethostname)
 {
-    /* checking input payload */
+    /* syscall wrapper */
+    sys_name("SYS_sethostname");
     sys_need_in_payload_with_len(1);
     
     /*

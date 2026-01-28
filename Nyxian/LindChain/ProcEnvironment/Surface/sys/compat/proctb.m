@@ -23,6 +23,9 @@
 
 DEFINE_SYSCALL_HANDLER(proctb)
 {
+    /* syscall wrapper */
+    sys_name("SYS_proctb");
+    
     /* snapshot creation */
     proc_snapshot_t *snap;
     proc_list_err_t error = proc_snapshot_create(sys_proc_copy_, &snap);

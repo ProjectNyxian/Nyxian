@@ -73,6 +73,11 @@
         sys_return_failure(EINVAL); \
     }
 
+#define sys_name(selname) \
+    const char *sname = selname; \
+    *name = sname;
+    
+
 /* request message coming from the client */
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
@@ -138,7 +143,12 @@ typedef int64_t (*syscall_handler_t)(
      * sets errno in the guest process by the client receiving it
      * and setting errno from the reply
      */
-    errno_t             *err
+    errno_t             *err,
+                                     
+    /*
+     * first is a syscall does is exposing its name
+     */
+    const char          **name
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
@@ -152,7 +162,8 @@ typedef int64_t (*syscall_handler_t)(
     uint32_t            in_ports_cnt, \
     mach_port_t         **out_ports, \
     uint32_t            *out_ports_cnt, \
-    errno_t             *err \
+    errno_t             *err, \
+    const char          **name \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname

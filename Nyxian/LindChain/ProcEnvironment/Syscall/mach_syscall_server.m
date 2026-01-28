@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/panic.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -188,6 +189,9 @@ static void* syscall_worker_thread(void *ctx)
     /* worker thread request loop */
     while(server->running)
     {
+        /* clear errno */
+        errno_t err = 0;
+        
         /* nullifying the buffer */
         memset(&buffer, 0, sizeof(buffer));
         
@@ -219,19 +223,20 @@ static void* syscall_worker_thread(void *ctx)
             goto cleanup;
         }
         
-        /* checking syscall bounds */
-        if(req->syscall_num >= MAX_SYSCALLS)
-        {
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, ENOSYS);
-            goto cleanup;
-        }
-        
         /* getting the syscall handler the kernel virtualisation layer previously has set */
-        syscall_handler_t handler = server->handlers[req->syscall_num];
+        syscall_handler_t handler = NULL;
+        
+        /* checking syscall bounds */
+        if(req->syscall_num < MAX_SYSCALLS)
+        {
+            /* getting handler if bounds are valid */
+            handler = server->handlers[req->syscall_num];
+        }
         
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
+            klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_copy), req->syscall_num);
             send_reply(&buffer.header, -1, NULL, 0, NULL, 0, ENOSYS);
             goto cleanup;
         }
@@ -239,12 +244,12 @@ static void* syscall_worker_thread(void *ctx)
         /* creating out payload buffer to be sent back */
         uint8_t *out_payload = NULL;
         uint32_t out_len = 0;
-        errno_t err;
         mach_port_t *out_ports = NULL;
         uint32_t out_ports_cnt = 0;
+        const char *name = NULL;
         
         /* calling syscall handler */
-        int64_t result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err);
+        int64_t result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err, &name);
         
         /* reply before deallocation */
         send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
@@ -267,6 +272,12 @@ static void* syscall_worker_thread(void *ctx)
         /* destroying copy of process */
         if(proc_copy != NULL)
         {
+            /* check for errno and log if errno is indeed set */
+            if(err != 0)
+            {
+                klog_log(@"syscall", @"syscall(%s) from pid %d failed (ERRNO=%s)", name, proc_getpid(proc_copy), strerror(err));
+            }
+            
             proc_copy_destroy(proc_copy);
         }
     }

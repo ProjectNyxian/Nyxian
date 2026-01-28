@@ -22,10 +22,16 @@
 
 DEFINE_SYSCALL_HANDLER(getuid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_getuid");
+    
     return proc_getruid(sys_proc_copy_);
 }
 
 DEFINE_SYSCALL_HANDLER(geteuid)
 {
+    /* syscall wrapper */
+    sys_name("SYS_geteuid");
+    
     return proc_geteuid(sys_proc_copy_);
 }
