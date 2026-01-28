@@ -37,8 +37,6 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.primaryBackgroundStyle = .none
-        
         masterVC = FileListViewController(project: project)
         detailVC = SplitScreenDetailViewController(project: project)
 
@@ -62,8 +60,6 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        //LDEMultitaskManager.shared().bringWindowGroupToFront(withBundleIdentifier: self.project.projectConfig.bundleid)
         NotificationCenter.default.addObserver(self, selector: #selector(invokeBuild), name: Notification.Name("RunAct"), object: nil)
     }
     
@@ -144,17 +140,31 @@ class SplitScreenDetailViewController: UIViewController {
             
             if let vc = newValue {
                 self.addChild(vc)
-                vc.view.alpha = 0 // Start invisible
+                vc.view.alpha = 0
+                
                 self.view.addSubview(vc.view)
+                
+                if #available(iOS 26.0, *) {
+                    vc.view.layer.cornerRadius = 20
+                    vc.view.layer.cornerCurve = .continuous
+                } else {
+                    vc.view.layer.cornerRadius = 12
+                    vc.view.layer.cornerCurve = .continuous
+                }
+                
+                vc.view.layer.borderWidth = 0.5
+                vc.view.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+                
+                vc.view.layer.masksToBounds = true
+                
                 vc.view.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
-                    vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 31),
-                    vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                    vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                    vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+                    vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                    vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+                    vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                    vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
                 ])
                 
-                // Animate new VC in
                 UIView.animate(withDuration: 0.3) {
                     vc.view.alpha = 1
                 }
@@ -165,12 +175,13 @@ class SplitScreenDetailViewController: UIViewController {
     }
     var childButton: UIButtonTab?
     
-    /*
-     TabBarView -> Experiment
-     */
-    private let scrollView = UIScrollView()
+    private let scrollView = FileTabBar()
     private let tabBarView = UIView()
-    private let stack = UIStackView()
+    private var stack: FileTabStack {
+        get {
+            scrollView.stackView
+        }
+    }
     private var tabs: [UIButtonTab] = []
     
     func openPath(path: String) {
@@ -283,7 +294,6 @@ class SplitScreenDetailViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Workspace"
         self.view.backgroundColor = currentTheme?.gutterBackgroundColor
         
         let label: UILabel = UILabel()
@@ -299,48 +309,8 @@ class SplitScreenDetailViewController: UIViewController {
             label.rightAnchor.constraint(equalTo: self.view.rightAnchor),
             label.leftAnchor.constraint(equalTo: self.view.leftAnchor)
         ])
-        
-        // Adding the scrollview used for the file stack
-        self.scrollView.backgroundColor = UIColor.clear
-        self.scrollView.translatesAutoresizingMaskIntoConstraints = false;
-        self.scrollView.showsHorizontalScrollIndicator = false
-        self.scrollView.showsVerticalScrollIndicator = false
-        self.scrollView.isScrollEnabled = true
-        self.view.addSubview(self.scrollView)
-        
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 30),
-            scrollView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
-        ])
-        
-        // Adding the stack
-        self.stack.backgroundColor = UIColor.clear
-        self.stack.axis = .horizontal
-        self.stack.alignment = .top
-        self.stack.distribution = .fillProportionally
-        self.stack.translatesAutoresizingMaskIntoConstraints = false
-                
-        self.scrollView.addSubview(self.stack)
-        NSLayoutConstraint.activate([
-            self.stack.leftAnchor.constraint(equalTo: self.scrollView.leftAnchor),
-            self.stack.rightAnchor.constraint(equalTo: self.scrollView.rightAnchor),
-            self.stack.topAnchor.constraint(equalTo: self.scrollView.topAnchor),
-            self.stack.bottomAnchor.constraint(equalTo: self.scrollView.bottomAnchor)
-        ])
-        
-        let bottomBorderView = UIView()
-        bottomBorderView.backgroundColor = currentTheme?.gutterHairlineColor
-        bottomBorderView.translatesAutoresizingMaskIntoConstraints = false
-        self.scrollView.addSubview(bottomBorderView)
 
-        NSLayoutConstraint.activate([
-            bottomBorderView.bottomAnchor.constraint(equalTo: self.scrollView.bottomAnchor),
-            bottomBorderView.leftAnchor.constraint(equalTo: self.view.leftAnchor),
-            bottomBorderView.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            bottomBorderView.heightAnchor.constraint(equalToConstant: 1)
-        ])
+        self.navigationItem.titleView = self.scrollView
         
         var barButtons: [UIBarButtonItem] = []
         barButtons.append(UIBarButtonItem(image: UIImage(systemName: "play.fill"), primaryAction: UIAction { _ in
@@ -391,7 +361,7 @@ class SplitScreenDetailViewController: UIViewController {
         let selectionColor = currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4
 
         let selectedColor: UIColor = selectionColor
-        let unselectedColor: UIColor = selectedColor.darker(by: 4)
+        let unselectedColor: UIColor = .clear
         
         for tab in tabs {
             let targetColor: UIColor = (tab == selectedTab) ? selectedColor : unselectedColor
@@ -455,31 +425,16 @@ class UIButtonTab: UIButton {
         self.contentHorizontalAlignment = .center
         self.contentVerticalAlignment = .center
         self.titleLabel?.textAlignment = .center
-        self.layer.borderColor = UIColor.white.cgColor
         
-        let leftBorderView = UIView()
-        leftBorderView.backgroundColor = currentTheme?.gutterHairlineColor
-        leftBorderView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(leftBorderView)
+        if #available(iOS 26.0, *) {
+            self.layer.cornerRadius = 15
+            self.layer.cornerCurve = .continuous
+        } else {
+            self.layer.cornerRadius = 10
+            self.layer.cornerCurve = .continuous
+        }
         
-        NSLayoutConstraint.activate([
-            leftBorderView.leftAnchor.constraint(equalTo: self.leftAnchor),
-            leftBorderView.topAnchor.constraint(equalTo: self.topAnchor),
-            leftBorderView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            leftBorderView.widthAnchor.constraint(equalToConstant: 1)
-        ])
-        
-        let rightBorderView = UIView()
-        rightBorderView.backgroundColor = currentTheme?.gutterHairlineColor
-        rightBorderView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(rightBorderView)
-        
-        NSLayoutConstraint.activate([
-            rightBorderView.rightAnchor.constraint(equalTo: self.rightAnchor),
-            rightBorderView.topAnchor.constraint(equalTo: self.topAnchor),
-            rightBorderView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            rightBorderView.widthAnchor.constraint(equalToConstant: 0.5)
-        ])
+        self.layer.masksToBounds = true
         
         self.addAction(UIAction { [weak self] _ in
             guard let s = self else { return }

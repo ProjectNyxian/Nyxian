@@ -408,6 +408,8 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
         DispatchQueue.main.async {
             targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
             targetViewController.navigationItem.setHidesBackButton(false, animated: true)
+            targetViewController.navigationController?.navigationBar.isUserInteractionEnabled = true
+            targetViewController.navigationItem.titleView?.isUserInteractionEnabled = true
             
             if !result {
                 let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))
