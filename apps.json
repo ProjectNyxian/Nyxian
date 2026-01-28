@@ -22,17 +22,17 @@
         "iphone": [],
         "ipad": [
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5980.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/home.png",
             "width": 2360,
             "height": 1640
           },
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5983.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/editor.png",
             "width": 2360,
             "height": 1640
           },
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5996.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/customization.png",
             "width": 2360,
             "height": 1640
           }
