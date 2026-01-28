@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "output-onlinepngtools.png",
+      "filename" : "lightmode nyx.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "output-onlinepngtools-2.png",
+      "filename" : "darkmode nyx.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
