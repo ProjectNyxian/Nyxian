@@ -64,7 +64,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
        !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
         /* nope! */
-        allowed = NO;
         goto out_unlock;
     }
     
@@ -74,7 +73,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     /* checking if process can even see the target */
     if(!can_see_process(proc, targetProc, vis))
     {
-        allowed = NO;
+        /* also nope! */
         goto out_unlock;
     }
     
