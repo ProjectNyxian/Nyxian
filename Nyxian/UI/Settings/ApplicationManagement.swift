@@ -56,12 +56,12 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             ("Read", .trustCacheRead),
             ("Write", .trustCacheWrite),
             ("Manager", .trustCacheManager)
-        ]),
+        ]),*/
         ("Misc:ellipsis", [
             ("Platform", .enforceDeviceSpoof),
-            ("Enforce Device Spoof", .enforceDeviceSpoof),
-            ("DYLD Hide LiveProcess", .dyldHideLiveProcess)
-        ])*/
+            //("Enforce Device Spoof", .enforceDeviceSpoof),
+            //("DYLD Hide LiveProcess", .dyldHideLiveProcess)
+        ])
     ]
     
     override init(style: UITableView.Style) {

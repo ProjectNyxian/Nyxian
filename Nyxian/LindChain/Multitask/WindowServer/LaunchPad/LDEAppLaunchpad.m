@@ -74,16 +74,16 @@ NSArray *entitlementsMenuStructure = @[
             @{@"name": @"Write", @"value": @(PEEntitlementTrustCacheWrite)},
             @{@"name": @"Manager", @"value": @(PEEntitlementTrustCacheManager)}
         ]
-    },
+    },*/
     @{
         @"title": @"Misc",
         @"icon": @"ellipsis",
         @"items": @[
             @{@"name": @"Platform", @"value": @(PEEntitlementPlatform)},
-            @{@"name": @"Enforce Device Spoof", @"value": @(PEEntitlementEnforceDeviceSpoof)},
-            @{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
+            //@{@"name": @"Enforce Device Spoof", @"value": @(PEEntitlementEnforceDeviceSpoof)},
+            //@{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
         ]
-    }*/
+    }
 ];
 
 @interface LDEAppLaunchpad ()
