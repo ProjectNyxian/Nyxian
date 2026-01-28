@@ -366,7 +366,8 @@ class UIDebugViewController: UITableViewController {
         let item: DebugItem = object.debugItems[indexPath.row]
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open","\(self.project.path!)/\(object.title)"])
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open","\(self.project.path!)/\(object.title)","\(item.line)","\(item.column)"])
+            self.dismiss(animated: true)
         } else {
             let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
                 project: project,

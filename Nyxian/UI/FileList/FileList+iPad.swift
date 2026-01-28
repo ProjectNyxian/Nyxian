@@ -184,10 +184,11 @@ class SplitScreenDetailViewController: UIViewController {
     }
     private var tabs: [UIButtonTab] = []
     
-    func openPath(path: String) {
+    func openPath(path: String, line: UInt64, column: UInt64) {
         if let existingTab = tabs.first(where: { $0.path == path }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
+            existingTab.vc.goto(line: line, column: column)
             updateTabSelection(selectedTab: existingTab)
             return
         }
@@ -198,6 +199,7 @@ class SplitScreenDetailViewController: UIViewController {
             self.childVC = button.vc
             self.updateTabSelection(selectedTab: button)
         }
+        
         let close: (UIButtonTab) -> Void = { [weak self] button in
             guard let self = self else { return }
             if self.childVC == button.vc {
@@ -235,6 +237,8 @@ class SplitScreenDetailViewController: UIViewController {
         let button = UIButtonTab(frame: CGRect(x: 0, y: 0, width: 100, height: 100),
                                  project: self.project,
                                  path: path,
+                                 line: line,
+                                 column: column,
                                  openAction: open,
                                  closeAction: close)
 
@@ -346,7 +350,7 @@ class SplitScreenDetailViewController: UIViewController {
         if args.count > 1 {
             switch(args[0]) {
             case "open":
-                self.openPath(path: args[1])
+                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0)
                 break
             case "close":
                 self.closeTab(path: args[1])
@@ -403,10 +407,12 @@ class UIButtonTab: UIButton {
     init(frame: CGRect,
          project: NXProject,
          path: String,
+         line: UInt64,
+         column: UInt64,
          openAction: @escaping (UIButtonTab) -> Void,
          closeAction: @escaping (UIButtonTab) -> Void) {
         self.path = path
-        self.vc = CodeEditorViewController(project: project, path: path)
+        self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column)
         self.closeButton = UIButton()
         self.closeAction = closeAction
         

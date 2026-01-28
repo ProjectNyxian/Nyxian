@@ -208,9 +208,18 @@ class CodeEditorViewController: UIViewController {
         self.coordinator = Coordinator(parent: self)
         self.textView.editorDelegate = self.coordinator
         
+        self.goto(line: line, column: column)
+    }
+    
+    func goto(line: UInt64?, column: UInt64?) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            guard var line = self.line else { return }
-            guard var column = self.column else { return }
+            guard var line = line else { return }
+            guard var column = column else { return }
+            
+            if line == 0 {
+                return
+            }
+            
             line -= 1
             column -= 1
             

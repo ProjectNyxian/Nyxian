@@ -388,7 +388,7 @@ import UniformTypeIdentifiers
                 self.navigationController?.pushViewController(fileVC, animated: true)
             } else {
                 if UIDevice.current.userInterfaceIdiom == .pad {
-                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path])
+                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0"])
                 } else {
                     let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
                         project: project,
