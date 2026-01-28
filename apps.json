@@ -147,7 +147,6 @@
       "caption": "For Rootless and later Rootful!",
       "date": "2026-01-17T14:56:00Z",
       "tintColor": "#66cfcb",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/4e4c7958c55742b88484f183e2476a48f63f4ce1/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/lightmode%20nyx.png",
       "notify": false,
       "url": "https://x.com/fridadev/status/2012539407576809805?s=46",
       "appID": "com.cr4zy.nyxian"
@@ -158,7 +157,6 @@
       "caption": "Kate (Pre-Beta)",
       "date": "2025-12-12T20:16:49Z",
       "tintColor": "#6156e2",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.8.0",
       "appID": "com.cr4zy.nyxian"
@@ -169,7 +167,6 @@
       "caption": "Vendetta (Indev)",
       "date": "2025-11-28T17:25:02Z",
       "tintColor": "#be99e4",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/20251128a",
       "appID": "com.cr4zy.nyxian"
@@ -180,7 +177,6 @@
       "caption": "CottonCandy (Indev)",
       "date": "2025-09-06T21:25:55Z",
       "tintColor": "#ff82a4",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.6.0",
       "appID": "com.cr4zy.nyxian"
