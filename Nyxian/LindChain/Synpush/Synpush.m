@@ -75,7 +75,9 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     _unsaved.Length   = (unsigned long)_contentData.length;
 
     unsigned tuFlags =
-        CXTranslationUnit_PrecompiledPreamble |
+        /* FIXME: This causes issues on getting deprecation warnings
+         * CXTranslationUnit_PrecompiledPreamble |
+         */
         CXTranslationUnit_CacheCompletionResults |
         CXTranslationUnit_KeepGoing |
         CXTranslationUnit_IncludeBriefCommentsInCodeCompletion |
@@ -119,7 +121,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     _unsaved.Filename = _cFilename;
     _unsaved.Contents = (const char*)_contentData.bytes;
     _unsaved.Length   = (unsigned long)_contentData.length;
-    clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit) | CXReparse_None);
+    clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit));
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -131,7 +133,8 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     unsigned count = clang_getNumDiagnostics(_unit);
     NSMutableArray<Synitem *> *items = [NSMutableArray arrayWithCapacity:count];
 
-    for (unsigned i = 0; i < count; ++i) {
+    for(unsigned i = 0; i < count; ++i)
+    {
         CXDiagnostic diag = clang_getDiagnostic(_unit, i);
         enum CXDiagnosticSeverity severity = clang_getDiagnosticSeverity(diag);
         if (severity == CXDiagnostic_Ignored) { clang_disposeDiagnostic(diag); continue; }
@@ -155,9 +158,12 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
         item.line    = line;
         item.column  = col;
         item.type    = mapSeverity(severity);
-        if (fixits.count) {
+        if(fixits.count)
+        {
             item.message = [NSString stringWithFormat:@"%s (fix-its: %@)", cmsg ?: "", [fixits componentsJoinedByString:@" | "]];
-        } else {
+        }
+        else
+        {
             item.message = [NSString stringWithFormat:@"%s", cmsg ?: ""];
         }
         [items addObject:item];
