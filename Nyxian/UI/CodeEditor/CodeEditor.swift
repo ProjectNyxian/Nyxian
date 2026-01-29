@@ -397,6 +397,27 @@ class CodeEditorViewController: UIViewController {
         
         database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
         database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+        showSaveAnimation()
+    }
+    
+    private func showSaveAnimation() {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let layer = view.layer
+            
+            let originalColor = layer.borderColor ?? UIColor.clear.cgColor
+            layer.borderWidth = 2
+            
+            let flashColor = UIColor.white.cgColor
+            
+            let animation = CABasicAnimation(keyPath: "borderColor")
+            animation.fromValue = flashColor
+            animation.toValue = originalColor
+            animation.duration = 0.35
+            animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            
+            layer.borderColor = originalColor
+            layer.add(animation, forKey: "saveFlash")
+        }
     }
     
     @objc func closeEditor() {
