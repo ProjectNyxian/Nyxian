@@ -217,6 +217,9 @@ class SplitScreenDetailViewController: UIViewController {
         
         let close: (UIButtonTab) -> Void = { [weak self] button in
             guard let self = self else { return }
+            
+            let wasSelected = self.childButton == button
+            
             if self.childVC == button.vc {
                 self.childVC = nil
             }
@@ -228,23 +231,27 @@ class SplitScreenDetailViewController: UIViewController {
             button.removeFromSuperview()
             self.tabs.remove(at: index)
 
-            var newSelectedTab: UIButtonTab? = nil
-            if self.tabs.count > 0 {
-                if index < self.tabs.count {
-                    newSelectedTab = self.tabs[index]
-                } else if index - 1 >= 0 {
-                    newSelectedTab = self.tabs[index - 1]
+            if wasSelected {
+                var newSelectedTab: UIButtonTab? = nil
+                if self.tabs.count > 0 {
+                    if index < self.tabs.count {
+                        newSelectedTab = self.tabs[index]
+                    } else if index - 1 >= 0 {
+                        newSelectedTab = self.tabs[index - 1]
+                    }
                 }
-            }
 
-            if let tabToSelect = newSelectedTab {
-                self.childButton = tabToSelect
-                self.childVC = tabToSelect.vc
-                self.updateTabSelection(selectedTab: tabToSelect)
+                if let tabToSelect = newSelectedTab {
+                    self.childButton = tabToSelect
+                    self.childVC = tabToSelect.vc
+                    self.updateTabSelection(selectedTab: tabToSelect)
+                } else {
+                    self.childButton = nil
+                    self.childVC = nil
+                    self.updateTabSelection(selectedTab: nil)
+                }
             } else {
-                self.childButton = nil
-                self.childVC = nil
-                self.updateTabSelection(selectedTab: nil)
+                self.updateTabSelection(selectedTab: self.childButton)
             }
         }
 
