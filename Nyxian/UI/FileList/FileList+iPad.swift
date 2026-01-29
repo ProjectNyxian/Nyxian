@@ -306,20 +306,6 @@ class SplitScreenDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = currentTheme?.gutterBackgroundColor
-        
-        let label: UILabel = UILabel()
-        self.view.addSubview(label)
-        
-        // Adding the indicator of the empty editor
-        label.textAlignment = .center
-        label.text = "No Editor"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: self.view.topAnchor),
-            label.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            label.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            label.leftAnchor.constraint(equalTo: self.view.leftAnchor)
-        ])
 
         self.navigationItem.titleView = self.scrollView
         
