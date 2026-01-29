@@ -222,7 +222,6 @@ class SplitScreenDetailViewController: UIViewController {
             }
             guard let index = self.tabs.firstIndex(of: button) else { return }
 
-            button.closeButton.menu = nil
             button.removeTarget(nil, action: nil, for: .allEvents)
 
             self.scrollView.removeArrangedSubview(button)
@@ -267,7 +266,6 @@ class SplitScreenDetailViewController: UIViewController {
         guard let button = tabs.first(where: { $0.path == path }) else { return }
         guard let index = tabs.firstIndex(of: button) else { return }
 
-        button.closeButton.menu = nil
         button.removeTarget(nil, action: nil, for: .allEvents)
 
         scrollView.removeArrangedSubview(button)
@@ -379,7 +377,6 @@ class SplitScreenDetailViewController: UIViewController {
             
             UIView.animate(withDuration: 0.25) {
                 tab.backgroundColor = targetColor
-                tab.closeButton.alpha = targetAlpha
             }
         }
     }
@@ -407,7 +404,6 @@ class SplitScreenDetailViewController: UIViewController {
 class UIButtonTab: UIButton {
     let path: String
     let vc: CodeEditorViewController
-    let closeButton: UIButton
     let closeAction: (UIButtonTab) -> Void
     
     init(frame: CGRect,
@@ -419,7 +415,6 @@ class UIButtonTab: UIButton {
          closeAction: @escaping (UIButtonTab) -> Void) {
         self.path = path
         self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column)
-        self.closeButton = UIButton()
         self.closeAction = closeAction
         
         super.init(frame: frame)
@@ -453,22 +448,6 @@ class UIButtonTab: UIButton {
             openAction(s)
         }, for: .touchUpInside)
         
-        // Close button
-        self.closeButton.setImage(UIImage(systemName: "ellipsis"), for: .normal)
-        self.closeButton.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(self.closeButton)
-        
-        NSLayoutConstraint.activate([
-            self.closeButton.topAnchor.constraint(equalTo: self.topAnchor),
-            self.closeButton.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            self.closeButton.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            self.closeButton.heightAnchor.constraint(equalTo: self.heightAnchor),
-            self.closeButton.widthAnchor.constraint(equalTo: self.closeButton.heightAnchor)
-        ])
-        
-        self.closeButton.showsMenuAsPrimaryAction = true
-        
-        // Adding icon
         let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
         
         let iconImageView: UIImageView = UIImageView()
@@ -550,7 +529,7 @@ class UIButtonTab: UIButton {
             }
         }
         
-        closeButton.menu = UIMenu(options: .displayInline, children: [
+        let contextMenu = UIMenu(options: .displayInline, children: [
             UIMenu(options: .displayInline, children: items),
             UIMenu(options: .displayInline, children: [
                 UIAction(title: "Close", handler: { [weak self] _ in
@@ -559,10 +538,22 @@ class UIButtonTab: UIButton {
                 })
             ])
         ])
+        
+        self.storedMenu = contextMenu
+        let menuInteraction = UIContextMenuInteraction(delegate: self)
+        self.addInteraction(menuInteraction)
     }
+    
+    private var storedMenu: UIMenu?
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            return self?.storedMenu
+        }
     }
 }
 
