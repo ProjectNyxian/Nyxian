@@ -428,7 +428,7 @@ class UIButtonTab: UIButton {
             self.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        self.contentEdgeInsets = UIEdgeInsets(top: 0, left: 32, bottom: 0, right: 32)
+        self.contentEdgeInsets = UIEdgeInsets(top: 0, left: 32, bottom: 0, right: 10)
         self.setTitle(vc.path.URLGet().lastPathComponent, for: .normal)
         self.setTitleColor(currentTheme?.textColor, for: .normal)
         self.titleLabel?.font = .systemFont(ofSize: 13)
