@@ -201,8 +201,12 @@ class CodeEditorViewController: UIViewController {
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         
-        if GCKeyboard.coalesced == nil {
+        if UIDevice.current.userInterfaceIdiom == .phone {
             self.setupToolbar(textView: self.textView)
+        } else if #unavailable(iOS 26.0) {
+            if GCKeyboard.coalesced == nil {
+                self.setupToolbar(textView: self.textView)
+            }
         }
         
         self.coordinator = Coordinator(parent: self)
@@ -400,8 +404,11 @@ class CodeEditorViewController: UIViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidConnect), name: .GCKeyboardDidConnect, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidDisconnect), name: .GCKeyboardDidDisconnect, object: nil)
+        
+        if UIDevice.current.userInterfaceIdiom == .pad && self.textView.inputAccessoryView != nil {
+            NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidConnect), name: .GCKeyboardDidConnect, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidDisconnect), name: .GCKeyboardDidDisconnect, object: nil)
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
