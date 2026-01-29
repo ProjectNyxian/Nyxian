@@ -27,7 +27,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     
     init(project: NXProject) {
         self.project = project
-        super.init(nibName: nil, bundle: nil)
+        super.init(style: .doubleColumn)
     }
     
     required init?(coder: NSCoder) {
@@ -48,6 +48,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
             self.viewControllers = [masterNav,detailNav]
         }
 
+        self.displayModeButtonVisibility = .never
         self.delegate = self
         
 #if !JAILBREAK_ENV
