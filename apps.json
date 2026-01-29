@@ -2,7 +2,7 @@
   "name": "Nyxian",
   "subtitle": "Unfolding the power of stock iOS coding.",
   "description": "Nyxian is a iOS app that lets you build and deploy iOS apps directly on-device without owning any computer. Means you can program where ever and when ever and in any type of situation. It currently supports iOS 15.0 upto the latest iOS version. Its designed for people that often find them selves on the go and dont want to take their mac with them selves and for the people who want to get into iOS software development but dont own a mac. Previously such a app didnt exist because no one tried to build something like that, propably because people thought that its not possible.",
-  "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
+  "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/lightmode%20nyx.png",
   "website": "https://github.com/ProjectNyxian",
   "tintColor": "#6156e2",
   "featuredApps": [
@@ -15,30 +15,39 @@
       "developerName": "cr4zyengineer",
       "subtitle": "IDE to develop native code iOS apps on unjailbroken iOS it self just via a certificate and a kernel virtualization layer for those apps.",
       "localizedDescription": "Nyxian is a iOS application for iOS 17.0 and above(iOS 26.2 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups.",
-      "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/AppIcon1024x1024.png",
-      "tintColor": "#aa80dc",
+      "iconURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/Nyxian/Assets.xcassets/Icons/AppIcon.appiconset/lightmode%20nyx.png",
+      "tintColor": "#9978c8",
       "category": "developer",
       "screenshots": {
         "iphone": [],
         "ipad": [
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5980.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/home.png",
             "width": 2360,
             "height": 1640
           },
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5983.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/editor.png",
             "width": 2360,
             "height": 1640
           },
           {
-            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/IMG_5996.png",
+            "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/Screenshots/customization.png",
             "width": 2360,
             "height": 1640
           }
         ]
       },
       "versions": [
+        {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.3/nyxian.ipa",
+          "size": 87397280,
+          "version": "0.8.3",
+          "buildVersion": "20260128.96",
+          "date": "2026-01-28T11:03:53Z",
+          "localizedDescription": "## Changelog\r\n### Jailed\r\n#### Nyxian\r\n- redesigned UI for iPadOS to be more modern and more complete.\r\n- fixed issue navigation on iPadOS.\r\n- improved settings design.\r\n- updated from LLVM 19.1.6 to 19.1.7\r\n- improved windowing system on iPadOS (now you can place windows out of your screen constraints)\r\n- update default icon\r\n#### Kernel Virtualization Layer (ksurface)\r\n- improved `fork()` and `posix_spawn()` fix (https://github.com/ProjectNyxian/Nyxian/commit/d627cab99b851300db0940f28fa44719154d5d1f, https://github.com/ProjectNyxian/Nyxian/commit/92cd379e7617ab22a4fc220b7f478d3a242962ec, https://github.com/ProjectNyxian/Nyxian/commit/420f6c8c96555c5b5a94788bc833fcc2c5b425af, https://github.com/ProjectNyxian/Nyxian/commit/a23b981013b18c45c40a93d2d125424ce29fb127)\r\n- fixed buffer overflow in `proc_fork()` (https://github.com/ProjectNyxian/Nyxian/commit/6486d2034af21fdd2e01e244750f362d8c140af3)\r\n- fixed reference leak in `proc_fork()` (https://github.com/ProjectNyxian/Nyxian/commit/fbc9ce4d3f5441f40a2980a3f75c53e8ac1a9ddb)\r\n- fixed process state manipulation vulnerability (https://github.com/ProjectNyxian/Nyxian/commit/56ed04808f656eafc1b6a0e57d0ba27e6cac6994)\r\n- extended libproc fix\r\n- fixed memory leak/corruption vulnerability in syscall client (https://github.com/ProjectNyxian/Nyxian/commit/faef54f057397acdca002872616b562861ef04d5)\r\n- fixed process enumeration priveleges (https://github.com/ProjectNyxian/Nyxian/commit/014d46d9a0a6b49d3b962340584cfa58fc8ff8e7)\r\n- fixed buffer over-read in `SYS_SETHOSTNAME` (https://github.com/ProjectNyxian/Nyxian/commit/0bdc721b5c04dd851d03f22b36cb0bcfd32219e3)\r\n- fixed DOS in `SYS_GETHOSTNAME` (https://github.com/ProjectNyxian/Nyxian/commit/b09e54006470f164a2746de0a3e665f3ad611e38)\r\n- fixed race condition which could lead to a privilege escalation in `permissive_over_pid()` (https://github.com/ProjectNyxian/Nyxian/commit/560bd4793ceae51c1faef96950f01ea236c4e319)",
+          "minOSVersion": "16.0"
+        },
         {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.2/Nyxian-Jailed.ipa",
           "size": 166143119,
@@ -133,12 +142,21 @@
   ],
   "news": [
     {
+      "title": "Nyxian for jailbroken devices is coming...",
+      "identifier": "news_8ckhxfh372",
+      "caption": "For Rootless and later Rootful!",
+      "date": "2026-01-17T14:56:00Z",
+      "tintColor": "#66cfcb",
+      "notify": false,
+      "url": "https://x.com/fridadev/status/2012539407576809805?s=46",
+      "appID": "com.cr4zy.nyxian"
+    },
+    {
       "title": "Nyxian 0.8 released!",
       "identifier": "news_8ckhxfh372",
       "caption": "Kate (Pre-Beta)",
       "date": "2025-12-12T20:16:49Z",
-      "tintColor": "#be99e4",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
+      "tintColor": "#6156e2",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.8.0",
       "appID": "com.cr4zy.nyxian"
@@ -149,7 +167,6 @@
       "caption": "Vendetta (Indev)",
       "date": "2025-11-28T17:25:02Z",
       "tintColor": "#be99e4",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/20251128a",
       "appID": "com.cr4zy.nyxian"
@@ -160,7 +177,6 @@
       "caption": "CottonCandy (Indev)",
       "date": "2025-09-06T21:25:55Z",
       "tintColor": "#ff82a4",
-      "imageURL": "https://raw.githubusercontent.com/ProjectNyxian/Nyxian/7a51f5193da928f2b366a8314838c424143ebce9/Nyxian/Assets.xcassets/InfoThumbnail.imageset/Unknown-35.jpg",
       "notify": false,
       "url": "https://github.com/ProjectNyxian/Nyxian/releases/tag/0.6.0",
       "appID": "com.cr4zy.nyxian"
