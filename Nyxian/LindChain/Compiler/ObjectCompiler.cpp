@@ -70,7 +70,9 @@ int CompileObject(int argc,
     Driver TheDriver(argv[0], TargetTriple.str(), Diags);
 
     /* setting up argument */
-    SmallVector<const char *, 64> Args(argv, argv + argc);
+    SmallVector<const char *, 64> Args;
+    Args.reserve(argc + 3);             /* reserving arguments */
+    Args.assign(argv, argv + argc);     /* filling args */
     Args.push_back("-c");
     Args.push_back("-o");
     Args.push_back(outputFilePath);
@@ -134,17 +136,6 @@ int CompileObject(int argc,
     
     /* setting triple again */
     TargetOpts.Triple = platformTriple;
-    
-    /* fixing simd */
-    TargetOpts.Features.push_back("+neon");
-    TargetOpts.Features.push_back("+fp-armv8");
-    TargetOpts.Features.push_back("+fullfp16");
-    TargetOpts.Features.push_back("+fp16fml");
-    TargetOpts.Features.push_back("+zcm");
-    TargetOpts.Features.push_back("+zcz");
-    
-    /* set cpu target to A12 SoC */
-    TargetOpts.CPU = "apple-a12";
     
     /* creating clang instance */
     CompilerInstance Clang;

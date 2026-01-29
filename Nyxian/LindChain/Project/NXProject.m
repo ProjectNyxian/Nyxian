@@ -70,12 +70,6 @@
 #if !JAILBREAK_ENV
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"],
-        @"-mcpu=apple-a12",
-        @"-march=armv8.3-a+fp16",
-        @"-Xclang", @"-target-feature", @"-Xclang", @"+neon",
-        @"-Xclang", @"-target-feature", @"-Xclang", @"+fullfp16",
-        @"-Xclang", @"-target-feature", @"-Xclang", @"+fp16fml",
-        @"-Xclang", @"-target-cpu", @"-Xclang", @"apple-a12"
 #endif /* !JAILBREAK_ENV */
     ]];
     

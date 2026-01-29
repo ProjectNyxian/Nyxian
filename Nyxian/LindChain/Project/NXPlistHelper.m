@@ -96,17 +96,13 @@
 - (NSString *)readStringForKey:(NSString *)key
               withDefaultValue:(NSString *)defaultValue
 {
-    return [self readSecureFromKey:key
-                  withDefaultValue:defaultValue
-                         classType:[NSString class]];
+    return [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSString class]];
 }
 
 - (NSNumber*)readNumberForKey:(NSString *)key
              withDefaultValue:(NSNumber *)defaultValue
 {
-    return [self readSecureFromKey:key
-                  withDefaultValue:defaultValue
-                         classType:[NSNumber class]];
+    return [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSNumber class]];
 }
 
 - (NSInteger)readIntegerForKey:(NSString *)key
@@ -130,9 +126,7 @@
 - (NSArray*)readArrayForKey:(NSString *)key
            withDefaultValue:(NSArray*)defaultValue
 {
-    NSArray *array = [self readSecureFromKey:key
-                            withDefaultValue:defaultValue
-                                   classType:[NSArray class]];
+    NSArray *array = [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSArray class]];
     return array;
 }
 

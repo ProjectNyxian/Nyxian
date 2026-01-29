@@ -30,10 +30,7 @@ static NXCodeTemplateLanguage const NXCodeTemplateLanguageC = @"C";
 
 @interface NXCodeTemplate : NSObject
 
-- (void)generateCodeStructureFromTemplateScheme:(NXCodeTemplateScheme)scheme
-                                   withLanguage:(NXCodeTemplateLanguage)language
-                                withProjectName:(NSString*)projectName
-                                       intoPath:(NSString*)path;
+- (void)generateCodeStructureFromTemplateScheme:(NXCodeTemplateScheme)scheme withLanguage:(NXCodeTemplateLanguage)language withProjectName:(NSString*)projectName intoPath:(NSString*)path;
 + (NXCodeTemplate*)shared;
 
 @end
