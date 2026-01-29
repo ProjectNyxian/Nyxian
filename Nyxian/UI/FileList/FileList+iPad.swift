@@ -48,7 +48,9 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
             self.viewControllers = [masterNav,detailNav]
         }
 
-        self.displayModeButtonVisibility = .never
+        if #available(iOS 14.5, *) {
+            self.displayModeButtonVisibility = .never
+        }
         self.delegate = self
         
 #if !JAILBREAK_ENV
