@@ -95,9 +95,9 @@
         @"arm64",
         @"-syslibroot",
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
-        [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
-        [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
-        [NSString stringWithFormat:@"-L%@", [NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/lib"].path],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
+        [@"-L" stringByAppendingString:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/lib"].path],
         @"-lclang_rt.ios"
     ]];
     
