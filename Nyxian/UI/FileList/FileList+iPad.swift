@@ -160,8 +160,8 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.layer.cornerCurve = .continuous
                 }
                 
-                vc.view.layer.borderWidth = 0.5
-                vc.view.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+                vc.view.layer.borderWidth = 1.0
+                vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
                 
                 vc.view.layer.masksToBounds = true
                 
