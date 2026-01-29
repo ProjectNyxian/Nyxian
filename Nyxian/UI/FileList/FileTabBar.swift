@@ -224,15 +224,21 @@ class FileTabBar: UIVisualEffectView, UIScrollViewDelegate {
             stack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
         ])
         
+        if #available(iOS 26.0, *) {
+            leftShadowLayer.colors = [UIColor.black.withAlphaComponent(0.40).cgColor, UIColor.black.withAlphaComponent(0).cgColor]
+            rightShadowLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.40).cgColor]
+        } else {
+            leftShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(1).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor]
+            rightShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).cgColor]
+        }
+        
         leftShadowLayer.startPoint = CGPoint(x: 0, y: 0.5)
         leftShadowLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        leftShadowLayer.colors = [UIColor.black.withAlphaComponent(0.40).cgColor, UIColor.black.withAlphaComponent(0).cgColor]
         leftShadowLayer.opacity = 0
         contentView.layer.addSublayer(leftShadowLayer)
         
         rightShadowLayer.startPoint = CGPoint(x: 0, y: 0.5)
         rightShadowLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        rightShadowLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.40).cgColor]
         rightShadowLayer.opacity = 0
         contentView.layer.addSublayer(rightShadowLayer)
     }
