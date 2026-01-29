@@ -460,4 +460,13 @@ class CodeEditorViewController: UIViewController {
                          modifierFlags: .command)
         ]
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        /* pwerform hardware keyboard check */
+        if GCKeyboard.coalesced != nil {
+            self.textView.becomeFirstResponder()
+        }
+    }
 }

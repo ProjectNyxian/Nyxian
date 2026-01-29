@@ -70,16 +70,25 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     }
     
     override var keyCommands: [UIKeyCommand]? {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return [
-                UIKeyCommand(input: "R",
-                             modifierFlags: [.command],
-                             action: #selector(invokeBuild),
-                             discoverabilityTitle: "Build"),
-            ]
-        } else {
-            return []
+        let closeCommand = UIKeyCommand(
+            title: "Close",
+            action: #selector(self.detailVC?.closeCurrentTab),
+            input: "W",
+            modifierFlags: [.command]
+        )
+        
+        let runCommand = UIKeyCommand(
+            title: "Run",
+            action: #selector(self.invokeBuild),
+            input: "R",
+            modifierFlags: [.command]
+        )
+        
+        if #available(iOS 15.0, *) {
+            closeCommand.wantsPriorityOverSystemBehavior = true
         }
+        
+        return [closeCommand, runCommand]
     }
     
     @objc func invokeBuild() {
@@ -135,7 +144,7 @@ class SplitScreenDetailViewController: UIViewController {
             if let newValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController {
                 newValue.synpushServer?.releaseMemory()
             }
-
+            
             /* setting to new SynpushServer */
             childVCMaster = newValue
             
@@ -207,7 +216,7 @@ class SplitScreenDetailViewController: UIViewController {
             updateTabSelection(selectedTab: existingTab)
             return
         }
-
+        
         let open: (UIButtonTab) -> Void = { [weak self] button in
             guard let self = self else { return }
             self.childButton = button
@@ -224,13 +233,13 @@ class SplitScreenDetailViewController: UIViewController {
                 self.childVC = nil
             }
             guard let index = self.tabs.firstIndex(of: button) else { return }
-
+            
             button.removeTarget(nil, action: nil, for: .allEvents)
-
+            
             self.scrollView.removeArrangedSubview(button)
             button.removeFromSuperview()
             self.tabs.remove(at: index)
-
+            
             if wasSelected {
                 var newSelectedTab: UIButtonTab? = nil
                 if self.tabs.count > 0 {
@@ -240,7 +249,7 @@ class SplitScreenDetailViewController: UIViewController {
                         newSelectedTab = self.tabs[index - 1]
                     }
                 }
-
+                
                 if let tabToSelect = newSelectedTab {
                     self.childButton = tabToSelect
                     self.childVC = tabToSelect.vc
@@ -254,7 +263,7 @@ class SplitScreenDetailViewController: UIViewController {
                 self.updateTabSelection(selectedTab: self.childButton)
             }
         }
-
+        
         let button = UIButtonTab(frame: CGRect(x: 0, y: 0, width: 100, height: 100),
                                  project: self.project,
                                  path: path,
@@ -262,27 +271,27 @@ class SplitScreenDetailViewController: UIViewController {
                                  column: column,
                                  openAction: open,
                                  closeAction: close)
-
+        
         self.scrollView.addArrangedSubview(button)
         self.tabs.append(button)
-
+        
         self.updateTabSelection(selectedTab: button)
     }
     
     func closeTab(path: String) {
         guard let button = tabs.first(where: { $0.path == path }) else { return }
         guard let index = tabs.firstIndex(of: button) else { return }
-
+        
         button.removeTarget(nil, action: nil, for: .allEvents)
-
+        
         scrollView.removeArrangedSubview(button)
         button.removeFromSuperview()
         tabs.remove(at: index)
-
+        
         if childButton == button {
             childVC = nil
             childButton = nil
-
+            
             var newSelectedTab: UIButtonTab? = nil
             if tabs.count > 0 {
                 if index < tabs.count {
@@ -291,7 +300,7 @@ class SplitScreenDetailViewController: UIViewController {
                     newSelectedTab = tabs[index - 1]
                 }
             }
-
+            
             if let tabToSelect = newSelectedTab {
                 childButton = tabToSelect
                 childVC = tabToSelect.vc
@@ -319,7 +328,7 @@ class SplitScreenDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = currentTheme?.gutterBackgroundColor
-
+        
         self.navigationItem.titleView = self.scrollView
         
         var barButtons: [UIBarButtonItem] = []
@@ -375,7 +384,7 @@ class SplitScreenDetailViewController: UIViewController {
         } else {
             selectedColor = (currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4).brighter(by: 10)
         }
-
+        
         let unselectedColor: UIColor = .clear
         
         for tab in tabs {
@@ -388,22 +397,9 @@ class SplitScreenDetailViewController: UIViewController {
         }
     }
     
-    @objc private func closeCurrentTab() {
+    @objc func closeCurrentTab() {
         if let childButton = self.childButton {
             childButton.closeAction(childButton)
-        }
-    }
-    
-    override var keyCommands: [UIKeyCommand]? {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            return [
-                UIKeyCommand(input: "W",
-                             modifierFlags: [.command],
-                             action: #selector(closeCurrentTab),
-                             discoverabilityTitle: "Build"),
-            ]
-        } else {
-            return []
         }
     }
 }
