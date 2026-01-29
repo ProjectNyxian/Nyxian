@@ -65,8 +65,8 @@
         [self platformTriple],
         @"-isysroot",
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
-        [NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
-        [NSString stringWithFormat:@"-F%@/System/Library/PrivateFrameworks", [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
 #if !JAILBREAK_ENV
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"],
