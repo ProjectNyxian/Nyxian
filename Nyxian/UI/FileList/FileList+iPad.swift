@@ -129,9 +129,16 @@ class SplitScreenDetailViewController: UIViewController {
                     oldVC.removeFromParent()
                 })
             }
+            
+            /* releasing memory of previous SynpushServer */
+            if let newValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController {
+                newValue.synpushServer?.releaseMemory()
+            }
 
+            /* setting to new SynpushServer */
             childVCMaster = newValue
             
+            /* reevaluing SynpushServer */
             if let newValue: CodeEditorViewController = newValue as? CodeEditorViewController {
                 if let coordinator: Coordinator = newValue.coordinator {
                     coordinator.textViewDidChange(newValue.textView)

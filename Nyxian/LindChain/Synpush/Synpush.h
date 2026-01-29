@@ -38,5 +38,6 @@
 
 - (void)reparseFile:(NSString*)content;
 - (NSArray<Synitem *> *)getDiagnostics;
+- (void)releaseMemory;
 
 @end

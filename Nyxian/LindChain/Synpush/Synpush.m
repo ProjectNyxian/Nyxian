@@ -23,6 +23,11 @@
 #import <string.h>
 #import <strings.h>
 
+static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
+                          CXTranslationUnit_KeepGoing |
+                          CXTranslationUnit_IncludeBriefCommentsInCodeCompletion |
+                          CXTranslationUnit_DetailedPreprocessingRecord;
+
 #pragma mark - Small C helpers
 
 static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
@@ -56,43 +61,39 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
                 args:(NSArray*)args
 {
     self = [super init];
-    if (!self) return nil;
+    if(!self) return nil;
 
+    /* initilizing step numero uno */
     _filepath = [filepath copy];
     _cFilename = strdup(_filepath.UTF8String);
 
+    /* making arguments ready */
     _argc = (int)args.count;
     _args = (char**)calloc((size_t)_argc, sizeof(char*));
-    for (int i = 0; i < _argc; ++i) {
+    for(int i = 0; i < _argc; ++i)
+    {
         _args[i] = strdup([args[i] UTF8String]);
     }
 
+    /* creating the index */
     _index = clang_createIndex(0, 0);
 
+    /* stuffing empty data */
     _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
     _unsaved.Filename = _cFilename;
     _unsaved.Contents = (const char*)_contentData.bytes;
     _unsaved.Length   = (unsigned long)_contentData.length;
 
-    unsigned tuFlags =
-        /* FIXME: This causes issues on getting deprecation warnings
-         * CXTranslationUnit_PrecompiledPreamble |
-         */
-        CXTranslationUnit_CacheCompletionResults |
-        CXTranslationUnit_KeepGoing |
-        CXTranslationUnit_IncludeBriefCommentsInCodeCompletion |
-        CXTranslationUnit_DetailedPreprocessingRecord;
+    /* intitial parse */
+    enum CXErrorCode err = clang_parseTranslationUnit2(_index, _cFilename, (const char *const *)_args, _argc, &_unsaved, 1, tuFlags, &_unit);
 
-    enum CXErrorCode err = clang_parseTranslationUnit2(
-        _index,
-        _cFilename,
-        (const char *const *)_args, _argc,
-        &_unsaved, 1,
-        tuFlags,
-        &_unit);
-
-    if (err != CXError_Success || !_unit) {
-        if (_unit) clang_disposeTranslationUnit(_unit);
+    /* error checking */
+    if(err != CXError_Success || !_unit)
+    {
+        if(_unit)
+        {
+            clang_disposeTranslationUnit(_unit);
+        }
         clang_disposeIndex(_index);
         for (int i = 0; i < _argc; ++i) free(_args[i]);
         free(_args);
@@ -108,6 +109,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 
 - (void)reparseFile:(NSString*)content
 {
+    /* getting data from content (dont allow lossy conversion, because otherwise chineese, japanese, etc users are pissed off)*/
     NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
     if(!newData)
     {
@@ -115,6 +117,15 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     }
     
     pthread_mutex_lock(&_mutex);
+    
+    /* checking for unit */
+    if(!_unit)
+    {
+        /* needs reactivation */
+        pthread_mutex_unlock(&_mutex);
+        [self reactivateWithContent:content];
+        return;
+    }
     
     _contentData = newData;
 
@@ -130,42 +141,84 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 {
     pthread_mutex_lock(&_mutex);
 
+    /* checking if unit is already active */
+    if(!_unit)
+    {
+        /* its not so fall back to being an asshole */
+        pthread_mutex_unlock(&_mutex);
+        return @[];
+    }
+    
     unsigned count = clang_getNumDiagnostics(_unit);
+    
+    /* preallocating array with count of items */
     NSMutableArray<Synitem *> *items = [NSMutableArray arrayWithCapacity:count];
 
+    CXFile targetFile = NULL;
     for(unsigned i = 0; i < count; ++i)
     {
+        /* getting diagnostic */
         CXDiagnostic diag = clang_getDiagnostic(_unit, i);
+        
+        /* getting severity of diagnostic */
         enum CXDiagnosticSeverity severity = clang_getDiagnosticSeverity(diag);
-        if (severity == CXDiagnostic_Ignored) { clang_disposeDiagnostic(diag); continue; }
+        
+        /* checking if we shall ignore the diagnostic */
+        if(severity == CXDiagnostic_Ignored)
+        {
+            clang_disposeDiagnostic(diag);
+            continue;
+        }
 
+        /* getting location of diagnostic (line and column basically lol x3) */
         CXSourceLocation loc = clang_getDiagnosticLocation(diag);
-        CXFile file; unsigned line = 0, col = 0;
+        
+        /* now getting the user readable location */
+        CXFile file;
+        unsigned line = 0, col = 0;
         clang_getSpellingLocation(loc, &file, &line, &col, NULL);
-
-        CXString fileName = clang_getFileName(file);
-        const char *fn = clang_getCString(fileName);
-        BOOL sameFile = (fn && _cFilename) ? (strcmp(fn, _cFilename) == 0) : NO;
-        clang_disposeString(fileName);
-        if (!sameFile) { clang_disposeDiagnostic(diag); continue; }
-
+        
+        /* checking if we got the file already */
+        if(targetFile == NULL)
+        {
+            
+            /*
+             * getting name of file and checking if its
+             * the same file targetted
+             */
+            CXString fileName = clang_getFileName(file);
+            const char *fn = clang_getCString(fileName);
+            BOOL sameFile = (fn && _cFilename) ? (strcmp(fn, _cFilename) == 0) : NO;
+            clang_disposeString(fileName);
+            if(!sameFile)
+            {
+                clang_disposeDiagnostic(diag);
+                continue;
+            }
+            
+            /* finally got the targetFile */
+            targetFile = file;
+        }
+        else
+        {
+            /* already got the file! */
+            if(!clang_File_isEqual(file, targetFile))
+            {
+                clang_disposeDiagnostic(diag);
+                continue;
+            }
+        }
+        
+        /* getting diagnostic string */
         CXString diagStr = clang_getDiagnosticSpelling(diag);
         const char *cmsg = clang_getCString(diagStr);
 
-        NSMutableArray<NSString*> *fixits = [NSMutableArray array];
-
+        /* creating actual SynItem! */
         Synitem *item = [[Synitem alloc] init];
         item.line    = line;
         item.column  = col;
         item.type    = mapSeverity(severity);
-        if(fixits.count)
-        {
-            item.message = [NSString stringWithFormat:@"%s (fix-its: %@)", cmsg ?: "", [fixits componentsJoinedByString:@" | "]];
-        }
-        else
-        {
-            item.message = [NSString stringWithFormat:@"%s", cmsg ?: ""];
-        }
+        item.message = [NSString stringWithFormat:@"%s", cmsg ?: "Unknown"];
         [items addObject:item];
 
         clang_disposeString(diagStr);
@@ -176,17 +229,98 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     return items;
 }
 
-- (void)dealloc
+#pragma mark - Memory management
+
+- (void)releaseMemory
 {
     pthread_mutex_lock(&_mutex);
-    if (_unit) clang_disposeTranslationUnit(_unit);
-    if (_index) clang_disposeIndex(_index);
+    
+    /* dispose many clang things to get rid of most */
+    if(_unit)
+    {
+        clang_disposeTranslationUnit(_unit);
+        _unit = NULL;
+    }
+    
+    if(_index)
+    {
+        clang_disposeIndex(_index);
+        _index = NULL;
+    }
+    
+    /* releasing content data memory */
+    _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
+    _unsaved.Contents = (const char*)_contentData.bytes;
+    _unsaved.Length = 0;
+    
+    pthread_mutex_unlock(&_mutex);
+}
+
+- (BOOL)isActive
+{
+    pthread_mutex_lock(&_mutex);
+    BOOL active = (_unit != NULL);
+    pthread_mutex_unlock(&_mutex);
+    return active;
+}
+
+- (BOOL)reactivateWithContent:(NSString*)content
+{
+    /* checking if server is still active */
+    if([self isActive])
+    {
+        return YES;
+    }
+    
+    /* its not so we need to reactivate it */
+    pthread_mutex_lock(&_mutex);
+    
+    /* creating new data out of content */
+    NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
+    if(!newData)
+    {
+        pthread_mutex_unlock(&_mutex);
+        return NO;
+    }
+    
+    /* making sure that bytes doesnt get deallocated randomly */
+    _contentData = newData;
+    _unsaved.Contents = (const char*)_contentData.bytes;
+    _unsaved.Length = (unsigned long)_contentData.length;
+    
+    /* creating new index */
+    _index = clang_createIndex(0, 0);
+    
+    /* parsing code*/
+    enum CXErrorCode err = clang_parseTranslationUnit2(_index, _cFilename, (const char *const *)_args, _argc, &_unsaved, 1, tuFlags, &_unit);
+    
+    /* done */
+    pthread_mutex_unlock(&_mutex);
+    
+    return (err == CXError_Success && _unit != NULL);
+}
+
+- (void)dealloc
+{
+    /* locking and disposing lol */
+    pthread_mutex_lock(&_mutex);
+    if(_unit)
+    {
+        clang_disposeTranslationUnit(_unit);
+    }
+    if(_index)
+    {
+        clang_disposeIndex(_index);
+    }
     pthread_mutex_unlock(&_mutex);
 
+    /* releasing da rest */
     for (int i = 0; i < _argc; ++i) free(_args[i]);
     free(_args);
 
     free(_cFilename);
+    
+    /* destroying the lock */
     pthread_mutex_destroy(&_mutex);
 }
 
