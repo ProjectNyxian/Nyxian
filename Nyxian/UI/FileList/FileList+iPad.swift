@@ -539,7 +539,7 @@ class UIButtonTab: UIButton {
         let contextMenu = UIMenu(options: .displayInline, children: [
             UIMenu(options: .displayInline, children: items),
             UIMenu(options: .displayInline, children: [
-                UIAction(title: "Close", handler: { [weak self] _ in
+                UIAction(title: "Close (Cmd + W)", handler: { [weak self] _ in
                     guard let s = self else { return }
                     closeAction(s)
                 })

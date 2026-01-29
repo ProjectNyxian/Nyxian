@@ -109,7 +109,12 @@ class CodeEditorViewController: UIViewController {
         
         let saveButton: UIBarButtonItem = UIBarButtonItem()
         saveButton.tintColor = .label
-        saveButton.title = "Save"
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            saveButton.title = "Save (Cmd + S)"
+        } else {
+            saveButton.title = "Save"
+        }
         saveButton.target = self
         saveButton.action = #selector(saveText)
         self.navigationItem.setRightBarButton(saveButton, animated: true)
