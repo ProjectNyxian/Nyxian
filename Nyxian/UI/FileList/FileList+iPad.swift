@@ -152,26 +152,33 @@ class SplitScreenDetailViewController: UIViewController {
                 
                 self.view.addSubview(vc.view)
                 
+                vc.view.translatesAutoresizingMaskIntoConstraints = false
+                
                 if #available(iOS 26.0, *) {
                     vc.view.layer.cornerRadius = 20
                     vc.view.layer.cornerCurve = .continuous
+                    vc.view.layer.borderWidth = 1.0
+                    vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
+                    vc.view.layer.masksToBounds = true
+                    
+                    NSLayoutConstraint.activate([
+                        vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                        vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+                        vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                        vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+                    ])
                 } else {
-                    vc.view.layer.cornerRadius = 12
-                    vc.view.layer.cornerCurve = .continuous
+                    /*
+                     * on iOS prior 26 we wont do anything
+                     * floating cuz its not designed for it
+                     */
+                    NSLayoutConstraint.activate([
+                        vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                        vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                        vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+                        vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+                    ])
                 }
-                
-                vc.view.layer.borderWidth = 1.0
-                vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
-                
-                vc.view.layer.masksToBounds = true
-                
-                vc.view.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                    vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
-                    vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                    vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-                ])
                 
                 UIView.animate(withDuration: 0.3) {
                     vc.view.alpha = 1
@@ -218,7 +225,7 @@ class SplitScreenDetailViewController: UIViewController {
             button.closeButton.menu = nil
             button.removeTarget(nil, action: nil, for: .allEvents)
 
-            self.stack.removeArrangedSubview(button)
+            self.scrollView.removeArrangedSubview(button)
             button.removeFromSuperview()
             self.tabs.remove(at: index)
 
@@ -250,7 +257,7 @@ class SplitScreenDetailViewController: UIViewController {
                                  openAction: open,
                                  closeAction: close)
 
-        self.stack.addArrangedSubview(button)
+        self.scrollView.addArrangedSubview(button)
         self.tabs.append(button)
 
         self.updateTabSelection(selectedTab: button)
@@ -263,7 +270,7 @@ class SplitScreenDetailViewController: UIViewController {
         button.closeButton.menu = nil
         button.removeTarget(nil, action: nil, for: .allEvents)
 
-        stack.removeArrangedSubview(button)
+        scrollView.removeArrangedSubview(button)
         button.removeFromSuperview()
         tabs.remove(at: index)
 
@@ -356,9 +363,14 @@ class SplitScreenDetailViewController: UIViewController {
     }
     
     private func updateTabSelection(selectedTab: UIButtonTab?) {
-        let selectionColor = currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4
+        let selectedColor: UIColor
+        
+        if #available(iOS 26.0, *) {
+            selectedColor = currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4
+        } else {
+            selectedColor = (currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4).brighter(by: 10)
+        }
 
-        let selectedColor: UIColor = selectionColor
         let unselectedColor: UIColor = .clear
         
         for tab in tabs {
@@ -566,6 +578,19 @@ extension UIColor {
         }
 
         let newBrightness = max(brightness - percentage/100, 0)
+        return UIColor(hue: hue, saturation: saturation, brightness: newBrightness, alpha: alpha)
+    }
+    func brighter(by percentage: CGFloat = 30.0) -> UIColor {
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        guard self.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) else {
+            return self
+        }
+        
+        let newBrightness = min(brightness + percentage/100, 1)
         return UIColor(hue: hue, saturation: saturation, brightness: newBrightness, alpha: alpha)
     }
 }

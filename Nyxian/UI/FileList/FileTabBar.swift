@@ -165,9 +165,11 @@ class FileTabStack: UIStackView {
     }
 }
 
-class FileTabBar: UIVisualEffectView {
+class FileTabBar: UIVisualEffectView, UIScrollViewDelegate {
     private let scrollView: UIScrollView
     private let stack: FileTabStack
+    private let leftShadowLayer: CAGradientLayer = CAGradientLayer()
+    private let rightShadowLayer: CAGradientLayer = CAGradientLayer()
     
     init() {
         self.stack = FileTabStack()
@@ -175,7 +177,8 @@ class FileTabBar: UIVisualEffectView {
         if #available(iOS 26.0, *) {
             super.init(effect: UIGlassEffect(style: .regular))
         } else {
-            super.init(effect: UIBlurEffect(style: .systemMaterial))
+            /* using no effect at all on iOS prior 26 (It looks like garbbage) */
+            super.init(effect: nil)
         }
         setupView()
     }
@@ -188,24 +191,18 @@ class FileTabBar: UIVisualEffectView {
         if #available(iOS 26.0, *) {
             self.layer.cornerRadius = 20
             self.layer.cornerCurve = .continuous
-        } else {
-            self.layer.cornerRadius = 12
-            self.layer.cornerCurve = .continuous
-            self.layer.borderWidth = 0.5
-            self.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
-            self.layer.shadowColor = UIColor.black.cgColor
-            self.layer.shadowOpacity = 0.1
-            self.layer.shadowOffset = CGSize(width: 0, height: 2)
-            self.layer.shadowRadius = 4
+            self.clipsToBounds = true
+            
+            /* idk why currently, but without that it doesnt work on iOS 26.x */
+            self.translatesAutoresizingMaskIntoConstraints = false
         }
-        
-        self.translatesAutoresizingMaskIntoConstraints = false
-        self.clipsToBounds = true
+        /* no layer effect at all on iOS versions prior 26 */
         
         self.scrollView.backgroundColor = UIColor.clear
         self.scrollView.showsHorizontalScrollIndicator = false
         self.scrollView.showsVerticalScrollIndicator = false
         self.scrollView.isScrollEnabled = true
+        self.scrollView.delegate = self
         self.scrollView.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(self.scrollView)
         
@@ -226,17 +223,52 @@ class FileTabBar: UIVisualEffectView {
             
             stack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
         ])
+        
+        leftShadowLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        leftShadowLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        leftShadowLayer.colors = [UIColor.black.withAlphaComponent(0.40).cgColor, UIColor.black.withAlphaComponent(0).cgColor]
+        leftShadowLayer.opacity = 0
+        contentView.layer.addSublayer(leftShadowLayer)
+        
+        rightShadowLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        rightShadowLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        rightShadowLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.40).cgColor]
+        rightShadowLayer.opacity = 0
+        contentView.layer.addSublayer(rightShadowLayer)
     }
     
-    func addTab(_ tab: UIView) {
-        stack.addArrangedSubview(tab)
-        layoutIfNeeded()
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let shadowWidth: CGFloat = 20
+        
+        leftShadowLayer.frame = CGRect(x: 0, y: 0, width: shadowWidth, height: bounds.height)
+        rightShadowLayer.frame = CGRect(x: bounds.width - shadowWidth, y: 0, width: shadowWidth, height: bounds.height)
+        
+        updateShadowVisibility()
     }
     
-    func removeTab(_ tab: UIView) {
-        stack.removeArrangedSubview(tab)
-        tab.removeFromSuperview()
-        layoutIfNeeded()
+    private func updateShadowVisibility() {
+        let offsetX = scrollView.contentOffset.x
+        let maxOffsetX = scrollView.contentSize.width - scrollView.bounds.width
+        leftShadowLayer.opacity = offsetX > 0 ? 1 : 0
+        rightShadowLayer.opacity = (maxOffsetX > 0 && offsetX < maxOffsetX) ? 1 : 0
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateShadowVisibility()
+    }
+    
+    func addArrangedSubview(_ view: UIView) {
+        self.stack.addArrangedSubview(view)
+        self.layoutIfNeeded()
+        updateShadowVisibility()
+    }
+    
+    func removeArrangedSubview(_ view: UIView) {
+        self.stack.removeArrangedSubview(view)
+        self.layoutIfNeeded()
+        updateShadowVisibility()
     }
     
     var stackView: FileTabStack {
