@@ -91,8 +91,7 @@
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
-        [@"-L" stringByAppendingString:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/lib"].path],
-        @"-lclang_rt.ios"
+        [@"-L" stringByAppendingString:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/lib"].path]
     ]];
     
     return flags;
@@ -223,7 +222,7 @@
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"],
+                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit", @"-lclang_rt.ios"],
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
@@ -265,7 +264,7 @@
                     @"LDEDisplayName": name,
                     @"LDEProjectType": @(type),
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit"],
+                    @"LDELinkerFlags": @[@"-lc", @"-lclang_rt.ios"],
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV

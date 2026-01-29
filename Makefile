@@ -66,7 +66,7 @@ compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/JBSupport/libroot.
 		CODE_SIGNING_ALLOWED=NO
 
 pseudo-sign:
-	ldid -Sent/debug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
+	ldid -Sent/debug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/NyxianForJB
 	ldid -Sent/tshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
 
 package:

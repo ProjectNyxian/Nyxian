@@ -89,7 +89,7 @@ int CompileObject(int argc,
     }
 
     /* getting jobs */
-    const JobList &Jobs = C->getJobs();
+    const auto &Jobs = C->getJobs();
     
     /* checking job properties */
     if(Jobs.size() != 1 ||
@@ -104,10 +104,10 @@ int CompileObject(int argc,
     }
 
     /* getting command */
-    const Command &Cmd = cast<Command>(*Jobs.begin());
+    const auto &Cmd = cast<Command>(*Jobs.begin());
     
     /* checking if its clang */
-    if(std::strcmp(Cmd.getCreator().getName(), "clang") != 0)
+    if(Cmd.getCreator().getName() != StringRef("clang"))
     {
         /* its not */
         Diags.Report(diag::err_fe_expected_clang_command);
@@ -130,12 +130,6 @@ int CompileObject(int argc,
      * cannot run in one hit.
      */
     CI->getFrontendOpts().DisableFree = false;
-    
-    /* getting target options */
-    auto &TargetOpts = CI->getTargetOpts();
-    
-    /* setting triple again */
-    TargetOpts.Triple = platformTriple;
     
     /* creating clang instance */
     CompilerInstance Clang;
