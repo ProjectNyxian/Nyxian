@@ -31,7 +31,7 @@ class Coordinator: NSObject, TextViewDelegate {
     private(set) var isInvalidated: Bool = false
     private(set) var needsAnotherProcess: Bool = false
 
-    private var debounce: LDEDebouncer?
+    private(set) var debounce: LDEDebouncer?
     private(set) var diag: [Synitem] = []
     private let vtkey: [(String,UIColor)] = [
         ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),

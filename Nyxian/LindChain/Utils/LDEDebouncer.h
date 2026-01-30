@@ -31,6 +31,7 @@
 
 - (void)setTarget:(id)target withSelector:(SEL)selector;
 - (void)debounce;
+- (void)invalidate;
 
 @end
 

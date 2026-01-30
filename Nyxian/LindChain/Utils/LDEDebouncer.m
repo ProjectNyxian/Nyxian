@@ -68,10 +68,7 @@
 - (void)debounce
 {
     /* cancel any pending block */
-    if(self.block)
-    {
-        dispatch_block_cancel(self.block);
-    }
+    [self invalidate];
     
     /* create a fresh block */
     __weak typeof(self) weakSelf = self;
@@ -96,6 +93,15 @@
     
     /* schedule it */
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.delay * NSEC_PER_SEC)), self.queue, self.block);
+}
+
+- (void)invalidate
+{
+    /* cancel any pending block */
+    if(self.block)
+    {
+        dispatch_block_cancel(self.block);
+    }
 }
 
 @end
