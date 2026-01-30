@@ -38,8 +38,8 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             ("Kill", .processKill),
             ("Spawn", .processSpawn),
             ("Spawn (Signed Only)", .processSpawnSignedOnly),
-            ("Spawn (Inherite Entitlements)", .processElevate),
-            ("Elevate", .processKill)
+            ("Spawn (Inherite Entitlements)", .processSpawnInheriteEntitlements),
+            ("Elevate", .processElevate)
         ]),
         ("Host:pc", [
             ("Host Manager", .hostManager),
@@ -58,7 +58,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             ("Manager", .trustCacheManager)
         ]),*/
         ("Misc:ellipsis", [
-            ("Platform", .enforceDeviceSpoof),
+            ("Platform", .platform),
             //("Enforce Device Spoof", .enforceDeviceSpoof),
             //("DYLD Hide LiveProcess", .dyldHideLiveProcess)
         ])
