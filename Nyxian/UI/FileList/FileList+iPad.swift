@@ -149,7 +149,7 @@ class SplitScreenDetailViewController: UIViewController {
                 oldValue.synpushServer?.releaseMemory()
             }
             
-            /* setting to new SynpushServer */
+            /* setting to new view controller */
             childVCMaster = newValue
             
             /* reevaluing SynpushServer */
