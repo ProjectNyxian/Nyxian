@@ -143,7 +143,7 @@
   "news": [
     {
       "title": "Nyxian for jailbroken devices is coming...",
-      "identifier": "news_8ckhxfh372",
+      "identifier": "news_jailbreak_soon",
       "caption": "For Rootless and later Rootful!",
       "date": "2026-01-17T14:56:00Z",
       "tintColor": "#66cfcb",
@@ -153,7 +153,7 @@
     },
     {
       "title": "Nyxian 0.8 released!",
-      "identifier": "news_8ckhxfh372",
+      "identifier": "news_release_0.8",
       "caption": "Kate (Pre-Beta)",
       "date": "2025-12-12T20:16:49Z",
       "tintColor": "#6156e2",
@@ -163,7 +163,7 @@
     },
     {
       "title": "Nyxian 0.7 released!",
-      "identifier": "news_ks7so80lmx",
+      "identifier": "news_release_0.7",
       "caption": "Vendetta (Indev)",
       "date": "2025-11-28T17:25:02Z",
       "tintColor": "#be99e4",
@@ -173,7 +173,7 @@
     },
     {
       "title": "Nyxian 0.6 released!",
-      "identifier": "news_wesu0cbrsb",
+      "identifier": "news_release_0.6",
       "caption": "CottonCandy (Indev)",
       "date": "2025-09-06T21:25:55Z",
       "tintColor": "#ff82a4",
