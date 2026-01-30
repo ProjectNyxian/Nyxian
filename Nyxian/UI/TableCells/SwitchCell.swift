@@ -58,11 +58,19 @@ class SwitchTableCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
+    private func applyTheme() {
         self.toggle?.onTintColor = currentTheme?.appLabel
         self.toggle?.thumbTintColor = currentTheme?.appTableCell
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyTheme()
+    }
+    
+    override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
+        applyTheme()
     }
     
     @objc private func toggleValueChanged(_ sender: UISwitch) {
