@@ -390,6 +390,8 @@ class CodeEditorViewController: UIViewController {
             try? self.textView.text.write(to: URL(fileURLWithPath: self.path), atomically: true, encoding: .utf8)
         }
         
+        showSaveAnimation()
+        
         guard let project = self.project,
               let database = self.database,
               let _ = self.synpushServer,
@@ -397,7 +399,6 @@ class CodeEditorViewController: UIViewController {
         
         database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
         database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
-        showSaveAnimation()
     }
     
     private func showSaveAnimation() {
