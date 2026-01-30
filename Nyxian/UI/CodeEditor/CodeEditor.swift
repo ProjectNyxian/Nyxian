@@ -406,7 +406,7 @@ class CodeEditorViewController: UIViewController {
             
             let originalColor = layer.borderColor ?? UIColor.clear.cgColor
             
-            let flashColor = UIColor.white.cgColor
+            let flashColor = UIColor.label.cgColor
             
             let animation = CABasicAnimation(keyPath: "borderColor")
             animation.fromValue = flashColor
