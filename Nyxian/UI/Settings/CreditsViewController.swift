@@ -102,7 +102,6 @@ class CreditsViewController: UIThemedTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section != 1 { return }
         let credit = credits[indexPath.row]
         if let url = URL(string: credit.githubURL) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
