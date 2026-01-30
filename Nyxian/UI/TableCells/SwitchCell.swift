@@ -73,6 +73,15 @@ class SwitchTableCell: UITableViewCell {
         applyTheme()
     }
     
+    override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+        if newSuperview == nil {
+            NotificationCenter.default.removeObserver(self)
+        } else {
+            NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
+        }
+    }
+    
     @objc private func toggleValueChanged(_ sender: UISwitch) {
         self.value = sender.isOn
         self.callback(self.value)
@@ -81,5 +90,9 @@ class SwitchTableCell: UITableViewCell {
     @objc private func toggleChanged(_ sender: UISwitch) {
         UserDefaults.standard.set(sender.isOn, forKey: key)
         callback(sender.isOn)
+    }
+    
+    @objc func handleMyNotification(_ notification: Notification) {
+        applyTheme()
     }
 }
