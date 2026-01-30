@@ -405,7 +405,6 @@ class CodeEditorViewController: UIViewController {
             let layer = view.layer
             
             let originalColor = layer.borderColor ?? UIColor.clear.cgColor
-            layer.borderWidth = 2
             
             let flashColor = UIColor.white.cgColor
             
