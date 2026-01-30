@@ -119,6 +119,7 @@ class SplitScreenDetailViewController: UIViewController {
     let project: NXProject
     
     var lock: NSLock = NSLock()
+    var childVCMasterConstraints: [NSLayoutConstraint]?
     var childVCMaster: UIViewController?
     var childVC: UIViewController? {
         get {
@@ -142,20 +143,27 @@ class SplitScreenDetailViewController: UIViewController {
                 })
             }
             
-            /* releasing memory of previous SynpushServer */
+            // releasing memory of previous SynpushServer
             if let oldValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController,
                let coordinator: Coordinator = oldValue.coordinator {
                 coordinator.debounce?.invalidate()
                 oldValue.synpushServer?.releaseMemory()
             }
             
-            /* setting to new view controller */
+            // trying to get old constraints
+            if let oldConstraints = self.childVCMasterConstraints {
+                NSLayoutConstraint.deactivate(oldConstraints)
+            }
+            
+            // setting to new view controller
             childVCMaster = newValue
             
-            /* reevaluing SynpushServer */
-            if let newValue: CodeEditorViewController = newValue as? CodeEditorViewController,
-               let coordinator: Coordinator = newValue.coordinator {
+            // reevaluing SynpushServer
+            if let newValue: CodeEditorViewController = newValue as? CodeEditorViewController {
+                newValue.textView.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 0)
+                if let coordinator: Coordinator = newValue.coordinator {
                     coordinator.textViewDidChange(newValue.textView)
+                }
             }
             
             if let vc = newValue {
@@ -173,23 +181,31 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
                     vc.view.layer.masksToBounds = true
                     
-                    NSLayoutConstraint.activate([
+                    let constraints = [
                         vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                         vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
                         vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
                         vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-                    ])
+                    ]
+                    
+                    NSLayoutConstraint.activate(constraints)
+                    
+                    self.childVCMasterConstraints = constraints
                 } else {
                     /*
                      * on iOS prior 26 we wont do anything
                      * floating cuz its not designed for it
                      */
-                    NSLayoutConstraint.activate([
+                    let constraints = [
                         vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                         vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
                         vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
                         vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
-                    ])
+                    ]
+                    
+                    NSLayoutConstraint.activate(constraints)
+                    
+                    self.childVCMasterConstraints = constraints
                 }
                 
                 UIView.animate(withDuration: 0.3) {
