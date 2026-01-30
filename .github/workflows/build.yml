@@ -29,8 +29,12 @@ jobs:
           brew install dpkg
           brew install libarchive
 
-          # We need TheOS for TrollHelper
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
+          while true; do
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+            rc=$?
+            [ "$rc" -eq 0 ] && break
+          done
 
           # Setting TheOS stuff up
           echo "THEOS=~/theos" >> $GITHUB_ENV
