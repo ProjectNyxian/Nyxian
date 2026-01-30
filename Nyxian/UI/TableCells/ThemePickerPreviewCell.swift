@@ -118,6 +118,7 @@ extension ThemePickerPreviewCell {
         textView.insertionPointColor = theme.textColor
         textView.selectionBarColor = theme.textColor
         textView.selectionHighlightColor = theme.textColor.withAlphaComponent(0.2)
+        textView.showLineNumbers = !textView.showLineNumbers /* hacky fix for the bug where font size doesnt update */
         textView.showLineNumbers = booleanDefaults(key: "LDEShowLineNumbers", defaultValue: true)
         textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)
         textView.isLineWrappingEnabled = booleanDefaults(key: "LDEWrapLines", defaultValue: true)
