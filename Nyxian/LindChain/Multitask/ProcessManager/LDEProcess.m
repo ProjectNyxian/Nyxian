@@ -424,4 +424,9 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     });
 }
 
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
+}
+
 @end

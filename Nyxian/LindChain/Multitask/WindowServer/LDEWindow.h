@@ -64,6 +64,8 @@ typedef int wid_t;
 - (void)changeWindowToRect:(CGRect)rect completion:(void (^)(BOOL))completion;
 - (void)changeWindowToRect:(CGRect)rect;
 
+- (void)endLiveResize;
+
 @end
 
 #endif /* LDEWINDOW_H */

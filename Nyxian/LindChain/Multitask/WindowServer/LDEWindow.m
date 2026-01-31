@@ -568,12 +568,6 @@
     [_session windowChangesSizeToRect:frame];
 }
 
-- (void)viewDidDisappear:(BOOL)animated
-{
-    [super viewDidDisappear:animated];
-    [self endLiveResize];
-}
-
 - (void)endLiveResize
 {
     [self.resizeDisplayLink invalidate];
@@ -621,6 +615,11 @@
     
     // Fixes that the color doesnt change when the user changes to dark/light mode
     self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+}
+
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
 }
 
 @end

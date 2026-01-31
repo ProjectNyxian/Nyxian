@@ -22,4 +22,9 @@
     return self;
 }
 
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
+}
+
 @end

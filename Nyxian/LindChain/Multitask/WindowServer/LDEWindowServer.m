@@ -238,6 +238,7 @@ static const NSInteger kTagShineView = 7777;
         if(window != nil)
         {
             [window closeWindow];
+            [window endLiveResize];
             [self.windows removeObjectForKey:@(identifier)];
             [self.windowOrder removeObject:@(identifier)];
         }
@@ -1101,6 +1102,7 @@ static const NSInteger kTagShineView = 7777;
     {
         self.activeWindow = nil;
     }
+    [window endLiveResize];
     [self.windows removeObjectForKey:@(window.identifier)];
     [self.windowOrder removeObject:@(window.identifier)];
 }

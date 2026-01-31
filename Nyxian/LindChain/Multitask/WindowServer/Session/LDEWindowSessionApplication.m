@@ -284,6 +284,11 @@ void UIKitFixesInit(void)
     }
 }
 
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
+}
+
 @end
 
 void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *bundleIdentifier)
