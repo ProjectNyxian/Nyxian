@@ -24,6 +24,9 @@
 
 @interface LDEWindowBar : UIView
 
+@property (nonatomic,strong) UIButton *closeButton;
+@property (nonatomic,strong) UIButton *maximizeButton;
+
 - (instancetype)initWithTitle:(NSString*)title withCloseCallback:(void (^)(void))closeCallback withMaximizeCallback:(void (^)(void))maximizeCallback;
 
 @end

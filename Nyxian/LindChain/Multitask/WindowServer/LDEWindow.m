@@ -380,7 +380,11 @@
             self.view.layer.shadowOpacity = 1.0;
             self.resizeHandle.hidden = NO;
         } completion:^(BOOL finished){
-            [self resizeActionEnd];
+            if(finished)
+            {
+                [self resizeActionEnd];
+                self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
+            }
         }];
     } else
     {
@@ -400,7 +404,11 @@
             self.view.layer.shadowOpacity = 0;
             self.resizeHandle.hidden = YES;
         } completion:^(BOOL finished){
-            [self resizeActionEnd];
+            if(finished)
+            {
+                [self resizeActionEnd];
+                self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
+            }
         }];
     }
 }

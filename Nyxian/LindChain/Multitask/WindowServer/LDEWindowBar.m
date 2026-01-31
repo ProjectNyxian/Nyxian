@@ -21,8 +21,6 @@
 
 @implementation LDEWindowBar {
     UIView *_bottomBorder;
-    UIButton *_closeButton;
-    UIButton *_maximizeButton;
 }
 
 - (instancetype)initWithTitle:(NSString*)title
