@@ -32,7 +32,7 @@
     self.backgroundCircle.lineCap = kCALineCapButt;
     
     self.progressLayer = [[CAShapeLayer alloc] init];
-    self.progressLayer.strokeColor = UIColor.whiteColor.CGColor;
+    self.progressLayer.strokeColor = [[UIView appearance] tintColor].CGColor;
     self.progressLayer.fillColor = UIColor.clearColor.CGColor;
     self.progressLayer.lineWidth = 2;
     self.progressLayer.strokeEnd = 0;
@@ -106,6 +106,13 @@
     self.progressLayer.strokeEnd = 0.0;
     [CATransaction commit];
     self.progress = 0.0;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+{
+    [super traitCollectionDidChange:previousTraitCollection];
+    self.backgroundCircle.strokeColor = [[UITableViewCell appearance] backgroundColor].CGColor;
+    self.progressLayer.strokeColor = [[UIView appearance] tintColor].CGColor;
 }
 
 @end

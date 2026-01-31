@@ -408,8 +408,6 @@ class SplitScreenDetailViewController: UIViewController {
         
         for tab in tabs {
             let targetColor: UIColor = (tab == selectedTab) ? selectedColor : unselectedColor
-            let targetAlpha: CGFloat = (tab == selectedTab) ? 1.0 : 0.0
-            
             UIView.animate(withDuration: 0.25) {
                 tab.backgroundColor = targetColor
             }
