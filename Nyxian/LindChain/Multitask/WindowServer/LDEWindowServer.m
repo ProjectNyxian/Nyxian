@@ -1113,22 +1113,28 @@ static const NSInteger kTagShineView = 7777;
 - (CGRect)userDoesChangeWindow:(LDEWindow*)window
                         toRect:(CGRect)rect
 {
+    /* getting parameters */
     UIEdgeInsets insets = self.safeAreaInsets;
     CGRect bounds = self.bounds;
     
-    CGRect allowed = CGRectMake(
-        (bounds.origin.x + insets.left) - (rect.size.width / 1.2),
-        bounds.origin.y + insets.top,
-        (bounds.size.width - insets.left - insets.right) + ((rect.size.width / 1.2) * 2),
-        (bounds.size.height - insets.top - insets.bottom) + (rect.size.height - 50)
-    );
+    /* calculating fullscreen rectangle */
+    CGRect allowed = UIEdgeInsetsInsetRect(bounds, insets);
+    allowed.size.height += insets.bottom;
     
+    /* checking if maximised */
     if(window.isMaximized)
     {
-        allowed.size.height = bounds.size.height - insets.top;
         return allowed;
     }
+    else
+    {
+        /* fixing non maximised constraints */
+        allowed.origin.x -= (rect.size.width - 50);
+        allowed.size.width += ((rect.size.width * 2) - 100);
+        allowed.size.height += (rect.size.height - 50);
+    }
     
+    /* a lot of math */
     if(rect.size.width > allowed.size.width)
     {
         rect.size.width = allowed.size.width;
