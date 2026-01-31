@@ -421,6 +421,13 @@ class SplitScreenDetailViewController: UIViewController {
             childButton.closeAction(childButton)
         }
     }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if let vc = childVCMaster {
+            vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
+        }
+    }
 }
 
 class UIButtonTab: UIButton {
