@@ -31,19 +31,24 @@
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
 @implementation RBSTarget(hook)
-+ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
-    if([environmentIdentifier containsString:@"LiveProcess"]) {
+
++ (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier
+{
+    if([environmentIdentifier containsString:@"LiveProcess"])
+    {
         environmentIdentifier = [NSString stringWithFormat:@"LiveProcess:%d", pid];
     }
     return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
 }
+
 @end
 
 __attribute__((constructor))
 void UIKitFixesInit(void)
 {
-    // Fix physical keyboard focus on iOS 17+
-    if(@available(iOS 17.0, *)) {
+    /* fix physical keyboard focus on iOS 17+ */
+    if(@available(iOS 17.0, *))
+    {
         method_exchangeImplementations(class_getClassMethod(RBSTarget.class, @selector(targetWithPid:environmentIdentifier:)), class_getClassMethod(RBSTarget.class, @selector(hook_targetWithPid:environmentIdentifier:)));
     }
 }
@@ -94,10 +99,12 @@ void UIKitFixesInit(void)
         return NO;
     }
     
+    /* ready to show the presenter :3 */
     [self.view addSubview:self.presenter.presentationView];
     self.view.layer.anchorPoint = CGPointMake(0, 0);
     self.view.layer.position = CGPointMake(0, 0);
     
+    /* registering to window */
     [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
     return YES;
@@ -106,12 +113,20 @@ void UIKitFixesInit(void)
 - (void)closeWindowWithScene:(UIWindowScene*)windowScene
                    withFrame:(CGRect)rect;
 {
+    /* checking for bundle identifier presence */
     if(_process.bundleIdentifier != nil)
     {
+        /* if so then we store the last rect ever into this database */
         runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:rect];
     }
+    
+    /* invalidate presenter */
     [_presenter invalidate];
+    
+    /* unregistering scene lol */
     [windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
+    
+    /* terminating process so it stops eating our cores x3 */
     [_process terminate];
 }
 
@@ -123,36 +138,28 @@ void UIKitFixesInit(void)
 
 - (void)activateWindow
 {
-    // Set to foreground
+    /* set presenter to foreground */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.foreground = YES;
     }];
     
+    /* re-activate presenter */
     [self.presenter activate];
-    // Do it like on iOS, remove time window if applicable
+    
+    /* invalidate background enforcement timer if applicable */
     if(self.backgroundEnforcementTimer)
     {
         [self.backgroundEnforcementTimer invalidate];
         self.backgroundEnforcementTimer = nil;
     }
     
-    /*ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_NONE);
-
-    // Checking error
-    if(error != kSurfaceErrorSuccess)
-    {
-        // Terminate if its not succeeded
-        [self.process terminate];
-        return;
-    }*/
-    
-    // Resume if applicable
+    /* resume process */
     [self.process resume];
 }
 
 - (void)deactivateWindow
 {
-    // Set to background
+    /* set presenter to background */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.foreground = NO;
     }];
@@ -162,25 +169,13 @@ void UIKitFixesInit(void)
     [self.process sendSignal:SIGUSR1];
 #endif /* !JAILBREAK_ENV */
     
+    /* deactivate the presenter */
     [self.presenter deactivate];
     
     // Do it like on iOS, give application time window for background tasks
-    // TODO: Simulate darwinbg with wakeups and stuff in a certain time frame if the original app registered for it such as push notifications, etc
     self.backgroundEnforcementTimer = [NSTimer scheduledTimerWithTimeInterval:15.0 repeats:NO block:^(NSTimer *sender){
         if(!self.backgroundEnforcementTimer) return;
-        if([self.process suspend])
-        {
-            // On iOS a app that gets suspended gets TASK_DARWINBG_APPLICATION assigned as task role
-            //ksurface_error_t error = proc_edit_task_role_for_pid(self.process.pid, TASK_DARWINBG_APPLICATION);
- 
-            // Checking error
-            /*if(error != kSurfaceErrorSuccess)
-            {
-                // Terminate if its not succeeded
-                [self.process terminate];
-                return;
-            }*/
-        }
+        [self.process suspend];
     }];
 }
 
@@ -236,7 +231,6 @@ void UIKitFixesInit(void)
 {
     if(![self.process.processHandle isValid])
     {
-        //[self terminationCleanUp];
         return;
     }
     else if(self.process.isSuspended || !diff)
@@ -267,50 +261,14 @@ void UIKitFixesInit(void)
     [self windowChangesSizeToRect:self.windowSize];
 }
 
-- (void)encodeWithCoder:(nonnull NSCoder *)coder
-{
-}
-
-- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection
-{
-}
-
-- (void)preferredContentSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container
-{
-}
-
 - (CGSize)sizeForChildContentContainer:(nonnull id<UIContentContainer>)container withParentContainerSize:(CGSize)parentSize
 {
     return CGSizeZero;
 }
 
-- (void)systemLayoutFittingSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container
-{
-}
-
-- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator
-{
-}
-
-- (void)willTransitionToTraitCollection:(nonnull UITraitCollection *)newCollection withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator
-{
-}
-
-- (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator
-{
-}
-
-- (void)setNeedsFocusUpdate
-{
-}
-
 - (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context
 {
     return NO;
-}
-
-- (void)updateFocusIfNeeded
-{
 }
 
 - (CGRect)windowRect
