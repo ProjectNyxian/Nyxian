@@ -432,6 +432,7 @@
             [self focusWindow];
             CGPoint pointInWindow = [gesture locationInView:self.view];
             self.grabOffset = pointInWindow;
+            [self resizeActionStart];
             break;
         }
         case UIGestureRecognizerStateChanged:
@@ -447,6 +448,7 @@
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed:
             [self updateOriginalFrame];
+            [self resizeActionEnd];
         default:
             break;
     }
