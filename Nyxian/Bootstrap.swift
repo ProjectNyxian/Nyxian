@@ -26,7 +26,7 @@ import Foundation
 #else
     let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
-    let newestBootstrapVersion: Int = 9
+    let newestBootstrapVersion: Int = 10
     
     // Paths that we for sure do not need
     let bootstrapDeletionIfFoundPaths: [String] = [
@@ -117,66 +117,78 @@ import Foundation
                 
                 if !self.isBootstrapInstalled ||
                     self.bootstrapVersion != self.newestBootstrapVersion {
-                
+                    
                     // "e need to clear the entire path if its not installed
                     if !self.isBootstrapInstalled {
                         print("[*] Bootstrap is not installed, clearing")
                         self.clearPath(path: "/")
                     }
-                
+                    
                     if self.bootstrapVersion < 1 {
                         // Creating bootstrap base
                         print("[*] Creating folder structures")
-                    
+                        
                         // We need include to put clangs includations into
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Include"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/SDK"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
-                    
+                        
                         self.bootstrapVersion = 1
                     }
-                
+                    
                     if self.bootstrapVersion < 5 {
                         print("[*] creating bootstrap cache")
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Cache"), withIntermediateDirectories: false)
                         self.bootstrapVersion = 5
                     }
-                
+                    
                     if self.bootstrapVersion < 7 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
                             print("[*] removing deprecated sdk")
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
                         }
-                    
+                        
                         print("[*] downloading sdk")
-                    
+                        
                         if !fdownload("https://nyxian.app/bootstrap/sdk26.1.zip", "sdk.zip") {
                             print("[*] sdk download failed")
                             throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
                         }
-                    
+                        
                         print("[*] extracting sdk.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
                         self.bootstrapVersion = 8
                     }
-                
+                    
                     if self.bootstrapVersion < 9 {
 #if !JAILBREAK_ENV
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
                         }
-                    
+                        
                         print("[*] bootstrapping clang includes")
-                    
+                        
                         if !fdownload("https://nyxian.app/bootstrap/include.zip", "include.zip") {
                             print("[*] Bootstrap download failed\n")
                             throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
                         }
-                    
+                        
                         print("[*] extracting include.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
 #endif // !JAILBREAK_ENV
                         self.bootstrapVersion = 9
+                    }
+                    
+                    if self.bootstrapVersion < 10 {
+                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/lib")) {
+                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/lib"))
+                        }
+                        
+                        print("[*] bootstrapping libraries")
+                        
+                        unzipArchiveAtPath("\(Bundle.main.bundlePath)/Shared/lib.zip", self.bootstrapPath("/"))
+                        
+                        self.bootstrapVersion = 10
                     }
                 }
                 

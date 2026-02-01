@@ -40,10 +40,16 @@
 {
     const int maxThreads = LDEGetOptimalThreadCount();
     int pthreads = (int)[self readIntegerForKey:@"LDEOverwriteThreads" withDefaultValue:LDEGetUserSetThreadCount()];
+    
     if(pthreads == 0)
+    {
         pthreads = LDEGetUserSetThreadCount();
+    }
     else if(pthreads > maxThreads)
+    {
         pthreads = maxThreads;
+    }
+    
     return pthreads;
 }
 
@@ -91,7 +97,7 @@
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
-        [@"-L" stringByAppendingString:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/lib"].path]
+        [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
     ]];
     
     return flags;

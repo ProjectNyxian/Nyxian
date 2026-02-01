@@ -1,6 +1,6 @@
 # Configuration
 NXNAME := Nyxian
-NXVERSION := 0.8.4
+NXVERSION := 0.8.5
 NXBUNDLE := com.cr4zy.nyxian
 
 # Targets

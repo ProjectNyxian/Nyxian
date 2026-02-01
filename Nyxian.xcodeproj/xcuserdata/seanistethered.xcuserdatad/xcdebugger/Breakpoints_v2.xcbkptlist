@@ -7,48 +7,48 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "0D553E11-EB42-428F-A485-CEA32BAF5A0A"
+            uuid = "03B6ACBD-6886-44D5-A451-C6BC20E83DF1"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/Multitask/WindowServer/LDEWindow.m"
+            filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "573"
-            endingLineNumber = "573"
-            landmarkName = "-endLiveResize"
+            startingLineNumber = "251"
+            endingLineNumber = "251"
+            landmarkName = "-_performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "3E456DCB-F6FA-4EB7-A354-2398EC6950B5"
+            uuid = "9D32CB43-95EC-418D-AE46-42E16AD6EF05"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/Multitask/WindowServer/LDEWindowServer.m"
+            filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "232"
-            endingLineNumber = "232"
-            landmarkName = "-closeWindowWithIdentifier:"
+            startingLineNumber = "253"
+            endingLineNumber = "253"
+            landmarkName = "-_performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "E1C280B6-BC02-466C-BE31-DDF74E225DBE"
+            uuid = "48FD0FD2-EB9F-4AEC-864F-0C1EBEBC9F87"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Nyxian/LindChain/Multitask/WindowServer/LDEWindowServer.m"
+            filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "239"
-            endingLineNumber = "239"
-            landmarkName = "-closeWindowWithIdentifier:"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
+            landmarkName = "-_performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
