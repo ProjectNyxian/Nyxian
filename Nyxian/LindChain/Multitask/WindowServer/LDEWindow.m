@@ -538,11 +538,6 @@
     }];
 }
 
-- (void)changeWindowToRect:(CGRect)rect
-{
-    [self changeWindowToRect:rect completion:nil];
-}
-
 /*
  * Resize Handling
  *
@@ -572,6 +567,7 @@
 {
     [self.resizeDisplayLink invalidate];
     self.resizeDisplayLink = nil;
+    self.resizeEndDebounceTimer = nil;
 }
 
 - (void)resizeActionStart

@@ -1171,7 +1171,7 @@ static const NSInteger kTagShineView = 7777;
             LDEWindow *window = self.windows[key];
             if(window != nil)
             {
-                [window changeWindowToRect:[self window:window wantsToChangeToRect:window.view.frame]];
+                [window changeWindowToRect:[self window:window wantsToChangeToRect:window.view.frame] completion:nil];
             }
         }
     });
