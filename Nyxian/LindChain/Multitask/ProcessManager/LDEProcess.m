@@ -39,10 +39,14 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 @implementation LDEProcess
 
 #if !JAILBREAK_ENV
-
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc
+#else
+- (instancetype)initWithBundleID:(NSString*)bundleID
+#endif /* !JAILBREAK_ENV */
 {
     self = [super init];
+ 
+#if !JAILBREAK_ENV
     
     NSMutableDictionary *mutableItems = [items mutableCopy];
     mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
@@ -74,9 +78,47 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     NSExtensionItem *item = [NSExtensionItem new];
     item.userInfo = items;
     
+#else
+    
+    LSApplicationProxy *bundleProxy = nil;
+    NSArray<LSApplicationProxy*> *array = LSApplicationWorkspace.defaultWorkspace.allInstalledApplications;
+    for(LSApplicationProxy *proxy in array)
+    {
+        if([proxy.bundleIdentifier isEqualToString:bundleID])
+        {
+            bundleProxy = proxy;
+            break;
+        }
+    }
+    
+    if(bundleProxy == nil)
+    {
+        return nil;
+    }
+    
+    self.bundleIdentifier = bundleID;
+    self.displayName = bundleProxy.localizedName;
+    
+    RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:bundleID];
+    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];
+    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+    
+    FBApplicationProcessLaunchTransaction *transaction = [[PrivClass(FBApplicationProcessLaunchTransaction) alloc] initWithProcessIdentity:identity executionContextProvider:^id(void){
+        FBMutableProcessExecutionContext *context = [PrivClass(FBMutableProcessExecutionContext) new];
+        context.identity = identity;
+        context.environment = @{};
+        context.launchIntent = 4;
+        return [manager launchProcessWithContext:context];
+    }];
+    
+#endif /* !JAILBREAK_ENV */
+    
     __weak typeof(self) weakSelf = self;
     
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+#if !JAILBREAK_ENV
+    
     [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
         if(identifier)
         {
@@ -86,7 +128,21 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
             weakSelf.identifier = identifier;
             weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
-            weakSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
+            
+#else
+            
+    [transaction setCompletionBlock:^{
+        if(weakSelf != nil)
+        {
+            __strong typeof(weakSelf) innerSelf = weakSelf;
+        
+            self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", bundleID, @"default"];
+            RBSProcessHandle* processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:nil];
+            self.pid = processHandle.pid;
+            
+#endif /* !JAILBREAK_ENV */
+            
+            innerSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
                 if(weakSelf == nil) return;
                 __strong typeof(weakSelf) innerSelf = weakSelf;
                 
@@ -97,6 +153,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                     // Remove Once
                     dispatch_once(&innerSelf->_removeOnce, ^{
                         
+#if !JAILBREAK_ENV
                         klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
                         ksurface_error_t error = proc_exit(innerSelf.proc);
                         if(error != kSurfaceErrorSuccess && error != kSurfaceErrorProcessDead)
@@ -107,6 +164,11 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         if(innerSelf.exitingCallback) innerSelf.exitingCallback();
                         [innerSelf.processMonitor invalidate];
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
+#else
+                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
+                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
+#endif /* !JAILBREAK_ENV */
+                        
                     });
                 }
                 else
@@ -180,6 +242,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             innerSelf.scene.delegate = innerSelf;
                         });
                         
+#if !JAILBREAK_ENV
                         // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
                         // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
                         ksurface_proc_t *child = proc_fork(proc, weakSelf.pid, [weakSelf.executablePath UTF8String]);
@@ -193,16 +256,26 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             weakSelf.proc = child;
                         }
                         klog_log(@"LDEProcess", @"forked process @ %p of process @ %p", child, proc);
+#endif /* !JAILBREAK_ENV */
                     });
                 }
             }];
         }
         dispatch_semaphore_signal(sema);
     }];
+            
+#if JAILBREAK_ENV
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [transaction begin];
+    });
+#endif /* JAILBREAK_ENV*/
+
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     return self;
 }
+
+#if !JAILBREAK_ENV
 
 - (instancetype)initWithPath:(NSString*)binaryPath
                withArguments:(NSArray *)arguments
@@ -224,147 +297,6 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     }
     
     self = [self initWithItems:[dictionary copy] withKernelSurfaceProcess:proc];
-    
-    return self;
-}
-
-#else
-
-- (instancetype)initWithBundleID:(NSString*)bundleID
-{
-    self = [super init];
-    
-    LSApplicationProxy *bundleProxy = nil;
-    NSArray<LSApplicationProxy*> *array = LSApplicationWorkspace.defaultWorkspace.allInstalledApplications;
-    for(LSApplicationProxy *proxy in array)
-    {
-        if([proxy.bundleIdentifier isEqualToString:bundleID])
-        {
-            bundleProxy = proxy;
-            break;
-        }
-    }
-    
-    if(bundleProxy == nil)
-    {
-        return nil;
-    }
-    
-    self.bundleIdentifier = bundleID;
-    self.displayName = bundleProxy.localizedName;
-    
-    RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:bundleID];
-    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];
-    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-    
-    FBApplicationProcessLaunchTransaction *transaction = [[PrivClass(FBApplicationProcessLaunchTransaction) alloc] initWithProcessIdentity:identity executionContextProvider:^id(void){
-        FBMutableProcessExecutionContext *context = [PrivClass(FBMutableProcessExecutionContext) new];
-        context.identity = identity;
-        context.environment = @{};
-        context.launchIntent = 4;
-        return [manager launchProcessWithContext:context];
-    }];
-    
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [transaction setCompletionBlock:^{
-        self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", bundleID, @"default"];
-        
-        RBSProcessHandle* processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:nil];
-        self.pid = processHandle.pid;
-        
-        self.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
-            // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
-            NSArray<RBSProcessState *> *states = [monitor states];
-            if([states count] == 0)
-            {
-                // Remove Once
-                dispatch_once(&self->_removeOnce, ^{
-                    if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
-                    [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
-                });
-            }
-            else
-            {
-                // Initilize once
-                dispatch_once(&self->_addOnce, ^{
-                    dispatch_sync(dispatch_get_main_queue(), ^{
-                        // Setting process handle directly from process monitor
-                        self.processHandle = handle;
-                        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-                        // At this point, the process is spawned and we're ready to create a scene to render in our app
-                        [manager registerProcessForAuditToken:self.processHandle.auditToken];
-                        self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
-                        
-                        FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-                        definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
-                        
-                        @try {
-                            if (!self.processHandle || !self.processHandle.identity) {
-                                @throw [NSException exceptionWithName:@"InvalidProcessIdentity"
-                                                               reason:@"Process handle or identity is nil"
-                                                             userInfo:nil];
-                            }
-                            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
-                        } @catch (NSException *exception) {
-                            klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", weakSelf.pid, exception.reason);
-                            [self terminate];
-                            return;
-                        }
-                        
-                        definition.specification = [UIApplicationSceneSpecification specification];
-                        FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
-                        
-                        UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
-                        settings.canShowAlerts = YES;
-                        settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
-                        settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
-                        settings.foreground = YES;
-                        
-                        settings.deviceOrientation = UIDevice.currentDevice.orientation;
-                        settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-                        
-                        CGRect rect = CGRectMake(50, 50, 400, 400);
-                        if(self.bundleIdentifier != nil)
-                        {
-                            NSValue *value = runtimeStoredRectValuesByBundleIdentifier[self.bundleIdentifier];
-                            if(value != nil)
-                            {
-                                rect = [value CGRectValue];
-                            }
-                        }
-                        settings.frame = rect;
-                        
-                        //settings.interruptionPolicy = 2; // reconnect
-                        settings.level = 1;
-                        settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
-                        
-                        // it seems some apps don't honor these settings so we don't cover the top of the app
-                        settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                        settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
-                        
-                        settings.statusBarDisabled = YES;
-                        parameters.settings = settings;
-                        
-                        UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
-                        clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
-                        clientSettings.statusBarStyle = 0;
-                        parameters.clientSettings = clientSettings;
-                        
-                        self.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
-                        self.scene.delegate = self;
-                    });
-                });
-            }
-        }];
-        
-        dispatch_semaphore_signal(sema);
-    }];
-    
-    /* make sure running this on the main thread */
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [transaction begin];
-    });
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     return self;
 }
@@ -428,6 +360,8 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     });
 }
 
+#if !JAILBREAK_ENV
+        
 - (void)dealloc
 {
     if(_proc != NULL)
@@ -436,5 +370,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     }
     NSLog(@"deallocated %@", self);
 }
+        
+#endif /* !JAILBREAK_ENV */
 
 @end
