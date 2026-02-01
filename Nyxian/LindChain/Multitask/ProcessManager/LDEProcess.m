@@ -81,52 +81,56 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
         if(identifier)
         {
             if(weakSelf == nil) return;
-            __typeof(self) strongSelf = weakSelf;
+            __strong typeof(weakSelf) innerSelf = weakSelf;
             
             weakSelf.identifier = identifier;
             weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
             weakSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
+                if(weakSelf == nil) return;
+                __strong typeof(weakSelf) innerSelf = weakSelf;
+                
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];
                 if([states count] == 0)
                 {
                     // Remove Once
-                    dispatch_once(&strongSelf->_removeOnce, ^{
-                        klog_log(@"LDEProcess", @"pid %d died", strongSelf.pid);
-                        ksurface_error_t error = proc_exit(strongSelf.proc);
+                    dispatch_once(&innerSelf->_removeOnce, ^{
+                        
+                        klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
+                        ksurface_error_t error = proc_exit(innerSelf.proc);
                         if(error != kSurfaceErrorSuccess && error != kSurfaceErrorProcessDead)
                         {
-                            klog_log(@"LDEProcess", @"failed to remove pid %d", strongSelf.pid);
+                            klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                         }
-                        proc_release(strongSelf.proc);
-                        if(strongSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.wid];
-                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:strongSelf.pid];
-                        if(strongSelf.exitingCallback) strongSelf.exitingCallback();
+                        if(innerSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.wid];
+                        if(innerSelf.exitingCallback) innerSelf.exitingCallback();
+                        [innerSelf.processMonitor invalidate];
+                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
                     });
                 }
                 else
                 {
                     // Initilize once
-                    dispatch_once(&strongSelf->_addOnce, ^{
+                    dispatch_once(&innerSelf->_addOnce, ^{
                         dispatch_sync(dispatch_get_main_queue(), ^{
                             // Setting process handle directly from process monitor
                             weakSelf.processHandle = handle;
                             FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
                             // At this point, the process is spawned and we're ready to create a scene to render in our app
-                            [manager registerProcessForAuditToken:self.processHandle.auditToken];
-                            self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
+                            [manager registerProcessForAuditToken:innerSelf.processHandle.auditToken];
+                            innerSelf.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
                             
                             FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-                            definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
+                            definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:innerSelf.sceneID];
                             
                             @try {
-                                if (!self.processHandle || !self.processHandle.identity) {
+                                if (!innerSelf.processHandle || !innerSelf.processHandle.identity) {
                                     @throw [NSException exceptionWithName:@"InvalidProcessIdentity"
                                                                    reason:@"Process handle or identity is nil"
                                                                  userInfo:nil];
                                 }
-                                definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:self.processHandle.identity];
+                                definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
                             } @catch (NSException *exception) {
                                 klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", weakSelf.pid, exception.reason);
                                 [weakSelf terminate];
@@ -146,9 +150,9 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
                             
                             CGRect rect = CGRectMake(50, 50, 400, 400);
-                            if(self.bundleIdentifier != nil)
+                            if(innerSelf.bundleIdentifier != nil)
                             {
-                                NSValue *value = runtimeStoredRectValuesByBundleIdentifier[self.bundleIdentifier];
+                                NSValue *value = runtimeStoredRectValuesByBundleIdentifier[innerSelf.bundleIdentifier];
                                 if(value != nil)
                                 {
                                     rect = [value CGRectValue];
@@ -172,8 +176,8 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             clientSettings.statusBarStyle = 0;
                             parameters.clientSettings = clientSettings;
                             
-                            self.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
-                            self.scene.delegate = self;
+                            innerSelf.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
+                            innerSelf.scene.delegate = innerSelf;
                         });
                         
                         // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
@@ -426,6 +430,10 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 
 - (void)dealloc
 {
+    if(_proc != NULL)
+    {
+        proc_release(_proc);
+    }
     NSLog(@"deallocated %@", self);
 }
 
