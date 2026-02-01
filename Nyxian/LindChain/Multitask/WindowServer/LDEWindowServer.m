@@ -189,16 +189,10 @@ static const NSInteger kTagShineView = 7777;
             window.identifier = windowIdentifier;
             if(window)
             {
-                LDEWindow *window = [[LDEWindow alloc] initWithSession:session withDelegate:self];
-                window.identifier = windowIdentifier;
-                
-                if(window)
-                {
-                    weakSelf.windows[@(windowIdentifier)] = window;
-                    [self userDidFocusWindow:window];
-                    [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
-                    [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
-                }
+                weakSelf.windows[@(windowIdentifier)] = window;
+                [self userDidFocusWindow:window];
+                [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
+                [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
             }
             else
             {
