@@ -190,7 +190,7 @@ static const NSInteger kTagShineView = 7777;
             if(window)
             {
                 weakSelf.windows[@(windowIdentifier)] = window;
-                [self userDidFocusWindow:window];
+                [self windowWantsToFocus:window];
                 [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
                 [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
             }
@@ -1080,7 +1080,7 @@ static const NSInteger kTagShineView = 7777;
     return YES;
 }
 
-- (void)userDidFocusWindow:(LDEWindow *)window
+- (void)windowWantsToFocus:(LDEWindow *)window
 {
     if(_activeWindow != nil &&
        _activeWindow != window)
@@ -1090,7 +1090,7 @@ static const NSInteger kTagShineView = 7777;
     _activeWindow = window;
 }
 
-- (void)userDidCloseWindow:(LDEWindow *)window
+- (void)windowWantsToClose:(LDEWindow *)window
 {
     if(self.activeWindow == window)
     {
@@ -1101,13 +1101,12 @@ static const NSInteger kTagShineView = 7777;
     [self.windowOrder removeObject:@(window.identifier)];
 }
 
-- (void)userDidMinimizeWindow:(LDEWindow*)window
+- (void)windowWantsToMinimize:(LDEWindow *)window
 {
     _activeWindowIdentifier = (wid_t)-1;
 }
 
-- (CGRect)userDoesChangeWindow:(LDEWindow*)window
-                        toRect:(CGRect)rect
+- (CGRect)window:(LDEWindow*)window wantsToChangeToRect:(CGRect)rect
 {
     /* getting parameters */
     UIEdgeInsets insets = self.safeAreaInsets;
@@ -1172,7 +1171,7 @@ static const NSInteger kTagShineView = 7777;
             LDEWindow *window = self.windows[key];
             if(window != nil)
             {
-                [window changeWindowToRect:[self userDoesChangeWindow:window toRect:window.view.frame]];
+                [window changeWindowToRect:[self window:window wantsToChangeToRect:window.view.frame]];
             }
         }
     });

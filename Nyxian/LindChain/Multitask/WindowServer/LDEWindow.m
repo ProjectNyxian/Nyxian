@@ -51,7 +51,7 @@
     _windowName = session.windowName;
     _delegate = delegate;
     
-    [self setupDecoratedView:[_delegate userDoesChangeWindow:self toRect:[_session windowRect]]];
+    [self setupDecoratedView:[_delegate window:self wantsToChangeToRect:[_session windowRect]]];
     
     if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
@@ -88,7 +88,7 @@
     } completion:^(BOOL finished) {
         self.view.transform = CGAffineTransformIdentity;
         [self.session closeWindowWithScene:self.delegate.windowScene withFrame:self.originalFrame];
-        [self.delegate userDidCloseWindow:self];
+        [self.delegate windowWantsToClose:self];
     }];
 }
 
@@ -140,7 +140,7 @@
                     windowView.alpha = 1.0;
                     [windowView removeFromSuperview];
                     [self.session deactivateWindow];
-                    [self.delegate userDidMinimizeWindow:self];
+                    [self.delegate windowWantsToMinimize:self];
                 }];
             }
             else
@@ -244,7 +244,7 @@
     } completion:^(BOOL finished) {
         [self->_focusView removeFromSuperview];
         self->_focusView = nil;
-        [self.delegate userDidFocusWindow:self];
+        [self.delegate windowWantsToFocus:self];
     }];
 }
 
@@ -366,7 +366,7 @@
     {
         self.isMaximized = NO;
         self.session.windowIsFullscreen = NO;
-        CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:self.originalFrame];
+        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
         CGRect newNavigationBar = self.windowBar.frame;
         newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -390,7 +390,7 @@
     {
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
-        CGRect newFrame = [self.delegate userDoesChangeWindow:self toRect:CGRectZero];
+        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
         CGRect newNavigationBar = self.windowBar.frame;
         newNavigationBar.size.width = newFrame.size.width;
         [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -440,7 +440,7 @@
             CGRect frame = self.view.frame;
             frame.origin.x = finger.x - self.grabOffset.x;
             frame.origin.y = finger.y - self.grabOffset.y;
-            frame = [self.delegate userDoesChangeWindow:self toRect:frame];
+            frame = [self.delegate window:self wantsToChangeToRect:frame];
             self.view.frame = frame;
             break;
         }
@@ -482,7 +482,7 @@
             proposed.size.width = MAX(300, newWidth);
             proposed.size.height = MAX(200, newHeight);
             
-            CGRect corrected = [self.delegate userDoesChangeWindow:self toRect:proposed];
+            CGRect corrected = [self.delegate window:self wantsToChangeToRect:proposed];
             BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
             BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
             

@@ -31,10 +31,11 @@ typedef int wid_t;
 
 @property (nonatomic) UIWindowScene *windowScene;
 
-- (void)userDidCloseWindow:(LDEWindow*)window;
-- (void)userDidFocusWindow:(LDEWindow*)window;
-- (CGRect)userDoesChangeWindow:(LDEWindow*)window toRect:(CGRect)rect;
-- (void)userDidMinimizeWindow:(LDEWindow*)window;
+- (void)windowWantsToClose:(LDEWindow*)window;
+- (void)windowWantsToFocus:(LDEWindow*)window;
+- (void)windowWantsToMinimize:(LDEWindow*)window;
+
+- (CGRect)window:(LDEWindow*)window wantsToChangeToRect:(CGRect)rect;
 
 @end
 
