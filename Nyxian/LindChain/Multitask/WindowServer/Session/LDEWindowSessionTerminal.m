@@ -60,11 +60,20 @@
     __weak typeof(self) weakSelf = self;
     
     __block int stdoutFD = stdoutPipe[1];
+    __block int stdinFD = stdinPipe[0];
     _process.exitingCallback = ^{
         if(weakSelf == nil) return;
         __strong typeof(weakSelf) innerSelf = weakSelf;
         
+        /* printing process exit */
         dprintf(stdoutFD, "\n\r[process exited]\n\r");
+        
+        /* getting input */
+        char buf[1];
+        read(stdinFD, &buf, 1);
+        
+        /* closing on input */
+        [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
         
         innerSelf.process = nil;
     };
