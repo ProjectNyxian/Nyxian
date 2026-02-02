@@ -60,14 +60,6 @@ static NSDictionary *retrievedAppInfo;
 }
 @end
 
-void handoffOutput(int fd)
-{
-    dup2(fd, STDOUT_FILENO);
-    dup2(fd, STDERR_FILENO);
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-}
-
 extern char **environ;
 void clear_environment(void)
 {

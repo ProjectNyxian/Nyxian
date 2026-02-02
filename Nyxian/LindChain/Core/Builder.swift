@@ -273,11 +273,14 @@ class Builder {
                     throw nsError
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
+                MachOObject(path: self.project.machoPath).signAndWriteBack()
+                
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
                         if let entHash: String = LDETrust.entHashOfExecutable(atPath: path) {
                             TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                         }
+                        
                         let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
                         LDEWindowServer.shared().openWindow(withSession: TerminalSession, identifier: nil)
                     }
