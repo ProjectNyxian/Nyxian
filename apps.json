@@ -40,6 +40,24 @@
       },
       "versions": [
         {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.5/nyxian.ipa",
+          "size": 87483385,
+          "version": "0.8.5",
+          "buildVersion": "20260202.58",
+          "date": "2026-02-02T19:06:47Z",
+          "localizedDescription": "## Changelog\r\n### Jailed\r\n#### Nyxian\r\n- fixed many objc object leaks (213308cbd7dfd06988c3062bb33b172c5175581d, 1f62e02604a65b13e34b829bfe41376253451b2f, c84a64d75bd40aafd435666a12bc61ecd9230c89, 1e589de103b363d9d06e1382427b08877c6d316f)\r\n- fixed many issues with utility development (f2f06fccfe4fef1b469fd2f9c8be7522befa002c, 314f8140739fb72901575e2e1a3be6fb6f8e6359, af34bd4de370ddc1efcf52d49340e1d7cb01b8b4, 648cadc1c17caa187ed071fae83f4731ebe72c52)\r\n- fixed some iOS panic issues(iommu panic) with utility development (8747b8e0574080964840e3cd39b65239addc7c9f)\r\n- fixed nyxian installation on many sideloading services (cf31de8aa9d1d5f42ab7d99bf331ebf6b70e8117)",
+          "minOSVersion": "16.0"
+        },
+        {
+          "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.4/nyxian.ipa",
+          "size": 87486290,
+          "version": "0.8.4",
+          "buildVersion": "20260131.32",
+          "date": "2026-01-31T22:52:20Z",
+          "localizedDescription": "## Changelog\r\n### Jailed\r\n#### Nyxian\r\n- fixed deprecation warnings in code editor disappearing (979fd8cf302fffb2d2981497a81a5a4e07069f09)\r\n- fixed availability checks (to fix it in already existing projects append `-lclang.rt.ios` to the linker flags) (1947b21a9ae0475ea8674e99a8dcc49b2a4fa701)\r\n- improved memory management in typechecking engine, or better said fixing a bug in the preexisting memory management fixup (9b41a360d11907063c2c2641fa9ff9b751bb6a4d)\r\n- removed this ugly button from menubar (ebe74a1bb7d724cbd8dbf7dbc9f6f7dd73f2695a)\r\n- made file tabs easier to navigate (cb558b4fc8b956d2f34ae3c6e037a86e7466f762)\r\n- improved virtual keyboard handling (46e8e04e647c66013fa6d51998572227e77ce590)\r\n- fixed file tab bar for iOS 18 and below (f0f6b72274f541c7d55218d9a7d7a3dcbec50925)\r\n- fixing bugs in file tab removal (316ae024e798eb43c45db4f30617b49f1e85babe)\r\n- adding file saving animation\r\n- fixing incorrect entitlement mappings in menus (d46306cd162987b2c430f153d2b7625632763279)\r\n- fixing credits links not working (5b349cba5e0b8340817ffde719b7a0d712ccd34b)\r\n- fixing toggles turning white after reopening nyxian from app switcher (74abc717a489b378884d20ef619caaa7d61da8e9, 1cbb887139f4ee7051fc1a73b6640ec0f5c67b05)\r\n- fixing font size not changing preview (e057697d07f0c46fd22c643355e8eb1f9c75a696)\r\n- fixing window constraints math (71cf7dcce8d3b672fdce1bf58a1f36320834ddc7)\r\n- fixing scrollbar of guest app not applying to screen bounds (e75c63b566dbdacdf9af110fd030cdcf4457615d) (only partial fix)\r\n- fixing appearance issues (6c5fac84e8dc9ad655cb342880b18d8bcf8c868a, 36a2523a55469367c6ec7b672d4f6c9ffbcb2c5e)\r\n#### Kernel Virtualization Layer (ksurface)\r\n- improved syscall server syscall registration (5da26b973c8a434ef2d74b0f0ff2cd57c8b42aec)\r\n- improved syscall logging, aka unified it (b75f8b6c8696cc8e24c2f26775e2cc3c6dfc6b0f)",
+          "minOSVersion": "16.0"
+        },
+        {
           "downloadURL": "https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.3/nyxian.ipa",
           "size": 87397280,
           "version": "0.8.3",
