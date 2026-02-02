@@ -30,7 +30,7 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 <a href="https://celloserenity.github.io/altdirect/?url=https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
 </a>
-<a href="https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.3/nyxian.ipa" target="_blank">
+<a href="https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.5/nyxian.ipa" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
 </a>
 
