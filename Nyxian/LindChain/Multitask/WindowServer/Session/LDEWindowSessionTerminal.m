@@ -57,9 +57,16 @@
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
     
+    __weak typeof(self) weakSelf = self;
+    
     __block int stdoutFD = stdoutPipe[1];
     _process.exitingCallback = ^{
+        if(weakSelf == nil) return;
+        __strong typeof(weakSelf) innerSelf = weakSelf;
+        
         dprintf(stdoutFD, "\n\r[process exited]\n\r");
+        
+        innerSelf.process = nil;
     };
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
