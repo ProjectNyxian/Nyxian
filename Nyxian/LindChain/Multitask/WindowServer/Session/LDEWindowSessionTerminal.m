@@ -24,6 +24,7 @@
 @interface LDEWindowSessionTerminal ()
 
 @property (nonatomic,strong) NyxianTerminal *terminal;
+@property (nonatomic) int stdinFD;
 
 @end
 
@@ -49,6 +50,8 @@
     pipe(stdoutPipe);
     pipe(stdinPipe);
     
+    self.stdinFD = stdinPipe[1];
+    
     FDMapObject *mapObject = [FDMapObject emptyMap];
     [mapObject insertStdPipe:stdoutPipe StdErrPipe:stdoutPipe StdInPipe:stdinPipe];
     LDEProcess *process = nil;
@@ -58,7 +61,6 @@
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
     
     __weak typeof(self) weakSelf = self;
-    
     __block int stdoutFD = stdoutPipe[1];
     __block int stdinFD = stdinPipe[0];
     _process.exitingCallback = ^{
@@ -107,6 +109,8 @@
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
     [_process terminate];
+    uint8_t null = 0;
+    write(self.stdinFD, &null, sizeof(uint8_t));
 }
 
 - (void)activateWindow
