@@ -44,24 +44,23 @@
       withSessionIdentifier:(int)identifier
 {
     int stdoutPipe[2];
-    int stderrPipe[2];
     int stdinPipe[2];
     
     pipe(stdoutPipe);
-    pipe(stderrPipe);
     pipe(stdinPipe);
     
     FDMapObject *mapObject = [FDMapObject emptyMap];
-    [mapObject insertStdPipe:stdoutPipe StdErrPipe:stderrPipe StdInPipe:stdinPipe];
+    [mapObject insertStdPipe:stdoutPipe StdErrPipe:stdoutPipe StdInPipe:stdinPipe];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process];
     _process = process;
-    _process.wid = identifier;
-    
-    close(stderrPipe[0]);
-    close(stderrPipe[1]);
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
+    
+    __block int stdoutFD = stdoutPipe[1];
+    _process.exitingCallback = ^{
+        dprintf(stdoutFD, "\n\r[process exited]\n\r");
+    };
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
