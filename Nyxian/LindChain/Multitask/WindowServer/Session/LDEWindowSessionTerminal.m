@@ -115,19 +115,21 @@
     [self focusWindow];
 }
 
-
 - (void)deactivateWindow
 {
     [_process suspend];
     [self unfocusWindow];
 }
 
-
 - (UIImage *)snapshotWindow
 {
-    return nil;
+    UIGraphicsBeginImageContextWithOptions(_terminal.bounds.size, NO, 0.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    [_terminal.layer renderInContext:context];
+    UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return snapshot;
 }
-
 
 - (void)windowChangesSizeToRect:(CGRect)rect
 {
