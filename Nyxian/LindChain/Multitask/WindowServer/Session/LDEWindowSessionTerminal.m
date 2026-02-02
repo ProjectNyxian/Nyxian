@@ -67,6 +67,9 @@
         if(weakSelf == nil) return;
         __strong typeof(weakSelf) innerSelf = weakSelf;
         
+        /* early nullification */
+        innerSelf.process = nil;
+        
         /* printing process exit */
         dprintf(stdoutFD, "\n\r[process exited]\n\r");
         
@@ -76,8 +79,6 @@
         
         /* closing on input */
         [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
-        
-        innerSelf.process = nil;
     };
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
