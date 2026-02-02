@@ -116,8 +116,14 @@
     _widthConstraint.constant = rect.size.width;
 }
 
-- (CGRect)windowRect {
+- (CGRect)windowRect
+{
     return CGRectMake(50, 50, 400, 400);
+}
+
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
 }
 
 @end

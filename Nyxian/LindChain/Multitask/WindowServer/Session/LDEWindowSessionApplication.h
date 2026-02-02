@@ -27,7 +27,7 @@
 @interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction>
 
 @property (nonatomic) UIView* contentView;
-@property (nonatomic, weak) LDEProcess *process;
+@property (nonatomic, strong) LDEProcess *process;
 @property (nonatomic) _UIScenePresenter *presenter;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
 @property (nonatomic) CGRect windowSize;

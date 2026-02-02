@@ -53,24 +53,6 @@
     
     [self setupDecoratedView:[_delegate window:self wantsToChangeToRect:[_session windowRect]]];
     
-    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-    {
-        UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-        UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-        maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
-        self.maximizeButton = [[UIBarButtonItem alloc] initWithImage:maximizeImage style:UIBarButtonItemStylePlain target:self action:@selector(maximizeButtonPressed)];
-        self.maximizeButton.tintColor = [UIColor systemGreenColor];
-        
-        UIImage *closeImage = [UIImage systemImageNamed:@"xmark.circle.fill"];
-        UIImageConfiguration *closeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-        closeImage = [closeImage imageWithConfiguration:closeConfig];
-        UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithImage:closeImage style:UIBarButtonItemStylePlain target:self action:@selector(closeWindow)];
-        closeButton.tintColor = [UIColor systemRedColor];
-        
-        NSArray *barButtonItems = @[closeButton, self.maximizeButton];
-        self.navigationItem.leftBarButtonItems = barButtonItems;
-    }
-    
     return self;
 }
 
@@ -166,8 +148,6 @@
         if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
         {
             [self maximizeWindow:NO];
-            UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
-            [self.windowBar addGestureRecognizer:pullDownGesture];
         }
         else
         {
@@ -296,27 +276,26 @@
         [windowBar.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor],
         [windowBar.trailingAnchor constraintEqualToAnchor:self.contentStack.trailingAnchor],
     ]];
+    
     self.windowBar = windowBar;
     
-    CGRect contentFrame = CGRectMake(0, 0,
-                                     self.contentStack.frame.size.width,
-                                     self.contentStack.frame.size.height);
-    
+    CGRect contentFrame = CGRectMake(0, 0, self.contentStack.frame.size.width, self.contentStack.frame.size.height);
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
-    fixedPositionContentView.autoresizingMask =
-    UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    fixedPositionContentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     [self.contentStack addArrangedSubview:fixedPositionContentView];
     [self.contentStack sendSubviewToBack:fixedPositionContentView];
     
-    if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
     {
+        /* this is to move the window obviously */
         UIPanGestureRecognizer *moveGesture =
         [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
         moveGesture.minimumNumberOfTouches = 1;
         moveGesture.maximumNumberOfTouches = 1;
         [self.windowBar addGestureRecognizer:moveGesture];
         
+        /* this is to full screen the window by double tap */
         UITapGestureRecognizer *fullScreenGesture =
         [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(maximizeButtonPressed)];
         fullScreenGesture.numberOfTapsRequired = 2;
@@ -328,16 +307,23 @@
         
         moveGesture.delegate = self;
         fullScreenGesture.delegate = self;
+        
+        /* and this is to resize a window lol */
+        UIPanGestureRecognizer *resizeGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
+        resizeGesture.minimumNumberOfTouches = 1;
+        resizeGesture.maximumNumberOfTouches = 1;
+        
+        self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.contentStack.frame.size.width - 44, self.contentStack.frame.size.height - 44, 44, 44)];
+        [self.resizeHandle addGestureRecognizer:resizeGesture];
+        [self.contentStack addSubview:self.resizeHandle];
     }
-    
-    UIPanGestureRecognizer *resizeGesture =
-    [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
-    resizeGesture.minimumNumberOfTouches = 1;
-    resizeGesture.maximumNumberOfTouches = 1;
-    
-    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.contentStack.frame.size.width - 44, self.contentStack.frame.size.height - 44, 44, 44)];
-    [self.resizeHandle addGestureRecognizer:resizeGesture];
-    [self.contentStack addSubview:self.resizeHandle];
+    else
+    {
+        /* this is to close the app on iPhone lol */
+        UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
+        [self.windowBar addGestureRecognizer:pullDownGesture];
+    }
     
     self.contentStack.layer.borderWidth = 0.5;
     self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
@@ -563,11 +549,29 @@
     [_session windowChangesSizeToRect:frame];
 }
 
-- (void)endLiveResize
+- (void)deinit
 {
-    [self.resizeDisplayLink invalidate];
-    self.resizeDisplayLink = nil;
-    self.resizeEndDebounceTimer = nil;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        /* ending live resizing */
+        if(self.resizeEndDebounceTimer != nil)
+        {
+            [self.resizeEndDebounceTimer invalidate];
+            self.resizeEndDebounceTimer = nil;
+        }
+        
+        if(self.resizeDisplayLink != nil)
+        {
+            [self.resizeDisplayLink invalidate];
+            self.resizeDisplayLink = nil;
+        }
+        
+        /* destroying focus view */
+        if(self.focusView != nil)
+        {
+            [self->_focusView removeFromSuperview];
+            self->_focusView = nil;
+        }
+    });
 }
 
 - (void)resizeActionStart
