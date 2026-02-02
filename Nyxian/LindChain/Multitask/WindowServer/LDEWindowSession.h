@@ -33,6 +33,8 @@
 - (UIImage*)snapshotWindow;
 - (void)activateWindow;
 - (void)deactivateWindow;
+- (void)focusWindow;
+- (void)unfocusWindow;
 - (void)windowChangesSizeToRect:(CGRect)rect;
 - (CGRect)windowRect;
 

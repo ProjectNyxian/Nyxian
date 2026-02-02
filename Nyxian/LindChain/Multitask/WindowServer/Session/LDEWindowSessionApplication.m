@@ -284,6 +284,14 @@ void UIKitFixesInit(void)
     }
 }
 
+- (void)focusWindow
+{
+}
+
+- (void)unfocusWindow
+{
+}
+
 - (void)dealloc
 {
     NSLog(@"deallocated %@", self);

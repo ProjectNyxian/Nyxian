@@ -96,11 +96,15 @@
 
 - (void)activateWindow
 {
+    [_process resume];
+    [self focusWindow];
 }
 
 
 - (void)deactivateWindow
 {
+    [_process suspend];
+    [self unfocusWindow];
 }
 
 
@@ -119,6 +123,16 @@
 - (CGRect)windowRect
 {
     return CGRectMake(50, 50, 400, 400);
+}
+
+- (void)focusWindow
+{
+    BOOL succeeded __attribute__((unused)) = [self.terminal becomeFirstResponder];
+}
+
+- (void)unfocusWindow
+{
+    BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
 }
 
 - (void)dealloc
