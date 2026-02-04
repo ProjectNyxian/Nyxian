@@ -60,5 +60,5 @@ NSString *IGottaNeedTheActualJBRootMate(void)
         }
     });
     
-    return root;
+    return (root == nil) ? @"/" : root;
 }

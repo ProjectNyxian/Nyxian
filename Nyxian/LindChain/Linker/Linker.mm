@@ -88,12 +88,25 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
     
     return result.retCode;
 #else
-    NSString *command = [NSString stringWithFormat:@"ld64.lld %@", [flags componentsJoinedByString:@" "]];
+    NSString *command = NULL;
+    if(@available(iOS 15.0, *))
+    {
+        command = [NSString stringWithFormat:@"ld64.lld %@", [flags componentsJoinedByString:@" "]];
+    }
+    else
+    {
+        /*
+         * on rootful jailbreaks its usually ld64 and not ld64.lld
+         * needs to be improved anyways.
+         */
+        command = [NSString stringWithFormat:@"ld64 %@", [flags componentsJoinedByString:@" "]];
+    }
     
     /* Todo: add a way to retrieve the error string to process it */
-    return shell(command, 501, NULL, NULL);
-    
-    return -1;
+    NSString *error = NULL;
+    int ret = shell(command, 501, NULL, &error);
+    self.error = error;
+    return ret;
 #endif /* !JAILBREAK_ENV*/
 }
 

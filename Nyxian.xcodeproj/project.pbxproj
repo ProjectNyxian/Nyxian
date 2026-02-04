@@ -207,7 +207,6 @@
 				LindChain/ProcEnvironment/Server/ServerSession.m,
 				LindChain/ProcEnvironment/Server/Trust.m,
 				LindChain/ProcEnvironment/Surface/entitlement.m,
-				LindChain/ProcEnvironment/Surface/extra/relax.c,
 				LindChain/ProcEnvironment/Surface/permit.m,
 				LindChain/ProcEnvironment/Surface/proc/copy.m,
 				LindChain/ProcEnvironment/Surface/proc/create.m,

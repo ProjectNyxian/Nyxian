@@ -25,6 +25,7 @@
 #import <LindChain/Private/UIKitPrivate.h>
 
 /* LindChain Core Headers */
+#import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Compiler/Compiler.h>

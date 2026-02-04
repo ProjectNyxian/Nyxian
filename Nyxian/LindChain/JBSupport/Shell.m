@@ -91,9 +91,20 @@ static int runCommand(NSString *command,
     createArgv(command, args, &argc, &argv);
     
     NSString *jbroot = IGottaNeedTheActualJBRootMate();
+    NSString *path;
+    
+    if([jbroot isEqualToString:@"/"])
+    {
+        /* rootful */
+        path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games"];
+    } else
+    {
+        /* rootless */
+        path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot];
+    }
+    
     NSArray *baseEnv = @[
-        [NSString stringWithFormat:
-        @"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot],
+        path,
         [NSString stringWithFormat:@"HOME=%@", NSHomeDirectory()],
         [NSString stringWithFormat:@"TMPDIR=%@", NSTemporaryDirectory()]
     ];
@@ -176,6 +187,6 @@ cleanup:
 
 int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
 {
-    return runCommand(@"/usr/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[], output);
+    return runCommand(@"/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[], output);
 }
 

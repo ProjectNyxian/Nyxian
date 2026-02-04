@@ -231,7 +231,7 @@ class Builder {
     }
     
     func link() throws {
-        let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() + self.project.projectConfig.linkerFlags as! [String] + [
+        let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() as! [String] + [
             "-o",
             self.project.machoPath
         ] + objectFiles
@@ -318,16 +318,19 @@ class Builder {
             if #available(iOS 16.0, *) {
                 
                 // avoid lsapplication workspace if user wants it so
-                if let avoidLSAWObj: NSNumber = UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber {
-                    if !avoidLSAWObj.boolValue {
-                        LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
-                        return
+                if let avoidLSAWObj: NSNumber = UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber,
+                   !avoidLSAWObj.boolValue {
+                    while(!LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)) {
+                        relax()
                     }
+                    return
                 }
                 
                 LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
             } else {
-                LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
+                while(!LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)) {
+                    relax()
+                }
             }
         }
 #endif // !JAILBREAK_ENV

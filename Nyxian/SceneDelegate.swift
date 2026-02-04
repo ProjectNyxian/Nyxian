@@ -30,10 +30,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         
 #if JAILBREAK_ENV
         // jailbroken check
-        if(shell("whoami", 0, nil, nil) != 0) {
+        let ret = shell("whoami", 0, nil, nil)
+        if(ret != 0) {
             // creating exception view, instead of silently crashing
             let label: UILabel = UILabel()
-            label.text = "Either incorrectly entitled or not supported bootstrap"
+            label.text = "Either incorrectly entitled or not supported bootstrap\n\njbroot: \(IGottaNeedTheActualJBRootMate() ?? "Unknown")\ntest exec ret: \(ret)"
             label.frame = window?.bounds ?? UIScreen.main.bounds
             label.numberOfLines = 0
             label.textAlignment = .center
