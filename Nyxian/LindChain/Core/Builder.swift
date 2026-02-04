@@ -314,10 +314,12 @@ class Builder {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
             
-            // opening app
-            //LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
-            
-            LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
+            /* opening app on iOS 16.x and above in our app it self */
+            if #available(iOS 16.0, *) {
+                LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
+            } else {
+                LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
+            }
         }
 #endif // !JAILBREAK_ENV
     }
