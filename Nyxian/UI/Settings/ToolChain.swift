@@ -31,18 +31,19 @@ class ToolChainController: UIThemedTableViewController {
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
+        #if !JAILBREAK_ENV
         return 2
+        #else // !JAILBREAK_ENV
+        if #available(iOS 16.0, *) {
+            return 3
+        } else {
+            return 2
+        }
+        #endif
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            return 1
-        case 1:
-            return 1
-        default:
-            return 0
-        }
+        return 1
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -51,6 +52,8 @@ class ToolChainController: UIThemedTableViewController {
             return "An incremental build compiles only the parts of the code that have changed, reducing build times by avoiding a full rebuild of the entire project."
         case 1:
             return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
+        case 2:
+            return "This feature allows apps to be opened inside of nyxian instead of invoking the LSApplicationWorkspace API."
         default:
             return nil
         }
@@ -76,6 +79,8 @@ class ToolChainController: UIThemedTableViewController {
             let optimCpuCount: Int = (Int)(LDEGetOptimalThreadCount())
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
+        case 2:
+            cell = SwitchTableCell(title: "Open app inside Nyxian", key: "LDEOpenAppInsideNyxian", defaultValue: true)
         default:
             cell = UITableViewCell()
         }

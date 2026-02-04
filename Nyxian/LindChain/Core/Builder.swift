@@ -314,8 +314,17 @@ class Builder {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
             
-            /* opening app on iOS 16.x and above in our app it self */
+            // opening app on iOS 16.x and above in our app it self in case user wants it so
             if #available(iOS 16.0, *) {
+                
+                // avoid lsapplication workspace if user wants it so
+                if let avoidLSAWObj: NSNumber = UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber {
+                    if !avoidLSAWObj.boolValue {
+                        LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
+                        return
+                    }
+                }
+                
                 LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
             } else {
                 LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)
