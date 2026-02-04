@@ -66,7 +66,7 @@ compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/JBSupport/libroot.
 		CODE_SIGNING_ALLOWED=NO
 
 pseudo-sign:
-	ldid -Sent/debug.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
+	ldid -Sent/nyxianforjb.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
 	ldid -Sent/tshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
 
 package:
@@ -78,7 +78,7 @@ package-deb:
 	cp -r  build/Nyxian.xcarchive/Products/Applications .package$(JB_PATH)/Applications
 	find . -type f -name ".DS_Store" -delete
 	mkdir -p .package/DEBIAN
-	echo "Package: $(NXBUNDLE)\nName: $(NXNAME)\nVersion: $(NXVERSION)\nArchitecture: $(ARCH)\nDescription: Full fledged Xcode-like IDE for iOS\nDepends: clang, lld\nIcon: https://raw.githubusercontent.com/fridakitten/FridaCodeManager/main/Blueprint/FridaCodeManager.app/AppIcon.png\nMaintainer: cr4zyengineer\nAuthor: cr4zyengineer\nSection: Utilities\nTag: role::hacker" > .package/DEBIAN/control
+	echo "Package: $(NXBUNDLE)\nName: $(NXNAME)\nVersion: $(NXVERSION)\nArchitecture: $(ARCH)\nDescription: Full fledged Xcode-like IDE for iOS\nDepends: clang, lld\nIcon: https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/preview.png\nMaintainer: cr4zyengineer\nAuthor: cr4zyengineer\nSection: Utilities\nTag: role::hacker" > .package/DEBIAN/control
 	dpkg-deb -b .package nyxian_$(NXVERSION)_$(ARCH).deb
 
 install:

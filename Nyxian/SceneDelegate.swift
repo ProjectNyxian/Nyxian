@@ -31,7 +31,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
 #if JAILBREAK_ENV
         // jailbroken check
         if(shell("whoami", 0, nil, nil) != 0) {
-            exit(0)
+            // creating exception view, instead of silently crashing
+            let label: UILabel = UILabel()
+            label.text = "Either incorrectly entitled or not supported bootstrap"
+            label.frame = window?.bounds ?? UIScreen.main.bounds
+            label.numberOfLines = 0
+            label.textAlignment = .center
+            window?.addSubview(label)
+            window?.makeKeyAndVisible()
+            window?.bringSubviewToFront(label)
+            return
         }
 #endif // JAILBREAK_ENV
         

@@ -14,8 +14,8 @@
             filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "84"
-            endingLineNumber = "84"
+            startingLineNumber = "69"
+            endingLineNumber = "69"
             landmarkName = "-initWithProcess:"
             landmarkType = "7">
          </BreakpointContent>
@@ -30,9 +30,9 @@
             filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "90"
-            endingLineNumber = "90"
-            landmarkName = "-openWindowWithScene:withSessionIdentifier:"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
+            landmarkName = "-initWithProcess:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -46,10 +46,24 @@
             filePath = "Nyxian/LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "117"
-            endingLineNumber = "117"
-            landmarkName = "-closeWindowWithScene:withFrame:"
+            startingLineNumber = "102"
+            endingLineNumber = "102"
+            landmarkName = "-openWindowWithScene:withSessionIdentifier:"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5D4D1392-4AE7-45BD-9E3A-F2C353BD943A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Nyxian/Main.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "123"
+            endingLineNumber = "123">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
