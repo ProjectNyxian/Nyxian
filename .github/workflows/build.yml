@@ -57,6 +57,13 @@ jobs:
           # Build the project (roothide)
           make roothide
 
+      - name: Build Rootful
+        run: |
+          set -e
+
+          # Build the project (roothide)
+          make rootful
+
       - name: Upload Jailed
         uses: actions/upload-artifact@v4
         with:
@@ -74,4 +81,10 @@ jobs:
         with:
           name: nyxian_0.8.5_iphoneos-arm64e.deb
           path: nyxian_0.8.5_iphoneos-arm64e.deb
+
+      - name: Upload Rootful
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyxian_0.8.5_iphoneos-arm.deb
+          path: nyxian_0.8.5_iphoneos-arm.deb
 
