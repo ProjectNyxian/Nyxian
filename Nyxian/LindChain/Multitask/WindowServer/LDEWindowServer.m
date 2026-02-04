@@ -246,13 +246,19 @@ static const NSInteger kTagShineView = 7777;
 
     if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
-        if(@available(iOS 26.0, *))
+        /* iOS 16 has support for multitasking in the first place */
+        if(@available(iOS 16.0, *))
         {
-            return;
+            /* iOS 26 and above uses the tabbar button instead of gesture */
+            if(@available(iOS 26.0, *))
+            {
+                return;
+            }
+            
+            /* add the gesture */
+            UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+            [self addGestureRecognizer:gestureRecognizer];
         }
-        
-        UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-        [self addGestureRecognizer:gestureRecognizer];
     }
 }
 
