@@ -44,7 +44,9 @@ void overwriteMainCFBundle(void) {
     *mainBundleAddr = (__bridge void *)NSBundle.mainBundle._cfBundle;
 }
 
-void overwriteMainNSBundle(NSBundle *newBundle) {
+void overwriteMainNSBundle(NSBundle *newBundle,
+                           NSString *executablePath)
+{
     // Overwrite NSBundle.mainBundle
     // iOS 16: x19 is _MergedGlobals
     // iOS 17: x19 is _MergedGlobals+4
@@ -75,9 +77,11 @@ void overwriteMainNSBundle(NSBundle *newBundle) {
     
     // Overwriting the process information from previous main bundle
     NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
-    objcArgv[0] = guestMainBundle.executablePath;
+    objcArgv[0] = executablePath;
     [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
-    NSProcessInfo.processInfo.processName = guestMainBundle.infoDictionary[@"CFBundleExecutable"];
+    
+    /* using the actual executable path */
+    NSProcessInfo.processInfo.processName = [executablePath lastPathComponent];
     *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
     Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
     if(swiftNSProcessInfo) {
@@ -156,7 +160,7 @@ NSString* LCBootstrapMain(NSString *executablePath,
     
     // Getting guestMainBundle, if applicable
     // Now trying to get bundle
-    // MARK: For some very stupid reason it returns a bundle eitherway, a none null value
+    // MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be)
     guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
     
     // Setup directories
@@ -180,13 +184,10 @@ NSString* LCBootstrapMain(NSString *executablePath,
     // MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically
     overwriteExecPath(executablePath.fileSystemRepresentation);
     
-    // Overwriting guests main bundle if applicable
-    if(guestMainBundle.bundleIdentifier)
-    {
-        overwriteMainNSBundle(guestMainBundle);
-        overwriteMainCFBundle();
-    }
-    
+    // Overwriting main bundle with guests bundle
+    overwriteMainNSBundle(guestMainBundle, executablePath);
+    overwriteMainCFBundle();
+
     // Preload executable to bypass RT_NOLOAD
     appMainImageIndex = _dyld_image_count();
     void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
