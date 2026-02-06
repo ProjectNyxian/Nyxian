@@ -139,6 +139,8 @@
     
     if(self.atExit)
     {
+        self.terminal.stdinHandle = nil;
+        self.terminal.stdoutHandle = nil;
         [[LDEWindowServer shared] closeWindowWithIdentifier:self.identifier];
         return;
     }
