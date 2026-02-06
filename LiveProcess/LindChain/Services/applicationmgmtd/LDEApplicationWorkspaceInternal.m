@@ -31,6 +31,7 @@ bool checkCodeSignature(const char* path);
 @property (nonatomic,strong) NSURL *applicationsURL;
 @property (nonatomic,strong) NSURL *containersURL;
 @property (nonatomic,strong) NSURL *binaryURL;
+@property (nonatomic,strong) NSURL *homeURL;
 @property (nonatomic, strong) dispatch_queue_t workspaceQueue;
 
 @end
@@ -46,6 +47,7 @@ bool checkCodeSignature(const char* path);
     self.applicationsURL = [NSURL fileURLWithPath:[documentsDir stringByAppendingPathComponent:@"Bundle/Application"]];
     self.containersURL   = [NSURL fileURLWithPath:[documentsDir stringByAppendingPathComponent:@"Data/Application"]];
     self.binaryURL   = [NSURL fileURLWithPath:[documentsDir stringByAppendingPathComponent:@"usr/bin"]];
+    self.homeURL = [NSURL fileURLWithPath:[documentsDir stringByAppendingPathComponent:@"var/mobile"]];
     
     // Creating paths if they dont exist
     NSFileManager *fileManager = [NSFileManager defaultManager];
@@ -63,6 +65,12 @@ bool checkCodeSignature(const char* path);
     
     if(![fileManager fileExistsAtPath:self.binaryURL.path])
         [fileManager createDirectoryAtURL:self.binaryURL
+              withIntermediateDirectories:YES
+                               attributes:nil
+                                    error:nil];
+    
+    if(![fileManager fileExistsAtPath:self.homeURL.path])
+        [fileManager createDirectoryAtURL:self.homeURL
               withIntermediateDirectories:YES
                                attributes:nil
                                     error:nil];

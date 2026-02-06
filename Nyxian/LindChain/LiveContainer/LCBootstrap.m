@@ -149,6 +149,8 @@ static void *getAppEntryPoint(void *handle) {
     return (void *)header + entryoff;
 }
 
+NSString *LCHomePath;
+
 NSString* LCBootstrapMain(NSString *executablePath,
                           int argc,
                           char *argv[])
@@ -157,61 +159,70 @@ NSString* LCBootstrapMain(NSString *executablePath,
     if(executablePath == nil) return @"No executable path";
     
     // Getting home path from envp, it is okay if its not present
-    const char *home = getenv("HOME");
-    
-    // Getting guestMainBundle, if applicable
-    // Now trying to get bundle
-    // MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be)
-    guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
-    
-    // Setup directories
-    if(home)
+retry_getting_home:
     {
-        NSString *homePath = [NSString stringWithCString:home encoding:NSUTF8StringEncoding];
+        const char *home = getenv("HOME");
         
-        if(guestMainBundle.bundleIdentifier)
+        if(home == NULL)
         {
-            NSArray *dirList = @[@"Library/Caches", @"Documents", @"SystemData", @"Tmp"];
-            for (NSString *dir in dirList)
-                [[NSFileManager defaultManager] createDirectoryAtPath:[homePath stringByAppendingPathComponent:dir] withIntermediateDirectories:YES attributes:nil error:nil];
+            setenv("HOME", [[LCHomePath stringByAppendingPathComponent:@"var/mobile"] UTF8String], 1);
+            goto retry_getting_home;
         }
         
-        // Setup environment variables
-        setenv("CFFIXED_USER_HOME", homePath.UTF8String, 1);
-        setenv("TMPDIR", [[NSString stringWithFormat:@"%@/Tmp", homePath] UTF8String], 1);
+        // Getting guestMainBundle, if applicable
+        // Now trying to get bundle
+        // MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be)
+        guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
+        
+        // Setup directories
+        if(home)
+        {
+            NSString *homePath = [NSString stringWithCString:home encoding:NSUTF8StringEncoding];
+            
+            if(guestMainBundle.bundleIdentifier)
+            {
+                NSArray *dirList = @[@"Library/Caches", @"Documents", @"SystemData", @"Tmp"];
+                for (NSString *dir in dirList)
+                    [[NSFileManager defaultManager] createDirectoryAtPath:[homePath stringByAppendingPathComponent:dir] withIntermediateDirectories:YES attributes:nil error:nil];
+            }
+            
+            // Setup environment variables
+            setenv("CFFIXED_USER_HOME", homePath.UTF8String, 1);
+            setenv("TMPDIR", [[NSString stringWithFormat:@"%@/Tmp", homePath] UTF8String], 1);
+        }
+        
+        // Overwrite them better now?
+        // MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically
+        overwriteExecPath(executablePath.fileSystemRepresentation);
+        
+        // Overwriting main bundle with guests bundle
+        overwriteMainNSBundle(guestMainBundle, executablePath);
+        overwriteMainCFBundle();
+
+        // Preload executable to bypass RT_NOLOAD
+        appMainImageIndex = _dyld_image_count();
+        void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
+        appExecutableHandle = appHandle;
+        const char *dlerr = dlerror();
+        
+        if (!appHandle || (uint64_t)appHandle > 0xf00000000000) {
+            if (dlerr)
+                return @(dlerr);
+            return @"dlopen: an unknown error occurred";
+        }
+        
+        NUDGuestHooksInit();
+        SecItemGuestHooksInit();
+        NSFMGuestHooksInit();
+        UIKitGuestHooksInit();
+        initDead10ccFix();
+        DyldHooksInit();
+
+        // Find main()
+        int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
+        if (!appMain)
+            return @"Could not find the main entry point";
+
+        return [NSString stringWithFormat:@"App returned from its main function with code %d.", appMain(argc, argv)];
     }
-    
-    // Overwrite them better now?
-    // MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically
-    overwriteExecPath(executablePath.fileSystemRepresentation);
-    
-    // Overwriting main bundle with guests bundle
-    overwriteMainNSBundle(guestMainBundle, executablePath);
-    overwriteMainCFBundle();
-
-    // Preload executable to bypass RT_NOLOAD
-    appMainImageIndex = _dyld_image_count();
-    void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
-    appExecutableHandle = appHandle;
-    const char *dlerr = dlerror();
-    
-    if (!appHandle || (uint64_t)appHandle > 0xf00000000000) {
-        if (dlerr)
-            return @(dlerr);
-        return @"dlopen: an unknown error occurred";
-    }
-    
-    NUDGuestHooksInit();
-    SecItemGuestHooksInit();
-    NSFMGuestHooksInit();
-    UIKitGuestHooksInit();
-    initDead10ccFix();
-    DyldHooksInit();
-
-    // Find main()
-    int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
-    if (!appMain)
-        return @"Could not find the main entry point";
-
-    return [NSString stringWithFormat:@"App returned from its main function with code %d.", appMain(argc, argv)];
 }

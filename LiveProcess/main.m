@@ -63,7 +63,7 @@ static NSDictionary *retrievedAppInfo;
 extern char **environ;
 void clear_environment(void)
 {
-    while (environ[0] != NULL)
+    while(environ[0] != NULL)
     {
         char *eq = strchr(environ[0], '=');
         if(eq)
@@ -72,7 +72,11 @@ void clear_environment(void)
             char key[len + 1];
             strncpy(key, environ[0], len);
             key[len] = '\0';
-            unsetenv(key);
+            
+            if(unsetenv(key) != 0)
+            {
+                environ++;
+            }
         }
         else
         {
@@ -112,6 +116,8 @@ void createArgv(NSArray<NSString *> *arguments,
     (*argv)[count] = NULL;
 }
 
+extern NSString *LCHomePath;
+
 int LiveProcessMain(int argc, char *argv[]) {
     // Let NSExtensionContext initialize, once it's done it will call CFRunLoopStop
     CFRunLoopRun();
@@ -140,8 +146,9 @@ int LiveProcessMain(int argc, char *argv[]) {
         environment_client_connect_to_syscall_proxy(syscallPort);
     }
     
-    if(environmentDictionary && environmentDictionary.count > 0) overwriteEnvironmentProperties(environmentDictionary);
-    if(argumentDictionary && argumentDictionary.count > 0) createArgv(argumentDictionary, &argc, &argv);
+    LCHomePath = NSHomeDirectory();
+    if(environmentDictionary) overwriteEnvironmentProperties(environmentDictionary);
+    if(argumentDictionary) createArgv(argumentDictionary, &argc, &argv);
     
     if([mode isEqualToString:@"management"])
     {
