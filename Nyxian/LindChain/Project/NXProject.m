@@ -269,6 +269,8 @@
                     @"LDEProjectType": @(type),
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
                     @"LDELinkerFlags": @[@"-lc", @"-lclang_rt.ios"],
+                    @"LDEVersion": [[UIDevice currentDevice] systemVersion],
+                    @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion]
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
