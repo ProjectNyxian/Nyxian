@@ -194,8 +194,9 @@ retry_getting_home:
             goto retry_getting_home;
         }
         
-        /* setting CWD */
-        chdir(home);
+        /* fixing PWD */
+        setenv("PWD", home, 0);
+        chdir(getenv("PWD"));
         
         // Getting guestMainBundle, if applicable
         // Now trying to get bundle
