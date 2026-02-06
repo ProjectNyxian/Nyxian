@@ -64,21 +64,24 @@
     __block int stdoutFD = stdoutPipe[1];
     __block int stdinFD = stdinPipe[0];
     _process.exitingCallback = ^{
-        if(weakSelf == nil) return;
-        __strong typeof(weakSelf) innerSelf = weakSelf;
-        
-        /* early nullification */
-        innerSelf.process = nil;
-        
-        /* printing process exit */
-        dprintf(stdoutFD, "\n\r[process exited]\n\r");
-        
-        /* getting input */
-        char buf[1];
-        read(stdinFD, &buf, 1);
-        
-        /* closing on input */
-        [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
+        dispatch_queue_t tempQueue = dispatch_queue_create("com.windowsession.terminal.temporary", DISPATCH_QUEUE_SERIAL);
+        dispatch_async(tempQueue, ^{
+            if(weakSelf == nil) return;
+            __strong typeof(weakSelf) innerSelf = weakSelf;
+            
+            /* early nullification */
+            innerSelf.process = nil;
+            
+            /* printing process exit */
+            dprintf(stdoutFD, "\n\r[process exited]\n\r");
+            
+            /* getting input */
+            char buf[1];
+            read(stdinFD, &buf, 1);
+            
+            /* closing on input */
+            [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
+        });
     };
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
