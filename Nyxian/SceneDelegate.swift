@@ -47,7 +47,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         
         Bootstrap.shared.bootstrap()
         
-        let tabViewController: UITabBarController = UITabBarController()
+        let tabViewController: UIThemedTabViewController = UIThemedTabViewController()
         
         let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))
         let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)

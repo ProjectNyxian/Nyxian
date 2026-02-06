@@ -40,6 +40,7 @@ extension UIColor {
 
 var currentTheme: LDETheme?
 var currentNavigationBarAppearance = UINavigationBarAppearance()
+var currentTabBarAppearance = UITabBarAppearance()
 
 func RevertUI() {
     currentTheme = LDEThemeReader.shared.currentlySelectedTheme()
@@ -52,6 +53,9 @@ func RevertUI() {
         currentNavigationBarAppearance.buttonAppearance.normal.titleTextAttributes = [NSAttributedString.Key.foregroundColor: currentTheme.textColor]
         currentNavigationBarAppearance.backButtonAppearance = UIBarButtonItemAppearance()
         currentNavigationBarAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor : currentTheme.textColor]
+        
+        currentTabBarAppearance.configureWithOpaqueBackground()
+        currentTabBarAppearance.backgroundColor = currentTheme.gutterBackgroundColor
     }
     
     UITableView.appearance().backgroundColor = currentTheme.appTableView

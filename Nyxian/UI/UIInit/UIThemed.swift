@@ -21,12 +21,24 @@ import UIKit
 
 @objc class UIThemedTableViewController: UITableViewController {
     override func viewDidLoad() {
+        
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
         super.viewDidLoad()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.view.backgroundColor = currentTheme?.appTableView
+        
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
     
@@ -39,8 +51,57 @@ import UIKit
         self.view.backgroundColor = currentTheme?.appTableView
         self.tableView.backgroundColor = currentTheme?.appTableView
         
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
         for cell in tableView.visibleCells {
             cell.backgroundColor = currentTheme?.appTableCell
+        }
+    }
+}
+
+@objc class UIThemedTabViewController: UITabBarController {
+    override func viewDidLoad() {
+        
+        if #unavailable(iOS 15.0) {
+            self.tabBar.standardAppearance = currentTabBarAppearance
+            self.tabBar.barTintColor = currentTheme?.gutterBackgroundColor
+            self.tabBar.unselectedItemTintColor = currentTheme?.textColor
+            self.tabBar.isTranslucent = false
+        }
+        
+        super.viewDidLoad()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.view.backgroundColor = currentTheme?.appTableView
+        
+        if #unavailable(iOS 15.0) {
+            self.tabBar.standardAppearance = currentTabBarAppearance
+            self.tabBar.barTintColor = currentTheme?.gutterBackgroundColor
+            self.tabBar.unselectedItemTintColor = currentTheme?.textColor
+            self.tabBar.isTranslucent = false
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func handleMyNotification(_ notification: Notification) {
+        self.view.backgroundColor = currentTheme?.appTableView
+        
+        if #unavailable(iOS 15.0) {
+            self.tabBar.standardAppearance = currentTabBarAppearance
+            self.tabBar.barTintColor = currentTheme?.gutterBackgroundColor
+            self.tabBar.unselectedItemTintColor = currentTheme?.textColor
+            self.tabBar.isTranslucent = false
         }
     }
 }
