@@ -371,6 +371,8 @@ class CodeEditorViewController: UIViewController {
                 toolbar.scrollEdgeAppearance = appearance
             } else {
                 toolbar.barTintColor = theme.gutterBackgroundColor
+                toolbar.backgroundColor = theme.gutterBackgroundColor
+                toolbar.isTranslucent = false
             }
             
             toolbar.items = items
