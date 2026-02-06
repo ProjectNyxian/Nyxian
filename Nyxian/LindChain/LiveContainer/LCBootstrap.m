@@ -83,6 +83,7 @@ void overwriteMainNSBundle(NSBundle *newBundle,
     /* using the actual executable path */
     NSProcessInfo.processInfo.processName = [executablePath lastPathComponent];
     *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
+    *_CFGetProcessPath() = strdup(executablePath.UTF8String);
     Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
     if(swiftNSProcessInfo) {
         // Swizzle the arguments method to return the ObjC arguments
