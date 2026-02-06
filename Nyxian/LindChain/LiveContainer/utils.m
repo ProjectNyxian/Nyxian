@@ -1,5 +1,16 @@
 #import "utils.h"
 
+#define ASM(...) __asm__(#__VA_ARGS__)
+
+// Originated from _kernelrpc_mach_vm_protect_trap
+ASM(
+.global _builtin_vm_protect \n
+_builtin_vm_protect:     \n
+    mov x16, #-0xe       \n
+    svc #0x80            \n
+    ret
+);
+
 void __assert_rtn(const char* func, const char* file, int line, const char* failedexpr) {
     [NSException raise:NSInternalInconsistencyException format:@"Assertion failed: (%s), file %s, line %d.\n", failedexpr, file, line];
     abort(); // silent compiler warning
