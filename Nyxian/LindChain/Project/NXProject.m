@@ -226,7 +226,7 @@
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-lc++", @"-framework", @"Foundation", @"-framework", @"UIKit", @"-lclang_rt.ios"],
+                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-framework", @"Foundation", @"-framework", @"UIKit", @"-lclang_rt.ios"],
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
