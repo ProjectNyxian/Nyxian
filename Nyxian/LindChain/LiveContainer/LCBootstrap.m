@@ -149,6 +149,31 @@ static void *getAppEntryPoint(void *handle) {
     return (void *)header + entryoff;
 }
 
+void InsertLibrariesIfNeeded(void)
+{
+    const char *librariesToInsert = getenv("DYLD_INSERT_LIBRARIES");
+    
+    if(librariesToInsert == NULL)
+    {
+        return;
+    }
+    
+    NSString *nsLibrariesToInsert = [NSString stringWithCString:librariesToInsert encoding:NSUTF8StringEncoding];
+    NSArray<NSString*> *librariesToInsertArray = [nsLibrariesToInsert componentsSeparatedByString:@":"];
+    
+    for(NSString *library in librariesToInsertArray)
+    {
+        void *handle = dlopen([library UTF8String], RTLD_GLOBAL | RTLD_NOW);
+        
+        if(handle == NULL)
+        {
+            const char *error = dlerror();
+            fprintf(stderr, "%s\n", error);
+            exit(1);
+        }
+    }
+}
+
 NSString *LCHomePath;
 
 NSString* LCBootstrapMain(NSString *executablePath,
@@ -168,6 +193,9 @@ retry_getting_home:
             setenv("HOME", [[LCHomePath stringByAppendingPathComponent:@"var/mobile"] UTF8String], 1);
             goto retry_getting_home;
         }
+        
+        /* setting CWD */
+        chdir(home);
         
         // Getting guestMainBundle, if applicable
         // Now trying to get bundle
@@ -217,6 +245,7 @@ retry_getting_home:
         UIKitGuestHooksInit();
         initDead10ccFix();
         DyldHooksInit();
+        InsertLibrariesIfNeeded();
 
         // Find main()
         int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
