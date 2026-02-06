@@ -86,9 +86,7 @@ class KernelLogViewController: UIViewController {
     @objc private func refreshLog() {
         if let log = klog_dump() {
             label.text = log as String
-            let width = label.intrinsicContentSize.width
-            label.widthAnchor.constraint(equalToConstant: width).isActive = true
-
+            self.scrollView.layoutSubviews()
         } else {
             label.text = "Kernel logging disabled."
         }
