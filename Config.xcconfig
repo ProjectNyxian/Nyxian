@@ -8,5 +8,5 @@
 // Configuration settings file format documentation can be found at:
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
-VERSION = 0.8.5
-BUILD_NUMBER = 20260206.142
+VERSION = 0.8.6
+BUILD_NUMBER = 20260206.143
