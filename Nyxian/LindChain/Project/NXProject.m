@@ -267,7 +267,7 @@
                     @"LDEExecutable": name,
                     @"LDEDisplayName": name,
                     @"LDEProjectType": @(type),
-                    @"LDECompilerFlags": @[@"-fobjc-arc"],
+                    @"LDECompilerFlags": @[],
                     @"LDELinkerFlags": @[@"-lc", @"-lclang_rt.ios"],
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion]
