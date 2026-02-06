@@ -305,8 +305,6 @@ class CodeEditorViewController: UIViewController {
         self.redoButton = redoButton
         self.undoButton = undoButton
         
-        self.updateUndoRedoButtons()
-        
         if #unavailable(iOS 26.0) {
             items.append(contentsOf: getAdditionalButtons(buttons: ["{","}","[","]",";"]))
             items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
@@ -392,6 +390,8 @@ class CodeEditorViewController: UIViewController {
             toolbar.items = items
             textView.inputAccessoryView = toolbar
         }
+        
+        self.updateUndoRedoButtons()
     }
 
     @objc private func updateUndoRedoButtons() {
