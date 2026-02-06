@@ -22,9 +22,10 @@ import AudioToolbox
 
 class SymbolButton: UIButton {
     private var actionHandler: (() -> Void)?
+    private var longActionHandler: (() -> Void)?
     private var currentAnimator: UIViewPropertyAnimator?
     
-    init(symbolName: String, width: CGFloat, actionHandler: @escaping () -> Void) {
+    init(symbolName: String, width: CGFloat, actionHandler: @escaping () -> Void, longActionHandler: (() -> Void)? = nil) {
         self.actionHandler = actionHandler
         super.init(frame: .zero)
         
@@ -41,6 +42,13 @@ class SymbolButton: UIButton {
         
         self.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         
+        if let longActionHandler = longActionHandler {
+            let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            longPress.minimumPressDuration = 0.5
+            self.addGestureRecognizer(longPress)
+            self.longActionHandler = longActionHandler
+        }
+        
         self.tintColor = theme.textColor //.label
         self.setTitleColor(theme.textColor, for: .normal)
         
@@ -51,7 +59,7 @@ class SymbolButton: UIButton {
             self.layer.cornerRadius = 5
             self.layer.borderWidth = 1
             self.layer.borderColor = theme.gutterHairlineColor.cgColor
-            self.backgroundColor = theme.gutterBackgroundColor //gibDynamicColor(light: .systemGray5, dark: .systemGray6)
+            self.backgroundColor = theme.gutterBackgroundColor
         }
         
         NSLayoutConstraint.activate([
@@ -70,6 +78,14 @@ class SymbolButton: UIButton {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
     
+    @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            longActionHandler?()
+            AudioServicesPlaySystemSound(1104)
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
+    }
+    
     @objc private func touchDown() {
         currentAnimator?.stopAnimation(true)
         currentAnimator = UIViewPropertyAnimator(duration: 0.1, curve: .easeInOut) {
@@ -84,5 +100,13 @@ class SymbolButton: UIButton {
             self.transform = CGAffineTransform.identity
         }
         currentAnimator?.startAnimation()
+    }
+    
+    override func willMove(toWindow newWindow: UIWindow?) {
+        if newWindow == nil {
+            self.gestureRecognizers?.forEach { gesture in
+                self.removeGestureRecognizer(gesture)
+            }
+        }
     }
 }

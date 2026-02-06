@@ -301,6 +301,35 @@ class CodeEditorViewController: UIViewController {
             } else {
                 textView.replace(selectedRange, withText: "\t")
             }
+        } longActionHandler: {
+            guard let selectedRange = textView.selectedTextRange else { return }
+            
+            if let selectedText = textView.text(in: selectedRange), !selectedText.isEmpty {
+                let lines = selectedText.components(separatedBy: .newlines)
+                let unindentedText = lines
+                    .map { line in
+                        if line.hasPrefix("\t") {
+                            return String(line.dropFirst())
+                        }
+                        return line
+                    }
+                    .joined(separator: "\n")
+                
+                let startPosition = selectedRange.start
+                
+                textView.replace(selectedRange, withText: unindentedText)
+                
+                if let newEnd = textView.position(from: startPosition, offset: unindentedText.count) {
+                    textView.selectedTextRange = textView.textRange(from: startPosition, to: newEnd)
+                }
+            } else {
+                if let previousPosition = textView.position(from: selectedRange.start, offset: -1),
+                   let rangeToCheck = textView.textRange(from: previousPosition, to: selectedRange.start),
+                   let textToCheck = textView.text(in: rangeToCheck),
+                   textToCheck == "\t" {
+                    textView.replace(rangeToCheck, withText: "")
+                }
+            }
         })
         
         let hideBarButton = UIBarButtonItem(customView: SymbolButton(symbolName: "keyboard.chevron.compact.down", width: 35.0) {
