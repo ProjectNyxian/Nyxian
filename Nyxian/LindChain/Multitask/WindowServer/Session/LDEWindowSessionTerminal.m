@@ -24,7 +24,12 @@
 @interface LDEWindowSessionTerminal ()
 
 @property (nonatomic,strong) NyxianTerminal *terminal;
-@property (nonatomic) int stdinFD;
+@property (nonatomic) bool focused;
+@property (nonatomic) bool atExit;
+@property (nonatomic) wid_t identifier;
+
+@property (nonatomic,strong) NSPipe *stdoutPipe;
+@property (nonatomic,strong) NSPipe *stdinPipe;
 
 @end
 
@@ -44,44 +49,51 @@
 - (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
       withSessionIdentifier:(int)identifier
 {
-    int stdoutPipe[2];
-    int stdinPipe[2];
+    self.focused = NO;
+    self.atExit = NO;
+    self.identifier = identifier;
     
-    pipe(stdoutPipe);
-    pipe(stdinPipe);
-    
-    self.stdinFD = stdinPipe[1];
+    /* using NSPipe, because file descriptors are automatically closed */
+    self.stdoutPipe = [NSPipe pipe];
+    self.stdinPipe = [NSPipe pipe];
     
     FDMapObject *mapObject = [FDMapObject emptyMap];
-    [mapObject insertStdPipe:stdoutPipe StdErrPipe:stdoutPipe StdInPipe:stdinPipe];
+    [mapObject insertOutFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor ErrFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor InPipe:self.stdinPipe.fileHandleForReading.fileDescriptor];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process];
     _process = process;
     
-    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:stdoutPipe[0] stdinFD:stdinPipe[1]];
+    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
     
     __weak typeof(self) weakSelf = self;
-    __block int stdoutFD = stdoutPipe[1];
-    __block int stdinFD = stdinPipe[0];
+    
     _process.exitingCallback = ^{
-        dispatch_queue_t tempQueue = dispatch_queue_create("com.windowsession.terminal.temporary", DISPATCH_QUEUE_SERIAL);
-        dispatch_async(tempQueue, ^{
-            if(weakSelf == nil) return;
-            __strong typeof(weakSelf) innerSelf = weakSelf;
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        if(!strongSelf)
+        {
+            return;
+        }
+        
+        if(strongSelf.focused)
+        {
+            dprintf(strongSelf.stdoutPipe.fileHandleForWriting.fileDescriptor, "\n[process exited]\n");
             
-            /* early nullification */
-            innerSelf.process = nil;
+            strongSelf.atExit = YES;
+            strongSelf.terminal.inputCallBack = ^{
+                __strong typeof(self) strongSelf = weakSelf;
+                strongSelf.terminal.stdinHandle = nil;
+                strongSelf.terminal.stdoutHandle = nil;
+                [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
+            };
+        }
+        else
+        {
+            strongSelf.terminal.stdinHandle = nil;
+            strongSelf.terminal.stdoutHandle = nil;
             
-            /* printing process exit */
-            dprintf(stdoutFD, "\n\r[process exited]\n\r");
-            
-            /* getting input */
-            char buf[1];
-            read(stdinFD, &buf, 1);
-            
-            /* closing on input */
             [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
-        });
+        }
     };
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
@@ -113,8 +125,6 @@
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
     [_process terminate];
-    uint8_t null = 0;
-    write(self.stdinFD, &null, sizeof(uint8_t));
 }
 
 - (void)activateWindow
@@ -125,8 +135,15 @@
 
 - (void)deactivateWindow
 {
-    [_process suspend];
     [self unfocusWindow];
+    
+    if(self.atExit)
+    {
+        [[LDEWindowServer shared] closeWindowWithIdentifier:self.identifier];
+        return;
+    }
+    
+    [_process suspend];
 }
 
 - (UIImage *)snapshotWindow
@@ -152,11 +169,13 @@
 
 - (void)focusWindow
 {
+    self.focused = YES;
     BOOL succeeded __attribute__((unused)) = [self.terminal becomeFirstResponder];
 }
 
 - (void)unfocusWindow
 {
+    self.focused = NO;
     BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
 }
 

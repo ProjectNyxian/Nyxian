@@ -63,7 +63,7 @@
 
 + (instancetype)stdfdMap;
 
-- (void)insertStdPipe:(int*)stdoutPipe StdErrPipe:(int*)stderrPipe StdInPipe:(int*)stdinPipe;
+- (void)insertOutFD:(int)stdoutFD ErrFD:(int)stderrFD InPipe:(int)stdinFD;
 
 /*!
  @method copy_fd_map

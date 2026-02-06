@@ -65,27 +65,27 @@
 
 #pragma mark - Copying and applying file descriptor map (Unlike NSFileHandle this is used to transfer entire file descriptor maps)
 
-- (void)insertStdPipe:(int*)stdoutPipe
-           StdErrPipe:(int*)stderrPipe
-            StdInPipe:(int*)stdinPipe
+- (void)insertOutFD:(int)stdoutFD
+              ErrFD:(int)stderrFD
+              InPipe:(int)stdinFD
 {
     _fd_map = xpc_array_create_empty();
     
     // Stdout
     xpc_object_t dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stdoutPipe[1]);
+    xpc_dictionary_set_fd(dict, "actual_fd", stdoutFD);
     xpc_dictionary_set_int64(dict, "wished_fd", STDOUT_FILENO);
     xpc_array_append_value(_fd_map, dict);
     
     // Stderr
     dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stderrPipe[1]);
+    xpc_dictionary_set_fd(dict, "actual_fd", stderrFD);
     xpc_dictionary_set_int64(dict, "wished_fd", STDERR_FILENO);
     xpc_array_append_value(_fd_map, dict);
     
     // Stdin
     dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stdinPipe[0]);
+    xpc_dictionary_set_fd(dict, "actual_fd", stdinFD);
     xpc_dictionary_set_int64(dict, "wished_fd", STDIN_FILENO);
     xpc_array_append_value(_fd_map, dict);
 }

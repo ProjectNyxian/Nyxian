@@ -26,8 +26,10 @@ import UIKit
 @objc class NyxianTerminal: TerminalView, TerminalViewDelegate {
     var title: String
     
-    var stdoutHandle: FileHandle
-    var stdinHandle: FileHandle
+    @objc var stdoutHandle: FileHandle?
+    @objc var stdinHandle: FileHandle?
+    
+    @objc var inputCallBack: () -> Void = {}
     
     @objc public init (
         frame: CGRect,
@@ -37,8 +39,8 @@ import UIKit
     ){
         self.title = title
         
-        self.stdoutHandle = FileHandle(fileDescriptor: stdoutFD, closeOnDealloc: true)
-        self.stdinHandle = FileHandle(fileDescriptor: stdinFD, closeOnDealloc: true)
+        self.stdoutHandle = FileHandle(fileDescriptor: stdoutFD, closeOnDealloc: false)
+        self.stdinHandle = FileHandle(fileDescriptor: stdinFD, closeOnDealloc: false)
         
         super.init(frame: frame)
         
@@ -50,7 +52,7 @@ import UIKit
         self.font = UIFont.monospacedSystemFont(ofSize: (UIDevice.current.userInterfaceIdiom == .pad) ? 14 : 10, weight: .regular)
         _ = self.becomeFirstResponder()
         
-        stdoutHandle.readabilityHandler = { [weak self] fileHandle in
+        stdoutHandle?.readabilityHandler = { [weak self] fileHandle in
             guard let self = self else { return }
             let data = fileHandle.availableData
             guard !data.isEmpty else { return }
@@ -98,7 +100,10 @@ import UIKit
     
     func send(source: SwiftTerm.TerminalView, data: ArraySlice<UInt8>) {
         var array = Array(data)
-        write(stdinHandle.fileDescriptor, &array, array.count)
+        if let stdoutFD = stdinHandle?.fileDescriptor {
+            write(stdoutFD, &array, array.count)
+        }
+        inputCallBack()
     }
     
     func requestOpenLink(source: SwiftTerm.TerminalView, link: String, params: [String : String]) {
