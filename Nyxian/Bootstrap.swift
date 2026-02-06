@@ -161,7 +161,6 @@ import Foundation
                     }
                     
                     if self.bootstrapVersion < 9 {
-#if !JAILBREAK_ENV
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
                         }
@@ -175,7 +174,6 @@ import Foundation
                         
                         print("[*] extracting include.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
-#endif // !JAILBREAK_ENV
                         self.bootstrapVersion = 9
                     }
                     

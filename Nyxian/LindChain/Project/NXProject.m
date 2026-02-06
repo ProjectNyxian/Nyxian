@@ -73,10 +73,8 @@
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
-#if !JAILBREAK_ENV
         @"-resource-dir",
-        [[Bootstrap shared] bootstrapPath:@"/Include"],
-#endif /* !JAILBREAK_ENV */
+        [[Bootstrap shared] bootstrapPath:@"/Include"]
     ]];
     
     return flags;
