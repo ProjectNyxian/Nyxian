@@ -261,18 +261,20 @@ class CodeEditorViewController: UIViewController {
     func setupToolbar(textView: TextView) {
         let theme: LDETheme = LDEThemeReader.shared.currentlySelectedTheme()
         
-        func spawnSeperator() -> UIBarButtonItem {
-            return UIBarButtonItem(customView: UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 1)))
+        func spawnSeparator() -> UIBarButtonItem {
+            let separator = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+            separator.width = 5
+            return separator
         }
         
         func getAdditionalButtons(buttons: [String]) -> [UIBarButtonItem] {
-            var array: [UIBarButtonItem] = [spawnSeperator()]
+            var array: [UIBarButtonItem] = [spawnSeparator()]
             for button in buttons {
                 array.append(contentsOf: [
                     UIBarButtonItem(customView: SymbolButton(symbolName: button, width: 25.0) {
                         textView.replace(textView.selectedTextRange!, withText: button)
                     }),
-                    spawnSeperator()])
+                    spawnSeparator()])
             }
             return array;
         }
@@ -290,13 +292,45 @@ class CodeEditorViewController: UIViewController {
         ]
         
         if #unavailable(iOS 26.0) {
-            items.append(contentsOf: getAdditionalButtons(buttons: ["(",")","{","}","[","]",";"]))
+            items.append(contentsOf: getAdditionalButtons(buttons: ["{","}","[","]",";"]))
+            items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
+            items.append(UIBarButtonItem(customView: SymbolButton(symbolName: "arrow.uturn.left", width: 35.0) {
+                textView.undoManager?.undo()
+            }))
+            items.append(spawnSeparator())
+            items.append(UIBarButtonItem(customView: SymbolButton(symbolName: "arrow.uturn.right", width: 35.0) {
+                textView.undoManager?.redo()
+            }))
         }
         
         items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
         
         if #unavailable(iOS 26.0) {
-            items.append(spawnSeperator())
+            items.append(spawnSeparator())
+        } else {
+            let undoRedoContainer = UIStackView()
+            undoRedoContainer.axis = .horizontal
+            undoRedoContainer.spacing = 8
+            undoRedoContainer.alignment = .center
+            undoRedoContainer.translatesAutoresizingMaskIntoConstraints = false
+            
+            NSLayoutConstraint.activate([
+                undoRedoContainer.heightAnchor.constraint(equalToConstant: 35)
+            ])
+            
+            let undoButton = SymbolButton(symbolName: "arrow.uturn.left", width: 35.0) {
+                textView.undoManager?.undo()
+            }
+
+            let redoButton = SymbolButton(symbolName: "arrow.uturn.right", width: 35.0) {
+                textView.undoManager?.redo()
+            }
+
+            undoRedoContainer.addArrangedSubview(undoButton)
+            undoRedoContainer.addArrangedSubview(redoButton)
+
+            items.append(UIBarButtonItem(customView: undoRedoContainer))
+            items.append(spawnSeparator())
         }
         
         items.append(hideBarButton)
