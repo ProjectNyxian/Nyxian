@@ -71,31 +71,28 @@
 
 - (void)setProgress:(CGFloat)value
 {
-    if(!(value > self.progressLayer.strokeEnd + 0.05))
+    CGFloat clamped = MIN(MAX(value, 0.0), 1.0);
+    
+    CAShapeLayer *presentationLayer = (CAShapeLayer *)self.progressLayer.presentationLayer;
+    CGFloat currentStrokeEnd = presentationLayer ? presentationLayer.strokeEnd : self.progressLayer.strokeEnd;
+    
+    if(fabs(clamped - currentStrokeEnd) < 0.01)
     {
         return;
     }
     
-    CGFloat clamped = MIN(MAX(value, 0.0), 1.0);
-
-    CGFloat currentStrokeEnd;
-    if(self.progressLayer.presentationLayer)
-    {
-        currentStrokeEnd = ((CAShapeLayer *)self.progressLayer.presentationLayer).strokeEnd;
-    }
-    else
-    {
-        currentStrokeEnd = self.progressLayer.strokeEnd;
-    }
-
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.progressLayer.strokeEnd = currentStrokeEnd;
+    [CATransaction commit];
+    
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
     animation.fromValue = @(currentStrokeEnd);
     animation.toValue = @(clamped);
-    animation.duration = 0.2;
-    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-
+    animation.duration = 0.15;
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+    
     self.progressLayer.strokeEnd = clamped;
-
     [self.progressLayer addAnimation:animation forKey:@"strokeEndAnim"];
 }
 
