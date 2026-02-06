@@ -283,8 +283,26 @@ class CodeEditorViewController: UIViewController {
         }
         
         let tabBarButton = UIBarButtonItem(customView: SymbolButton(symbolName: "arrow.right.to.line", width: 35.0) {
-            textView.replace(textView.selectedTextRange!, withText: "\t")
+            guard let selectedRange = textView.selectedTextRange else { return }
+            
+            if let selectedText = textView.text(in: selectedRange), !selectedText.isEmpty {
+                let lines = selectedText.components(separatedBy: .newlines)
+                let indentedText = lines
+                    .map { "\t" + $0 }
+                    .joined(separator: "\n")
+                
+                let startPosition = selectedRange.start
+                
+                textView.replace(selectedRange, withText: indentedText)
+                
+                if let newEnd = textView.position(from: startPosition, offset: indentedText.count) {
+                    textView.selectedTextRange = textView.textRange(from: startPosition, to: newEnd)
+                }
+            } else {
+                textView.replace(selectedRange, withText: "\t")
+            }
         })
+        
         let hideBarButton = UIBarButtonItem(customView: SymbolButton(symbolName: "keyboard.chevron.compact.down", width: 35.0) {
             textView.resignFirstResponder()
         })
