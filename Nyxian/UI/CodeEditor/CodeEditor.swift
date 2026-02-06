@@ -45,6 +45,9 @@ class CodeEditorViewController: UIViewController {
     private(set) var floatingToolbar: UIToolbar?
     private(set) var floatingToolbarBottomConstraint: NSLayoutConstraint?
     
+    private(set) var undoButton: UIButton?
+    private(set) var redoButton: UIButton?
+    
     init(
         project: NXProject?,
         path: String,
@@ -291,16 +294,25 @@ class CodeEditorViewController: UIViewController {
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         ]
         
+        let undoButton = SymbolButton(symbolName: "arrow.uturn.left", width: 35.0) {
+            textView.undoManager?.undo()
+        }
+        
+        let redoButton = SymbolButton(symbolName: "arrow.uturn.right", width: 35.0) {
+            textView.undoManager?.redo()
+        }
+        
+        self.redoButton = redoButton
+        self.undoButton = undoButton
+        
+        self.updateUndoRedoButtons()
+        
         if #unavailable(iOS 26.0) {
             items.append(contentsOf: getAdditionalButtons(buttons: ["{","}","[","]",";"]))
             items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
-            items.append(UIBarButtonItem(customView: SymbolButton(symbolName: "arrow.uturn.left", width: 35.0) {
-                textView.undoManager?.undo()
-            }))
+            items.append(UIBarButtonItem(customView: undoButton))
             items.append(spawnSeparator())
-            items.append(UIBarButtonItem(customView: SymbolButton(symbolName: "arrow.uturn.right", width: 35.0) {
-                textView.undoManager?.redo()
-            }))
+            items.append(UIBarButtonItem(customView: redoButton))
         }
         
         items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
@@ -313,20 +325,22 @@ class CodeEditorViewController: UIViewController {
             undoRedoContainer.spacing = 8
             undoRedoContainer.alignment = .center
             undoRedoContainer.translatesAutoresizingMaskIntoConstraints = false
-            
+
             NSLayoutConstraint.activate([
                 undoRedoContainer.heightAnchor.constraint(equalToConstant: 35)
             ])
-            
-            let undoButton = SymbolButton(symbolName: "arrow.uturn.left", width: 35.0) {
-                textView.undoManager?.undo()
-            }
 
-            let redoButton = SymbolButton(symbolName: "arrow.uturn.right", width: 35.0) {
-                textView.undoManager?.redo()
-            }
+            let separator = UIView()
+            separator.translatesAutoresizingMaskIntoConstraints = false
+            separator.backgroundColor = UIColor.separator.withAlphaComponent(0.5)
+            separator.layer.cornerRadius = 0.5
+            NSLayoutConstraint.activate([
+                separator.widthAnchor.constraint(equalToConstant: 1),
+                separator.heightAnchor.constraint(equalToConstant: 20)
+            ])
 
             undoRedoContainer.addArrangedSubview(undoButton)
+            undoRedoContainer.addArrangedSubview(separator)
             undoRedoContainer.addArrangedSubview(redoButton)
 
             items.append(UIBarButtonItem(customView: undoRedoContainer))
@@ -378,6 +392,15 @@ class CodeEditorViewController: UIViewController {
             toolbar.items = items
             textView.inputAccessoryView = toolbar
         }
+    }
+
+    @objc private func updateUndoRedoButtons() {
+        guard let undoManager = textView.undoManager else { return }
+        
+        undoButton?.isEnabled = undoManager.canUndo
+        redoButton?.isEnabled = undoManager.canRedo
+        undoButton?.imageView?.alpha = undoManager.canUndo ? 1.0 : 0.5
+        redoButton?.imageView?.alpha = undoManager.canRedo ? 1.0 : 0.5
     }
 
     @objc func keyboardWillShow(notification: NSNotification) {
@@ -466,6 +489,9 @@ class CodeEditorViewController: UIViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateUndoRedoButtons), name: .NSUndoManagerDidUndoChange, object: textView.undoManager)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateUndoRedoButtons), name: .NSUndoManagerDidRedoChange, object: textView.undoManager)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateUndoRedoButtons), name: .NSUndoManagerDidCloseUndoGroup, object: textView.undoManager)
         
         if #unavailable(iOS 26.0) {
             if UIDevice.current.userInterfaceIdiom == .pad {
