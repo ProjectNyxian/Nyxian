@@ -33,6 +33,7 @@
 
 #if !JAILBREAK_ENV
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
+- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withKernelSurfaceProcess:(ksurface_proc_t*)proc doRestartIfRunning:(BOOL)doRestartIfRunning outPipe:(NSPipe*)outp inPipe:(NSPipe*)inp;
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withKernelSurfaceProcess:(ksurface_proc_t*)proc doRestartIfRunning:(BOOL)doRestartIfRunning;
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc process:(LDEProcess**)processReply;
 #else

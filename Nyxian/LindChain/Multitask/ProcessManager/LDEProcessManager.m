@@ -117,6 +117,8 @@
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
                  withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
+                                  outPipe:(NSPipe*)outp
+                                   inPipe:(NSPipe*)inp
 {
     os_unfair_lock_lock(&processes_array_lock);
     for(NSNumber *key in self.processes)
@@ -163,10 +165,24 @@
     
     [self enforceSpawnCooldown];
     
+    FDMapObject *mapObject = nil;
+    if(outp != nil && inp != nil)
+    {
+        mapObject = [FDMapObject emptyMap];
+        [mapObject insertOutFD:outp.fileHandleForWriting.fileDescriptor ErrFD:outp.fileHandleForWriting.fileDescriptor InPipe:inp.fileHandleForReading.fileDescriptor];
+    }
+    
     LDEProcess *process = nil;
     return [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
         @"HOME": applicationObject.containerPath
-    } withMapObject:nil withKernelSurfaceProcess:kernel_proc_ process:&process];
+    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process];
+}
+
+- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
+                 withKernelSurfaceProcess:(ksurface_proc_t*)proc
+                       doRestartIfRunning:(BOOL)doRestartIfRunning
+{
+    return [self spawnProcessWithBundleIdentifier:bundleIdentifier withKernelSurfaceProcess:proc doRestartIfRunning:doRestartIfRunning outPipe:nil inPipe:nil];
 }
 
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
