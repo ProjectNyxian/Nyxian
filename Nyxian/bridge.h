@@ -67,3 +67,4 @@
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>
 #import <UI/XCodeButton.h>
+#import <LindChain/Debugger/Logger.h>

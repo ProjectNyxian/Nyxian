@@ -102,7 +102,8 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
             } else {
                 masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
             }
-            buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp) { [weak self] in
+            self.detailVC?.logView?.text = ""
+            buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.outp, inPipe: self.detailVC?.inp) { [weak self] in
                 guard let self = self else { return }
                 if #available(iOS 16.0, *) {
                     masterVC.navigationItem.leftBarButtonItem?.isHidden = false
@@ -118,7 +119,10 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
 class SplitScreenDetailViewController: UIViewController {
     let project: NXProject
     
+    var inp: Pipe?
+    var outp: Pipe?
     var lock: NSLock = NSLock()
+    var logView: LogTextView?
     var childVCMasterConstraints: [NSLayoutConstraint]?
     var childVCMaster: UIViewController?
     var childVC: UIViewController? {
@@ -181,12 +185,27 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
                     vc.view.layer.masksToBounds = true
                     
-                    let constraints = [
-                        vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                        vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
-                        vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                        vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
-                    ]
+                    let constraints: [NSLayoutConstraint]
+                    if self.project.projectConfig.type == NXProjectType.app.rawValue {
+                        constraints = [
+                            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                            vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -300),
+                            vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                            vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                            
+                            logView!.topAnchor.constraint(equalTo: vc.view.bottomAnchor, constant: 16),
+                            logView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                            logView!.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                            logView!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+                        ]
+                    } else {
+                        constraints = [
+                            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                            vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+                            vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                            vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                        ]
+                    }
                     
                     NSLayoutConstraint.activate(constraints)
                     
@@ -347,6 +366,24 @@ class SplitScreenDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = currentTheme?.gutterBackgroundColor
+        
+        if self.project.projectConfig.type == NXProjectType.app.rawValue {
+            /* setting up logview */
+            inp = Pipe()
+            outp = Pipe()
+            logView = LogTextView(pipe: self.outp)
+            logView!.isEditable = false
+            logView!.isSelectable = true
+            logView!.layer.cornerRadius = 20
+            logView!.layer.cornerCurve = .continuous
+            logView!.layer.borderWidth = 1.0
+            logView!.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
+            logView!.layer.masksToBounds = true
+            logView!.translatesAutoresizingMaskIntoConstraints = false
+            logView!.backgroundColor = currentTheme?.backgroundColor
+            logView!.textColor = currentTheme?.textColor
+            self.view.addSubview(logView!)
+        }
         
         self.navigationItem.titleView = self.scrollView
         

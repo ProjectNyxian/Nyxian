@@ -241,7 +241,7 @@ class Builder {
         }
     }
     
-    func install(buildType: Builder.BuildType) throws {
+    func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
 #if !JAILBREAK_ENV
         if(buildType == .RunningApp) {
             if self.project.projectConfig.type == NXProjectType.app.rawValue {
@@ -258,7 +258,7 @@ class Builder {
                             if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.executablePath) {
                                 TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                             }
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe)
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
                         }
@@ -350,6 +350,8 @@ class Builder {
     
     static func buildProject(withProject project: NXProject,
                              buildType: Builder.BuildType,
+                             outPipe: Pipe?,
+                             inPipe: Pipe?,
                              completion: @escaping (Bool) -> Void) {
         project.projectConfig.reloadData()
         
@@ -390,7 +392,7 @@ class Builder {
                     (nil,nil,{ try builder.prepare() }),
                     (nil,nil,{ try builder.compile() }),
                     ("link",0.3,{ try builder.link() }),
-                    ("arrow.down.app.fill",nil,{try builder.install(buildType: buildType) })
+                    ("arrow.down.app.fill",nil,{try builder.install(buildType: buildType, outPipe: outPipe, inPipe: inPipe) })
                 ];
                 
                 // doit
@@ -411,6 +413,8 @@ class Builder {
 func buildProjectWithArgumentUI(targetViewController: UIViewController,
                                 project: NXProject,
                                 buildType: Builder.BuildType,
+                                outPipe: Pipe? = nil,
+                                inPipe: Pipe? = nil,
                                 completion: @escaping () -> Void = {}) {
     targetViewController.navigationItem.titleView?.isUserInteractionEnabled = false
     XCButton.switchImageSync(withSystemName: "hammer.fill", animated: false)
@@ -421,7 +425,7 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
     targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
     targetViewController.navigationItem.setHidesBackButton(true, animated: true)
     
-    Builder.buildProject(withProject: project, buildType: buildType) { result in
+    Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
         DispatchQueue.main.async {
             targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
             targetViewController.navigationItem.setHidesBackButton(false, animated: true)
