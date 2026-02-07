@@ -2,14 +2,15 @@
 
 <div align="center">
   <h1><b>Nyxian</b></h1>
-  <p><i>IDE to develop native code iOS apps on unjailbroken iOS</i></p>
+  <p><i>IDE to develop native code iOS apps and tools on unjailbroken iOS</i></p>
 </div>
-<p align="center">
-	<img src="./mockup.png">
-</p>
 <h6 align="center">
-<a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
-[![Build iOS App](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml)
+  <a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
+  <a href="https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml"><img src="https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg" alt="Build iOS App"></a>
+</h6>
+<p align="center">
+  <img src="./mockup.png">
+</p>
 
 
 ## What do I need?
