@@ -170,6 +170,13 @@ int LiveProcessMain(int argc, char *argv[]) {
     }
     else if([mode isEqualToString:@"spawn"])
     {
+        /* check for LDEDebugEnabled */
+        NSNumber *debugEnabled = appInfo[@"LDEDebugEnabled"];
+        if(debugEnabled.boolValue)
+        {
+            environment_client_attach_debugger();
+        }
+        
         // posix_spawn and similar implementation
         environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, [executablePath UTF8String], argc, argv);
     }
