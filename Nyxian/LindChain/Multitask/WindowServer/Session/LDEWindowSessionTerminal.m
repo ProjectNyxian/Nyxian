@@ -90,19 +90,11 @@
         }
     };
     
-    self.view.translatesAutoresizingMaskIntoConstraints = NO;
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:_terminal];
     
-    [NSLayoutConstraint activateConstraints:@[
-        [_terminal.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-        [_terminal.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-        [_terminal.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-        [_terminal.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor]
-    ]];
-    
-    _heigthConstraint = [self.view.heightAnchor constraintEqualToConstant:100];
-    _widthConstraint = [self.view.widthAnchor constraintEqualToConstant:100];
+    _heigthConstraint = [self.terminal.heightAnchor constraintEqualToConstant:100];
+    _widthConstraint = [self.terminal.widthAnchor constraintEqualToConstant:100];
     
     [NSLayoutConstraint activateConstraints:@[
         _heigthConstraint,

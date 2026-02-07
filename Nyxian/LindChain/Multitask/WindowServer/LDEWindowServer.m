@@ -262,6 +262,23 @@ static const NSInteger kTagShineView = 7777;
     }
 }
 
+- (UIView*)hitTest:(CGPoint)point
+         withEvent:(UIEvent *)event
+{
+    UIView *view = [super hitTest:point withEvent:event];
+    
+    if(_activeWindow != nil)
+    {
+        if(![view isDescendantOfView:_activeWindow.view])
+        {
+            [_activeWindow unfocusWindow];
+            _activeWindow = nil;
+        }
+    }
+    
+    return view;
+}
+
 // TODO: FRIDA! PLS MAKE LDEWINDOWSERVERTILEVIEW!!!! IM SO LAZY ONG
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
