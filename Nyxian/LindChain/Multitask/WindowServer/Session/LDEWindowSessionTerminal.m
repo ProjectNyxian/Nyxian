@@ -60,7 +60,7 @@
     FDMapObject *mapObject = [FDMapObject emptyMap];
     [mapObject insertOutFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor ErrFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor InPipe:self.stdinPipe.fileHandleForReading.fileDescriptor];
     LDEProcess *process = nil;
-    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process];
+    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process];
     _process = process;
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];

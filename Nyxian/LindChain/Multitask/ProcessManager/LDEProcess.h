@@ -69,7 +69,7 @@
 
 #if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
-- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc;
+- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc enableDebugging:(BOOL)enableDebugging;
 #else
 - (instancetype)initWithBundleID:(NSString*)bundleID;
 #endif /* !JAILBREAK_ENV */

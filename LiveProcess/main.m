@@ -131,6 +131,7 @@ int LiveProcessMain(int argc, char *argv[]) {
     NSDictionary *environmentDictionary = appInfo[@"LSEnvironment"];
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
+    NSNumber *debuggingEnabled = appInfo[@"LDEDebugEnabled"];
     
     // Setup fd map
     if(mapObject) [mapObject apply_fd_map];
@@ -152,7 +153,7 @@ int LiveProcessMain(int argc, char *argv[]) {
     
     if([mode isEqualToString:@"management"])
     {
-        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil);
+        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil, debuggingEnabled.boolValue);
 
         if(environment_syscall(SYS_SETUID, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
            environment_syscall(SYS_SETGID, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
@@ -170,15 +171,8 @@ int LiveProcessMain(int argc, char *argv[]) {
     }
     else if([mode isEqualToString:@"spawn"])
     {
-        /* check for LDEDebugEnabled */
-        NSNumber *debugEnabled = appInfo[@"LDEDebugEnabled"];
-        if(debugEnabled.boolValue)
-        {
-            environment_client_attach_debugger();
-        }
-        
         // posix_spawn and similar implementation
-        environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, [executablePath UTF8String], argc, argv);
+        environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, [executablePath UTF8String], argc, argv, debuggingEnabled.boolValue);
     }
     
     exit(0);

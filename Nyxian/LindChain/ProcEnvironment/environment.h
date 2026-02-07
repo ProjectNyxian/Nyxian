@@ -146,7 +146,9 @@ BOOL environment_must_be_role(EnvironmentRole role);
     Item count of argv array.
  @param argv
     Arguments used for the binary.
+ @param enableDebugging
+    Enables debugging inside of a process that runs in Nyxian
  */
-void environment_init(EnvironmentRole role, EnvironmentExec exec, const char *executablePath, int argc, char *argv[]);
+void environment_init(EnvironmentRole role, EnvironmentExec exec, const char *executablePath, int argc, char *argv[], bool enableDebugging);
 
 #endif /* PROCENVIRONMENT_ENVIRONMENT_H */

@@ -258,7 +258,7 @@ class Builder {
                             if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.executablePath) {
                                 TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                             }
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe)
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: true)
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
                         }

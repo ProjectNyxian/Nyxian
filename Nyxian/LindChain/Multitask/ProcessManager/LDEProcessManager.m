@@ -119,6 +119,7 @@
                        doRestartIfRunning:(BOOL)doRestartIfRunning
                                   outPipe:(NSPipe*)outp
                                    inPipe:(NSPipe*)inp
+                          enableDebugging:(BOOL)enableDebugging
 {
     os_unfair_lock_lock(&processes_array_lock);
     for(NSNumber *key in self.processes)
@@ -175,7 +176,16 @@
     LDEProcess *process = nil;
     return [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
         @"HOME": applicationObject.containerPath
-    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process];
+    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:enableDebugging process:&process];
+}
+
+- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
+                 withKernelSurfaceProcess:(ksurface_proc_t*)proc
+                       doRestartIfRunning:(BOOL)doRestartIfRunning
+                                  outPipe:(NSPipe*)outp
+                                   inPipe:(NSPipe*)inp
+{
+    return [self spawnProcessWithBundleIdentifier:bundleIdentifier withKernelSurfaceProcess:proc doRestartIfRunning:doRestartIfRunning outPipe:outp inPipe:inp enableDebugging:NO];
 }
 
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
@@ -190,13 +200,14 @@
      withEnvironmentVariables:(NSDictionary*)environment
                 withMapObject:(FDMapObject*)mapObject
      withKernelSurfaceProcess:(ksurface_proc_t*)proc
+              enableDebugging:(BOOL)enableDebugging
                       process:(LDEProcess**)processReply
 {
     /* enforce cooldown */
     [self enforceSpawnCooldown];
     
     /* creating process */
-    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:proc];
+    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:proc enableDebugging:enableDebugging];
     
     /* null pointer check */
     if(process == nil)

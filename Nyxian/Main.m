@@ -29,7 +29,7 @@ int main(int argc, char * argv[])
     {
         /* initilizing environment */
 #if !JAILBREAK_ENV
-        environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv);
+        environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv, false);
         
         /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
         [LaunchServices shared];                                /* invokes launch services startup*/

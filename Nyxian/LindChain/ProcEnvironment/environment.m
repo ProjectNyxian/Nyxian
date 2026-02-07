@@ -89,7 +89,8 @@ void environment_init(EnvironmentRole role,
                       EnvironmentExec exec,
                       const char *executablePath,
                       int argc,
-                      char *argv[])
+                      char *argv[],
+                      bool enableDebugging)
 {
     /* checking role */
     if(role > EnvironmentRoleGuest)
@@ -153,6 +154,12 @@ void environment_init(EnvironmentRole role,
          * easily which we ofc shall not let happen.
          */
         environment_tfp_init();
+        
+        /* checking if debugging is meant to be enabled */
+        if(enableDebugging)
+        {
+            environment_client_attach_debugger();
+        }
         
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)

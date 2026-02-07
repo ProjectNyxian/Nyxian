@@ -282,13 +282,15 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     withEnvironmentVariables:(NSDictionary*)environment
                withMapObject:(FDMapObject*)mapObject
     withKernelSurfaceProcess:(ksurface_proc_t *)proc
+        enableDebugging:(BOOL)enableDebugging
 {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
         @"LSEndpoint": [Server getTicket],
         @"LSServiceMode": @"spawn",
         @"LSExecutablePath": binaryPath,
         @"LSArguments": arguments,
-        @"LSEnvironment": environment
+        @"LSEnvironment": environment,
+        @"LDEDebugEnabled": @(enableDebugging)
     }];
     
     if(mapObject != nil)
