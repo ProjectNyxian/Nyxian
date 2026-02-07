@@ -267,7 +267,7 @@ static const NSInteger kTagShineView = 7777;
 {
     UIView *view = [super hitTest:point withEvent:event];
     
-    if(_activeWindow != nil)
+    if(event.type == UIEventTypeTouches && _activeWindow != nil)
     {
         if(![view isDescendantOfView:_activeWindow.view])
         {
