@@ -81,17 +81,11 @@
             
             strongSelf.atExit = YES;
             strongSelf.terminal.inputCallBack = ^{
-                __strong typeof(self) strongSelf = weakSelf;
-                strongSelf.terminal.stdinHandle = nil;
-                strongSelf.terminal.stdoutHandle = nil;
                 [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
             };
         }
         else
         {
-            strongSelf.terminal.stdinHandle = nil;
-            strongSelf.terminal.stdoutHandle = nil;
-            
             [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
         }
     };
@@ -124,6 +118,8 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
+    self.terminal.stdinHandle = nil;
+    self.terminal.stdoutHandle = nil;
     [_process terminate];
 }
 
@@ -139,8 +135,6 @@
     
     if(self.atExit)
     {
-        self.terminal.stdinHandle = nil;
-        self.terminal.stdoutHandle = nil;
         [[LDEWindowServer shared] closeWindowWithIdentifier:self.identifier];
         return;
     }
