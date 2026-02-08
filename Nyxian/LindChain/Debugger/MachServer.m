@@ -328,8 +328,8 @@ const char *exceptionName(exception_type_t exception)
     switch(exception)
     {
         case EXC_BAD_ACCESS: return "EXC_BAD_ACCESS";
-        case EXC_BAD_INSTRUCTION: return "EXC_BAD_ACCESS";
-        case EXC_ARITHMETIC: return "EXC_BAD_ACCESS";
+        case EXC_BAD_INSTRUCTION: return "EXC_BAD_INSTRUCTION";
+        case EXC_ARITHMETIC: return "EXC_ARITHMETIC";
         case EXC_EMULATION: return "EXC_EMULATION";
         case EXC_SOFTWARE: return "EXC_SOFTWARE";
         case EXC_BREAKPOINT: return "EXC_BREAKPOINT";
