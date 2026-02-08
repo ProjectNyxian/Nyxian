@@ -80,11 +80,8 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
         }
         command[i] = '\0';
         
-        if(shouldEcho)
-        {
-            printf("\n");
-            fflush(stdout);
-        }
+        printf("\n");
+        fflush(stdout);
         
         if(strlen(command) == 0) continue;
         
@@ -134,7 +131,11 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
                 uint64_t *reg = get_register_ptr(&state, cmd.args[0]);
                 if(reg)
                 {
-                    uint64_t value = strtoull(cmd.args[1], NULL, 0);
+                    uint64_t value = (uint64_t)dlsym(RTLD_DEFAULT, cmd.args[1]);
+                    if(value == 0)
+                    {
+                        value = strtoull(cmd.args[1], NULL, 0);
+                    }
                     *reg = value;
                     thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
                     printf("[ndb] %s = 0x%llx\n", cmd.args[0], value);
@@ -241,6 +242,14 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
                 
                 printf("\n=== Disassembly at %p ===\n", addr);
                 printf("%s\n", [[Decompiler decompileBinary:addr withSize:count] UTF8String]);
+            }
+        }
+        else if(strcmp(cmd.cmd, "lookup") == 0 || strcmp(cmd.cmd, "l") == 0)
+        {
+            if(cmd.arg_count >= 1)
+            {
+                void *sym = dlsym(RTLD_DEFAULT, cmd.args[0]);
+                printf("%s => %p\n", cmd.args[0], sym);
             }
         }
         else if(strcmp(cmd.cmd, "step") == 0 || strcmp(cmd.cmd, "s") == 0)

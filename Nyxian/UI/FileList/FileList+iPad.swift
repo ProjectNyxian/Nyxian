@@ -102,7 +102,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
             } else {
                 masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
             }
-            self.detailVC?.logView?.text = ""
+            self.detailVC?.logView?.clearConsole()
             buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.outp, inPipe: self.detailVC?.inp) { [weak self] in
                 guard let self = self else { return }
                 if #available(iOS 16.0, *) {

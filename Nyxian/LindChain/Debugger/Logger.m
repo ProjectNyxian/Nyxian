@@ -186,14 +186,6 @@ static const CGFloat kAutoScrollThreshold = 20.0;
             [self.textStorage setAttributes:outputAttributes range:inputRange];
         }
         
-        NSAttributedString *newline = [[NSAttributedString alloc]
-            initWithString:@"\n"
-            attributes:@{
-                NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
-                NSForegroundColorAttributeName: [UIColor systemGreenColor]
-            }];
-        [self.textStorage appendAttributedString:newline];
-        
         _inputStartLocation = self.text.length;
         
         NSString *commandWithNewline = [command stringByAppendingString:@"\n"];
@@ -234,6 +226,13 @@ static const CGFloat kAutoScrollThreshold = 20.0;
             }
         });
     }
+}
+
+- (void)clearConsole
+{
+    self.text = @"";
+    _inputStartLocation = 0;
+    _followTail = YES;
 }
 
 @end
