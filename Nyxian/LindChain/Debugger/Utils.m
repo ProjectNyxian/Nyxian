@@ -22,11 +22,11 @@
 hw_breakpoint_t hw_breakpoints[6] = {0};
 bool singleStepMode = false;
 
-const char *symbol_for_address(void *addr)
+const char *sym_at_address(vm_address_t address)
 {
     static char buffer[256];
     Dl_info info;
-    if(dladdr(addr, &info) && info.dli_sname)
+    if(dladdr((void*)address, &info) && info.dli_sname)
     {
         snprintf(buffer, sizeof(buffer), "%s", info.dli_sname);
         return buffer;
@@ -34,58 +34,57 @@ const char *symbol_for_address(void *addr)
     return "<unknown>";
 }
 
-typedef struct stack_frame {
-    struct stack_frame *fp;
-    void *lr;
-} stack_frame_t;
-
 /* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.m#L135 */
-kern_return_t suspend_threads_except_for(thread_act_array_t allThreads, mach_msg_type_number_t threadCount, thread_act_t exceptForThread)
+kern_return_t suspend_threads_except_for(thread_act_array_t allThreads,
+                                         mach_msg_type_number_t threadCount,
+                                         thread_act_t exceptForThread)
 {
-    for (int i = 0; i < threadCount; i++) {
+    for(int i = 0; i < threadCount; i++)
+    {
         thread_act_t thread = allThreads[i];
-        if (thread != exceptForThread) {
+        if(thread != exceptForThread)
+        {
             thread_suspend(thread);
         }
     }
+    
     return KERN_SUCCESS;
 }
 
-kern_return_t resume_threads_except_for(thread_act_array_t allThreads, mach_msg_type_number_t threadCount, thread_act_t exceptForThread)
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.m#L146 */
+kern_return_t resume_threads_except_for(thread_act_array_t allThreads,
+                                        mach_msg_type_number_t threadCount,
+                                        thread_act_t exceptForThread)
 {
-    for (int i = 0; i < threadCount; i++) {
+    for(int i = 0; i < threadCount; i++)
+    {
         thread_act_t thread = allThreads[i];
-        if (thread != exceptForThread) {
+        if(thread != exceptForThread)
+        {
             thread_resume(thread);
         }
     }
+    
     return KERN_SUCCESS;
 }
 
-void stack_trace_from_thread_state(arm_thread_state64_t state,
-                                   uint64_t maxdepth)
+void state_back_trace(arm_thread_state64_t state,
+                      uint64_t maxdepth)
 {
     stack_frame_t start_frame;
-    start_frame.lr = (void*)state.__pc;
+    start_frame.lr = state.__pc;
     start_frame.fp = (void*)state.__fp;
     stack_frame_t *frame = &start_frame;
 
     int depth = 0;
     while(frame && depth < maxdepth)
     {
-        void *addr = (depth == 0) ? frame->lr : (void*)((uintptr_t)frame->lr - 4);
-        const char *name = symbol_for_address(addr);
+        vm_address_t addr = (depth == 0) ? frame->lr : ((uintptr_t)frame->lr - 4);
+        const char *name = sym_at_address(addr);
         
-        printf("#%d: FP=%p LR=%p (%p) -> %s\n",
-               depth,
-               frame,
-               frame->lr,
-               addr,
-               name);
+        printf("#%d: FP=%p LR=0x%lx (0x%lx) -> %s\n", depth, frame, frame->lr, addr, name);
         
-        if(strcmp(name, "main") == 0)
-            break;
-            
+        /* getting next frame */
         stack_frame_t *next_fp = frame->fp;
         
         /* sanity check: FP should be increasing (growing down the stack) */
@@ -94,53 +93,44 @@ void stack_trace_from_thread_state(arm_thread_state64_t state,
             break;
         }
             
+        /* setting next frame for going further down */
         frame = next_fp;
         depth++;
     }
 }
 
-uint64_t get_thread_id_from_port(thread_t thread)
-{
-    thread_identifier_info_data_t info;
-    mach_msg_type_number_t count = THREAD_IDENTIFIER_INFO_COUNT;
-
-    kern_return_t kr = thread_info(thread,
-                                   THREAD_IDENTIFIER_INFO,
-                                   (thread_info_t)&info,
-                                   &count);
-    if(kr != KERN_SUCCESS)
-    {
-        fprintf(stderr, "thread_info failed: %d\n", kr);
-        return 0;
-    }
-    return info.thread_id;
-}
-
-int get_thread_index_from_port(thread_t target)
+kern_return_t task_thread_index(task_t task,
+                                thread_t target,
+                                mach_msg_type_number_t *index)
 {
     thread_act_array_t threads;
     mach_msg_type_number_t count;
 
-    kern_return_t kr = task_threads(mach_task_self(), &threads, &count);
-    if (kr != KERN_SUCCESS)
+    /* getting list of threads */
+    kern_return_t kr = task_threads(task, &threads, &count);
+    if(kr != KERN_SUCCESS)
     {
-        fprintf(stderr, "task_threads failed: %d\n", kr);
-        return -1;
+        return kr;
     }
 
-    int index = -1;
-    for (mach_msg_type_number_t i = 0; i < count; i++)
+    /* getting index by itterating all threads in task */
+    for(mach_msg_type_number_t i = 0; i < count; i++)
     {
-        if (threads[i] == target) {
-            index = i;
+        if(threads[i] == target)
+        {
+            /* found the thread */
+            *index = i;
             break;
         }
     }
 
-    for (mach_msg_type_number_t i = 0; i < count; i++)
+    /* deallocating all threads again */
+    for(mach_msg_type_number_t i = 0; i < count; i++)
+    {
         mach_port_deallocate(mach_task_self(), threads[i]);
+    }
 
-    return index;
+    return kr;
 }
 
 static bool evaluate_condition(uint32_t cond,

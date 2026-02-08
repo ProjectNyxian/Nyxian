@@ -95,7 +95,7 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
                 depth = atoi(cmd.args[0]);
                 if(depth <= 0) depth = 20;
             }
-            stack_trace_from_thread_state(state, depth);
+            state_back_trace(state, depth);
         }
         else if(strcmp(cmd.cmd, "reg") == 0 || strcmp(cmd.cmd, "registers") == 0)
         {
@@ -382,8 +382,11 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
     
+    mach_msg_type_number_t index = 0;
+    task_thread_index(task, thread, &index);
+    
     /* printing out what happened */
-    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
+    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), task_thread_index(task, thread, &index), state.__pc, sym_at_address(state.__pc));
     
     /* invoking nyxian debugger(nbd) */
     debugger_loop(thread, state);
