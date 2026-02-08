@@ -176,19 +176,32 @@ static const CGFloat kAutoScrollThreshold = 20.0;
             command = [self.text substringFromIndex:_inputStartLocation];
         }
         
+        if(_inputStartLocation < self.text.length)
+        {
+            NSRange inputRange = NSMakeRange(_inputStartLocation, self.text.length - _inputStartLocation);
+            NSDictionary *outputAttributes = @{
+                NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
+                NSForegroundColorAttributeName: [UIColor systemGreenColor]
+            };
+            [self.textStorage setAttributes:outputAttributes range:inputRange];
+        }
+        
+        NSAttributedString *newline = [[NSAttributedString alloc]
+            initWithString:@"\n"
+            attributes:@{
+                NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
+                NSForegroundColorAttributeName: [UIColor systemGreenColor]
+            }];
+        [self.textStorage appendAttributedString:newline];
+        
+        _inputStartLocation = self.text.length;
+        
         NSString *commandWithNewline = [command stringByAppendingString:@"\n"];
         NSData *data = [commandWithNewline dataUsingEncoding:NSUTF8StringEncoding];
         @try {
             [_stdinPipe.fileHandleForWriting writeData:data];
-            
         } @catch (NSException *exception) {
             NSLog(@"Failed to write to stdin: %@", exception);
-        }
-        
-        if(_inputStartLocation < self.text.length)
-        {
-            NSRange inputRange = NSMakeRange(_inputStartLocation, self.text.length - _inputStartLocation);
-            [self.textStorage deleteCharactersInRange:inputRange];
         }
         
         return NO;

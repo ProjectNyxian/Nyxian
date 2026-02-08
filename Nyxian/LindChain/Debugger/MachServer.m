@@ -29,10 +29,27 @@
 #import <LindChain/ProcEnvironment/syscall.h>
 #include "litehook.h"
 #include "Utils.h"
+#include <termios.h>
 
 void debugger_loop(thread_t thread, arm_thread_state64_t state)
 {
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
+    int shouldEcho = isatty(STDIN_FILENO);
+    
+    if(shouldEcho)
+    {
+        tcflush(STDIN_FILENO, TCIFLUSH);
+    }
+    else
+    {
+        int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+            
+        char discard[256];
+        while(read(STDIN_FILENO, discard, sizeof(discard)) > 0);
+            
+        fcntl(STDIN_FILENO, F_SETFL, flags);
+    }
     
     while(1)
     {
@@ -54,17 +71,20 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
                 if(i > 0)
                 {
                     i--;
-                    write(STDOUT_FILENO, "\b \b", 3);
+                    if(shouldEcho) write(STDOUT_FILENO, "\b \b", 3);
                 }
                 continue;
             }
-            write(STDOUT_FILENO, &c, 1);
+            if(shouldEcho) write(STDOUT_FILENO, &c, 1);
             command[i++] = c;
         }
         command[i] = '\0';
         
-        printf("\n");
-        fflush(stdout);
+        if(shouldEcho)
+        {
+            printf("\n");
+            fflush(stdout);
+        }
         
         if(strlen(command) == 0) continue;
         
@@ -333,7 +353,7 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
     
-    printf("[ndb] [%s] thread %d faulting at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
+    printf("[ndb] [%s] thread %d stopping at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
     
     debugger_loop(thread, state);
     

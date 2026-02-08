@@ -43,8 +43,11 @@ extern "C" const char *symbol_for_address(void *addr);
 
 using namespace llvm;
 
-std::vector<std::string> disassembleARM64iOS(uint8_t* code)
+std::vector<std::string> disassembleARM64iOS(uint8_t* code,
+                                             size_t psize)
 {
+    bool huntForTheReturn = psize == 0;
+    
     std::vector<std::string> result;
     std::string triple = "arm64-apple-ios";
 
@@ -117,8 +120,19 @@ std::vector<std::string> disassembleARM64iOS(uint8_t* code)
         
         result.push_back(finalStr);
         
-        if (desc.isReturn())
-            break;
+        if(huntForTheReturn)
+        {
+            if(desc.isReturn())
+                break;
+        }
+        else
+        {
+            if(psize == 0)
+            {
+                break;
+            }
+            psize--;
+        }
 
         address += size;
     }

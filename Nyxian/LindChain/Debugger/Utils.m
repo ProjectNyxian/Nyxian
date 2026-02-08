@@ -349,6 +349,28 @@ uint64_t get_next_pc(arm_thread_state64_t state)
         }
     }
     
+    /* BR Xn (1101 0110 0001 1111 0000 00nn nnn0 0000) */
+    if((inst & 0xFFFFFC1F) == 0xD61F0000)
+    {
+        uint32_t rn = (inst >> 5) & 0x1F;
+        return state.__x[rn];
+    }
+
+    /* BRAA, BRAAZ, BRAB, BRABZ (authenticated branches) */
+    /* Encoding: 1101 0111 X_X1 1111 0000 10XX XXXX XXXX */
+    if((inst & 0xFF0FF800) == 0xD70F0800)
+    {
+        uint32_t rn = inst & 0x1F;
+        return state.__x[rn];
+    }
+
+    /* BLR Xn (1101 0110 0011 1111 0000 00nn nnn0 0000) */
+    if((inst & 0xFFFFFC1F) == 0xD63F0000)
+    {
+        uint32_t rn = (inst >> 5) & 0x1F;
+        return state.__x[rn];
+    }
+    
     /* default: sequential instruction */
     return pc + 4;
 }
