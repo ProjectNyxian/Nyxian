@@ -350,25 +350,55 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
                                                  mach_exception_data_type_t *code,
                                                  mach_msg_type_number_t codeCnt)
 {
-    thread_act_array_t cachedThreads;
-    mach_msg_type_number_t cachedThreadCount;
-    kern_return_t kr = task_threads(mach_task_self(), &cachedThreads, &cachedThreadCount);
-    if(kr == KERN_SUCCESS)
+    /* preparing */
+    kern_return_t kr = KERN_SUCCESS;
+    thread_act_array_t cachedThreads = NULL;
+    mach_msg_type_number_t cachedThreadCount = 0;
+    
+    /*
+     * in case its our own task, then we need to carefully
+     * suspend all threads except this one, to achieve
+     * a safe task state.
+     */
+    if(task == mach_task_self_)
     {
-        suspend_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+        /* getting all threads */
+        kr = task_threads(mach_task_self(), &cachedThreads, &cachedThreadCount);
+        
+        /* thanks to opa334 suspending them */
+        if(kr == KERN_SUCCESS)
+        {
+            suspend_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+        }
+    }
+    else
+    {
+        /* usual procedure, suspend that task lol */
+        task_suspend(task);
     }
     
+    /* getting current thread state */
     arm_thread_state64_t state;
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
     
-    printf("[ndb] [%s] thread %d stopping at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
+    /* printing out what happened */
+    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
     
+    /* invoking nyxian debugger(nbd) */
     debugger_loop(thread, state);
     
-    if(kr == KERN_SUCCESS)
+    /* same game as before */
+    if(task == mach_task_self_)
     {
-        resume_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+        if(kr == KERN_SUCCESS)
+        {
+            resume_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+        }
+    }
+    else
+    {
+        task_resume(task);
     }
     
     return KERN_SUCCESS;
