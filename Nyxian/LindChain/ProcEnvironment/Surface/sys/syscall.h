@@ -37,6 +37,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procbsd.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -66,8 +67,9 @@
 #define SYS_SIGNEXEC    757         /* uses file descriptor passed by guest to sign executable */
 #define SYS_PROCPATH    758         /* gets process path of a pid */
 #define SYS_PROCBSD     759         /* gets process bsd of a pid */
+#define SYS_HANDOFFEP   760         /* handoff exception port to kvirt */
 
-#define SYS_N 24
+#define SYS_N 25
 
 typedef struct {
     const char *name;

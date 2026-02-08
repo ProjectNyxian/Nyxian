@@ -29,6 +29,7 @@ static void proc_create_mutual_init(ksurface_proc_t *proc)
      * escalation.
      */
     proc->kproc.task = MACH_PORT_NULL;
+    proc->kproc.eport = MACH_PORT_NULL;
     
     /* marking process as referenced once */
     proc->refcount = 1;

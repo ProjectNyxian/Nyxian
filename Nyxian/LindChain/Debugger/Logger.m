@@ -23,46 +23,60 @@ static const CGFloat kAutoScrollThreshold = 20.0;
 
 @implementation LogTextView {
     BOOL _followTail;
+    NSUInteger _inputStartLocation;
+    BOOL _isAppendingOutput;
 }
 
-- (instancetype)init {
-    return [self initWithPipe:[NSPipe pipe]];
+- (instancetype)init
+{
+    return [self initWithPipe:[NSPipe pipe] stdinPipe:[NSPipe pipe]];
 }
 
-- (instancetype)initWithPipe:(NSPipe*)pipe {
-    if ((self = [super init])) {
-        _pipe = pipe;
-        _followTail = YES;
+- (instancetype)initWithPipe:(NSPipe*)pipe
+                   stdinPipe:(NSPipe*)stdinPipe
+{
+    self = [super init];
+    _pipe = pipe;
+    _stdinPipe = stdinPipe;
+    _followTail = YES;
+    _inputStartLocation = 0;
+    _isAppendingOutput = NO;
 
-        self.font = [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightBold];
-        self.backgroundColor = [UIColor systemGray6Color];
-        self.editable = NO;
-        self.selectable = YES;
-        self.text = @"";
-        self.translatesAutoresizingMaskIntoConstraints = NO;
-        self.alwaysBounceVertical = YES;
+    self.font = [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular];
+    self.backgroundColor = [UIColor systemGray6Color];
+    self.editable = YES;
+    self.selectable = YES;
+    self.text = @"";
+    self.translatesAutoresizingMaskIntoConstraints = NO;
+    self.alwaysBounceVertical = YES;
+    self.autocorrectionType = UITextAutocorrectionTypeNo;
+    self.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.spellCheckingType = UITextSpellCheckingTypeNo;
+    self.keyboardType = UIKeyboardTypeASCIICapable;
+    self.returnKeyType = UIReturnKeySend;
 
-        self.delegate = (id<UITextViewDelegate>)self;
+    self.delegate = (id<UITextViewDelegate>)self;
 
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(handleNotification:)
-                                                     name:NSFileHandleReadCompletionNotification
-                                                   object:_pipe.fileHandleForReading];
-
-        [_pipe.fileHandleForReading readInBackgroundAndNotify];
-    }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotification:) name:NSFileHandleReadCompletionNotification object:_pipe.fileHandleForReading];
+    
+    [_pipe.fileHandleForReading readInBackgroundAndNotify];
+    
     return self;
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     @try {
         [_pipe.fileHandleForReading closeFile];
+        [_stdinPipe.fileHandleForWriting closeFile];
     } @catch (NSException *ex) { /* ignore */ }
     _pipe = nil;
+    _stdinPipe = nil;
 }
 
-- (void)handleNotification:(NSNotification*)notification {
+- (void)handleNotification:(NSNotification*)notification
+{
     NSData *data = notification.userInfo[NSFileHandleNotificationDataItem];
     if (!data || data.length == 0) {
         [_pipe.fileHandleForReading readInBackgroundAndNotify];
@@ -76,27 +90,137 @@ static const CGFloat kAutoScrollThreshold = 20.0;
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSDictionary *attributes = @{
-            NSFontAttributeName: [UIFont monospacedSystemFontOfSize:10 weight:UIFontWeightBold],
-            NSForegroundColorAttributeName: [UIColor labelColor]
-        };
-        NSAttributedString *attr = [[NSAttributedString alloc] initWithString:output attributes:attributes];
-        [self.textStorage appendAttributedString:attr];
-
-        [self.layoutManager ensureLayoutForTextContainer:self.textContainer];
-
-        if (self->_followTail) {
-            CGPoint bottomOffset = CGPointMake(0, MAX(0, self.contentSize.height - self.bounds.size.height));
-            [self setContentOffset:bottomOffset animated:NO];
-        }
+        [self appendOutput:output];
     });
 
     [_pipe.fileHandleForReading readInBackgroundAndNotify];
 }
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+- (void)appendOutput:(NSString *)output
+{
+    _isAppendingOutput = YES;
+    
+    NSString *currentInput = @"";
+    if(_inputStartLocation < self.text.length)
+    {
+        currentInput = [self.text substringFromIndex:_inputStartLocation];
+        NSRange inputRange = NSMakeRange(_inputStartLocation, self.text.length - _inputStartLocation);
+        [self.textStorage deleteCharactersInRange:inputRange];
+    }
+    
+    NSDictionary *outputAttributes = @{
+        NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
+        NSForegroundColorAttributeName: [UIColor labelColor]
+    };
+    NSAttributedString *outputAttr = [[NSAttributedString alloc] initWithString:output attributes:outputAttributes];
+    [self.textStorage appendAttributedString:outputAttr];
+    
+    _inputStartLocation = self.text.length;
+    
+    if(currentInput.length > 0)
+    {
+        NSDictionary *inputAttributes = @{
+            NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
+            NSForegroundColorAttributeName: [UIColor systemGreenColor]
+        };
+        NSAttributedString *inputAttr = [[NSAttributedString alloc] initWithString:currentInput attributes:inputAttributes];
+        [self.textStorage appendAttributedString:inputAttr];
+    }
+    
+    [self.layoutManager ensureLayoutForTextContainer:self.textContainer];
+    self.selectedRange = NSMakeRange(self.text.length, 0);
+    
+    _isAppendingOutput = NO;
+
+    if(_followTail)
+    {
+        [self scrollToBottom];
+    }
+}
+
+- (void)scrollToBottom
+{
+    if(self.text.length > 0)
+    {
+        NSRange range = NSMakeRange(self.text.length - 1, 1);
+        [self scrollRangeToVisible:range];
+    }
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
     CGFloat distanceFromBottom = scrollView.contentSize.height - scrollView.bounds.size.height - scrollView.contentOffset.y;
     _followTail = (distanceFromBottom <= kAutoScrollThreshold);
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if(_isAppendingOutput)
+    {
+        return NO;
+    }
+    
+    if(range.location < _inputStartLocation)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.selectedRange = NSMakeRange(self.text.length, 0);
+        });
+        return NO;
+    }
+    
+    if([text isEqualToString:@"\n"])
+    {
+        NSString *command = @"";
+        if(_inputStartLocation < self.text.length)
+        {
+            command = [self.text substringFromIndex:_inputStartLocation];
+        }
+        
+        NSString *commandWithNewline = [command stringByAppendingString:@"\n"];
+        NSData *data = [commandWithNewline dataUsingEncoding:NSUTF8StringEncoding];
+        @try {
+            [_stdinPipe.fileHandleForWriting writeData:data];
+            
+        } @catch (NSException *exception) {
+            NSLog(@"Failed to write to stdin: %@", exception);
+        }
+        
+        if(_inputStartLocation < self.text.length)
+        {
+            NSRange inputRange = NSMakeRange(_inputStartLocation, self.text.length - _inputStartLocation);
+            [self.textStorage deleteCharactersInRange:inputRange];
+        }
+        
+        return NO;
+    }
+    
+    return YES;
+}
+
+- (void)textViewDidChange:(UITextView *)textView
+{
+    if(_inputStartLocation < self.text.length)
+    {
+        NSRange inputRange = NSMakeRange(_inputStartLocation, self.text.length - _inputStartLocation);
+        NSDictionary *inputAttributes = @{
+            NSFontAttributeName: [UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular],
+            NSForegroundColorAttributeName: [UIColor systemGreenColor]
+        };
+        [self.textStorage setAttributes:inputAttributes range:inputRange];
+    }
+}
+
+- (void)textViewDidChangeSelection:(UITextView *)textView
+{
+    if(!_isAppendingOutput && textView.selectedRange.location < _inputStartLocation && textView.selectedRange.length < 1)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(self.selectedRange.location < self->_inputStartLocation)
+            {
+                self.selectedRange = NSMakeRange(self.text.length, 0);
+            }
+        });
+    }
 }
 
 @end

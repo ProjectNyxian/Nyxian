@@ -371,8 +371,8 @@ class SplitScreenDetailViewController: UIViewController {
             /* setting up logview */
             inp = Pipe()
             outp = Pipe()
-            logView = LogTextView(pipe: self.outp)
-            logView!.isEditable = false
+            logView = LogTextView(pipe: self.outp!, stdinPipe: self.inp!)
+            logView!.isEditable = true
             logView!.isSelectable = true
             logView!.layer.cornerRadius = 20
             logView!.layer.cornerCurve = .continuous

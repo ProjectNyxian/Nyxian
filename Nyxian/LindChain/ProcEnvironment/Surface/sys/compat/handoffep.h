@@ -17,20 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LINDCHAIN_DEBUGGER_LOGGER_H
-#define LINDCHAIN_DEBUGGER_LOGGER_H
+#ifndef SURFACE_SYS_HANDOFFEP_H
+#define SURFACE_SYS_HANDOFFEP_H
 
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-@interface LogTextView : UITextView
+DEFINE_SYSCALL_HANDLER(handoffep);
 
-@property (nonatomic,strong,readonly) NSPipe *pipe;
-@property (nonatomic,strong,readonly) NSPipe *stdinPipe;
-
-- (instancetype)init;
-- (instancetype)initWithPipe:(NSPipe*)pipe stdinPipe:(NSPipe*)stdinPipe;
-
-@end
-
-#endif /* LINDCHAIN_DEBUGGER_LOGGER_H */
+#endif /* SURFACE_SYS_HANDOFFEP_H */

@@ -26,8 +26,268 @@
 #include <mach/exception.h>
 #include <mach/exception_types.h>
 #include <mach/thread_state.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 #include "litehook.h"
 #include "Utils.h"
+
+void debugger_loop(thread_t thread, arm_thread_state64_t state)
+{
+    mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
+    
+    while(1)
+    {
+        printf("[ndb] >>> ");
+        fflush(stdout);
+        
+        char command[256];
+        int i = 0;
+        char c;
+        
+        while(i < 255)
+        {
+            ssize_t n = read(STDIN_FILENO, &c, 1);
+            if(n <= 0) break;
+            if(c == '\n') break;
+            if(c == '\r') break;
+            if(c == 127 || c == 8)
+            {
+                if(i > 0)
+                {
+                    i--;
+                    write(STDOUT_FILENO, "\b \b", 3);
+                }
+                continue;
+            }
+            write(STDOUT_FILENO, &c, 1);
+            command[i++] = c;
+        }
+        command[i] = '\0';
+        
+        printf("\n");
+        fflush(stdout);
+        
+        if(strlen(command) == 0) continue;
+        
+        parsed_command_t cmd = parse_command(command);
+        
+        if(strcmp(cmd.cmd, "bt") == 0)
+        {
+            int depth = 20;
+            if(cmd.arg_count > 0)
+            {
+                depth = atoi(cmd.args[0]);
+                if(depth <= 0) depth = 20;
+            }
+            stack_trace_from_thread_state(state, depth);
+        }
+        else if(strcmp(cmd.cmd, "reg") == 0 || strcmp(cmd.cmd, "registers") == 0)
+        {
+            if(cmd.arg_count == 0)
+            {
+                printf("\n=== General Purpose Registers ===\n");
+                for(int i = 0; i < 29; i++)
+                {
+                    printf("x%-2d = 0x%016llx  ", i, state.__x[i]);
+                    if(i % 2 == 1) printf("\n");
+                }
+                printf("\n=== Special Registers ===\n");
+                print_register("fp", state.__fp);
+                print_register("lr", state.__lr);
+                print_register("sp", state.__sp);
+                print_register("pc", state.__pc);
+                printf("cpsr = 0x%08x\n", state.__cpsr);
+            }
+            else if(cmd.arg_count == 1)
+            {
+                uint64_t *reg = get_register_ptr(&state, cmd.args[0]);
+                if(reg)
+                {
+                    print_register(cmd.args[0], *reg);
+                }
+                else
+                {
+                    printf("[ndb] Unknown register: %s\n", cmd.args[0]);
+                }
+            }
+            else if(cmd.arg_count == 2)
+            {
+                uint64_t *reg = get_register_ptr(&state, cmd.args[0]);
+                if(reg)
+                {
+                    uint64_t value = strtoull(cmd.args[1], NULL, 0);
+                    *reg = value;
+                    thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
+                    printf("[ndb] %s = 0x%llx\n", cmd.args[0], value);
+                }
+                else
+                {
+                    printf("[ndb] Unknown register: %s\n", cmd.args[0]);
+                }
+            }
+        }
+        else if(strcmp(cmd.cmd, "break") == 0 || strcmp(cmd.cmd, "b") == 0)
+        {
+            if(cmd.arg_count == 2)
+            {
+                int slot = atoi(cmd.args[0]);
+                
+                void *addr = dlsym(RTLD_DEFAULT, cmd.args[1]);
+                if(addr == NULL)
+                {
+                    addr = (void*)strtoull(cmd.args[1], NULL, 0);
+                }
+                
+                set_hw_breakpoint(thread, slot, addr);
+            }
+            else
+            {
+                printf("[ndb] Usage: break <slot> <address>\n");
+                printf("[ndb] Example: break 0 0x100004a20\n");
+            }
+        }
+        else if(strcmp(cmd.cmd, "delete") == 0 || strcmp(cmd.cmd, "d") == 0)
+        {
+            if(cmd.arg_count == 1)
+            {
+                int slot = atoi(cmd.args[0]);
+                clear_hw_breakpoint(thread, slot);
+            }
+            else
+            {
+                printf("[ndb] Usage: delete <slot>\n");
+            }
+        }
+        else if(strcmp(cmd.cmd, "info") == 0)
+        {
+            if(cmd.arg_count > 0 && strcmp(cmd.args[0], "break") == 0)
+            {
+                printf("\n=== Hardware Breakpoints ===\n");
+                for(int i = 0; i < 6; i++)
+                {
+                    if(hw_breakpoints[i].enabled)
+                    {
+                        printf("%d: 0x%p\n", i, hw_breakpoints[i].address);
+                    }
+                    else
+                    {
+                        printf("%d: <disabled>\n", i);
+                    }
+                }
+            }
+        }
+        else if(strcmp(cmd.cmd, "x") == 0 || strcmp(cmd.cmd, "examine") == 0)
+        {
+            if(cmd.arg_count >= 1)
+            {
+                void *addr = (void*)strtoull(cmd.args[0], NULL, 0);
+                int count = 16;
+                if(cmd.arg_count >= 2) count = atoi(cmd.args[1]);
+                
+                printf("\n=== Memory at %p ===\n", addr);
+                uint8_t *ptr = (uint8_t*)addr;
+                for(int i = 0; i < count; i++)
+                {
+                    if(i % 16 == 0) printf("%p: ", ptr + i);
+                    printf("%02x ", ptr[i]);
+                    if(i % 16 == 15) printf("\n");
+                }
+                if(count % 16 != 0) printf("\n");
+            }
+            else
+            {
+                printf("[ndb] Usage: x <address> [count]\n");
+            }
+        }
+        else if(strcmp(cmd.cmd, "disas") == 0 || strcmp(cmd.cmd, "disassemble") == 0)
+        {
+            if(cmd.arg_count == 0)
+            {
+                printf("\n=== Disassembly at 0x%llx ===\n", state.__pc);
+                printf("%s\n", [[Decompiler getDecompiledCodeBuffer:state.__pc] UTF8String]);
+            }
+            else
+            {
+                void *addr = (void*)state.__pc;
+                int count = 10;
+                
+                if(cmd.arg_count >= 1)
+                {
+                    addr = (void*)strtoull(cmd.args[0], NULL, 0);
+                }
+                if(cmd.arg_count >= 2)
+                {
+                    count = atoi(cmd.args[1]);
+                }
+                
+                printf("\n=== Disassembly at %p ===\n", addr);
+                printf("%s\n", [[Decompiler decompileBinary:addr withSize:count] UTF8String]);
+            }
+        }
+        else if(strcmp(cmd.cmd, "step") == 0 || strcmp(cmd.cmd, "s") == 0)
+        {
+            if(singleStepMode)
+            {
+                clear_hw_breakpoint(thread, 0);
+                singleStepMode = false;
+            }
+            else
+            {
+                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
+                singleStepMode = true;
+            }
+            break;
+        }
+        else if(strcmp(cmd.cmd, "cont") == 0 || strcmp(cmd.cmd, "c") == 0)
+        {
+            if(singleStepMode)
+            {
+                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
+            }
+            break;
+        }
+        else if(strcmp(cmd.cmd, "skip") == 0)
+        {
+            state.__pc += 4;
+            thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
+            if(singleStepMode)
+            {
+                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
+            }
+            break;
+        }
+        else if(strcmp(cmd.cmd, "exit") == 0 || strcmp(cmd.cmd, "quit") == 0)
+        {
+            state.__pc = (uint64_t)exit;
+            state.__x[0] = 1;
+            thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
+            break;
+        }
+        else if(strcmp(cmd.cmd, "help") == 0 || strcmp(cmd.cmd, "h") == 0)
+        {
+            printf("\n=== ndb Commands ===\n");
+            printf("bt [depth]              - Backtrace (default 20 frames)\n");
+            printf("reg [name] [value]      - Show/set registers\n");
+            printf("  reg                   - Show all registers\n");
+            printf("  reg x0                - Show x0\n");
+            printf("  reg pc 0x1000         - Set PC to 0x1000\n");
+            printf("break <slot> <addr>     - Set hardware breakpoint\n");
+            printf("delete <slot>           - Clear hardware breakpoint\n");
+            printf("info break              - List breakpoints\n");
+            printf("x <addr> [count]        - Examine memory\n");
+            printf("disas [addr] [count]    - Disassemble\n");
+            printf("step / s                - Single step\n");
+            printf("cont / c                - Continue execution\n");
+            printf("exit / quit             - Exit program\n");
+            printf("help / h                - Show this help\n");
+        }
+        else
+        {
+            printf("[ndb] unrecognized command \"%s\" (try 'help')\n", cmd.cmd);
+        }
+        
+        fflush(stdout);
+    }
+}
 
 void signal_handler(int code)
 {
@@ -61,37 +321,26 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
                                                  mach_exception_data_type_t *code,
                                                  mach_msg_type_number_t codeCnt)
 {
+    thread_act_array_t cachedThreads;
+    mach_msg_type_number_t cachedThreadCount;
+    kern_return_t kr = task_threads(mach_task_self(), &cachedThreads, &cachedThreadCount);
+    if(kr == KERN_SUCCESS)
+    {
+        suspend_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+    }
+    
     arm_thread_state64_t state;
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
     
-    printf("\nException\n[%s] thread %d faulting at 0x%llx(%s)\n\nRegister\n"
-             "PC: 0x%llx\nSP: 0x%llx\nFP: 0x%llx\nLR: 0x%llx\nCPSR: 0x%x\nPAD: 0x%x",
-             exceptionName(exception),
-             get_thread_index_from_port(thread),
-             state.__pc,
-             symbol_for_address((void*)state.__pc),
-             state.__pc,
-             state.__sp,
-             state.__fp,
-             state.__lr,
-             state.__cpsr,
-             state.__pad);
+    printf("[ndb] [%s] thread %d faulting at 0x%llx(%s)\n", exceptionName(exception), get_thread_index_from_port(thread), state.__pc, symbol_for_address((void*)state.__pc));
     
-    for(uint8_t i = 0; i < 29; i++)
-        printf("\nX%d: 0x%llx",
-                i,
-                state.__x[i]);
+    debugger_loop(thread, state);
     
-    stack_trace_from_thread_state(state);
-    
-    state.__pc = (uint64_t)exit;
-    state.__x[0] = 1;
-    thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-    
-    printf("\nTask suspended!\n");
-    fflush(stdout);
-    task_suspend(task);
+    if(kr == KERN_SUCCESS)
+    {
+        resume_threads_except_for(cachedThreads, cachedThreadCount, mach_thread_self());
+    }
     
     return KERN_SUCCESS;
 }
@@ -122,6 +371,8 @@ void* mach_exception_self_server(void *arg)
         fprintf(stderr, "Unexpected error in vm_allocate(): %x\n", kr);
         return NULL;
     }
+    
+    environment_syscall(SYS_HANDOFFEP, exceptionPort);
     
     while(1)
     {
