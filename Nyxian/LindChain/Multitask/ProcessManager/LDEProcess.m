@@ -78,6 +78,19 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     NSExtensionItem *item = [NSExtensionItem new];
     item.userInfo = items;
     
+    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.executablePath];
+    
+    if(applicationObject != nil)
+    {
+        self.bundleIdentifier = applicationObject.bundleIdentifier;
+        self.displayName = applicationObject.displayName;
+    }
+    else
+    {
+        self.bundleIdentifier = nil;
+        self.displayName = [self.executablePath lastPathComponent];
+    }
+    
 #else
     
     LSApplicationProxy *bundleProxy = nil;

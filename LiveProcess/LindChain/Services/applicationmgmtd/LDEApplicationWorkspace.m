@@ -55,14 +55,24 @@
     return applicationWorkspaceSingleton;
 }
 
-- (void)connect
+- (BOOL)connect
 {
-    NSLog(@"Connecting to installd...");
     __weak typeof(self) weakSelf = self;
-    _connection = [[LaunchServices shared] connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
-    _connection.invalidationHandler = ^{
-        [weakSelf connect];
-    };
+    _connection = nil;
+    LaunchServices *launchServices = [LaunchServices shared];
+    
+    if(launchServices != nil)
+    {
+        NSLog(@"connecting to installd");
+        _connection = [launchServices connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
+        _connection.invalidationHandler = ^{
+            [weakSelf connect];
+        };
+        
+        return YES;
+    }
+    
+    return NO;
 }
 
 - (void)ping
@@ -72,6 +82,11 @@
 
 - (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath
 {
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL result = NO;
     ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithDirectory:bundlePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
@@ -85,6 +100,11 @@
 
 - (BOOL)installApplicationAtPackagePath:(NSString*)packagePath
 {
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL result = NO;
     ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithArchive:packagePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
@@ -98,6 +118,11 @@
 
 - (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
 {
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy deleteApplicationWithBundleID:bundleID withReply:^(BOOL replyResult){
@@ -110,6 +135,11 @@
 
 - (BOOL)applicationInstalledWithBundleID:(NSString *)bundleID
 {
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy applicationInstalledWithBundleID:bundleID withReply:^(BOOL replyResult){
@@ -122,6 +152,11 @@
 
 - (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID
 {
+    if(_connection == nil && ![self connect])
+    {
+        return nil;
+    }
+    
     __block LDEApplicationObject *result = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy applicationObjectForBundleID:bundleID withReply:^(LDEApplicationObject *replyResult){
@@ -134,11 +169,21 @@
 
 - (NSArray<LDEApplicationObject*>*)allApplicationObjects
 {
+    if(_connection == nil && ![self connect])
+    {
+        return nil;
+    }
+    
     return _apps;
 }
 
 - (BOOL)clearContainerForBundleID:(NSString *)bundleID
 {
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy clearContainerForBundleID:bundleID withReply:^(BOOL replyResult){
@@ -151,6 +196,11 @@
 
 - (NSString*)fastpathUtility:(NSString*)utilityPath
 {
+    if(_connection == nil && ![self connect])
+    {
+        return nil;
+    }
+    
     __block NSString *fastpath = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy fastpathUtility:[[FileObject alloc] initWithPath:utilityPath] withReply:^(NSString *fastPathRet, BOOL fastSigned){
@@ -163,6 +213,11 @@
 
 - (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath
 {
+    if(_connection == nil && ![self connect])
+    {
+        return nil;
+    }
+    
     __block LDEApplicationObject *application = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     [_connection.remoteObjectProxy applicationObjectForExecutablePath:executablePath withReply:^(LDEApplicationObject *applicationReply){
@@ -184,6 +239,11 @@
 
 - (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier
 {
+    if(_connection == nil && ![self connect])
+    {
+        return;
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
         LDEAppLaunchpad *launchPad = [[LDEWindowServer shared] getOrCreateLaunchpad];

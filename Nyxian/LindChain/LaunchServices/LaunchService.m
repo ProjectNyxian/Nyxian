@@ -141,9 +141,19 @@
 {
     static LaunchServices *launchServicesSingleton = nil;
     static dispatch_once_t onceToken;
+    static BOOL initializing = NO;
+    
+    if(initializing)
+    {
+        return launchServicesSingleton;
+    }
+    
     dispatch_once(&onceToken, ^{
+        initializing = YES;
         launchServicesSingleton = [[LaunchServices alloc] init];
+        initializing = NO;
     });
+    
     return launchServicesSingleton;
 }
 
