@@ -55,7 +55,7 @@
 
 - (NSXPCListenerEndpoint*)getEndpointForServiceIdentifier:(NSString*)serviceIdentifier;
 - (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier;
-- (void)execute:(void (^)(NSObject *remoteProxy))block byEstablishingConnectionToServiceWithServiceIdentifier:(NSString *)serviceIdentifier compliantToProtocol:(Protocol *)protocol __attribute__((deprecated("Use connectToService:protocol:observer:observerProtocol: instead")));
+
 - (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier protocol:(Protocol *)protocol observer:(id)observer observerProtocol:(Protocol *)observerProtocol;
 
 @end

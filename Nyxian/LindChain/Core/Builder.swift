@@ -255,7 +255,7 @@ class Builder {
                     if result {
                         if(LDEApplicationWorkspace.shared().installApplication(atBundlePath: self.project.bundlePath)) {
                             let application: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: project.projectConfig.bundleid)
-                            if let entHash: String = LDETrust.entHashOfExecutable(atPath: application.executablePath) {
+                            if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application.executablePath) {
                                 TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                             }
                             LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: true)
@@ -277,7 +277,7 @@ class Builder {
                 
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
-                        if let entHash: String = LDETrust.entHashOfExecutable(atPath: path) {
+                        if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: path) {
                             TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
                         }
                         

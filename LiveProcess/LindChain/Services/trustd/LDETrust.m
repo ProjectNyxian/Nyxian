@@ -23,7 +23,47 @@
 
 @implementation LDETrust
 
-+ (NSString*)entHashOfExecutableAtPath:(NSString *)path
+- (instancetype)init
+{
+    self = [super init];
+    if(self)
+    {
+        [self connect];
+    }
+    return self;
+}
+
++ (instancetype)shared
+{
+    static LDETrust *trustSingleton = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        trustSingleton = [[LDETrust alloc] init];
+    });
+    return trustSingleton;
+}
+
+- (BOOL)connect
+{
+    __weak typeof(self) weakSelf = self;
+    _connection = nil;
+    LaunchServices *launchServices = [LaunchServices shared];
+    
+    if(launchServices != nil)
+    {
+        NSLog(@"connecting to installd");
+        _connection = [launchServices connectToService:@"com.cr4zy.trustd" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
+        _connection.invalidationHandler = ^{
+            [weakSelf connect];
+        };
+        
+        return YES;
+    }
+    
+    return NO;
+}
+
+- (NSString*)entHashOfExecutableAtPath:(NSString *)path
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
     // RIGHT HERE
@@ -33,19 +73,23 @@
         return @"com.cr4zy.nyxian.daemon.trustcache_daemon";
     }
     
+    if(_connection == nil && ![self connect])
+    {
+        return nil;
+    }
+    
     __block NSString *entHashExport = nil;
-    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
-        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        [remoteObject getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
-            entHashExport = entHash;
-            dispatch_semaphore_signal(sema);
-        }];
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    [_connection.remoteObjectProxy getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
+        entHashExport = entHash;
+        dispatch_semaphore_signal(sema);
+    }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    
     return entHashExport;
 }
 
-+ (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
+- (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
     // RIGHT HERE
@@ -55,15 +99,19 @@
         return YES;
     }
     
+    if(_connection == nil && ![self connect])
+    {
+        return NO;
+    }
+    
     __block BOOL allowedToLaunch = NO;
-    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
-        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        [remoteObject executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
-            allowedToLaunch = allowed;
-            dispatch_semaphore_signal(sema);
-        }];
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    [_connection.remoteObjectProxy executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
+        allowedToLaunch = allowed;
+        dispatch_semaphore_signal(sema);
+    }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    
     return allowedToLaunch;
 }
 

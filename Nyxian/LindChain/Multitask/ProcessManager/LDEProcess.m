@@ -59,7 +59,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
-    if(![LDETrust executableAllowedToLaunchAtPath:self.executablePath]) return nil;
+    if(![[LDETrust shared] executableAllowedToLaunchAtPath:self.executablePath]) return nil;
     
     self.wid = (wid_t)-1;
     
