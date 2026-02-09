@@ -68,12 +68,12 @@ kern_return_t resume_threads_except_for(thread_act_array_t allThreads,
     return KERN_SUCCESS;
 }
 
-void state_back_trace(arm_thread_state64_t state,
+void state_back_trace(struct arm64_thread_full_state *state,
                       uint64_t maxdepth)
 {
     stack_frame_t start_frame;
-    start_frame.lr = state.__pc;
-    start_frame.fp = (void*)state.__fp;
+    start_frame.lr = state->thread.__pc;
+    start_frame.fp = (void*)state->thread.__fp;
     stack_frame_t *frame = &start_frame;
 
     int depth = 0;
@@ -181,10 +181,10 @@ static int64_t sign_extend(uint64_t value, int bits)
     return (int64_t)value;
 }
 
-uint64_t get_next_pc(arm_thread_state64_t state)
+uint64_t get_next_pc(struct arm64_thread_full_state *state)
 {
-    uint64_t pc = state.__pc;
-    uint32_t cpsr = state.__cpsr;
+    uint64_t pc = state->thread.__pc;
+    uint32_t cpsr = state->thread.__cpsr;
     
     /* read instruction at pc */
     uint32_t inst;
@@ -200,27 +200,27 @@ uint64_t get_next_pc(arm_thread_state64_t state)
     if((inst & 0xFFFFFC1F) == 0xD65F0000)
     {
         uint32_t rn = (inst >> 5) & 0x1F;
-        return state.__x[rn];  /* usually X30 (LR) */
+        return state->thread.__x[rn];  /* usually X30 (LR) */
     }
     
     /* RETAA, RETAB (authenticated returns) */
     if(inst == 0xD65F0BFF || inst == 0xD65F0FFF)
     {
-        return state.__x[30];  // LR
+        return state->thread.__lr;  // LR
     }
     
     /* BR Xn (1101 0110 0001 1111 0000 00nn nnn0 0000) */
     if((inst & 0xFFFFFC1F) == 0xD61F0000)
     {
         uint32_t rn = (inst >> 5) & 0x1F;
-        return state.__x[rn];
+        return state->thread.__x[rn];
     }
     
     /* BLR Xn (1101 0110 0011 1111 0000 00nn nnn0 0000) */
     if((inst & 0xFFFFFC1F) == 0xD63F0000)
     {
         uint32_t rn = (inst >> 5) & 0x1F;
-        return state.__x[rn];
+        return state->thread.__x[rn];
     }
     
     /* B (unconditional branch) - 0001 01ii iiii iiii iiii iiii iiii iiii */
@@ -260,7 +260,7 @@ uint64_t get_next_pc(arm_thread_state64_t state)
         int64_t offset = sign_extend((inst >> 5) & 0x7FFFF, 19) << 2;
         bool is_64bit = (inst >> 31) & 1;
         
-        uint64_t reg_val = state.__x[rt];
+        uint64_t reg_val = state->thread.__x[rt];
         if(!is_64bit)
         {
             reg_val &= 0xFFFFFFFF;  /* use only lower 32 bits */
@@ -283,7 +283,7 @@ uint64_t get_next_pc(arm_thread_state64_t state)
         int64_t offset = sign_extend((inst >> 5) & 0x7FFFF, 19) << 2;
         bool is_64bit = (inst >> 31) & 1;
         
-        uint64_t reg_val = state.__x[rt];
+        uint64_t reg_val = state->thread.__x[rt];
         if(!is_64bit)
         {
             reg_val &= 0xFFFFFFFF;  /* use only lower 32 bits */
@@ -306,7 +306,7 @@ uint64_t get_next_pc(arm_thread_state64_t state)
         uint32_t bit_pos = ((inst >> 19) & 0x1F) | ((inst >> 26) & 0x20);
         int64_t offset = sign_extend((inst >> 5) & 0x3FFF, 14) << 2;
         
-        uint64_t reg_val = state.__x[rt];
+        uint64_t reg_val = state->thread.__x[rt];
         bool bit_set = (reg_val >> bit_pos) & 1;
         
         if(!bit_set)
@@ -326,7 +326,7 @@ uint64_t get_next_pc(arm_thread_state64_t state)
         uint32_t bit_pos = ((inst >> 19) & 0x1F) | ((inst >> 26) & 0x20);
         int64_t offset = sign_extend((inst >> 5) & 0x3FFF, 14) << 2;
         
-        uint64_t reg_val = state.__x[rt];
+        uint64_t reg_val = state->thread.__x[rt];
         bool bit_set = (reg_val >> bit_pos) & 1;
         
         if(bit_set)
@@ -338,31 +338,89 @@ uint64_t get_next_pc(arm_thread_state64_t state)
             return pc + 4;       /* not taken */
         }
     }
-    
-    /* BR Xn (1101 0110 0001 1111 0000 00nn nnn0 0000) */
-    if((inst & 0xFFFFFC1F) == 0xD61F0000)
-    {
-        uint32_t rn = (inst >> 5) & 0x1F;
-        return state.__x[rn];
-    }
 
     /* BRAA, BRAAZ, BRAB, BRABZ (authenticated branches) */
     /* Encoding: 1101 0111 X_X1 1111 0000 10XX XXXX XXXX */
     if((inst & 0xFF0FF800) == 0xD70F0800)
     {
         uint32_t rn = inst & 0x1F;
-        return state.__x[rn];
+        return state->thread.__x[rn];
     }
 
     /* BLR Xn (1101 0110 0011 1111 0000 00nn nnn0 0000) */
     if((inst & 0xFFFFFC1F) == 0xD63F0000)
     {
         uint32_t rn = (inst >> 5) & 0x1F;
-        return state.__x[rn];
+        return state->thread.__x[rn];
     }
     
     /* default: sequential instruction */
     return pc + 4;
+}
+
+parsed_command_arg_type_t parse_arg_type(const char *arg)
+{
+    if(!arg || !*arg) return PARSED_COMMAND_ARG_TYPE_STRING;
+    
+    const char *ptr = arg;
+    
+    while(*ptr == ' ' || *ptr == '\t') ptr++;
+    
+    if(*ptr == '-') ptr++;
+    if(ptr[0] == '0' && (ptr[1] == 'x' || ptr[1] == 'X'))
+    {
+        ptr += 2;
+        if(!*ptr) return PARSED_COMMAND_ARG_TYPE_STRING;
+        
+        while (*ptr)
+        {
+            if(!((*ptr >= '0' && *ptr <= '9') ||
+                 (*ptr >= 'a' && *ptr <= 'f') ||
+                 (*ptr >= 'A' && *ptr <= 'F')))
+            {
+                return PARSED_COMMAND_ARG_TYPE_STRING;
+            }
+            ptr++;
+        }
+        return PARSED_COMMAND_ARG_TYPE_HEXADECIMAL;
+    }
+    
+    if(ptr[0] == '0' && (ptr[1] == 'b' || ptr[1] == 'B'))
+    {
+        ptr += 2;
+        if(!*ptr) return PARSED_COMMAND_ARG_TYPE_STRING;
+        
+        while(*ptr)
+        {
+            if(*ptr != '0' && *ptr != '1')
+            {
+                return PARSED_COMMAND_ARG_TYPE_STRING;
+            }
+            ptr++;
+        }
+        return PARSED_COMMAND_ARG_TYPE_BINARY;
+    }
+    
+    ptr = arg;
+    if(*ptr == '-') ptr++;
+    
+    if(!*ptr) return PARSED_COMMAND_ARG_TYPE_STRING;
+    
+    int has_digit = 0;
+    while(*ptr)
+    {
+        if(*ptr >= '0' && *ptr <= '9')
+        {
+            has_digit = 1;
+        }
+        else
+        {
+            return PARSED_COMMAND_ARG_TYPE_STRING;
+        }
+        ptr++;
+    }
+    
+    return has_digit ? PARSED_COMMAND_ARG_TYPE_DECIMAL : PARSED_COMMAND_ARG_TYPE_STRING;
 }
 
 parsed_command_t parse_command(const char *input)
@@ -370,41 +428,115 @@ parsed_command_t parse_command(const char *input)
     parsed_command_t result = {0};
     char buffer[256];
     strncpy(buffer, input, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
     
-    char *token = strtok(buffer, " \t");
-    if(token)
-    {
-        strncpy(result.cmd, token, sizeof(result.cmd) - 1);
-    }
+    char *ptr = buffer;
+    int token_idx = -1;
     
-    while((token = strtok(NULL, " \t")) && result.arg_count < 10)
+    while(*ptr)
     {
-        strncpy(result.args[result.arg_count++], token, 127);
+        while(*ptr == ' ' || *ptr == '\t') ptr++;
+        if(!*ptr) break;
+        
+        char token[128] = {0};
+        int tok_len = 0;
+        int was_quoted = 0;
+        
+        char quote_char = 0;
+        if(*ptr == '"' || *ptr == '\'')
+        {
+            quote_char = *ptr;
+            was_quoted = 1;
+            ptr++;
+            
+            while(*ptr && *ptr != quote_char && tok_len < 127)
+            {
+                if(*ptr == '\\' && *(ptr + 1) == quote_char)
+                {
+                    token[tok_len++] = quote_char;
+                    ptr += 2;
+                }
+                else
+                {
+                    token[tok_len++] = *ptr++;
+                }
+            }
+            
+            if(*ptr == quote_char) ptr++;
+        }
+        else
+        {
+            while(*ptr && *ptr != ' ' && *ptr != '\t' && tok_len < 127)
+            {
+                token[tok_len++] = *ptr++;
+            }
+        }
+        
+        token[tok_len] = '\0';
+        
+        if(token_idx == -1)
+        {
+            strncpy(result.cmd, token, sizeof(result.cmd) - 1);
+            result.cmd[sizeof(result.cmd) - 1] = '\0';
+            token_idx = 0;
+        }
+        else if (result.arg_count < 10)
+        {
+            strncpy(result.args[result.arg_count], token, 127);
+            result.args[result.arg_count][127] = '\0';
+            
+            if(was_quoted)
+            {
+                result.arg_types[result.arg_count] = PARSED_COMMAND_ARG_TYPE_STRING;
+            }
+            else
+            {
+                result.arg_types[result.arg_count] = parse_arg_type(token);
+                
+                if(result.arg_types[result.arg_count] != PARSED_COMMAND_ARG_TYPE_STRING)
+                {
+                    result.arg_values[result.arg_count] = parse_number(token, result.arg_types[result.arg_count]);
+                }
+            }
+            
+            result.arg_count++;
+        }
     }
     
     return result;
 }
 
-bool set_hw_breakpoint(thread_t thread, int slot, void *address)
+unsigned long long parse_number(const char *str, parsed_command_arg_type_t type)
+{
+    switch (type)
+    {
+        case PARSED_COMMAND_ARG_TYPE_HEXADECIMAL:
+            return strtoull(str, NULL, 16);
+        case PARSED_COMMAND_ARG_TYPE_DECIMAL:
+            return strtoull(str, NULL, 10);
+        case PARSED_COMMAND_ARG_TYPE_BINARY:
+            if(str[0] == '0' && (str[1] == 'b' || str[1] == 'B'))
+            {
+                return strtoull(str + 2, NULL, 2);
+            }
+            return strtoull(str, NULL, 2);
+        default:
+            return 0;
+    }
+}
+
+bool set_hw_breakpoint(struct arm64_thread_full_state *state,
+                       int slot,
+                       vm_address_t address)
 {
     if(slot < 0 || slot >= 6)
     {
-        printf("[ndb] Invalid breakpoint slot (0-5)\n");
-        return false;
-    }
-    
-    arm_debug_state64_t debug_state;
-    mach_msg_type_number_t count = ARM_DEBUG_STATE64_COUNT;
-    
-    kern_return_t kr = thread_get_state(thread, ARM_DEBUG_STATE64, (thread_state_t)&debug_state, &count);
-    if(kr != KERN_SUCCESS)
-    {
-        printf("[ndb] Failed to get debug state\n");
+        printf("invalid breakpoint slot (0-5)\n");
         return false;
     }
     
     /* set breakpoint address */
-    debug_state.__bvr[slot] = (uint64_t)address;
+    state->debug.__bvr[slot] = (uint64_t)address;
     
     /*
      * enable breakpoint: BCR format
@@ -412,64 +544,160 @@ bool set_hw_breakpoint(thread_t thread, int slot, void *address)
      * bits 1-2: PMC (Privilege Mode Control) = 11 (any mode)
      * bits 5-8: BAS (Byte Address Select) = 1111 (all bytes)
      */
-    debug_state.__bcr[slot] = 0x1E5;  /* Enabled, any privilege, match all bytes */
-    
-    kr = thread_set_state(thread, ARM_DEBUG_STATE64, (thread_state_t)&debug_state, count);
-    if(kr != KERN_SUCCESS)
-    {
-        printf("[ndb] Failed to set debug state\n");
-        return false;
-    }
+    state->debug.__bcr[slot] = 0x1E5;  /* Enabled, any privilege, match all bytes */
     
     hw_breakpoints[slot].enabled = true;
     hw_breakpoints[slot].address = address;
-    printf("[ndb] Hardware breakpoint %d set at %p\n", slot, address);
     return true;
 }
 
-bool clear_hw_breakpoint(thread_t thread, int slot)
+bool clear_hw_breakpoint(struct arm64_thread_full_state *state,
+                         int slot)
 {
-    if(slot < 0 || slot >= 6) {
-        printf("[ndb] Invalid breakpoint slot (0-5)\n");
+    if(slot < 0 || slot >= 6)
+    {
+        printf("invalid breakpoint slot (0-5)\n");
         return false;
     }
     
-    arm_debug_state64_t debug_state;
-    mach_msg_type_number_t count = ARM_DEBUG_STATE64_COUNT;
-    
-    kern_return_t kr = thread_get_state(thread, ARM_DEBUG_STATE64,
-                                       (thread_state_t)&debug_state, &count);
-    if(kr != KERN_SUCCESS) return false;
-    
-    debug_state.__bcr[slot] = 0;  /* disable */
-    
-    kr = thread_set_state(thread, ARM_DEBUG_STATE64, (thread_state_t)&debug_state, count);
+    state->debug.__bcr[slot] = 0;  /* disable */
     
     hw_breakpoints[slot].enabled = false;
-    hw_breakpoints[slot].address = NULL;
-    printf("[ndb] Hardware breakpoint %d cleared\n", slot);
-    return kr == KERN_SUCCESS;
+    hw_breakpoints[slot].address = VM_MIN_ADDRESS;
+    return true;
 }
 
-void print_register(const char *name, uint64_t value)
+void print_register(const char *name,
+                    uint64_t value)
 {
     printf("%-4s = 0x%016llx  (%llu)\n", name, value, value);
 }
 
-uint64_t* get_register_ptr(arm_thread_state64_t *state, const char *name)
+uint64_t* get_register_ptr(struct arm64_thread_full_state *state,
+                           const char *name)
 {
-    if(strcmp(name, "pc") == 0) return &state->__pc;
-    if(strcmp(name, "sp") == 0) return &state->__sp;
-    if(strcmp(name, "fp") == 0) return &state->__fp;
-    if(strcmp(name, "lr") == 0) return &state->__lr;
-    if(strcmp(name, "cpsr") == 0) return (uint64_t*)&state->__cpsr;
+    if(strcmp(name, "pc") == 0) return &state->thread.__pc;
+    if(strcmp(name, "sp") == 0) return &state->thread.__sp;
+    if(strcmp(name, "fp") == 0) return &state->thread.__fp;
+    if(strcmp(name, "lr") == 0) return &state->thread.__lr;
+    if(strcmp(name, "cpsr") == 0) return (uint64_t*)&state->thread.__cpsr;
     
     /* x0-x28 */
     if(name[0] == 'x' && isdigit(name[1]))
     {
         int reg = atoi(name + 1);
-        if(reg >= 0 && reg <= 28) return &state->__x[reg];
+        if(reg >= 0 && reg <= 28) return &state->thread.__x[reg];
     }
     
     return NULL;
+}
+
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.m#L14 */
+struct arm64_thread_full_state* thread_save_state_arm64(thread_act_t thread)
+{
+    struct arm64_thread_full_state* s = malloc(sizeof(struct arm64_thread_full_state));
+    mach_msg_type_number_t count;
+    kern_return_t kr;
+
+    // ARM_THREAD_STATE64
+    count = ARM_THREAD_STATE64_COUNT;
+    kr = thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t) &s->thread, &count);
+    s->thread_valid = (kr == KERN_SUCCESS);
+    if (kr != KERN_SUCCESS) {
+        printf("ERROR: Failed to save ARM_THREAD_STATE64 state: %s", mach_error_string(kr));
+        free(s);
+        return NULL;
+    }
+    // ARM_EXCEPTION_STATE64
+    count = ARM_EXCEPTION_STATE64_COUNT;
+    kr = thread_get_state(thread, ARM_EXCEPTION_STATE64,
+            (thread_state_t) &s->exception, &count);
+    s->exception_valid = (kr == KERN_SUCCESS);
+    if (kr != KERN_SUCCESS) {
+        printf("WARNING: Failed to save ARM_EXCEPTION_STATE64 state: %s", mach_error_string(kr));
+    }
+    // ARM_NEON_STATE64
+    count = ARM_NEON_STATE64_COUNT;
+    kr = thread_get_state(thread, ARM_NEON_STATE64, (thread_state_t) &s->neon, &count);
+    s->neon_valid = (kr == KERN_SUCCESS);
+    if (kr != KERN_SUCCESS) {
+        printf("WARNING: Failed to save ARM_NEON_STATE64 state: %s", mach_error_string(kr));
+    }
+    // ARM_DEBUG_STATE64
+    count = ARM_DEBUG_STATE64_COUNT;
+    kr = thread_get_state(thread, ARM_DEBUG_STATE64, (thread_state_t) &s->debug, &count);
+    s->debug_valid = (kr == KERN_SUCCESS);
+    if (kr != KERN_SUCCESS) {
+        printf("WARNING: Failed to save ARM_DEBUG_STATE64 state: %s", mach_error_string(kr));
+    }
+
+    return s;
+}
+
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.m#L55 */
+bool thread_restore_state_arm64(thread_act_t thread, struct arm64_thread_full_state* state)
+{
+    struct arm64_thread_full_state *s = (void *) state;
+    kern_return_t kr;
+    bool success = true;
+    // ARM_THREAD_STATE64
+    if (s->thread_valid) {
+        kr = thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t) &s->thread, ARM_THREAD_STATE64_COUNT);
+        if (kr != KERN_SUCCESS) {
+            printf("ERROR: Failed to restore ARM_THREAD_STATE64 state: %s", mach_error_string(kr));
+            success = false;
+        }
+    }
+    // ARM_EXCEPTION_STATE64
+    if (s->exception_valid) {
+        kr = thread_set_state(thread, ARM_EXCEPTION_STATE64, (thread_state_t) &s->exception, ARM_EXCEPTION_STATE64_COUNT);
+        if (kr != KERN_SUCCESS) {
+            printf("ERROR: Failed to restore ARM_EXCEPTION_STATE64 state: %s", mach_error_string(kr));
+            success = false;
+        }
+    }
+    // ARM_NEON_STATE64
+    if (s->neon_valid) {
+        kr = thread_set_state(thread, ARM_NEON_STATE64, (thread_state_t) &s->neon, ARM_NEON_STATE64_COUNT);
+        if (kr != KERN_SUCCESS) {
+            printf("ERROR: Failed to restore ARM_NEON_STATE64 state: %s", mach_error_string(kr));
+            success = false;
+        }
+    }
+    // ARM_DEBUG_STATE64
+    if (s->debug_valid) {
+        kr = thread_set_state(thread, ARM_DEBUG_STATE64, (thread_state_t) &s->debug, ARM_DEBUG_STATE64_COUNT);
+        if (kr != KERN_SUCCESS) {
+            printf("ERROR: Failed to restore ARM_DEBUG_STATE64 state: %s", mach_error_string(kr));
+            success = false;
+        }
+    }
+    // Now free the struct.
+    free(s);
+    return success;
+}
+
+bool is_enabled_mdscr_single_step(struct arm64_thread_full_state *state)
+{
+    return (state->debug.__mdscr_el1 & 1ULL) == 1ULL;
+}
+
+bool enable_mdscr_single_step(struct arm64_thread_full_state *state)
+{
+    bool isEnabled = is_enabled_mdscr_single_step(state);
+    
+    if(isEnabled)
+    {
+        return false;
+    }
+    
+    state->debug.__mdscr_el1 = state->debug.__mdscr_el1 | 1ULL;
+    return true;
+}
+
+bool flick_mdscr_single_step(struct arm64_thread_full_state *state)
+{
+    bool isEnabled = is_enabled_mdscr_single_step(state);
+    state->debug.__mdscr_el1 = isEnabled ? state->debug.__mdscr_el1 & ~1ULL : state->debug.__mdscr_el1 | 1ULL;
+    return !isEnabled;
 }

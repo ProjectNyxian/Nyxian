@@ -46,9 +46,15 @@ using namespace llvm;
 std::vector<std::string> disassembleARM64iOS(uint8_t* code,
                                              size_t psize)
 {
+    std::vector<std::string> result;
+    
+    if(code == NULL)
+    {
+        return result;
+    }
+    
     bool huntForTheReturn = psize == 0;
     
-    std::vector<std::string> result;
     std::string triple = "arm64-apple-ios";
 
     std::string error;
@@ -64,10 +70,8 @@ std::vector<std::string> disassembleARM64iOS(uint8_t* code,
     std::unique_ptr<MCAsmInfo> MAI(
         target->createMCAsmInfo(*MRI, triple, MCOptions)
     );
-    std::string cpu = "apple-a12";
-    std::string features = "+pauth";
 
-    std::unique_ptr<MCSubtargetInfo> STI(target->createMCSubtargetInfo(triple, cpu, features));
+    std::unique_ptr<MCSubtargetInfo> STI(target->createMCSubtargetInfo(triple, "apple-a12", "+pauth"));
     std::unique_ptr<MCInstrInfo> MCII(target->createMCInstrInfo());
     
     llvm::Triple mTriple(triple);

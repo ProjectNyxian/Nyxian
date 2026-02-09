@@ -31,7 +31,7 @@
 #include "Utils.h"
 #include <termios.h>
 
-void debugger_loop(thread_t thread, arm_thread_state64_t state)
+void debugger_loop(thread_t thread, struct arm64_thread_full_state *state)
 {
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     int shouldEcho = isatty(STDIN_FILENO);
@@ -90,80 +90,119 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
         if(strcmp(cmd.cmd, "bt") == 0)
         {
             int depth = 20;
-            if(cmd.arg_count > 0)
+            
+            if(cmd.arg_count > 0 && cmd.arg_types[0] != PARSED_COMMAND_ARG_TYPE_STRING)
             {
-                depth = atoi(cmd.args[0]);
+                depth = (int)cmd.arg_values[0];
                 if(depth <= 0) depth = 20;
             }
+            
             state_back_trace(state, depth);
         }
         else if(strcmp(cmd.cmd, "reg") == 0 || strcmp(cmd.cmd, "registers") == 0)
         {
             if(cmd.arg_count == 0)
             {
-                printf("\n=== General Purpose Registers ===\n");
+                printf("\n=== general purpose registers ===\n");
                 for(int i = 0; i < 29; i++)
                 {
-                    printf("x%-2d = 0x%016llx  ", i, state.__x[i]);
+                    printf("x%-2d = 0x%016llx  ", i, state->thread.__x[i]);
                     if(i % 2 == 1) printf("\n");
                 }
-                printf("\n=== Special Registers ===\n");
-                print_register("fp", state.__fp);
-                print_register("lr", state.__lr);
-                print_register("sp", state.__sp);
-                print_register("pc", state.__pc);
-                printf("cpsr = 0x%08x\n", state.__cpsr);
+                printf("\n=== special registers ===\n");
+                printf("fp   = 0x%016llx (%lld)\n", state->thread.__fp, state->thread.__fp);
+                printf("lr   = 0x%016llx (%lld)\n", state->thread.__lr, state->thread.__lr);
+                printf("sp   = 0x%016llx (%lld)\n", state->thread.__sp, state->thread.__lr);
+                printf("pc   = 0x%016llx  (%s)\n", state->thread.__pc, sym_at_address(state->thread.__pc));
+                printf("cpsr = 0x%08x\n", state->thread.__cpsr);
             }
             else if(cmd.arg_count == 1)
             {
-                uint64_t *reg = get_register_ptr(&state, cmd.args[0]);
+                uint64_t *reg = get_register_ptr(state, cmd.args[0]);
                 if(reg)
                 {
-                    print_register(cmd.args[0], *reg);
+                    printf("%s   = 0x%016llx\n", cmd.args[0], *reg);
                 }
                 else
                 {
-                    printf("[ndb] Unknown register: %s\n", cmd.args[0]);
+                    printf("unknown register: %s\n", cmd.args[0]);
                 }
             }
             else if(cmd.arg_count == 2)
             {
-                uint64_t *reg = get_register_ptr(&state, cmd.args[0]);
+                uint64_t *reg = get_register_ptr(state, cmd.args[0]);
+                uint64_t value = 0;
                 if(reg)
                 {
-                    uint64_t value = (uint64_t)dlsym(RTLD_DEFAULT, cmd.args[1]);
-                    if(value == 0)
+                    if(cmd.arg_types[1] == PARSED_COMMAND_ARG_TYPE_STRING)
                     {
-                        value = strtoull(cmd.args[1], NULL, 0);
+                        value = (uint64_t)dlsym(RTLD_DEFAULT, cmd.args[1]);
+                        if(value == 0)
+                        {
+                            printf("unknown symbol: \"%s\"\n", cmd.args[1]);
+                            continue;
+                        }
                     }
+                    else
+                    {
+                        value = cmd.arg_values[1];
+                    }
+                    
                     *reg = value;
-                    thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-                    printf("[ndb] %s = 0x%llx\n", cmd.args[0], value);
+                    
+                    printf("%s = 0x%llx\n", cmd.args[0], value);
                 }
                 else
                 {
-                    printf("[ndb] Unknown register: %s\n", cmd.args[0]);
+                    printf("unknown register: %s\n", cmd.args[0]);
                 }
+            }
+            else
+            {
+                /* TODO: print usage description for reg */
             }
         }
         else if(strcmp(cmd.cmd, "break") == 0 || strcmp(cmd.cmd, "b") == 0)
         {
-            if(cmd.arg_count == 2)
+            if(cmd.arg_count == 0)
+            {
+                printf("\n=== hardware breakpoints ===\n");
+                for(int i = 0; i < 6; i++)
+                {
+                    if(hw_breakpoints[i].enabled)
+                    {
+                        printf("%d: 0x%016llx (%s)\n", i, (uint64_t)hw_breakpoints[i].address, sym_at_address((vm_address_t)hw_breakpoints[i].address));
+                    }
+                    else
+                    {
+                        printf("%d: <disabled>\n", i);
+                    }
+                }
+            }
+            else if(cmd.arg_count == 2)
             {
                 int slot = atoi(cmd.args[0]);
                 
-                void *addr = dlsym(RTLD_DEFAULT, cmd.args[1]);
-                if(addr == NULL)
+                vm_address_t value;
+                if(cmd.arg_types[1] == PARSED_COMMAND_ARG_TYPE_STRING)
                 {
-                    addr = (void*)strtoull(cmd.args[1], NULL, 0);
+                    value = (uint64_t)dlsym(RTLD_DEFAULT, cmd.args[1]);
+                    if(value == 0)
+                    {
+                        printf("unknown symbol: \"%s\"\n", cmd.args[1]);
+                        continue;
+                    }
+                }
+                else
+                {
+                    value = cmd.arg_values[1];
                 }
                 
-                set_hw_breakpoint(thread, slot, addr);
+                set_hw_breakpoint(state, slot, value);
             }
             else
             {
-                printf("[ndb] Usage: break <slot> <address>\n");
-                printf("[ndb] Example: break 0 0x100004a20\n");
+                printf("usage: break <slot> <address>\n");
             }
         }
         else if(strcmp(cmd.cmd, "delete") == 0 || strcmp(cmd.cmd, "d") == 0)
@@ -171,29 +210,11 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
             if(cmd.arg_count == 1)
             {
                 int slot = atoi(cmd.args[0]);
-                clear_hw_breakpoint(thread, slot);
+                clear_hw_breakpoint(state, slot);
             }
             else
             {
-                printf("[ndb] Usage: delete <slot>\n");
-            }
-        }
-        else if(strcmp(cmd.cmd, "info") == 0)
-        {
-            if(cmd.arg_count > 0 && strcmp(cmd.args[0], "break") == 0)
-            {
-                printf("\n=== Hardware Breakpoints ===\n");
-                for(int i = 0; i < 6; i++)
-                {
-                    if(hw_breakpoints[i].enabled)
-                    {
-                        printf("%d: 0x%p\n", i, hw_breakpoints[i].address);
-                    }
-                    else
-                    {
-                        printf("%d: <disabled>\n", i);
-                    }
-                }
+                printf("usage: delete <slot>\n");
             }
         }
         else if(strcmp(cmd.cmd, "x") == 0 || strcmp(cmd.cmd, "examine") == 0)
@@ -204,7 +225,7 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
                 int count = 16;
                 if(cmd.arg_count >= 2) count = atoi(cmd.args[1]);
                 
-                printf("\n=== Memory at %p ===\n", addr);
+                printf("\n=== memory at %p ===\n", addr);
                 uint8_t *ptr = (uint8_t*)addr;
                 for(int i = 0; i < count; i++)
                 {
@@ -216,32 +237,46 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
             }
             else
             {
-                printf("[ndb] Usage: x <address> [count]\n");
+                printf("usage: x <address> [count]\n");
             }
         }
         else if(strcmp(cmd.cmd, "disas") == 0 || strcmp(cmd.cmd, "disassemble") == 0)
         {
             if(cmd.arg_count == 0)
             {
-                printf("\n=== Disassembly at 0x%llx ===\n", state.__pc);
-                printf("%s\n", [[Decompiler getDecompiledCodeBuffer:state.__pc] UTF8String]);
+                printf("%s(%p):\n%s\n", sym_at_address(state->thread.__pc), (void*)state->thread.__pc, [[Decompiler getDecompiledCodeBuffer:state->thread.__pc] UTF8String]);
             }
             else
             {
-                void *addr = (void*)state.__pc;
+                void *addr = (void*)state->thread.__pc;
                 int count = 10;
                 
                 if(cmd.arg_count >= 1)
                 {
-                    addr = (void*)strtoull(cmd.args[0], NULL, 0);
+                    if(cmd.arg_types[1] == PARSED_COMMAND_ARG_TYPE_STRING)
+                    {
+                        addr = dlsym(RTLD_DEFAULT, cmd.args[0]);
+                        if(addr == NULL)
+                        {
+                            printf("unknown symbol: \"%s\"\n", cmd.args[0]);
+                            continue;
+                        }
+                        
+                        printf("%s(%p):\n%s\n", cmd.args[0], addr, [[Decompiler getDecompiledCodeBuffer:(uint64_t)addr] UTF8String]);
+                        continue;
+                    }
+                    else
+                    {
+                        addr = (void*)cmd.arg_values[0];
+                        
+                        if(cmd.arg_count >= 2)
+                        {
+                            count = (int)cmd.arg_values[1];
+                        }
+                        
+                        printf("%p:\n%s\n", addr, [[Decompiler decompileBinary:addr withSize:count] UTF8String]);
+                    }
                 }
-                if(cmd.arg_count >= 2)
-                {
-                    count = atoi(cmd.args[1]);
-                }
-                
-                printf("\n=== Disassembly at %p ===\n", addr);
-                printf("%s\n", [[Decompiler decompileBinary:addr withSize:count] UTF8String]);
             }
         }
         else if(strcmp(cmd.cmd, "lookup") == 0 || strcmp(cmd.cmd, "l") == 0)
@@ -254,60 +289,42 @@ void debugger_loop(thread_t thread, arm_thread_state64_t state)
         }
         else if(strcmp(cmd.cmd, "step") == 0 || strcmp(cmd.cmd, "s") == 0)
         {
-            if(singleStepMode)
+            if(enable_mdscr_single_step(state))
             {
-                clear_hw_breakpoint(thread, 0);
-                singleStepMode = false;
+                break;
             }
             else
             {
-                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
-                singleStepMode = true;
+                printf("error: single step already enabled\n");
             }
-            break;
         }
         else if(strcmp(cmd.cmd, "cont") == 0 || strcmp(cmd.cmd, "c") == 0)
         {
-            if(singleStepMode)
-            {
-                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
-            }
-            break;
-        }
-        else if(strcmp(cmd.cmd, "skip") == 0)
-        {
-            state.__pc += 4;
-            thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-            if(singleStepMode)
-            {
-                set_hw_breakpoint(thread, 0, (void*)get_next_pc(state));
-            }
             break;
         }
         else if(strcmp(cmd.cmd, "exit") == 0 || strcmp(cmd.cmd, "quit") == 0)
         {
-            state.__pc = (uint64_t)exit;
-            state.__x[0] = 1;
-            thread_set_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, count);
+            state->thread.__pc = (uint64_t)exit;
+            state->thread.__x[0] = 1;
             break;
         }
         else if(strcmp(cmd.cmd, "help") == 0 || strcmp(cmd.cmd, "h") == 0)
         {
-            printf("\n=== ndb Commands ===\n");
-            printf("bt [depth]              - Backtrace (default 20 frames)\n");
-            printf("reg [name] [value]      - Show/set registers\n");
-            printf("  reg                   - Show all registers\n");
-            printf("  reg x0                - Show x0\n");
-            printf("  reg pc 0x1000         - Set PC to 0x1000\n");
-            printf("break <slot> <addr>     - Set hardware breakpoint\n");
-            printf("delete <slot>           - Clear hardware breakpoint\n");
-            printf("info break              - List breakpoints\n");
-            printf("x <addr> [count]        - Examine memory\n");
-            printf("disas [addr] [count]    - Disassemble\n");
-            printf("step / s                - Single step\n");
-            printf("cont / c                - Continue execution\n");
-            printf("exit / quit             - Exit program\n");
-            printf("help / h                - Show this help\n");
+            printf("bt [depth]                  - backtrace (default 20 frames)\n"
+                   "reg [name] [value]          - show/set registers\n"
+                   "  reg                       - show all registers\n"
+                   "  reg x0                    - show x0\n"
+                   "  reg pc 0x1000             - set PC to 0x1000\n"
+                   "break <slot> <addr>         - set hardware breakpoint\n"
+                   "delete <slot>               - clear hardware breakpoint\n"
+                   "x <addr> [count]            - examine memory\n"
+                   "disas [addr|symbol] [count] - disassemble\n"
+                   "  disas 0xff00ff00          - disassemble address 0xff00ff00\n"
+                   "  disas 0xff00ff00 10       - disassemble 10 bytes from address 0xff00ff00\n"
+                   "  disas main                - disassemble main symbol\n"
+                   "cont / c                    - continue execution\n"
+                   "exit / quit                 - exit program\n"
+                   "help / h                    - show this help\n");
         }
         else
         {
@@ -378,18 +395,34 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     }
     
     /* getting current thread state */
-    arm_thread_state64_t state;
-    mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
-    thread_get_state(thread, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
+    struct arm64_thread_full_state *state = thread_save_state_arm64(thread);
+    
+    /*
+     * in case single stepping is enabled,
+     * which is only enabled for one instruction,
+     * we basically know that it means someone meant
+     * to over-step this instruction, means we skip it
+     * automatically.
+     */
+    if(is_enabled_mdscr_single_step(state))
+    {
+        state->thread.__pc = get_next_pc(state);
+        goto skip_debug_loop;
+    }
     
     mach_msg_type_number_t index = 0;
     task_thread_index(task, thread, &index);
     
     /* printing out what happened */
-    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), task_thread_index(task, thread, &index), state.__pc, sym_at_address(state.__pc));
+    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), task_thread_index(task, thread, &index), state->thread.__pc, sym_at_address(state->thread.__pc));
     
     /* invoking nyxian debugger(nbd) */
     debugger_loop(thread, state);
+    
+skip_debug_loop:
+    
+    /* resture thread state */
+    thread_restore_state_arm64(thread, state);
     
     /* same game as before */
     if(task == mach_task_self_)

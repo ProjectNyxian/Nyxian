@@ -45,14 +45,40 @@ typedef struct stack_frame {
 
 typedef struct {
     bool enabled;
-    void *address;
+    vm_address_t address;
 } hw_breakpoint_t;
+
+typedef enum {
+    PARSED_COMMAND_ARG_TYPE_STRING,
+    PARSED_COMMAND_ARG_TYPE_DECIMAL,
+    PARSED_COMMAND_ARG_TYPE_HEXADECIMAL,
+    PARSED_COMMAND_ARG_TYPE_BINARY
+} parsed_command_arg_type_t;
 
 typedef struct {
     char cmd[64];
     char args[10][128];
+    parsed_command_arg_type_t arg_types[10];
+    unsigned long long arg_values[10];
     int arg_count;
 } parsed_command_t;
+
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.h#L27 */
+struct arm64_thread_full_state {
+    arm_thread_state64_t    thread;
+    arm_exception_state64_t exception;
+    arm_neon_state64_t      neon;
+    arm_debug_state64_t     debug;
+    uint32_t                thread_valid:1,
+                            exception_valid:1,
+                            neon_valid:1,
+                            debug_valid:1,
+                            cpmu_valid:1;
+};
+
+parsed_command_t parse_command(const char *input);
+parsed_command_arg_type_t parse_arg_type(const char *arg);
+unsigned long long parse_number(const char *str, parsed_command_arg_type_t type);
 
 extern hw_breakpoint_t hw_breakpoints[6];
 extern bool singleStepMode;
@@ -60,21 +86,27 @@ extern bool singleStepMode;
 /* gets the name of a symbol at the passed address (only in this task, need to write a symbol for task ports) */
 const char *sym_at_address(vm_address_t address);
 
-/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.m#L135 */
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.h#L45 */
 kern_return_t suspend_threads_except_for(thread_act_array_t allThreads, mach_msg_type_number_t threadCount, thread_act_t exceptForThread);
 kern_return_t resume_threads_except_for(thread_act_array_t allThreads, mach_msg_type_number_t threadCount, thread_act_t exceptForThread);
 
-void state_back_trace(arm_thread_state64_t state, uint64_t maxdepth);
+/* https://github.com/opa334/opainject/blob/849bb296ea8bc0643a2966485ea3c3c96ebdcd5b/thread_utils.h#L39 */
+struct arm64_thread_full_state* thread_save_state_arm64(thread_act_t thread);
+bool thread_restore_state_arm64(thread_act_t thread, struct arm64_thread_full_state* state);
+
+void state_back_trace(struct arm64_thread_full_state *state, uint64_t maxdepth);
 
 kern_return_t task_thread_index(task_t task, thread_t target, mach_msg_type_number_t *index);
 
-uint64_t get_next_pc(arm_thread_state64_t state);
+uint64_t get_next_pc(struct arm64_thread_full_state *state);
 
-bool set_hw_breakpoint(thread_t thread, int slot, void *address);
-bool clear_hw_breakpoint(thread_t thread, int slot);
+bool set_hw_breakpoint(struct arm64_thread_full_state *state, int slot, vm_address_t address);
+bool clear_hw_breakpoint(struct arm64_thread_full_state *state, int slot);
 
-parsed_command_t parse_command(const char *input);
-void print_register(const char *name, uint64_t value);
-uint64_t* get_register_ptr(arm_thread_state64_t *state, const char *name);
+uint64_t* get_register_ptr(struct arm64_thread_full_state *state, const char *name);
+
+bool is_enabled_mdscr_single_step(struct arm64_thread_full_state *state);
+bool enable_mdscr_single_step(struct arm64_thread_full_state *state);
+bool flick_mdscr_single_step(struct arm64_thread_full_state *state);
 
 #endif /* LINDCHAIN_DEBUGGER_UTILS_H */
