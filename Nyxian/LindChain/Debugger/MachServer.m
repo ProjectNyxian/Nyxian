@@ -33,7 +33,6 @@
 
 void debugger_loop(thread_t thread, struct arm64_thread_full_state *state)
 {
-    mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
     int shouldEcho = isatty(STDIN_FILENO);
     
     if(shouldEcho)
@@ -415,6 +414,45 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     
     /* printing out what happened */
     printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), task_thread_index(task, thread, &index), state->thread.__pc, sym_at_address(state->thread.__pc));
+    
+    /* parsing exception */
+    if(exception == EXC_BAD_ACCESS)
+    {
+        /* getting exception details */
+        uint32_t esr = state->exception.__esr;
+        uint32_t ec = (esr >> 26) & 0x3F;
+        uint32_t iss = esr & 0x1FFFFFF;
+        
+        switch (ec) {
+            case 0x20: /* instruction abort from lower EL */
+            case 0x21: /* instruction abort from same EL */
+                printf("execution failed at 0x%llx\n", state->exception.__far);
+                printf("  (instruction fetch failed)\n");
+                break;
+                
+            case 0x24: /* data abort from lower EL */
+            case 0x25: /* data abort from same EL */
+            {
+                bool is_write = (iss >> 6) & 1;
+                printf("%s failed at 0x%llx\n", is_write ? "writing" : "reading", state->exception.__far);
+                
+                /* decoding fault status */
+                uint32_t dfsc = iss & 0x3F;
+                printf("  fault status code: 0x%02x ", dfsc);
+                switch(dfsc & 0x3C)
+                {
+                    case 0x04: printf("(translation fault)\n"); break;
+                    case 0x08: printf("(access flag fault)\n"); break;
+                    case 0x0C: printf("(permission fault)\n"); break;
+                    default: printf("(other fault)\n"); break;
+                }
+                break;
+            }
+            default:
+                printf("other exception class: 0x%02x\n", ec);
+                break;
+        }
+    }
     
     /* invoking nyxian debugger(nbd) */
     debugger_loop(thread, state);
