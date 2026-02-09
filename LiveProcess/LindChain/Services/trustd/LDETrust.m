@@ -26,10 +26,6 @@
 - (instancetype)init
 {
     self = [super init];
-    if(self)
-    {
-        [self connect];
-    }
     return self;
 }
 
@@ -45,19 +41,27 @@
 
 - (BOOL)connect
 {
+    if(self.connection)
+    {
+        return YES;
+    }
+    
     __weak typeof(self) weakSelf = self;
     _connection = nil;
     LaunchServices *launchServices = [LaunchServices shared];
     
     if(launchServices != nil)
     {
-        NSLog(@"connecting to installd");
         _connection = [launchServices connectToService:@"com.cr4zy.trustd" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
         _connection.invalidationHandler = ^{
-            [weakSelf connect];
+            __strong typeof(self) strongSelf = weakSelf;
+            if(!strongSelf) return;
+            
+            strongSelf.connection = nil;
+            [strongSelf connect];
         };
         
-        return YES;
+        return _connection != nil;
     }
     
     return NO;
@@ -73,17 +77,29 @@
         return @"com.cr4zy.nyxian.daemon.trustcache_daemon";
     }
     
-    if(_connection == nil && ![self connect])
-    {
-        return nil;
-    }
+    [self connect];
     
     __block NSString *entHashExport = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
-        entHashExport = entHash;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
+            entHashExport = entHash;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     return entHashExport;
@@ -99,17 +115,29 @@
         return YES;
     }
     
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL allowedToLaunch = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
-        allowedToLaunch = allowed;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
+            allowedToLaunch = allowed;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     return allowedToLaunch;

@@ -40,7 +40,6 @@
     if(self)
     {
         _apps = [[NSMutableArray alloc] init];
-        [self connect];
     }
     return self;
 }
@@ -57,19 +56,27 @@
 
 - (BOOL)connect
 {
+    if(self.connection)
+    {
+        return YES;
+    }
+    
     __weak typeof(self) weakSelf = self;
     _connection = nil;
     LaunchServices *launchServices = [LaunchServices shared];
     
     if(launchServices != nil)
     {
-        NSLog(@"connecting to installd");
         _connection = [launchServices connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
         _connection.invalidationHandler = ^{
-            [weakSelf connect];
+            __strong typeof(self) strongSelf = weakSelf;
+            if(!strongSelf) return;
+            
+            strongSelf.connection = nil;
+            [strongSelf connect];
         };
         
-        return YES;
+        return _connection != nil;
     }
     
     return NO;
@@ -77,98 +84,162 @@
 
 - (void)ping
 {
+    [self connect];
+    
     [_connection.remoteObjectProxy ping];
 }
 
 - (BOOL)installApplicationAtBundlePath:(NSString*)bundlePath
 {
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL result = NO;
     ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithDirectory:bundlePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy installApplicationWithArchiveObject:archiveObject withReply:^(BOOL replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy installApplicationWithArchiveObject:archiveObject withReply:^(BOOL replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (BOOL)installApplicationAtPackagePath:(NSString*)packagePath
 {
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL result = NO;
     ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithArchive:packagePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy installApplicationWithArchiveObject:archiveObject withReply:^(BOOL replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy installApplicationWithArchiveObject:archiveObject withReply:^(BOOL replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
 {
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy deleteApplicationWithBundleID:bundleID withReply:^(BOOL replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy deleteApplicationWithBundleID:bundleID withReply:^(BOOL replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (BOOL)applicationInstalledWithBundleID:(NSString *)bundleID
 {
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy applicationInstalledWithBundleID:bundleID withReply:^(BOOL replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy applicationInstalledWithBundleID:bundleID withReply:^(BOOL replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (LDEApplicationObject*)applicationObjectForBundleID:(NSString*)bundleID
 {
-    if(_connection == nil && ![self connect])
-    {
-        return nil;
-    }
+    [self connect];
     
     __block LDEApplicationObject *result = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy applicationObjectForBundleID:bundleID withReply:^(LDEApplicationObject *replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [_connection.remoteObjectProxy applicationObjectForBundleID:bundleID withReply:^(LDEApplicationObject *replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (NSArray<LDEApplicationObject*>*)allApplicationObjects
 {
+    [self connect];
+    
     if(_connection == nil && ![self connect])
     {
         return nil;
@@ -179,51 +250,87 @@
 
 - (BOOL)clearContainerForBundleID:(NSString *)bundleID
 {
-    if(_connection == nil && ![self connect])
-    {
-        return NO;
-    }
+    [self connect];
     
     __block BOOL result = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy clearContainerForBundleID:bundleID withReply:^(BOOL replyResult){
-        result = replyResult;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [_connection.remoteObjectProxy clearContainerForBundleID:bundleID withReply:^(BOOL replyResult){
+            result = replyResult;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return result;
 }
 
 - (NSString*)fastpathUtility:(NSString*)utilityPath
 {
-    if(_connection == nil && ![self connect])
-    {
-        return nil;
-    }
+    [self connect];
     
     __block NSString *fastpath = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy fastpathUtility:[[FileObject alloc] initWithPath:utilityPath] withReply:^(NSString *fastPathRet, BOOL fastSigned){
-        fastpath = fastSigned ? fastPathRet : nil;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [_connection.remoteObjectProxy fastpathUtility:[[FileObject alloc] initWithPath:utilityPath] withReply:^(NSString *fastPathRet, BOOL fastSigned){
+            fastpath = fastSigned ? fastPathRet : nil;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return fastpath;
 }
 
 - (LDEApplicationObject*)applicationObjectForExecutablePath:(NSString*)executablePath
 {
-    if(_connection == nil && ![self connect])
-    {
-        return nil;
-    }
+    [self connect];
     
     __block LDEApplicationObject *application = nil;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [_connection.remoteObjectProxy applicationObjectForExecutablePath:executablePath withReply:^(LDEApplicationObject *applicationReply){
-        application = applicationReply;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
         dispatch_semaphore_signal(sema);
     }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [_connection.remoteObjectProxy applicationObjectForExecutablePath:executablePath withReply:^(LDEApplicationObject *applicationReply){
+            application = applicationReply;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     return application;
 }
@@ -239,11 +346,6 @@
 
 - (void)applicationWithBundleIdentifierWasUninstalled:(NSString*)bundleIdentifier
 {
-    if(_connection == nil && ![self connect])
-    {
-        return;
-    }
-    
     dispatch_async(dispatch_get_main_queue(), ^{
         [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
         LDEAppLaunchpad *launchPad = [[LDEWindowServer shared] getOrCreateLaunchpad];
