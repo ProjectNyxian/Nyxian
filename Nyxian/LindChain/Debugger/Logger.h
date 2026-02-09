@@ -29,7 +29,6 @@
 @property (nonatomic,strong,readonly) NSPipe *stdinPipe;
 
 - (instancetype)init;
-- (instancetype)initWithPipe:(NSPipe*)pipe stdinPipe:(NSPipe*)stdinPipe;
 - (void)clearConsole;
 
 @end
