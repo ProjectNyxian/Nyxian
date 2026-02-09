@@ -77,54 +77,41 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     
     NSExtensionItem *item = [NSExtensionItem new];
     item.userInfo = items;
-    
+
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.executablePath];
-    
-    if(applicationObject != nil)
-    {
-        self.bundleIdentifier = applicationObject.bundleIdentifier;
-        self.displayName = applicationObject.displayName;
-    }
-    else
-    {
-        self.bundleIdentifier = nil;
-        self.displayName = [self.executablePath lastPathComponent];
-    }
-    
 #else
-    
-    LSApplicationProxy *bundleProxy = nil;
+    LSApplicationProxy *applicationObject = nil;
     NSArray<LSApplicationProxy*> *array = LSApplicationWorkspace.defaultWorkspace.allInstalledApplications;
     for(LSApplicationProxy *proxy in array)
     {
         if([proxy.bundleIdentifier isEqualToString:bundleID])
         {
-            bundleProxy = proxy;
+            applicationObject = proxy;
             break;
         }
     }
-    
-    if(bundleProxy == nil)
-    {
-        return nil;
-    }
-    
-    self.bundleIdentifier = bundleID;
-    self.displayName = bundleProxy.localizedName;
-    
-    RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:bundleID];
-    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];
-    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-    
-    FBApplicationProcessLaunchTransaction *transaction = [[PrivClass(FBApplicationProcessLaunchTransaction) alloc] initWithProcessIdentity:identity executionContextProvider:^id(void){
-        FBMutableProcessExecutionContext *context = [PrivClass(FBMutableProcessExecutionContext) new];
-        context.identity = identity;
-        context.environment = @{};
-        context.launchIntent = 4;
-        return [manager launchProcessWithContext:context];
-    }];
-    
 #endif /* !JAILBREAK_ENV */
+    
+    
+    if(applicationObject != nil)
+    {
+        self.bundleIdentifier = applicationObject.bundleIdentifier;
+        
+#if !JAILBREAK_ENV
+        self.displayName = applicationObject.displayName;
+#else
+        self.displayName = applicationObject.localizedName;
+#endif
+    }
+    else
+    {
+#if !JAILBREAK_ENV
+        self.bundleIdentifier = nil;
+        self.displayName = [self.executablePath lastPathComponent];
+#else
+        return nil;
+#endif
+    }
     
     __weak typeof(self) weakSelf = self;
     
@@ -143,6 +130,18 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
             
 #else
+            
+    RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:applicationObject.bundleIdentifier];
+    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];
+    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+            
+    FBApplicationProcessLaunchTransaction *transaction = [[PrivClass(FBApplicationProcessLaunchTransaction) alloc] initWithProcessIdentity:identity executionContextProvider:^id(void){
+        FBMutableProcessExecutionContext *context = [PrivClass(FBMutableProcessExecutionContext) new];
+        context.identity = identity;
+        context.environment = @{};
+        context.launchIntent = 4;
+        return [manager launchProcessWithContext:context];
+    }];
             
     [transaction setCompletionBlock:^{
         if(weakSelf != nil)
