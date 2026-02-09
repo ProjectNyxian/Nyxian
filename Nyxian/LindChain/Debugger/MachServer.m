@@ -429,12 +429,11 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
                 printf("execution failed at 0x%llx\n", state->exception.__far);
                 printf("  (instruction fetch failed)\n");
                 break;
-                
             case 0x24: /* data abort from lower EL */
             case 0x25: /* data abort from same EL */
             {
                 bool is_write = (iss >> 6) & 1;
-                printf("%s failed at 0x%llx\n", is_write ? "writing" : "reading", state->exception.__far);
+                printf("  %s failed at 0x%llx\n", is_write ? "writing" : "reading", state->exception.__far);
                 
                 /* decoding fault status */
                 uint32_t dfsc = iss & 0x3F;
