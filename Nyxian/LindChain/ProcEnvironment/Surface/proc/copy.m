@@ -52,6 +52,10 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     {
         proc_copy->proc = proc;
     }
+    else
+    {
+        proc_copy->proc = NULL;
+    }
     
     /* copying the process to the copy */
     proc_read_lock(proc);
