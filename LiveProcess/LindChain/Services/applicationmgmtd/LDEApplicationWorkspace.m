@@ -71,9 +71,7 @@
         _connection.invalidationHandler = ^{
             __strong typeof(self) strongSelf = weakSelf;
             if(!strongSelf) return;
-            
             strongSelf.connection = nil;
-            [strongSelf connect];
         };
         
         return _connection != nil;
@@ -115,7 +113,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
@@ -145,7 +143,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
@@ -174,7 +172,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
@@ -203,7 +201,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
@@ -232,18 +230,13 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
 - (NSArray<LDEApplicationObject*>*)allApplicationObjects
 {
     [self connect];
-    
-    if(_connection == nil && ![self connect])
-    {
-        return nil;
-    }
     
     return _apps;
 }
@@ -273,7 +266,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return result;
 }
 
@@ -302,7 +295,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return fastpath;
 }
 
@@ -331,7 +324,7 @@
         }];
     }
     
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     return application;
 }
 
