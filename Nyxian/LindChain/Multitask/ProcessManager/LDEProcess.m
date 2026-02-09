@@ -172,15 +172,12 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         {
                             klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                         }
-                        if(innerSelf.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.wid];
-                        if(innerSelf.exitingCallback) innerSelf.exitingCallback();
-                        [innerSelf.processMonitor invalidate];
-                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
-#else
-                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
-                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
 #endif /* !JAILBREAK_ENV */
                         
+                        [innerSelf.processMonitor invalidate];
+                        if(innerSelf.exitingCallback) innerSelf.exitingCallback();
+                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
+                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
                     });
                 }
                 else
