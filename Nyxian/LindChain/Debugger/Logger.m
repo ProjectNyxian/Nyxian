@@ -29,15 +29,9 @@ static const CGFloat kAutoScrollThreshold = 20.0;
 
 - (instancetype)init
 {
-    return [self initWithPipe:[NSPipe pipe] stdinPipe:[NSPipe pipe]];
-}
-
-- (instancetype)initWithPipe:(NSPipe*)pipe
-                   stdinPipe:(NSPipe*)stdinPipe
-{
     self = [super init];
-    _pipe = pipe;
-    _stdinPipe = stdinPipe;
+    _pipe = [NSPipe pipe];
+    _stdinPipe = [NSPipe pipe];
     _followTail = YES;
     _inputStartLocation = 0;
     _isAppendingOutput = NO;
@@ -57,16 +51,27 @@ static const CGFloat kAutoScrollThreshold = 20.0;
 
     self.delegate = (id<UITextViewDelegate>)self;
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotification:) name:NSFileHandleReadCompletionNotification object:_pipe.fileHandleForReading];
-    
     [_pipe.fileHandleForReading readInBackgroundAndNotify];
     
     return self;
 }
 
+- (void)willMoveToWindow:(UIWindow *)newWindow
+{
+    [super willMoveToWindow:newWindow];
+    
+    if(newWindow == nil)
+    {
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
+    }
+    else
+    {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotification:) name:NSFileHandleReadCompletionNotification object:_pipe.fileHandleForReading];
+    }
+}
+
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     @try {
         [_pipe.fileHandleForReading closeFile];
         [_stdinPipe.fileHandleForWriting closeFile];
@@ -233,6 +238,24 @@ static const CGFloat kAutoScrollThreshold = 20.0;
     self.text = @"";
     _inputStartLocation = 0;
     _followTail = YES;
+    
+    /* remove old notification observer for pipe */
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleReadCompletionNotification object:_pipe.fileHandleForReading];
+    
+    @try {
+        [_pipe.fileHandleForReading closeFile];
+        [_stdinPipe.fileHandleForWriting closeFile];
+    } @catch (NSException *ex) { /* ignore */ }
+    
+    /* creating new pipes */
+    _pipe = [NSPipe pipe];
+    _stdinPipe = [NSPipe pipe];
+    
+    /* readding pipe */
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotification:) name:NSFileHandleReadCompletionNotification object:_pipe.fileHandleForReading];
+    
+    /* starting reading from new pipe */
+    [_pipe.fileHandleForReading readInBackgroundAndNotify];
 }
 
 @end

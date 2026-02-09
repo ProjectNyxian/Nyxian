@@ -365,7 +365,7 @@ NSArray *entitlementsMenuStructure = @[
         {
             bEntitlement &= ~bTargetEntitlement;
         }
-        NSString *entHash = [LDETrust entHashOfExecutableAtPath:application.executablePath];
+        NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:application.executablePath];
         [[TrustCache shared] setEntitlementsForHash:entHash usingEntitlements:bEntitlement];
         [[LDEProcessManager shared] closeIfRunningUsingBundleIdentifier:application.bundleIdentifier];
     }];
@@ -400,7 +400,7 @@ NSArray *entitlementsMenuStructure = @[
         [subMenus addObject:(UIMenu*)clearContainer];
         
         LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:app.bundleID];
-        NSString *entHash = [LDETrust entHashOfExecutableAtPath:applicationObject.executablePath];
+        NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:applicationObject.executablePath];
         PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
         
         for(NSDictionary *category in entitlementsMenuStructure)

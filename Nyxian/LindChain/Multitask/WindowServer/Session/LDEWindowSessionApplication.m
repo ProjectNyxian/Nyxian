@@ -62,24 +62,8 @@ void UIKitFixesInit(void)
 {
     self = [super init];
     _process = process;
-    
-#if !JAILBREAK_ENV
-    // FIXME: This crashes when installd is not running yet
-    LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.process.executablePath];
-    if(applicationObject != nil)
-    {
-        self.windowName  = applicationObject.displayName;
-        self.process.bundleIdentifier = applicationObject.bundleIdentifier;
-    }
-    else
-    {
-        self.windowName  = [self.process.executablePath lastPathComponent];
-        self.process.bundleIdentifier = nil;
-    }
-#else
-    /* fix this later */
+
     self.windowName  = self.process.displayName;
-#endif /* !JAILBREAK_ENV */
 
     return self;
 }

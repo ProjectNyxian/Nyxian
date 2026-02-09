@@ -53,12 +53,12 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
         }
         self.delegate = self
         
-#if !JAILBREAK_ENV
-        if self.project.projectConfig.type == NXProjectType.app.rawValue
-        {
-            LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
+        if #available(iOS 16.0, *) {
+            if self.project.projectConfig.type == NXProjectType.app.rawValue
+            {
+                LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
+            }
         }
-#endif // !JAILBREAK_ENV
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -103,7 +103,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
                 masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
             }
             self.detailVC?.logView?.clearConsole()
-            buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.outp, inPipe: self.detailVC?.inp) { [weak self] in
+            buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.logView?.pipe, inPipe: self.detailVC?.logView?.stdinPipe) { [weak self] in
                 guard let self = self else { return }
                 if #available(iOS 16.0, *) {
                     masterVC.navigationItem.leftBarButtonItem?.isHidden = false
@@ -119,8 +119,6 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
 class SplitScreenDetailViewController: UIViewController {
     let project: NXProject
     
-    var inp: Pipe?
-    var outp: Pipe?
     var lock: NSLock = NSLock()
     var logView: LogTextView?
     var childVCMasterConstraints: [NSLayoutConstraint]?
@@ -369,9 +367,7 @@ class SplitScreenDetailViewController: UIViewController {
         
         if self.project.projectConfig.type == NXProjectType.app.rawValue {
             /* setting up logview */
-            inp = Pipe()
-            outp = Pipe()
-            logView = LogTextView(pipe: self.outp!, stdinPipe: self.inp!)
+            logView = LogTextView()
             logView!.isEditable = true
             logView!.isSelectable = true
             logView!.layer.cornerRadius = 20

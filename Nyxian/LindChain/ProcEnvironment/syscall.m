@@ -61,7 +61,8 @@ env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_SENDTASK,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_SIGNEXEC,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_PROCPATH,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_PROCBSD,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_PROCBSD,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_HANDOFFEP,   T_IN,   T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */

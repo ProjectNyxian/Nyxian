@@ -24,8 +24,13 @@
 
 @interface LDETrust : NSObject
 
-+ (NSString*)entHashOfExecutableAtPath:(NSString*)path;
-+ (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
+@property (nonatomic,strong) NSXPCConnection *connection;
+
+- (instancetype)init;
++ (instancetype)shared;
+
+- (NSString*)entHashOfExecutableAtPath:(NSString*)path;
+- (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
 
 @end
 

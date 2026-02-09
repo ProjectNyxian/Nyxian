@@ -141,9 +141,19 @@
 {
     static LaunchServices *launchServicesSingleton = nil;
     static dispatch_once_t onceToken;
+    static BOOL initializing = NO;
+    
+    if(initializing)
+    {
+        return launchServicesSingleton;
+    }
+    
     dispatch_once(&onceToken, ^{
+        initializing = YES;
         launchServicesSingleton = [[LaunchServices alloc] init];
+        initializing = NO;
     });
+    
     return launchServicesSingleton;
 }
 
@@ -174,24 +184,6 @@
         }
     }
     os_unfair_lock_unlock(&_lock);
-}
-
-- (void)execute:(void (^)(NSObject *remoteProxy))block byEstablishingConnectionToServiceWithServiceIdentifier:(NSString *)serviceIdentifier compliantToProtocol:(Protocol *)protocol
-{
-    // Get endpoint
-    NSXPCListenerEndpoint *endpoint = [self getEndpointForServiceIdentifier:serviceIdentifier];
-    if(endpoint == nil) return;
-    
-    // Establish connection
-    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
-    connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:protocol];
-    [connection activate];
-    
-    // Execute block
-    block([connection remoteObjectProxy]);
-    
-    // Invalidate after usage
-    [connection invalidate];
 }
 
 - (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier

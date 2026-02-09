@@ -45,10 +45,7 @@
 @property (nonatomic,strong) NSUUID *identifier;
 @property (nonatomic,strong) NSString *bundleIdentifier;
 
-#if JAILBREAK_ENV
 @property (nonatomic,strong) NSString *displayName;
-#endif /* JAILBREAK_ENV */
-
 @property (nonatomic,strong) NSString *executablePath;
 
 // Info properties

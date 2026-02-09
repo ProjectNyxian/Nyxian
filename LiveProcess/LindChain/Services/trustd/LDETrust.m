@@ -23,7 +23,51 @@
 
 @implementation LDETrust
 
-+ (NSString*)entHashOfExecutableAtPath:(NSString *)path
+- (instancetype)init
+{
+    self = [super init];
+    return self;
+}
+
++ (instancetype)shared
+{
+    static LDETrust *trustSingleton = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        trustSingleton = [[LDETrust alloc] init];
+    });
+    return trustSingleton;
+}
+
+- (BOOL)connect
+{
+    if(self.connection)
+    {
+        return YES;
+    }
+    
+    __weak typeof(self) weakSelf = self;
+    _connection = nil;
+    LaunchServices *launchServices = [LaunchServices shared];
+    
+    if(launchServices != nil)
+    {
+        _connection = [launchServices connectToService:@"com.cr4zy.trustd" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
+        _connection.invalidationHandler = ^{
+            __strong typeof(self) strongSelf = weakSelf;
+            if(!strongSelf) return;
+            
+            strongSelf.connection = nil;
+            [strongSelf connect];
+        };
+        
+        return _connection != nil;
+    }
+    
+    return NO;
+}
+
+- (NSString*)entHashOfExecutableAtPath:(NSString *)path
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
     // RIGHT HERE
@@ -33,19 +77,35 @@
         return @"com.cr4zy.nyxian.daemon.trustcache_daemon";
     }
     
+    [self connect];
+    
     __block NSString *entHashExport = nil;
-    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
-        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        [remoteObject getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
             entHashExport = entHash;
             dispatch_semaphore_signal(sema);
         }];
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    }
+    
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
+    
     return entHashExport;
 }
 
-+ (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
+- (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
     // RIGHT HERE
@@ -55,15 +115,31 @@
         return YES;
     }
     
+    [self connect];
+    
     __block BOOL allowedToLaunch = NO;
-    [[LaunchServices shared] execute:^(NSObject<LDETrustProtocol> *remoteObject){
-        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-        [remoteObject executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy executableAllowedToExecutedAtPath:path withReply:^(BOOL allowed){
             allowedToLaunch = allowed;
             dispatch_semaphore_signal(sema);
         }];
-        dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    } byEstablishingConnectionToServiceWithServiceIdentifier:@"com.cr4zy.trustd" compliantToProtocol:@protocol(LDETrustProtocol)];
+    }
+    
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
+    
     return allowedToLaunch;
 }
 

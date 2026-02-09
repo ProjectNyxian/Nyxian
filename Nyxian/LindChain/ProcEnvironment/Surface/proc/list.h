@@ -62,7 +62,4 @@ static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 proc_list_err_t proc_snapshot_create(ksurface_proc_copy_t *proc, proc_snapshot_t **snapshot_out);
 void proc_snapshot_free(proc_snapshot_t *snap);
 
-/* Nyx copy */
-bool proc_nyx_copy(ksurface_proc_copy_t *proc, pid_t targetPid, knyx_proc_t *nyx);
-
 #endif /* PROC_COPYLIST_H */
