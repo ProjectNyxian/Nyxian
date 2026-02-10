@@ -20,6 +20,10 @@
 #ifndef PROC_DEF_H
 #define PROC_DEF_H
 
+#import <LindChain/ProcEnvironment/Surface/limits.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#include <sys/sysctl.h>
+
 /// Helper macros
 #define proc_getpid(proc) proc->kproc.kcproc.bsd.kp_proc.p_pid
 #define proc_getppid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_ppid
@@ -54,5 +58,131 @@
 #define PID_LAUNCHD 1
 
 #define kernel_proc_ ksurface->proc_info.kern_proc
+
+/// Nyxian process typedefinitions
+typedef struct ksurface_proc ksurface_proc_t;
+typedef struct kchildren ksurface_kproc_children_t;
+typedef struct kinfo_proc kinfo_proc_t;
+typedef struct kcproc ksurface_kcproc_t;
+typedef struct kproc ksurface_kproc_t;
+typedef struct knyx_proc knyx_proc_t;
+
+/// Nyxian process structure
+struct ksurface_proc {
+
+    /*
+     * reference count of this processes
+     * if it hits zero it will release
+     * automatically.
+     */
+    _Atomic int refcount;
+    
+    /*
+     * dead boolean value marks a process
+     * as effectively dead, any new retains
+     * will fail cuz it doesnt matter anymore
+     * what a syscall or kernel operation
+     * might wanna do with this process
+     * as its literally dead.
+     */
+    _Atomic bool dead;
+    
+    /*
+     * main read-write lock of this structure,
+     * mainly used when modifying kcproc.
+     */
+    pthread_rwlock_t rwlock;
+    
+    /*
+     * the actual process structure, not meant
+     * to be copied tho.
+     */
+    struct kproc {
+        
+        /*
+         * task port of a process, the biggest permitive
+         * a other process can have over a process, once
+         * given to a other process we cannot take it back
+         * we cannot control the mach kernel!
+         */
+        task_t task;
+        
+        /*
+         * exception port of a process that has debugging
+         * enabled, will cause us to receive a right to
+         * their exception port, which might be used to
+         * trigger the exception handler in the process.
+         */
+        mach_port_t eport;
+        
+        /*
+         * process structure used to sign reference contracts
+         * with child processes.
+         */
+        struct kchildren {
+            
+            /*
+             * special mutex to make sure nothing happens at the same
+             * time on kchildren.
+             */
+            pthread_mutex_t mutex;
+            
+            /* the reference held by the child of the parent */
+            ksurface_proc_t *parent;
+            
+            /* children references the parent holds */
+            ksurface_proc_t *children[CHILD_PROC_MAX];
+            
+            /*
+             * the index at which the child exist in its parents
+             * children array.
+             */
+            uint64_t parent_cld_idx;
+            
+            /* count of children in the children array */
+            uint64_t children_cnt;
+        } children;
+        
+        /*
+         * copyable process structure, includes all process properties
+         * which can change rapidly.
+         */
+        struct kcproc {
+            
+            /* bsd structure of our process structure */
+            kinfo_proc_t bsd;
+            
+            /* nyxian specific process structure */
+            struct knyx_proc {
+                
+                /* executable path at which the macho is located at */
+                char executable_path[PATH_MAX];
+                
+                /* entitlements the process has */
+                PEEntitlement entitlements;
+            } nyx;
+        } kcproc;
+    } kproc;
+};
+
+/// Structure for the copy API
+typedef struct {
+    /* reference back to copied process */
+    ksurface_proc_t *proc;
+    
+    /*
+     * the actual process structure, not meant
+     * to be copied tho. In this case its here
+     * for convenience.
+     */
+    struct {
+        
+        /*
+         * copyable process structure, includes all process properties
+         * which can change rapidly.
+         */
+        ksurface_kcproc_t kcproc;
+    } kproc;
+} ksurface_proc_copy_t;
 
 #endif /* PROC_DEF_H */
