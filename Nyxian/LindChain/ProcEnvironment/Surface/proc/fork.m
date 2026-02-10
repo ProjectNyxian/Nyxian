@@ -41,39 +41,22 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         return NULL;
     }
     
-    /* creating a safe to use copy of the parent */
-    ksurface_proc_copy_t *parent_copy = proc_copy_for_proc(parent, kProcCopyOptionRetainedCopy);
-    
-    /* null pointer check */
-    if(parent_copy == NULL)
-    {
-        return NULL;
-    }
-    
     /* creating child process */
-    ksurface_proc_t *child = proc_create_from_proc_copy(parent_copy);
-    
-    /* null pointer check */
-    if(child == NULL)
-    {
-        /* destroying the copy of the parent that references the parent */
-        proc_copy_destroy(parent_copy);
-        return NULL;
-    }
+    ksurface_proc_t *child = proc_create_from_proc(parent);
     
     /* setting child process properties */
+    proc_setppid(child, proc_getpid(child));    /* currently we are a safe to use perfect copy of the parent anyways */
     proc_setpid(child, child_pid);
-    proc_setppid(child, proc_getpid(parent_copy));
     
     /* checking if parent process is kernel_proc_ */
-    if(parent_copy->proc == kernel_proc_)
+    if(parent == kernel_proc_)
     {
-        /* dropping permitives to the movile user */
+        /* dropping permitives to the mobile user */
         proc_setmobilecred(child);
     }
     
-    /* checking if the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
-    if(!entitlement_got_entitlement(proc_getentitlements(parent_copy), PEEntitlementProcessSpawnInheriteEntitlements))
+    /* checking if we as the perfect copy of the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
+    if(!entitlement_got_entitlement(proc_getentitlements(child), PEEntitlementProcessSpawnInheriteEntitlements))
     {
         /* child doesnt inherite entitlements from parent and gets them from trust cache */
         NSString *processHash = [[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
@@ -108,7 +91,6 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         
         /* releasing child process because of failed insert */
         proc_release(child);
-        proc_copy_destroy(parent_copy);
         return NULL;
     }
     
@@ -125,7 +107,6 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     {
     out_parent_contract_retain_failed:
         proc_remove_by_pid(proc_getpid(child));
-        proc_copy_destroy(parent_copy);
         return NULL;
     }
     
@@ -162,9 +143,6 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      */
     pthread_mutex_unlock(&(child->kproc.children.mutex));
     pthread_mutex_unlock(&(parent->kproc.children.mutex));
-    
-    /* destroying the copy of the parent that references the parent */
-    proc_copy_destroy(parent_copy);
     
     /* child stays retained fro the caller */
     return child;

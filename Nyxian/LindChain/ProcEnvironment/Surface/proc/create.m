@@ -18,19 +18,11 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/create.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 static void proc_create_mutual_init(ksurface_proc_t *proc)
 {
-    /*
-     * making sure task port is NULL, so we dont leak
-     * it, which would technically lead to a privelege
-     * escalation.
-     */
-    proc->kproc.task = MACH_PORT_NULL;
-    proc->kproc.eport = MACH_PORT_NULL;
-    
     /* marking process as referenced once */
     proc->header.refcount = 1;
     proc->header.invalid = false;
@@ -89,28 +81,34 @@ ksurface_proc_t *proc_create(pid_t pid,
     return proc;
 }
 
-ksurface_proc_t *proc_create_from_proc_copy(ksurface_proc_copy_t *proc_copy)
+ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc)
 {
     /* null pointer check */
-    if(proc_copy == NULL)
-    {
-        return NULL;
-    }
-    
-    /* allocating process */
-    ksurface_proc_t *proc = calloc(1, sizeof(ksurface_proc_t));
-    
-    /* null pointer check*/
     if(proc == NULL)
     {
         return NULL;
     }
     
-    /* initilizing with mutual init */
-    proc_create_mutual_init(proc);
+    /* allocating process */
+    ksurface_proc_t *nproc = calloc(1, sizeof(ksurface_proc_t));
+    
+    /* null pointer check*/
+    if(nproc == NULL)
+    {
+        return NULL;
+    }
+    
+    /* claiming read lock */
+    proc_read_lock(proc);
     
     /* 1:1 rest copy */
-    memcpy(&(proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(ksurface_kcproc_t));
+    memcpy(&(nproc->kproc.kcproc), &(proc->kproc.kcproc), sizeof(ksurface_kcproc_t));
     
-    return proc;
+    /* releasing it */
+    proc_unlock(proc);
+    
+    /* initilizing with mutual init */
+    proc_create_mutual_init(nproc);
+    
+    return nproc;
 }
