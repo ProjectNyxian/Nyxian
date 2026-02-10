@@ -36,7 +36,8 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
 {
     /* null pointer check */
     if(ksurface == NULL ||
-       parent == NULL)
+       parent == NULL ||
+       path == NULL)
     {
         return NULL;
     }
@@ -59,10 +60,12 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     {
         /* dropping permitives to the mobile user */
         proc_setmobilecred(child);
+        goto force_not_inherite_entitlements;
     }
     
     /* checking if we as the perfect copy of the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
     if(!entitlement_got_entitlement(proc_getentitlements(child), PEEntitlementProcessSpawnInheriteEntitlements))
+force_not_inherite_entitlements:
     {
         /* child doesnt inherite entitlements from parent and gets them from trust cache */
         NSString *processHash = [[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
@@ -79,15 +82,12 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* copying the path */
-    if(path)
-    {
-        strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
+    strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
         
-        /* FIXME: argv[0] shall be used for p_comm and not the last path component */
-        const char *name = strrchr(path, '/');
-        name = name ? name + 1 : path;
-        strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
-    }
+    /* FIXME: argv[0] shall be used for p_comm and not the last path component */
+    const char *name = strrchr(path, '/');
+    name = name ? name + 1 : path;
+    strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* insert will retain the child process */
     if(proc_insert(child) != kSurfaceReturnSuccess)
@@ -110,8 +110,8 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      * and create a reference contract.
      */
     if(!proc_retain(parent))
-    {
 out_parent_contract_retain_failed:
+    {
         proc_remove_by_pid(proc_getpid(child));
         return NULL;
     }
