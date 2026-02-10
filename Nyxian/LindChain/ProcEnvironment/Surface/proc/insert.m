@@ -22,14 +22,14 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-ksurface_error_t proc_insert(ksurface_proc_t *proc)
+ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {
-    ksurface_error_t err = kSurfaceErrorSuccess;
+    ksurface_return_t err = kSurfaceReturnSuccess;
     
     /* null pointer check */
     if(ksurface == NULL || proc == NULL)
     {
-        return kSurfaceErrorNullPtr;
+        return kSurfaceReturnNullPtr;
     }
     
     /* get pid of process */
@@ -41,21 +41,21 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     /* checking process count */
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
-        err = kSurfaceErrorFailed;
+        err = kSurfaceReturnFailed;
         goto out_unlock;
     }
     
     /* looking up the radix tree */
     if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
-        err = kSurfaceErrorPidInUse;
+        err = kSurfaceReturnPidInUse;
         goto out_unlock;
     }
     
     /* retaining process */
     if(!proc_retain(proc))
     {
-        err = kSurfaceErrorFailed;
+        err = kSurfaceReturnFailed;
         goto out_unlock;
     }
     
@@ -63,7 +63,7 @@ ksurface_error_t proc_insert(ksurface_proc_t *proc)
     if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
     {
         proc_release(proc);
-        err = kSurfaceErrorNoMemory;
+        err = kSurfaceReturnNoMemory;
         goto out_unlock;
     }
     

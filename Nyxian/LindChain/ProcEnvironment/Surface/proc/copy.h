@@ -31,8 +31,8 @@ enum kProcCopyOption {
 typedef enum kProcCopyOption kproc_copy_option_t;
 
 ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc, kproc_copy_option_t option);
-ksurface_error_t proc_copy_update(ksurface_proc_copy_t *proc_copy);
-ksurface_error_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy);
-ksurface_error_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy);
+ksurface_return_t proc_copy_update(ksurface_proc_copy_t *proc_copy);
+ksurface_return_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy);
+ksurface_return_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy);
 
 #endif /* PROC_COPY_H */

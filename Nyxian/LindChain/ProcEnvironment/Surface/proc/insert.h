@@ -22,6 +22,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_error_t proc_insert(ksurface_proc_t *proc);
+ksurface_return_t proc_insert(ksurface_proc_t *proc);
 
 #endif /* PROC_INSERT_H */

@@ -22,12 +22,12 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <stdatomic.h>
 
-ksurface_error_t proc_remove_by_pid(pid_t pid)
+ksurface_return_t proc_remove_by_pid(pid_t pid)
 {
     /* Null pointer check */
     if(ksurface == NULL)
     {
-        return kSurfaceErrorNullPtr;
+        return kSurfaceReturnNullPtr;
     }
     
     /* Aquire rw lock */
@@ -38,7 +38,7 @@ ksurface_error_t proc_remove_by_pid(pid_t pid)
     if(proc == NULL)
     {
         proc_table_unlock();
-        return kSurfaceErrorNotFound;
+        return kSurfaceReturnNotFound;
     }
     
     /* removed so decrementing process count */
@@ -54,5 +54,5 @@ ksurface_error_t proc_remove_by_pid(pid_t pid)
     proc_table_unlock();
     
     /* Succeeded */
-    return kSurfaceErrorSuccess;
+    return kSurfaceReturnSuccess;
 }

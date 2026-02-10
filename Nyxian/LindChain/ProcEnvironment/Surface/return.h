@@ -17,13 +17,23 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROC_FORK_H
-#define PROC_FORK_H
+#ifndef PROCENVIRONMENT_RETURN_H
+#define PROCENVIRONMENT_RETURN_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+typedef enum kSurfaceReturn {
+    kSurfaceReturnSuccess = 0,
+    kSurfaceReturnUndefined,
+    kSurfaceReturnNullPtr,
+    kSurfaceReturnNotFound,
+    kSurfaceReturnNotHoldingLock,
+    kSurfaceReturnOutOfBounds,
+    kSurfaceReturnDenied,
+    kSurfaceReturnAlreadyExists,
+    kSurfaceReturnFailed,
+    kSurfaceReturnProcessDead,
+    kSurfaceReturnPidInUse,
+    kSurfaceReturnNoMemory,
+    kSurfaceReturnRetentionFailed,
+} ksurface_return_t;
 
-ksurface_proc_t *proc_fork(ksurface_proc_t *parent, pid_t child_pid, const char *path);
-
-ksurface_return_t proc_exit(ksurface_proc_t *child);
-
-#endif /* PROC_FORK_H */
+#endif /* PROCENVIRONMENT_RETURN_H */

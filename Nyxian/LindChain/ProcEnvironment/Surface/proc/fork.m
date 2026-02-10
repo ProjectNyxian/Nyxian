@@ -101,7 +101,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* insert will retain the child process */
-    if(proc_insert(child) != kSurfaceErrorSuccess)
+    if(proc_insert(child) != kSurfaceReturnSuccess)
     {
         /* logging if enabled */
         klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
@@ -170,25 +170,25 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     return child;
 }
 
-ksurface_error_t proc_exit(ksurface_proc_t *proc)
+ksurface_return_t proc_exit(ksurface_proc_t *proc)
 {
     /* null pointer check */
     if(proc == NULL)
     {
-        return kSurfaceErrorNullPtr;
+        return kSurfaceReturnNullPtr;
     }
     
     /* checking if proc is kernel */
     if(proc == kernel_proc_)
     {
         klog_log(@"proc:exit", @"cannot terminate the kernel");
-        return kSurfaceErrorDenied;
+        return kSurfaceReturnDenied;
     }
     
     /* retain process that wants to exit*/
     if(!proc_retain(proc))
     {
-        return kSurfaceErrorProcessDead;
+        return kSurfaceReturnProcessDead;
     }
     
     /* lock mutex */
@@ -235,7 +235,7 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         {
             /* releasing child */
             proc_release(proc);
-            return kSurfaceErrorFailed;
+            return kSurfaceReturnFailed;
         }
         
         /* lock order: parent → child */
@@ -290,5 +290,5 @@ ksurface_error_t proc_exit(ksurface_proc_t *proc)
         [process terminate];
     }
     
-    return kSurfaceErrorSuccess;
+    return kSurfaceReturnSuccess;
 }

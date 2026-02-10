@@ -32,24 +32,7 @@
 #include <pthread.h>
 
 #import <LindChain/ProcEnvironment/Surface/limits.h>
-
-enum kSurfaceError {
-    kSurfaceErrorSuccess            = 0,
-    kSurfaceErrorUndefined          = 1,
-    kSurfaceErrorNullPtr            = 2,
-    kSurfaceErrorNotFound           = 3,
-    kSurfaceErrorNotHoldingLock     = 4,
-    kSurfaceErrorOutOfBounds        = 5,
-    kSurfaceErrorDenied             = 6,
-    kSurfaceErrorAlreadyExists      = 7,
-    kSurfaceErrorFailed             = 8,
-    kSurfaceErrorProcessDead        = 9,
-    kSurfaceErrorPidInUse           = 10,
-    kSurfaceErrorNoMemory           = 11,
-    kSurfaceErrorRetentionFailed    = 12,
-};
-
-typedef unsigned char ksurface_error_t;
+#import <LindChain/ProcEnvironment/Surface/return.h>
 
 /// Nyxian process typedefinitions
 typedef struct ksurface_proc ksurface_proc_t;

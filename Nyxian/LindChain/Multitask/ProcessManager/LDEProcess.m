@@ -32,8 +32,6 @@
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
-// TODO: A todo to my self, FRIDA FIX THIS GARBAGE CODE!!!
-
 extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
 @implementation LDEProcess
@@ -167,8 +165,8 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         
 #if !JAILBREAK_ENV
                         klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
-                        ksurface_error_t error = proc_exit(innerSelf.proc);
-                        if(error != kSurfaceErrorSuccess && error != kSurfaceErrorProcessDead)
+                        ksurface_return_t error = proc_exit(innerSelf.proc);
+                        if(error != kSurfaceReturnSuccess && error != kSurfaceReturnProcessDead)
                         {
                             klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                         }
