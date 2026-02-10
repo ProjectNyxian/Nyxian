@@ -19,9 +19,6 @@
 
 #include "Utils.h"
 
-hw_breakpoint_t hw_breakpoints[6] = {0};
-bool singleStepMode = false;
-
 const char *sym_at_address(vm_address_t address)
 {
     static char buffer[256];
@@ -361,7 +358,6 @@ uint64_t get_next_pc(struct arm64_thread_full_state *state)
 bool pc_at_software_breakpoint(struct arm64_thread_full_state *state)
 {
     uint64_t pc = state->thread.__pc;
-    uint32_t cpsr = state->thread.__cpsr;
     
     /* read instruction at pc */
     uint32_t inst;
@@ -543,7 +539,7 @@ bool set_hw_breakpoint(struct arm64_thread_full_state *state,
                        int slot,
                        vm_address_t address)
 {
-    if(slot < 0 || slot >= 6)
+    if(slot < 0 || slot >= ARM64_MAX_HW_BREAKPOINTS)
     {
         printf("invalid breakpoint slot (0-5)\n");
         return false;
@@ -558,27 +554,80 @@ bool set_hw_breakpoint(struct arm64_thread_full_state *state,
      * bits 1-2: PMC (Privilege Mode Control) = 11 (any mode)
      * bits 5-8: BAS (Byte Address Select) = 1111 (all bytes)
      */
-    state->debug.__bcr[slot] = 0x1E5;  /* Enabled, any privilege, match all bytes */
+    state->debug.__bcr[slot] = 0x1E5;  /* enabled, any privilege, match all bytes */
     
-    hw_breakpoints[slot].enabled = true;
-    hw_breakpoints[slot].address = address;
     return true;
 }
 
 bool clear_hw_breakpoint(struct arm64_thread_full_state *state,
                          int slot)
 {
-    if(slot < 0 || slot >= 6)
+    if(slot < 0 || slot >= ARM64_MAX_HW_BREAKPOINTS)
     {
         printf("invalid breakpoint slot (0-5)\n");
         return false;
     }
     
     state->debug.__bcr[slot] = 0;  /* disable */
-    
-    hw_breakpoints[slot].enabled = false;
-    hw_breakpoints[slot].address = VM_MIN_ADDRESS;
     return true;
+}
+
+void over_step_mark_hw_breakpoint(struct arm64_thread_full_state *state,
+                                  int slot)
+{
+    if(slot < 0 || slot >= ARM64_MAX_HW_BREAKPOINTS)
+    {
+        printf("invalid breakpoint slot (0-5)\n");
+        return;
+    }
+    
+    state->debug.__bcr[slot] |= ARM64_BCR_TYPE_IGNORE;
+    state->debug.__bcr[slot] &= ~ARM64_BCR_ENABLE;
+}
+
+bool was_over_step_mark_hw_breakpoint(struct arm64_thread_full_state *state)
+{
+    bool wasEnabled = false;
+    for(uint8_t i = 0; i < ARM64_MAX_HW_BREAKPOINTS; i++)
+    {
+        if(state->debug.__bcr[i] == 0x1E4)  /* FIXME: IDK Why this works but it does */
+        {
+            state->debug.__bcr[i] |= 0x1E5;
+            wasEnabled = true;
+        }
+    }
+    return wasEnabled;
+}
+
+uint8_t arm64_find_hw_breakpoint_slot_for_pc(const struct arm64_thread_full_state *state)
+{
+    if(!state || !state->debug_valid || !state->thread_valid)
+    {
+        return 0xFF;
+    }
+
+    const arm_debug_state64_t *dbg = &state->debug;
+    uint64_t pc = state->thread.__pc;
+
+    for(uint8_t i = 0; i < ARM64_MAX_HW_BREAKPOINTS; i++)
+    {
+        uint32_t bcr = (uint32_t)dbg->__bcr[i];
+
+        /* Slot not enabled */
+        if((bcr & ARM64_BCR_ENABLE) == 0)
+        {
+            continue;
+        }
+
+        uint64_t bvr = dbg->__bvr[i];
+        
+        if((bvr & ~0x3ULL) == (pc & ~0x3ULL))
+        {
+            return i;
+        }
+    }
+
+    return 0xFF;
 }
 
 void print_register(const char *name,

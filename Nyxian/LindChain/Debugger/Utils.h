@@ -38,15 +38,16 @@
 #define FLAG_C(cpsr) (((cpsr) >> 29) & 1)
 #define FLAG_V(cpsr) (((cpsr) >> 28) & 1)
 
+#define ARM64_MAX_HW_BREAKPOINTS 16
+
+#define ARM64_BCR_ENABLE        (1u << 0)
+#define ARM64_BCR_TYPE_EXECUTE  (0u << 1)
+#define ARM64_BCR_TYPE_IGNORE   (0x3 << 1)
+
 typedef struct stack_frame {
     struct stack_frame *fp;
     vm_address_t lr;
 } stack_frame_t;
-
-typedef struct {
-    bool enabled;
-    vm_address_t address;
-} hw_breakpoint_t;
 
 typedef enum {
     PARSED_COMMAND_ARG_TYPE_STRING,
@@ -80,9 +81,6 @@ parsed_command_t parse_command(const char *input);
 parsed_command_arg_type_t parse_arg_type(const char *arg);
 unsigned long long parse_number(const char *str, parsed_command_arg_type_t type);
 
-extern hw_breakpoint_t hw_breakpoints[6];
-extern bool singleStepMode;
-
 /* gets the name of a symbol at the passed address (only in this task, need to write a symbol for task ports) */
 const char *sym_at_address(vm_address_t address);
 
@@ -103,6 +101,11 @@ bool pc_at_software_breakpoint(struct arm64_thread_full_state *state);
 
 bool set_hw_breakpoint(struct arm64_thread_full_state *state, int slot, vm_address_t address);
 bool clear_hw_breakpoint(struct arm64_thread_full_state *state, int slot);
+
+void over_step_mark_hw_breakpoint(struct arm64_thread_full_state *state, int slot);
+bool was_over_step_mark_hw_breakpoint(struct arm64_thread_full_state *state);
+
+uint8_t arm64_find_hw_breakpoint_slot_for_pc(const struct arm64_thread_full_state *state);
 
 uint64_t* get_register_ptr(struct arm64_thread_full_state *state, const char *name);
 

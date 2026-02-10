@@ -166,11 +166,11 @@ void debugger_loop(thread_t thread, struct arm64_thread_full_state *state)
             if(cmd.arg_count == 0)
             {
                 printf("\n=== hardware breakpoints ===\n");
-                for(int i = 0; i < 6; i++)
+                for(int i = 0; i < ARM64_MAX_HW_BREAKPOINTS; i++)
                 {
-                    if(hw_breakpoints[i].enabled)
+                    if(state->debug.__bcr[i])
                     {
-                        printf("%d: 0x%016llx (%s)\n", i, (uint64_t)hw_breakpoints[i].address, sym_at_address((vm_address_t)hw_breakpoints[i].address));
+                        printf("%d: 0x%016llx (%s)\n", i, state->debug.__bvr[i], sym_at_address(state->debug.__bvr[i]));
                     }
                     else
                     {
@@ -396,26 +396,17 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     /* getting current thread state */
     struct arm64_thread_full_state *state = thread_save_state_arm64(thread);
     
-    /*
-     * in case single stepping is enabled,
-     * which is only enabled for one instruction,
-     * we basically know that it means someone meant
-     * to over-step this instruction, means we skip it
-     * automatically.
-     */
-    /*if(is_enabled_mdscr_single_step(state))
-    {
-        state->thread.__pc = get_next_pc(state);
-        goto skip_debug_loop;
-    }*/
+    was_over_step_mark_hw_breakpoint(state);
     
     mach_msg_type_number_t index = 0;
     task_thread_index(task, thread, &index);
     
+    bool hardwareBreakpoint = exception == EXC_BREAKPOINT && !pc_at_software_breakpoint(state);
+    
     /* printing out what happened */
     printf("[ndb]");
     
-    if(exception != EXC_BREAKPOINT || pc_at_software_breakpoint(state))
+    if(!hardwareBreakpoint)
     {
         printf(" [%s]", exceptionName(exception));
     }
@@ -462,6 +453,16 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
     
     /* invoking nyxian debugger(nbd) */
     debugger_loop(thread, state);
+    
+    if(hardwareBreakpoint)
+    {
+        uint8_t slot = arm64_find_hw_breakpoint_slot_for_pc(state);
+        if(slot != 0xFF)
+        {
+            enable_mdscr_single_step(state);
+            over_step_mark_hw_breakpoint(state, slot);
+        }
+    }
     
 skip_debug_loop:
     
