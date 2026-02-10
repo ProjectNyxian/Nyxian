@@ -403,17 +403,24 @@ kern_return_t mach_exception_self_server_handler(mach_port_t task,
      * to over-step this instruction, means we skip it
      * automatically.
      */
-    if(is_enabled_mdscr_single_step(state))
+    /*if(is_enabled_mdscr_single_step(state))
     {
         state->thread.__pc = get_next_pc(state);
         goto skip_debug_loop;
-    }
+    }*/
     
     mach_msg_type_number_t index = 0;
     task_thread_index(task, thread, &index);
     
     /* printing out what happened */
-    printf("[ndb] [%s] thread %d stopped at 0x%llx(%s)\n", exceptionName(exception), task_thread_index(task, thread, &index), state->thread.__pc, sym_at_address(state->thread.__pc));
+    printf("[ndb]");
+    
+    if(exception != EXC_BREAKPOINT || pc_at_software_breakpoint(state))
+    {
+        printf(" [%s]", exceptionName(exception));
+    }
+    
+    printf(" thread %d stopped at 0x%llx(%s)\n", task_thread_index(task, thread, &index), state->thread.__pc, sym_at_address(state->thread.__pc));
     
     /* parsing exception */
     if(exception == EXC_BAD_ACCESS)

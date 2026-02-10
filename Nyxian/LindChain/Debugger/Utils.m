@@ -358,6 +358,20 @@ uint64_t get_next_pc(struct arm64_thread_full_state *state)
     return pc + 4;
 }
 
+bool pc_at_software_breakpoint(struct arm64_thread_full_state *state)
+{
+    uint64_t pc = state->thread.__pc;
+    uint32_t cpsr = state->thread.__cpsr;
+    
+    /* read instruction at pc */
+    uint32_t inst;
+    vm_size_t read_size;
+    kern_return_t kr = vm_read_overwrite(mach_task_self(), pc, sizeof(inst), (mach_vm_address_t)&inst, &read_size);
+    
+    /* condition :3 */
+    return (kr != KERN_SUCCESS || inst == 0xD4200000 || inst == 0xD4200020);
+}
+
 parsed_command_arg_type_t parse_arg_type(const char *arg)
 {
     if(!arg || !*arg) return PARSED_COMMAND_ARG_TYPE_STRING;

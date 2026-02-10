@@ -99,6 +99,7 @@ void state_back_trace(struct arm64_thread_full_state *state, uint64_t maxdepth);
 kern_return_t task_thread_index(task_t task, thread_t target, mach_msg_type_number_t *index);
 
 uint64_t get_next_pc(struct arm64_thread_full_state *state);
+bool pc_at_software_breakpoint(struct arm64_thread_full_state *state);
 
 bool set_hw_breakpoint(struct arm64_thread_full_state *state, int slot, vm_address_t address);
 bool clear_hw_breakpoint(struct arm64_thread_full_state *state, int slot);
