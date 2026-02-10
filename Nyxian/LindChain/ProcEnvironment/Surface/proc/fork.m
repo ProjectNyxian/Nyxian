@@ -83,6 +83,17 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     }
     
+    /* insert will retain the child process */
+    if(proc_insert(child) != kSurfaceReturnSuccess)
+    {
+        /* logging if enabled */
+        klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
+        
+        /* releasing child process because of failed insert */
+        proc_release(child);
+        return NULL;
+    }
+    
     /*
      * referencing parent first, to
      * first of all prevent a reference leak
@@ -94,6 +105,8 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      */
     if(!proc_retain(parent))
     {
+out_parent_contract_retain_failed:
+        proc_remove_by_pid(proc_getpid(child));
         return NULL;
     }
     
@@ -113,7 +126,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         proc_release(parent);
         
         /* does already return */
-        return NULL;
+        goto out_parent_contract_retain_failed;
     }
     
     /* locking children structure numero two */
@@ -131,18 +144,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     pthread_mutex_unlock(&(child->kproc.children.mutex));
     pthread_mutex_unlock(&(parent->kproc.children.mutex));
     
-    /* insert will retain the child process */
-    if(proc_insert(child) != kSurfaceReturnSuccess)
-    {
-        /* logging if enabled */
-        klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
-        
-        /* releasing child process because of failed insert */
-        proc_release(child);
-        return NULL;
-    }
-    
-    /* child stays retained for the caller */
+    /* child stays retained fro the caller */
     return child;
 }
 
