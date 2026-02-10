@@ -132,10 +132,10 @@ class SplitScreenDetailViewController: UIViewController {
         }
         set {
             self.lock.lock()
+            defer { self.lock.unlock() }
             
             if let oldVC = childVCMaster {
                 if oldVC == newValue {
-                    self.lock.unlock()
                     return
                 }
                 
@@ -190,25 +190,19 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
                     vc.view.layer.masksToBounds = true
                     
-                    let constraints: [NSLayoutConstraint]
+                    var constraints: [NSLayoutConstraint] = [
+                        vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                        vc.view.bottomAnchor.constraint(equalTo: (self.project.projectConfig.type == NXProjectType.app.rawValue) ? logView!.topAnchor : view.bottomAnchor, constant: -16),
+                        vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                        vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                    ]
+                    
                     if self.project.projectConfig.type == NXProjectType.app.rawValue {
                         self.logViewTopConstraint?.isActive = false
                         
-                        constraints = [
-                            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                            vc.view.bottomAnchor.constraint(equalTo: logView!.topAnchor, constant: -16),
-                            vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                            vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-                            
+                        constraints.append(contentsOf: [
                             logView!.heightAnchor.constraint(equalToConstant: 300)
-                        ]
-                    } else {
-                        constraints = [
-                            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                            vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
-                            vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                            vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-                        ]
+                        ])
                     }
                     
                     NSLayoutConstraint.activate(constraints)
@@ -235,8 +229,6 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.alpha = 1
                 }
             }
-            
-            self.lock.unlock()
         }
     }
     var childButton: UIButtonTab?
