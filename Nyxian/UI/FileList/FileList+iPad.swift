@@ -120,7 +120,10 @@ class SplitScreenDetailViewController: UIViewController {
     let project: NXProject
     
     var lock: NSLock = NSLock()
+    
+    var logViewTopConstraint: NSLayoutConstraint? = nil
     var logView: LogTextView?
+    
     var childVCMasterConstraints: [NSLayoutConstraint]?
     var childVCMaster: UIViewController?
     var childVC: UIViewController? {
@@ -157,6 +160,10 @@ class SplitScreenDetailViewController: UIViewController {
                 NSLayoutConstraint.deactivate(oldConstraints)
             }
             
+            if self.project.projectConfig.type == NXProjectType.app.rawValue {
+                self.logViewTopConstraint?.isActive = true
+            }
+            
             // setting to new view controller
             childVCMaster = newValue
             
@@ -185,16 +192,15 @@ class SplitScreenDetailViewController: UIViewController {
                     
                     let constraints: [NSLayoutConstraint]
                     if self.project.projectConfig.type == NXProjectType.app.rawValue {
+                        self.logViewTopConstraint?.isActive = false
+                        
                         constraints = [
                             vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                            vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -300),
+                            vc.view.bottomAnchor.constraint(equalTo: logView!.topAnchor, constant: -16),
                             vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
                             vc.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
                             
-                            logView!.topAnchor.constraint(equalTo: vc.view.bottomAnchor, constant: 16),
-                            logView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-                            logView!.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-                            logView!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+                            logView!.heightAnchor.constraint(equalToConstant: 300)
                         ]
                     } else {
                         constraints = [
@@ -379,6 +385,15 @@ class SplitScreenDetailViewController: UIViewController {
             logView!.backgroundColor = currentTheme?.backgroundColor
             logView!.textColor = currentTheme?.textColor
             self.view.addSubview(logView!)
+            
+            self.logViewTopConstraint = logView!.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+            self.logViewTopConstraint?.isActive = true
+            
+            NSLayoutConstraint.activate([
+                logView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                logView!.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                logView!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
+            ])
         }
         
         self.navigationItem.titleView = self.scrollView
