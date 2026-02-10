@@ -44,6 +44,12 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     /* creating child process */
     ksurface_proc_t *child = proc_create_from_proc(parent);
     
+    /* checking if child is null */
+    if(child == NULL)
+    {
+        return NULL;
+    }
+    
     /* setting child process properties */
     proc_setppid(child, proc_getpid(child));    /* currently we are a safe to use perfect copy of the parent anyways */
     proc_setpid(child, child_pid);
