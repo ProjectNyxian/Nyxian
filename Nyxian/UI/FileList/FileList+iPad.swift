@@ -37,6 +37,8 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.delegate = self
+        
         masterVC = FileListViewController(project: project)
         detailVC = SplitScreenDetailViewController(project: project)
 
@@ -51,13 +53,11 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
         if #available(iOS 14.5, *) {
             self.displayModeButtonVisibility = .never
         }
-        self.delegate = self
         
-        if #available(iOS 16.0, *) {
-            if self.project.projectConfig.type == NXProjectType.app.rawValue
-            {
-                LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
-            }
+        if #available(iOS 16.0, *),
+           self.project.projectConfig.type == NXProjectType.app.rawValue
+        {
+            LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(self.project.projectConfig.bundleid)
         }
     }
     
@@ -72,19 +72,8 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     }
     
     override var keyCommands: [UIKeyCommand]? {
-        let closeCommand = UIKeyCommand(
-            title: "Close",
-            action: #selector(self.detailVC?.closeCurrentTab),
-            input: "W",
-            modifierFlags: [.command]
-        )
-        
-        let runCommand = UIKeyCommand(
-            title: "Run",
-            action: #selector(self.invokeBuild),
-            input: "R",
-            modifierFlags: [.command]
-        )
+        let closeCommand = UIKeyCommand(title: "Close", action: #selector(self.detailVC?.closeCurrentTab), input: "W", modifierFlags: [.command])
+        let runCommand = UIKeyCommand(title: "Run", action: #selector(self.invokeBuild), input: "R", modifierFlags: [.command])
         
         if #available(iOS 15.0, *) {
             closeCommand.wantsPriorityOverSystemBehavior = true
@@ -95,21 +84,15 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     
     @objc func invokeBuild() {
         if let masterVC = masterVC,
-           let detailVC = detailVC {
-            guard lock.try() else { return }
-            if #available(iOS 16.0, *) {
-                masterVC.navigationItem.leftBarButtonItem?.isHidden = true
-            } else {
-                masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
-            }
+           let detailVC = detailVC,
+           lock.try() {
+            
+            masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
             self.detailVC?.logView?.clearConsole()
+            
             buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.logView?.pipe, inPipe: self.detailVC?.logView?.stdinPipe) { [weak self] in
                 guard let self = self else { return }
-                if #available(iOS 16.0, *) {
-                    masterVC.navigationItem.leftBarButtonItem?.isHidden = false
-                } else {
-                    masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
-                }
+                masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
                 self.lock.unlock()
             }
         }
@@ -183,6 +166,8 @@ class SplitScreenDetailViewController: UIViewController {
                 
                 vc.view.translatesAutoresizingMaskIntoConstraints = false
                 
+                var constraints: [NSLayoutConstraint] = []
+                
                 if #available(iOS 26.0, *) {
                     vc.view.layer.cornerRadius = 20
                     vc.view.layer.cornerCurve = .continuous
@@ -190,7 +175,7 @@ class SplitScreenDetailViewController: UIViewController {
                     vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
                     vc.view.layer.masksToBounds = true
                     
-                    var constraints: [NSLayoutConstraint] = [
+                    constraints = [
                         vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                         vc.view.bottomAnchor.constraint(equalTo: (self.project.projectConfig.type == NXProjectType.app.rawValue) ? logView!.topAnchor : view.bottomAnchor, constant: -16),
                         vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -213,7 +198,7 @@ class SplitScreenDetailViewController: UIViewController {
                      * on iOS prior 26 we wont do anything
                      * floating cuz its not designed for it
                      */
-                    let constraints = [
+                    constraints = [
                         vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                         vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
                         vc.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
