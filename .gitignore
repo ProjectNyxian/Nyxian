@@ -7,3 +7,4 @@ build/
 Nyxian/LindChain/JBSupport/libroot.a
 Nyxian/LindChain/JBSupport/libroot.h
 Nyxian/LindChain/JBSupport/tshelper
+*.xcuserstate
