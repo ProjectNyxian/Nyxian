@@ -27,7 +27,8 @@
 
 ksurface_mapping_t *ksurface = NULL;
 
-void kern_sethostname(NSString *hostname)
+/* TODO: check against same regex pattern as in the syscall */
+void ksurface_sethostname(NSString *hostname)
 {
     /* sanity check */
     if(hostname == nil &&

@@ -26,7 +26,7 @@ void proc_read_lock(ksurface_proc_t *proc)
         return;
     }
     
-    pthread_rwlock_rdlock(&(proc->rwlock));
+    pthread_rwlock_rdlock(&(proc->header.rwlock));
 }
 
 void proc_write_lock(ksurface_proc_t *proc)
@@ -36,7 +36,7 @@ void proc_write_lock(ksurface_proc_t *proc)
         return;
     }
     
-    pthread_rwlock_wrlock(&(proc->rwlock));
+    pthread_rwlock_wrlock(&(proc->header.rwlock));
 }
 
 void proc_unlock(ksurface_proc_t *proc)
@@ -46,7 +46,7 @@ void proc_unlock(ksurface_proc_t *proc)
         return;
     }
     
-    pthread_rwlock_unlock(&(proc->rwlock));
+    pthread_rwlock_unlock(&(proc->header.rwlock));
 }
 
 void proc_table_read_lock(void)

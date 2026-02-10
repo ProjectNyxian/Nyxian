@@ -45,7 +45,7 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     
     /* trying to retain the process */
     if(proc_getpid(proc) == pid &&
-       !atomic_load(&proc->dead))
+       !atomic_load(&proc->header.invalid))
     {
         if(proc_retain(proc))
         {

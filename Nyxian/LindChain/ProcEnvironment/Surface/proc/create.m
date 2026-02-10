@@ -32,11 +32,11 @@ static void proc_create_mutual_init(ksurface_proc_t *proc)
     proc->kproc.eport = MACH_PORT_NULL;
     
     /* marking process as referenced once */
-    proc->refcount = 1;
-    proc->dead = false;
+    proc->header.refcount = 1;
+    proc->header.invalid = false;
     
     /* initilizing rw lock and mutex */
-    pthread_rwlock_init(&(proc->rwlock), NULL);
+    pthread_rwlock_init(&(proc->header.rwlock), NULL);
     pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
     
     /* reseting the start time */

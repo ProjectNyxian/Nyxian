@@ -30,16 +30,16 @@ bool proc_retain(ksurface_proc_t *proc)
     }
     while(1)
     {
-        int current = atomic_load(&proc->refcount);
-        if(current <= 0 || atomic_load(&proc->dead))
+        int current = atomic_load(&proc->header.refcount);
+        if(current <= 0 || atomic_load(&proc->header.invalid))
         {
             return false;
         }
-        if(atomic_compare_exchange_weak(&proc->refcount, &current, current + 1))
+        if(atomic_compare_exchange_weak(&proc->header.refcount, &current, current + 1))
         {
-            if(atomic_load(&proc->dead))
+            if(atomic_load(&proc->header.invalid))
             {
-                atomic_fetch_sub(&proc->refcount, 1);
+                atomic_fetch_sub(&proc->header.refcount, 1);
                 return false;
             }
             return true;
@@ -50,11 +50,11 @@ bool proc_retain(ksurface_proc_t *proc)
 void proc_release(ksurface_proc_t *proc)
 {
     if(proc == NULL) return;
-    int old = atomic_fetch_sub(&proc->refcount, 1);
+    int old = atomic_fetch_sub(&proc->header.refcount, 1);
     if(old == 1)
     {
         klog_log(@"proc:release", @"freeing process @ %p", proc);
-        pthread_rwlock_destroy(&(proc->rwlock));
+        pthread_rwlock_destroy(&(proc->header.rwlock));
         pthread_mutex_destroy(&(proc->kproc.children.mutex));
         free(proc);
     }

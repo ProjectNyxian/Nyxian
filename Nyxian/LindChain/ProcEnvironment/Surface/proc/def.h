@@ -22,6 +22,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/limits.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/ProcEnvironment/Surface/obj/kvobject.h>
 #include <sys/sysctl.h>
 
 /// Helper macros
@@ -69,29 +70,8 @@ typedef struct knyx_proc knyx_proc_t;
 
 /// Nyxian process structure
 struct ksurface_proc {
-
-    /*
-     * reference count of this processes
-     * if it hits zero it will release
-     * automatically.
-     */
-    _Atomic int refcount;
-    
-    /*
-     * dead boolean value marks a process
-     * as effectively dead, any new retains
-     * will fail cuz it doesnt matter anymore
-     * what a syscall or kernel operation
-     * might wanna do with this process
-     * as its literally dead.
-     */
-    _Atomic bool dead;
-    
-    /*
-     * main read-write lock of this structure,
-     * mainly used when modifying kcproc.
-     */
-    pthread_rwlock_t rwlock;
+    /* header of process */
+    kvobject_t header;
     
     /*
      * the actual process structure, not meant

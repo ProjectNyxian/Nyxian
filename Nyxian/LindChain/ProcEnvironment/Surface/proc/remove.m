@@ -45,7 +45,7 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     ksurface->proc_info.proc_count--;
     
     /* Marking process as dead */
-    atomic_store(&(proc->dead), true);
+    atomic_store(&(proc->header.invalid), true);
     
     /* Release process */
     proc_release(proc);

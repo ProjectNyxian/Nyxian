@@ -101,7 +101,7 @@ class CustomizationViewController: UIThemedTableViewController {
                 cell = NXTextFieldTableCell(title: "Username", hint: "Anonym", key: "LDEUsername", defaultValue: "Anonym")
             } else {
                 cell = NXTextFieldTableCell(title: "Hostname", hint: "localhost", key: "LDEHostname", defaultValue: "localhost") { newValue in
-                    kern_sethostname(newValue)
+                    ksurface_sethostname(newValue)
                 }
             }
 #else
