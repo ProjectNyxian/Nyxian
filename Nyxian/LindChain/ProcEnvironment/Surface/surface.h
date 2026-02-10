@@ -31,6 +31,8 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #include <pthread.h>
 
+#import <LindChain/ProcEnvironment/Surface/limits.h>
+
 enum kSurfaceError {
     kSurfaceErrorSuccess            = 0,
     kSurfaceErrorUndefined          = 1,
@@ -48,29 +50,6 @@ enum kSurfaceError {
 };
 
 typedef unsigned char ksurface_error_t;
-
-/// Limits
-
-/*
- * im sorry if you complain about the
- * amount of maximum processes, dont
- * complain about this to me, complain
- * about this to apple, their the reason
- * why, launchd doesnt let us spawn more.
- */
-#define PROC_MAX 1024
-
-/*
- * why would a process need more than 128
- * childs?
- */
-#define CHILD_PROC_MAX 128
-
-/*
- * the maximum count of pid that the
- * radix tree supports.
- */
-#define PID_MAX 1048575
 
 /// Nyxian process typedefinitions
 typedef struct ksurface_proc ksurface_proc_t;
