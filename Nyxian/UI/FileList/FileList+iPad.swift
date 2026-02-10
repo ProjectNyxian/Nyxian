@@ -254,7 +254,6 @@ class SplitScreenDetailViewController: UIViewController {
         if let existingTab = tabs.first(where: { $0.path == path }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
-            existingTab.vc.goto(line: line, column: column)
             updateTabSelection(selectedTab: existingTab)
             return
         }
