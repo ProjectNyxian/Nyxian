@@ -120,6 +120,7 @@
 {
     [_process resume];
     self.focused = YES;
+    (void)[_terminal becomeFirstResponder];
 }
 
 - (void)deactivateWindow
