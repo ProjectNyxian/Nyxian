@@ -110,55 +110,40 @@ static void send_reply(mach_msg_header_t *request,
     /* setting reply data */
     reply.header.msgh_bits = MACH_MSGH_BITS_REMOTE(MACH_MSG_TYPE_MOVE_SEND_ONCE);
     reply.header.msgh_remote_port = request->msgh_remote_port;
-    reply.header.msgh_local_port = MACH_PORT_NULL;
     reply.header.msgh_size = sizeof(reply);
     reply.header.msgh_id = request->msgh_id + 100;
-    reply.body.msgh_descriptor_count = 2;
     
     /* storing syscall result */
     reply.result = result;
     reply.err = err;
     
     /* validating payload */
+    reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
+    
     if(payload &&
        payload_len > 0)
     {
         /* creating ool descriptor */
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
         reply.ool.address = payload;
         reply.ool.copy = MACH_MSG_VIRTUAL_COPY;
         reply.ool.size = payload_len;
         reply.ool.deallocate = TRUE;
-    }
-    else
-    {
-        /* creating invalid ool */
-        reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-        reply.ool.address = NULL;
-        reply.ool.size = 0;
-        reply.ool.deallocate = FALSE;
+        reply.body.msgh_descriptor_count = 1;
     }
     
     /* validating ports */
+    reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
+    
     if(out_ports &&
        out_ports_cnt > 0)
     {
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
         reply.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
         reply.oolp.address = out_ports;
         reply.oolp.count = out_ports_cnt;
         reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-        reply.oolp.deallocate = FALSE;
-    }
-    else
-    {
-        /* create invalid oolp*/
-        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-        reply.oolp.address = NULL;
-        reply.oolp.count = 0;
-        reply.oolp.deallocate = FALSE;
+        reply.body.msgh_descriptor_count = 2;
     }
     
     /* sending reply to child */
@@ -241,7 +226,7 @@ static void* syscall_worker_thread(void *ctx)
             goto cleanup;
         }
         
-        /* creating out payload buffer to be sent back */
+        /* values for reply back to client */
         uint8_t *out_payload = NULL;
         uint32_t out_len = 0;
         mach_port_t *out_ports = NULL;
