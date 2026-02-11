@@ -25,7 +25,8 @@
 
 kvobject_t *kvobject_alloc(size_t size,
                            kvobject_handler_t init,
-                           kvobject_handler_t deinit)
+                           kvobject_handler_t deinit,
+                           kvobject_duo_handler_t copyit)
 {
     /*
      * first we gotta check if the size
@@ -37,7 +38,7 @@ kvobject_t *kvobject_alloc(size_t size,
     }
     
     /* allocating brand new kvobject */
-    kvobject_t *kvo = malloc(size);
+    kvobject_t *kvo = calloc(1, size);
     
     /* checking if allocation suceeded */
     if(kvo == NULL)
@@ -46,17 +47,15 @@ kvobject_t *kvobject_alloc(size_t size,
     }
     
     /* setting up kvobject for usage */
-    kvo->size = sizeof(size);                   /* noting size down */
+    kvo->size = size;                           /* noting size down */
     kvo->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
     kvo->invalid = false;                       /* the kvobject is not useless obviously, its about to be born */
     pthread_rwlock_init(&(kvo->rwlock), NULL);  /* initilizing the lock lol */
-    kvo->copy_is = false;                       /* its a real object */
-    kvo->copy_link = NULL;                      /* not an copy, so no reference to real object */
-    kvo->fresh_is = true;
     
     /* setting handlers and running init straight */
     kvo->init = init;
     kvo->deinit = deinit;
+    kvo->copyit = copyit;
     
     /* checking init handler and executing if nonnull */
     if(kvo->init != NULL)
@@ -68,11 +67,11 @@ kvobject_t *kvobject_alloc(size_t size,
     return kvo;
 }
 
-kvobject_t *kvobject_dup(kvobject_t *kvo)
+kvobject_t *kvobject_copy(kvobject_t *kvo)
 {
     /* sanity check */
     if(kvo == NULL ||
-       kvobject_retain(kvo) != kSurfaceReturnSuccess)
+       !kvobject_retain(kvo))
     {
         return NULL;
     }
@@ -80,7 +79,7 @@ kvobject_t *kvobject_dup(kvobject_t *kvo)
     kvobject_wrlock(kvo);
     
     /* creating new object */
-    kvobject_t *kvo_dup = malloc(kvo->size);
+    kvobject_t *kvo_dup = calloc(1, kvo->size);
     
     /* checking if allocation was successful */
     if(kvo_dup == NULL)
@@ -88,18 +87,21 @@ kvobject_t *kvobject_dup(kvobject_t *kvo)
         goto out_unlock;
     }
     
-    /* copying object over */
-    memcpy(kvo_dup, kvo, kvo->size);
+    /* setup object initially */
+    kvo_dup->size = kvo->size;
     kvo_dup->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
     kvo_dup->invalid = false;                       /* the kvobject is not useless obviously, its about to be born */
     pthread_rwlock_init(&(kvo_dup->rwlock), NULL);  /* initilizing the lock lol */
     
-    /* checking if */
+    /* setting handlers and running copyit straight */
+    kvo_dup->init = kvo->init;
+    kvo_dup->deinit = kvo->deinit;
+    kvo_dup->copyit = kvo->copyit;
     
     /* checking init handler and executing if nonnull */
-    if(kvo->init != NULL)
+    if(kvo_dup->copyit != NULL)
     {
-        kvo->init(kvo);
+        kvo_dup->copyit(kvo_dup, kvo);
     }
     
 out_unlock:

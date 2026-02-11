@@ -22,7 +22,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 
-kvobject_t *kvobject_alloc(size_t size, kvobject_handler_t init, kvobject_handler_t deinit);
-kvobject_t *kvobject_dup(kvobject_t *kvo);
+kvobject_t *kvobject_alloc(size_t size, kvobject_handler_t init, kvobject_handler_t deinit, kvobject_duo_handler_t copyit);
+kvobject_t *kvobject_copy(kvobject_t *kvo);
 
 #endif /* SURFACE_KVOBJECT_ALLOC_H */

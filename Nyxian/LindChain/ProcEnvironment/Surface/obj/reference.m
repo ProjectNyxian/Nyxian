@@ -30,12 +30,6 @@ bool kvobject_retain(kvobject_t *kvo)
         return false;
     }
     
-    /* checking if its a copy */
-    if(kvo->copy_is)
-    {
-        return false;
-    }
-    
     /* performing retain if valid */
     while(1)
     {
@@ -71,12 +65,6 @@ void kvobject_invalidate(kvobject_t *kvo)
         return;
     }
     
-    /* checking if its a copy */
-    if(kvo->copy_is)
-    {
-        return;
-    }
-    
     /* invalidating object */
     atomic_store(&(kvo->invalid), true);
     
@@ -93,13 +81,6 @@ void kvobject_release(kvobject_t *kvo)
     {
         return;
     }
-    
-    /* checking if its a copy */
-    if(kvo->copy_is)
-    {
-        return;
-    }
-    
     
     /* releasing and trying to get the old reference count */
     int old = atomic_fetch_sub(&kvo->refcount, 1);

@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
-#import <LindChain/ProcEnvironment/Surface/proc/create.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Server/Trust.h>
@@ -42,7 +41,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* creating child process */
-    ksurface_proc_t *child = proc_create_from_proc(parent);
+    ksurface_proc_t *child = (ksurface_proc_t*)kvobject_copy((kvobject_t*)parent);
     
     /* checking if child is null */
     if(child == NULL)

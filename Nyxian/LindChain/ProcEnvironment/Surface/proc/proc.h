@@ -21,7 +21,6 @@
 #define PROC_PROC_H
 
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/create.h>
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
@@ -31,5 +30,9 @@
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 ksurface_proc_t *kernel_proc(void);
+
+DEFINE_KVOBJECT_INIT_HANDLER(proc);
+DEFINE_KVOBJECT_DEINIT_HANDLER(proc);
+DEFINE_KVOBJECT_COPYIT_HANDLER(proc);
 
 #endif /* PROC_PROC_H */

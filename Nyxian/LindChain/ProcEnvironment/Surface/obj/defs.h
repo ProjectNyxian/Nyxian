@@ -28,9 +28,11 @@
 
 #define DEFINE_KVOBJECT_INIT_HANDLER(name) void kvobject_handler_##name##_init(kvobject_t *kvo)
 #define DEFINE_KVOBJECT_DEINIT_HANDLER(name) void kvobject_handler_##name##_deinit(kvobject_t *kvo)
+#define DEFINE_KVOBJECT_COPYIT_HANDLER(name) void kvobject_handler_##name##_copyit(kvobject_t *dst, kvobject_t *src)
 
 #define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_init
 #define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
+#define GET_KVOBJECT_COPYIT_HANDLER(name) kvobject_handler_##name##_copyit
 
 typedef enum kObjCopyOption {
     kObjCopyOptionRetainedCopy = 0,
@@ -40,6 +42,7 @@ typedef enum kObjCopyOption {
 
 typedef struct kvobject kvobject_t;
 typedef void (*kvobject_handler_t)(kvobject_t*);
+typedef void (*kvobject_duo_handler_t)(kvobject_t*,kvobject_t*);
 
 struct kvobject {
     /*
@@ -60,8 +63,9 @@ struct kvobject {
     _Atomic bool invalid;
     
     /* state handlers for each object */
-    kvobject_handler_t init;    /* can safely and shall be nulled if unused */
-    kvobject_handler_t deinit;  /* can safely and shall be nulled if unused */
+    kvobject_handler_t init;        /* can safely and shall be nulled if unused */
+    kvobject_handler_t deinit;      /* can safely and shall be nulled if unused */
+    kvobject_duo_handler_t copyit;  /* can safely and shall be nulled if unused */
     
     /*
      * main read-write lock of this structure,
@@ -71,13 +75,6 @@ struct kvobject {
     
     /* size for duplication */
     size_t size;
-    
-    /* if its a copy then this is true */
-    bool copy_is;
-    bool fresh_is;
-    
-    /* if its a copy then this is the link to the original */
-    kvobject_t *copy_link;
 };
 
 #endif /* SURFACE_KVOBJECT_DEFS_H */

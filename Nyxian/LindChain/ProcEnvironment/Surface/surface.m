@@ -146,7 +146,7 @@ static inline void ksurface_kinit_kserver(void)
 static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
-    ksurface_proc_t *kproc = (ksurface_proc_t*)kvobject_alloc(sizeof(ksurface_proc_t), GET_KVOBJECT_INIT_HANDLER(proc), GET_KVOBJECT_DEINIT_HANDLER(proc));
+    ksurface_proc_t *kproc = (ksurface_proc_t*)kvobject_alloc(sizeof(ksurface_proc_t), GET_KVOBJECT_INIT_HANDLER(proc), GET_KVOBJECT_DEINIT_HANDLER(proc), GET_KVOBJECT_COPYIT_HANDLER(proc));
     
     /* null pointer check */
     if(kproc == NULL)
