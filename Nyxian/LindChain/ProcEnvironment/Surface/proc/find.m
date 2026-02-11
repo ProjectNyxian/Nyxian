@@ -17,7 +17,6 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
@@ -47,7 +46,7 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     if(proc_getpid(proc) == pid &&
        !atomic_load(&proc->header.invalid))
     {
-        if(proc_retain(proc))
+        if(KVOBJECT_RETAIN(proc))
         {
             proc_table_unlock();
             return proc;

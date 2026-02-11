@@ -375,7 +375,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 {
     if(_proc != NULL)
     {
-        proc_release(_proc);
+        KVOBJECT_RELEASE(_proc);
     }
     NSLog(@"deallocated %@", self);
 }

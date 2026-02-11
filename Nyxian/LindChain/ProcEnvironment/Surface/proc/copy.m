@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
-#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
@@ -31,7 +30,7 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     }
     
     /* retaining process before doing anything */
-    if(!proc_retain(proc))
+    if(!KVOBJECT_RETAIN(proc))
     {
         /* in-case it consume the processes reference then there is no tolerance consume is consume */
         return NULL;
@@ -43,7 +42,7 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     /* null pointer check */
     if(proc_copy == NULL)
     {
-        proc_release(proc);
+        KVOBJECT_RELEASE(proc);
         return NULL;
     }
     
@@ -66,7 +65,7 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     if(option == kProcCopyOptionConsumedReferenceCopy ||
        option == kProcCopyOptionStaticCopy)
     {
-        proc_release(proc);
+        KVOBJECT_RELEASE(proc);
     }
     
     /* boom here you go */
@@ -118,7 +117,7 @@ ksurface_return_t proc_copy_destroy(ksurface_proc_copy_t *proc_copy)
     /* release reference to process, in case its there */
     if(proc_copy->proc != NULL)
     {
-        proc_release(proc_copy->proc);
+        KVOBJECT_RELEASE(proc_copy->proc);
     }
     
     /* freeing copy */

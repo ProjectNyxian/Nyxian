@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <stdatomic.h>
 
@@ -48,7 +47,7 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     atomic_store(&(proc->header.invalid), true);
     
     /* Release process */
-    proc_release(proc);
+    KVOBJECT_RELEASE(proc);
     
     /* Unlocking table */
     proc_table_unlock();

@@ -87,6 +87,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
 out_unlock:
     proc_unlock(targetProc);
 out_release_target:
-    proc_release(targetProc);
+    KVOBJECT_RELEASE(targetProc);
     return allowed;
 }

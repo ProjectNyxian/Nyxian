@@ -192,7 +192,7 @@ static inline void ksurface_kinit_kproc(void)
     }
     
     /* releaing our reference to kproc, because we return now and kproc is now held by the radix tree */
-    proc_release(kproc);
+    KVOBJECT_RELEASE(kproc);
 }
 
 void ksurface_kinit(void)

@@ -17,7 +17,6 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/reference.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
@@ -53,7 +52,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     }
     
     /* retaining process */
-    if(!proc_retain(proc))
+    if(!KVOBJECT_RETAIN(proc))
     {
         err = kSurfaceReturnFailed;
         goto out_unlock;
@@ -62,7 +61,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     /* insert into tree*/
     if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
     {
-        proc_release(proc);
+        KVOBJECT_RELEASE(proc);
         err = kSurfaceReturnNoMemory;
         goto out_unlock;
     }

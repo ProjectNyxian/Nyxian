@@ -44,7 +44,7 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     /* permission check */
     if(!can_see_process(sys_proc_copy_, proc, vis))
     {
-        proc_release(proc);
+        KVOBJECT_RELEASE(proc);
         sys_return_failure(EINVAL);
     }
     
@@ -59,7 +59,7 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     
     /* doneee x3 */
     proc_unlock(proc);
-    proc_release(proc);
+    KVOBJECT_RELEASE(proc);
     
     if(kr == KERN_SUCCESS)
     {
