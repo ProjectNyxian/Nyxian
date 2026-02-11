@@ -31,8 +31,7 @@ NSArray *entitlementsMenuStructure = @[
         @"icon": @"powerplug.portrait.fill",
         @"items": @[
             @{@"name": @"Get Task Allowed", @"value": @(PEEntitlementGetTaskAllowed)},
-            @{@"name": @"Task for Pid", @"value": @(PEEntitlementTaskForPid)},
-            @{@"name": @"Task for Host Pid", @"value": @(PEEntitlementTaskForPidHost)}
+            @{@"name": @"Task for Pid", @"value": @(PEEntitlementTaskForPid)}
         ]
     },
     @{

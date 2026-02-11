@@ -30,8 +30,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     let entitlementsContextMenuMappings: [(key: String, value: [(String, PEEntitlement)])] = [
         ("Task Port (iOS 26.0 Only):powerplug.portrait.fill", [
             ("Get Task Allowed", .getTaskAllowed),
-            ("Task For Pid", .taskForPid),
-            ("Task For Host Pid", .taskForPidHost)
+            ("Task For Pid", .taskForPid)
         ]),
         ("Process:cable.coaxial", [
             ("Enumeration", .processEnumeration),

@@ -141,7 +141,6 @@
     
     if([self getTaskAllowed]) entitlements |= PEEntitlementGetTaskAllowed;
     if([self taskForPid]) entitlements |= PEEntitlementTaskForPid;
-    if([self taskForPidHost]) entitlements |= PEEntitlementTaskForPidHost;
     if([self processEnumeration]) entitlements |= PEEntitlementProcessEnumeration;
     if([self processKill]) entitlements |= PEEntitlementProcessKill;
     if([self processSpawn]) entitlements |= PEEntitlementProcessSpawn;

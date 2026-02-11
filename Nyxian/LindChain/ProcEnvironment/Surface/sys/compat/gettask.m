@@ -98,7 +98,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
          * in the first place and if the process allows for it except if the
          * caller is a special process.
          */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost) &&
+        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform) &&
            ((!entitlement_got_entitlement(proc_getentitlements(target), PEEntitlementGetTaskAllowed) && !isCaller) ||
             !permitive_over_pid_allowed(sys_proc_copy_, pid)))
         {
@@ -109,7 +109,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     else
     {
         /* checking if child is entitled */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPidHost))
+        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform))
         {
             errnov = EPERM;
             goto out_unlock_failure;
