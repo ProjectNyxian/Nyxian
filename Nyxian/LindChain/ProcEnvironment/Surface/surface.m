@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
+#import <LindChain/LiveContainer/utils.h>
 
 ksurface_mapping_t *ksurface = NULL;
 
@@ -145,7 +146,7 @@ static inline void ksurface_kinit_kserver(void)
 static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
-    ksurface_proc_t *kproc = proc_create(getpid(), PID_LAUNCHD, [[[NSBundle mainBundle] executablePath] UTF8String]);
+    ksurface_proc_t *kproc = (ksurface_proc_t*)kvobject_alloc(sizeof(ksurface_proc_t), GET_KVOBJECT_INIT_HANDLER(proc), GET_KVOBJECT_DEINIT_HANDLER(proc));
     
     /* null pointer check */
     if(kproc == NULL)
@@ -171,11 +172,35 @@ static inline void ksurface_kinit_kproc(void)
         proc_task_unlock();
     }
     
-    /* setting entitlements */
+    /* finding executable path */
+    char *buf = malloc(PATH_MAX);
+    
+    /* null pointer check */
+    if(buf == NULL)
+    {
+        /* shall not happen */
+        environment_panic();
+    }
+    
+    uint32_t bufsize = PATH_MAX;
+    
+    if(_NSGetExecutablePath(buf, &bufsize) > 0)
+    {
+        /* shall not happen */
+        environment_panic();
+    }
+    
+    /* setting up properties */
+    proc_setpid(kproc, getpid());
+    proc_setppid(kproc, PID_LAUNCHD);
+    proc_setsid(kproc, proc_getpid(kproc));
     proc_setentitlements(kproc, PEEntitlementKernel);
     
-    /* setting sid */
-    kproc->kproc.kcproc.nyx.sid = proc_getpid(kproc);
+    /* setting executable path */
+    strlcpy(kproc->kproc.kcproc.nyx.executable_path, buf, PATH_MAX);
+    const char *name = strrchr(buf, '/');
+    name = name ? name + 1 : buf;
+    strlcpy(kproc->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* unlocking */
     KVOBJECT_UNLOCK(kproc);

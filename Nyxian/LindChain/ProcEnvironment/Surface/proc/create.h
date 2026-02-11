@@ -22,7 +22,9 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_proc_t *proc_create(pid_t pid, pid_t ppid, const char *path);
+DEFINE_KVOBJECT_INIT_HANDLER(proc);
+DEFINE_KVOBJECT_DEINIT_HANDLER(proc);
+
 ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc);
 
 #endif /* PROC_CREATE_H */

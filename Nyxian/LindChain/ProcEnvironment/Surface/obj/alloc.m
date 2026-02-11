@@ -52,6 +52,7 @@ kvobject_t *kvobject_alloc(size_t size,
     pthread_rwlock_init(&(kvo->rwlock), NULL);  /* initilizing the lock lol */
     kvo->copy_is = false;                       /* its a real object */
     kvo->copy_link = NULL;                      /* not an copy, so no reference to real object */
+    kvo->fresh_is = true;
     
     /* setting handlers and running init straight */
     kvo->init = init;

@@ -26,11 +26,9 @@
 #include <stdatomic.h>
 #include <pthread.h>
 
-#define DEFINE_KVOBJECT_PREINIT_HANDLER(name) static void kvobject_handler_##name##_preinit(kvobject_t *kvo)
-#define DEFINE_KVOBJECT_INIT_HANDLER(name) static void kvobject_handler_##name##_init(kvobject_t *kvo)
-#define DEFINE_KVOBJECT_DEINIT_HANDLER(name) static void kvobject_handler_##name##_deinit(kvobject_t *kvo)
+#define DEFINE_KVOBJECT_INIT_HANDLER(name) void kvobject_handler_##name##_init(kvobject_t *kvo)
+#define DEFINE_KVOBJECT_DEINIT_HANDLER(name) void kvobject_handler_##name##_deinit(kvobject_t *kvo)
 
-#define GET_KVOBJECT_PREINIT_HANDLER(name) kvobject_handler_##name##_preinit
 #define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_init
 #define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
 
@@ -76,6 +74,7 @@ struct kvobject {
     
     /* if its a copy then this is true */
     bool copy_is;
+    bool fresh_is;
     
     /* if its a copy then this is the link to the original */
     kvobject_t *copy_link;
