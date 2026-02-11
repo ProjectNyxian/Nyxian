@@ -22,18 +22,18 @@
 #import <LindChain/ProcEnvironment/panic.h>
 #include <stdlib.h>
 
-ksurface_return_t kvobject_retain(kvobject_t *kvo)
+bool kvobject_retain(kvobject_t *kvo)
 {
     /* null pointer check */
     if(kvo == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return false;
     }
     
     /* checking if its a copy */
     if(kvo->copy_is)
     {
-        return kSurfaceReturnFailed;
+        return false;
     }
     
     /* performing retain if valid */
@@ -45,7 +45,7 @@ ksurface_return_t kvobject_retain(kvobject_t *kvo)
         /* checking if object can be retained */
         if(current <= 0 || atomic_load(&kvo->invalid))
         {
-            return kSurfaceReturnFailed;
+            return false;
         }
         
         /* retaining process */
@@ -56,48 +56,48 @@ ksurface_return_t kvobject_retain(kvobject_t *kvo)
             {
                 /* its not so boom im sorry */
                 atomic_fetch_sub(&kvo->refcount, 1);
-                return kSurfaceReturnFailed;
+                return false;
             }
-            return kSurfaceReturnSuccess;
+            return true;
         }
     }
 }
 
-ksurface_return_t kvobject_invalidate(kvobject_t *kvo)
+void kvobject_invalidate(kvobject_t *kvo)
 {
     /* null pointer check */
     if(kvo == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return;
     }
     
     /* checking if its a copy */
     if(kvo->copy_is)
     {
-        return kSurfaceReturnFailed;
+        return;
     }
     
     /* invalidating object */
     atomic_store(&(kvo->invalid), true);
     
     /* returning */
-    return kSurfaceReturnSuccess;
+    return;
 }
 
 
-ksurface_return_t kvobject_release(kvobject_t *kvo)
+void kvobject_release(kvobject_t *kvo)
 {
     
     /* null pointer check (as usual in my code) */
     if(kvo == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return;
     }
     
     /* checking if its a copy */
     if(kvo->copy_is)
     {
-        return kSurfaceReturnFailed;
+        return;
     }
     
     
@@ -125,5 +125,5 @@ ksurface_return_t kvobject_release(kvobject_t *kvo)
         environment_panic();
     }
     
-    return kSurfaceReturnSuccess;
+    return;
 }

@@ -22,7 +22,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-bool proc_retain(ksurface_proc_t *proc);
-void proc_release(ksurface_proc_t *proc);
+#define proc_retain(proc) kvobject_retain((kvobject_t*)proc)
+#define proc_release(proc) kvobject_release((kvobject_t*)proc)
 
 #endif /* PROC_REFERENCE_H */

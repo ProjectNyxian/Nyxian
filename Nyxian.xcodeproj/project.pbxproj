@@ -217,7 +217,6 @@
 				LindChain/ProcEnvironment/Surface/proc/insert.m,
 				LindChain/ProcEnvironment/Surface/proc/list.m,
 				LindChain/ProcEnvironment/Surface/proc/proc.m,
-				LindChain/ProcEnvironment/Surface/proc/reference.m,
 				LindChain/ProcEnvironment/Surface/proc/remove.m,
 				LindChain/ProcEnvironment/Surface/proc/rw.m,
 				LindChain/ProcEnvironment/Surface/radix/radix.m,
