@@ -268,12 +268,11 @@
     
     self.windowBar = windowBar;
     
-    CGRect contentFrame = CGRectMake(0, 0, self.contentStack.frame.size.width, self.contentStack.frame.size.height);
-    UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
-    fixedPositionContentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
-    [self.contentStack addArrangedSubview:fixedPositionContentView];
-    [self.contentStack sendSubviewToBack:fixedPositionContentView];
+    [self addChildViewController:_session];
+    _session.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.contentStack addArrangedSubview:_session.view];
+    [self.contentStack sendSubviewToBack:_session.view];
+    [_session didMoveToParentViewController:self];
     
     if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
     {
@@ -317,19 +316,8 @@
     self.contentStack.layer.borderWidth = 0.5;
     self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
     
-    [self addChildViewController:_session];
-    [self.contentStack insertSubview:_session.view atIndex:0];
-    
-    _session.view.translatesAutoresizingMaskIntoConstraints = NO;
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [_session.view.topAnchor constraintEqualToAnchor:windowBar.bottomAnchor],
-        [_session.view.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor]
-    ]];
-    
     [self updateOriginalFrame];
     self.view.alpha = 0.0;
-    
 }
 
 - (void)maximizeWindow:(BOOL)animated

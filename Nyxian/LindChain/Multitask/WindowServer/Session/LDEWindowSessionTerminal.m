@@ -64,6 +64,7 @@
     _process = process;
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
+    _terminal.translatesAutoresizingMaskIntoConstraints = NO;
     
     __weak typeof(self) weakSelf = self;
     

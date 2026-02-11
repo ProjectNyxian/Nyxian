@@ -46,11 +46,10 @@ import UIKit
         
         self.isOpaque = false;
         self.terminalDelegate = self
-        self.backgroundColor = .secondarySystemBackground
-        self.nativeForegroundColor = gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
-        self.caretTextColor = .label
+        self.backgroundColor = currentTheme?.backgroundColor ?? .secondarySystemBackground
+        self.nativeForegroundColor = currentTheme?.textColor ?? gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
+        self.caretTextColor = currentTheme?.textColor ?? gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
         self.font = UIFont.monospacedSystemFont(ofSize: (UIDevice.current.userInterfaceIdiom == .pad) ? 14 : 10, weight: .regular)
-        _ = self.becomeFirstResponder()
         
         stdoutHandle?.readabilityHandler = { [weak self] fileHandle in
             guard let self = self else { return }

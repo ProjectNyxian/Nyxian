@@ -85,8 +85,6 @@ void UIKitFixesInit(void)
     
     /* ready to show the presenter :3 */
     [self.view addSubview:self.presenter.presentationView];
-    self.view.layer.anchorPoint = CGPointMake(0, 0);
-    self.view.layer.position = CGPointMake(0, 0);
     
     /* registering to window */
     [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
