@@ -50,6 +50,21 @@ DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
     ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
     
     pthread_mutex_destroy(&(proc->kproc.children.mutex));
+    
+    proc_task_write_lock();
+    
+    /* deallocate those dead ports */
+    if(proc->kproc.task != MACH_PORT_NULL)
+    {
+        mach_port_deallocate(mach_task_self(), proc->kproc.task);
+    }
+    
+    if(proc->kproc.eport != MACH_PORT_NULL)
+    {
+        mach_port_deallocate(mach_task_self(), proc->kproc.task);
+    }
+    
+    proc_task_unlock();
 }
 
 DEFINE_KVOBJECT_COPYIT_HANDLER(proc)
