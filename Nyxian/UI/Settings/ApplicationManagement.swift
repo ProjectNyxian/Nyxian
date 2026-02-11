@@ -60,7 +60,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         ("Misc:ellipsis", [
             ("Platform", .platform),
             //("Enforce Device Spoof", .enforceDeviceSpoof),
-            //("DYLD Hide LiveProcess", .dyldHideLiveProcess)
+            ("DYLD Hide LiveProcess", .dyldHideLiveProcess)
         ])
     ]
     

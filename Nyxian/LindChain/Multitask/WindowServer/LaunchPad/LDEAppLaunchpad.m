@@ -81,7 +81,7 @@ NSArray *entitlementsMenuStructure = @[
         @"items": @[
             @{@"name": @"Platform", @"value": @(PEEntitlementPlatform)},
             //@{@"name": @"Enforce Device Spoof", @"value": @(PEEntitlementEnforceDeviceSpoof)},
-            //@{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
+            @{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
         ]
     }
 ];
