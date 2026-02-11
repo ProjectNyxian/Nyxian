@@ -119,12 +119,12 @@
 - (void)activateWindow
 {
     [_process resume];
-    [self focusWindow];
+    self.focused = YES;
 }
 
 - (void)deactivateWindow
 {
-    [self unfocusWindow];
+    self.focused = NO;
     
     if(self.atExit)
     {
@@ -154,18 +154,6 @@
 - (CGRect)windowRect
 {
     return CGRectMake(50, 50, 400, 400);
-}
-
-- (void)focusWindow
-{
-    self.focused = YES;
-    BOOL succeeded __attribute__((unused)) = [self.terminal becomeFirstResponder];
-}
-
-- (void)unfocusWindow
-{
-    self.focused = NO;
-    BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
 }
 
 - (void)dealloc

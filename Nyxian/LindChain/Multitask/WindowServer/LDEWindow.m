@@ -189,7 +189,6 @@
             // Smooth background color transition
             [UIView transitionWithView:self->_navigationBar duration:0.11 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
                 self->_windowBar.backgroundColor = UIColor.grayColor;
-                [self.session unfocusWindow];
             } completion:nil];
             
         } completion:nil];
@@ -213,7 +212,6 @@
         [self->_focusView removeFromSuperview];
         self->_focusView = nil;
         [self.delegate windowWantsToFocus:self];
-        [self.session focusWindow];
     }];
 }
 
