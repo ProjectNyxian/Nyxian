@@ -38,6 +38,8 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procbsd.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
+#import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
 #include <sys/syscall.h>
 
 /* syscalls */
@@ -55,6 +57,8 @@
 #define SYS_GETGID SYS_getgid       /* gets the group identifier of the calling process */
 #define SYS_GETEGID SYS_getegid     /* gets the effective group identifier of the calling process */
 #define SYS_PROC_INFO SYS_proc_info /* MARK: Implement this the next! */
+#define SYS_GETSID SYS_getsid       /* gets session identifier */
+#define SYS_SETSID SYS_setsid       /* sets session identifier */
 
 /* nyxian syscalls for now */
 #define SYS_BAMSET      750         /* setting audio background mode */
@@ -69,7 +73,7 @@
 #define SYS_PROCBSD     759         /* gets process bsd of a pid */
 #define SYS_HANDOFFEP   760         /* handoff exception port to kvirt */
 
-#define SYS_N 25
+#define SYS_N 27
 
 typedef struct {
     const char *name;

@@ -52,6 +52,10 @@
 #define proc_setegid(proc, gid) proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[0] = gid
 #define proc_setsvgid(proc, svgid) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_svgid = svgid
 
+/// SID Helper macros
+#define proc_getsid(proc) proc->kproc.kcproc.nyx.sid
+#define proc_setsid(proc, ssid) proc->kproc.kcproc.nyx.sid = ssid
+
 #define proc_setmobilecred(proc) proc_setruid(proc, 501); proc_seteuid(proc, 501); proc_setsvuid(proc, 501); proc_setrgid(proc, 501); proc_setegid(proc, 501); proc_setsvgid(proc, 501)
 
 #define pid_is_launchd(pid) pid == 1
@@ -134,6 +138,8 @@ struct ksurface_proc {
             
             /* nyxian specific process structure */
             struct knyx_proc {
+                /* session identifier */
+                pid_t sid;
                 
                 /* executable path at which the macho is located at */
                 char executable_path[PATH_MAX];

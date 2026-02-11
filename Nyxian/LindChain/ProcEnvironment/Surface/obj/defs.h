@@ -62,7 +62,6 @@ struct kvobject {
     _Atomic bool invalid;
     
     /* state handlers for each object */
-    kvobject_handler_t preinit; /* can safely and shall be nulled if unused */
     kvobject_handler_t init;    /* can safely and shall be nulled if unused */
     kvobject_handler_t deinit;  /* can safely and shall be nulled if unused */
     

@@ -92,13 +92,22 @@ DEFINE_HOOK(setregid, int, (gid_t egid, gid_t rgid))
     return (int)environment_syscall(SYS_SETREGID, egid, rgid);
 }
 
+DEFINE_HOOK(getsid, pid_t, (pid_t pid))
+{
+    return (pid_t)environment_syscall(SYS_GETSID, pid);
+}
+
+DEFINE_HOOK(setsid, int, (void))
+{
+    return (int)environment_syscall(SYS_SETSID);
+}
+
 void environment_cred_init(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         if(environment_is_role(EnvironmentRoleGuest))
         {
-            // Getting credentials
             DO_HOOK_GLOBAL(getuid);
             DO_HOOK_GLOBAL(getgid);
             DO_HOOK_GLOBAL(geteuid);
@@ -113,6 +122,8 @@ void environment_cred_init(void)
             DO_HOOK_GLOBAL(setegid);
             DO_HOOK_GLOBAL(setregid);
             DO_HOOK_GLOBAL(getpid);
+            DO_HOOK_GLOBAL(getsid);
+            DO_HOOK_GLOBAL(setsid);
         }
     });
 }

@@ -46,5 +46,7 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_SIGNEXEC", .sysnum = SYS_SIGNEXEC, .hndl = GET_SYSCALL_HANDLER(signexec) },
     { .name = "SYS_PROCPATH", .sysnum = SYS_PROCPATH, .hndl = GET_SYSCALL_HANDLER(procpath) },
     { .name = "SYS_PROCBSD", .sysnum = SYS_PROCBSD, .hndl = GET_SYSCALL_HANDLER(procbsd) },
-    { .name = "SYS_HANDOFFEP", .sysnum = SYS_HANDOFFEP, .hndl = GET_SYSCALL_HANDLER(handoffep) }
+    { .name = "SYS_HANDOFFEP", .sysnum = SYS_HANDOFFEP, .hndl = GET_SYSCALL_HANDLER(handoffep) },
+    { .name = "SYS_GETSID", .sysnum = SYS_GETSID, .hndl = GET_SYSCALL_HANDLER(getsid) },
+    { .name = "SYS_SETSID", .sysnum = SYS_SETSID, .hndl = GET_SYSCALL_HANDLER(setsid) }
 };

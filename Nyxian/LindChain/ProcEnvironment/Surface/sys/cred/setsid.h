@@ -17,16 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_KVOBJECT_COPY_H
-#define SURFACE_KVOBJECT_COPY_H
+#ifndef SURFACE_SYS_SETSID_H
+#define SURFACE_SYS_SETSID_H
 
-#import <LindChain/ProcEnvironment/Surface/obj/defs.h>
-#import <LindChain/ProcEnvironment/Surface/return.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-kvobject_t *kvobject_copy(kvobject_t *kvo, kvobj_copy_option_t option);
+DEFINE_SYSCALL_HANDLER(setsid);
 
-ksurface_return_t kvobject_copy_update(kvobject_t *kvo_copy);
-ksurface_return_t kvobject_copy_recopy(kvobject_t *kvo_copy);
-ksurface_return_t kvobject_copy_destroy(kvobject_t *kvo_copy);
-
-#endif /* SURFACE_KVOBJECT_COPY_H */
+#endif /* SURFACE_SYS_SETSID_H */

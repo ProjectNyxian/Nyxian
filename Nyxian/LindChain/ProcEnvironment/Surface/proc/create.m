@@ -81,12 +81,14 @@ ksurface_proc_t *proc_create(pid_t pid,
     proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[1] = 250;
     proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[2] = 286;
     proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[3] = 299;
+    proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_ngroups = 3;
     proc->kproc.kcproc.bsd.kp_proc.p_priority = PUSER;
     proc->kproc.kcproc.bsd.kp_proc.p_usrpri = PUSER;
     proc->kproc.kcproc.bsd.kp_eproc.e_tdev = -1;
     proc->kproc.kcproc.bsd.kp_eproc.e_flag = 2;
     proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
     proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+    proc->kproc.kcproc.nyx.sid = 0;
     
     strlcpy(proc->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
     const char *name = strrchr(path, '/');

@@ -33,13 +33,14 @@ bool can_see_process(ksurface_proc_copy_t *caller,
                      ksurface_proc_t *target,
                      proc_visibility_t vis)
 {
-    switch (vis) {
+    switch(vis)
+    {
         case PROC_VIS_ALL:
             return true;
         case PROC_VIS_SAME_UID:
-            return proc_getruid(caller) == proc_getruid(target);
+            return proc_getruid(caller) == proc_getruid(target) || proc_getsid(caller) == proc_getsid(target);;
         case PROC_VIS_SELF:
-            return proc_getpid(caller) == proc_getpid(target);
+            return proc_getpid(caller) == proc_getpid(target) || proc_getsid(caller) == proc_getsid(target);;
         case PROC_VIS_NONE:
         default:
             return false;

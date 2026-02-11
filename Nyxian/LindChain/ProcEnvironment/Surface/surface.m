@@ -154,6 +154,12 @@ static inline void ksurface_kinit_kproc(void)
         environment_panic();
     }
     
+    /* logging allocation */
+    klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
+    
+    /* locking kproc write */
+    KVOBJECT_WRLOCK(kproc);
+    
     /* checking for tfp support */
     if(environment_supports_tfp())
     {
@@ -165,14 +171,11 @@ static inline void ksurface_kinit_kproc(void)
         proc_task_unlock();
     }
     
-    /* logging allocation */
-    klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
-    
-    /* locking kproc write */
-    KVOBJECT_WRLOCK(kproc);
-    
     /* setting entitlements */
     proc_setentitlements(kproc, PEEntitlementKernel);
+    
+    /* setting sid */
+    kproc->kproc.kcproc.nyx.sid = proc_getpid(kproc);
     
     /* unlocking */
     KVOBJECT_UNLOCK(kproc);
