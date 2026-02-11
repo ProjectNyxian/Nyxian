@@ -80,6 +80,7 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 @property (nonatomic,readonly) BOOL trustCacheWrite;
 @property (nonatomic,readonly) BOOL trustCacheManager;
 @property (nonatomic,readonly) BOOL enforceDeviceSpoof;
+@property (nonatomic,readonly) BOOL dyldHideLiveProcess;
 @property (nonatomic,readonly) BOOL processSpawnInheriteEntitlements;
 @property (nonatomic,readonly) BOOL platform;
 

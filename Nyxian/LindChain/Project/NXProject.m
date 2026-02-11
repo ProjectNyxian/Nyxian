@@ -131,6 +131,7 @@
 - (BOOL)trustCacheWrite { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_write" withDefaultValue:NO]; }
 - (BOOL)trustCacheManager { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_manager" withDefaultValue:NO]; }
 - (BOOL)enforceDeviceSpoof { return [self readBooleanForKey:@"com.nyxian.pe.enforce_device_spoof" withDefaultValue:NO]; }
+- (BOOL)dyldHideLiveProcess { return [self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:YES]; }
 - (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:YES]; }
 - (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
 
@@ -138,27 +139,28 @@
 {
     PEEntitlement entitlements = 0;
     
-    if([self getTaskAllowed]) entitlements = entitlements | PEEntitlementGetTaskAllowed;
-    if([self taskForPid]) entitlements = entitlements | PEEntitlementTaskForPid;
-    if([self taskForPidHost]) entitlements = entitlements | PEEntitlementTaskForPidHost;
-    if([self processEnumeration]) entitlements = entitlements | PEEntitlementProcessEnumeration;
-    if([self processKill]) entitlements = entitlements | PEEntitlementProcessKill;
-    if([self processSpawn]) entitlements = entitlements | PEEntitlementProcessSpawn;
-    if([self processSpawnSignedOnly]) entitlements = entitlements | PEEntitlementProcessSpawnSignedOnly;
-    if([self processElevate]) entitlements = entitlements | PEEntitlementProcessElevate;
-    if([self hostManager]) entitlements = entitlements | PEEntitlementHostManager;
-    if([self credManager]) entitlements = entitlements | PEEntitlementCredentialsManager;
-    if([self launchServiceStart]) entitlements = entitlements | PEEntitlementLaunchServicesStart;
-    if([self launchServiceStop]) entitlements = entitlements | PEEntitlementLaunchServicesStop;
-    if([self launchServiceToggle]) entitlements = entitlements | PEEntitlementLaunchServicesToggle;
-    if([self launchServiceGetEndpoint]) entitlements = entitlements | PEEntitlementLaunchServicesGetEndpoint;
-    if([self launchServiceManager]) entitlements = entitlements | PEEntitlementLaunchServicesManager;
-    if([self trustCacheRead]) entitlements = entitlements | PEEntitlementTrustCacheRead;
-    if([self trustCacheWrite]) entitlements = entitlements | PEEntitlementTrustCacheWrite;
-    if([self trustCacheManager]) entitlements = entitlements | PEEntitlementTrustCacheManager;
-    if([self enforceDeviceSpoof]) entitlements = entitlements | PEEntitlementEnforceDeviceSpoof;
-    if([self processSpawnInheriteEntitlements]) entitlements = entitlements | PEEntitlementProcessSpawnInheriteEntitlements;
-    if([self platform]) entitlements = entitlements | PEEntitlementPlatform;
+    if([self getTaskAllowed]) entitlements |= PEEntitlementGetTaskAllowed;
+    if([self taskForPid]) entitlements |= PEEntitlementTaskForPid;
+    if([self taskForPidHost]) entitlements |= PEEntitlementTaskForPidHost;
+    if([self processEnumeration]) entitlements |= PEEntitlementProcessEnumeration;
+    if([self processKill]) entitlements |= PEEntitlementProcessKill;
+    if([self processSpawn]) entitlements |= PEEntitlementProcessSpawn;
+    if([self processSpawnSignedOnly]) entitlements |= PEEntitlementProcessSpawnSignedOnly;
+    if([self processElevate]) entitlements |= PEEntitlementProcessElevate;
+    if([self hostManager]) entitlements |= PEEntitlementHostManager;
+    if([self credManager]) entitlements |= PEEntitlementCredentialsManager;
+    if([self launchServiceStart]) entitlements |= PEEntitlementLaunchServicesStart;
+    if([self launchServiceStop]) entitlements |= PEEntitlementLaunchServicesStop;
+    if([self launchServiceToggle]) entitlements |= PEEntitlementLaunchServicesToggle;
+    if([self launchServiceGetEndpoint]) entitlements |= PEEntitlementLaunchServicesGetEndpoint;
+    if([self launchServiceManager]) entitlements |= PEEntitlementLaunchServicesManager;
+    if([self trustCacheRead]) entitlements |= PEEntitlementTrustCacheRead;
+    if([self trustCacheWrite]) entitlements |= PEEntitlementTrustCacheWrite;
+    if([self trustCacheManager]) entitlements |= PEEntitlementTrustCacheManager;
+    if([self enforceDeviceSpoof]) entitlements |= PEEntitlementEnforceDeviceSpoof;
+    if([self dyldHideLiveProcess]) entitlements |= PEEntitlementDyldHideLiveProcess;
+    if([self processSpawnInheriteEntitlements]) entitlements |= PEEntitlementProcessSpawnInheriteEntitlements;
+    if([self platform]) entitlements |= PEEntitlementPlatform;
     
     return entitlements;
 }
