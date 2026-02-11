@@ -26,9 +26,12 @@
 #include <stdatomic.h>
 #include <pthread.h>
 
+#define DEFINE_KVOBJECT_PREINIT_HANDLER(name) static void kvobject_handler_##name##_preinit(kvobject_t *kvo)
 #define DEFINE_KVOBJECT_INIT_HANDLER(name) static void kvobject_handler_##name##_init(kvobject_t *kvo)
 #define DEFINE_KVOBJECT_DEINIT_HANDLER(name) static void kvobject_handler_##name##_deinit(kvobject_t *kvo)
-#define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_deinit
+
+#define GET_KVOBJECT_PREINIT_HANDLER(name) kvobject_handler_##name##_preinit
+#define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_init
 #define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
 
 typedef enum kObjCopyOption {
@@ -59,6 +62,7 @@ struct kvobject {
     _Atomic bool invalid;
     
     /* state handlers for each object */
+    kvobject_handler_t preinit; /* can safely and shall be nulled if unused */
     kvobject_handler_t init;    /* can safely and shall be nulled if unused */
     kvobject_handler_t deinit;  /* can safely and shall be nulled if unused */
     

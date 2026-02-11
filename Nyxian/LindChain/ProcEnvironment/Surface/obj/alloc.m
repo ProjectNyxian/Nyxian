@@ -93,6 +93,14 @@ kvobject_t *kvobject_dup(kvobject_t *kvo)
     kvo_dup->invalid = false;                       /* the kvobject is not useless obviously, its about to be born */
     pthread_rwlock_init(&(kvo_dup->rwlock), NULL);  /* initilizing the lock lol */
     
+    /* checking if */
+    
+    /* checking init handler and executing if nonnull */
+    if(kvo->init != NULL)
+    {
+        kvo->init(kvo);
+    }
+    
 out_unlock:
     kvobject_unlock(kvo);
     kvobject_release(kvo);

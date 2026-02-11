@@ -21,6 +21,24 @@
 #import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
+DEFINE_KVOBJECT_INIT_HANDLER(proc)
+{
+    ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
+    
+    /* nullify */
+    memset(&(proc->kproc), 0, sizeof(ksurface_kproc_t));
+    
+    pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
+    gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL);
+}
+
+DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
+{
+    ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
+    
+    pthread_mutex_destroy(&(proc->kproc.children.mutex));
+}
+
 static void proc_create_mutual_init(ksurface_proc_t *proc)
 {
     /* marking process as referenced once */
@@ -46,16 +64,13 @@ ksurface_proc_t *proc_create(pid_t pid,
     }
     
     /* allocating process */
-    ksurface_proc_t *proc = calloc(1, sizeof(ksurface_proc_t));
+    ksurface_proc_t *proc = (ksurface_proc_t*)kvobject_alloc(sizeof(ksurface_proc_t), GET_KVOBJECT_INIT_HANDLER(proc), GET_KVOBJECT_DEINIT_HANDLER(proc));
     
     /* null pointer check */
     if(proc == NULL)
     {
         return NULL;
     }
-    
-    /* initilizing with mutual init */
-    proc_create_mutual_init(proc);
     
     /* setting bsd process information that are relevant currently */
     proc_setpid(proc, pid);
