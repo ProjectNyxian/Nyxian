@@ -94,13 +94,13 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Security feature for daemons and such */
     PEEntitlementPlatform                           = 1ull << 20,
     
-    PEEntitlementSandboxedApplication               = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements,
+    PEEntitlementSandboxedApplication               = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementDyldHideLiveProcess,
     PEEntitlementUserApplication                    = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemApplication                  = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemDaemon                       = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
     PEEntitlementKernel                             = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementTaskForPidHost | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
 };
 
-bool entitlement_got_entitlement(PEEntitlement present, PEEntitlement needed);
+#define entitlement_got_entitlement(present,needed) (present & needed) == needed
 
 #endif /* PROC_ENTITLEMENT_H */

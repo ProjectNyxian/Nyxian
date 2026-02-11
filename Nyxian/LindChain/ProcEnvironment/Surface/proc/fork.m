@@ -58,7 +58,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     /* checking if parent process is kernel_proc_ */
     if(parent == kernel_proc_)
     {
-        /* dropping permitives to the mobile user */
+        /* dropping permitives to the mobile user and forcefully not inherite entitlements */
         proc_setmobilecred(child);
         goto force_not_inherite_entitlements;
     }
