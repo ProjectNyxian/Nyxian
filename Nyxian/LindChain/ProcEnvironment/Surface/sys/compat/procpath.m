@@ -49,7 +49,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
     }
     
     /* locking process read */
-    proc_read_lock(proc);
+    KVOBJECT_RDLOCK(proc);
     
     /*
      * getting output layout lenght. We have to add 1 more so the
@@ -60,7 +60,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
     /* sanity check output lenght */
     if(*out_len > PATH_MAX)
     {
-        proc_unlock(proc);
+        KVOBJECT_UNLOCK(proc);
         KVOBJECT_RELEASE(proc);
         sys_return_failure(EFAULT);
     }
@@ -69,7 +69,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
     kern_return_t kr = mach_syscall_payload_create(proc->kproc.kcproc.nyx.executable_path, *out_len, (vm_address_t*)out_payload);
     
     /* doneee x3 */
-    proc_unlock(proc);
+    KVOBJECT_UNLOCK(proc);
     KVOBJECT_RELEASE(proc);
     
     if(kr == KERN_SUCCESS)

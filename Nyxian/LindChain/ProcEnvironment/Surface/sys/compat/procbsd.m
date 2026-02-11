@@ -52,13 +52,13 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     *out_len = sizeof(kinfo_proc_t);
     
     /* locking process read */
-    proc_read_lock(proc);
+    KVOBJECT_RDLOCK(proc);
     
     /* copying buffer into mach syscall payload */
     kern_return_t kr = mach_syscall_payload_create(&(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t), (vm_address_t*)out_payload);
     
     /* doneee x3 */
-    proc_unlock(proc);
+    KVOBJECT_UNLOCK(proc);
     KVOBJECT_RELEASE(proc);
     
     if(kr == KERN_SUCCESS)

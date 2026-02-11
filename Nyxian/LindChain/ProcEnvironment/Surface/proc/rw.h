@@ -22,11 +22,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-/* proc */
-void proc_read_lock(ksurface_proc_t *proc);
-void proc_write_lock(ksurface_proc_t *proc);
-void proc_unlock(ksurface_proc_t *proc);
-
 /* proc table */
 void proc_table_read_lock(void);
 void proc_table_write_lock(void);

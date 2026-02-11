@@ -57,7 +57,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     }
     
     /* locking target process aswell */
-    proc_read_lock(targetProc);
+    KVOBJECT_RDLOCK(targetProc);
     
     /* checking if target process is a platformised process and therefore can only be decided at by a other process that is platformised */
     if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
@@ -85,7 +85,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     }
     
 out_unlock:
-    proc_unlock(targetProc);
+    KVOBJECT_UNLOCK(targetProc);
 out_release_target:
     KVOBJECT_RELEASE(targetProc);
     return allowed;

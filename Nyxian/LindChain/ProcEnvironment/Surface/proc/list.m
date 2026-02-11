@@ -76,7 +76,7 @@ void proc_snapshot_create_radix_walk(pid_t pid,
     }
     
     /* lock read */
-    proc_read_lock(proc);
+    KVOBJECT_RDLOCK(proc);
     
     if(can_see_process(rctx->caller, proc, rctx->vis))
     {
@@ -84,7 +84,7 @@ void proc_snapshot_create_radix_walk(pid_t pid,
     }
     
     /* unlock */
-    proc_unlock(proc);
+    KVOBJECT_UNLOCK(proc);
     KVOBJECT_RELEASE(proc);
 }
 

@@ -114,13 +114,13 @@ ksurface_proc_t *proc_create_from_proc(ksurface_proc_t *proc)
     }
     
     /* claiming read lock */
-    proc_read_lock(proc);
+    KVOBJECT_RDLOCK(proc);
     
     /* 1:1 rest copy */
     memcpy(&(nproc->kproc.kcproc), &(proc->kproc.kcproc), sizeof(ksurface_kcproc_t));
     
     /* releasing it */
-    proc_unlock(proc);
+    KVOBJECT_UNLOCK(proc);
     
     /* initilizing with mutual init */
     proc_create_mutual_init(nproc);

@@ -169,13 +169,13 @@ static inline void ksurface_kinit_kproc(void)
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
     /* locking kproc write */
-    proc_write_lock(kproc);
+    KVOBJECT_WRLOCK(kproc);
     
     /* setting entitlements */
     proc_setentitlements(kproc, PEEntitlementKernel);
     
     /* unlocking */
-    proc_unlock(kproc);
+    KVOBJECT_UNLOCK(kproc);
     
     /* storing kproc */
     ksurface->proc_info.kern_proc = kproc;

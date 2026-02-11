@@ -57,9 +57,9 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     }
     
     /* copying the process to the copy */
-    proc_read_lock(proc);
+    KVOBJECT_RDLOCK(proc);
     memcpy(&(proc_copy->kproc.kcproc), &(proc->kproc.kcproc), sizeof(ksurface_kcproc_t));
-    proc_unlock(proc);
+    KVOBJECT_UNLOCK(proc);
     
     /* checking if its consumed reference */
     if(option == kProcCopyOptionConsumedReferenceCopy ||
@@ -82,9 +82,9 @@ ksurface_return_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
     }
     
     /* update the original reference */
-    proc_write_lock(proc_copy->proc);
+    KVOBJECT_WRLOCK(proc_copy->proc);
     memcpy(&(proc_copy->proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(ksurface_kcproc_t));
-    proc_unlock(proc_copy->proc);
+    KVOBJECT_UNLOCK(proc_copy->proc);
     
     return kSurfaceReturnSuccess;
 }
@@ -99,9 +99,9 @@ ksurface_return_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy)
     }
     
     /* update the copy */
-    proc_read_lock(proc_copy->proc);
+    KVOBJECT_RDLOCK(proc_copy->proc);
     memcpy(&(proc_copy->kproc.kcproc), &(proc_copy->proc->kproc.kcproc), sizeof(ksurface_kcproc_t));
-    proc_unlock(proc_copy->proc);
+    KVOBJECT_UNLOCK(proc_copy->proc);
     
     return kSurfaceReturnSuccess;
 }
