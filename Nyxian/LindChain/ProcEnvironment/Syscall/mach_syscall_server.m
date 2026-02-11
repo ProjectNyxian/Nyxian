@@ -176,6 +176,12 @@ static void* syscall_worker_thread(void *ctx)
     {
         /* clear errno */
         errno_t err = 0;
+        int64_t result = 0;
+        uint8_t *out_payload = NULL;
+        uint32_t out_len = 0;
+        mach_port_t *out_ports = NULL;
+        uint32_t out_ports_cnt = 0;
+        const char *name = NULL;
         
         /* nullifying the buffer */
         memset(&buffer, 0, sizeof(buffer));
@@ -204,7 +210,8 @@ static void* syscall_worker_thread(void *ctx)
         if(proc_copy == NULL)
         {
             /* checking if proc copy is null */
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, EAGAIN);
+            err = EAGAIN;
+            result = -1;
             goto cleanup;
         }
         
@@ -222,22 +229,13 @@ static void* syscall_worker_thread(void *ctx)
         if(!handler)
         {
             klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_copy), req->syscall_num);
-            send_reply(&buffer.header, -1, NULL, 0, NULL, 0, ENOSYS);
+            err = ENOSYS;
+            result = -1;
             goto cleanup;
         }
         
-        /* values for reply back to client */
-        uint8_t *out_payload = NULL;
-        uint32_t out_len = 0;
-        mach_port_t *out_ports = NULL;
-        uint32_t out_ports_cnt = 0;
-        const char *name = NULL;
-        
         /* calling syscall handler */
-        int64_t result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err, &name);
-        
-        /* reply before deallocation */
-        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
+        result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err, &name);
         
     cleanup:
         /* deallocate input payload because otherwise it will eat our ram sticks :c */
@@ -265,6 +263,9 @@ static void* syscall_worker_thread(void *ctx)
             
             proc_copy_destroy(proc_copy);
         }
+        
+        /* reply !!!AFTER!!! deallocation */
+        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
     }
     
     return NULL;
