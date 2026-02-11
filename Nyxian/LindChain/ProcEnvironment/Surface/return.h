@@ -22,18 +22,15 @@
 
 typedef enum kSurfaceReturn {
     kSurfaceReturnSuccess = 0,
-    kSurfaceReturnUndefined,
     kSurfaceReturnNullPtr,
     kSurfaceReturnNotFound,
-    kSurfaceReturnNotHoldingLock,
     kSurfaceReturnOutOfBounds,
     kSurfaceReturnDenied,
     kSurfaceReturnAlreadyExists,
     kSurfaceReturnFailed,
     kSurfaceReturnProcessDead,
     kSurfaceReturnPidInUse,
-    kSurfaceReturnNoMemory,
-    kSurfaceReturnRetentionFailed,
+    kSurfaceReturnNoMemory
 } ksurface_return_t;
 
 #endif /* PROCENVIRONMENT_RETURN_H */
