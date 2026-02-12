@@ -46,7 +46,7 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
     }
     
     /* extracting task port */
-    *tp_out = environment_tfp_extract_transfer_port(*tp_out);
+    environment_tfp_extract_transfer_port(tp_out);
     
     /* return it */
     return KERN_SUCCESS;
@@ -92,21 +92,23 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
     return task;
 }
 
-task_t environment_tfp_extract_transfer_port(mach_port_t tport)
+void environment_tfp_extract_transfer_port(mach_port_t *tport)
 {
     if(environment_supports_full_tfp())
     {
-        return tport;
+        return;
     }
     
-    kern_return_t kr = task_identity_token_get_task_port(tport, TASK_FLAVOR_NAME, &tport);
+    task_id_token_t token = *tport;
+    
+    kern_return_t kr = task_identity_token_get_task_port(token, TASK_FLAVOR_NAME, tport);
     
     if(kr != KERN_SUCCESS)
     {
-        return MACH_PORT_NULL;
+        *tport = MACH_PORT_NULL;
     }
     
-    return tport;
+    mach_port_deallocate(mach_task_self(), token);
 }
 
 /*
