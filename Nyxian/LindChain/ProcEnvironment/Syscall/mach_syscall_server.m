@@ -238,19 +238,10 @@ static void* syscall_worker_thread(void *ctx)
         result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (mach_port_t*)(req->oolp.address), req->oolp.count, &out_ports, &out_ports_cnt, &err, &name);
         
     cleanup:
-        /* deallocate input payload because otherwise it will eat our ram sticks :c */
-        if(req->ool.address != VM_MIN_ADDRESS)
-        {
-            /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
-            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
-        }
-        
-        /* deallocate input ports because otherwise bad things :c */
-        if(req->oolp.address != VM_MIN_ADDRESS)
-        {
-            /* deallocate */
-            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
-        }
+
+        /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
+        vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
         
         /* destroying copy of process */
         if(proc_copy != NULL)
