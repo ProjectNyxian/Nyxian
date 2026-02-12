@@ -56,3 +56,6 @@ extern global_rebind *gRebinds;
 
 #define ORIG_FUNC(func) \
     orig_##func
+
+#define HOOK_FUNC(func) \
+    hook_##func

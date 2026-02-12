@@ -52,6 +52,13 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
     return KERN_SUCCESS;
 }
 
+DEFINE_HOOK(task_name_for_pid, kern_return_t, (mach_port_name_t tp_in,
+                                               pid_t pid,
+                                               mach_port_name_t *tp_out))
+{
+    return environment_task_for_pid(tp_in, pid, tp_out);
+}
+
 bool environment_supports_full_tfp(void)
 {
     /*
@@ -65,9 +72,9 @@ bool environment_supports_full_tfp(void)
      * option would be that apple tightened the send right of the
      * task port prior and post iOS 26.0. I also wanna say that
      * this still works on some iOS 26.1 Beta versions, got patched
-     * in iOS 26.0 Beta 2 or 3.
+     * in iOS 26.1 Beta 2 or 3.
      *
-     * very saf tho, would have loved to see more of this.
+     * very sad tho, but nice that on other versions we got tnfp.
      */
     struct utsname systemInfo;
     uname(&systemInfo);
@@ -121,7 +128,8 @@ void environment_tfp_init(void)
         /* sending our task port to the task port system */
         environment_syscall(SYS_SENDTASK, environment_tfp_create_transfer_port(mach_task_self()));
         
-        /* hooking task_for_pid(3) */
+        /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
+        DO_HOOK_GLOBAL(task_name_for_pid);
     }
 }
