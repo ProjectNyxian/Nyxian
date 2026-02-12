@@ -22,12 +22,8 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 
-#define kvo_rdlock(obj) kvobject_rdlock((kvobject_t *)(obj))
-#define kvo_wrlock(obj) kvobject_wrlock((kvobject_t *)(obj))
-#define kvo_unlock(obj) kvobject_unlock((kvobject_t *)(obj))
-
-void kvobject_rdlock(kvobject_t *kvo);
-void kvobject_wrlock(kvobject_t *kvo);
-void kvobject_unlock(kvobject_t *kvo);
+#define kvo_rdlock(obj) pthread_rwlock_rdlock(&(((kvobject_t*)obj)->rwlock));
+#define kvo_wrlock(obj) pthread_rwlock_wrlock(&(((kvobject_t*)obj)->rwlock));
+#define kvo_unlock(obj) pthread_rwlock_unlock(&(((kvobject_t*)obj)->rwlock));
 
 #endif /* SURFACE_KVOBJECT_LOCK_H */

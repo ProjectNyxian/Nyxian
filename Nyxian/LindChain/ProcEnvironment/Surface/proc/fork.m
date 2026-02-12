@@ -33,8 +33,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            const char *path)
 {
     /* null pointer check */
-    if(ksurface == NULL ||
-       parent == NULL ||
+    if(parent == NULL ||
        path == NULL)
     {
         return NULL;

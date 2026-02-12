@@ -206,7 +206,6 @@
 				LindChain/ProcEnvironment/Server/ServerSession.m,
 				LindChain/ProcEnvironment/Server/Trust.m,
 				LindChain/ProcEnvironment/Surface/obj/alloc.m,
-				LindChain/ProcEnvironment/Surface/obj/lock.m,
 				LindChain/ProcEnvironment/Surface/obj/reference.m,
 				LindChain/ProcEnvironment/Surface/permit.m,
 				LindChain/ProcEnvironment/Surface/proc/copy.m,

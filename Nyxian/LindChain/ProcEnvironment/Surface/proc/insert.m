@@ -25,7 +25,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     ksurface_return_t err = kSurfaceReturnSuccess;
     
     /* null pointer check */
-    if(ksurface == NULL || proc == NULL)
+    if(proc == NULL)
     {
         return kSurfaceReturnNullPtr;
     }

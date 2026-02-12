@@ -70,13 +70,12 @@ kvobject_t *kvobject_alloc(size_t size,
 kvobject_t *kvobject_copy(kvobject_t *kvo)
 {
     /* sanity check */
-    if(kvo == NULL ||
-       !kvobject_retain(kvo))
+    if(!kvo_retain(kvo))
     {
         return NULL;
     }
     
-    kvobject_wrlock(kvo);
+    kvo_wrlock(kvo);
     
     /* creating new object */
     kvobject_t *kvo_dup = calloc(1, kvo->size);
@@ -105,7 +104,7 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
     }
     
 out_unlock:
-    kvobject_unlock(kvo);
-    kvobject_release(kvo);
+    kvo_unlock(kvo);
+    kvo_release(kvo);
     return kvo_dup;
 }

@@ -23,13 +23,7 @@
 #include <stdlib.h>
 
 bool kvobject_retain(kvobject_t *kvo)
-{
-    /* null pointer check */
-    if(kvo == NULL)
-    {
-        return false;
-    }
-    
+{    
     /* performing retain if valid */
     while(1)
     {
@@ -59,12 +53,6 @@ bool kvobject_retain(kvobject_t *kvo)
 
 void kvobject_invalidate(kvobject_t *kvo)
 {
-    /* null pointer check */
-    if(kvo == NULL)
-    {
-        return;
-    }
-    
     /* invalidating object */
     atomic_store(&(kvo->invalid), true);
     
@@ -75,13 +63,6 @@ void kvobject_invalidate(kvobject_t *kvo)
 
 void kvobject_release(kvobject_t *kvo)
 {
-    
-    /* null pointer check (as usual in my code) */
-    if(kvo == NULL)
-    {
-        return;
-    }
-    
     /* releasing and trying to get the old reference count */
     int old = atomic_fetch_sub(&kvo->refcount, 1);
     if(old == 1)

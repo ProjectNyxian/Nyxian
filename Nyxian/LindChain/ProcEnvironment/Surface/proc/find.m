@@ -23,12 +23,6 @@
 
 ksurface_proc_t *proc_for_pid(pid_t pid)
 {
-    /* null pointer check */
-    if(ksurface == NULL)
-    {
-        return NULL;
-    }
-    
     /* lock proc table */
     proc_table_rdlock();
     
@@ -42,17 +36,12 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     }
     
     /* trying to retain the process */
-    if(proc_getpid(proc) == pid &&
-       !atomic_load(&proc->header.invalid))
+    if(!kvo_retain(proc))
     {
-        if(kvo_retain(proc))
-        {
-            proc_table_unlock();
-            return proc;
-        }
+        proc = NULL;
     }
     
 out_unlock:
     proc_table_unlock();
-    return NULL;
+    return proc;
 }
