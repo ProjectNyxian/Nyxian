@@ -42,38 +42,20 @@
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
 #include <sys/syscall.h>
 
-/* syscalls */
-#define SYS_KILL SYS_kill           /* killing other processes */
-#define SYS_SETUID SYS_setuid       /* sets user identifier of a process */
-#define SYS_SETEUID SYS_seteuid     /* sets effective user identifier of a process */
-#define SYS_SETGID SYS_setgid       /* sets group identifier of a process */
-#define SYS_SETEGID SYS_setegid     /* sets effective group identifier of a process */
-#define SYS_SETREUID SYS_setreuid   /* sets real and effective user identifier, used for setruid() too */
-#define SYS_SETREGID SYS_setregid   /* sets real and effective group identifier, used for setrgid() too */
-#define SYS_GETPID SYS_getpid       /* gets the process identifier of the calling process */
-#define SYS_GETPPID SYS_getppid     /* gets the parent process identifier of the calling process */
-#define SYS_GETUID SYS_getuid       /* gets the user identifier of the calling process */
-#define SYS_GETEUID SYS_geteuid     /* gets the effective user identifier of the calling process */
-#define SYS_GETGID SYS_getgid       /* gets the group identifier of the calling process */
-#define SYS_GETEGID SYS_getegid     /* gets the effective group identifier of the calling process */
-#define SYS_PROC_INFO SYS_proc_info /* MARK: Implement this the next! */
-#define SYS_GETSID SYS_getsid       /* gets session identifier */
-#define SYS_SETSID SYS_setsid       /* sets session identifier */
+/* additional nyxian syscalls for now */
+#define SYS_bamset      750         /* setting audio background mode */
+#define SYS_proctb      751         /* getting process table MARK: will be SYS_SYSCTL later */
+#define SYS_getent      752         /* getting processes entitlements */
+#define SYS_gethostname 753         /* later replaced with XNU SYSCTL semantics */
+#define SYS_sethostname 754         /* later replaced with XNU SYSCTL semantics */
+#define SYS_sendtask    755         /* sends task port */
+#define SYS_gettask     756         /* gets task port */
+#define SYS_signexec    757         /* uses file descriptor passed by guest to sign executable */
+#define SYS_procpath    758         /* gets process path of a pid */
+#define SYS_procbsd     759         /* gets process bsd of a pid */
+#define SYS_handoffep   760         /* handoff exception port to kvirt */
 
-/* nyxian syscalls for now */
-#define SYS_BAMSET      750         /* setting audio background mode */
-#define SYS_PROCTB      751         /* getting process table MARK: will be SYS_SYSCTL later */
-#define SYS_GETENT      752         /* getting processes entitlements */
-#define SYS_GETHOSTNAME 753         /* later replaced with XNU SYSCTL semantics */
-#define SYS_SETHOSTNAME 754         /* later replaced with XNU SYSCTL semantics */
-#define SYS_SENDTASK    755         /* sends task port */
-#define SYS_GETTASK     756         /* gets task port */
-#define SYS_SIGNEXEC    757         /* uses file descriptor passed by guest to sign executable */
-#define SYS_PROCPATH    758         /* gets process path of a pid */
-#define SYS_PROCBSD     759         /* gets process bsd of a pid */
-#define SYS_HANDOFFEP   760         /* handoff exception port to kvirt */
-
-#define SYS_N 27
+#define SYS_N 26
 
 typedef struct {
     const char *name;

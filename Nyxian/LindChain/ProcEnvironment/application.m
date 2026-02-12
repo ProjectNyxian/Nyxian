@@ -33,13 +33,13 @@
 
 - (BOOL)hook_setActive:(BOOL)active error:(NSError*)outError
 {
-    environment_syscall(SYS_BAMSET, active);
+    environment_syscall(SYS_bamset, active);
     return [self hook_setActive:active error:outError];
 }
 
 - (BOOL)hook_setActive:(BOOL)active withOptions:(AVAudioSessionSetActiveOptions)options error:(NSError **)outError
 {
-    environment_syscall(SYS_BAMSET, active);
+    environment_syscall(SYS_bamset, active);
     return [self hook_setActive:active withOptions:options error:outError];
 }
 

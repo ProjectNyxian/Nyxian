@@ -22,7 +22,7 @@
 
 #import <Foundation/Foundation.h>
 
-#define KLOG_ENABLED 0
+#define KLOG_ENABLED 1
 
 #if KLOG_ENABLED && !JAILBREAK_ENV
 

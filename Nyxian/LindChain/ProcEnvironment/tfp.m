@@ -37,7 +37,7 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
     }
     
     /* getting task port */
-    int64_t ret = environment_syscall(SYS_GETTASK, pid, tp_out);
+    int64_t ret = environment_syscall(SYS_gettask, pid, tp_out);
     
     /* checking return */
     if(ret == -1)
@@ -178,7 +178,7 @@ void environment_tfp_init(void)
     if(environment_is_role(EnvironmentRoleGuest))
     {
         /* sending our task port to the task port system */
-        environment_syscall(SYS_SENDTASK, environment_tfp_create_transfer_port(mach_task_self()));
+        environment_syscall(SYS_sendtask, environment_tfp_create_transfer_port(mach_task_self()));
         
         /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);

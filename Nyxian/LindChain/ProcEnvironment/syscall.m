@@ -54,15 +54,15 @@ typedef struct {
 #define T_FIN   kESysTypeFDIn
 
 env_sys_entry_t sys_env_entries[] = {
-    SYS_ENTRY(SYS_PROCTB,      T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_GETHOSTNAME, T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_SETHOSTNAME, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_GETTASK,     T_NUM,  T_POUT, T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_SENDTASK,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_SIGNEXEC,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_PROCPATH,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_PROCBSD,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_HANDOFFEP,   T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_proctb,      T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_gethostname, T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_sethostname, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_gettask,     T_NUM,  T_POUT, T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_sendtask,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_procpath,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_procbsd,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_handoffep,   T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */

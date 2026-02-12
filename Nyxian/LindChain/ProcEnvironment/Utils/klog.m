@@ -128,11 +128,16 @@ void klog_log_internal(NSString *system, NSString *format, ...)
 #ifdef HOST_ENV
     
     /* only open klog once */
+    static NSDateFormatter *df = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         /* opening ^^ */
         NSString *kfd_path = [NSString stringWithFormat:@"%@/Documents/klog.txt", NSHomeDirectory()];
         kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_TRUNC, 0777);
+        
+        df = [[NSDateFormatter alloc] init];
+        df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+        df.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
     });
 
     /* checking kfd */
@@ -152,9 +157,6 @@ void klog_log_internal(NSString *system, NSString *format, ...)
     va_end(args);
 
     /* now we need the date ^^ */
-    NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
-    df.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
     NSString *ts = [df stringFromDate:[NSDate date]];
 
     /* final log string */

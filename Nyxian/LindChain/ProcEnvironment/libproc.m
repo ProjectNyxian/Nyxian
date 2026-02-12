@@ -41,7 +41,7 @@ DEFINE_HOOK(proc_listallpids, int, (void *buffer,
     kinfo_proc_t kp[PROC_MAX];
     uint32_t len = sizeof(kp);
     
-    environment_syscall(SYS_PROCTB, &kp, &len);
+    environment_syscall(SYS_proctb, &kp, &len);
     
     size_t count = (uint32_t)(len / sizeof(kinfo_proc_t));
     
@@ -84,7 +84,7 @@ DEFINE_HOOK(proc_name, int, (pid_t pid,
     uint32_t olen = sizeof(kp);
     
     /* syscall with SYS_PROCPATH */
-    int64_t retval = environment_syscall(SYS_PROCBSD, pid, &kp, &olen);
+    int64_t retval = environment_syscall(SYS_procbsd, pid, &kp, &olen);
     
     /* sanity check numero two */
     if(retval != 0 || olen < sizeof(kp))
@@ -111,7 +111,7 @@ DEFINE_HOOK(proc_pidpath, int, (pid_t pid,
     }
     
     /* syscall with SYS_PROCPATH */
-    int64_t retval = environment_syscall(SYS_PROCPATH, pid, buffer, &buffersize);
+    int64_t retval = environment_syscall(SYS_procpath, pid, buffer, &buffersize);
     
     /* sanity check numero two */
     if(retval != 0)
@@ -233,7 +233,7 @@ DEFINE_HOOK(proc_pid_rusage, int, (pid_t pid,
 
 DEFINE_HOOK(kill, int, (pid_t pid, int sig))
 {
-    return (int)environment_syscall(SYS_KILL, pid, sig);
+    return (int)environment_syscall(SYS_kill, pid, sig);
 }
 
 void environment_libproc_init(void)

@@ -101,7 +101,7 @@ void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
     kinfo_proc_t kp[PROC_MAX];
     uint32_t len = sizeof(kp);
     
-    environment_syscall(SYS_PROCTB, &kp, &len);
+    environment_syscall(SYS_proctb, &kp, &len);
     
     *pt = malloc(len);
     memcpy(*pt, kp, len);
@@ -122,7 +122,7 @@ void environment_proxy_sign_macho(NSString *path)
     }
     
     /* calling syscall */
-    environment_syscall(SYS_SIGNEXEC, fd);
+    environment_syscall(SYS_signexec, fd);
     
     /* closing file descriptor */
     close(fd);

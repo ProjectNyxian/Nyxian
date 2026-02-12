@@ -512,7 +512,7 @@ void* mach_exception_self_server(void *arg)
         return NULL;
     }
     
-    environment_syscall(SYS_HANDOFFEP, exceptionPort);
+    environment_syscall(SYS_handoffep, exceptionPort);
     
     while(1)
     {
