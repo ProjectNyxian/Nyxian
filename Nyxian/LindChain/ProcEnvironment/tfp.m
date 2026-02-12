@@ -49,7 +49,7 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
     return KERN_SUCCESS;
 }
 
-bool environment_supports_tfp(void)
+bool environment_supports_full_tfp(void)
 {
     /*
      * apple made it possible to transfer task ports on iOS 26.0, but
@@ -71,20 +71,52 @@ bool environment_supports_tfp(void)
     return strncmp(systemInfo.release, "25.0", 4) == 0;
 }
 
+mach_port_t environment_tfp_create_transfer_port(task_t task)
+{
+    if(environment_supports_full_tfp())
+    {
+        return task;
+    }
+    
+    /* partially very narrow access */
+    kern_return_t kr = task_create_identity_token(mach_task_self(), &task);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        return MACH_PORT_NULL;
+    }
+    
+    return task;
+}
+
+task_t environment_tfp_extract_transfer_port(mach_port_t tport)
+{
+    if(environment_supports_full_tfp())
+    {
+        return tport;
+    }
+    
+    kern_return_t kr = task_identity_token_get_task_port(tport, TASK_FLAVOR_NAME, &tport);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        return MACH_PORT_NULL;
+    }
+    
+    return tport;
+}
+
 /*
  Init
  */
 void environment_tfp_init(void)
 {
-    if(environment_supports_tfp())
+    if(environment_is_role(EnvironmentRoleGuest))
     {
-        if(environment_is_role(EnvironmentRoleGuest))
-        {
-            /* sending our task port to the task port system */
-            environment_syscall(SYS_SENDTASK, mach_task_self());
-            
-            /* hooking task_for_pid(3) */
-            litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
-        }
+        /* sending our task port to the task port system */
+        environment_syscall(SYS_SENDTASK, environment_tfp_create_transfer_port(mach_task_self()));
+        
+        /* hooking task_for_pid(3) */
+        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
     }
 }

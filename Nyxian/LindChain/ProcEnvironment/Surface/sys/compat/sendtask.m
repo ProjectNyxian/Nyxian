@@ -29,12 +29,6 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     sys_name("SYS_sendtask");
     sys_need_in_ports_with_cnt(1);
     
-    /* check if environment supports tfp */
-    if(!environment_supports_tfp())
-    {
-        sys_return_failure(ENOTSUP);
-    }
-    
     /* view SYS_gettask note on this */
     proc_task_write_lock();
     
@@ -59,9 +53,12 @@ DEFINE_SYSCALL_HANDLER(sendtask)
         sys_return_failure(EINVAL);
     }
     
+    /* ontaining task port */
+    task_t task = environment_tfp_extract_transfer_port(in_ports[0]);
+    
     /* checking if pid of task port is valid */
     pid_t pid = -1;
-    kr = pid_for_task(in_ports[0], &pid);
+    kr = pid_for_task(task, &pid);
     if(kr != KERN_SUCCESS ||
        pid != proc_getpid(sys_proc_copy_))
     {
@@ -70,7 +67,7 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     }
     
     /* setting task */
-    sys_proc_copy_->proc->kproc.task = in_ports[0];
+    sys_proc_copy_->proc->kproc.task = task;
     
     /* return with succession */
     proc_task_unlock();

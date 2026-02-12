@@ -28,12 +28,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* syscall wrapper */
     sys_name("SYS_gettask");
     
-    /* check if environment supports tfp */
-    if(!environment_supports_tfp())
-    {
-        sys_return_failure(ENOTSUP);
-    }
-    
     /* parse arguments */
     pid_t pid = (pid_t)args[0];
     

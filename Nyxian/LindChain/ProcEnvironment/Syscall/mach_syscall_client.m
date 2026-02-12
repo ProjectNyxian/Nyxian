@@ -53,8 +53,17 @@ syscall_client_t *syscall_client_create(mach_port_t port)
     /* setting server port */
     client->server_port = port;
     
-    /* allocate reply port for the syscall server to send back a message to */
-    kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &client->reply_port);
+    mach_port_options_t opts = {0};
+    opts.flags = MPO_REPLY_PORT | MPO_INSERT_SEND_RIGHT;
+
+    kr = mach_port_construct(mach_task_self(), &opts, 0, &client->reply_port);
+    if(kr != KERN_SUCCESS)
+    {
+        printf("Failed to create reply port: %d\n", kr);
+        mach_port_deallocate(mach_task_self(), client->server_port);
+        free(client);
+        return NULL;
+    }
     
     /* XNU reply check */
     if(kr != KERN_SUCCESS)
