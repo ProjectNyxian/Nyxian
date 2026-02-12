@@ -72,7 +72,7 @@ void copy_proc_to_user(ksurface_proc_t *proc,
     memcpy(kp, &(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t));
 }
 
-void proc_snapshot_create_radix_walk(pid_t pid,
+void proc_list_radix_walker_callback(pid_t pid,
                                      void *value,
                                      void *ctx)
 {
@@ -134,7 +134,7 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
         return kSurfaceReturnNoMemory;
     }
     
-    /* setting up snapshot */
+    /* setting up radix walker */
     w->caller = proc_copy;
     w->vis = get_proc_visibility(proc_copy);
     w->kp = malloc(sizeof(kinfo_proc_t) * ksurface->proc_info.proc_count);
@@ -144,7 +144,7 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
      * now inboking the special functionality of the radix tree
      * to walk it self and execute this callback after each item.
      */
-    radix_walk(&(ksurface->proc_info.tree), proc_snapshot_create_radix_walk, w);
+    radix_walk(&(ksurface->proc_info.tree), proc_list_radix_walker_callback, w);
     
     /* setting count and kp, to prevent memory corruption ^^ */
     *count = w->count;
