@@ -76,21 +76,50 @@ bool environment_supports_full_tfp(void)
      *
      * very sad tho, but nice that on other versions we got tnfp.
      */
-    struct utsname systemInfo;
-    uname(&systemInfo);
-    return strncmp(systemInfo.release, "25.0", 4) == 0;
+    
+    static bool isSupported = false;
+    
+    /*
+     * only checking once for support, kernel version wont change
+     * while nyxian runs obviously.
+     */
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        struct utsname systemInfo;
+        uname(&systemInfo);
+        isSupported = strncmp(systemInfo.release, "25.0", 4) == 0;
+    });
+    
+    return isSupported;
 }
 
 mach_port_t environment_tfp_create_transfer_port(task_t task)
 {
+    /*
+     * when full tfp fix is supported that means that the task
+     * port it self can be transferred so we can simply return
+     * the task port back to the caller.
+     */
     if(environment_supports_full_tfp())
     {
         return task;
     }
     
-    /* partially very narrow access */
+    /*
+     * partially very narrow access, i was eperimenting with
+     * the mach api till i stumbled upon this neat symbol
+     * and its opponent which restores it back. so the
+     * sender creates this transferable port and the
+     * receiver stores it somewhere to then resend it..
+     * the final receiver of this port can then extract
+     * a valid task name out of this port.
+     */
     kern_return_t kr = task_create_identity_token(mach_task_self(), &task);
     
+    /*
+     * if this doesnt work then hopefully it will send
+     * nothing.
+     */
     if(kr != KERN_SUCCESS)
     {
         return MACH_PORT_NULL;
@@ -101,20 +130,43 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
 
 void environment_tfp_extract_transfer_port(mach_port_t *tport)
 {
+    /*
+     * when full tfp fix is supported that means that the task
+     * port it self can be transferred so we can simply return.
+     */
     if(environment_supports_full_tfp())
     {
         return;
     }
     
+    /*
+     * partially very narrow access, basically when someone receives
+     * the transferable port they can then as a other process extract
+     * a TASK NAME right out of this port, why did i capitlized that?
+     * its because I dont want people to point out I could ask for a
+     * more powerful flavor, iOS forbids that I already tried that
+     * and wish this second method would allow for it. note that
+     * regardless.. a task name right is still much more powerful
+     * than no task right at all.
+     */
     task_id_token_t token = *tport;
     
     kern_return_t kr = task_identity_token_get_task_port(token, TASK_FLAVOR_NAME, tport);
     
+    /*
+     * if this doesnt work then hopefully it will handle
+     * nothing.
+     */
     if(kr != KERN_SUCCESS)
     {
         *tport = MACH_PORT_NULL;
     }
     
+    /*
+     * releasing token to avoid a reference leak, since this is
+     * about extracting the task port out of the tport pointer
+     * so this port shall be gone now.
+     */
     mach_port_deallocate(mach_task_self(), token);
 }
 
