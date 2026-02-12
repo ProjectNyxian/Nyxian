@@ -23,42 +23,43 @@
 
 DEFINE_SYSCALL_HANDLER(proctb)
 {
-    /* syscall wrapper */
+    /* syscall header */
     sys_name("SYS_proctb");
     
-    /* snapshot creation */
-    proc_snapshot_t *snap;
-    proc_list_err_t error = proc_snapshot_create(sys_proc_copy_, &snap);
+    /* listing all processes */
+    kinfo_proc_t *kpbuf = NULL;
+    uint32_t count = 0;
+    ksurface_return_t ret = proc_list(sys_proc_copy_, &kpbuf, &count);
     
     /* evaluating snapshot creation */
-    switch(error)
+    switch(ret)
     {
-        case PROC_LIST_OK:
-            break;
-        case PROC_LIST_ERR_PERM:
+        case kSurfaceReturnNullPtr:
+            sys_return_failure(ENOMEM);
+        case kSurfaceReturnDenied:
             sys_return_failure(EPERM);
         default:
-            sys_return_failure(ENOMEM);
+            break;
     }
     
     /*
      * checking for integer overflow to prevent a buffer overflow,
      * which would lead to heap corruption.
      */
-    if(snap->count > UINT32_MAX / sizeof(kinfo_proc_t))
+    if(count > UINT32_MAX / sizeof(kinfo_proc_t))
     {
-        proc_snapshot_free(snap);
+        free(kpbuf);
         sys_return_failure(ENOMEM);
     }
     
     /* copying buffer, first tho we have to safe the size of the buffer */
-    *out_len = snap->count * sizeof(kinfo_proc_t);
+    *out_len = count * sizeof(kinfo_proc_t);
     
     /* allocating outgoing payload (and copy in one step) */
-    kern_return_t kr = mach_syscall_payload_create(snap->kp, *out_len, (vm_address_t*)out_payload);
+    kern_return_t kr = mach_syscall_payload_create(kpbuf, *out_len, (vm_address_t*)out_payload);
     
     /* free the snapshot */
-    proc_snapshot_free(snap);
+    free(kpbuf);
     
     /* checking what the kernel wants to say */
     if(kr != KERN_SUCCESS)

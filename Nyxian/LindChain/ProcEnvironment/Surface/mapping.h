@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Surface/radix/radix.h>
+#import <LindChain/ProcEnvironment/Surface/lock.h>
 #include <stdint.h>
 #include <limits.h>
 #include <pthread.h>

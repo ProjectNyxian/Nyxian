@@ -20,7 +20,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/procbsd.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 DEFINE_SYSCALL_HANDLER(procbsd)
 {

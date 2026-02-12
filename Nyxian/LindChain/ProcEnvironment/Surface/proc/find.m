@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/find.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <stdatomic.h>
 
 ksurface_proc_t *proc_for_pid(pid_t pid)
@@ -31,7 +30,7 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     }
     
     /* lock proc table */
-    proc_table_read_lock();
+    proc_table_rdlock();
     
     /* black magic~~ */
     ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);

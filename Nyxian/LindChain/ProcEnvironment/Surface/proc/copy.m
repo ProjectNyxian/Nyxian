@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
                                          kproc_copy_option_t option)

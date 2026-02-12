@@ -20,7 +20,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 DEFINE_SYSCALL_HANDLER(handoffep)
 {
@@ -29,12 +28,12 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     sys_need_in_ports_with_cnt(1);
     
     /* view SYS_gettask note on this */
-    proc_task_write_lock();
+    task_wrlock();
     
     /* checking if exception port port was already hand off */
     if(sys_proc_copy_->proc->kproc.eport != MACH_PORT_NULL)
     {
-        proc_task_unlock();
+        task_unlock();
         sys_return_failure(EINVAL);
     }
     
@@ -48,7 +47,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
        type == 0)
     {
         /* no rights to the exception port  name? */
-        proc_task_unlock();
+        task_unlock();
         sys_return_failure(EINVAL);
     }
     
@@ -56,6 +55,6 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     sys_proc_copy_->proc->kproc.eport = in_ports[0];
     
     /* return with succession */
-    proc_task_unlock();
+    task_unlock();
     sys_return;
 }

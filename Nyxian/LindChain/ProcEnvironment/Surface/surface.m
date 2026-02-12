@@ -22,7 +22,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 #import <LindChain/LiveContainer/utils.h>
 
@@ -39,7 +38,7 @@ void ksurface_sethostname(NSString *hostname)
     }
     
     /* locking host info so hostname can be set */
-    host_write_lock();
+    host_wrlock();
     
     /* setting hostname */
     klog_log(@"surface", @"setting hostname to %@", hostname);
@@ -158,17 +157,6 @@ static inline void ksurface_kinit_kproc(void)
     /* logging allocation */
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
-    /* locking kproc write */
-    kvo_wrlock(kproc);
-    
-    /* checking for tfp support */
-    proc_task_write_lock();
-        
-    /* setting task port (for iOS 26.0 functionalities) */
-    kproc->kproc.task = environment_tfp_create_transfer_port(mach_task_self());
-        
-    proc_task_unlock();
-    
     /* finding executable path */
     char *buf = malloc(PATH_MAX);
     
@@ -188,6 +176,7 @@ static inline void ksurface_kinit_kproc(void)
     }
     
     /* setting up properties */
+    kproc->kproc.task = environment_tfp_create_transfer_port(mach_task_self());
     proc_setpid(kproc, getpid());
     proc_setppid(kproc, PID_LAUNCHD);
     proc_setsid(kproc, proc_getpid(kproc));
@@ -198,9 +187,6 @@ static inline void ksurface_kinit_kproc(void)
     const char *name = strrchr(buf, '/');
     name = name ? name + 1 : buf;
     strlcpy(kproc->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
-    
-    /* unlocking */
-    kvo_unlock(kproc);
     
     /* storing kproc */
     ksurface->proc_info.kern_proc = kproc;

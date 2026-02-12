@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 
 BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,

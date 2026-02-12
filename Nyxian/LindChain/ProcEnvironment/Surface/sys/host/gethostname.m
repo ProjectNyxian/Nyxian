@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/host/gethostname.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 
 DEFINE_SYSCALL_HANDLER(gethostname)
 {
@@ -26,7 +25,7 @@ DEFINE_SYSCALL_HANDLER(gethostname)
     sys_name("SYS_gethostname");
     
     /* lock the lock */
-    host_read_lock();
+    host_rdlock();
     
     /* getting the length of the buffer which is nullterminated (ill cry if someone finds a vulnerability later here) */
     size_t len = strnlen(ksurface->host_info.hostname, MAXHOSTNAMELEN - 1) + 1;

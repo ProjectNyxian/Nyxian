@@ -21,7 +21,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/host/sethostname.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <regex.h>
 
 bool is_valid_hostname_regex(const char *hostname)
@@ -89,7 +88,7 @@ DEFINE_SYSCALL_HANDLER(sethostname)
     }
     
     /* lock the lock for writing obviously now lol ^^ */
-    host_write_lock();
+    host_wrlock();
     
     /* write to hostname */
     strlcpy(ksurface->host_info.hostname, (const char*)in_payload, MAXHOSTNAMELEN);

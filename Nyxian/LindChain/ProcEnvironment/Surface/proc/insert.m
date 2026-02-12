@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
 ksurface_return_t proc_insert(ksurface_proc_t *proc)
@@ -35,7 +34,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     pid_t pid = proc_getpid(proc);
     
     /* Aquire rw lock */
-    proc_table_write_lock();
+    proc_table_wrlock();
     
     /* checking process count */
     if(ksurface->proc_info.proc_count >= PROC_MAX)

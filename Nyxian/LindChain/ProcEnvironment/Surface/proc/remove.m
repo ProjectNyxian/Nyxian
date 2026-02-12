@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #include <stdatomic.h>
 
 ksurface_return_t proc_remove_by_pid(pid_t pid)
@@ -27,7 +26,7 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
      * locking process table so the process table, can
      * be safely edited.
      */
-    proc_table_write_lock();
+    proc_table_wrlock();
     
     /*
      * remocing process from radix tree, which is also

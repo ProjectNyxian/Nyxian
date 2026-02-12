@@ -51,7 +51,7 @@ DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
     
     pthread_mutex_destroy(&(proc->kproc.children.mutex));
     
-    proc_task_write_lock();
+    task_wrlock();
     
     /* deallocate those dead ports */
     if(proc->kproc.task != MACH_PORT_NULL)
@@ -64,7 +64,7 @@ DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
         mach_port_deallocate(mach_task_self(), proc->kproc.task);
     }
     
-    proc_task_unlock();
+    task_unlock();
 }
 
 DEFINE_KVOBJECT_COPYIT_HANDLER(proc)

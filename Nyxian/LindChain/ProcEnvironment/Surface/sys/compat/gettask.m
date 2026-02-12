@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/rw.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/tfp.h>
 
@@ -66,7 +65,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * task port and it has the same port number as a port
      * that was unpriveleged before but not removed before.
      */
-    proc_task_read_lock();
+    task_rdlock();
     
     /*
      * if host we can skip this crap :3
@@ -162,13 +161,13 @@ DEFINE_SYSCALL_HANDLER(gettask)
     (*out_ports)[0] = target->kproc.task;
     *out_ports_cnt = 1;
     
-    proc_task_unlock();
+    task_unlock();
     kvo_release(target);
     sys_return;
     
 out_proc_release_failure:
     kvo_release(target);
 out_unlock_failure:
-    proc_task_unlock();
+    task_unlock();
     sys_return_failure(errnov);
 }

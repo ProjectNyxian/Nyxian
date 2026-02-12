@@ -23,35 +23,19 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 typedef enum {
-    PROC_LIST_OK = 0,
-    PROC_LIST_ERR_NULL,
-    PROC_LIST_ERR_PERM,
-    PROC_LIST_ERR_RATE_LIMIT,
-    PROC_LIST_ERR_NO_SPACE,
-    PROC_LIST_ERR_FAULT,
-} proc_list_err_t;
-
-typedef enum {
-    PROC_VIS_NONE = 0,
-    PROC_VIS_SELF,
-    PROC_VIS_SAME_UID,
-    PROC_VIS_ALL,
+    PROC_VIS_NONE = 0,  /* allows a process to see nothing, usually used as error */
+    PROC_VIS_SAME_SID,  /* allows a process to see processes with the same sid */
+    PROC_VIS_SAME_UID,  /* allows a process to see processes with the same uid */
+    PROC_VIS_ALL,       /* allows a process to see all processes */
 } proc_visibility_t;
-
-/* Snapshot of processes */
-typedef struct {
-    uint32_t count;
-    uint64_t timestamp;
-    kinfo_proc_t kp[];
-} proc_snapshot_t;
 
 /* Radix tree context */
 typedef struct {
     ksurface_proc_copy_t *caller;
     proc_visibility_t vis;
-    uid_t uid;
-    proc_snapshot_t snap;
-} proc_snapshot_radix_ctx;
+    uint32_t count;
+    kinfo_proc_t *kp;
+} proc_list_radix_walker_t;
 
 /* Side quests xD */
 proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller);
@@ -59,7 +43,6 @@ bool can_see_process(ksurface_proc_copy_t *caller, ksurface_proc_t *target, proc
 static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
-proc_list_err_t proc_snapshot_create(ksurface_proc_copy_t *proc, proc_snapshot_t **snapshot_out);
-void proc_snapshot_free(proc_snapshot_t *snap);
+ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy, kinfo_proc_t **kp, uint32_t *count);
 
 #endif /* PROC_COPYLIST_H */
