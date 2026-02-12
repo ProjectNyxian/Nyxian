@@ -52,7 +52,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     }
     
     /* retaining process */
-    if(!KVOBJECT_RETAIN(proc))
+    if(!kvo_retain(proc))
     {
         err = kSurfaceReturnFailed;
         goto out_unlock;
@@ -61,7 +61,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     /* insert into tree*/
     if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
     {
-        KVOBJECT_RELEASE(proc);
+        kvo_release(proc);
         err = kSurfaceReturnNoMemory;
         goto out_unlock;
     }

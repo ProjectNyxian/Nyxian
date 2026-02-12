@@ -217,7 +217,7 @@
     /* null pointer check */
     if(_proc != NULL)
     {
-        KVOBJECT_RELEASE(_proc);
+        kvo_release(_proc);
     }
 }
 

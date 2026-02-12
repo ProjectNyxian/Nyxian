@@ -43,19 +43,19 @@ DEFINE_SYSCALL_HANDLER(getsid)
     /* permission check */
     if(!can_see_process(sys_proc_copy_, proc, vis))
     {
-        KVOBJECT_RELEASE(proc);
+        kvo_release(proc);
         sys_return_failure(EINVAL);
     }
     
     /* locking process read */
-    KVOBJECT_RDLOCK(proc);
+    kvo_rdlock(proc);
     
     /* getting sid */
     pid_t sid = proc->kproc.kcproc.nyx.sid;
     
     /* doneee x3 */
-    KVOBJECT_UNLOCK(proc);
-    KVOBJECT_RELEASE(proc);
+    kvo_unlock(proc);
+    kvo_release(proc);
     
     return sid;
 }

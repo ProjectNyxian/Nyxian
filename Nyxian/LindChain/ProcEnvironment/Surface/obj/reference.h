@@ -23,12 +23,12 @@
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 #import <LindChain/ProcEnvironment/Surface/return.h>
 
+#define kvo_retain(obj) kvobject_retain((kvobject_t *)(obj))
+#define kvo_invalidate(obj) kvobject_invalidate((kvobject_t *)(obj))
+#define kvo_release(obj) kvobject_release((kvobject_t *)(obj))
+
 bool kvobject_retain(kvobject_t *kvo);
 void kvobject_invalidate(kvobject_t *kvo);
 void kvobject_release(kvobject_t *kvo);
-
-#define KVOBJECT_RETAIN(obj) kvobject_retain((kvobject_t *)(obj))
-#define KVOBJECT_INVALIDATE(obj) kvobject_invalidate((kvobject_t *)(obj))
-#define KVOBJECT_RELEASE(obj) kvobject_release((kvobject_t *)(obj))
 
 #endif /* SURFACE_KVOBJECT_REFERENCE_H */

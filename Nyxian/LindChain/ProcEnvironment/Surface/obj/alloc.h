@@ -22,6 +22,9 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 
+#define kvo_alloc(size, init, deinit, copyit) kvobject_alloc(size, init, deinit, copyit)
+#define kvo_copy(kvo) kvobject_copy(kvo)
+
 kvobject_t *kvobject_alloc(size_t size, kvobject_handler_t init, kvobject_handler_t deinit, kvobject_duo_handler_t copyit);
 kvobject_t *kvobject_copy(kvobject_t *kvo);
 

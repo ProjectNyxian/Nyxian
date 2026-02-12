@@ -70,14 +70,14 @@ void proc_snapshot_create_radix_walk(pid_t pid,
     ksurface_proc_t *proc = value;
     
     /* trying to retain process */
-    if(!KVOBJECT_RETAIN(proc))
+    if(!kvo_retain(proc))
     {
         /* continue */
         return;
     }
     
     /* lock read */
-    KVOBJECT_RDLOCK(proc);
+    kvo_rdlock(proc);
     
     if(can_see_process(rctx->caller, proc, rctx->vis))
     {
@@ -85,8 +85,8 @@ void proc_snapshot_create_radix_walk(pid_t pid,
     }
     
     /* unlock */
-    KVOBJECT_UNLOCK(proc);
-    KVOBJECT_RELEASE(proc);
+    kvo_unlock(proc);
+    kvo_release(proc);
 }
 
 proc_list_err_t proc_snapshot_create(ksurface_proc_copy_t *proc_copy,

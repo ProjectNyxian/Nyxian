@@ -159,7 +159,7 @@ static inline void ksurface_kinit_kproc(void)
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
     /* locking kproc write */
-    KVOBJECT_WRLOCK(kproc);
+    kvo_wrlock(kproc);
     
     /* checking for tfp support */
     proc_task_write_lock();
@@ -200,7 +200,7 @@ static inline void ksurface_kinit_kproc(void)
     strlcpy(kproc->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* unlocking */
-    KVOBJECT_UNLOCK(kproc);
+    kvo_unlock(kproc);
     
     /* storing kproc */
     ksurface->proc_info.kern_proc = kproc;
@@ -217,7 +217,7 @@ static inline void ksurface_kinit_kproc(void)
     }
     
     /* releaing our reference to kproc, because we return now and kproc is now held by the radix tree */
-    KVOBJECT_RELEASE(kproc);
+    kvo_release(kproc);
 }
 
 void ksurface_kinit(void)

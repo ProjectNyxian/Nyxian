@@ -46,7 +46,7 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     if(proc_getpid(proc) == pid &&
        !atomic_load(&proc->header.invalid))
     {
-        if(KVOBJECT_RETAIN(proc))
+        if(kvo_retain(proc))
         {
             proc_table_unlock();
             return proc;

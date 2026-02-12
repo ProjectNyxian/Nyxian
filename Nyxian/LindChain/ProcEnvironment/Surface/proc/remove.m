@@ -23,35 +23,46 @@
 
 ksurface_return_t proc_remove_by_pid(pid_t pid)
 {
-    /* Null pointer check */
-    if(ksurface == NULL)
-    {
-        return kSurfaceReturnNullPtr;
-    }
-    
-    /* Aquire rw lock */
+    /*
+     * locking process table so the process table, can
+     * be safely edited.
+     */
     proc_table_write_lock();
     
-    /* Getting target process */
+    /*
+     * remocing process from radix tree, which is also
+     * where its first reference lives at.
+     */
     ksurface_proc_t *proc = radix_remove(&(ksurface->proc_info.tree), pid);
+    
+    /*
+     * radix_remove always returns the process
+     * structure, that previously was inserted at that
+     * pid slot. if its NULL it means there was never a
+     * pid so this is also a was process in tree check.
+     */
     if(proc == NULL)
     {
+        /* reverting locks and return */
         proc_table_unlock();
         return kSurfaceReturnNotFound;
     }
     
-    /* removed so decrementing process count */
+    /*
+     * decrementing count of processes so its
+     * correctly counted.
+     */
     ksurface->proc_info.proc_count--;
     
-    /* Marking process as dead */
-    atomic_store(&(proc->header.invalid), true);
+    /*
+     * invalidating object and remocing its
+     * origin reference that lived in the
+     * radix tree.
+     */
+    kvo_invalidate(proc);
+    kvo_release(proc);
     
-    /* Release process */
-    KVOBJECT_RELEASE(proc);
-    
-    /* Unlocking table */
+    /* reverting locks and return */
     proc_table_unlock();
-    
-    /* Succeeded */
     return kSurfaceReturnSuccess;
 }

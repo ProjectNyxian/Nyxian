@@ -44,7 +44,7 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     /* permission check */
     if(!can_see_process(sys_proc_copy_, proc, vis))
     {
-        KVOBJECT_RELEASE(proc);
+        kvo_release(proc);
         sys_return_failure(EINVAL);
     }
     
@@ -52,14 +52,14 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     *out_len = sizeof(kinfo_proc_t);
     
     /* locking process read */
-    KVOBJECT_RDLOCK(proc);
+    kvo_rdlock(proc);
     
     /* copying buffer into mach syscall payload */
     kern_return_t kr = mach_syscall_payload_create(&(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t), (vm_address_t*)out_payload);
     
     /* doneee x3 */
-    KVOBJECT_UNLOCK(proc);
-    KVOBJECT_RELEASE(proc);
+    kvo_unlock(proc);
+    kvo_release(proc);
     
     if(kr == KERN_SUCCESS)
     {

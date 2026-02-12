@@ -110,7 +110,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         }
         
         /* trying to retain kernel process */
-        if(!KVOBJECT_RETAIN(kernel_proc_))
+        if(!kvo_retain(kernel_proc_))
         {
             errnov = ESRCH;
             goto out_unlock_failure;
@@ -163,11 +163,11 @@ DEFINE_SYSCALL_HANDLER(gettask)
     *out_ports_cnt = 1;
     
     proc_task_unlock();
-    KVOBJECT_RELEASE(target);
+    kvo_release(target);
     sys_return;
     
 out_proc_release_failure:
-    KVOBJECT_RELEASE(target);
+    kvo_release(target);
 out_unlock_failure:
     proc_task_unlock();
     sys_return_failure(errnov);

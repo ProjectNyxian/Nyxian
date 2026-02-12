@@ -103,7 +103,7 @@ force_not_inherite_entitlements:
         klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
         
         /* releasing child process because of failed insert */
-        KVOBJECT_RELEASE(child);
+        kvo_release(child);
         return NULL;
     }
     
@@ -116,7 +116,7 @@ force_not_inherite_entitlements:
      * and the child who their parent is
      * and create a reference contract.
      */
-    if(!KVOBJECT_RETAIN(parent))
+    if(!kvo_retain(parent))
 out_parent_contract_retain_failed:
     {
         proc_remove_by_pid(proc_getpid(child));
@@ -130,13 +130,13 @@ out_parent_contract_retain_failed:
      * checking if it would exceed maximum amount
      * of child processes per process.
      */
-    if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX || !KVOBJECT_RETAIN(child))
+    if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX || !kvo_retain(child))
     {
         /* unlocking parent mutex again */
         pthread_mutex_unlock(&(parent->kproc.children.mutex));
         
         /* releasing all references */
-        KVOBJECT_RELEASE(parent);
+        kvo_release(parent);
         
         /* does already return */
         goto out_parent_contract_retain_failed;
@@ -177,7 +177,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     }
     
     /* retain process that wants to exit*/
-    if(!KVOBJECT_RETAIN(proc))
+    if(!kvo_retain(proc))
     {
         return kSurfaceReturnProcessDead;
     }
@@ -193,7 +193,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         ksurface_proc_t *child = proc->kproc.children.children[idx];
         
         /* retaining child */
-        if(!KVOBJECT_RETAIN(child))
+        if(!kvo_retain(child))
         {
             /* in case we cannot retain the child, we skip the child */
             continue;
@@ -206,7 +206,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         proc_exit(child);
         
         /* releasing reference previously retained */
-        KVOBJECT_RELEASE(child);
+        kvo_release(child);
         
         /* relocking */
         pthread_mutex_lock(&(proc->kproc.children.mutex));
@@ -222,10 +222,10 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     if(parent != NULL)
     {
         /* retaining the parent */
-        if(!KVOBJECT_RETAIN(parent))
+        if(!kvo_retain(parent))
         {
             /* releasing child */
-            KVOBJECT_RELEASE(proc);
+            kvo_release(proc);
             return kSurfaceReturnFailed;
         }
         
@@ -259,11 +259,11 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         pthread_mutex_unlock(&(parent->kproc.children.mutex));
         
         /* release relationship references */
-        KVOBJECT_RELEASE(proc);
-        KVOBJECT_RELEASE(parent);
+        kvo_release(proc);
+        kvo_release(parent);
         
         /* release working ref */
-        KVOBJECT_RELEASE(parent);
+        kvo_release(parent);
     }
     
     pid_t pid = proc_getpid(proc);
@@ -272,7 +272,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     proc_remove_by_pid(pid);  /* remove from global table */
     
     /* release our working reference */
-    KVOBJECT_RELEASE(proc);
+    kvo_release(proc);
     
     /* terminate process */
     LDEProcess *process = [[LDEProcessManager shared].processes objectForKey:@(pid)];
