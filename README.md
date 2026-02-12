@@ -29,7 +29,7 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 - AltStore 2.0+ / SideStore 0.6.0+
 
 ### Download:
-<a href="https://celloserenity.github.io/altdirect/?url=https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
+<a href="https://stikstore.app/altdirect/?url=https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
 </a>
 <a href="https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.6/nyxian.ipa" target="_blank">
