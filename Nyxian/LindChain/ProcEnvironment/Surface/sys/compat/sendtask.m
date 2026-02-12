@@ -54,20 +54,21 @@ DEFINE_SYSCALL_HANDLER(sendtask)
     }
     
     /* ontaining task port */
-    task_t task = environment_tfp_extract_transfer_port(in_ports[0]);
-    
-    /* checking if pid of task port is valid */
-    pid_t pid = -1;
-    kr = pid_for_task(task, &pid);
-    if(kr != KERN_SUCCESS ||
-       pid != proc_getpid(sys_proc_copy_))
+    if(environment_supports_full_tfp())
     {
-        proc_task_unlock();
-        sys_return_failure(EINVAL);
+        /* checking if pid of task port is valid */
+        pid_t pid = -1;
+        kr = pid_for_task(in_ports[0], &pid);
+        if(kr != KERN_SUCCESS ||
+           pid != proc_getpid(sys_proc_copy_))
+        {
+            proc_task_unlock();
+            sys_return_failure(EINVAL);
+        }
     }
     
     /* setting task */
-    sys_proc_copy_->proc->kproc.task = task;
+    sys_proc_copy_->proc->kproc.task = in_ports[0];
     
     /* return with succession */
     proc_task_unlock();

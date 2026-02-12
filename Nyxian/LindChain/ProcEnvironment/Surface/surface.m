@@ -165,7 +165,6 @@ static inline void ksurface_kinit_kproc(void)
     proc_task_write_lock();
         
     /* setting task port (for iOS 26.0 functionalities) */
-    /* FIXME: Doesnt work on iOS post and pre 26.0 */
     kproc->kproc.task = environment_tfp_create_transfer_port(mach_task_self());
         
     proc_task_unlock();
