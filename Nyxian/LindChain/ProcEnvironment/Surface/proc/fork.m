@@ -40,7 +40,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* creating child process */
-    ksurface_proc_t *child = (ksurface_proc_t*)kvobject_copy((kvobject_t*)parent);
+    ksurface_proc_t *child = kvo_copy(parent);
     
     /* checking if child is null */
     if(child == NULL)
