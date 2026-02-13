@@ -45,9 +45,6 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
         return KERN_FAILURE;
     }
     
-    /* extracting task port */
-    environment_tfp_extract_transfer_port(tp_out);
-    
     if(*tp_out == MACH_PORT_NULL)
     {
         return KERN_FAILURE;
@@ -72,7 +69,7 @@ bool environment_supports_full_tfp(void)
      * they reverted the change back.
      *
      * it works cause apple messed up to guard receive task ports
-     * with MPG_IMMOVABLE_RECEIVE which is what makes task ports
+     * with MPO_IMMOVABLE_RECEIVE which is what makes task ports
      * unsendable on older and newer iOS than iOS 26.0. Another
      * option would be that apple tightened the send right of the
      * task port prior and post iOS 26.0. I also wanna say that
@@ -111,68 +108,20 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
     }
     
     /*
-     * partially very narrow access, i was eperimenting with
-     * the mach api till i stumbled upon this neat symbol
-     * and its opponent which restores it back. so the
-     * sender creates this transferable port and the
-     * receiver stores it somewhere to then resend it..
-     * the final receiver of this port can then extract
-     * a valid task name out of this port.
+     * iOS prior and post iOS 26.0 seem to deny the transfer of
+     * any task port which is more capable than TASK_NAME_PORT
+     * so basically TASK_INSPECT_PORT wont work and will crash
+     * the process invoking SYS_sendtask, which is also the
+     * reason why its so dificult to research and debug.
      */
-    kern_return_t kr = task_create_identity_token(task, &task);
+    kern_return_t kr = task_get_special_port(task, TASK_NAME_PORT, &task);
     
-    /*
-     * if this doesnt work then hopefully it will send
-     * nothing.
-     */
     if(kr != KERN_SUCCESS)
     {
         return MACH_PORT_NULL;
     }
     
     return task;
-}
-
-void environment_tfp_extract_transfer_port(mach_port_t *tport)
-{
-    /*
-     * when full tfp fix is supported that means that the task
-     * port it self can be transferred so we can simply return.
-     */
-    if(environment_supports_full_tfp())
-    {
-        return;
-    }
-    
-    /*
-     * partially very narrow access, basically when someone receives
-     * the transferable port they can then as a other process extract
-     * a TASK NAME right out of this port, why did i capitlized that?
-     * its because I dont want people to point out I could ask for a
-     * more powerful flavor, iOS forbids that I already tried that
-     * and wish this second method would allow for it. note that
-     * regardless.. a task name right is still much more powerful
-     * than no task right at all.
-     */
-    task_id_token_t token = *tport;
-    
-    kern_return_t kr = task_identity_token_get_task_port(token, TASK_FLAVOR_NAME, tport);
-    
-    /*
-     * if this doesnt work then hopefully it will handle
-     * nothing.
-     */
-    if(kr != KERN_SUCCESS)
-    {
-        *tport = MACH_PORT_NULL;
-    }
-    
-    /*
-     * releasing token to avoid a reference leak, since this is
-     * about extracting the task port out of the tport pointer
-     * so this port shall be gone now.
-     */
-    mach_port_deallocate(mach_task_self(), token);
 }
 
 /*

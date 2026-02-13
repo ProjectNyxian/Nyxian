@@ -52,18 +52,14 @@ DEFINE_SYSCALL_HANDLER(sendtask)
         sys_return_failure(EINVAL);
     }
     
-    /* ontaining task port */
-    if(environment_supports_full_tfp())
+    /* checking if pid of task port is valid */
+    pid_t pid = -1;
+    kr = pid_for_task(in_ports[0], &pid);
+    if(kr != KERN_SUCCESS ||
+       pid != proc_getpid(sys_proc_copy_))
     {
-        /* checking if pid of task port is valid */
-        pid_t pid = -1;
-        kr = pid_for_task(in_ports[0], &pid);
-        if(kr != KERN_SUCCESS ||
-           pid != proc_getpid(sys_proc_copy_))
-        {
-            task_unlock();
-            sys_return_failure(EINVAL);
-        }
+        task_unlock();
+        sys_return_failure(EINVAL);
     }
     
     /* setting task */

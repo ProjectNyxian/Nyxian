@@ -56,8 +56,6 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     
     *task = proc->kproc.task;
     
-    environment_tfp_extract_transfer_port(task);
-    
     task_unlock();
     kvo_release(proc);
     return SURFACE_SUCCESS;

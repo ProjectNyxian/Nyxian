@@ -132,16 +132,13 @@ DEFINE_SYSCALL_HANDLER(gettask)
         goto out_proc_release_failure;
     }
     
-    if(environment_supports_full_tfp())
+    /* checking if pid of task port is valid */
+    kr = pid_for_task(target->kproc.task, &pid);
+    if(kr != KERN_SUCCESS ||
+       pid != proc_getpid(target))
     {
-        /* checking if pid of task port is valid */
-        kr = pid_for_task(target->kproc.task, &pid);
-        if(kr != KERN_SUCCESS ||
-           pid != proc_getpid(target))
-        {
-            errnov = ESRCH;
-            goto out_proc_release_failure;
-        }
+        errnov = ESRCH;
+        goto out_proc_release_failure;
     }
     
     /* allocating syscall payload */
