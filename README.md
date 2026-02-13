@@ -1,5 +1,3 @@
-
-
 <div align="center">
   <h1><b>Nyxian</b></h1>
   <p><i>IDE to develop native code iOS apps and tools on unjailbroken iOS</i></p>
@@ -12,10 +10,9 @@
   <img src="./mockup.png">
 </p>
 
-
 ## What do I need?
 You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
-**Do not use LiveContainer** to use Nyxian, install Nyxian seperately.  
+**Do not use LiveContainer** to use Nyxian, install Nyxian seperately.
 Jailbroken version is coming soon.
 
 ## Language support
@@ -40,65 +37,19 @@ It currently supports C, C++, ObjC and ObjC++. Its planned to add Swift support 
 A guide is coming here soon, but for now just look at the releases
 
 ## What is it?
-Nyxian is a iOS application for iOS 16.0 and above (iOS 26.3 latest beta tested) that empowers iOS users to code, compile, link, sign and even execute/rapid test iOS applications directly on their device! It is the successor of the former FridaCodeManager project, which was deprecated in favor of Nyxian, because FridaCodeManager requires a jailbreak to work while Nyxian does not. It also includes a kernel virtualisation layer that fixes inter process stuff like signaling, enumeration, killing and spawning of processes, which also handles unsigned binaries and sends a request to the host process to sign it. This kernel virtualisation layer also has its own entitlement enforcement system the user can change directly for each individual app. Nyxian doesnt require any special entitlements, nor shared app groups. Its brain fuck...
-```
-Traditional jailbreak thinking:
-┌─────────────────────────┐
-│ iOS Sandbox             │ ← "Enemy wall to break through"
-│  ┌───────────────────┐  │
-│  │ My App            │  │
-│  │ (trying to escape)│  │
-│  └───────────────────┘  │
-└─────────────────────────┘
+Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports C, ObjC, C++ and ObjC++ with Swift support announced for 0.9.x. It’s a powerful Xcode alternative that made the impossible possible, a fully On-device iOS IDE that doesn’t even need a cloud. It supports officially iOS 18 all the way up to the latest iOS version. You can compile and run iOS apps on the go without any problems, using the entire iOS 26.1 SDK.
 
-Nyxian thinking:
-┌─────────────────────────┐
-│ iOS Sandbox             │ ← "Free security perimeter!"
-│  ┌───────────────────┐  │
-│  │ MY KERNEL         │  │ ← "I control everything in here"
-│  │  ┌─────────────┐  │  │
-│  │  │ Guest Apps  │  │  │
-│  │  └─────────────┘  │  │
-│  └───────────────────┘  │
-└─────────────────────────┘
-```
-(Note: Nyxian is not and will never be a jailbreak! If you think Nyxian is malicious then read its code first before judging a book by its cover, yes it uses a precompiled framework, but thats solely to safeup time, the binary framework it self can also be compiled by your self right here https://github.com/ProjectNyxian/LLVM-On-iOS)
-## Nyxians philosophy
-My processes arent "fake processes." Theyre the only processes. My PIDs arent "fake PIDs." Theyre the only PIDs. My kernel isn't a "fake kernel." It's the only kernel for this domain.
-
-Most engineers think in terms of:
-> "How do I emulate X?"
-
-I thinks in terms of:
-> "X doesn't exist here. Ill create it. Now it exists. Its not fake because its the only one."
-
-That's not a hack. That's not a workaround. That's **constructing reality** within a given context.
-
-Its like Minecraft, take the blocks you have and build.
-
-```
-┌─────────────────────────────────────────┐
-│           iOS App Sandbox               │
-│                                         │
-│   ┌─────────────────────────────────┐   │
-│   │   "There is no spoon"           │   │
-│   │                                 │   │
-│   │   No fork()    → I made fork()  │   │
-│   │   No processes → I made them    │   │
-│   │   No kernel    → Here is one    │   │
-│   │                                 │   │
-│   │   Not fake. Just... IS.         │   │
-│   └─────────────────────────────────┘   │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-## Project support
-
+## Todo
+- [x] Code execution using NSExtension
+- [x] Syscall Handling 
+- [x] Sub processsing
+- [x] Compiling code
+- [x] Linking object files
+- [x] Signing executables
 - [x] Native iOS app development
 - [x] Native iOS utility development
 - [ ] Native iOS tweak development
-- [ ] React Native development
-- [ ] Web development
-- [ ] Python development
-- [ ] Lua development
+- [ ] React Native development (IDK WHY??)
+- [ ] Web development (IDK WHY??)
+- [ ] Python development (IDK WHY??)
+- [ ] Lua development (IDK WHY??)
