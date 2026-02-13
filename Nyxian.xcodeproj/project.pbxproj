@@ -333,7 +333,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		79FDA8872F3F257900692496 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
+		7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
@@ -381,7 +381,7 @@
 				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
-				79FDA8872F3F257900692496 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
+				7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 			);
 			path = Nyxian;
