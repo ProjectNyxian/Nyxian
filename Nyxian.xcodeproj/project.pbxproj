@@ -53,16 +53,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		799D809C2F2B1FBA009486BE /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		79BF98092E6291EE00C60D4C /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -93,6 +83,16 @@
 			files = (
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		79FDA8862F3F257900692496 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */ = {
@@ -333,12 +333,12 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		799D809D2F2B1FBA009486BE /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
+		79FDA8872F3F257900692496 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
-			buildPhase = 799D809C2F2B1FBA009486BE /* Embed Frameworks */;
+			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
 				LindChain/Clang.xcframework,
 			);
@@ -381,7 +381,7 @@
 				798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */,
 				AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */,
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
-				799D809D2F2B1FBA009486BE /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
+				79FDA8872F3F257900692496 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
 			);
 			path = Nyxian;
@@ -505,7 +505,7 @@
 				79AF51162F1CBD110055004A /* Sources */,
 				79AF51172F1CBD110055004A /* Frameworks */,
 				79AF511F2F1CBD110055004A /* Resources */,
-				799D809C2F2B1FBA009486BE /* Embed Frameworks */,
+				79FDA8862F3F257900692496 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
