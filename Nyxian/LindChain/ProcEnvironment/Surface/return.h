@@ -20,17 +20,15 @@
 #ifndef PROCENVIRONMENT_RETURN_H
 #define PROCENVIRONMENT_RETURN_H
 
-typedef enum kSurfaceReturn {
-    kSurfaceReturnSuccess = 0,
-    kSurfaceReturnNullPtr,
-    kSurfaceReturnNotFound,
-    kSurfaceReturnOutOfBounds,
-    kSurfaceReturnDenied,
-    kSurfaceReturnAlreadyExists,
-    kSurfaceReturnFailed,
-    kSurfaceReturnProcessDead,
-    kSurfaceReturnPidInUse,
-    kSurfaceReturnNoMemory
-} ksurface_return_t;
+typedef uint8_t ksurface_return_t;
+
+#define SURFACE_SUCCESS         0
+
+#define SURFACE_NULLPTR         1
+#define SURFACE_DENIED          2
+#define SURFACE_FAILED          4
+#define SURFACE_UNAVAILABLE     5
+#define SURFACE_INUSE           6
+#define SURFACE_NOMEM           7
 
 #endif /* PROCENVIRONMENT_RETURN_H */

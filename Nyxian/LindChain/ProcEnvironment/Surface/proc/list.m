@@ -111,7 +111,7 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
        kp == NULL ||
        count == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return SURFACE_NULLPTR;
     }
     
     /*
@@ -131,7 +131,7 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
     if(w == NULL)
     {
         pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
-        return kSurfaceReturnNoMemory;
+        return SURFACE_NOMEM;
     }
     
     /* setting up radix walker */
@@ -154,5 +154,5 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
     /* unlocking proc table */
     pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
     
-    return kSurfaceReturnSuccess;
+    return SURFACE_SUCCESS;
 }

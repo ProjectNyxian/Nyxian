@@ -34,9 +34,9 @@ DEFINE_SYSCALL_HANDLER(proctb)
     /* evaluating snapshot creation */
     switch(ret)
     {
-        case kSurfaceReturnNullPtr:
+        case SURFACE_NULLPTR:
             sys_return_failure(ENOMEM);
-        case kSurfaceReturnDenied:
+        case SURFACE_DENIED:
             sys_return_failure(EPERM);
         default:
             break;

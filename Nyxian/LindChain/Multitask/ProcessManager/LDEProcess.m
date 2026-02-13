@@ -166,7 +166,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 #if !JAILBREAK_ENV
                         klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
                         ksurface_return_t error = proc_exit(innerSelf.proc);
-                        if(error != kSurfaceReturnSuccess && error != kSurfaceReturnProcessDead)
+                        if(error != SURFACE_SUCCESS)
                         {
                             klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                         }

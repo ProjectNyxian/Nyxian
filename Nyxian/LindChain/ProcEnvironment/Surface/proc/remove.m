@@ -44,7 +44,7 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     {
         /* reverting locks and return */
         proc_table_unlock();
-        return kSurfaceReturnNotFound;
+        return SURFACE_UNAVAILABLE;
     }
     
     /*
@@ -63,5 +63,6 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     
     /* reverting locks and return */
     proc_table_unlock();
-    return kSurfaceReturnSuccess;
+
+    return SURFACE_SUCCESS;
 }

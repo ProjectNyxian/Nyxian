@@ -96,7 +96,7 @@ force_not_inherite_entitlements:
     strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* insert will retain the child process */
-    if(proc_insert(child) != kSurfaceReturnSuccess)
+    if(proc_insert(child) != SURFACE_SUCCESS)
     {
         /* logging if enabled */
         klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
@@ -165,20 +165,20 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     /* null pointer check */
     if(proc == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return SURFACE_NULLPTR;
     }
     
     /* checking if proc is kernel */
     if(proc == kernel_proc_)
     {
         klog_log(@"proc:exit", @"cannot terminate the kernel");
-        return kSurfaceReturnDenied;
+        return SURFACE_DENIED;
     }
     
     /* retain process that wants to exit*/
     if(!kvo_retain(proc))
     {
-        return kSurfaceReturnProcessDead;
+        return SURFACE_FAILED;
     }
     
     /* lock mutex */
@@ -225,7 +225,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         {
             /* releasing child */
             kvo_release(proc);
-            return kSurfaceReturnFailed;
+            return SURFACE_FAILED;
         }
         
         /* lock order: parent → child */
@@ -280,5 +280,5 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         [process terminate];
     }
     
-    return kSurfaceReturnSuccess;
+    return SURFACE_SUCCESS;
 }

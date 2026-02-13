@@ -22,12 +22,12 @@
 
 ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {
-    ksurface_return_t err = kSurfaceReturnSuccess;
+    ksurface_return_t err = SURFACE_SUCCESS;
     
     /* null pointer check */
     if(proc == NULL)
     {
-        return kSurfaceReturnNullPtr;
+        return SURFACE_NULLPTR;
     }
     
     /* get pid of process */
@@ -39,21 +39,21 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     /* checking process count */
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
-        err = kSurfaceReturnFailed;
+        err = SURFACE_FAILED;
         goto out_unlock;
     }
     
     /* looking up the radix tree */
     if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
     {
-        err = kSurfaceReturnPidInUse;
+        err = SURFACE_INUSE;
         goto out_unlock;
     }
     
     /* retaining process */
     if(!kvo_retain(proc))
     {
-        err = kSurfaceReturnFailed;
+        err = SURFACE_FAILED;
         goto out_unlock;
     }
     
@@ -61,7 +61,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
     {
         kvo_release(proc);
-        err = kSurfaceReturnNoMemory;
+        err = SURFACE_FAILED;
         goto out_unlock;
     }
     
