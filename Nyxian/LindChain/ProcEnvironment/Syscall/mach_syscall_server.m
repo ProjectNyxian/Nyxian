@@ -324,29 +324,12 @@ int syscall_server_start(syscall_server_t *server)
     kern_return_t kr;
     
     /* creating syscall server port */
-    kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server->port);
-    
-    /* mach return check */
-    if(kr != KERN_SUCCESS)
-    {
-        return -1;
-    }
-    
-    /* inserting port send right */
-    kr = mach_port_insert_right(mach_task_self(), server->port, server->port, MACH_MSG_TYPE_MAKE_SEND);
-    
-    /* mach return check */
-    if(kr != KERN_SUCCESS)
-    {
-        mach_port_deallocate(mach_task_self(), server->port);
-        return -1;
-    }
-    
-    /* setting limits on how many syscalls can be queued at once */
-    mach_port_limits_t limits = { .mpl_qlimit = SYSCALL_QUEUE_LIMIT };
-    
-    /* setting it as a attribute MARK: fuck XPC */
-    kr = mach_port_set_attributes(mach_task_self(), server->port, MACH_PORT_LIMITS_INFO, (mach_port_info_t)&limits, MACH_PORT_LIMITS_INFO_COUNT);
+    mach_port_options_t options = {
+        .flags = MPO_INSERT_SEND_RIGHT | MPO_QLIMIT | MPO_IMMOVABLE_RECEIVE | MPO_PORT,
+        .mpl = SYSCALL_QUEUE_LIMIT,
+    };
+        
+    kr = mach_port_construct(mach_task_self(), &options, 0, &server->port);
     
     /* mach return check */
     if(kr != KERN_SUCCESS)

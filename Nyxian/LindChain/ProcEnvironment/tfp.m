@@ -48,6 +48,11 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
     /* extracting task port */
     environment_tfp_extract_transfer_port(tp_out);
     
+    if(*tp_out == MACH_PORT_NULL)
+    {
+        return KERN_FAILURE;
+    }
+    
     /* return it */
     return KERN_SUCCESS;
 }
