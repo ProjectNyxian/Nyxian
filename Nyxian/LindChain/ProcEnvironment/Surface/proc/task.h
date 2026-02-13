@@ -17,18 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SURFACE_H
-#define PROCENVIRONMENT_SURFACE_H
+#ifndef PROC_TASK_H
+#define PROC_TASK_H
 
-#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#import <LindChain/ProcEnvironment/Surface/limits.h>
-#import <LindChain/ProcEnvironment/Surface/return.h>
-#import <LindChain/ProcEnvironment/Surface/mapping.h>
+ksurface_return_t task_for_proc(ksurface_proc_t *proc, task_t *task);
 
-extern ksurface_mapping_t *ksurface;
-
-void ksurface_sethostname(NSString *hostname);
-void ksurface_kinit(void);
-
-#endif /* PROCENVIRONMENT_SURFACE_H */
+#endif /* PROC_TASK_H */
