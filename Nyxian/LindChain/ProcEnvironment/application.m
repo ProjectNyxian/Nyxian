@@ -136,6 +136,5 @@ void environment_application_init(void)
         swizzle_objc_method(@selector(setActive:withOptions:error:), [AVAudioSession class], @selector(hook_setActive:withOptions:error:), nil);
         
         signal(SIGUSR1, environment_signal_child_handler);
-        signal(SIGUSR2, environment_signal_child_handler);
     }
 }

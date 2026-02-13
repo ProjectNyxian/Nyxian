@@ -584,9 +584,15 @@ void machServerInit(void)
     // Dispatching once cuz the mach server shall only be initilized once
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+    
         // Setting each signal to be blocked, in order to make the threads stop on fault, in the past it just continued running
         sigset_t set;
-        sigfillset(&set);
+
+        if(sigprocmask(0, NULL, &set) == -1)
+        {
+            perror("sigprocmask");
+        }
+        
         sigdelset(&set, SIGKILL);
         sigdelset(&set, SIGSTOP);
         sigdelset(&set, SIGABRT);
