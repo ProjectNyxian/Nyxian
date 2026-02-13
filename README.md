@@ -13,22 +13,18 @@
 ## What is it?
 Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports C, ObjC, C++ and ObjC++ with Swift support announced for 0.9.x. It’s a powerful Xcode alternative that made the impossible possible, a fully On-device iOS IDE that doesn’t even need a cloud. It supports officially iOS 18 all the way up to the latest iOS version. You can compile and run iOS apps on the go without any problems, using the entire iOS 26.1 SDK.
 
-## What do I need?
-You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
+## Installation
+
+### Jailed
+Jailed is the main version of Nyxian. You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
 **Do not use LiveContainer** to use Nyxian, install Nyxian seperately.
-Jailbroken version is coming soon.
-
-### Installation
-
-#### Jailed
-Jailed is the main version of Nyxian.
 
 ##### Requirements
 
 - iOS/iPadOS 16+
 - AltStore 2.0+ / SideStore 0.6.0+
 
-###### Download:
+##### Download:
 <a href="https://stikstore.app/altdirect/?url=https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
 </a>
@@ -36,7 +32,7 @@ Jailed is the main version of Nyxian.
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
 </a>
 
-#### Jailbroken
+### Jailbroken
 A guide is coming here soon, but for now just look at the releases.
 
 ## Todo
