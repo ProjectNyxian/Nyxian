@@ -119,7 +119,7 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
      * the final receiver of this port can then extract
      * a valid task name out of this port.
      */
-    kern_return_t kr = task_create_identity_token(mach_task_self(), &task);
+    kern_return_t kr = task_create_identity_token(task, &task);
     
     /*
      * if this doesnt work then hopefully it will send

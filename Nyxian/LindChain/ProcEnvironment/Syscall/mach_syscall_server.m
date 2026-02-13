@@ -325,7 +325,7 @@ int syscall_server_start(syscall_server_t *server)
     
     /* creating syscall server port */
     mach_port_options_t options = {
-        .flags = MPO_INSERT_SEND_RIGHT | MPO_QLIMIT | MPO_IMMOVABLE_RECEIVE | MPO_PORT,
+        .flags = MPO_INSERT_SEND_RIGHT | MPO_QLIMIT | MPO_IMMOVABLE_RECEIVE | MPO_PORT | MPO_STRICT | MPO_CONNECTION_PORT_WITH_PORT_ARRAY,
         .mpl = SYSCALL_QUEUE_LIMIT,
     };
         

@@ -53,8 +53,9 @@ syscall_client_t *syscall_client_create(mach_port_t port)
     /* setting server port */
     client->server_port = port;
     
-    mach_port_options_t opts = {0};
-    opts.flags = MPO_REPLY_PORT | MPO_INSERT_SEND_RIGHT;
+    mach_port_options_t opts = {
+        .flags = MPO_STRICT | MPO_REPLY_PORT
+    };
 
     kr = mach_port_construct(mach_task_self(), &opts, 0, &client->reply_port);
     if(kr != KERN_SUCCESS)
