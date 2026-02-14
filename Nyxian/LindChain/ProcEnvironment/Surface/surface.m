@@ -176,7 +176,7 @@ static inline void ksurface_kinit_kproc(void)
     }
     
     /* setting up properties */
-    kproc->kproc.task = environment_tfp_create_transfer_port(mach_task_self());
+    kproc->kproc.task = environment_sendable_mach_task_self();
     proc_setpid(kproc, getpid());
     proc_setppid(kproc, PID_LAUNCHD);
     proc_setsid(kproc, proc_getpid(kproc));

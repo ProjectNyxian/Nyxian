@@ -30,27 +30,20 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
                                        pid_t pid,
                                        mach_port_name_t *tp_out)
 {
-    /* null pointer check */
+    /* sanity check */
     if(tp_out == NULL)
     {
         return KERN_FAILURE;
     }
     
-    /* getting task port */
     int64_t ret = environment_syscall(SYS_gettask, pid, tp_out);
     
-    /* checking return */
-    if(ret == -1)
+    if(ret == -1 ||
+       *tp_out == MACH_PORT_NULL)
     {
         return KERN_FAILURE;
     }
     
-    if(*tp_out == MACH_PORT_NULL)
-    {
-        return KERN_FAILURE;
-    }
-    
-    /* return it */
     return KERN_SUCCESS;
 }
 
@@ -95,7 +88,7 @@ bool environment_supports_full_tfp(void)
     return isSupported;
 }
 
-mach_port_t environment_tfp_create_transfer_port(task_t task)
+task_t environment_sendable_mach_task_self(void)
 {
     /*
      * when full tfp fix is supported that means that the task
@@ -104,8 +97,15 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
      */
     if(environment_supports_full_tfp())
     {
-        return task;
+        /*
+         * syscall messages are sent with MACH_MSG_TYPE_MOVE_SEND,
+         * so increment reference count.
+         */
+        mach_port_mod_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, 1);
+        return mach_task_self();
     }
+    
+    task_t task;
     
     /*
      * iOS prior and post iOS 26.0 seem to deny the transfer of
@@ -114,7 +114,7 @@ mach_port_t environment_tfp_create_transfer_port(task_t task)
      * the process invoking SYS_sendtask, which is also the
      * reason why its so dificult to research and debug.
      */
-    kern_return_t kr = task_get_special_port(task, TASK_NAME_PORT, &task);
+    kern_return_t kr = task_get_special_port(mach_task_self(), TASK_NAME_PORT, &task);
     
     if(kr != KERN_SUCCESS)
     {
@@ -132,7 +132,7 @@ void environment_tfp_init(void)
     if(environment_is_role(EnvironmentRoleGuest))
     {
         /* sending our task port to the task port system */
-        environment_syscall(SYS_sendtask, environment_tfp_create_transfer_port(mach_task_self()));
+        environment_syscall(SYS_sendtask, environment_sendable_mach_task_self());
         
         /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
