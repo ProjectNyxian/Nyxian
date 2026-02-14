@@ -175,10 +175,6 @@
         [_focusView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
     ]];
     
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(focusWindow:)];
-    tap.delegate = self;
-    [_focusView addGestureRecognizer:tap];
-    
     dispatch_async(dispatch_get_main_queue(), ^{
         self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
         
@@ -195,30 +191,25 @@
     });
 }
 
-- (void)focusWindow:(UIPanGestureRecognizer*)sender
-{
-    if (!_focusView) return;
-    [self.view.superview bringSubviewToFront:self.view];
-
-    [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        self->_focusView.alpha = 0.0;
-        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
-
-        [UIView transitionWithView:self->_navigationBar duration:0.11 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-            self->_windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
-        } completion:nil];
-
-    } completion:^(BOOL finished) {
-        [self->_focusView removeFromSuperview];
-        self->_focusView = nil;
-        [self.delegate windowWantsToFocus:self];
-    }];
-}
-
 - (void)focusWindow
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self focusWindow:nil];
+        if (!self.focusView) return;
+        [self.view.superview bringSubviewToFront:self.view];
+
+        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+            self->_focusView.alpha = 0.0;
+            self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+
+            [UIView transitionWithView:self->_navigationBar duration:0.11 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+                self->_windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
+            } completion:nil];
+
+        } completion:^(BOOL finished) {
+            [self->_focusView removeFromSuperview];
+            self->_focusView = nil;
+            [self.delegate windowWantsToFocus:self];
+        }];
     });
 }
 
@@ -320,7 +311,7 @@
 
 - (void)maximizeWindow:(BOOL)animated
 {
-    [self focusWindow:nil];
+    [self focusWindow];
     
     void (^changes)(void);
     void (^completion)(void);
@@ -493,7 +484,7 @@
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
     [super touchesBegan:touches withEvent:event];
-    [self focusWindow:nil];
+    [self focusWindow];
 }
 
 - (void)updateOriginalFrame
