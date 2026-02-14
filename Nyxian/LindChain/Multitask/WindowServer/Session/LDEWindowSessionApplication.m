@@ -27,6 +27,7 @@
 
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <objc/runtime.h>
+#import <os/lock.h>
 
 NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
 
@@ -53,7 +54,11 @@ void UIKitFixesInit(void)
     }
 }
 
-@implementation LDEWindowSessionApplication
+@implementation LDEWindowSessionApplication {
+    os_unfair_lock lock;
+    BOOL isKeyboardShown;
+    CGFloat keyboardBottomInset;
+}
 
 @synthesize windowName;
 @synthesize windowIsFullscreen;
@@ -93,6 +98,9 @@ void UIKitFixesInit(void)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     
+    /* initilize lock */
+    lock = OS_UNFAIR_LOCK_INIT;
+    
     return YES;
 }
 
@@ -127,6 +135,8 @@ void UIKitFixesInit(void)
 
 - (void)activateWindow
 {
+    os_unfair_lock_lock(&lock);
+    
     /* set presenter to foreground */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.foreground = YES;
@@ -144,10 +154,14 @@ void UIKitFixesInit(void)
     
     /* resume process */
     [self.process resume];
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)deactivateWindow
 {
+    os_unfair_lock_lock(&lock);
+    
     /* set presenter to background */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.foreground = NO;
@@ -166,12 +180,18 @@ void UIKitFixesInit(void)
         if(!self.backgroundEnforcementTimer) return;
         [self.process suspend];
     }];
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)windowChangesSizeToRect:(CGRect)rect
 {
     // MARK: Has to be set so _performActionsForUIScene works
     self.windowSize = rect;
+    
+    os_unfair_lock_lock(&lock);
+    
+    __weak typeof(self) weakSelf = self;
     
     // Handle user resizes
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -199,11 +219,19 @@ void UIKitFixesInit(void)
         
         insets.top = 10;
         
+        __strong typeof(self) innerSelf = weakSelf;
+        if(innerSelf->isKeyboardShown)
+        {
+            insets.bottom = innerSelf->keyboardBottomInset;
+        }
+        
         settings.safeAreaInsetsPortrait = insets;
         settings.safeAreaInsetsLandscapeLeft = insets;
         settings.safeAreaInsetsLandscapeRight = insets;
         settings.safeAreaInsetsPortraitUpsideDown = insets;
     }];
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)sessionIdentifierAssigned:(int)identifier
@@ -218,8 +246,11 @@ void UIKitFixesInit(void)
                 transitionContext:(id)context
               lifecycleActionType:(uint32_t)actionType
 {
+    os_unfair_lock_lock(&lock);
+    
     if(![self.process.processHandle isValid] || self.process.isSuspended || !diff)
     {
+        os_unfair_lock_unlock(&lock);
         return;
     }
     
@@ -229,19 +260,10 @@ void UIKitFixesInit(void)
     
     UIMutableApplicationSceneSettings *newSettings = [self.presenter.scene.settings mutableCopy];
     newSettings.userInterfaceStyle = baseSettings.userInterfaceStyle;
-    newSettings.interfaceOrientation = baseSettings.interfaceOrientation;
-    newSettings.deviceOrientation = baseSettings.deviceOrientation;
-    
-    if(UIInterfaceOrientationIsLandscape(newSettings.interfaceOrientation))
-    {
-        newSettings.frame = CGRectMake(self.windowSize.origin.x, self.windowSize.origin.y, self.windowSize.size.height, self.windowSize.size.width);
-    }
-    else
-    {
-        newSettings.frame = self.windowSize;
-    }
     
     [self.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
+    
+    os_unfair_lock_unlock(&lock);
     
     [self windowChangesSizeToRect:self.windowSize];
 }
@@ -272,6 +294,8 @@ void UIKitFixesInit(void)
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
     [super traitCollectionDidChange:previousTraitCollection];
+ 
+    os_unfair_lock_lock(&lock);
     
     if(self.traitCollection.userInterfaceStyle != previousTraitCollection.userInterfaceStyle)
     {
@@ -279,22 +303,34 @@ void UIKitFixesInit(void)
             settings.userInterfaceStyle = self.traitCollection.userInterfaceStyle;
         }];
     }
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification
 {
+    os_unfair_lock_lock(&lock);
+    
     NSDictionary *info = notification.userInfo;
     CGRect keyboardFrame = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     
+    CGFloat bottomInset = keyboardFrame.size.height;
+    
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
-        currentInsets.bottom = keyboardFrame.size.height;
+        currentInsets.bottom = bottomInset;
         settings.safeAreaInsetsPortrait = currentInsets;
     }];
+    
+    isKeyboardShown = true;
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)keyboardWillHide:(NSNotification *)notification
 {
+    os_unfair_lock_lock(&lock);
+    
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
         
@@ -309,6 +345,10 @@ void UIKitFixesInit(void)
         
         settings.safeAreaInsetsPortrait = currentInsets;
     }];
+    
+    isKeyboardShown = false;
+    
+    os_unfair_lock_unlock(&lock);
 }
 
 - (void)dealloc
