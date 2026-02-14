@@ -27,13 +27,8 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
     proc_table_unlock();
     
-    if(proc == NULL)
-    {
-        return NULL;
-    }
-    
-    /* process may have started teardown, retention prevents use-after-free */
-    if(kvo_retain(proc))
+    if(proc == NULL ||
+       kvo_retain(proc))
     {
         return proc;
     }

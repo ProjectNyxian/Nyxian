@@ -22,53 +22,47 @@
 
 ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {
-    ksurface_return_t err = SURFACE_SUCCESS;
-    
-    /* null pointer check */
     if(proc == NULL)
     {
         return SURFACE_NULLPTR;
     }
     
-    /* get pid of process */
-    pid_t pid = proc_getpid(proc);
-    
-    /* Aquire rw lock */
-    proc_table_wrlock();
-    
-    /* checking process count */
-    if(ksurface->proc_info.proc_count >= PROC_MAX)
-    {
-        err = SURFACE_FAILED;
-        goto out_unlock;
-    }
-    
-    /* looking up the radix tree */
-    if(radix_lookup(&(ksurface->proc_info.tree), pid) != NULL)
-    {
-        err = SURFACE_INUSE;
-        goto out_unlock;
-    }
-    
-    /* retaining process */
     if(!kvo_retain(proc))
     {
-        err = SURFACE_FAILED;
-        goto out_unlock;
+        return SURFACE_RETAIN_FAILED;
     }
     
-    /* insert into tree*/
-    if(radix_insert(&(ksurface->proc_info.tree), pid, proc) != 0)
+    proc_table_wrlock();
+    
+    ksurface_return_t err = SURFACE_SUCCESS;
+    
+    if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
-        kvo_release(proc);
+        err = SURFACE_LIMIT;
+        goto out_unlock;
+    }
+    
+    if(radix_lookup(&(ksurface->proc_info.tree), proc_getpid(proc)) != NULL)
+    {
+        err = SURFACE_DUPLICATE;
+        goto out_unlock;
+    }
+    
+    if(radix_insert(&(ksurface->proc_info.tree), proc_getpid(proc), proc) != 0)
+    {
         err = SURFACE_FAILED;
         goto out_unlock;
     }
     
-    /* counting up */
     ksurface->proc_info.proc_count++;
     
 out_unlock:
     proc_table_unlock();
+    
+    if(err != SURFACE_SUCCESS)
+    {
+        kvo_release(proc);
+    }
+    
     return err;
 }

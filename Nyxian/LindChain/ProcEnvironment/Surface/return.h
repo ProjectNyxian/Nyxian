@@ -30,5 +30,8 @@ typedef uint8_t ksurface_return_t;
 #define SURFACE_UNAVAILABLE     5
 #define SURFACE_INUSE           6
 #define SURFACE_NOMEM           7
+#define SURFACE_RETAIN_FAILED   8
+#define SURFACE_DUPLICATE       9
+#define SURFACE_LIMIT           10
 
 #endif /* PROCENVIRONMENT_RETURN_H */
