@@ -23,25 +23,20 @@
 
 ksurface_proc_t *proc_for_pid(pid_t pid)
 {
-    /* lock proc table */
     proc_table_rdlock();
-    
-    /* black magic~~ */
     ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
+    proc_table_unlock();
     
-    /* null pointer check */
     if(proc == NULL)
     {
-        goto out_unlock;
+        return NULL;
     }
     
-    /* trying to retain the process */
+    /* process may have started teardown, retention prevents use-after-free */
     if(!kvo_retain(proc))
     {
-        proc = NULL;
+        return proc;
     }
     
-out_unlock:
-    proc_table_unlock();
-    return proc;
+    return NULL;
 }
