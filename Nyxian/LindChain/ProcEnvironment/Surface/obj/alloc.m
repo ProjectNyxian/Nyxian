@@ -58,7 +58,7 @@ kvobject_t *kvobject_alloc(size_t size,
     /* checking init handler and executing if nonnull */
     if(kvo->init != NULL)
     {
-        kvo->init(kvo, false, NULL);
+        kvo->init(kvo, NULL);
     }
     
     /* returning da object */
@@ -97,7 +97,7 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
     /* checking init handler and executing if nonnull */
     if(kvo_dup->init != NULL)
     {
-        kvo_dup->init(kvo_dup, true, kvo);
+        kvo_dup->init(kvo_dup, kvo);
     }
     
 out_unlock:

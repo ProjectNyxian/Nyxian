@@ -26,14 +26,14 @@
 #include <stdatomic.h>
 #include <pthread.h>
 
-#define DEFINE_KVOBJECT_INIT_HANDLER(name) void kvobject_handler_##name##_init(kvobject_t *kvo, bool is_copy, kvobject_t *src)
+#define DEFINE_KVOBJECT_INIT_HANDLER(name) void kvobject_handler_##name##_init(kvobject_t *kvo, kvobject_t *src)
 #define DEFINE_KVOBJECT_DEINIT_HANDLER(name) void kvobject_handler_##name##_deinit(kvobject_t *kvo)
 
 #define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_init
 #define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
 
 typedef struct kvobject kvobject_t;
-typedef void (*kvobject_init_handler_t)(kvobject_t*,bool,kvobject_t*);
+typedef void (*kvobject_init_handler_t)(kvobject_t*,kvobject_t*);
 typedef void (*kvobject_deinit_handler_t)(kvobject_t*);
 
 struct kvobject {

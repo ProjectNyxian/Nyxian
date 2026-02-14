@@ -28,7 +28,7 @@ DEFINE_KVOBJECT_INIT_HANDLER(proc)
 {
     ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
     
-    if(is_copy)
+    if(src != NULL)
     {
         /* copy it! */
         memcpy(&(proc->kproc.kcproc), &(((ksurface_proc_t*)src)->kproc.kcproc), sizeof(ksurface_kcproc_t));
