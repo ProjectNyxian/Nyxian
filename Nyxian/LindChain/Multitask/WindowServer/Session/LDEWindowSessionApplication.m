@@ -204,7 +204,7 @@ void UIKitFixesInit(void)
     _process.wid = identifier;
 }
 
-- (void)_performActionsForUIScene:(UIScene *)scene
+- (void)_performActionsForUIScene:(UIScene *)scene  /* TODO: worth investigation.. it exposes a UIScene object */
               withUpdatedFBSScene:(id)fbsScene
                      settingsDiff:(FBSSceneSettingsDiff *)diff
                      fromSettings:(id)settings
@@ -266,12 +266,16 @@ void UIKitFixesInit(void)
     }
 }
 
-- (void)focusWindow
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
-}
-
-- (void)unfocusWindow
-{
+    [super traitCollectionDidChange:previousTraitCollection];
+    
+    if(self.traitCollection.userInterfaceStyle != previousTraitCollection.userInterfaceStyle)
+    {
+        [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+            settings.userInterfaceStyle = self.traitCollection.userInterfaceStyle;
+        }];
+    }
 }
 
 - (void)dealloc
