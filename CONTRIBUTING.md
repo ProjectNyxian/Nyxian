@@ -11,17 +11,14 @@ Thank you soooo much for your interest in Nyxian and contributing to it, I had t
 - The certificate used to sign Nyxian (you can get that from keychain after installing nyxian over Xcode).
 
 ### Setup
-1. Run this script in your terminal:
+1. Before you open Nyxian in Xcode **you have to run the Makefile first!**, otherwise you end up breaking project internal dependency configurations:
 
 ```bash
-# clone the repository
-git clone https://github.com/ProjectNyxian/Nyxian
+git clone --recursive https://github.com/ProjectNyxian/Nyxian.git
 cd Nyxian
-
-# downloading dependency from my server using setup script
-sh ./setup.sh
+make jailed
 ```
-2. Open it in Xcode
+2. Open it in Xcode (Now you can enjoyyy)
 
 ## Ways to contribute
 
