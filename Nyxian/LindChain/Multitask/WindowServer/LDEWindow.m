@@ -322,17 +322,19 @@
 {
     [self focusWindow:nil];
     
-    [self resizeActionStart];
+    void (^changes)(void);
+    void (^completion)(void);
+    
     if(self.isMaximized)
     {
         self.isMaximized = NO;
         self.session.windowIsFullscreen = NO;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
-        CGRect newNavigationBar = self.windowBar.frame;
-        newNavigationBar.size.width = newFrame.size.width;
-        [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        
+        changes = ^{
             self.view.frame = newFrame;
-            self.windowBar.frame = newNavigationBar;
+            [self.view layoutIfNeeded];
+            
             if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
             {
                 self.contentStack.layer.cornerRadius = 20;
@@ -340,23 +342,23 @@
             self.contentStack.layer.borderWidth = 0.5;
             self.view.layer.shadowOpacity = 1.0;
             self.resizeHandle.hidden = NO;
-        } completion:^(BOOL finished){
-            if(finished)
-            {
-                [self resizeActionEnd];
-                self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-            }
-        }];
-    } else
+        };
+        
+        completion = ^{
+            [self resizeActionEnd];
+            self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
+        };
+    }
+    else
     {
         self.isMaximized = YES;
         self.session.windowIsFullscreen = YES;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
-        CGRect newNavigationBar = self.windowBar.frame;
-        newNavigationBar.size.width = newFrame.size.width;
-        [UIView animateWithDuration:(animated ? 0.35 : 0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        
+        changes = ^{
             self.view.frame = newFrame;
-            self.windowBar.frame = newNavigationBar;
+            [self.view layoutIfNeeded];
+            
             if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
             {
                 self.contentStack.layer.cornerRadius = 0;
@@ -364,13 +366,28 @@
             self.contentStack.layer.borderWidth = 0;
             self.view.layer.shadowOpacity = 0;
             self.resizeHandle.hidden = YES;
-        } completion:^(BOOL finished){
+        };
+        
+        completion = ^{
+            [self resizeActionEnd];
+            self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
+        };
+    }
+    
+    [self resizeActionStart];
+    if(animated)
+    {
+        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:changes completion:^(BOOL finished) {
             if(finished)
             {
-                [self resizeActionEnd];
-                self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
+                completion();
             }
         }];
+    }
+    else
+    {
+        changes();
+        completion();
     }
 }
 
@@ -488,14 +505,17 @@
                 completion:(void (^)(BOOL))completion
 {
     [self resizeActionStart];
-    [UIView animateWithDuration:0.35
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^{
-                         self.view.frame = rect;
+    [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.view.frame = rect;
     } completion:^(BOOL finished){
-        [self resizeActionEnd];
-        if(completion != nil) completion(finished);
+        if(finished)
+        {
+            [self resizeActionEnd];
+            if(completion != nil)
+            {
+                completion(finished);
+            }
+        }
     }];
 }
 

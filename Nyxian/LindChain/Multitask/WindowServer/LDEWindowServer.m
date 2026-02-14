@@ -667,6 +667,7 @@ static const NSInteger kTagShineView = 7777;
 }
 
 #if !JAILBREAK_ENV
+
 - (void)segmentChanged:(UISegmentedControl*)segment
 {
     BOOL showLaunchpad = (segment.selectedSegmentIndex == 1);
@@ -691,9 +692,9 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)launchpadDidSelectAppWithBundleID:(NSString *)bundleID
 {
-    [self hideAppSwitcher];
     [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withKernelSurfaceProcess:kernel_proc_ doRestartIfRunning:NO];
 }
+
 #endif /* !JAILBREAK_ENV */
 
 - (void)handleTileTap:(UITapGestureRecognizer*)recognizer
