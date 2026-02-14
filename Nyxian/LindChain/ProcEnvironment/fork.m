@@ -51,10 +51,9 @@ void *fork_helper_thread(void *args)
         snapshot->mapObject = [FDMapObject currentMap];
         
         /* getting arm64 thread state of our own thread. */
-        snapshot->thread_count = ARM_THREAD_STATE64_COUNT;
-        thread_get_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), &snapshot->thread_count);
+        snapshot->thread_state = thread_save_state_arm64(snapshot->thread);
         
-        /* doing the black math */
+        /* doing the black magic~~ math */
         pthread_t pthread = pthread_from_mach_thread_np(snapshot->thread);
         void *stack_top = pthread_get_stackaddr_np(pthread);
         size_t stack_size = pthread_get_stacksize_np(pthread);
@@ -84,18 +83,12 @@ void *fork_helper_thread(void *args)
     }
     else
     {
-        /*
-         * spawn it self happens now restoring
-         * thread state.
-         */
-        thread_set_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), snapshot->thread_count);
+        /* spawn it self happens now restoring thread state */
+        thread_restore_state_arm64(snapshot->thread, snapshot->thread_state);
         
         /* restoring stack */
         memcpy(snapshot->stack_recovery_buffer, snapshot->stack_copy_buffer, snapshot->stack_recovery_size);
         free(snapshot->stack_copy_buffer);
-        
-        /* setting succession flag */
-        snapshot->suceeded = true;
         
         /* resuming caller thread */
         thread_resume(snapshot->thread);
@@ -156,6 +149,12 @@ DEFINE_HOOK(fork, pid_t, (void))
     /* checking for succession */
     if(!success)
     {
+        if(local_fork_thread_snapshot != NULL)
+        {
+            free(local_fork_thread_snapshot);
+            local_fork_thread_snapshot = NULL;
+        }
+        
         errno = EBADEXEC;
         return -1;
     }
@@ -203,6 +202,7 @@ int environment_execvpa(const char * __path,
     /* evaluating return */
     if(retval != 0)
     {
+        errno = EBADEXEC;
         return -1;
     }
     
@@ -216,6 +216,7 @@ int environment_execvpa(const char * __path,
      */
     if(local_fork_thread_snapshot->ret_pid != 0)
     {
+        local_fork_thread_snapshot->suceeded = true;
         fork_helper_thread_trap();
     }
     
@@ -364,6 +365,7 @@ DEFINE_HOOK(_exit, void, (int code))
 {
     if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
+        local_fork_thread_snapshot->suceeded = false;
         local_fork_thread_snapshot->ret_pid = -1;
         fork_helper_thread_trap();
     }

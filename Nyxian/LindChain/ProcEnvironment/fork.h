@@ -23,6 +23,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #include <stdlib.h>
+#import <LindChain/Debugger/Utils.h>
 
 typedef struct {
     /* Stack properties*/
@@ -34,17 +35,11 @@ typedef struct {
     pid_t ret_pid;
     
     /* ThreadID */
-    mach_msg_type_number_t thread_count;
-    arm_thread_state64_t thread_state;
+    struct arm64_thread_full_state *thread_state;
     thread_act_t thread;
     
     /* File descriptors */
     FDMapObject *mapObject;
-    
-    /* preparing */
-    kern_return_t kr;
-    thread_act_array_t cachedThreads;
-    mach_msg_type_number_t cachedThreadCount;
     
     bool suceeded;
 } fork_thread_snapshot_t;
