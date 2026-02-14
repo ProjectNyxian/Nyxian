@@ -84,10 +84,12 @@ class KernelLogViewController: UIViewController {
     }
 
     @objc private func refreshLog() {
-        if let log = klog_dump() {
-            label.text = log as String
-        } else {
-            label.text = "Kernel logging disabled."
+        autoreleasepool {
+            if let log = klog_dump() {
+                label.text = log as String
+            } else {
+                label.text = "Kernel logging disabled."
+            }
         }
         self.scrollView.layoutSubviews()
     }

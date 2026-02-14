@@ -126,59 +126,59 @@ void klog_log_internal(NSString *system, NSString *format, ...)
 {
 #if KLOG_ENABLED
 #ifdef HOST_ENV
-    
-    /* only open klog once */
-    static NSDateFormatter *df = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        /* opening ^^ */
-        NSString *kfd_path = [NSString stringWithFormat:@"%@/Documents/klog.txt", NSHomeDirectory()];
-        kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_TRUNC, 0777);
+    @autoreleasepool {
+        /* only open klog once */
+        static NSDateFormatter *df = nil;
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            /* opening ^^ */
+            NSString *kfd_path = [NSString stringWithFormat:@"%@/Documents/klog.txt", NSHomeDirectory()];
+            kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_TRUNC, 0777);
+            
+            df = [[NSDateFormatter alloc] init];
+            df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+            df.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+        });
         
-        df = [[NSDateFormatter alloc] init];
-        df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
-        df.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
-    });
-
-    /* checking kfd */
-    if(kfd == -1)
-    {
-        return;
+        /* checking kfd */
+        if(kfd == -1)
+        {
+            return;
+        }
+        
+        /* starting variadic parse */
+        va_list args;
+        va_start(args, format);
+        
+        /* handing all the parsing work to apple */
+        NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
+        
+        /* ending parse */
+        va_end(args);
+        
+        /* now we need the date ^^ */
+        NSString *ts = [df stringFromDate:[NSDate date]];
+        
+        /* final log string */
+        NSString *final = [NSString stringWithFormat:@"[%@] [%@] %@\n", ts, system ?: @"(null)", msg ?: @"(null)"];
+        
+        /* getting constent c version of that string */
+        const char *utf8 = [final UTF8String];
+        size_t len = strlen(utf8);
+        
+        /* writing */
+        ssize_t written = write(kfd, utf8, len);
+        
+        /* truncation if applicable */
+        if(written == len)
+        {
+            klog_truncate_if_needed();
+        }
+        else
+        {
+            fsync(kfd);
+        }
     }
-    
-    /* starting variadic parse */
-    va_list args;
-    va_start(args, format);
-    
-    /* handing all the parsing work to apple */
-    NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
-    
-    /* ending parse */
-    va_end(args);
-
-    /* now we need the date ^^ */
-    NSString *ts = [df stringFromDate:[NSDate date]];
-
-    /* final log string */
-    NSString *final = [NSString stringWithFormat:@"[%@] [%@] %@\n", ts, system ?: @"(null)", msg ?: @"(null)"];
-
-    /* getting constent c version of that string */
-    const char *utf8 = [final UTF8String];
-    size_t len = strlen(utf8);
-
-    /* writing */
-    ssize_t written = write(kfd, utf8, len);
-
-    /* truncation if applicable */
-    if(written == len)
-    {
-        klog_truncate_if_needed();
-    }
-    else
-    {
-        fsync(kfd);
-    }
-
 #endif /* HOST_ENV */
 #endif /* KLOG_ENABLED */
 }
