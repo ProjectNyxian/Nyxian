@@ -89,6 +89,10 @@ void UIKitFixesInit(void)
     /* registering to window */
     [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
+    /* fixing keyboard issues */
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
     return YES;
 }
 
@@ -101,6 +105,9 @@ void UIKitFixesInit(void)
         /* if so then we store the last rect ever into this database */
         runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:rect];
     }
+    
+    /* fixing keyboard issues */
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     /* invalidate presenter */
     [_presenter invalidate];
@@ -211,11 +218,7 @@ void UIKitFixesInit(void)
                 transitionContext:(id)context
               lifecycleActionType:(uint32_t)actionType
 {
-    if(![self.process.processHandle isValid])
-    {
-        return;
-    }
-    else if(self.process.isSuspended || !diff)
+    if(![self.process.processHandle isValid] || self.process.isSuspended || !diff)
     {
         return;
     }
@@ -276,6 +279,36 @@ void UIKitFixesInit(void)
             settings.userInterfaceStyle = self.traitCollection.userInterfaceStyle;
         }];
     }
+}
+
+- (void)keyboardWillShow:(NSNotification *)notification
+{
+    NSDictionary *info = notification.userInfo;
+    CGRect keyboardFrame = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    
+    [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+        UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
+        currentInsets.bottom = keyboardFrame.size.height;
+        settings.safeAreaInsetsPortrait = currentInsets;
+    }];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification
+{
+    [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+        UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
+        
+        if(self.windowIsFullscreen)
+        {
+            currentInsets.bottom = LDEWindowServer.shared.safeAreaInsets.bottom;
+        }
+        else
+        {
+            currentInsets.bottom = 0;
+        }
+        
+        settings.safeAreaInsetsPortrait = currentInsets;
+    }];
 }
 
 - (void)dealloc

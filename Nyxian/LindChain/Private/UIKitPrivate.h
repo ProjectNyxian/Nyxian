@@ -800,3 +800,9 @@
 - (unsigned int)port;
 
 @end
+
+@interface UIWindowScene ()
+
+@property (nonatomic, readonly) UIScreenshotService *screenshotService;
+
+@end
