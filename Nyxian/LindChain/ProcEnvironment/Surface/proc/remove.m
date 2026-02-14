@@ -23,15 +23,10 @@
 ksurface_return_t proc_remove_by_pid(pid_t pid)
 {
     /*
-     * locking process table so the process table, can
-     * be safely edited.
-     */
-    proc_table_wrlock();
-    
-    /*
-     * remocing process from radix tree, which is also
+     * removing process from radix tree, which is also
      * where its first reference lives at.
      */
+    proc_table_wrlock();
     ksurface_proc_t *proc = radix_remove(&(ksurface->proc_info.tree), pid);
     
     /*
@@ -42,7 +37,6 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
      */
     if(proc == NULL)
     {
-        /* reverting locks and return */
         proc_table_unlock();
         return SURFACE_UNAVAILABLE;
     }
@@ -52,17 +46,15 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
      * correctly counted.
      */
     ksurface->proc_info.proc_count--;
+    proc_table_unlock();
     
     /*
-     * invalidating object and remocing its
+     * invalidating object and removing its
      * origin reference that lived in the
      * radix tree.
      */
     kvo_invalidate(proc);
     kvo_release(proc);
-    
-    /* reverting locks and return */
-    proc_table_unlock();
 
     return SURFACE_SUCCESS;
 }
