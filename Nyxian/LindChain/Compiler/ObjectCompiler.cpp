@@ -49,19 +49,19 @@ int CompileObject(int argc,
     llvm::raw_string_ostream errorOutputStream(errorString);
 
     /* setting up diagnostic options */
-    DiagnosticOptions DiagOpts;
-    DiagOpts.ShowColors = false;
-    DiagOpts.ShowLevel = true;
-    DiagOpts.ShowOptionNames = false;
-    DiagOpts.MessageLength = 0;
-    DiagOpts.ShowSourceRanges = false;
-    DiagOpts.ShowPresumedLoc = false;
-    DiagOpts.ShowCarets = false;
+    auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
+    DiagOpts->ShowColors = false;
+    DiagOpts->ShowLevel = true;
+    DiagOpts->ShowOptionNames = false;
+    DiagOpts->MessageLength = 0;
+    DiagOpts->ShowSourceRanges = false;
+    DiagOpts->ShowPresumedLoc = false;
+    DiagOpts->ShowCarets = false;
     
     /* setting up diagnostic engine */
-    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, DiagOpts);
+    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*DiagOpts);
     auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
-    DiagnosticsEngine Diags(DiagID, DiagOpts, DiagClient.get());
+    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient.get());
     
     /* setting up platform triple */
     llvm::Triple TargetTriple(platformTriple);
@@ -119,7 +119,7 @@ int CompileObject(int argc,
     const auto &CCArgs = Cmd.getArguments();
     
     /* creating clang invocation */
-    auto CI = std::make_shared<CompilerInvocation>();
+    auto CI = std::make_unique<CompilerInvocation>();
     CompilerInvocation::CreateFromArgs(*CI, CCArgs, Diags);
 
     /*
@@ -132,9 +132,9 @@ int CompileObject(int argc,
     CI->getFrontendOpts().DisableFree = false;
     
     /* creating clang instance */
-    CompilerInstance Clang(CI);
-    auto VFS = llvm::vfs::getRealFileSystem();
-    Clang.createDiagnostics(*VFS, DiagClient.release(), false);
+    CompilerInstance Clang;
+    Clang.setInvocation(std::move(CI));
+    Clang.createDiagnostics(DiagClient.release(), false);
     
     /* hopefully this check is successful */
     if(!Clang.hasDiagnostics())
