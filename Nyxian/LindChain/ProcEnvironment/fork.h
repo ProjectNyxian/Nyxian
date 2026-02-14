@@ -41,6 +41,11 @@ typedef struct {
     /* File descriptors */
     FDMapObject *mapObject;
     
+    /* preparing */
+    kern_return_t kr;
+    thread_act_array_t cachedThreads;
+    mach_msg_type_number_t cachedThreadCount;
+    
     bool suceeded;
 } fork_thread_snapshot_t;
 

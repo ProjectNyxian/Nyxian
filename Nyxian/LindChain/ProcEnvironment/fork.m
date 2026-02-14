@@ -47,9 +47,11 @@ void *fork_helper_thread(void *args)
     
     if(snapshot->ret_pid == 0)
     {
+        /* creating copy of current fd map */
+        snapshot->mapObject = [FDMapObject currentMap];
+        
         /* getting arm64 thread state of our own thread. */
         snapshot->thread_count = ARM_THREAD_STATE64_COUNT;
-        thread_act_t thread = snapshot->thread;
         thread_get_state(snapshot->thread, ARM_THREAD_STATE64, (thread_state_t)(&snapshot->thread_state), &snapshot->thread_count);
         
         /* doing the black math */
@@ -78,7 +80,7 @@ void *fork_helper_thread(void *args)
         snapshot->suceeded = true;
         
         /* resuming thread */
-        thread_resume(thread);
+        thread_resume(snapshot->thread);
     }
     else
     {
@@ -92,9 +94,8 @@ void *fork_helper_thread(void *args)
         memcpy(snapshot->stack_recovery_buffer, snapshot->stack_copy_buffer, snapshot->stack_recovery_size);
         free(snapshot->stack_copy_buffer);
         
-        /* deallocating thread snapshot  */
-        free(local_fork_thread_snapshot);
-        local_fork_thread_snapshot = NULL;
+        /* setting succession flag */
+        snapshot->suceeded = true;
         
         /* resuming caller thread */
         thread_resume(snapshot->thread);
@@ -145,9 +146,6 @@ DEFINE_HOOK(fork, pid_t, (void))
         return -1;
     }
     
-    /* creating copy of current fd map */
-    local_fork_thread_snapshot->mapObject = [FDMapObject currentMap];
-    
     /* preparing for thread handoff */
     local_fork_thread_snapshot->ret_pid = 0;
     local_fork_thread_snapshot->thread = mach_thread_self();
@@ -158,12 +156,18 @@ DEFINE_HOOK(fork, pid_t, (void))
     /* checking for succession */
     if(!success)
     {
-        errno = EFAULT;
+        errno = EBADEXEC;
         return -1;
     }
     
     /* we will go here twice! */
     pid_t pid = local_fork_thread_snapshot->ret_pid;
+    
+    if(pid != 0)
+    {
+        free(local_fork_thread_snapshot);
+        local_fork_thread_snapshot = NULL;
+    }
     
     return pid;
 }
@@ -215,7 +219,7 @@ int environment_execvpa(const char * __path,
         fork_helper_thread_trap();
     }
     
-    errno = EFAULT;
+    errno = EBADEXEC;
     return -1;
 }
 
