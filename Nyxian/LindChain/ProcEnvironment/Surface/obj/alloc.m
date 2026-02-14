@@ -24,9 +24,8 @@
 #include <string.h>
 
 kvobject_t *kvobject_alloc(size_t size,
-                           kvobject_handler_t init,
-                           kvobject_handler_t deinit,
-                           kvobject_duo_handler_t copyit)
+                           kvobject_init_handler_t init,
+                           kvobject_deinit_handler_t deinit)
 {
     /*
      * first we gotta check if the size
@@ -55,12 +54,11 @@ kvobject_t *kvobject_alloc(size_t size,
     /* setting handlers and running init straight */
     kvo->init = init;
     kvo->deinit = deinit;
-    kvo->copyit = copyit;
     
     /* checking init handler and executing if nonnull */
     if(kvo->init != NULL)
     {
-        kvo->init(kvo);
+        kvo->init(kvo, false, NULL);
     }
     
     /* returning da object */
@@ -95,12 +93,11 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
     /* setting handlers and running copyit straight */
     kvo_dup->init = kvo->init;
     kvo_dup->deinit = kvo->deinit;
-    kvo_dup->copyit = kvo->copyit;
     
     /* checking init handler and executing if nonnull */
-    if(kvo_dup->copyit != NULL)
+    if(kvo_dup->init != NULL)
     {
-        kvo_dup->copyit(kvo_dup, kvo);
+        kvo_dup->init(kvo_dup, true, kvo);
     }
     
 out_unlock:

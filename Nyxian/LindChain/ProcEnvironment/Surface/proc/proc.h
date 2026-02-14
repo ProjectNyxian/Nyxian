@@ -33,6 +33,5 @@ ksurface_proc_t *kernel_proc(void);
 
 DEFINE_KVOBJECT_INIT_HANDLER(proc);
 DEFINE_KVOBJECT_DEINIT_HANDLER(proc);
-DEFINE_KVOBJECT_COPYIT_HANDLER(proc);
 
 #endif /* PROC_PROC_H */

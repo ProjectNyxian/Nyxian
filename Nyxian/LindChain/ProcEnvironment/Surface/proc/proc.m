@@ -28,18 +28,26 @@ DEFINE_KVOBJECT_INIT_HANDLER(proc)
 {
     ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
     
-    /* nullify */
-    memset(&(proc->kproc), 0, sizeof(ksurface_kproc_t));
-    
-    /* setting fresh properties */
-    proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_ngroups = 1;
-    proc->kproc.kcproc.bsd.kp_proc.p_priority = PUSER;
-    proc->kproc.kcproc.bsd.kp_proc.p_usrpri = PUSER;
-    proc->kproc.kcproc.bsd.kp_eproc.e_tdev = -1;
-    proc->kproc.kcproc.bsd.kp_eproc.e_flag = 2;
-    proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
-    proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
-    proc->kproc.kcproc.nyx.sid = 0;
+    if(is_copy)
+    {
+        /* copy it! */
+        memcpy(&(proc->kproc.kcproc), &(((ksurface_proc_t*)src)->kproc.kcproc), sizeof(ksurface_kcproc_t));
+    }
+    else
+    {
+        /* nullify */
+        memset(&(proc->kproc), 0, sizeof(ksurface_kproc_t));
+        
+        /* setting fresh properties */
+        proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_ngroups = 1;
+        proc->kproc.kcproc.bsd.kp_proc.p_priority = PUSER;
+        proc->kproc.kcproc.bsd.kp_proc.p_usrpri = PUSER;
+        proc->kproc.kcproc.bsd.kp_eproc.e_tdev = -1;
+        proc->kproc.kcproc.bsd.kp_eproc.e_flag = 2;
+        proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
+        proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+        proc->kproc.kcproc.nyx.sid = 0;
+    }
     
     pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
     gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL);
@@ -65,15 +73,4 @@ DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
     }
     
     task_unlock();
-}
-
-DEFINE_KVOBJECT_COPYIT_HANDLER(proc)
-{
-    ksurface_proc_t *psrc = (ksurface_proc_t*)src;
-    ksurface_proc_t *pdst = (ksurface_proc_t*)dst;
-    
-    memcpy(&(pdst->kproc.kcproc), &(psrc->kproc.kcproc), sizeof(ksurface_kcproc_t));
-    
-    pthread_mutex_init(&(pdst->kproc.children.mutex), NULL);
-    gettimeofday(&pdst->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL);
 }
