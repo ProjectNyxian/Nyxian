@@ -33,7 +33,7 @@ ksurface_proc_t *proc_for_pid(pid_t pid)
     }
     
     /* process may have started teardown, retention prevents use-after-free */
-    if(!kvo_retain(proc))
+    if(kvo_retain(proc))
     {
         return proc;
     }
