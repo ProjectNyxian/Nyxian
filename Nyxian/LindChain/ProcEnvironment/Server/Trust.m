@@ -44,6 +44,11 @@
 
 - (PEEntitlement)getEntitlementsForHash:(NSString*)hash
 {
+    if(hash == NULL)
+    {
+        return PEEntitlementSandboxedApplication;
+    }
+    
     if([hash isEqualToString:@"com.cr4zy.nyxian.daemon.trustcache_daemon"])
     {
         return PEEntitlementSystemDaemon;

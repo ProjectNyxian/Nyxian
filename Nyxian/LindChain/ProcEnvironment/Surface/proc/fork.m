@@ -51,7 +51,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     proc_setppid(child, proc_getpid(child));    /* currently we are a safe to use perfect copy of the parent anyways */
     proc_setpid(child, child_pid);
     
-    /* checking if parent process is kernel_proc_ */
+    /* checking if parent process is the kernel process */
     if(parent == kernel_proc_)
     {
         /*
@@ -63,27 +63,22 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
          * condition because they have platform
          * entitlement.
          */
-        proc_setmobilecred(child);
-        proc_setsid(child, child_pid);
-        goto force_not_inherite_entitlements;
+        proc_setmobilecred(child);              /* dropping ucred permitives */
+        proc_setsid(child, child_pid);          /* forcing its own process identifier as session identifier */
+        goto force_not_inherite_entitlements;   /* we never(even if a attacker injected inheritance into the kernel process) wanna allow inherting kernel entitlements */
     }
     
-    /* checking if we as the perfect copy of the parent process got PEEntitlementProcessSpawnInheriteEntitlements */
+    /*
+     * checking if we as the perfect copy of the parent process
+     * dont have PEEntitlementProcessSpawnInheriteEntitlements,
+     * in case we do we simply move on, cuz we just inherite them
+     * and we are a copy already.
+     */
     if(!entitlement_got_entitlement(proc_getentitlements(child), PEEntitlementProcessSpawnInheriteEntitlements))
 force_not_inherite_entitlements:
     {
-        /* child doesnt inherite entitlements from parent and gets them from trust cache */
-        NSString *processHash = [[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
-        if(processHash != NULL)
-        {
-            /* setting entitlements according to the hash of the process returned by trustd */
-            proc_setentitlements(child, [[TrustCache shared] getEntitlementsForHash:processHash]);
-        }
-        else
-        {
-            /* trustd said the process has no entitlements so we drop down to sandboxed application */
-            proc_setentitlements(child, PEEntitlementSandboxedApplication);
-        }
+        /* setting entitlements according to the hash of the process returned by trustd */
+        proc_setentitlements(child, [[TrustCache shared] getEntitlementsForHash:[[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]]]);
     }
     
     /* copying the path */
