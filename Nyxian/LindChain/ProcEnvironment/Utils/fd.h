@@ -21,6 +21,8 @@
 #define PROCENVIRONMENT_FD_H
 
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
+#import <LindChain/Private/mach/fileport.h>
+#include <mach/mach.h>
 
 /*!
  @function get_all_fds
@@ -37,5 +39,27 @@ void get_all_fds(int *numFDs, struct proc_fdinfo **fdinfo);
     Closes all file descriptors using libproc.
  */
 void close_all_fd(void);
+
+typedef struct {
+    fileport_t  fp;         /* mach port reference to the file object */
+    int         fdid;       /* identifier referencing wished file descriptor mapping */
+} fdobject_t;
+
+typedef struct {
+    fdobject_t *foarr;      /* array of file descriptors */
+    uint64_t foarr_cnt;     /* amount of file descriptor objects */
+} fdmap_t;
+
+int fdobject_assign(int fd, fdobject_t *fdo);
+fdobject_t *fdobject_alloc(int fd);
+void fdobject_destroy(fdobject_t *fdo);
+void fdobject_apply(fdobject_t *fdo);
+void fdobject_free(fdobject_t *fdo);
+
+fdmap_t *fdmap_current(void);
+void fdmap_apply(fdmap_t *fm);
+void fdmap_destroy(fdmap_t *fm);
+void fdmap_apply(fdmap_t *fm);
+void fdmap_free(fdmap_t *fm);
 
 #endif /* PROCENVIRONMENT_FD_H */
