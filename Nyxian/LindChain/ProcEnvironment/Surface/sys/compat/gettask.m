@@ -78,10 +78,11 @@ DEFINE_SYSCALL_HANDLER(gettask)
     if(!isHost)
     {
         /* getting the target process */
-        target = proc_for_pid(pid);
+        ksurface_return_t ret = proc_for_pid(pid, &target);
         
         /* checking if successful */
-        if(target == NULL)
+        if(ret != SURFACE_SUCCESS ||
+           target == NULL)
         {
             sys_return_failure(ESRCH);
         }

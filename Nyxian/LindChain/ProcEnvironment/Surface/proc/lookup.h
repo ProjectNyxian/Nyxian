@@ -17,21 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/find.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#include <stdatomic.h>
+#ifndef PROC_LOOKUP_H
+#define PROC_LOOKUP_H
 
-ksurface_proc_t *proc_for_pid(pid_t pid)
-{
-    proc_table_rdlock();
-    ksurface_proc_t *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
-    proc_table_unlock();
-    
-    if(proc == NULL ||
-       kvo_retain(proc))
-    {
-        return proc;
-    }
-    
-    return NULL;
-}
+#import <LindChain/ProcEnvironment/Surface/surface.h>
+
+ksurface_return_t proc_for_pid(pid_t pid, ksurface_proc_t **proc);
+ksurface_return_t task_for_proc(ksurface_proc_t *proc, task_t *task);
+
+#endif /* PROC_LOOKUP_H */

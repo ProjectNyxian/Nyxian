@@ -71,10 +71,12 @@ static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
     pid_t xnu_pid = (pid_t)token->val[5];
     
     /* getting process */
-    ksurface_proc_t *proc = proc_for_pid(xnu_pid);
+    ksurface_proc_t *proc = NULL;
+    ksurface_return_t ret = proc_for_pid(xnu_pid, &proc);
     
     /* null pointer check */
-    if(proc == NULL)
+    if(ret != SURFACE_SUCCESS ||
+       proc == NULL)
     {
         return NULL;
     }

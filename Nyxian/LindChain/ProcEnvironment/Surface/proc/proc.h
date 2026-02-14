@@ -21,12 +21,13 @@
 #define PROC_PROC_H
 
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/find.h>
+#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
+#import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
 ksurface_proc_t *kernel_proc(void);
 

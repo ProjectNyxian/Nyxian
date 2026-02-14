@@ -53,10 +53,11 @@
     if(_proc == NULL)
     {
         /* asking kernel for process structure */
-        _proc = proc_for_pid(_processIdentifier);
+        ksurface_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
         
         /* sanity check 2 */
-        if(_proc == NULL)
+        if(ret != SURFACE_SUCCESS ||
+           _proc == NULL)
         {
             reply(-1);
             return;
@@ -104,10 +105,11 @@
     if(_proc == NULL)
     {
         /* asking kernel for process structure */
-        _proc = proc_for_pid(_processIdentifier);
+        ksurface_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
         
         /* sanity check 2 */
-        if(_proc == NULL)
+        if(ret != SURFACE_SUCCESS ||
+           _proc == NULL)
         {
             return;
         }
@@ -146,10 +148,11 @@
     if(_proc == NULL)
     {
         /* asking kernel for process structure */
-        _proc = proc_for_pid(_processIdentifier);
+        ksurface_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
         
         /* sanity check 2 */
-        if(_proc == NULL)
+        if(ret != SURFACE_SUCCESS ||
+           _proc == NULL)
         {
             reply(nil);
             return;
@@ -188,10 +191,11 @@
     if(_proc == NULL)
     {
         /* asking kernel for process structure */
-        _proc = proc_for_pid(_processIdentifier);
+        ksurface_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
         
         /* sanity check 2 */
-        if(_proc == NULL)
+        if(ret != SURFACE_SUCCESS ||
+           _proc == NULL)
         {
             return;
         }

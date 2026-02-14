@@ -29,10 +29,12 @@ DEFINE_SYSCALL_HANDLER(procbsd)
     pid_t pid = (pid_t)args[0];
     
     /* getting process */
-    ksurface_proc_t *proc = proc_for_pid(pid);
+    ksurface_proc_t *proc = NULL;
+    ksurface_return_t ret = proc_for_pid(pid, &proc);
     
     /* sanity check */
-    if(proc == NULL)
+    if(ret != SURFACE_SUCCESS ||
+       proc == NULL)
     {
         sys_return_failure(EINVAL);
     }

@@ -40,9 +40,13 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
         return YES;
     }
     
-    /* getting target process */
-    ksurface_proc_t *targetProc = proc_for_pid(targetPid);
-    if(targetProc == NULL)
+    /* getting process */
+    ksurface_proc_t *targetProc = NULL;
+    ksurface_return_t ret = proc_for_pid(targetPid, &targetProc);
+    
+    /* sanity check */
+    if(ret != SURFACE_SUCCESS ||
+       targetProc == NULL)
     {
         return NO;
     }

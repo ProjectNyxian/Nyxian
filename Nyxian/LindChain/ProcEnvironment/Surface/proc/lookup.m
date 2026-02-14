@@ -17,8 +17,37 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/task.h>
+#import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/tfp.h>
+
+ksurface_return_t proc_for_pid(pid_t pid,
+                               ksurface_proc_t **proc)
+{
+    /* sanity check */
+    if(proc == NULL)
+    {
+        return SURFACE_NULLPTR;
+    }
+    
+    /* process lookup */
+    proc_table_rdlock();
+    *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
+    proc_table_unlock();
+    
+    /*
+     * caller expects retained process object, so
+     * attempting to retain it and if it doesnt work
+     * returning with an error.
+     */
+    if(*proc == NULL ||
+       !kvo_retain(*proc))
+    {
+        return SURFACE_RETAIN_FAILED;
+    }
+    
+    return SURFACE_SUCCESS;
+}
 
 ksurface_return_t task_for_proc(ksurface_proc_t *proc,
                                 task_t *task)
@@ -30,29 +59,21 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
         return SURFACE_NULLPTR;
     }
     
+    /* process retention */
     if(!kvo_retain(proc))
     {
-        return SURFACE_FAILED;
+        return SURFACE_RETAIN_FAILED;
     }
     
+    /* sanity check */
     if(proc->kproc.task != MACH_PORT_NULL)
     {
         kvo_release(proc);
         return SURFACE_FAILED;
     }
     
+    /* view note in SYS_gettask */
     task_rdlock();
-    
-    if(!environment_supports_full_tfp())
-    {
-        kern_return_t kr = mach_port_mod_refs(mach_task_self(), proc->kproc.task, MACH_PORT_RIGHT_SEND, 1);
-        if(kr != KERN_SUCCESS)
-        {
-            task_unlock();
-            kvo_release(proc);
-            return SURFACE_FAILED;
-        }
-    }
     
     *task = proc->kproc.task;
     
