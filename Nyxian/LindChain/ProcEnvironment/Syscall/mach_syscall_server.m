@@ -141,7 +141,7 @@ static void send_reply(mach_msg_header_t *request,
        out_ports_cnt > 0)
     {
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
+        reply.oolp.disposition = MACH_MSG_TYPE_MOVE_SEND;
         reply.oolp.address = out_ports;
         reply.oolp.count = out_ports_cnt;
         reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;

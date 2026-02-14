@@ -170,7 +170,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     {
         buffer.req.body.msgh_descriptor_count = 2;
         buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.oolp.disposition = MACH_MSG_TYPE_COPY_SEND;
+        buffer.req.oolp.disposition = MACH_MSG_TYPE_MOVE_SEND;
         buffer.req.oolp.address = in_ports;
         buffer.req.oolp.count = in_ports_cnt;
         buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
