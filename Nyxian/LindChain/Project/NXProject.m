@@ -29,12 +29,10 @@
 - (NSString*)bundleid { return [self readStringForKey:@"LDEBundleIdentifier" withDefaultValue:@"com.unknown.fallback.id"]; }
 - (NSString*)version { return [self readStringForKey:@"LDEBundleVersion" withDefaultValue:@"1.0"]; }
 - (NSString*)shortVersion { return [self readStringForKey:@"LDEBundleShortVersion" withDefaultValue:@"1.0"]; }
-- (NSString*)platformTriple { return [self readStringForKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]]; }
 - (NSDictionary*)infoDictionary { return [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:[[NSDictionary alloc] init] classType:NSDictionary.class]; }
 - (NSArray*)compilerFlags { return [self readArrayForKey:@"LDECompilerFlags" withDefaultValue:@[]]; }
 - (NSArray*)linkerFlags { return [self readArrayForKey:@"LDELinkerFlags" withDefaultValue:@[]]; }
 - (NSString*)platformMinimumVersion { return [self readStringForKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"]; }
-- (NSString*)platformVersion { return [self readStringForKey:@"LDEVersion" withDefaultValue:@"26.1"]; }
 - (int)type { return (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp]; }
 - (int)threads
 {
@@ -191,8 +189,37 @@
                     @"LDEProjectType": @(type),
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
                     @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDECompilerFlags": @[@"-fobjc-arc"],
-                    @"LDELinkerFlags": @[@"-ObjC", @"-lc", @"-framework", @"Foundation", @"-framework", @"UIKit", @"-lclang_rt.ios"],
+                    @"LDECompilerFlags": @[
+                        @"-target",
+                        @"arm64-apple-ios$(LDEMinimumVersion)",
+                        @"-isysroot",
+                        @"$(SDKROOT)",
+                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                        @"-resource-dir",
+                        @"$(BSROOT)/Include",
+                        @"-fobjc-arc"
+                    ],
+                    @"LDELinkerFlags": @[
+                        @"-platform_version",
+                        @"ios",
+                        @"$(LDEMinimumVersion)",
+                        @"$(LDEVersion)",
+                        @"-arch",
+                        @"arm64",
+                        @"-syslibroot",
+                        @"$(SDKROOT)",
+                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                        @"-L$(BSROOT)/lib",
+                        @"-ObjC",
+                        @"-lc",
+                        @"-framework",
+                        @"Foundation",
+                        @"-framework",
+                        @"UIKit",
+                        @"-lclang_rt.ios"
+                    ]
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
@@ -221,10 +248,33 @@
                     @"LDEExecutable": name,
                     @"LDEDisplayName": name,
                     @"LDEProjectType": @(type),
-                    @"LDECompilerFlags": @[],
-                    @"LDELinkerFlags": @[@"-lc", @"-lclang_rt.ios"],
                     @"LDEVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion]
+                    @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
+                    @"LDECompilerFlags": @[
+                        @"-target",
+                        @"arm64-apple-ios$(LDEMinimumVersion)",
+                        @"-isysroot",
+                        @"$(SDKROOT)",
+                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                        @"-resource-dir",
+                        @"$(BSROOT)/Include",
+                        @"-fobjc-arc"
+                    ],
+                    @"LDELinkerFlags": @[
+                        @"-platform_version",
+                        @"ios",
+                        @"$(LDEMinimumVersion)",
+                        @"$(LDEVersion)",
+                        @"-arch",
+                        @"arm64",
+                        @"-syslibroot",
+                        @"$(SDKROOT)",
+                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                        @"-L$(BSROOT)/lib",
+                        @"-lc"
+                    ]
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
