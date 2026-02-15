@@ -26,7 +26,7 @@ import Foundation
 #else
     let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
-    let newestBootstrapVersion: Int = 10
+    let newestBootstrapVersion: Int = 11
     
     // Paths that we for sure do not need
     let bootstrapDeletionIfFoundPaths: [String] = [
@@ -142,24 +142,6 @@ import Foundation
                         self.bootstrapVersion = 5
                     }
                     
-                    if self.bootstrapVersion < 7 {
-                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
-                            print("[*] removing deprecated sdk")
-                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
-                        }
-                        
-                        print("[*] downloading sdk")
-                        
-                        if !fdownload("https://nyxian.app/bootstrap/sdk26.1.zip", "sdk.zip") {
-                            print("[*] sdk download failed")
-                            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
-                        }
-                        
-                        print("[*] extracting sdk.zip")
-                        unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
-                        self.bootstrapVersion = 8
-                    }
-                    
                     if self.bootstrapVersion < 9 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
@@ -187,6 +169,25 @@ import Foundation
                         unzipArchiveAtPath("\(Bundle.main.bundlePath)/Shared/lib.zip", self.bootstrapPath("/"))
                         
                         self.bootstrapVersion = 10
+                    }
+                    
+                    if self.bootstrapVersion < 11 {
+                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
+                            print("[*] removing deprecated sdk")
+                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
+                        }
+                        
+                        print("[*] downloading sdk")
+                        
+                        if !fdownload("https://nyxian.app/bootstrap/iPhoneOS26.2.sdk.zip", "sdk.zip") {
+                            print("[*] sdk download failed")
+                            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
+                        }
+                        
+                        print("[*] extracting sdk.zip")
+                        unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
+
+                        self.bootstrapVersion = 11
                     }
                 }
                 

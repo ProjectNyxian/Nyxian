@@ -70,9 +70,9 @@
         @"-target",
         [self platformTriple],
         @"-isysroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"]
     ]];
@@ -92,9 +92,9 @@
         @"-arch",
         @"arm64",
         @"-syslibroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk"],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.1.sdk/System/Library/PrivateFrameworks"]],
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
         [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
     ]];
     
