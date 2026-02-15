@@ -38,6 +38,8 @@ import UIKit
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.tableView.register(NXProjectTableCell.self, forCellReuseIdentifier: NXProjectTableCell.reuseIdentifier())
+        
         self.title = "Projects"
         
         let createApp: UIAction = UIAction(title: "App", image: UIImage(systemName: "app.gift.fill")) { [weak self] _ in
@@ -282,7 +284,9 @@ import UIKit
         let key = keys[indexPath.section]
         let sectionProjects = self.projectsList[key] ?? []
         let project: NXProject = sectionProjects[indexPath.row];
-        return NXProjectTableCell(displayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == NXProjectType.app.rawValue, showBundleID: project.projectConfig.type == NXProjectType.app.rawValue, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
+        let cell: NXProjectTableCell = self.tableView.dequeueReusableCell(withIdentifier: NXProjectTableCell.reuseIdentifier()) as! NXProjectTableCell
+        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == NXProjectType.app.rawValue, showBundleID: project.projectConfig.type == NXProjectType.app.rawValue, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
+        return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

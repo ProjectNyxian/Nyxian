@@ -31,7 +31,12 @@
 
 @interface NXProjectTableCell : UITableViewCell
 
-- (instancetype)initWithDisplayName:(NSString*)displayName withBundleIdentifier:(NSString*)bundleIdentifier withAppIcon:(UIImage*)image showAppIcon:(BOOL)showAppIcon showBundleID:(BOOL)showBundleID showArrow:(BOOL)showArrow;
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier;
+- (void)prepareForReuse;
+
+- (void)configureWithDisplayName:(NSString*)displayName withBundleIdentifier:(NSString*)bundleIdentifier withAppIcon:(UIImage*)image showAppIcon:(BOOL)showAppIcon showBundleID:(BOOL)showBundleID showArrow:(BOOL)showArrow;
+
++ (NSString *)reuseIdentifier;
 
 @end
 

@@ -73,6 +73,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.tableView.register(NXProjectTableCell.self, forCellReuseIdentifier: NXProjectTableCell.reuseIdentifier())
         LDEApplicationWorkspace.shared().ping()
         self.title = "Applications"
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", image: UIImage(systemName: "plus"), target: self, action: #selector(plusButtonPressed))
@@ -88,7 +89,9 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let application: LDEApplicationObject = self.applications[indexPath.row]
-        return NXProjectTableCell(displayName: application.displayName, withBundleIdentifier: application.bundleIdentifier, withAppIcon: application.icon, showAppIcon: true, showBundleID: true, showArrow: false)
+        let cell: NXProjectTableCell = self.tableView.dequeueReusableCell(withIdentifier: NXProjectTableCell.reuseIdentifier()) as! NXProjectTableCell
+        cell.configure(withDisplayName: application.displayName, withBundleIdentifier: application.bundleIdentifier, withAppIcon: application.icon, showAppIcon: true, showBundleID: true, showArrow: false)
+        return cell
     }
     
     override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
@@ -266,6 +269,14 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     with: .automatic
                 )
             }
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if #available(iOS 26.0, *) {
+            return 80
+        } else {
+            return 70
         }
     }
 }
