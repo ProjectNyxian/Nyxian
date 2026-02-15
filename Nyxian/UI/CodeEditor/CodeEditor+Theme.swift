@@ -133,11 +133,11 @@ class LDETheme: Theme {
     var fontSize: CGFloat = CGFloat(UserDefaults.standard.double(forKey: "CEFontSize"))
     
     var font: UIFont {
-        return UIFont.monospacedSystemFont(ofSize: fontSize, weight: .medium)
+        return UIFont.monospacedSystemFont(ofSize: fontSize, weight: .semibold)
     }
     
     var lineNumberFont: UIFont {
-        return UIFont.monospacedSystemFont(ofSize: fontSize * 0.85, weight: .regular)
+        return UIFont.monospacedSystemFont(ofSize: fontSize * 0.85, weight: .medium)
     }
     
     let name: String
