@@ -20,6 +20,7 @@
 import UIKit
 
 @objc class UIThemedTableViewController: UITableViewController {
+    
     override func viewDidLoad() {
         
         if #unavailable(iOS 15.0) {
@@ -28,6 +29,8 @@ import UIKit
         }
         
         super.viewDidLoad()
+        
+        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -38,6 +41,8 @@ import UIKit
             self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
             self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
         }
+        
+        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
@@ -56,10 +61,13 @@ import UIKit
             self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
         }
         
+        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
+        
         for cell in tableView.visibleCells {
             cell.backgroundColor = currentTheme?.appTableCell
         }
     }
+
 }
 
 @objc class UIThemedTabViewController: UITabBarController {
