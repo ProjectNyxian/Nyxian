@@ -71,38 +71,38 @@ import UniformTypeIdentifiers
     }
     
     @objc func performRefresh() {
-        guard let visibleRows = tableView.indexPathsForVisibleRows else { return }
+        self.entries = FileListEntry.getEntries(ofPath: self.path)
         
-        UIView.animate(withDuration: 0.3, animations: {
-            for indexPath in visibleRows {
-                if let cell = self.tableView.cellForRow(at: indexPath) {
-                    cell.alpha = 0
-                    cell.transform = CGAffineTransform(translationX: 0, y: 20)
-                }
-            }
-        }, completion: { _ in
-            self.entries = FileListEntry.getEntries(ofPath: self.path)
-            self.tableView.reloadData()
-            self.tableView.layoutIfNeeded()
-            
-            let newVisibleRows = self.tableView.indexPathsForVisibleRows ?? []
-            for indexPath in newVisibleRows {
-                if let cell = self.tableView.cellForRow(at: indexPath) {
-                    cell.alpha = 0
-                    cell.transform = CGAffineTransform(translationX: 0, y: 20)
-                }
+        self.tableView.reloadData()
+        
+        self.refreshControl?.endRefreshing()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+            guard let visibleCells = self.tableView.visibleCells as? [FileListCell] else {
+                self.refreshControl?.endRefreshing()
+                return
             }
             
-            UIView.animate(withDuration: 0.4, delay: 0, options: [.curveEaseOut], animations: {
-                for indexPath in newVisibleRows {
-                    if let cell = self.tableView.cellForRow(at: indexPath) {
-                        cell.alpha = 1
+            visibleCells.forEach { cell in
+                cell.transform = CGAffineTransform(translationX: -30, y: 0)
+                cell.alpha = 0
+            }
+            
+            for (index, cell) in visibleCells.enumerated() {
+                let delay = Double(index) * 0.02
+                
+                UIView.animate(
+                    withDuration: 0.6,
+                    delay: delay,
+                    usingSpringWithDamping: 0.8,
+                    initialSpringVelocity: 0.5,
+                    options: [.curveEaseOut],
+                    animations: {
                         cell.transform = .identity
+                        cell.alpha = 1
                     }
-                }
-            }, completion: nil)
-            
-            self.refreshControl?.endRefreshing()
+                )
+            }
         })
     }
     
@@ -113,13 +113,13 @@ import UniformTypeIdentifiers
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.tableView.register(FileListCell.self, forCellReuseIdentifier: FileListCell.reuseIdentifier)
+        
         if let project = self.project {
             self.title = self.isSublink ? URL(fileURLWithPath: self.path).lastPathComponent : project.projectConfig.displayName
         } else {
             self.title = URL(fileURLWithPath: self.path).lastPathComponent
         }
-        
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
         if UIDevice.current.userInterfaceIdiom == .pad, !self.isSublink {
             self.navigationItem.setLeftBarButton(UIBarButtonItem(primaryAction: UIAction(title: "Close") { [weak self] _ in
@@ -402,90 +402,11 @@ import UniformTypeIdentifiers
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell()
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: FileListCell.reuseIdentifier, for: indexPath) as! FileListCell
+            
         let entry = self.entries[indexPath.row]
-        let path = entry.path // Assuming entry.path is a valid file path as String
-        let url = URL(fileURLWithPath: path)
-        let ext = url.pathExtension.lowercased()
-        
-        cell.accessoryType = (entry.type == .dir) ? .disclosureIndicator : .none
-        cell.textLabel?.text = url.deletingPathExtension().lastPathComponent
-        cell.separatorInset = .zero
-        
-        // Remove default imageView
-        cell.imageView?.isHidden = true
-        
-        // Add custom preview icon view
-        let iconView = UIView(frame: CGRect(x: 15, y: 7, width: 25, height: 25))
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 20, weight: .light)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        if entry.type == .file {
-            switch ext {
-            case "c":
-                label.text = "c"
-                label.textColor = .systemBlue
-                iconView.addSubview(label)
-            case "h":
-                label.text = "h"
-                label.textColor = .systemGray
-                iconView.addSubview(label)
-            case "cpp":
-                FileListViewController.addStackedLabel(to: iconView, base: "c", offset: CGPoint(x: 8, y: -5), color: .systemBlue)
-            case "hpp":
-                FileListViewController.addStackedLabel(to: iconView, base: "h", offset: CGPoint(x: 8, y: -5), color: .systemBlue)
-            case "m":
-                label.text = "m"
-                label.textColor = .systemPurple
-                iconView.addSubview(label)
-            case "mm":
-                FileListViewController.addStackedLabel(to: iconView, base: "m", offset: CGPoint(x: 9, y: -6), color: .systemBlue)
-            case "plist":
-                FileListViewController.addSystemImage(to: iconView, name: "tablecells.fill")
-            case "zip","tar","zst":
-                FileListViewController.addSystemImage(to: iconView, name: "doc.fill")
-            case "ipa":
-                FileListViewController.addSystemImage(to: iconView, name: "app.gift.fill")
-            case "png","jpg","jpeg","gif","svg":
-                FileListViewController.addSystemImage(to: iconView, name: "photo.fill")
-            default:
-                if #unavailable(iOS 17.0) {
-                    FileListViewController.addSystemImage(to: iconView, name: "text.alignleft")
-                } else {
-                    FileListViewController.addSystemImage(to: iconView, name: "text.page.fill")
-                }
-            }
-        } else {
-            FileListViewController.addSystemImage(to: iconView, name: "folder.fill")
-        }
-        
-        cell.contentView.addSubview(iconView)
-        
-        var constraints: [NSLayoutConstraint] = [
-            iconView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 15),
-            iconView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 25),
-            iconView.heightAnchor.constraint(equalToConstant: 25)
-        ]
-        
-        if label.superview != nil {
-            constraints.append(contentsOf: [
-                label.centerXAnchor.constraint(equalTo: iconView.centerXAnchor),
-                label.centerYAnchor.constraint(equalTo: iconView.centerYAnchor)
-            ])
-        }
-        
-        NSLayoutConstraint.activate(constraints)
-        
-        cell.textLabel?.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            cell.textLabel!.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
-            cell.textLabel!.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor)
-        ])
-        
+        cell.configure(with: entry)
+            
         return cell
     }
     
