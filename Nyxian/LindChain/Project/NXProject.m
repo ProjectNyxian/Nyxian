@@ -62,45 +62,6 @@
     return value ? value.boolValue : userSetValue ? userSetValue.boolValue : YES;
 }
 
-- (NSMutableArray*)generateCompilerFlags
-{
-    NSMutableArray *flags = [[NSMutableArray alloc] initWithArray:[self compilerFlags]];
-    
-    [flags addObjectsFromArray:@[
-        @"-target",
-        [self platformTriple],
-        @"-isysroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
-        @"-resource-dir",
-        [[Bootstrap shared] bootstrapPath:@"/Include"]
-    ]];
-    
-    return flags;
-}
-
-- (NSMutableArray*)generateLinkerFlags
-{
-    NSMutableArray *flags = [[NSMutableArray alloc] initWithArray:[self linkerFlags]];
-    
-    [flags addObjectsFromArray:@[
-        @"-platform_version",
-        @"ios",
-        [self platformMinimumVersion],
-        [self platformVersion],
-        @"-arch",
-        @"arm64",
-        @"-syslibroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
-        [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
-    ]];
-    
-    return flags;
-}
-
 // NONE PUBLIC FEATURES - NOT READY FOR PUBLIC
 - (BOOL)debug
 {

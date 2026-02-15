@@ -54,9 +54,6 @@ static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet *
 // NONE PUBLIC FEATURES - NOT READY FOR PUBLIC
 @property (nonatomic,readonly) BOOL debug;
 
-- (NSMutableArray*)generateCompilerFlags;
-- (NSMutableArray*)generateLinkerFlags;
-
 @end
 
 @interface NXEntitlementsConfig : NXPlistHelper

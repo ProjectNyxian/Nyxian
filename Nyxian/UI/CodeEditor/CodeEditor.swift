@@ -70,7 +70,7 @@ class CodeEditorViewController: UIViewController {
             let suffix = self.path.URLGet().pathExtension
             if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                 project.projectConfig.reloadIfNeeded()
-                var flags = project.projectConfig.generateCompilerFlags() as! [String]
+                var flags = project.projectConfig.compilerFlags as! [String]
                 
                 if suffix == "h" {
                     flags.append(contentsOf: ["-x", "objective-c"])

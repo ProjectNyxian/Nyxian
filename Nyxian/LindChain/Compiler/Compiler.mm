@@ -61,7 +61,14 @@ int CompileObject(int argc,
     _flags = [flags copy];
     
     NSUInteger index = [_flags indexOfObject:@"-target"];
-    _triple = [_flags objectAtIndex:index + 1];
+    if(index != NSNotFound)
+    {
+        _triple = [_flags objectAtIndex:index + 1];
+    }
+    else
+    {
+        _triple = @"arm64-apple-ios14.0";
+    }
     
     self.lock = [[NSLock alloc] init];
     

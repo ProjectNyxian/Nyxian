@@ -68,7 +68,7 @@
         _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:_plistPath];
         _savedHash = hash;
         
-        NSDictionary<NSString*,NSString*> *userDef = _dictionary[@"NXVariables"];
+        NSDictionary<NSString*,NSString*> *userDef = _dictionary;
         
         if(userDef && [userDef isKindOfClass:[NSDictionary class]])
         {

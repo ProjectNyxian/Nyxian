@@ -38,7 +38,7 @@ class Builder {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cachePath!)/debug.json")
         self.database.reuseDatabase()
         
-        let genericCompilerFlags: [String] = self.project.projectConfig.generateCompilerFlags() as! [String]
+        let genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
         
         self.compiler = Compiler(genericCompilerFlags)
         self.linker = Linker()
@@ -231,7 +231,7 @@ class Builder {
     }
     
     func link() throws {
-        let ldArgs: [String] = self.project.projectConfig.generateLinkerFlags() as! [String] + [
+        let ldArgs: [String] = self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
         ] + objectFiles
