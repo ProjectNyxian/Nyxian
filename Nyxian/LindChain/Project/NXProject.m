@@ -176,7 +176,11 @@
     self = [super init];
     _path = path;
     _cachePath = [[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
-    _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path]];
+    _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path] withVariables:@{
+        @"SRCROOT": path,
+        @"SDKROOT": [[Bootstrap shared] bootstrapPath:@"SDK/iPhoneOS26.2.sdk"],
+        @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"]
+    }];
     _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path]];
     return self;
 }

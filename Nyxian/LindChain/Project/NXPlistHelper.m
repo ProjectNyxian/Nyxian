@@ -28,13 +28,20 @@
 
 @implementation NXPlistHelper
 
-- (instancetype)initWithPlistPath:(NSString*)plistPath
+- (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath
+                             withVariables:(NSDictionary<NSString*,NSString*> * _Nonnull)variables
 {
     self = [super init];
     _plistPath = plistPath;
     _savedHash = [self currentHash];
+    _variables = variables;
     [self reloadData];
     return self;
+}
+
+- (instancetype)initWithPlistPath:(NSString*)plistPath
+{
+    return [self initWithPlistPath:plistPath withVariables:@{}];
 }
 
 - (NSString *)currentHash
@@ -60,14 +67,96 @@
     {
         _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:_plistPath];
         _savedHash = hash;
+        
+        NSDictionary<NSString*,NSString*> *userDef = _dictionary[@"NXVariables"];
+        
+        if(userDef && [userDef isKindOfClass:[NSDictionary class]])
+        {
+            NSMutableDictionary<NSString*,NSString*> *finalDef = [self.variables mutableCopy];
+            
+            for(NSString *key in userDef)
+            {
+                NSString *value = userDef[key];
+                if([value isKindOfClass:[NSString class]])
+                {
+                    [finalDef setObject:(NSString*)value forKey:key];
+                }
+            }
+            
+            _finalVariables = [finalDef copy];
+        }
+        else
+        {
+            _finalVariables = _variables;
+        }
     }
     return needsReload;
 }
 
 - (void)reloadData
 {
-    _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:_plistPath];
-    _savedHash = [self currentHash];
+    _savedHash = @"";
+    [self reloadIfNeeded];
+}
+
+- (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth
+{
+    if(!input || depth > 10) return input;
+    
+    NSMutableString *result = [input mutableCopy];
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\$\\(([^\\)]+)\\)" options:0 error:nil];
+    NSArray<NSTextCheckingResult*> *matches = [regex matchesInString:result options:0 range:NSMakeRange(0, result.length)];
+    
+    for(NSTextCheckingResult *match in [matches reverseObjectEnumerator])
+    {
+        NSRange varRange = [match rangeAtIndex:1];
+        NSString *varName = [result substringWithRange:varRange];
+        
+        NSString *value = self.finalVariables[varName];
+        if(!value)
+        {
+            value = NSProcessInfo.processInfo.environment[varName];
+        }
+        
+        if(value)
+        {
+            value = [self expandString:value depth:depth + 1];
+            [result replaceCharactersInRange:match.range withString:value];
+        }
+    }
+    
+    return result;
+    return NULL;
+}
+
+- (id _Nonnull)expandObject:(id _Nonnull)obj
+{
+    if([obj isKindOfClass:NSString.class])
+    {
+        return [self expandString:obj depth:0];
+    }
+    
+    if([obj isKindOfClass:NSArray.class])
+    {
+        NSMutableArray *arr = [NSMutableArray array];
+        for(id v in (NSArray*)obj)
+        {
+            [arr addObject:[self expandObject:v]];
+        }
+        return arr;
+    }
+    
+    if([obj isKindOfClass:NSDictionary.class])
+    {
+        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+        for(id key in (NSDictionary*)obj)
+        {
+            dict[key] = [self expandObject:obj[key]];
+        }
+        return dict;
+    }
+    
+    return obj;
 }
 
 - (void)writeKey:(NSString*)key
@@ -80,16 +169,18 @@
 
 - (id)readKey:(NSString*)key
 {
-    return [_dictionary objectForKey:key];
+    return [self expandObject:[_dictionary objectForKey:key]];
 }
 
 - (id)readSecureFromKey:(NSString*)key
        withDefaultValue:(id)value
               classType:Class
 {
-    id valueOfKey = [_dictionary objectForKey:key];
+    id valueOfKey = [self readKey:key];
     if(!valueOfKey && ![valueOfKey isKindOfClass:Class])
+    {
         valueOfKey = value;
+    }
     return valueOfKey;
 }
 

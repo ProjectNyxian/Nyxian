@@ -21,14 +21,23 @@
 
 @interface NXPlistHelper : NSObject
 
+@property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull variables;
+@property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull finalVariables;
 @property (nonatomic,strong,readonly) NSString * _Nonnull plistPath;
-@property (nonatomic,strong,readwrite)  NSMutableDictionary * _Nonnull dictionary;
+@property (nonatomic,strong,readwrite) NSMutableDictionary * _Nonnull dictionary;
 
+- (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath withVariables:(NSDictionary<NSString*,NSString*> * _Nonnull)variables;
 - (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath;
+
 - (BOOL)reloadIfNeeded;
 - (void)reloadData;
+
+- (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth;
+- (id _Nonnull)expandObject:(id _Nonnull)obj;
+
 - (void)writeKey:(NSString * _Nonnull)key withValue:(id _Nonnull)value;
 - (id _Nonnull)readKey:(NSString * _Nonnull)key;
+
 - (id _Nonnull)readSecureFromKey:(NSString * _Nonnull)key withDefaultValue:(id _Nonnull)value classType:Class;
 - (NSString * _Nonnull)readStringForKey:(NSString * _Nonnull)key withDefaultValue:(NSString * _Nonnull)defaultValue;
 - (NSNumber * _Nonnull)readNumberForKey:(NSString * _Nonnull)key withDefaultValue:(NSNumber * _Nonnull)defaultValue;
