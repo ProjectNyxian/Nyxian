@@ -282,7 +282,7 @@
 - (pid_t)spawnProcessWithBundleID:(NSString*)bundleID
 {
     /* creating a process */
-    LDEProcess *process = [[LDEProcess alloc] initWithBundleID:bundleID];
+    LDEProcess *process = [[LDEProcess alloc] initWithBundleIdentifier:bundleID];
     
     /* null pointer check */
     if(process == nil)

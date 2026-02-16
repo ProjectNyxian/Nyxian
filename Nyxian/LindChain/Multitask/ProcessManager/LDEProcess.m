@@ -37,7 +37,7 @@
 #if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session
 #else
-- (instancetype)initWithBundleID:(NSString*)bundleID
+- (instancetype)initWithBundleIdentifier:(NSString*)bundleID
 #endif /* !JAILBREAK_ENV */
 {
     self = [super init];
@@ -171,9 +171,16 @@
                         if(innerSelf.exitingCallback) innerSelf.exitingCallback();
                         
                         dispatch_async(dispatch_get_main_queue(), ^{
-                            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid withCompletion:nil];
+                            if(innerSelf.wid != -1)
+                            {
+                                [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.wid withCompletion:nil];
+                            }
+                            else if(innerSelf.session && innerSelf.session.windowIdentifier != -1)
+                            {
+                                [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.session.windowIdentifier withCompletion:nil];
+                            }
                         });
-                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
+                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
                     });
                 }
                 else

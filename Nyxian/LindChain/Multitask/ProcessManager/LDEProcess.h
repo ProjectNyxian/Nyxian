@@ -70,7 +70,7 @@
 #if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session;
 #else
-- (instancetype)initWithBundleID:(NSString*)bundleID;
+- (instancetype)initWithBundleIdentifier:(NSString*)bundleID;
 #endif /* !JAILBREAK_ENV */
 
 - (void)sendSignal:(int)signal;

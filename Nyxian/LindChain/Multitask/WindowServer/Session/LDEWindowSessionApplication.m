@@ -344,6 +344,7 @@ void UIKitFixesInit(void)
 {
     /* making sure LDEProcess wont close this */
     self.process.wid = (wid_t)-1;
+    self.process.session = nil;
 }
 
 - (BOOL)injectProcess:(LDEProcess*)process
