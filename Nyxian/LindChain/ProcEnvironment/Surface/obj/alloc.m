@@ -56,9 +56,12 @@ kvobject_t *kvobject_alloc(size_t size,
     kvo->deinit = deinit;
     
     /* checking init handler and executing if nonnull */
-    if(kvo->init != NULL)
+    if(kvo->init != NULL &&
+       !kvo->init(kvo, NULL))
     {
-        kvo->init(kvo, NULL);
+        pthread_rwlock_destroy(&(kvo->rwlock));
+        free(kvo);
+        return NULL;
     }
     
     /* returning da object */
@@ -95,9 +98,12 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
     kvo_dup->deinit = kvo->deinit;
     
     /* checking init handler and executing if nonnull */
-    if(kvo_dup->init != NULL)
+    if(kvo_dup->init != NULL &&
+       !kvo_dup->init(kvo_dup, kvo))
     {
-        kvo_dup->init(kvo_dup, kvo);
+        pthread_rwlock_destroy(&(kvo_dup->rwlock));
+        free(kvo_dup);
+        kvo_dup = NULL;
     }
     
 out_unlock:

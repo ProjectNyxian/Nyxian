@@ -48,8 +48,14 @@ DEFINE_KVOBJECT_INIT_HANDLER(proc)
         proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
     }
     
+    if(gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+    {
+        return false;
+    }
+    
     pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
-    gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL);
+    
+    return true;
 }
 
 DEFINE_KVOBJECT_DEINIT_HANDLER(proc)
