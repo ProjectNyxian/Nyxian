@@ -23,18 +23,34 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@protocol LDEWindowSession
+typedef int wid_t;
 
-@property (nonatomic) NSString *windowName;
-@property (nonatomic) BOOL windowIsFullscreen;
+@interface LDEWindowSession : UIViewController
 
-- (BOOL)openWindowWithScene:(UIWindowScene*)windowScene withSessionIdentifier:(int)identifier;
-- (void)closeWindowWithScene:(UIWindowScene*)windowScene withFrame:(CGRect)rect;
+@property (nonatomic,weak) UIWindowScene *windowScene;
+@property (nonatomic) wid_t windowIdentifier;
+
+@property (nonatomic) CGRect windowRect;
+
+@property (nonatomic) BOOL isFullscreen;
+@property (nonatomic) BOOL isActive;
+@property (nonatomic) BOOL isFocused;
+
+- (BOOL)openWindow;
+- (BOOL)closeWindow;
+
+- (BOOL)activateWindow;
+- (BOOL)deactivateWindow;
+
+- (BOOL)focusWindow;
+- (BOOL)unfocusWindow;
+
+- (void)windowChangesToRect:(CGRect)rect;
+
 - (UIImage*)snapshotWindow;
-- (void)activateWindow;
-- (void)deactivateWindow;
-- (void)windowChangesSizeToRect:(CGRect)rect;
-- (CGRect)windowRect;
+- (NSString*)windowName;
+
+- (void)movedWindowToScene:(UIWindowScene*)windowScene withIdentifier:(wid_t)identifier;
 
 @end
 

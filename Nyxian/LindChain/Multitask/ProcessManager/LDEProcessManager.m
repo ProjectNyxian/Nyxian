@@ -279,7 +279,6 @@
     /* locking */
     os_unfair_lock_lock(&processes_array_lock);
     
-    klog_log(@"LDEProcessManager:unregisterProcessWithProcessIdentifier", @"unregistering pid %d", pid);
     [self.processes removeObjectForKey:@(pid)];
     
     /* unlocking */

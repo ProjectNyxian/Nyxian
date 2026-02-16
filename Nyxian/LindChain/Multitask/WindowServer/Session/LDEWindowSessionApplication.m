@@ -29,7 +29,7 @@
 #import <objc/runtime.h>
 #import <os/lock.h>
 
-NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
+NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
 
 @implementation RBSTarget(hook)
 
@@ -60,22 +60,30 @@ void UIKitFixesInit(void)
     CGFloat keyboardBottomInset;
 }
 
-@synthesize windowName;
-@synthesize windowIsFullscreen;
-
 - (instancetype)initWithProcess:(LDEProcess*)process;
 {
     self = [super init];
     _process = process;
-
-    self.windowName  = self.process.displayName;
-
     return self;
 }
 
-- (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
-      withSessionIdentifier:(int)identifier
+- (BOOL)openWindow
 {
+    if(![super openWindow])
+    {
+        return NO;
+    }
+    
+    NSValue *nsValue = runtimeStoredRectValuesByExecutablePath[_process.executablePath];
+    if(nsValue == nil)
+    {
+        self.windowRect = CGRectMake(50, 50, 400, 400);
+    }
+    else
+    {
+        self.windowRect = nsValue.CGRectValue;
+    }
+    
     @try {
         self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
         [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
@@ -92,7 +100,7 @@ void UIKitFixesInit(void)
     [self.view addSubview:self.presenter.presentationView];
     
     /* registering to window */
-    [windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
+    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
     /* fixing keyboard issues */
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
@@ -104,14 +112,15 @@ void UIKitFixesInit(void)
     return YES;
 }
 
-- (void)closeWindowWithScene:(UIWindowScene*)windowScene
-                   withFrame:(CGRect)rect;
+- (BOOL)closeWindow
 {
+    [super closeWindow];
+    
     /* checking for bundle identifier presence */
-    if(_process.bundleIdentifier != nil)
+    if(_process.executablePath != nil)
     {
         /* if so then we store the last rect ever into this database */
-        runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier] = [NSValue valueWithCGRect:rect];
+        runtimeStoredRectValuesByExecutablePath[_process.executablePath] = [NSValue valueWithCGRect:self.windowRect];
     }
     
     /* fixing keyboard issues */
@@ -121,10 +130,12 @@ void UIKitFixesInit(void)
     [_presenter invalidate];
     
     /* unregistering scene lol */
-    [windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
+    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
     
     /* terminating process so it stops eating our cores x3 */
     [_process terminate];
+    
+    return YES;
 }
 
 - (UIImage*)snapshotWindow
@@ -133,7 +144,7 @@ void UIKitFixesInit(void)
     return _process.snapshot;
 }
 
-- (void)activateWindow
+- (BOOL)activateWindow
 {
     os_unfair_lock_lock(&lock);
     
@@ -156,9 +167,11 @@ void UIKitFixesInit(void)
     [self.process resume];
     
     os_unfair_lock_unlock(&lock);
+    
+    return YES;
 }
 
-- (void)deactivateWindow
+- (BOOL)deactivateWindow
 {
     os_unfair_lock_lock(&lock);
     
@@ -182,12 +195,13 @@ void UIKitFixesInit(void)
     }];
     
     os_unfair_lock_unlock(&lock);
+    
+    return YES;
 }
 
-- (void)windowChangesSizeToRect:(CGRect)rect
+- (void)windowChangesToRect:(CGRect)rect
 {
-    // MARK: Has to be set so _performActionsForUIScene works
-    self.windowSize = rect;
+    [super windowChangesToRect:rect];
     
     os_unfair_lock_lock(&lock);
     
@@ -200,7 +214,7 @@ void UIKitFixesInit(void)
         settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;
         settings.frame = UIInterfaceOrientationIsLandscape(settings.interfaceOrientation) ? CGRectMake(rect.origin.x, rect.origin.y, rect.size.height, rect.size.width) : rect;
         
-        UIEdgeInsets insets = (self.windowIsFullscreen) ? LDEWindowServer.shared.safeAreaInsets : UIEdgeInsetsZero;
+        UIEdgeInsets insets = (self.isFullscreen) ? LDEWindowServer.shared.safeAreaInsets : UIEdgeInsetsZero;
         
         /* looks unnatural without */
         insets.top = 10;
@@ -263,30 +277,12 @@ void UIKitFixesInit(void)
     
     os_unfair_lock_unlock(&lock);
     
-    [self windowChangesSizeToRect:self.windowSize];
-}
-
-- (CGSize)sizeForChildContentContainer:(nonnull id<UIContentContainer>)container withParentContainerSize:(CGSize)parentSize
-{
-    return CGSizeZero;
+    [self windowChangesToRect:self.windowRect];
 }
 
 - (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context
 {
     return NO;
-}
-
-- (CGRect)windowRect
-{
-    NSValue *nsValue = runtimeStoredRectValuesByBundleIdentifier[_process.bundleIdentifier];
-    if(nsValue == nil)
-    {
-        return CGRectMake(50, 50, 400, 400);
-    }
-    else
-    {
-        return nsValue.CGRectValue;
-    }
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
@@ -337,7 +333,7 @@ void UIKitFixesInit(void)
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
         
-        if(self.windowIsFullscreen)
+        if(self.isFullscreen)
         {
             currentInsets.bottom = LDEWindowServer.shared.safeAreaInsets.bottom;
         }
@@ -355,6 +351,11 @@ void UIKitFixesInit(void)
     isKeyboardShown = false;
     
     os_unfair_lock_unlock(&lock);
+}
+
+- (NSString*)windowName
+{
+    return self.process.displayName;
 }
 
 - (void)dealloc

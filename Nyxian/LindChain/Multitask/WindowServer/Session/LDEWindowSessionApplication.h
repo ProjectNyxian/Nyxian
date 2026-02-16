@@ -24,13 +24,12 @@
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
-@interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction>
+@interface LDEWindowSessionApplication : LDEWindowSession <_UISceneSettingsDiffAction>
 
 @property (nonatomic) UIView* contentView;
 @property (nonatomic, strong) LDEProcess *process;
 @property (nonatomic) _UIScenePresenter *presenter;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
-@property (nonatomic) CGRect windowSize;
 
 - (instancetype)initWithProcess:(LDEProcess*)process;
 

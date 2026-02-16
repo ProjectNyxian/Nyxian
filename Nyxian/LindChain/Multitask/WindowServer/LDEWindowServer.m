@@ -118,6 +118,8 @@ static const NSInteger kTagShineView = 7777;
                            animated:(BOOL)animated
                      withCompletion:(void (^)(void))completion
 {
+    assert([NSThread isMainThread]);
+    
     LDEWindow *window = self.windows[@(identifier)];
     if(!window) return;
     
@@ -146,6 +148,8 @@ static const NSInteger kTagShineView = 7777;
                     withIdentifier:(wid_t)identifier
                     withCompletion:(void (^)(void))completion
 {
+    assert([NSThread isMainThread]);
+    
     LDEWindow *window = self.windows[@(identifier)];
     if(!window || window.view.hidden)
     {
@@ -176,52 +180,63 @@ static const NSInteger kTagShineView = 7777;
     [window focusWindow];
 }
 
-- (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session
-                   identifier:(wid_t*)identifier
+- (void)openWindowWithSession:(LDEWindowSession*)session
+               withCompletion:(void (^)(BOOL))completion
 {
+    assert([NSThread isMainThread]);
+    
     __block wid_t windowIdentifier = (wid_t)-1;
+    __block BOOL windowOpened = YES;
     __weak typeof(self) weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        void (^openAct)(void) = ^{
-            windowIdentifier = [self getNextWindowIdentifier];
-            [session openWindowWithScene:self.windowScene withSessionIdentifier:windowIdentifier];
-            LDEWindow *window = [[LDEWindow alloc] initWithSession:session withDelegate:self];
-            window.identifier = windowIdentifier;
-            if(window)
-            {
-                weakSelf.windows[@(windowIdentifier)] = window;
-                [self windowWantsToFocus:window];
-                [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
-                [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
-            }
-            else
-            {
-                return;
-            }
-        };
+    
+    void (^openAct)(void) = ^{
+        windowIdentifier = [self getNextWindowIdentifier];
+        [session movedWindowToScene:self.windowScene withIdentifier:windowIdentifier];
         
-        LDEWindow *window = self.windows[@(weakSelf.activeWindowIdentifier)];
-        if(window != nil &&
-           weakSelf.activeWindowIdentifier != window.identifier &&
-           [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
+        if(![session openWindow])
         {
-            // close first the old one and wait
-            [self deactivateWindowByPullDown:YES withIdentifier:weakSelf.activeWindowIdentifier withCompletion:^{
-                openAct();
-            }];
+            windowOpened = NO;
+            return;
+        }
+        
+        LDEWindow *window = [[LDEWindow alloc] initWithSession:session withDelegate:self];
+        window.identifier = windowIdentifier;
+        if(window)
+        {
+            weakSelf.windows[@(windowIdentifier)] = window;
+            [self windowWantsToFocus:window];
+            [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
+            [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
         }
         else
         {
-            openAct();
+            return;
         }
-        
-        if(identifier != NULL) *identifier = windowIdentifier;
-    });
-    return YES;
+    };
+    
+    LDEWindow *window = self.windows[@(weakSelf.activeWindowIdentifier)];
+    if(window != nil &&
+       weakSelf.activeWindowIdentifier != window.identifier &&
+       [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
+    {
+        // close first the old one and wait
+        [self deactivateWindowByPullDown:YES withIdentifier:weakSelf.activeWindowIdentifier withCompletion:^{
+            openAct();
+            if(completion) completion(windowOpened);
+        }];
+    }
+    else
+    {
+        openAct();
+        if(completion) completion(windowOpened);
+    }
 }
 
-- (BOOL)closeWindowWithIdentifier:(wid_t)identifier
+- (void)closeWindowWithIdentifier:(wid_t)identifier
+                   withCompletion:(void (^)(BOOL))completion
 {
+    assert([NSThread isMainThread]);
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         if(self.activeWindowIdentifier == identifier)
         {
@@ -231,13 +246,21 @@ static const NSInteger kTagShineView = 7777;
         LDEWindow *window = self.windows[@(identifier)];
         if(window != nil)
         {
-            [window closeWindow];
-            [window deinit];
-            [self.windows removeObjectForKey:@(identifier)];
-            [self.windowOrder removeObject:@(identifier)];
+            [window closeWindowWithCompletion:^(BOOL closedWindow){
+                if(closedWindow)
+                {
+                    [self.windows removeObjectForKey:@(identifier)];
+                    [self.windowOrder removeObject:@(identifier)];
+                }
+                
+                if(completion) completion(closedWindow);
+            }];
+        }
+        else
+        {
+            if(completion) completion(NO);
         }
     });
-    return YES;
 }
 
 - (void)makeKeyAndVisible
@@ -910,7 +933,7 @@ static const NSInteger kTagShineView = 7777;
         
         if(window)
         {
-            [window.session closeWindowWithScene:self.windowScene withFrame:window.view.frame];
+            [window.session closeWindow];
         }
         
         tileContainer.hidden = YES;

@@ -50,14 +50,14 @@ typedef int wid_t;
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGRect originalFrame;
 
-@property (nonatomic) UIViewController<LDEWindowSession> *session;
+@property (nonatomic) LDEWindowSession *session;
 
 @property (nonatomic, weak) id<LDEWindowDelegate> delegate;
 
-- (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session withDelegate:(id<LDEWindowDelegate>)delegate;
+- (instancetype)initWithSession:(LDEWindowSession*)session withDelegate:(id<LDEWindowDelegate>)delegate;
 
 - (void)openWindow;
-- (void)closeWindow;
+- (void)closeWindowWithCompletion:(void (^)(BOOL))completion;
 - (void)unfocusWindow;
 - (void)focusWindow;
 

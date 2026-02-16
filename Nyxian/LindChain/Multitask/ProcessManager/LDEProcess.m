@@ -32,7 +32,7 @@
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
-extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleIdentifier;
+extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
 
 @implementation LDEProcess
 
@@ -50,9 +50,9 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
     items = [mutableItems copy];
     
-    if(runtimeStoredRectValuesByBundleIdentifier == nil)
+    if(runtimeStoredRectValuesByExecutablePath == nil)
     {
-        runtimeStoredRectValuesByBundleIdentifier = [[NSMutableDictionary alloc] init];
+        runtimeStoredRectValuesByExecutablePath = [[NSMutableDictionary alloc] init];
     }
     
     self.executablePath = items[@"LSExecutablePath"];
@@ -174,7 +174,10 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         
                         [innerSelf.processMonitor invalidate];
                         if(innerSelf.exitingCallback) innerSelf.exitingCallback();
-                        if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid];
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if(self.wid != -1) [[LDEWindowServer shared] closeWindowWithIdentifier:self.wid withCompletion:nil];
+                        });
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
                     });
                 }
@@ -221,7 +224,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             CGRect rect = CGRectMake(50, 50, 400, 400);
                             if(innerSelf.bundleIdentifier != nil)
                             {
-                                NSValue *value = runtimeStoredRectValuesByBundleIdentifier[innerSelf.bundleIdentifier];
+                                NSValue *value = runtimeStoredRectValuesByExecutablePath[innerSelf.executablePath];
                                 if(value != nil)
                                 {
                                     rect = [value CGRectValue];
@@ -234,8 +237,8 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                             settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
                             
                             // it seems some apps don't honor these settings so we don't cover the top of the app
-                            settings.peripheryInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(0, 0, 0, 0);
+                            settings.peripheryInsets = UIEdgeInsetsZero;
+                            settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
                             
                             settings.statusBarDisabled = YES;
                             parameters.settings = settings;
@@ -255,14 +258,12 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
                         ksurface_proc_t *child = proc_fork(proc, weakSelf.pid, [weakSelf.executablePath UTF8String]);
                         if(child == NULL)
                         {
-                            klog_log(@"LDEProcess", @"failed to create child process with proc api");
                             [weakSelf terminate];
                         }
                         else
                         {
                             weakSelf.proc = child;
                         }
-                        klog_log(@"LDEProcess", @"forked process @ %p of process @ %p", child, proc);
 #endif /* !JAILBREAK_ENV */
                     });
                 }
@@ -289,7 +290,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
     withEnvironmentVariables:(NSDictionary*)environment
                withMapObject:(FDMapObject*)mapObject
     withKernelSurfaceProcess:(ksurface_proc_t *)proc
-        enableDebugging:(BOOL)enableDebugging
+             enableDebugging:(BOOL)enableDebugging
 {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
         @"LSEndpoint": [Server getTicket],
@@ -363,8 +364,13 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByBundleI
 {
     dispatch_once(&_notifyWindowManagerOnce, ^{
         dispatch_async(dispatch_get_main_queue(), ^{
-            LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
-            [[LDEWindowServer shared] openWindowWithSession:session identifier:&(self->_wid)];
+            __block LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
+            [[LDEWindowServer shared] openWindowWithSession:session withCompletion:^(BOOL windowOpened){
+                if(windowOpened)
+                {
+                    self.wid = session.windowIdentifier;
+                }
+            }];
         });
     });
 }

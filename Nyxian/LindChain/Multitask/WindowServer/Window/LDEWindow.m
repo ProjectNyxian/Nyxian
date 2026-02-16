@@ -42,12 +42,12 @@
 
 @implementation LDEWindow
 
-- (instancetype)initWithSession:(UIViewController<LDEWindowSession>*)session
+- (instancetype)initWithSession:(LDEWindowSession*)session
                    withDelegate:(id<LDEWindowDelegate>)delegate;
 {
     self = [super initWithNibName:nil bundle:nil];
     _session = session;
-    _session.windowIsFullscreen = NO;
+    _session.isFullscreen = NO;
     _windowName = session.windowName;
     _delegate = delegate;
     
@@ -56,7 +56,7 @@
     return self;
 }
 
-- (void)closeWindow
+- (void)closeWindowWithCompletion:(void (^)(BOOL))completion
 {
     [UIView animateKeyframesWithDuration:0.25 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeCubic animations:^{
         [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.25 animations:^{
@@ -69,8 +69,16 @@
         }];
     } completion:^(BOOL finished) {
         self.view.transform = CGAffineTransformIdentity;
-        [self.session closeWindowWithScene:self.delegate.windowScene withFrame:self.originalFrame];
-        [self.delegate windowWantsToClose:self];
+        BOOL closeWindow = [self.session closeWindow];
+        
+        if(closeWindow)
+        {
+            [self.delegate windowWantsToClose:self];
+        }
+        else
+        {
+            if(completion) completion(closeWindow);
+        }
     }];
 }
 
@@ -215,6 +223,9 @@
 
 - (void)setupDecoratedView:(CGRect)dimensions
 {
+    dimensions.origin.y -= 44;
+    dimensions.size.height += 44;
+    
     self.view = [[UIStackView alloc] initWithFrame:dimensions];
     self.view.backgroundColor = UIColor.clearColor;
     self.view.autoresizingMask = UIViewAutoresizingNone;
@@ -241,7 +252,7 @@
     
     __weak typeof(self) weakSelf = self;
     LDEWindowBar *windowBar = [[LDEWindowBar alloc] initWithTitle:self.windowName withCloseCallback:^{
-        [weakSelf closeWindow];
+        [weakSelf closeWindowWithCompletion:nil];
     } withMaximizeCallback:^{
         [weakSelf maximizeWindow:YES];
     }];
@@ -319,7 +330,7 @@
     if(self.isMaximized)
     {
         self.isMaximized = NO;
-        self.session.windowIsFullscreen = NO;
+        self.session.isFullscreen = NO;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
         
         changes = ^{
@@ -343,7 +354,7 @@
     else
     {
         self.isMaximized = YES;
-        self.session.windowIsFullscreen = YES;
+        self.session.isFullscreen = YES;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
         
         changes = ^{
@@ -401,7 +412,6 @@
             [self focusWindow];
             CGPoint pointInWindow = [gesture locationInView:self.view];
             self.grabOffset = pointInWindow;
-            [self resizeActionStart];
             break;
         }
         case UIGestureRecognizerStateChanged:
@@ -417,7 +427,6 @@
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed:
             [self updateOriginalFrame];
-            [self resizeActionEnd];
         default:
             break;
     }
@@ -526,13 +535,11 @@
 
 - (void)updateSceneFrame
 {
-    CGFloat navBarHeight = self.windowBar.frame.size.height;
-    
     CGRect frame = self.view.frame;
-    frame.origin.y += navBarHeight;
-    frame.size.height -= navBarHeight;
+    frame.origin.y += 44;
+    frame.size.height -= 44;
     
-    [_session windowChangesSizeToRect:frame];
+    [self.session windowChangesToRect:frame];
 }
 
 - (void)deinit

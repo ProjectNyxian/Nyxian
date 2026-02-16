@@ -21,6 +21,8 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 #import <Nyxian-Swift.h>
 
+extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
+
 @interface LDEWindowSessionTerminal ()
 
 @property (nonatomic,strong) NyxianTerminal *terminal;
@@ -35,23 +37,22 @@
 
 @implementation LDEWindowSessionTerminal
 
-@synthesize windowName;
-@synthesize windowIsFullscreen;
-
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath
 {
     self = [super init];
     _utilityPath = utilityPath;
-    self.windowName = [utilityPath lastPathComponent];
     return self;
 }
 
-- (BOOL)openWindowWithScene:(UIWindowScene*)windowScene
-      withSessionIdentifier:(int)identifier
+- (BOOL)openWindow
 {
+    if(![super openWindow])
+    {
+        return NO;
+    }
+    
     self.focused = NO;
     self.atExit = NO;
-    self.identifier = identifier;
     
     /* using NSPipe, because file descriptors are automatically closed */
     self.stdoutPipe = [NSPipe pipe];
@@ -62,6 +63,16 @@
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process];
     _process = process;
+    
+    NSValue *nsValue = runtimeStoredRectValuesByExecutablePath[_process.executablePath];
+    if(nsValue == nil)
+    {
+        self.windowRect = CGRectMake(50, 50, 400, 400);
+    }
+    else
+    {
+        self.windowRect = nsValue.CGRectValue;
+    }
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
@@ -82,12 +93,13 @@
             
             strongSelf.atExit = YES;
             strongSelf.terminal.inputCallBack = ^{
-                [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
+                __strong typeof(self) strongSelf = weakSelf;
+                [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
             };
         }
         else
         {
-            [[LDEWindowServer shared] closeWindowWithIdentifier:identifier];
+            [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
         }
     };
     
@@ -105,56 +117,62 @@
     return YES;
 }
 
-- (void)closeWindowWithScene:(UIWindowScene *)windowScene
-                   withFrame:(CGRect)rect
+- (BOOL)closeWindow
 {
+    [super closeWindow];
+    
+    /* checking for bundle identifier presence */
+    if(_process.executablePath != nil)
+    {
+        /* if so then we store the last rect ever into this database */
+        runtimeStoredRectValuesByExecutablePath[_process.executablePath] = [NSValue valueWithCGRect:self.windowRect];
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
     self.terminal.stdinHandle = nil;
     self.terminal.stdoutHandle = nil;
     [_process terminate];
+    
+    return YES;
 }
 
-- (void)activateWindow
+- (BOOL)activateWindow
 {
+    [super activateWindow];
+    
     [_process resume];
     self.focused = YES;
     (void)[_terminal becomeFirstResponder];
+    return YES;
 }
 
-- (void)deactivateWindow
+- (BOOL)deactivateWindow
 {
+    [super deactivateWindow];
+    
     self.focused = NO;
     
     if(self.atExit)
     {
-        [[LDEWindowServer shared] closeWindowWithIdentifier:self.identifier];
-        return;
+        [[LDEWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
+        return YES;
     }
     
     [_process suspend];
+    return YES;
 }
 
-- (UIImage *)snapshotWindow
+- (void)windowChangesToRect:(CGRect)rect
 {
-    UIGraphicsBeginImageContextWithOptions(_terminal.bounds.size, NO, 0.0);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    [_terminal.layer renderInContext:context];
-    UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return snapshot;
-}
-
-- (void)windowChangesSizeToRect:(CGRect)rect
-{
+    [super windowChangesToRect:rect];
+    
     _heigthConstraint.constant = rect.size.height;
     _widthConstraint.constant = rect.size.width;
-}
-
-- (CGRect)windowRect
-{
-    return CGRectMake(50, 50, 400, 400);
+    
+    char *noop = "\0";
+    [_stdoutPipe.fileHandleForWriting writeData:[NSData dataWithBytes:noop length:1]];
 }
 
 - (void)dealloc

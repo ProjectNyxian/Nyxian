@@ -150,6 +150,8 @@ out_parent_contract_retain_failed:
     pthread_mutex_unlock(&(child->kproc.children.mutex));
     pthread_mutex_unlock(&(parent->kproc.children.mutex));
     
+    klog_log(@"proc:fork", @"forked process @ %p of process @ %p", child, parent);
+    
     /* child stays retained for the caller */
     return child;
 }

@@ -23,7 +23,7 @@
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
-@interface LDEWindowSessionTerminal : UIViewController <LDEWindowSession>
+@interface LDEWindowSessionTerminal : LDEWindowSession
 
 @property (nonatomic,strong) NSString *utilityPath;
 

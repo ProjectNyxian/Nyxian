@@ -45,10 +45,13 @@
 + (instancetype)sharedWithWindowScene:(UIWindowScene*)windowScene;
 + (instancetype)shared;
 
-- (BOOL)closeWindowWithIdentifier:(wid_t)identifier;
-- (BOOL)openWindowWithSession:(UIViewController<LDEWindowSession>*)session identifier:(wid_t*)identifier;
+- (void)openWindowWithSession:(LDEWindowSession*)session withCompletion:(void (^)(BOOL))completion;
+- (void)closeWindowWithIdentifier:(wid_t)identifier  withCompletion:(void (^)(BOOL))completion;
+
 - (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
+
 - (void)focusWindowForIdentifier:(wid_t)identifier;
+
 - (void)showAppSwitcherExternal;
 
 #if !JAILBREAK_ENV
