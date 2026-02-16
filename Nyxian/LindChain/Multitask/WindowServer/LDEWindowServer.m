@@ -1154,6 +1154,7 @@ static const NSInteger kTagShineView = 7777;
     
     /* calculating fullscreen rectangle */
     CGRect allowed = UIEdgeInsetsInsetRect(bounds, insets);
+    CGRect boundsInset = allowed;
     allowed.size.height += insets.bottom;
     
     /* checking if maximised */
@@ -1169,17 +1170,21 @@ static const NSInteger kTagShineView = 7777;
         allowed.size.height += (rect.size.height - 50);
     }
     
-    /* a lot of math */
-    if(rect.size.width > allowed.size.width)
+    /* proportionally scale if window exceeds allowed area */
+    if(rect.size.width > allowed.size.width || rect.size.height > boundsInset.size.height)
     {
-        rect.size.width = allowed.size.width;
-    }
-    
-    if(rect.size.height > allowed.size.height)
-    {
-        rect.size.height = allowed.size.height;
+        CGFloat widthScale = allowed.size.width / rect.size.width;
+        CGFloat heightScale = boundsInset.size.height / rect.size.height;
+        CGFloat scale = MIN(widthScale, heightScale);
+        
+        /* scale size proportionally */
+        rect.size.width *= scale;
+        rect.size.height *= scale;
+        
+        /* TODO: fix minimum window size not being handled by this method */
     }
 
+    /* constrain position within allowed bounds */
     if(rect.origin.x < allowed.origin.x)
     {
         rect.origin.x = allowed.origin.x;
