@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/LDEWindowBar.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindowBar.h>
 
 @implementation LDEWindowBar {
     UIView *_bottomBorder;

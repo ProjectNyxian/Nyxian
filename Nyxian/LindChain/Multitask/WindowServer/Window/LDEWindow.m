@@ -17,9 +17,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/LDEWindow.h>
-#import <LindChain/Multitask/WindowServer/ResizeHandleView.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowBar.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
+#import <LindChain/Multitask/WindowServer/Window/ResizeHandleView.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindowBar.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
 @interface LDEWindow ()

@@ -22,7 +22,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <LindChain/Multitask/WindowServer/LDEWindow.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
 
 #if !JAILBREAK_ENV
 #import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>

@@ -21,7 +21,7 @@
 #define LDEWINDOWSESSIONAPPLICATION_H
 
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowSession.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
 @interface LDEWindowSessionApplication : UIViewController <LDEWindowSession,_UISceneSettingsDiffAction>
