@@ -185,7 +185,7 @@
     [self enforceSpawnCooldown];
     
     /* creating process */
-    NSDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
         @"LSEndpoint": [Server getTicket],
         @"LSServiceMode": @"spawn",
         @"LSExecutablePath": applicationObject.executablePath,
@@ -195,9 +195,13 @@
         @"LSEnvironment": @{
             @"HOME": applicationObject.containerPath
         },
-        @"LDEDebugEnabled": @(enableDebugging),
-        @"LSMapObject": mapObject
+        @"LDEDebugEnabled": @(enableDebugging)
     }];
+    
+    if(mapObject != nil)
+    {
+        [dictionary setObject:mapObject forKey:@"LSMapObject"];
+    }
     
     LDEProcess *process = [[LDEProcess alloc] initWithItems:[dictionary copy] withKernelSurfaceProcess:proc withSession:session];
     
