@@ -1170,21 +1170,12 @@ static const NSInteger kTagShineView = 7777;
         allowed.size.height += (rect.size.height - 50);
     }
     
-    /* proportionally scale if window exceeds allowed area */
-    if(rect.size.width > allowed.size.width || rect.size.height > boundsInset.size.height)
+    /* a lot of math */
+    if(rect.size.height > boundsInset.size.height)
     {
-        CGFloat widthScale = allowed.size.width / rect.size.width;
-        CGFloat heightScale = boundsInset.size.height / rect.size.height;
-        CGFloat scale = MIN(widthScale, heightScale);
-        
-        /* scale size proportionally */
-        rect.size.width *= scale;
-        rect.size.height *= scale;
-        
-        /* TODO: fix minimum window size not being handled by this method */
+        rect.size.height = boundsInset.size.height;
     }
 
-    /* constrain position within allowed bounds */
     if(rect.origin.x < allowed.origin.x)
     {
         rect.origin.x = allowed.origin.x;
