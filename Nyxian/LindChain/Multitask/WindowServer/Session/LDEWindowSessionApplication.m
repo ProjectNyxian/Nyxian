@@ -193,42 +193,40 @@ void UIKitFixesInit(void)
     
     __weak typeof(self) weakSelf = self;
     
-    // Handle user resizes
+    /* update window dimensions */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+
         settings.deviceOrientation = UIDevice.currentDevice.orientation;
         settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;
+        settings.frame = UIInterfaceOrientationIsLandscape(settings.interfaceOrientation) ? CGRectMake(rect.origin.x, rect.origin.y, rect.size.height, rect.size.width) : rect;
         
-        if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation))
-        {
-            settings.frame = CGRectMake(rect.origin.x, rect.origin.y, rect.size.height, rect.size.width);
-        }
-        else
-        {
-            settings.frame = rect;
-        }
+        UIEdgeInsets insets = (self.windowIsFullscreen) ? LDEWindowServer.shared.safeAreaInsets : UIEdgeInsetsZero;
         
-        UIEdgeInsets insets = UIEdgeInsetsZero;
-        if(self.windowIsFullscreen)
-        {
-            insets = LDEWindowServer.shared.safeAreaInsets;
-        }
-        else
-        {
-            insets = UIEdgeInsetsZero;
-        }
-        
+        /* looks unnatural without */
         insets.top = 10;
         
         __strong typeof(self) innerSelf = weakSelf;
         if(innerSelf->isKeyboardShown)
         {
-            insets.bottom = innerSelf->keyboardBottomInset;
+            insets.bottom = innerSelf->keyboardBottomInset - rect.origin.y;
         }
         
-        settings.safeAreaInsetsPortrait = insets;
-        settings.safeAreaInsetsLandscapeLeft = insets;
-        settings.safeAreaInsetsLandscapeRight = insets;
-        settings.safeAreaInsetsPortraitUpsideDown = insets;
+        switch(settings.interfaceOrientation)
+        {
+            case UIInterfaceOrientationPortrait:
+                settings.safeAreaInsetsPortrait = insets;
+                break;
+            case UIInterfaceOrientationPortraitUpsideDown:
+                settings.safeAreaInsetsPortraitUpsideDown = insets;
+                break;
+            case UIInterfaceOrientationLandscapeLeft:
+                settings.safeAreaInsetsLandscapeLeft = insets;
+                break;
+            case UIInterfaceOrientationLandscapeRight:
+                settings.safeAreaInsetsLandscapeRight = insets;
+            case UIInterfaceOrientationUnknown:
+                break;
+        }
     }];
     
     os_unfair_lock_unlock(&lock);
@@ -319,7 +317,12 @@ void UIKitFixesInit(void)
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
         currentInsets.bottom = bottomInset;
+        
+        
         settings.safeAreaInsetsPortrait = currentInsets;
+        settings.safeAreaInsetsLandscapeLeft = currentInsets;
+        settings.safeAreaInsetsLandscapeRight = currentInsets;
+        settings.safeAreaInsetsPortraitUpsideDown = currentInsets;
     }];
     
     isKeyboardShown = true;
@@ -344,6 +347,9 @@ void UIKitFixesInit(void)
         }
         
         settings.safeAreaInsetsPortrait = currentInsets;
+        settings.safeAreaInsetsLandscapeLeft = currentInsets;
+        settings.safeAreaInsetsLandscapeRight = currentInsets;
+        settings.safeAreaInsetsPortraitUpsideDown = currentInsets;
     }];
     
     isKeyboardShown = false;
