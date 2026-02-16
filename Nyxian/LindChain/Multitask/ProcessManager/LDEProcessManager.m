@@ -163,12 +163,12 @@
             }
         }
     }
-    os_unfair_lock_unlock(&processes_array_lock);
     
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:bundleIdentifier];
     if(!applicationObject.isLaunchAllowed)
     {
         [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
+        os_unfair_lock_unlock(&processes_array_lock);
         return -1;
     }
     
@@ -181,10 +181,42 @@
         [mapObject insertOutFD:outp.fileHandleForWriting.fileDescriptor ErrFD:outp.fileHandleForWriting.fileDescriptor InPipe:inp.fileHandleForReading.fileDescriptor];
     }
     
-    LDEProcess *process = nil;
-    return [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
-        @"HOME": applicationObject.containerPath
-    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:enableDebugging process:&process withSession:session];
+    /* enforce cooldown */
+    [self enforceSpawnCooldown];
+    
+    /* creating process */
+    NSDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
+        @"LSEndpoint": [Server getTicket],
+        @"LSServiceMode": @"spawn",
+        @"LSExecutablePath": applicationObject.executablePath,
+        @"LSArguments": @[
+            applicationObject.executablePath
+        ],
+        @"LSEnvironment": @{
+            @"HOME": applicationObject.containerPath
+        },
+        @"LDEDebugEnabled": @(enableDebugging),
+        @"LSMapObject": mapObject
+    }];
+    
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:[dictionary copy] withKernelSurfaceProcess:proc withSession:session];
+    
+    /* null pointer check */
+    if(process == nil)
+    {
+        os_unfair_lock_unlock(&processes_array_lock);
+        return -1;
+    }
+    
+    /* getting pid of process */
+    pid_t pid = process.pid;
+    
+    /* setting process */
+    [self.processes setObject:process forKey:@(pid)];
+    
+    os_unfair_lock_unlock(&processes_array_lock);
+
+    return pid;
 }
 
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
@@ -219,7 +251,7 @@
     /* null pointer check */
     if(process == nil)
     {
-        return 0;
+        return -1;
     }
     
     /* getting pid of process */
