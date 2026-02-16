@@ -179,22 +179,6 @@
     } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:enableDebugging process:&process];
 }
 
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
-                 withKernelSurfaceProcess:(ksurface_proc_t*)proc
-                       doRestartIfRunning:(BOOL)doRestartIfRunning
-                                  outPipe:(NSPipe*)outp
-                                   inPipe:(NSPipe*)inp
-{
-    return [self spawnProcessWithBundleIdentifier:bundleIdentifier withKernelSurfaceProcess:proc doRestartIfRunning:doRestartIfRunning outPipe:outp inPipe:inp enableDebugging:NO];
-}
-
-- (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
-                 withKernelSurfaceProcess:(ksurface_proc_t*)proc
-                       doRestartIfRunning:(BOOL)doRestartIfRunning
-{
-    return [self spawnProcessWithBundleIdentifier:bundleIdentifier withKernelSurfaceProcess:proc doRestartIfRunning:doRestartIfRunning outPipe:nil inPipe:nil];
-}
-
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
                 withArguments:(NSArray *)arguments
      withEnvironmentVariables:(NSDictionary*)environment

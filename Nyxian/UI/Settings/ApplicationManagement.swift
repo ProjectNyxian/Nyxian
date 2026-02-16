@@ -101,7 +101,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -154,7 +154,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let application = self.applications[indexPath.row]
-        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
     }
     
     @objc func plusButtonPressed() {
@@ -201,7 +201,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                         let bundleId = lcapp!.bundleIdentifier()
                         if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
                             DispatchQueue.main.async {
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
                                 let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: bundle.bundleIdentifier)
                                 if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
                                     self.applications[index] = appObject

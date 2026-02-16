@@ -715,7 +715,7 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)launchpadDidSelectAppWithBundleID:(NSString *)bundleID
 {
-    [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withKernelSurfaceProcess:kernel_proc_ doRestartIfRunning:NO];
+    [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withKernelSurfaceProcess:kernel_proc_ doRestartIfRunning:NO outPipe:nil inPipe:nil enableDebugging:NO];
 }
 
 #endif /* !JAILBREAK_ENV */
