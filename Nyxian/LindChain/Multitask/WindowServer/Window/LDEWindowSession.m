@@ -23,6 +23,7 @@
 
 - (BOOL)openWindow
 {
+    self.windowRect = CGRectMake(50, 94, 300, 400);
     return (self.windowScene != nil);
 }
 

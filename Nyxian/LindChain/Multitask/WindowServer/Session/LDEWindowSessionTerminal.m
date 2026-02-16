@@ -21,8 +21,6 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 #import <Nyxian-Swift.h>
 
-extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
-
 @interface LDEWindowSessionTerminal ()
 
 @property (nonatomic,strong) NyxianTerminal *terminal;
@@ -64,17 +62,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecuta
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process];
     _process = process;
     
-    NSValue *nsValue = runtimeStoredRectValuesByExecutablePath[_process.executablePath];
-    if(nsValue == nil)
-    {
-        self.windowRect = CGRectMake(50, 50, 400, 400);
-    }
-    else
-    {
-        self.windowRect = nsValue.CGRectValue;
-    }
-    
-    _terminal = [[NyxianTerminal alloc] initWithFrame:CGRectMake(0, 0, 100, 100) title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
+    _terminal = [[NyxianTerminal alloc] initWithFrame:self.windowRect title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
     
     __weak typeof(self) weakSelf = self;
@@ -120,13 +108,6 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecuta
 - (BOOL)closeWindow
 {
     [super closeWindow];
-    
-    /* checking for bundle identifier presence */
-    if(_process.executablePath != nil)
-    {
-        /* if so then we store the last rect ever into this database */
-        runtimeStoredRectValuesByExecutablePath[_process.executablePath] = [NSValue valueWithCGRect:self.windowRect];
-    }
     
     dispatch_async(dispatch_get_main_queue(), ^{
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];

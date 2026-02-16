@@ -32,8 +32,6 @@
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
-extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
-
 @implementation LDEProcess
 
 #if !JAILBREAK_ENV
@@ -49,11 +47,6 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecuta
     NSMutableDictionary *mutableItems = [items mutableCopy];
     mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
     items = [mutableItems copy];
-    
-    if(runtimeStoredRectValuesByExecutablePath == nil)
-    {
-        runtimeStoredRectValuesByExecutablePath = [[NSMutableDictionary alloc] init];
-    }
     
     self.executablePath = items[@"LSExecutablePath"];
     if(self.executablePath == nil) return nil;
@@ -221,16 +214,7 @@ extern NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecuta
                             settings.deviceOrientation = UIDevice.currentDevice.orientation;
                             settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
                             
-                            CGRect rect = CGRectMake(50, 50, 400, 400);
-                            if(innerSelf.bundleIdentifier != nil)
-                            {
-                                NSValue *value = runtimeStoredRectValuesByExecutablePath[innerSelf.executablePath];
-                                if(value != nil)
-                                {
-                                    rect = [value CGRectValue];
-                                }
-                            }
-                            settings.frame = rect;
+                            settings.frame = CGRectMake(50, 94, 300, 400);
                             
                             //settings.interruptionPolicy = 2; // reconnect
                             settings.level = 1;

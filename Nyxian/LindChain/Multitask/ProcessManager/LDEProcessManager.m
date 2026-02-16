@@ -130,12 +130,8 @@
         {
             if(doRestartIfRunning)
             {
+                /* TODO: find preexisting window before termination and inject new process into it */
                 [process terminate];
-                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-                {
-                    // FIXME: If we store two values at the same time then this goes terribly wrong in LDEWindowSessionApplication
-                    usleep(300000);
-                }
             }
             else
             {

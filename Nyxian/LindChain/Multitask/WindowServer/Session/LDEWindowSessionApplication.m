@@ -29,8 +29,6 @@
 #import <objc/runtime.h>
 #import <os/lock.h>
 
-NSMutableDictionary<NSString*,NSValue*> *runtimeStoredRectValuesByExecutablePath;
-
 @implementation RBSTarget(hook)
 
 + (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier
@@ -74,16 +72,6 @@ void UIKitFixesInit(void)
         return NO;
     }
     
-    NSValue *nsValue = runtimeStoredRectValuesByExecutablePath[_process.executablePath];
-    if(nsValue == nil)
-    {
-        self.windowRect = CGRectMake(50, 50, 400, 400);
-    }
-    else
-    {
-        self.windowRect = nsValue.CGRectValue;
-    }
-    
     @try {
         self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
         [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
@@ -115,13 +103,6 @@ void UIKitFixesInit(void)
 - (BOOL)closeWindow
 {
     [super closeWindow];
-    
-    /* checking for bundle identifier presence */
-    if(_process.executablePath != nil)
-    {
-        /* if so then we store the last rect ever into this database */
-        runtimeStoredRectValuesByExecutablePath[_process.executablePath] = [NSValue valueWithCGRect:self.windowRect];
-    }
     
     /* fixing keyboard issues */
     [[NSNotificationCenter defaultCenter] removeObserver:self];
