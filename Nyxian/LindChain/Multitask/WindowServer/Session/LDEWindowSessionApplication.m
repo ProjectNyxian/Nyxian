@@ -20,6 +20,7 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/Utils/Swizzle.h>
 
 #if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
@@ -337,6 +338,75 @@ void UIKitFixesInit(void)
 - (NSString*)windowName
 {
     return self.process.displayName;
+}
+
+- (void)prepareForInject
+{
+    /* making sure LDEProcess wont close this */
+    self.process.wid = (wid_t)-1;
+}
+
+- (BOOL)injectProcess:(LDEProcess*)process
+{
+    os_unfair_lock_lock(&lock);
+    
+    /* keep reference to old presenter for animation */
+    UIView *oldPresentationView = self.presenter.presentationView;
+    _UIScenePresenter *oldPresenter = self.presenter;
+    
+    /* unregister old window */
+    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
+    
+    self.process = process;
+    
+    @try {
+        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:process.sceneID];
+        [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
+            context.appearanceStyle = 2;
+        }];
+    } @catch (NSException *exception) {
+#if !JAILBREAK_ENV
+        klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
+#endif /* !JAILBREAK_ENV */
+        os_unfair_lock_unlock(&lock);
+        return NO;
+    }
+    
+    /* setup new presenter view with initial alpha */
+    UIView *newPresentationView = self.presenter.presentationView;
+    newPresentationView.alpha = 0.0;
+    
+    /* add new view below old view */
+    if(oldPresentationView)
+    {
+        [self.view insertSubview:newPresentationView belowSubview:oldPresentationView];
+    }
+    else
+    {
+        [self.view addSubview:newPresentationView];
+    }
+    
+    /* register new window */
+    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:process.sceneID];
+    
+    os_unfair_lock_unlock(&lock);
+    
+    [self windowChangesToRect:self.windowRect];
+    
+    /* animate transition */
+    [UIView animateWithDuration:0.3 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        newPresentationView.alpha = 1.0;
+        if(oldPresentationView)
+        {
+            oldPresentationView.alpha = 0.0;
+        }
+    } completion:^(BOOL finished) {
+        /* cleanup old presenter */
+        [oldPresentationView removeFromSuperview];
+        [oldPresenter invalidate];
+    }];
+    
+    return YES;
 }
 
 - (void)dealloc

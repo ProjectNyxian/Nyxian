@@ -26,12 +26,13 @@
 
 @interface LDEWindowSessionApplication : LDEWindowSession <_UISceneSettingsDiffAction>
 
-@property (nonatomic) UIView* contentView;
 @property (nonatomic, strong) LDEProcess *process;
 @property (nonatomic) _UIScenePresenter *presenter;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
 
 - (instancetype)initWithProcess:(LDEProcess*)process;
+- (void)prepareForInject;
+- (BOOL)injectProcess:(LDEProcess*)process;
 
 @end
 

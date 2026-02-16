@@ -34,7 +34,7 @@
 #if !JAILBREAK_ENV
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withKernelSurfaceProcess:(ksurface_proc_t*)proc doRestartIfRunning:(BOOL)doRestartIfRunning outPipe:(NSPipe*)outp inPipe:(NSPipe*)inp enableDebugging:(BOOL)enableDebugging;
-- (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc enableDebugging:(BOOL)enableDebugging process:(LDEProcess**)processReply;
+- (pid_t)spawnProcessWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc enableDebugging:(BOOL)enableDebugging process:(LDEProcess**)processReply withSession:(LDEWindowSessionApplication*)session;
 #else
 - (pid_t)spawnProcessWithBundleID:(NSString*)bundleID;
 #endif /* !JAILBREAK_ENV */

@@ -27,6 +27,8 @@
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
+@class LDEWindowSessionApplication;
+
 @interface LDEProcess : NSObject <FBSceneDelegate>
 
 #if !JAILBREAK_ENV
@@ -34,6 +36,7 @@
 @property (nonatomic) ksurface_proc_t *proc;
 #endif /* !JAILBREAK_ENV */
 
+@property (nonatomic,weak) LDEWindowSessionApplication *session;
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
 @property (nonatomic,strong) FBScene *scene;
@@ -65,8 +68,7 @@
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
 #if !JAILBREAK_ENV
-- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
-- (instancetype)initWithPath:(NSString*)binaryPath withArguments:(NSArray *)arguments withEnvironmentVariables:(NSDictionary*)environment withMapObject:(FDMapObject*)mapObject withKernelSurfaceProcess:(ksurface_proc_t*)proc enableDebugging:(BOOL)enableDebugging;
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session;
 #else
 - (instancetype)initWithBundleID:(NSString*)bundleID;
 #endif /* !JAILBREAK_ENV */

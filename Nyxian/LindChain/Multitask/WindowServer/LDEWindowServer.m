@@ -180,6 +180,16 @@ static const NSInteger kTagShineView = 7777;
     [window focusWindow];
 }
 
+- (LDEWindowSession*)windowSessionForIdentifier:(wid_t)identifier
+{
+    LDEWindow *window = self.windows[@(identifier)];
+    if(window != nil)
+    {
+        return window.session;
+    }
+    return nil;
+}
+
 - (void)openWindowWithSession:(LDEWindowSession*)session
                withCompletion:(void (^)(BOOL))completion
 {

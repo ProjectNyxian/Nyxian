@@ -28,6 +28,8 @@
 #import <Nyxian-Swift.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <os/lock.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/ProcEnvironment/Server/Server.h>
 
 @implementation LDEProcessManager {
     NSTimeInterval _lastSpawnTime;
@@ -90,7 +92,7 @@
     [self enforceSpawnCooldown];
     
     /* creating a process */
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc];
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc withSession:nil];
     
     /* null pointer check */
     if(process == nil)
@@ -121,6 +123,8 @@
                                    inPipe:(NSPipe*)inp
                           enableDebugging:(BOOL)enableDebugging
 {
+    LDEWindowSessionApplication *session = nil;
+    
     os_unfair_lock_lock(&processes_array_lock);
     for(NSNumber *key in self.processes)
     {
@@ -130,6 +134,14 @@
         {
             if(doRestartIfRunning)
             {
+                LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:process.wid];
+                if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
+                {
+                    [((LDEWindowSessionApplication*) windowSession) prepareForInject];
+                    
+                    session = (LDEWindowSessionApplication*)windowSession;
+                }
+                
                 /* TODO: find preexisting window before termination and inject new process into it */
                 [process terminate];
             }
@@ -172,7 +184,7 @@
     LDEProcess *process = nil;
     return [self spawnProcessWithPath:applicationObject.executablePath withArguments:@[applicationObject.executablePath] withEnvironmentVariables:@{
         @"HOME": applicationObject.containerPath
-    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:enableDebugging process:&process];
+    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:enableDebugging process:&process withSession:session];
 }
 
 - (pid_t)spawnProcessWithPath:(NSString*)binaryPath
@@ -182,12 +194,27 @@
      withKernelSurfaceProcess:(ksurface_proc_t*)proc
               enableDebugging:(BOOL)enableDebugging
                       process:(LDEProcess**)processReply
+                  withSession:(LDEWindowSessionApplication*)session
 {
     /* enforce cooldown */
     [self enforceSpawnCooldown];
     
     /* creating process */
-    LDEProcess *process = [[LDEProcess alloc] initWithPath:binaryPath withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:proc enableDebugging:enableDebugging];
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
+        @"LSEndpoint": [Server getTicket],
+        @"LSServiceMode": @"spawn",
+        @"LSExecutablePath": binaryPath,
+        @"LSArguments": arguments,
+        @"LSEnvironment": environment,
+        @"LDEDebugEnabled": @(enableDebugging)
+    }];
+    
+    if(mapObject != nil)
+    {
+        [dictionary setObject:mapObject forKey:@"LSMapObject"];
+    }
+    
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:[dictionary copy] withKernelSurfaceProcess:proc withSession:session];
     
     /* null pointer check */
     if(process == nil)

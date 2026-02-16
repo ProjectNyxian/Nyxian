@@ -21,9 +21,9 @@
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 
 #if !JAILBREAK_ENV
-#import <LindChain/ProcEnvironment/Server/Server.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
@@ -35,7 +35,7 @@
 @implementation LDEProcess
 
 #if !JAILBREAK_ENV
-- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session
 #else
 - (instancetype)initWithBundleID:(NSString*)bundleID
 #endif /* !JAILBREAK_ENV */
@@ -43,6 +43,8 @@
     self = [super init];
  
 #if !JAILBREAK_ENV
+    
+    self.session = session;
     
     NSMutableDictionary *mutableItems = [items mutableCopy];
     mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
@@ -180,7 +182,7 @@
                     dispatch_once(&innerSelf->_addOnce, ^{
                         dispatch_sync(dispatch_get_main_queue(), ^{
                             // Setting process handle directly from process monitor
-                            weakSelf.processHandle = handle;
+                            innerSelf.processHandle = handle;
                             FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
                             // At this point, the process is spawned and we're ready to create a scene to render in our app
                             [manager registerProcessForAuditToken:innerSelf.processHandle.auditToken];
@@ -214,7 +216,7 @@
                             settings.deviceOrientation = UIDevice.currentDevice.orientation;
                             settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
                             
-                            settings.frame = CGRectMake(50, 94, 300, 400);
+                            settings.frame = (innerSelf.session == nil) ? CGRectMake(50, 94, 300, 400) : innerSelf.session.windowRect;
                             
                             //settings.interruptionPolicy = 2; // reconnect
                             settings.level = 1;
@@ -239,14 +241,14 @@
 #if !JAILBREAK_ENV
                         // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
                         // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
-                        ksurface_proc_t *child = proc_fork(proc, weakSelf.pid, [weakSelf.executablePath UTF8String]);
+                        ksurface_proc_t *child = proc_fork(proc, innerSelf.pid, [innerSelf.executablePath UTF8String]);
                         if(child == NULL)
                         {
-                            [weakSelf terminate];
+                            [innerSelf terminate];
                         }
                         else
                         {
-                            weakSelf.proc = child;
+                            innerSelf.proc = child;
                         }
 #endif /* !JAILBREAK_ENV */
                     });
@@ -266,36 +268,6 @@
     
     return self;
 }
-
-#if !JAILBREAK_ENV
-
-- (instancetype)initWithPath:(NSString*)binaryPath
-               withArguments:(NSArray *)arguments
-    withEnvironmentVariables:(NSDictionary*)environment
-               withMapObject:(FDMapObject*)mapObject
-    withKernelSurfaceProcess:(ksurface_proc_t *)proc
-             enableDebugging:(BOOL)enableDebugging
-{
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"LSEndpoint": [Server getTicket],
-        @"LSServiceMode": @"spawn",
-        @"LSExecutablePath": binaryPath,
-        @"LSArguments": arguments,
-        @"LSEnvironment": environment,
-        @"LDEDebugEnabled": @(enableDebugging)
-    }];
-    
-    if(mapObject != nil)
-    {
-        [dictionary setObject:mapObject forKey:@"LSMapObject"];
-    }
-    
-    self = [self initWithItems:[dictionary copy] withKernelSurfaceProcess:proc];
-    
-    return self;
-}
-
-#endif /* !JAILBREAK_ENV */
 
 /*
  Action
@@ -348,13 +320,24 @@
 {
     dispatch_once(&_notifyWindowManagerOnce, ^{
         dispatch_async(dispatch_get_main_queue(), ^{
-            __block LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
-            [[LDEWindowServer shared] openWindowWithSession:session withCompletion:^(BOOL windowOpened){
-                if(windowOpened)
+            if(self.session == nil)
+            {
+                __block LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
+                [[LDEWindowServer shared] openWindowWithSession:session withCompletion:^(BOOL windowOpened){
+                    if(windowOpened)
+                    {
+                        self.wid = session.windowIdentifier;
+                    }
+                }];
+            }
+            else
+            {
+                if([self.session injectProcess:self])
                 {
-                    self.wid = session.windowIdentifier;
+                    self.wid = self.session.windowIdentifier;
+                    [self.session activateWindow];
                 }
-            }];
+            }
         });
     });
 }

@@ -51,6 +51,7 @@
 - (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
 
 - (void)focusWindowForIdentifier:(wid_t)identifier;
+- (LDEWindowSession*)windowSessionForIdentifier:(wid_t)identifier;
 
 - (void)showAppSwitcherExternal;
 
