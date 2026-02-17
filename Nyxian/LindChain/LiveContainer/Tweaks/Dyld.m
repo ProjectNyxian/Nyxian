@@ -124,46 +124,72 @@ uint32_t hook_dyld_get_program_sdk_version(void* dyldApiInstancePtr)
 
 // Rewrite End
 
-bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction)
-{
+bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction) {
+    
     uint32_t* baseAddr = dlsym(RTLD_DEFAULT, functionName);
     assert(baseAddr != 0);
+    /*
+     arm64e 26.4b1+ has extra 20 instructions between adrpOffset and adrp
+     arm64e
+     1ad450b90  e10300aa   mov     x1, x0
+     1ad450b94  487b2090   adrp    x8, dyld4::gAPIs
+     1ad450b98  000140f9   ldr     x0, [x8]  {dyld4::gAPIs} may contain offset
+     1ad450b9c  100040f9   ldr     x16, [x0]
+     1ad450ba0  f10300aa   mov     x17, x0
+     1ad450ba4  517fecf2   movk    x17, #0x63fa, lsl #0x30
+     1ad450ba8  301ac1da   autda   x16, x17
+     1ad450bac  114780d2   mov     x17, #0x238
+     1ad450bb0  1002118b   add     x16, x16, x17
+     1ad450bb4  020240f9   ldr     x2, [x16]
+     1ad450bb8  e30310aa   mov     x3, x16
+     1ad450bbc  f00303aa   mov     x16, x3
+     1ad450bc0  7085f3f2   movk    x16, #0x9c2b, lsl #0x30
+     1ad450bc4  50081fd7   braa    x2, x16
+
+     arm64
+     00000001ac934c80         mov        x1, x0
+     00000001ac934c84         adrp       x8, #0x1f462d000
+     00000001ac934c88         ldr        x0, [x8, #0xf88]                            ; __ZN5dyld45gDyldE
+     00000001ac934c8c         ldr        x8, [x0]
+     00000001ac934c90         ldr        x2, [x8, #0x258]
+     00000001ac934c94         br         x2
+     */
     uint32_t* adrpInstPtr = baseAddr + adrpOffset;
+    if ((*adrpInstPtr & 0x9f000000) != 0x90000000) {
+        adrpOffset += 20;
+        adrpInstPtr = baseAddr + adrpOffset;
+    }
     assert ((*adrpInstPtr & 0x9f000000) == 0x90000000);
-    uint32_t immlo = (*adrpInstPtr & 0x60000000) >> 29;
-    uint32_t immhi = (*adrpInstPtr & 0xFFFFE0) >> 5;
-    int64_t imm = (((int64_t)((immhi << 2) | immlo)) << 43) >> 31;
-    void* gdyldPtr = (void*)(((uint64_t)baseAddr & 0xfffffffffffff000) + imm);
-    uint32_t* ldrInstPtr1 = baseAddr + adrpOffset + 1;
-    assert((*ldrInstPtr1 & 0xBFC00000) == 0xB9400000);
-    uint32_t size = (*ldrInstPtr1 & 0xC0000000) >> 30;
-    uint32_t imm12 = (*ldrInstPtr1 & 0x3FFC00) >> 10;
-    gdyldPtr += (imm12 << size);
+    void* gdyldPtr = (void*)aarch64_emulate_adrp_ldr(*adrpInstPtr, *(baseAddr + adrpOffset + 1), (uint64_t)(baseAddr + adrpOffset));
+    
     assert(gdyldPtr != 0);
     assert(*(void**)gdyldPtr != 0);
     void* vtablePtr = **(void***)gdyldPtr;
+    
     void* vtableFunctionPtr = 0;
     uint32_t* movInstPtr = baseAddr + adrpOffset + 6;
-    if((*movInstPtr & 0x7F800000) == 0x52800000)
-    {
+
+    if((*movInstPtr & 0x7F800000) == 0x52800000) {
+        // arm64e, mov imm + add + ldr
         uint32_t imm16 = (*movInstPtr & 0x1FFFE0) >> 5;
         vtableFunctionPtr = vtablePtr + imm16;
-    } else if ((*movInstPtr & 0xFFE00C00) == 0xF8400C00)
-    {
+    } else if ((*movInstPtr & 0xFFE00C00) == 0xF8400C00) {
+        // arm64e, ldr immediate Pre-index 64bit
         uint32_t imm9 = (*movInstPtr & 0x1FF000) >> 12;
         vtableFunctionPtr = vtablePtr + imm9;
-    } else
-    {
+    } else {
+        // arm64
         uint32_t* ldrInstPtr2 = baseAddr + adrpOffset + 3;
         assert((*ldrInstPtr2 & 0xBFC00000) == 0xB9400000);
         uint32_t size2 = (*ldrInstPtr2 & 0xC0000000) >> 30;
         uint32_t imm12_2 = (*ldrInstPtr2 & 0x3FFC00) >> 10;
         vtableFunctionPtr = vtablePtr + (imm12_2 << size2);
     }
+
+    
     kern_return_t ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
     assert(ret == KERN_SUCCESS);
-    if(origFunction != NULL)
-        *origFunction = (void*)*(void**)vtableFunctionPtr;
+    *origFunction = (void*)*(void**)vtableFunctionPtr;
     *(uint64_t*)vtableFunctionPtr = (uint64_t)hookFunction;
     builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ);
     return true;
