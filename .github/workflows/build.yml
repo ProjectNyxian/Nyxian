@@ -20,16 +20,22 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Dependencies
+      - name: Cache Theos
+        id: cache-theos
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.home }}/theos
+          key: theos-${{ runner.os }}-v1
+
+      - name: Install Theos
         run: |
           set -e
 
-          ls $RUNNER_TOOL_CACHE
+          ls ~
 
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-          cp -rP ~/theos $RUNNER_TOOL_CACHE
 
-          ls $RUNNER_TOOL_CACHE
+          ls ~
 
           # Packages we desperately need
           #brew install ldid
