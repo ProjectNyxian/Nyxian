@@ -156,6 +156,11 @@
     [_stdoutPipe.fileHandleForWriting writeData:[NSData dataWithBytes:noop length:1]];
 }
 
+- (NSString*)windowName
+{
+    return [self.utilityPath lastPathComponent];
+}
+
 - (void)dealloc
 {
     NSLog(@"deallocated %@", self);
