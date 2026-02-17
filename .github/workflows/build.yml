@@ -20,15 +20,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Cache Theos
-        id: cache-theos
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.HOME }}/theos
-          key: ${{ runner.os }}-theos
-          restore-keys: |
-            ${{ runner.os }}-theos
-
       - name: Install Dependencies
         run: |
           set -e
@@ -37,6 +28,10 @@ jobs:
           brew install ldid
           brew install dpkg
           brew install libarchive
+
+          # Test
+          ls ~/
+          exit 1
 
           # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
           if [ "${{ steps.cache-theos.outputs.cache-hit }}" != "true" ]; then
