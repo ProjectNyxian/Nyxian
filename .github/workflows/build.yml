@@ -28,6 +28,7 @@ jobs:
           key: theos-${{ runner.os }}-v1
 
       - name: Install Theos
+        if: steps.cache-theos.outputs.cache-hit != 'true'
         run: |
           set -e
 
