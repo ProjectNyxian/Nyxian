@@ -223,9 +223,6 @@
 
 - (void)setupDecoratedView:(CGRect)dimensions
 {
-    dimensions.origin.y -= 44;
-    dimensions.size.height += 44;
-    
     self.view = [[UIStackView alloc] initWithFrame:dimensions];
     self.view.backgroundColor = UIColor.clearColor;
     self.view.autoresizingMask = UIViewAutoresizingNone;
@@ -536,8 +533,8 @@
 - (void)updateSceneFrame
 {
     CGRect frame = self.view.frame;
-    frame.origin.y += 44;
-    frame.size.height -= 44;
+    frame.origin.y += self.windowBar.frame.size.height;
+    frame.size.height -= self.windowBar.frame.size.height;
     
     [self.session windowChangesToRect:frame];
 }
