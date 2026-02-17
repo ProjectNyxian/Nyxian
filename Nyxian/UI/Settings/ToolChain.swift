@@ -20,12 +20,14 @@
 import UIKit
 
 class ToolChainController: UIThemedTableViewController {
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableView.register(ToggleTableCell.self, forCellReuseIdentifier: ToggleTableCell.reuseIdentifier)
+        
         self.title = "Toolchain"
         
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         self.tableView.translatesAutoresizingMaskIntoConstraints = false
         self.tableView.rowHeight = UITableView.automaticDimension
     }
@@ -73,14 +75,16 @@ class ToolChainController: UIThemedTableViewController {
         
         switch indexPath.section {
         case 0:
-            cell = SwitchTableCell(title: "Incremental Build", key: "LDEIncrementalBuild", defaultValue: true)
+            cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+            (cell as! ToggleTableCell).configure(title: "Incremental Build", key: "LDEIncrementalBuild", defaultValue: true)
             break
         case 1:
             let optimCpuCount: Int = (Int)(LDEGetOptimalThreadCount())
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
         case 2:
-            cell = SwitchTableCell(title: "Open app inside Nyxian", key: "LDEOpenAppInsideNyxian", defaultValue: true)
+            cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+            (cell as! ToggleTableCell).configure(title: "Open app inside Nyxian", key: "LDEOpenAppInsideNyxian", defaultValue: true)
         default:
             cell = UITableViewCell()
         }

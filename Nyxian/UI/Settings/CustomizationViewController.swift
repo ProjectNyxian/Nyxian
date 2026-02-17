@@ -40,6 +40,8 @@ class CustomizationViewController: UIThemedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableView.register(ToggleTableCell.self, forCellReuseIdentifier: ToggleTableCell.reuseIdentifier)
+        
         self.title = "Customization"
     }
     
@@ -137,23 +139,23 @@ int main(void)
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 3 {
-                cell = SwitchTableCell(title: "Show Line Numbers", key: "LDEShowLineNumbers", defaultValue: true)
-                (cell as! SwitchTableCell).callback = { newValue in
+                cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+                (cell as! ToggleTableCell).configure(title: "Show Line Numbers", key: "LDEShowLineNumbers", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 4 {
-                cell = SwitchTableCell(title: "Show Spaces", key: "LDEShowSpaces", defaultValue: true)
-                (cell as! SwitchTableCell).callback = { newValue in
+                cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+                (cell as! ToggleTableCell).configure(title: "Show Spaces", key: "LDEShowSpaces", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else if indexPath.row == 5 {
-                cell = SwitchTableCell(title: "Wrap Lines", key: "LDEWrapLines", defaultValue: true)
-                (cell as! SwitchTableCell).callback = { newValue in
+                cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+                (cell as! ToggleTableCell).configure(title: "Wrap Lines", key: "LDEWrapLines", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             } else {
-                cell = SwitchTableCell(title: "Show Line Breaks", key: "LDEShowLineBreaks", defaultValue: true)
-                (cell as! SwitchTableCell).callback = { newValue in
+                cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+                (cell as! ToggleTableCell).configure(title: "Show Line Breaks", key: "LDEShowLineBreaks", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
             }
