@@ -23,11 +23,11 @@ jobs:
       - name: Cache Theos
         id: cache-theos
         uses: actions/cache@v4
-          with:
-            path: ~/theos
-            key: ${{ runner.os }}-theos-${{ hashFiles('**/Makefile') }}
-            restore-keys: |
-              ${{ runner.os }}-theos-
+        with:
+          path: ~/theos
+          key: ${{ runner.os }}-theos-${{ hashFiles('**/Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-theos-
 
       - name: Install Dependencies
         run: |
