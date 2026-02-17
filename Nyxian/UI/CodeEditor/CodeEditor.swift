@@ -69,16 +69,7 @@ class CodeEditorViewController: UIViewController {
             
             let suffix = self.path.URLGet().pathExtension
             if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
-                project.projectConfig.reloadIfNeeded()
-                var flags = project.projectConfig.compilerFlags as! [String]
-                
-                if suffix == "h" {
-                    flags.append(contentsOf: ["-x", "objective-c"])
-                } else if ["hpp","hh"].contains(suffix) {
-                    flags.append(contentsOf: ["-x", "c++"])
-                }
-                
-                self.synpushServer = SynpushServer(self.path, args: flags)
+                self.synpushServer = SynpushServer(self.path)
             }
         }
         

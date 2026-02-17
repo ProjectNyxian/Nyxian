@@ -33,8 +33,7 @@
 ///
 /// Functions
 ///
-- (instancetype)init:(NSString*)filepath
-                args:(NSArray*)args;
+- (instancetype)init:(NSString*)filepath;
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 - (NSArray<Synitem *> *)getDiagnostics;

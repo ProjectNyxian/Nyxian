@@ -58,7 +58,6 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 @implementation SynpushServer
 
 - (instancetype)init:(NSString*)filepath
-                args:(NSArray*)args
 {
     self = [super init];
     if(!self) return nil;
@@ -66,40 +65,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     /* initilizing step numero uno */
     _filepath = [filepath copy];
     _cFilename = strdup(_filepath.UTF8String);
-
-    /* making arguments ready */
-    _argc = (int)args.count;
-    _args = (char**)calloc((size_t)_argc, sizeof(char*));
-    for(int i = 0; i < _argc; ++i)
-    {
-        _args[i] = strdup([args[i] UTF8String]);
-    }
-
-    /* creating the index */
-    _index = clang_createIndex(0, 0);
-
-    /* stuffing empty data */
-    _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
     _unsaved.Filename = _cFilename;
-    _unsaved.Contents = (const char*)_contentData.bytes;
-    _unsaved.Length   = (unsigned long)_contentData.length;
-
-    /* intitial parse */
-    enum CXErrorCode err = clang_parseTranslationUnit2(_index, _cFilename, (const char *const *)_args, _argc, &_unsaved, 1, tuFlags, &_unit);
-
-    /* error checking */
-    if(err != CXError_Success || !_unit)
-    {
-        if(_unit)
-        {
-            clang_disposeTranslationUnit(_unit);
-        }
-        clang_disposeIndex(_index);
-        for (int i = 0; i < _argc; ++i) free(_args[i]);
-        free(_args);
-        free(_cFilename);
-        return nil;
-    }
 
     pthread_mutex_init(&_mutex, NULL);
     return self;
