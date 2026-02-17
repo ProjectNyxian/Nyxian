@@ -24,21 +24,23 @@ jobs:
         run: |
           set -e
 
-          # Packages we desperately need
-          brew install ldid
-          brew install dpkg
-          brew install libarchive
-
-          # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
-          if ! [ -d "$RUNNER_TOOL_CACHE/theos" ]; then
-             bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-             cp -r ~/theos $RUNNER_TOOL_CACHE/theos
-          fi
           ls $RUNNER_TOOL_CACHE
 
+          # Packages we desperately need
+          #brew install ldid
+          #brew install dpkg
+          #brew install libarchive
+
+          # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
+          #if ! [ -d "$RUNNER_TOOL_CACHE/theos" ]; then
+          #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          #   cp -r ~/theos $RUNNER_TOOL_CACHE/theos
+          #fi
+          #ls $RUNNER_TOOL_CACHE
+
           # Setting TheOS stuff up
-          echo "THEOS=$RUNNER_TOOL_CACHE/theos" >> $GITHUB_ENV
-          echo "PATH=$RUNNER_TOOL_CACHE/theos/bin:$PATH" >> $GITHUB_ENV
+          #echo "THEOS=$RUNNER_TOOL_CACHE/theos" >> $GITHUB_ENV
+          #echo "PATH=$RUNNER_TOOL_CACHE/theos/bin:$PATH" >> $GITHUB_ENV
 #      - name: Build Jailed
 #        timeout-minutes: 1200
 #        run: |
