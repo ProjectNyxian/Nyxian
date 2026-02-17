@@ -141,6 +141,6 @@ class SettingsViewController: UIThemedTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        return "\(Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Nyxian") Falcon \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")) (Beta)"
+        return "\(Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Nyxian") \"Falcon\" \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown") Beta (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"))"
     }
 }
