@@ -24,6 +24,9 @@ jobs:
         run: |
           set -e
 
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          cp -r ~/theos/* $RUNNER_TOOL_CACHE/theos
+
           ls $RUNNER_TOOL_CACHE
 
           # Packages we desperately need
