@@ -618,7 +618,7 @@ class CodeEditorViewController: UIViewController {
         let cursorPosition = selectedRange.start
         let offset = textView.offset(from: textView.beginningOfDocument, to: cursorPosition)
         
-        let text = textView.text ?? ""
+        let text = textView.text
         let (line, column) = offsetToLineColumn(text: text, offset: offset)
         
         DispatchQueue.global(qos: .userInitiated).async {
@@ -677,11 +677,14 @@ class CodeEditorViewController: UIViewController {
             isInsideProject = false
         }
         
-        let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.filepath, line: UInt64(def.line), column: UInt64(def.column), isReadOnly: !isInsideProject)
-        
-        let destEditorNav = UINavigationController(rootViewController: destEditor)
-        destEditorNav.modalPresentationStyle = .pageSheet
-        self.present(destEditorNav, animated: true);
+        if UIDevice.current.userInterfaceIdiom != .pad {
+            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.filepath, line: UInt64(def.line), column: UInt64(def.column), isReadOnly: !isInsideProject)
+            let destEditorNav = UINavigationController(rootViewController: destEditor)
+            destEditorNav.modalPresentationStyle = .pageSheet
+            self.present(destEditorNav, animated: true);
+        } else {
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",def.filepath,"\(def.line)","\(def.column)", isInsideProject ? "0" : "1"])
+        }
     }
     
     private func showNoDefinitionFound() {
