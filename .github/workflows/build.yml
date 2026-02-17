@@ -20,6 +20,15 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Cache Theos
+        id: cache-theos
+        uses: actions/cache@v4
+          with:
+            path: ~/theos
+            key: ${{ runner.os }}-theos-${{ hashFiles('**/Makefile') }}
+            restore-keys: |
+              ${{ runner.os }}-theos-
+
       - name: Install Dependencies
         run: |
           set -e
@@ -30,7 +39,11 @@ jobs:
           brew install libarchive
 
           # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          if [ "${{ steps.cache-theos.outputs.cache-hit }}" != "true" ]; then
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          else
+            echo "Theos restored from cache, skipping install."
+          fi
 
           # Setting TheOS stuff up
           echo "THEOS=~/theos" >> $GITHUB_ENV
