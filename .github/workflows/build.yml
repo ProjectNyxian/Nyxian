@@ -73,18 +73,18 @@ jobs:
       - name: Upload Rootless
         uses: actions/upload-artifact@v4
         with:
-          name: nyxian_0.8.6_iphoneos-arm64.deb
-          path: nyxian_0.8.6_iphoneos-arm64.deb
+          name: nyxian_0.9.0_iphoneos-arm64.deb
+          path: nyxian_0.9.0_iphoneos-arm64.deb
 
       - name: Upload Roothide
         uses: actions/upload-artifact@v4
         with:
-          name: nyxian_0.8.6_iphoneos-arm64e.deb
-          path: nyxian_0.8.6_iphoneos-arm64e.deb
+          name: nyxian_0.9.0_iphoneos-arm64e.deb
+          path: nyxian_0.9.0_iphoneos-arm64e.deb
 
       - name: Upload Rootful
         uses: actions/upload-artifact@v4
         with:
-          name: nyxian_0.8.6_iphoneos-arm.deb
-          path: nyxian_0.8.6_iphoneos-arm.deb
+          name: nyxian_0.9.0_iphoneos-arm.deb
+          path: nyxian_0.9.0_iphoneos-arm.deb
 
