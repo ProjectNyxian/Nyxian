@@ -24,7 +24,7 @@ jobs:
         id: cache-theos
         uses: actions/cache@v4
         with:
-          path: ${{ runner.home }}/theos
+          path: ~/theos
           key: theos-${{ runner.os }}-v1
 
       - name: Install Theos
