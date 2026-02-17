@@ -224,23 +224,20 @@ class CodeEditorViewController: UIViewController {
     
     func goto(line: UInt64?, column: UInt64?) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            guard var line = line else { return }
+            guard let line = line else { return }
             guard var column = column else { return }
             
-            if line == 0 {
-                return
-            }
+            if line == 0 { return }
             
-            line -= 1
             column -= 1
             
             let lines = self.textView.text.components(separatedBy: .newlines)
             guard line < lines.count else { return }
 
-            let lineText = lines[Int(line)]
+            let lineText = lines[Int(line - 1)]
             let clampedColumn = min(Int(column), lineText.count)
 
-            let offset = lines.prefix(Int(line)).reduce(0) { $0 + $1.count + 1 } + clampedColumn
+            let offset = lines.prefix(Int(line - 1)).reduce(0) { $0 + $1.count + 1 } + clampedColumn
 
             guard let rect = self.textView.rectForLine(Int(line)) else { return }
 
@@ -248,16 +245,48 @@ class CodeEditorViewController: UIViewController {
             let maxOffsetY = self.textView.contentSize.height - self.textView.bounds.height
             let clampedOffsetY = max(min(targetOffsetY, maxOffsetY), 0)
 
-            let targetOffset = CGPoint(x: 0, y: clampedOffsetY)
-            self.textView.setContentOffset(targetOffset, animated: true)
+            self.textView.setContentOffset(CGPoint(x: 0, y: clampedOffsetY), animated: true)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 guard let start = self.textView.position(from: self.textView.beginningOfDocument, offset: offset) else { return }
                 let range = self.textView.textRange(from: start, to: start)
                 self.textView.selectedTextRange = range
                 self.textView.becomeFirstResponder()
+                self.flashLine(rect: rect)
             }
         }
+    }
+
+    private func flashLine(rect: CGRect) {
+        let fullWidthRect = CGRect(x: 0, y: rect.origin.y, width: textView.bounds.width, height: rect.height)
+
+        let path = UIBezierPath(roundedRect: fullWidthRect.insetBy(dx: 4, dy: 1), cornerRadius: 4)
+
+        let flashLayer = CAShapeLayer()
+        flashLayer.path = path.cgPath
+        flashLayer.fillColor = UIColor.systemYellow.withAlphaComponent(0.45).cgColor
+        flashLayer.strokeColor = UIColor.systemYellow.cgColor
+        flashLayer.lineWidth = 1.5
+        flashLayer.opacity = 1.0
+
+        textView.layer.addSublayer(flashLayer)
+
+        let pulse = CAKeyframeAnimation(keyPath: "opacity")
+        pulse.values = [0.0, 1.0, 1.0, 0.0]
+        pulse.keyTimes = [0, 0.1, 0.6, 1.0]
+        pulse.duration = 1.4
+        pulse.timingFunctions = [
+            CAMediaTimingFunction(name: .easeIn),
+            CAMediaTimingFunction(name: .linear),
+            CAMediaTimingFunction(name: .easeOut)
+        ]
+
+        CATransaction.begin()
+        CATransaction.setCompletionBlock {
+            flashLayer.removeFromSuperlayer()
+        }
+        flashLayer.add(pulse, forKey: "flashPulse")
+        CATransaction.commit()
     }
     
     func setupToolbar(textView: TextView) {
@@ -580,5 +609,103 @@ class CodeEditorViewController: UIViewController {
         if GCKeyboard.coalesced != nil {
             self.textView.becomeFirstResponder()
         }
+    }
+    
+    @objc func jumpToDefinition() {
+        guard let server = synpushServer else { return }
+        guard let selectedRange = textView.selectedTextRange else { return }
+        
+        let cursorPosition = selectedRange.start
+        let offset = textView.offset(from: textView.beginningOfDocument, to: cursorPosition)
+        
+        let text = textView.text ?? ""
+        let (line, column) = offsetToLineColumn(text: text, offset: offset)
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let def = server.getDefinitionAtLine(UInt32(line), column: UInt32(column)) else {
+                DispatchQueue.main.async {
+                    self.showNoDefinitionFound()
+                }
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.openDefinition(def)
+            }
+        }
+    }
+    
+    private func offsetToLineColumn(text: String, offset: Int) -> (line: Int, column: Int) {
+        var currentOffset = 0
+        var line = 1
+        var column = 1
+        
+        for (i, char) in text.enumerated() {
+            if i == offset { break }
+            if char == "\n" {
+                line += 1
+                column = 1
+            } else {
+                column += 1
+            }
+            currentOffset += 1
+        }
+        
+        return (line, column)
+    }
+    
+    private func openDefinition(_ def: Syndef) {
+        /* check if definition is in the same file */
+        if def.filepath == self.path {
+            self.goto(line: UInt64(def.line), column: UInt64(def.column))
+            return
+        }
+        
+        /* check if file actually exists (could be a sdk header) */
+        let fileExists = FileManager.default.fileExists(atPath: def.filepath)
+        
+        if !fileExists {
+            showNoDefinitionFound()
+            return
+        }
+        
+        /* open in a new read-only editor if its a system header, writable if its in the project */
+        let isInsideProject: Bool
+        if let project = self.project, let projectPath = project.path {
+            isInsideProject = def.filepath.hasPrefix(projectPath)
+        } else {
+            isInsideProject = false
+        }
+        
+        let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.filepath, line: UInt64(def.line), column: UInt64(def.column), isReadOnly: !isInsideProject)
+        
+        let destEditorNav = UINavigationController(rootViewController: destEditor)
+        destEditorNav.modalPresentationStyle = .pageSheet
+        self.present(destEditorNav, animated: true);
+    }
+    
+    private func showNoDefinitionFound() {
+        let alert = UIAlertController(
+            title: "No Definition Found",
+            message: "Could not find a definition for the symbol at the cursor.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+    
+    override func buildMenu(with builder: any UIMenuBuilder) {
+        super.buildMenu(with: builder)
+        
+        guard self.synpushServer != nil else {
+            return
+        }
+        
+        
+        let myAction = UIAction(title: "Jump To Definition", image: UIImage(systemName: "cursorarrow")) { _ in
+            self.jumpToDefinition()
+        }
+
+        builder.insertChild(UIMenu(options: .displayInline, children: [myAction]), atEndOfMenu: .standardEdit)
     }
 }

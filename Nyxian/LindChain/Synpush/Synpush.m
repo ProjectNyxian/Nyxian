@@ -310,5 +310,112 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     pthread_mutex_destroy(&_mutex);
 }
 
+- (Syndef*)getDefinitionAtLine:(unsigned)line
+                        column:(unsigned)column
+{
+    pthread_mutex_lock(&_mutex);
+    
+    /* no unit, no definition */
+    if(!_unit)
+    {
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* get the source file we are working with */
+    CXFile file = clang_getFile(_unit, _cFilename);
+    if(!file)
+    {
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* build a source location from the provided line and column */
+    CXSourceLocation loc = clang_getLocation(_unit, file, line, column);
+    
+    /* get the cursor sitting at that location */
+    CXCursor cursor = clang_getCursor(_unit, loc);
+    
+    /* check if cursor is valid */
+    if(clang_Cursor_isNull(cursor) || clang_isInvalid(clang_getCursorKind(cursor)))
+    {
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* get the definition cursor — try direct definition first */
+    CXCursor defCursor = clang_getCursorDefinition(cursor);
+
+    /*
+     * if that failed or returned the same location (call expr pointing to itself),
+     * resolve the referenced symbol first, then get its definition.
+     */
+    if(clang_Cursor_isNull(defCursor) ||
+       clang_isInvalid(clang_getCursorKind(defCursor)) ||
+       clang_equalCursors(defCursor, cursor))
+    {
+        CXCursor referenced = clang_getCursorReferenced(cursor);
+        
+        if(!clang_Cursor_isNull(referenced) && !clang_isInvalid(clang_getCursorKind(referenced)))
+        {
+            defCursor = clang_getCursorDefinition(referenced);
+            
+            /* if still no definition, use the declaration itself */
+            if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
+            {
+                defCursor = referenced;
+            }
+        }
+    }
+
+    /* last resort: canonical declaration */
+    if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
+    {
+        defCursor = clang_getCanonicalCursor(cursor);
+    }
+    
+    /* still nothing? bail */
+    if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
+    {
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* extract the location of the definition */
+    CXSourceLocation defLoc = clang_getCursorLocation(defCursor);
+    
+    CXFile defFile;
+    unsigned defLine = 0, defCol = 0;
+    clang_getSpellingLocation(defLoc, &defFile, &defLine, &defCol, NULL);
+    
+    if(!defFile)
+    {
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* get the filepath of the definition */
+    CXString defFilename = clang_getFileName(defFile);
+    const char *defFilenameCStr = clang_getCString(defFilename);
+    
+    if(!defFilenameCStr)
+    {
+        clang_disposeString(defFilename);
+        pthread_mutex_unlock(&_mutex);
+        return nil;
+    }
+    
+    /* build the result */
+    Syndef *def = [[Syndef alloc] init];
+    def.filepath = [NSString stringWithUTF8String:defFilenameCStr];
+    def.line     = defLine;
+    def.column   = defCol;
+    
+    clang_disposeString(defFilename);
+    pthread_mutex_unlock(&_mutex);
+    
+    return def;
+}
+
 @end
 

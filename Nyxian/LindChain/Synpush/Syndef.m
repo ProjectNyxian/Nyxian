@@ -17,28 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synitem.h>
 #import <LindChain/Synpush/Syndef.h>
-#include <clang-c/Index.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
 
-///
-/// Created this to co-op with the code editor
-///
-@interface SynpushServer : NSObject
-
-///
-/// Functions
-///
-- (instancetype)init:(NSString*)filepath;
-
-- (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
-- (NSArray<Synitem *> *)getDiagnostics;
-- (void)releaseMemory;
-- (Syndef*)getDefinitionAtLine:(unsigned)line column:(unsigned)column;
-
+@implementation Syndef
 @end
