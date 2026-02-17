@@ -129,8 +129,6 @@
     return pthreads;
 }
 
-- (NSDictionary*)entitlements { return [self readSecureFromKey:@"LDEEntitlements" withDefaultValue:[[NSDictionary alloc] init] classType:NSDictionary.class]; }
-
 - (BOOL)increment
 {
     NSNumber *value = [self readKey:@"LDEOverwriteIncrementalBuild"];
@@ -138,11 +136,9 @@
     return value ? value.boolValue : userSetValue ? userSetValue.boolValue : YES;
 }
 
-// NONE PUBLIC FEATURES - NOT READY FOR PUBLIC
-- (BOOL)debug
+- (NSString*)outputPath
 {
-    NSNumber *value = [self readKey:@"LDEDebug"];
-    return value ? value.boolValue : NO;
+    return [self readStringForKey:@"LDEOutputPath" withDefaultValue:@"Unknown"];
 }
 
 @end
@@ -216,7 +212,8 @@
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path] withVariables:@{
         @"SRCROOT": path,
         @"SDKROOT": [[Bootstrap shared] bootstrapPath:@"SDK/iPhoneOS26.2.sdk"],
-        @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"]
+        @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"],
+        @"CACHEROOT": _cachePath
     }];
     _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path]];
     return self;
@@ -298,7 +295,8 @@
                         @"-framework",
                         @"UIKit",
                         @"-lclang_rt.ios"
-                    ]
+                    ],
+                    @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
@@ -354,7 +352,8 @@
                         @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                         @"-L$(BSROOT)/lib",
                         @"-lc"
-                    ]
+                    ],
+                    @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
                 },
                 @"/Config/Entitlements.plist": @{
 #if !JAILBREAK_ENV
@@ -456,13 +455,20 @@
 - (NSString*)payloadPath { return [NSString stringWithFormat:@"%@/Payload", self.cachePath]; }
 - (NSString*)bundlePath { return [NSString stringWithFormat:@"%@/%@.app", [self payloadPath], [[self projectConfig] executable]]; }
 - (NSString*)machoPath {
-    if(self.projectConfig.type == NXProjectTypeApp)
+    if(self.projectConfig.projectFormat == NXProjectFormatKate)
     {
-        return [NSString stringWithFormat:@"%@/%@", [self bundlePath], [[self projectConfig] executable]];
+        if(self.projectConfig.type == NXProjectTypeApp)
+        {
+            return [NSString stringWithFormat:@"%@/%@", [self bundlePath], [[self projectConfig] executable]];
+        }
+        else
+        {
+            return [NSString stringWithFormat:@"%@/%@", [self cachePath], [[self projectConfig] executable]];
+        }
     }
     else
     {
-        return [NSString stringWithFormat:@"%@/%@", [self cachePath], [[self projectConfig] executable]];
+        return [[self projectConfig] outputPath];
     }
 }
 - (NSString*)packagePath { return [NSString stringWithFormat:@"%@/%@.ipa", self.cachePath, [[self projectConfig] executable]]; }

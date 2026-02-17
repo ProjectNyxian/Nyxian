@@ -28,10 +28,10 @@ typedef int NXProjectType NS_TYPED_ENUM;
 static NXProjectType const NXProjectTypeAny = 0;
 static NXProjectType const NXProjectTypeApp = 1;
 static NXProjectType const NXProjectTypeUtility = 2;
+static NXProjectType const NXProjectTypeLibrary = 3;
 static NXProjectType const NXProjectTypeLua = 4;        /* Not implemented yet */
 static NXProjectType const NXProjectTypePython = 5;     /* Not implemented yet */
-static NXProjectType const NXProjectTypeNyxian = 6;     /* Not implemented yet */
-static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet */
+static NXProjectType const NXProjectTypeWeb = 6;        /* Not implemented yet */
 
 typedef int NXProjectFormat NS_TYPED_ENUM;
 static NXProjectFormat const NXProjectFormatKate = 0;
@@ -40,6 +40,7 @@ static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 
 @interface NXProjectConfig : NXPlistHelper
 
+@property (nonatomic,readonly) NXProjectFormat projectFormat;
 @property (nonatomic,strong,readonly) NSString *executable;
 @property (nonatomic,strong,readonly) NSString *displayName;
 @property (nonatomic,strong,readonly) NSString *bundleid;
@@ -52,9 +53,7 @@ static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 @property (nonatomic,readonly) int type;
 @property (nonatomic,readonly) int threads;
 @property (nonatomic,readonly) BOOL increment;
-
-// NONE PUBLIC FEATURES - NOT READY FOR PUBLIC
-@property (nonatomic,readonly) BOOL debug;
+@property (nonatomic,strong,readonly) NSString *outputPath;
 
 @end
 

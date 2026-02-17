@@ -231,6 +231,17 @@ class Builder {
     }
     
     func link() throws {
+        let outputURL = URL(fileURLWithPath: self.project.machoPath)
+        let outputPathRoot = outputURL.deletingLastPathComponent().path()
+
+        guard outputPathRoot != "/", !outputPathRoot.isEmpty else {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid or missing output path root"])
+        }
+
+        if !FileManager.default.fileExists(atPath: outputPathRoot) {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey: self.linker.error ?? "Output path doesn't have existing root directory"])
+        }
+        
         let ldArgs: [String] = self.project.projectConfig.linkerFlags as! [String] + [
             "-o",
             self.project.machoPath
