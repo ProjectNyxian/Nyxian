@@ -138,7 +138,7 @@ class CreditCell: UITableViewCell {
         super.layoutSubviews()
         imageShadowContainer.layer.shadowPath = UIBezierPath(
             roundedRect: imageShadowContainer.bounds,
-            cornerRadius: 30
+            cornerRadius: 18
         ).cgPath
         shineGradientLayer.frame = shineView.bounds
     }
