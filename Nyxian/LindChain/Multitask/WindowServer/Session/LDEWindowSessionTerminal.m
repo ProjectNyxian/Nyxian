@@ -81,13 +81,17 @@
             
             strongSelf.atExit = YES;
             strongSelf.terminal.inputCallBack = ^{
-                __strong typeof(self) strongSelf = weakSelf;
-                [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    __strong typeof(self) strongSelf = weakSelf;
+                    [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
+                });
             };
         }
         else
         {
-            [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
+            });
         }
     };
     
