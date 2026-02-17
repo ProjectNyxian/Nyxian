@@ -5,7 +5,7 @@ Thank you soooo much for your interest in Nyxian and contributing to it, I had t
 ## Getting Started
 
 ### Prerequisites
-- A mac with Xcode
+- A mac with Xcode and Theos
 - A iPhone/iPad with iOS 16+
 - A free or paid apple developer account
 - The certificate used to sign Nyxian (you can get that from keychain after installing nyxian over Xcode).
