@@ -28,11 +28,15 @@ typedef int NXProjectType NS_TYPED_ENUM;
 static NXProjectType const NXProjectTypeAny = 0;
 static NXProjectType const NXProjectTypeApp = 1;
 static NXProjectType const NXProjectTypeUtility = 2;
-static NXProjectType const NXProjectTypeLA16 = 3;       /* Not implemented yet */
 static NXProjectType const NXProjectTypeLua = 4;        /* Not implemented yet */
 static NXProjectType const NXProjectTypePython = 5;     /* Not implemented yet */
 static NXProjectType const NXProjectTypeNyxian = 6;     /* Not implemented yet */
 static NXProjectType const NXProjectTypeWeb = 7;        /* Not implemented yet */
+
+typedef int NXProjectFormat NS_TYPED_ENUM;
+static NXProjectFormat const NXProjectFormatKate = 0;
+static NXProjectFormat const NXProjectFormatFalcon = 1;
+static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 
 @interface NXProjectConfig : NXPlistHelper
 

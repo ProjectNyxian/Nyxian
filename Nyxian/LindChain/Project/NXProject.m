@@ -22,7 +22,25 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <Nyxian-Swift.h>
 
+
+
 @implementation NXProjectConfig
+
+- (NXProjectFormat)projectFormat
+{
+    NSString *projectFormat = [self readStringForKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
+    
+    if([projectFormat isEqualToString:@"NXKate"])
+    {
+        return NXProjectFormatKate;
+    }
+    else if([projectFormat isEqualToString:@"NXFalcon"])
+    {
+        return NXProjectFormatFalcon;
+    }
+    
+    return NXProjectFormatDefault;
+}
 
 - (NSString*)executable { return [self readStringForKey:@"LDEExecutable" withDefaultValue:@"Unknown"]; }
 - (NSString*)displayName { return [self readStringForKey:@"LDEDisplayName" withDefaultValue:[self executable]]; }
@@ -30,8 +48,68 @@
 - (NSString*)version { return [self readStringForKey:@"LDEBundleVersion" withDefaultValue:@"1.0"]; }
 - (NSString*)shortVersion { return [self readStringForKey:@"LDEBundleShortVersion" withDefaultValue:@"1.0"]; }
 - (NSDictionary*)infoDictionary { return [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:[[NSDictionary alloc] init] classType:NSDictionary.class]; }
-- (NSArray*)compilerFlags { return [self readArrayForKey:@"LDECompilerFlags" withDefaultValue:@[]]; }
-- (NSArray*)linkerFlags { return [self readArrayForKey:@"LDELinkerFlags" withDefaultValue:@[]]; }
+
+- (NSArray*)compilerFlags
+{
+    NSArray *compilerFlags = [self readArrayForKey:@"LDECompilerFlags" withDefaultValue:@[]];
+    
+    if([self projectFormat] == NXProjectFormatFalcon)
+    {
+        return compilerFlags;
+    }
+    else if([self projectFormat] == NXProjectFormatKate)
+    {
+        NSMutableArray *array = [compilerFlags mutableCopy];
+        
+        [array addObjectsFromArray:@[
+            @"-target",
+            [self readStringForKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
+            @"-isysroot",
+            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+            @"-resource-dir",
+            [[Bootstrap shared] bootstrapPath:@"/Include"]
+        ]];
+        
+        return array;
+    }
+    
+    return @[];
+}
+
+- (NSArray*)linkerFlags
+{
+    NSArray *linkerFlags = [self readArrayForKey:@"LDELinkerFlags" withDefaultValue:@[]];
+    
+    if([self projectFormat] == NXProjectFormatFalcon)
+    {
+        return linkerFlags;
+    }
+    else if([self projectFormat] == NXProjectFormatKate)
+    {
+        NSMutableArray *array = [linkerFlags mutableCopy];
+        
+        [array addObjectsFromArray:@[
+            @"-platform_version",
+            @"ios",
+            [self platformMinimumVersion],
+            [self readStringForKey:@"LDEVersion" withDefaultValue:@"26.2"],
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+            [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
+        ]];
+        
+        return array;
+    }
+    
+    return @[];
+}
+
 - (NSString*)platformMinimumVersion { return [self readStringForKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"]; }
 - (int)type { return (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp]; }
 - (int)threads
@@ -168,6 +246,7 @@
         case NXProjectTypeApp:
             plistList = @{
                 @"/Config/Project.plist": @{
+                    @"NXProjectFormat": @"NXFalcon",
                     @"LDEExecutable": name,
                     @"LDEDisplayName": name,
                     @"LDEBundleIdentifier": bundleid,
@@ -245,6 +324,7 @@
         case NXProjectTypeUtility:
             plistList = @{
                 @"/Config/Project.plist": @{
+                    @"NXProjectFormat": @"NXFalcon",
                     @"LDEExecutable": name,
                     @"LDEDisplayName": name,
                     @"LDEProjectType": @(type),
