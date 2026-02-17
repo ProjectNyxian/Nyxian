@@ -30,17 +30,15 @@ jobs:
           brew install libarchive
 
           # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
-          if ! [ -d "/opt/theos" ]; then
+          if ! [ -d "$RUNNER_TOOL_CACHE/theos" ]; then
              bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-             cp -r ~/theos /opt/theos
-          else
-             cp -r /opt/theos ~/theos
+             cp -r ~/theos $RUNNER_TOOL_CACHE/theos
           fi
-          ls /opt
+          ls $RUNNER_TOOL_CACHE
 
           # Setting TheOS stuff up
-          echo "THEOS=~/theos" >> $GITHUB_ENV
-          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+          echo "THEOS=$RUNNER_TOOL_CACHE/theos" >> $GITHUB_ENV
+          echo "PATH=$RUNNER_TOOL_CACHE/theos/bin:$PATH" >> $GITHUB_ENV
 #      - name: Build Jailed
 #        timeout-minutes: 1200
 #        run: |
