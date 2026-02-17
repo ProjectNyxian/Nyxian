@@ -24,7 +24,7 @@ jobs:
         id: cache-theos
         uses: actions/cache@v4
         with:
-          path: ~/theos
+          path: ${{ env.HOME }}/theos
           key: ${{ runner.os }}-theos
           restore-keys: |
             ${{ runner.os }}-theos
