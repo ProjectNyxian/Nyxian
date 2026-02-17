@@ -227,7 +227,7 @@ class SplitScreenDetailViewController: UIViewController {
     }
     private var tabs: [UIButtonTab] = []
     
-    func openPath(path: String, line: UInt64, column: UInt64) {
+    func openPath(path: String, line: UInt64, column: UInt64, isReadOnly: Bool) {
         if let existingTab = tabs.first(where: { $0.path == path }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
@@ -288,7 +288,8 @@ class SplitScreenDetailViewController: UIViewController {
                                  line: line,
                                  column: column,
                                  openAction: open,
-                                 closeAction: close)
+                                 closeAction: close,
+                                 isReadOnly: isReadOnly)
         
         self.scrollView.addArrangedSubview(button)
         self.tabs.append(button)
@@ -408,7 +409,7 @@ class SplitScreenDetailViewController: UIViewController {
         if args.count > 1 {
             switch(args[0]) {
             case "open":
-                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0)
+                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0, isReadOnly: args[4] == "1")
                 break
             case "close":
                 self.closeTab(path: args[1])
@@ -463,9 +464,10 @@ class UIButtonTab: UIButton {
          line: UInt64,
          column: UInt64,
          openAction: @escaping (UIButtonTab) -> Void,
-         closeAction: @escaping (UIButtonTab) -> Void) {
+         closeAction: @escaping (UIButtonTab) -> Void,
+         isReadOnly: Bool) {
         self.path = path
-        self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column)
+        self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column, isReadOnly: isReadOnly)
         self.closeAction = closeAction
         
         super.init(frame: frame)

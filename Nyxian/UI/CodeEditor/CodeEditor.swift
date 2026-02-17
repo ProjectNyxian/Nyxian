@@ -48,11 +48,14 @@ class CodeEditorViewController: UIViewController {
     private(set) var undoButton: UIButton?
     private(set) var redoButton: UIButton?
     
+    let isReadOnly: Bool
+    
     init(
         project: NXProject?,
         path: String,
         line: UInt64? = nil,
-        column: UInt64? = nil
+        column: UInt64? = nil,
+        isReadOnly: Bool = false
     ) {
         self.path = path
         
@@ -61,8 +64,10 @@ class CodeEditorViewController: UIViewController {
         self.project = project
         self.line = line
         self.column = column
+        self.isReadOnly = isReadOnly
         
-        if let project = project {
+        if !isReadOnly,
+           let project = project {
             let cachePath = project.cachePath!
             
             self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
@@ -101,17 +106,19 @@ class CodeEditorViewController: UIViewController {
         let fileURL = URL(fileURLWithPath: self.path)
         self.title = fileURL.lastPathComponent
         
-        let saveButton: UIBarButtonItem = UIBarButtonItem()
-        saveButton.tintColor = .label
-        
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            saveButton.title = "Save (Cmd + S)"
-        } else {
-            saveButton.title = "Save"
+        if !self.isReadOnly {
+            let saveButton: UIBarButtonItem = UIBarButtonItem()
+            saveButton.tintColor = .label
+            
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                saveButton.title = "Save (Cmd + S)"
+            } else {
+                saveButton.title = "Save"
+            }
+            saveButton.target = self
+            saveButton.action = #selector(saveText)
+            self.navigationItem.setRightBarButton(saveButton, animated: true)
         }
-        saveButton.target = self
-        saveButton.action = #selector(saveText)
-        self.navigationItem.setRightBarButton(saveButton, animated: true)
         
         if UIDevice.current.userInterfaceIdiom != .pad {
             let closeButton: UIBarButtonItem = UIBarButtonItem()
@@ -483,19 +490,21 @@ class CodeEditorViewController: UIViewController {
     }
     
     @objc func saveText() {
-        defer {
-            try? self.textView.text.write(to: URL(fileURLWithPath: self.path), atomically: true, encoding: .utf8)
+        if !self.isReadOnly {
+            defer {
+                try? self.textView.text.write(to: URL(fileURLWithPath: self.path), atomically: true, encoding: .utf8)
+            }
+            
+            showSaveAnimation()
+            
+            guard let project = self.project,
+                  let database = self.database,
+                  let _ = self.synpushServer,
+                  let coordinator = self.coordinator else { return }
+            
+            database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
+            database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
         }
-        
-        showSaveAnimation()
-        
-        guard let project = self.project,
-              let database = self.database,
-              let _ = self.synpushServer,
-              let coordinator = self.coordinator else { return }
-        
-        database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
-        database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
     }
     
     private func showSaveAnimation() {

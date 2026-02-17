@@ -25,6 +25,7 @@ import UniformTypeIdentifiers
     let path: String
     var entries: [FileListEntry]
     let isSublink: Bool
+    let isReadOnly: Bool
     var openTheLogSheet: Bool {
         get {
             return UserDefaults.standard.bool(forKey: "LDEReopened")
@@ -37,8 +38,10 @@ import UniformTypeIdentifiers
     init(
         isSublink: Bool = false,
         project: NXProject?,
-        path: String? = nil
+        path: String? = nil,
+        isReadOnly: Bool = false
     ) {
+        self.isReadOnly = isReadOnly
         self.project = project
         
         if let project = project {
@@ -58,12 +61,14 @@ import UniformTypeIdentifiers
     
     @objc init(
         isSublink: Bool = false,
-        path: String
+        path: String,
+        isReadOnly: Bool = false
     ) {
         self.project = nil
         self.path = path
         self.entries = FileListEntry.getEntries(ofPath: self.path)
         self.isSublink = isSublink
+        self.isReadOnly = isReadOnly
         super.init(style: .insetGrouped)
         
         self.refreshControl = UIRefreshControl()
@@ -123,10 +128,12 @@ import UniformTypeIdentifiers
             }), animated: false)
         }
         
-        if #available(iOS 26.0, *) {
-            self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle.fill"), primaryAction: nil, menu: generateMenu()), animated: false)
-        } else {
-            self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
+        if !self.isReadOnly {
+            if #available(iOS 26.0, *) {
+                self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle.fill"), primaryAction: nil, menu: generateMenu()), animated: false)
+            } else {
+                self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
+            }
         }
     }
     
@@ -221,57 +228,78 @@ import UniformTypeIdentifiers
             }())
         }
         
-        // The generic file system menu
-        var fileMenuElements: [UIMenuElement] = []
-        var createMenuElements: [UIMenuElement] = []
-        createMenuElements.append(UIAction(title: "File", image: UIImage(systemName: "doc.fill"), handler: { [weak self] _ in
-            guard let self = self else { return }
-            self.createEntry(mode: .file)
-        }))
-        createMenuElements.append(UIAction(title: "Folder", image: UIImage(systemName: "folder.fill"), handler: { [weak self] _ in
-            guard let self = self else { return }
-            self.createEntry(mode: .folder)
-        }))
-        fileMenuElements.append(UIMenu(title: "New", image: UIImage(systemName: "plus.circle.fill"), children: createMenuElements))
-        fileMenuElements.append(UIAction(title: "Paste", image: UIImage(systemName: {
-            if #available(iOS 16.0, *) {
-                return "list.bullet.clipboard.fill"
-            } else {
-                return "doc.on.doc.fill"
-            }
-        }()), handler: { [weak self] _ in
-            guard let self = self else { return }
-            
-            let destination: URL = URL(fileURLWithPath: self.path).appendingPathComponent(URL(fileURLWithPath: PasteBoardServices.path).lastPathComponent)
-            
-            var isDirectory: ObjCBool = ObjCBool(false)
-            if FileManager.default.fileExists(atPath: destination.path, isDirectory: &isDirectory) {
-                self.presentConfirmationAlert(
-                    title: isDirectory.boolValue ? "Error" : "Warning",
-                    message: "\(isDirectory.boolValue ? "Folder" : "File") with the name \"\(destination.lastPathComponent)\" already exists. \(isDirectory.boolValue ? "Folder cannot be overwritten" : "Do you want to overwrite it?")",
-                    confirmTitle: "Overwrite",
-                    confirmStyle: .destructive,
-                    confirmHandler: {
-                        PasteBoardServices.paste(path: self.path)
-                        self.replaceFile(destination: destination)
-                    },
-                    addHandler: !isDirectory.boolValue
-                )
-            } else {
-                PasteBoardServices.paste(path: self.path)
-                self.addFile(destination: destination)
-            }
-        }))
-        fileMenuElements.append(UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
-            guard let self = self else { return }
-            let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
-            documentPicker.allowsMultipleSelection = true
-            documentPicker.modalPresentationStyle = .formSheet
-            documentPicker.delegate = self
-            self.present(documentPicker, animated: true)
-        })
+        if !self.isSublink {
+            rootMenuChildren.append(UIMenu(title: "System", options: [.displayInline], children: [
+                UIAction(
+                    title: "Browse SDK",
+                    image: UIImage(systemName: "books.vertical.fill")
+                ) { [weak self] _ in
+                    guard let self = self else { return }
+                    let sdkPath = Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.2.sdk")
+                    let fileVC = FileListViewController(
+                        isSublink: true,
+                        project: project,
+                        path: sdkPath,
+                        isReadOnly: true
+                    )
+                    self.navigationController?.pushViewController(fileVC, animated: true)
+                }
+            ]))
+        }
         
-        rootMenuChildren.append(UIMenu(title: "File", options: [.displayInline], children: fileMenuElements))
+        if !isReadOnly {
+            // The generic file system menu
+            var fileMenuElements: [UIMenuElement] = []
+            var createMenuElements: [UIMenuElement] = []
+            createMenuElements.append(UIAction(title: "File", image: UIImage(systemName: "doc.fill"), handler: { [weak self] _ in
+                guard let self = self else { return }
+                self.createEntry(mode: .file)
+            }))
+            createMenuElements.append(UIAction(title: "Folder", image: UIImage(systemName: "folder.fill"), handler: { [weak self] _ in
+                guard let self = self else { return }
+                self.createEntry(mode: .folder)
+            }))
+            fileMenuElements.append(UIMenu(title: "New", image: UIImage(systemName: "plus.circle.fill"), children: createMenuElements))
+            fileMenuElements.append(UIAction(title: "Paste", image: UIImage(systemName: {
+                if #available(iOS 16.0, *) {
+                    return "list.bullet.clipboard.fill"
+                } else {
+                    return "doc.on.doc.fill"
+                }
+            }()), handler: { [weak self] _ in
+                guard let self = self else { return }
+                
+                let destination: URL = URL(fileURLWithPath: self.path).appendingPathComponent(URL(fileURLWithPath: PasteBoardServices.path).lastPathComponent)
+                
+                var isDirectory: ObjCBool = ObjCBool(false)
+                if FileManager.default.fileExists(atPath: destination.path, isDirectory: &isDirectory) {
+                    self.presentConfirmationAlert(
+                        title: isDirectory.boolValue ? "Error" : "Warning",
+                        message: "\(isDirectory.boolValue ? "Folder" : "File") with the name \"\(destination.lastPathComponent)\" already exists. \(isDirectory.boolValue ? "Folder cannot be overwritten" : "Do you want to overwrite it?")",
+                        confirmTitle: "Overwrite",
+                        confirmStyle: .destructive,
+                        confirmHandler: {
+                            PasteBoardServices.paste(path: self.path)
+                            self.replaceFile(destination: destination)
+                        },
+                        addHandler: !isDirectory.boolValue
+                    )
+                } else {
+                    PasteBoardServices.paste(path: self.path)
+                    self.addFile(destination: destination)
+                }
+            }))
+            fileMenuElements.append(UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
+                guard let self = self else { return }
+                let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
+                documentPicker.allowsMultipleSelection = true
+                documentPicker.modalPresentationStyle = .formSheet
+                documentPicker.delegate = self
+                self.present(documentPicker, animated: true)
+            })
+            
+            rootMenuChildren.append(UIMenu(title: "File", options: [.displayInline], children: fileMenuElements))
+        }
         
         return UIMenu(children: rootMenuChildren)
     }
@@ -377,16 +405,18 @@ import UniformTypeIdentifiers
                 let fileVC = FileListViewController(
                     isSublink: true,
                     project: project,
-                    path: fileListEntry.path
+                    path: fileListEntry.path,
+                    isReadOnly: self.isReadOnly
                 )
                 self.navigationController?.pushViewController(fileVC, animated: true)
             } else {
                 if UIDevice.current.userInterfaceIdiom == .pad {
-                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0"])
+                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
                 } else {
                     let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
                         project: project,
-                        path: fileListEntry.path
+                        path: fileListEntry.path,
+                        isReadOnly: self.isReadOnly
                     ))
                     fileVC.modalPresentationStyle = .overFullScreen
                     self.present(fileVC, animated: true)
