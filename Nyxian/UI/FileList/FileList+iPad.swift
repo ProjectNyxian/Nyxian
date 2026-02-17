@@ -409,7 +409,7 @@ class SplitScreenDetailViewController: UIViewController {
         if args.count > 1 {
             switch(args[0]) {
             case "open":
-                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0, isReadOnly: args[4] == "1")
+                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0, isReadOnly: (args.count >= 5 && args[4] == "1"))
                 break
             case "close":
                 self.closeTab(path: args[1])
