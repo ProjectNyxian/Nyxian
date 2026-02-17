@@ -134,12 +134,15 @@
         {
             if(doRestartIfRunning)
             {
-                LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:process.wid];
-                if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
+                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
                 {
-                    [((LDEWindowSessionApplication*) windowSession) prepareForInject];
-                    
-                    session = (LDEWindowSessionApplication*)windowSession;
+                    LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:process.wid];
+                    if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
+                    {
+                        [((LDEWindowSessionApplication*) windowSession) prepareForInject];
+                        
+                        session = (LDEWindowSessionApplication*)windowSession;
+                    }
                 }
                 
                 /* TODO: find preexisting window before termination and inject new process into it */
