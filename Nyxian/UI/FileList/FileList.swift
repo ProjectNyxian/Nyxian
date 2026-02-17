@@ -134,6 +134,7 @@ import UniformTypeIdentifiers
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search Files"
+        searchController.hidesNavigationBarDuringPresentation = true
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = true
         definesPresentationContext = true
