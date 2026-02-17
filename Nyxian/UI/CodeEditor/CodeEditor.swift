@@ -159,6 +159,7 @@ class CodeEditorViewController: UIViewController {
         self.textView.autocorrectionType = .no
         self.textView.autocapitalizationType = .none
         self.textView.textContainerInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 0)
+        self.textView.isEditable = !self.isReadOnly
         
         func loadLanguage(language: UnsafePointer<TSLanguage>, highlightsURL: [URL]) {
             func combinedQuery(fromFilesAt fileURLs: [URL]) -> TreeSitterLanguage.Query? {
