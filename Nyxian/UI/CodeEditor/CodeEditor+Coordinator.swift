@@ -53,9 +53,23 @@ class Coordinator: NSObject, TextViewDelegate {
         self.isProcessing = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            self.parent?.synpushServer?.reparseFile(self.parent?.textView.text)
-            self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
-            self.updateDiag()
+            guard let parent = self.parent else { return }
+            
+            let suffix = parent.path.URLGet().pathExtension
+            if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
+                parent.project?.projectConfig.reloadIfNeeded()
+                var flags = parent.project?.projectConfig.compilerFlags as! [String]
+                
+                if suffix == "h" {
+                    flags.append(contentsOf: ["-x", "objective-c"])
+                } else if ["hpp","hh"].contains(suffix) {
+                    flags.append(contentsOf: ["-x", "c++"])
+                }
+                
+                self.parent?.synpushServer?.reparseFile(self.parent?.textView.text, withArgs: flags)
+                self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
+                self.updateDiag()
+            }
         }
     }
     

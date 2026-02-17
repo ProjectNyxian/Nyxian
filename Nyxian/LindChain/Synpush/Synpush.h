@@ -36,7 +36,7 @@
 - (instancetype)init:(NSString*)filepath
                 args:(NSArray*)args;
 
-- (void)reparseFile:(NSString*)content;
+- (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 - (NSArray<Synitem *> *)getDiagnostics;
 - (void)releaseMemory;
 

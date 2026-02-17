@@ -107,7 +107,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
 
 #pragma mark - Reparse (incremental)
 
-- (void)reparseFile:(NSString*)content
+- (void)reparseFile:(NSString*)content withArgs:(NSArray*)args
 {
     /* getting data from content (dont allow lossy conversion, because otherwise chineese, japanese, etc users are pissed off)*/
     NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
@@ -123,7 +123,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     {
         /* needs reactivation */
         pthread_mutex_unlock(&_mutex);
-        [self reactivateWithContent:content];
+        [self reactivateWithContent:content withArgs:args];
         return;
     }
     
@@ -264,7 +264,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     return active;
 }
 
-- (BOOL)reactivateWithContent:(NSString*)content
+- (BOOL)reactivateWithContent:(NSString*)content withArgs:(NSArray*)args
 {
     /* checking if server is still active */
     if([self isActive])
@@ -274,6 +274,21 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     
     /* its not so we need to reactivate it */
     pthread_mutex_lock(&_mutex);
+    
+    /* free if allocated */
+    if(_args != NULL)
+    {
+        for (int i = 0; i < _argc; ++i) free(_args[i]);
+        free(_args);
+    }
+    
+    /* making arguments ready */
+    _argc = (int)args.count;
+    _args = (char**)calloc((size_t)_argc, sizeof(char*));
+    for(int i = 0; i < _argc; ++i)
+    {
+        _args[i] = strdup([args[i] UTF8String]);
+    }
     
     /* creating new data out of content */
     NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
@@ -312,12 +327,17 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     {
         clang_disposeIndex(_index);
     }
+    
+    if(_args != NULL)
+    {
+        
+        /* releasing da rest */
+        for (int i = 0; i < _argc; ++i) free(_args[i]);
+        free(_args);
+    }
+    
     pthread_mutex_unlock(&_mutex);
-
-    /* releasing da rest */
-    for (int i = 0; i < _argc; ++i) free(_args[i]);
-    free(_args);
-
+    
     free(_cFilename);
     
     /* destroying the lock */
