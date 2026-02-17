@@ -27,7 +27,7 @@ jobs:
           ls $RUNNER_TOOL_CACHE
 
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-          cp -rP ~/theos/* $RUNNER_TOOL_CACHE
+          cp -rP ~/theos $RUNNER_TOOL_CACHE
 
           ls $RUNNER_TOOL_CACHE
 
