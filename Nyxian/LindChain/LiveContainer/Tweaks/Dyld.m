@@ -189,7 +189,12 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
     
     kern_return_t ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
     assert(ret == KERN_SUCCESS);
-    *origFunction = (void*)*(void**)vtableFunctionPtr;
+    
+    if(origFunction != NULL)
+    {
+        *origFunction = (void*)*(void**)vtableFunctionPtr;
+    }
+    
     *(uint64_t*)vtableFunctionPtr = (uint64_t)hookFunction;
     builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ);
     return true;
