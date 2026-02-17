@@ -73,6 +73,22 @@ import UIKit
         }
     }
     
+    override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        if(newWindow == nil) {
+            NotificationCenter.default.removeObserver(self)
+        } else {
+            NotificationCenter.default.addObserver(self, selector: #selector(handleThemeChange(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
+        }
+        handleThemeChange(nil)
+    }
+    
+    @objc func handleThemeChange(_ notification: Notification?) {
+        self.backgroundColor = currentTheme?.backgroundColor ?? .secondarySystemBackground
+        self.nativeForegroundColor = currentTheme?.textColor ?? gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
+        self.caretTextColor = currentTheme?.textColor ?? gibDynamicColor(light: .label, dark: self.nativeForegroundColor)
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
