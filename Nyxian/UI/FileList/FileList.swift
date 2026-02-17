@@ -72,16 +72,18 @@ import UniformTypeIdentifiers
     
     @objc func performRefresh() {
         self.entries = FileListEntry.getEntries(ofPath: self.path)
-        
-        self.tableView.reloadData()
-        
         self.refreshControl?.endRefreshing()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-            guard let visibleCells = self.tableView.visibleCells as? [FileListCell] else {
-                self.refreshControl?.endRefreshing()
-                return
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.tableView.visibleCells.forEach { cell in
+                cell.alpha = 0
             }
+            
+            self.tableView.reloadData()
+            
+            self.tableView.layoutIfNeeded()
+            
+            guard let visibleCells = self.tableView.visibleCells as? [FileListCell] else { return }
             
             visibleCells.forEach { cell in
                 cell.transform = CGAffineTransform(translationX: -30, y: 0)
@@ -90,20 +92,12 @@ import UniformTypeIdentifiers
             
             for (index, cell) in visibleCells.enumerated() {
                 let delay = Double(index) * 0.02
-                
-                UIView.animate(
-                    withDuration: 0.6,
-                    delay: delay,
-                    usingSpringWithDamping: 0.8,
-                    initialSpringVelocity: 0.5,
-                    options: [.curveEaseOut],
-                    animations: {
-                        cell.transform = .identity
-                        cell.alpha = 1
-                    }
-                )
+                UIView.animate(withDuration: 0.6, delay: delay, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: [.curveEaseOut], animations: {
+                    cell.transform = .identity
+                    cell.alpha = 1
+                })
             }
-        })
+        }
     }
     
     required init?(coder: NSCoder) {
