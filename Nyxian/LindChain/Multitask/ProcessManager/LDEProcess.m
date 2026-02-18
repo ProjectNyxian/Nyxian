@@ -165,6 +165,11 @@
                         {
                             klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                         }
+                        
+                        if(innerSelf.proc != NULL)
+                        {
+                            kvo_release(innerSelf.proc);
+                        }
 #endif /* !JAILBREAK_ENV */
                         
                         [innerSelf.processMonitor invalidate];
@@ -348,18 +353,5 @@
         });
     });
 }
-
-#if !JAILBREAK_ENV
-        
-- (void)dealloc
-{
-    if(_proc != NULL)
-    {
-        kvo_release(_proc);
-    }
-    NSLog(@"deallocated %@", self);
-}
-        
-#endif /* !JAILBREAK_ENV */
 
 @end
