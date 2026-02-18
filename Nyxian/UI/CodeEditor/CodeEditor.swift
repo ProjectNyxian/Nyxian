@@ -230,36 +230,40 @@ class CodeEditorViewController: UIViewController {
     
     func goto(line: UInt64?, column: UInt64?) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            guard let line = line else { return }
-            guard var column = column else { return }
-            
-            if line == 0 { return }
-            
-            column -= 1
-            
+            guard let line = line, line > 0 else { return }
+            let column = column.map { $0 > 0 ? $0 - 1 : 0 } ?? 0
+
             let lines = self.textView.text.components(separatedBy: .newlines)
-            guard line < lines.count else { return }
+            guard Int(line) <= lines.count else { return }
 
             let lineText = lines[Int(line - 1)]
             let clampedColumn = min(Int(column), lineText.count)
-
             let offset = lines.prefix(Int(line - 1)).reduce(0) { $0 + $1.count + 1 } + clampedColumn
 
             guard let rect = self.textView.rectForLine(Int(line)) else { return }
 
+            guard let start = self.textView.position(from: self.textView.beginningOfDocument, offset: offset) else { return }
+            self.textView.selectedTextRange = self.textView.textRange(from: start, to: start)
+            self.textView.becomeFirstResponder()
+
+            let visibleRect = CGRect(
+                x: self.textView.contentOffset.x,
+                y: self.textView.contentOffset.y,
+                width: self.textView.bounds.width,
+                height: self.textView.bounds.height
+            )
+
+            guard !visibleRect.contains(rect) else {
+                self.flashLine(rect: rect)
+                return
+            }
+
             let targetOffsetY = rect.origin.y - self.textView.textContainerInset.top
-            let maxOffsetY = self.textView.contentSize.height - self.textView.bounds.height
+            let maxOffsetY = max(self.textView.contentSize.height - self.textView.bounds.height, 0)
             let clampedOffsetY = max(min(targetOffsetY, maxOffsetY), 0)
 
-            self.textView.setContentOffset(CGPoint(x: 0, y: clampedOffsetY), animated: true)
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                guard let start = self.textView.position(from: self.textView.beginningOfDocument, offset: offset) else { return }
-                let range = self.textView.textRange(from: start, to: start)
-                self.textView.selectedTextRange = range
-                self.textView.becomeFirstResponder()
-                self.flashLine(rect: rect)
-            }
+            self.textView.contentOffset = CGPoint(x: 0, y: clampedOffsetY)
+            self.flashLine(rect: rect)
         }
     }
 
@@ -273,7 +277,7 @@ class CodeEditorViewController: UIViewController {
         flashLayer.fillColor = UIColor.systemYellow.withAlphaComponent(0.45).cgColor
         flashLayer.strokeColor = UIColor.systemYellow.cgColor
         flashLayer.lineWidth = 1.5
-        flashLayer.opacity = 1.0
+        flashLayer.opacity = 0.0
 
         textView.layer.addSublayer(flashLayer)
 
