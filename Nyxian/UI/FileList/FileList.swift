@@ -481,12 +481,24 @@ import UniformTypeIdentifiers
                 self.navigationController?.pushViewController(fileVC, animated: true)
                 break
             case .file:
-                if UIDevice.current.userInterfaceIdiom == .pad {
-                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
+                if ["zip","ipa"].contains(URL(fileURLWithPath: fileListEntry.path).pathExtension)  {
+                    let folder: URL = PasteBoardServices.resolvedDestinationURL(for: fileListEntry.path.URLLastPathComponent(), inDirectory: self.path)
+                    if ((try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil) {
+                        if(unzipArchiveAtPath(fileListEntry.path, folder.path)) {
+                            self.entries.append(FileListEntry.getEntry(ofPath: folder.path))
+                            self.tableView.reloadData()
+                        } else {
+                            NotificationServer.NotifyUser(level: .error, notification: "Failed to unzip \(fileListEntry.path)")
+                        }
+                    }
                 } else {
-                    let fileVC = UINavigationController(rootViewController: CodeEditorViewController(project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly))
-                    fileVC.modalPresentationStyle = .overFullScreen
-                    self.present(fileVC, animated: true)
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
+                    } else {
+                        let fileVC = UINavigationController(rootViewController: CodeEditorViewController(project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly))
+                        fileVC.modalPresentationStyle = .overFullScreen
+                        self.present(fileVC, animated: true)
+                    }
                 }
             }
         }

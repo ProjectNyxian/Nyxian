@@ -113,7 +113,7 @@ class FileListCell: UITableViewCell {
             case "plist":
                 configureImageIcon(name: "tablecells.fill")
             case "zip", "tar", "zst":
-                configureImageIcon(name: "doc.fill")
+                configureImageIcon(name: "archivebox.fill")
             case "ipa":
                 configureImageIcon(name: "app.gift.fill")
             case "png", "jpg", "jpeg", "gif", "svg":

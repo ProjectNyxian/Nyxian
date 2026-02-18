@@ -63,7 +63,7 @@ class PasteBoardServices {
         return !PasteBoardServices.paths.isEmpty
     }
     
-    private static func resolvedDestinationURL(for sourcePath: String, inDirectory directory: String) -> URL {
+    static func resolvedDestinationURL(for sourcePath: String, inDirectory directory: String) -> URL {
         let sourceURL = URL(fileURLWithPath: sourcePath)
         let dirURL = URL(fileURLWithPath: directory)
 
