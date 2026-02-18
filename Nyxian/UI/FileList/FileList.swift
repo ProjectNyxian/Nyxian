@@ -149,12 +149,7 @@ import UniformTypeIdentifiers
         }
     }
     
-    enum CreateEntryMode {
-        case file
-        case folder
-    }
-    
-    func createEntry(mode: CreateEntryMode) {
+    func createEntry(mode: FileListEntry.FileListEntryType) {
         let alert: UIAlertController = UIAlertController(
             title: "Create \((mode == .file) ? "File" : "Folder")",
             message: nil,
@@ -173,7 +168,7 @@ import UniformTypeIdentifiers
             var isDirectory: ObjCBool = ObjCBool(false)
             if FileManager.default.fileExists(atPath: destination.path, isDirectory: &isDirectory) {
                 self.presentConfirmationAlert(
-                    title: mode == .folder ? "Error" : "Warning",
+                    title: mode == .dir ? "Error" : "Warning",
                     message: "\(isDirectory.boolValue ? "Folder" : "File") with the name \"\(destination.lastPathComponent)\" already exists. \(!isDirectory.boolValue ? "" : "Folders cannot be removed!")",
                     confirmTitle: "Overwrite",
                     confirmStyle: .destructive,
@@ -259,7 +254,7 @@ import UniformTypeIdentifiers
             }))
             createMenuElements.append(UIAction(title: "Folder", image: UIImage(systemName: "folder.fill"), handler: { [weak self] _ in
                 guard let self = self else { return }
-                self.createEntry(mode: .folder)
+                self.createEntry(mode: .dir)
             }))
             fileMenuElements.append(UIMenu(title: "New", image: UIImage(systemName: "plus.circle.fill"), children: createMenuElements))
             fileMenuElements.append(UIAction(title: "Paste", image: UIImage(systemName: {
