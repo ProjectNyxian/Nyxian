@@ -127,7 +127,7 @@ class CertificateImporter: UIThemedTableViewController, UITextFieldDelegate {
                 UserDefaults.standard.set(LCUtils.appGroupID(), forKey: "LCAppGroupID")
             }
         } catch {
-            NotificationServer.NotifyUser(level: .error, notification: "Something went wrong importing the CertBlob! \(error.localizedDescription)")
+            NotificationServer.NotifyUser(level: .error, notification: "Something went wrong importing the certificate! \(error.localizedDescription)")
         }
         
         self.dismiss(animated: true)

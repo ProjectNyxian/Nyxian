@@ -80,7 +80,7 @@ class FileAction {
         case copy
     }
     
-    @Published var path: String = ""
+    //@Published var path: String = ""
     @Published var action: FileAction.FileActionType = .none
     
     static let shared = FileAction()

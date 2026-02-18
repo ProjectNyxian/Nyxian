@@ -24,44 +24,67 @@ class PasteBoardServices {
         case copy
         case move
     }
-    
-    static var path: String = ""
+
+    static var paths: Set<String> = []
     static var onMove: () -> Void = {}
     static var mode: PasteBoardServices.Mode = .copy
-    
-    static func copy(mode: PasteBoardServices.Mode, path: String) {
-        PasteBoardServices.path = path
+
+    static func copy(mode: PasteBoardServices.Mode, paths: Set<String>) {
+        PasteBoardServices.paths = paths
         PasteBoardServices.mode = mode
     }
-    
-    static func paste(path: String) {
-        if PasteBoardServices.path != "0" {
-            // Craft full path
-            let fileName: String = URL(fileURLWithPath: self.path).lastPathComponent
-            let dest: String = URL(fileURLWithPath: path).appendingPathComponent(fileName).path
-            
-            // Overwrite automatically if exists
-            if FileManager.default.fileExists(atPath: dest) {
-                try? FileManager.default.removeItem(atPath: dest)
+
+    static func paste(path: String, addFileHandler: @escaping (URL) -> Void) {
+        for item in PasteBoardServices.paths {
+            guard item != "0" else {
+                print("PasteBoardServices:Error: Nothing to do here")
+                continue
             }
+
+            let dest = resolvedDestinationURL(for: item, inDirectory: path)
             
-            // Now copy/move it
             if PasteBoardServices.mode == .copy {
-                try? FileManager.default.copyItem(atPath: self.path, toPath: dest)
+                if (try? FileManager.default.copyItem(atPath: item, toPath: dest.path)) != nil {
+                    DispatchQueue.main.async { addFileHandler(dest) }
+                }
             } else {
-                try? FileManager.default.moveItem(atPath: self.path, toPath: dest)
-                PasteBoardServices.onMove()
+                if (try? FileManager.default.moveItem(atPath: item, toPath: dest.path)) != nil {
+                    PasteBoardServices.onMove()
+                    PasteBoardServices.onMove = {}
+                    DispatchQueue.main.async { addFileHandler(dest) }
+                }
             }
-            
-            // Unregister onMove action
-            PasteBoardServices.onMove = {}
-            PasteBoardServices.path = "0"
-        } else {
-            print("PasteBoardServices:Error: Nothing to do here")
         }
+
+        PasteBoardServices.paths = []
+    }
+
+    static func needPaste() -> Bool {
+        return !PasteBoardServices.paths.isEmpty
     }
     
-    static func needPaste() -> Bool {
-        return (PasteBoardServices.path != "0")
+    private static func resolvedDestinationURL(for sourcePath: String, inDirectory directory: String) -> URL {
+        let sourceURL = URL(fileURLWithPath: sourcePath)
+        let dirURL = URL(fileURLWithPath: directory)
+
+        let ext  = sourceURL.pathExtension
+        let base = sourceURL.deletingPathExtension().lastPathComponent
+
+        func candidate(_ suffix: String) -> URL {
+            let name = suffix.isEmpty ? base : "\(base) \(suffix)"
+            return ext.isEmpty
+                ? dirURL.appendingPathComponent(name)
+                : dirURL.appendingPathComponent(name).appendingPathExtension(ext)
+        }
+
+        var dest = candidate("")
+        var counter = 1
+
+        while FileManager.default.fileExists(atPath: dest.path) {
+            dest = candidate("\(counter)")
+            counter += 1
+        }
+
+        return dest
     }
 }

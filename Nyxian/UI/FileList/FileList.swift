@@ -26,17 +26,9 @@ import UniformTypeIdentifiers
     var entries: [FileListEntry]
     let isSublink: Bool
     let isReadOnly: Bool
-    let searchController = UISearchController(searchResultsController: nil)
-    
-    var openTheLogSheet: Bool {
-        get {
-            return UserDefaults.standard.bool(forKey: "LDEReopened")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "LDEReopened")
-        }
-    }
-    
+    var isSelecting: Bool = false
+    var selectedPaths: Set<String> = []
+
     init(
         isSublink: Bool = false,
         project: NXProject?,
@@ -148,7 +140,91 @@ import UniformTypeIdentifiers
             }
         }
     }
-    
+
+    @objc func toggleSelectionMode() {
+        isSelecting.toggle()
+        selectedPaths.removeAll()
+
+        tableView.allowsMultipleSelection = isSelecting
+
+        navigationItem.rightBarButtonItem?.isEnabled = !isSelecting
+
+        if isSelecting {
+            let deleteButton = UIBarButtonItem(title: "Delete", style: .plain, target: self, action: #selector(deleteSelected))
+            deleteButton.tintColor = .systemRed
+            let copyButton = UIBarButtonItem(title: "Copy", style: .plain, target: self, action: #selector(copySelected))
+            let shareButton = UIBarButtonItem(title: "Share", style: .plain, target: self, action: #selector(shareSelected))
+            let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+            
+            setToolbarItems([deleteButton, spacer, copyButton, spacer, shareButton], animated: true)
+            navigationController?.setToolbarHidden(false, animated: true)
+            tabBarController?.tabBar.isHidden = true
+            
+            let doneButton = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(toggleSelectionMode))
+            navigationItem.setLeftBarButton(doneButton, animated: true)
+            self.refreshControl = nil
+        } else {
+            setToolbarItems(nil, animated: true)
+            navigationController?.setToolbarHidden(true, animated: true)
+            tabBarController?.tabBar.isHidden = false
+            navigationItem.setLeftBarButton(nil, animated: true)
+            self.refreshControl = UIRefreshControl()
+            self.refreshControl?.addTarget(self, action: #selector(performRefresh), for: .valueChanged)
+            tableView.reloadData()
+        }
+    }
+
+    @objc func deleteSelected() {
+        guard !selectedPaths.isEmpty else { return }
+
+        let alert = UIAlertController(
+            title: "Delete \(selectedPaths.count) item\(selectedPaths.count == 1 ? "" : "s")?",
+            message: "This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+
+            for path in self.selectedPaths {
+                let fileUrl = URL(fileURLWithPath: path)
+                if ((try? FileManager.default.removeItem(at: fileUrl)) != nil), let project = self.project {
+                    let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: "\(project.cachePath!))/debug.json")
+                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close", fileUrl.path])
+                    database.removeFileDebug(ofPath: fileUrl.path)
+                    database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+                } else {
+                    try? FileManager.default.removeItem(atPath: path)
+                }
+            }
+
+            self.entries.removeAll { self.selectedPaths.contains($0.path) }
+            self.selectedPaths.removeAll()
+            self.tableView.reloadData()
+            self.toggleSelectionMode()
+        })
+
+        present(alert, animated: true)
+    }
+
+    @objc func shareSelected() {
+        guard !selectedPaths.isEmpty else { return }
+        let urls = selectedPaths.map { URL(fileURLWithPath: $0) }
+        let activityVC = UIActivityViewController(activityItems: urls, applicationActivities: nil)
+        activityVC.modalPresentationStyle = .popover
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.maxY, width: 0, height: 0)
+            popover.permittedArrowDirections = .down
+        }
+        present(activityVC, animated: true)
+    }
+
+    @objc func copySelected() {
+        PasteBoardServices.copy(mode: .copy, paths:selectedPaths)
+        toggleSelectionMode()
+    }
+
     func createEntry(mode: FileListEntry.FileListEntryType) {
         let alert: UIAlertController = UIAlertController(
             title: "Create \((mode == .file) ? "File" : "Folder")",
@@ -265,25 +341,8 @@ import UniformTypeIdentifiers
                 }
             }()), handler: { [weak self] _ in
                 guard let self = self else { return }
-                
-                let destination: URL = URL(fileURLWithPath: self.path).appendingPathComponent(URL(fileURLWithPath: PasteBoardServices.path).lastPathComponent)
-                
-                var isDirectory: ObjCBool = ObjCBool(false)
-                if FileManager.default.fileExists(atPath: destination.path, isDirectory: &isDirectory) {
-                    self.presentConfirmationAlert(
-                        title: isDirectory.boolValue ? "Error" : "Warning",
-                        message: "\(isDirectory.boolValue ? "Folder" : "File") with the name \"\(destination.lastPathComponent)\" already exists. \(isDirectory.boolValue ? "Folder cannot be overwritten" : "Do you want to overwrite it?")",
-                        confirmTitle: "Overwrite",
-                        confirmStyle: .destructive,
-                        confirmHandler: {
-                            PasteBoardServices.paste(path: self.path)
-                            self.replaceFile(destination: destination)
-                        },
-                        addHandler: !isDirectory.boolValue
-                    )
-                } else {
-                    PasteBoardServices.paste(path: self.path)
-                    self.addFile(destination: destination)
+                PasteBoardServices.paste(path: self.path) { file in
+                    self.addFile(destination: file)
                 }
             }))
             fileMenuElements.append(UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
@@ -294,7 +353,11 @@ import UniformTypeIdentifiers
                 documentPicker.delegate = self
                 self.present(documentPicker, animated: true)
             })
-            
+            fileMenuElements.append(UIAction(title: "Select", image: UIImage(systemName: "filemenu.and.selection")) { [weak self] _ in
+                guard let self = self else { return }
+                self.toggleSelectionMode()
+            })
+
             rootMenuChildren.append(UIMenu(title: "File", options: [.displayInline], children: fileMenuElements))
         }
         
@@ -317,6 +380,8 @@ import UniformTypeIdentifiers
     }
     
     override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        if isSelecting { return nil }
+
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] suggestedActions in
             guard let self = self else { return UIMenu() }
             
@@ -327,16 +392,17 @@ import UniformTypeIdentifiers
                     return "doc.on.doc.fill"
                 }
             }())) { action in
-                PasteBoardServices.copy(mode: .copy, path: self.entries[indexPath.row].path)
+                PasteBoardServices.copy(mode: .copy, paths: [self.entries[indexPath.row].path])
             }
             let moveAction = UIAction(title: "Move", image: UIImage(systemName: "arrow.right")) { [weak self] action in
                 guard let self = self else { return }
                 let entry = self.entries[indexPath.row]
-                PasteBoardServices.onMove = {
+                PasteBoardServices.onMove = { [weak self] in
+                    guard let self = self else { return }
                     self.entries.removeAll(where: { $0.path == entry.path })
                     self.tableView.deleteRows(at: [indexPath], with: .automatic)
                 }
-                PasteBoardServices.copy(mode: .move, path: entry.path)
+                PasteBoardServices.copy(mode: .move, paths: [entry.path])
             }
             let renameAction = UIAction(title: "Rename", image: UIImage(systemName: "rectangle.and.pencil.and.ellipsis")) { [weak self] action in
                 guard let self = self else { return }
@@ -399,6 +465,11 @@ import UniformTypeIdentifiers
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if isSelecting {
+            selectedPaths.insert(entries[indexPath.row].path)
+            return
+        }
+
         self.tableView.deselectRow(at: indexPath, animated: true)
         
         if !self.navigationItem.hidesBackButton {
@@ -420,7 +491,13 @@ import UniformTypeIdentifiers
             }
         }
     }
-    
+
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if isSelecting {
+            selectedPaths.remove(entries[indexPath.row].path)
+        }
+    }
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileListCell.reuseIdentifier, for: indexPath) as! FileListCell
             
