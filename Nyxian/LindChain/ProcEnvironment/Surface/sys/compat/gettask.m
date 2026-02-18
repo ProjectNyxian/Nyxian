@@ -158,6 +158,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
+        mach_port_deallocate(mach_task_self(), target->kproc.task);
         errnov = ENOMEM;
         goto out_proc_release_failure;
     }
