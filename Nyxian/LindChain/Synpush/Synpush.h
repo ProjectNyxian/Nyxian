@@ -37,8 +37,12 @@
 - (instancetype)init:(NSString*)filepath;
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
+
 - (NSArray<Synitem *> *)getDiagnostics;
-- (void)releaseMemory;
+
+- (Syndef*)getDefinitionFromFileAtPath:(NSString*)path AtLine:(unsigned)line column:(unsigned)column;
 - (Syndef*)getDefinitionAtLine:(unsigned)line column:(unsigned)column;
+
+- (void)releaseMemory;
 
 @end

@@ -40,6 +40,23 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     }
 }
 
+static BOOL isHeaderFile(const char *path)
+{
+    if(!path)
+    {
+        return NO;
+    }
+    
+    const char *ext = strrchr(path, '.');
+    
+    if(!ext)
+    {
+        return NO;
+    }
+    
+    return (strcmp(ext, ".h")  == 0 || strcmp(ext, ".hh") == 0 || strcmp(ext, ".hpp") == 0);
+}
+
 #pragma mark - SynpushServer
 
 @interface SynpushServer () {
@@ -310,8 +327,9 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     pthread_mutex_destroy(&_mutex);
 }
 
-- (Syndef*)getDefinitionAtLine:(unsigned)line
-                        column:(unsigned)column
+- (Syndef*)getDefinitionFromFileAtPath:(NSString*)path
+                                AtLine:(unsigned)line
+                                column:(unsigned)column
 {
     pthread_mutex_lock(&_mutex);
     
@@ -323,7 +341,7 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     }
     
     /* get the source file we are working with */
-    CXFile file = clang_getFile(_unit, _cFilename);
+    CXFile file = clang_getFile(_unit, [path UTF8String]);
     if(!file)
     {
         pthread_mutex_unlock(&_mutex);
@@ -381,6 +399,95 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
         return nil;
     }
     
+    /* objc specific patches and fixes  */
+    enum CXCursorKind defKind = clang_getCursorKind(defCursor);
+    if(defKind == CXCursor_ObjCInstanceMethodDecl ||
+       defKind == CXCursor_ObjCClassMethodDecl)
+    {
+        /* checking if cursor it self is the impl */
+        BOOL cursorIsTheImpl = NO;
+        if(clang_equalCursors(clang_getCanonicalCursor(cursor),
+                              clang_getCanonicalCursor(defCursor)))
+        {
+            /* its the impl it self */
+            CXSourceLocation cursorLoc = clang_getCursorLocation(cursor);
+            CXFile cursorFile = NULL;
+            clang_getSpellingLocation(cursorLoc, &cursorFile, NULL, NULL, NULL);
+            
+            if(cursorFile)
+            {
+                CXString cursorFilename = clang_getFileName(cursorFile);
+                const char *cursorFilenameCStr = clang_getCString(cursorFilename);
+                cursorIsTheImpl = !isHeaderFile(cursorFilenameCStr);
+                clang_disposeString(cursorFilename);
+            }
+        }
+        
+        if(cursorIsTheImpl)
+        {
+            /* getting cursor to header decl */
+            CXCursor *overridden = NULL;
+            unsigned  numOverridden = 0;
+            clang_getOverriddenCursors(cursor, &overridden, &numOverridden);
+            
+            CXCursor best = cursor;
+
+            for(unsigned i = 0; i < numOverridden; i++)
+            {
+                CXCursor candidate = overridden[i];
+
+                CXSourceLocation loc = clang_getCursorLocation(candidate);
+                CXFile file = NULL;
+                clang_getSpellingLocation(loc, &file, NULL, NULL, NULL);
+
+                if(!file)
+                {
+                    continue;
+                }
+
+                CXString fname = clang_getFileName(file);
+                const char *fnameCStr = clang_getCString(fname);
+                BOOL inHeader = isHeaderFile(fnameCStr);
+                clang_disposeString(fname);
+
+                if(inHeader)
+                {
+                    best = candidate;
+                    break;
+                }
+            }
+            
+            if(overridden)
+            {
+                clang_disposeOverriddenCursors(overridden);
+            }
+
+            if(!clang_equalCursors(best, cursor))
+            {
+                defCursor = best;
+            }
+
+            CXCursor canonical = clang_getCanonicalCursor(cursor);
+
+            CXSourceLocation loc = clang_getCursorLocation(canonical);
+            CXFile file = NULL;
+            clang_getSpellingLocation(loc, &file, NULL, NULL, NULL);
+
+            if(file)
+            {
+                CXString fname = clang_getFileName(file);
+                const char *fnameCStr = clang_getCString(fname);
+                BOOL inHeader = isHeaderFile(fnameCStr);
+                clang_disposeString(fname);
+
+                if(inHeader)
+                {
+                    defCursor = canonical;
+                }
+            }
+        }
+    }
+    
     /* extract the location of the definition */
     CXSourceLocation defLoc = clang_getCursorLocation(defCursor);
     
@@ -415,6 +522,12 @@ static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
     pthread_mutex_unlock(&_mutex);
     
     return def;
+}
+
+- (Syndef*)getDefinitionAtLine:(unsigned)line
+                        column:(unsigned)column
+{
+    return [self getDefinitionFromFileAtPath:_filepath AtLine:line column:column];
 }
 
 @end
