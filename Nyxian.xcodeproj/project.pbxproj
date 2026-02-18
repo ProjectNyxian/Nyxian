@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
+		795227872F45B52000D1C3CC /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79A3A9492EDDAD3D00C0342E /* ServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79A3AE382EDDDBB000C0342E /* ServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; };
 		79A3AE392EDDDBB000C0342E /* ServiceKit.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 79A3A9392EDDABAE00C0342E /* ServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -19,7 +20,6 @@
 		79AF511D2F1CBD110055004A /* TreeSitterXML in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51122F1CBD110055004A /* TreeSitterXML */; };
 		79AF511E2F1CBD110055004A /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51142F1CBD110055004A /* SwiftTerm */; };
 		79AF51222F1CBD110055004A /* Shared in Resources */ = {isa = PBXBuildFile; fileRef = AF99171F2DC8EA3C00DDF895 /* Shared */; };
-		79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
 		AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */ = {isa = PBXBuildFile; productRef = AF99195A2DC9176900DDF895 /* TreeSitterC */; };
@@ -29,6 +29,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		795227882F45B52000D1C3CC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
+			remoteInfo = LiveProcess;
+		};
+		7952278B2F45B52600D1C3CC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
+			remoteInfo = LiveProcess;
+		};
 		79A3A94A2EDDAD3D00C0342E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
@@ -43,23 +57,16 @@
 			remoteGlobalIDString = 79A3A9382EDDABAE00C0342E;
 			remoteInfo = ServiceKit;
 		};
-		79BF98022E6291EE00C60D4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
-			remoteInfo = LiveProcess;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		79BF98092E6291EE00C60D4C /* Embed Foundation Extensions */ = {
+		7952278A2F45B52000D1C3CC /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				79BF98042E6291EE00C60D4C /* LiveProcess.appex in Embed Foundation Extensions */,
+				795227872F45B52000D1C3CC /* LiveProcess.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -555,13 +562,14 @@
 				AF9916D72DC8C42200DDF895 /* Resources */,
 				AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */,
 				79EE25D12E0D5D0D00AF61C1 /* Embed Foundation Extensions */,
-				79BF98092E6291EE00C60D4C /* Embed Foundation Extensions */,
+				7952278A2F45B52000D1C3CC /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				79BF98032E6291EE00C60D4C /* PBXTargetDependency */,
 				79A3AE3B2EDDDBB000C0342E /* PBXTargetDependency */,
+				795227892F45B52000D1C3CC /* PBXTargetDependency */,
+				7952278C2F45B52600D1C3CC /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
@@ -693,6 +701,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		795227892F45B52000D1C3CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
+			targetProxy = 795227882F45B52000D1C3CC /* PBXContainerItemProxy */;
+		};
+		7952278C2F45B52600D1C3CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
+			targetProxy = 7952278B2F45B52600D1C3CC /* PBXContainerItemProxy */;
+		};
 		79A3A94B2EDDAD3D00C0342E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
@@ -702,11 +720,6 @@
 			isa = PBXTargetDependency;
 			target = 79A3A9382EDDABAE00C0342E /* ServiceKit */;
 			targetProxy = 79A3AE3A2EDDDBB000C0342E /* PBXContainerItemProxy */;
-		};
-		79BF98032E6291EE00C60D4C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
-			targetProxy = 79BF98022E6291EE00C60D4C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

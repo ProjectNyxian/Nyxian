@@ -43,6 +43,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
             window?.bringSubviewToFront(label)
             return
         }
+#else
+        // jailed check
+        if !liveProcessIsAvailable() {
+            // creating exception view, instead of silently crashing
+            let label: UILabel = UILabel()
+            label.text = "NSExtension missing, make sure you keep the extension when installing."
+            label.frame = window?.bounds ?? UIScreen.main.bounds
+            label.numberOfLines = 0
+            label.textAlignment = .center
+            window?.addSubview(label)
+            window?.makeKeyAndVisible()
+            window?.bringSubviewToFront(label)
+            return
+        }
 #endif // JAILBREAK_ENV
         
         Bootstrap.shared.bootstrap()

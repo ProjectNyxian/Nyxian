@@ -23,16 +23,36 @@
 #import <Nyxian-Swift.h>
 #import "bridge.h"
 
+#if !JAILBREAK_ENV
+
+bool liveProcessIsAvailable(void)
+{
+    static bool available = false;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
+        available = (liveProcessBundle != NULL);
+    });
+    
+    return available;
+}
+
+#endif // !JAILBREAK_ENV
+
 int main(int argc, char * argv[])
 {
     @autoreleasepool
     {
         /* initilizing environment */
 #if !JAILBREAK_ENV
-        environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv, false);
-        
-        /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
-        [LaunchServices shared];                                /* invokes launch services startup*/
+        if(liveProcessIsAvailable())
+        {
+            environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv, false);
+            
+            /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
+            [LaunchServices shared];                                /* invokes launch services startup*/
+        }
 #endif // !JAILBREAK_ENV
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));

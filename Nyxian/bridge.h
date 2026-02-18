@@ -56,6 +56,8 @@
 #import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 
+bool liveProcessIsAvailable(void);
+
 #endif /* !JAILBREAK_ENV */
 
 /* Project Headers */
