@@ -543,10 +543,6 @@ class UIButtonTab: UIButton {
             FileListViewController.addStackedLabel(to: iconImageView, base: "m", offset: CGPoint(x: 9, y: -6), color: .systemBlue)
         case "plist":
             FileListViewController.addSystemImage(to: iconImageView, name: "tablecells.fill", height: 13)
-        case "zip","tar","zst":
-            FileListViewController.addSystemImage(to: iconImageView, name: "doc.fill", height: 13)
-        case "ipa":
-            FileListViewController.addSystemImage(to: iconImageView, name: "app.gift.fill", height: 13)
         case "png","jpg","jpeg","gif","svg":
             FileListViewController.addSystemImage(to: iconImageView, name: "photo.fill")
         default:
