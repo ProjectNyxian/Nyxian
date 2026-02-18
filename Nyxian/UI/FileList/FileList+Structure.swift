@@ -18,7 +18,6 @@
 */
 
 import Foundation
-import SwiftUI
 
 struct FileListEntry: Identifiable {
     enum FileListEntryType {
@@ -74,7 +73,7 @@ struct FileListEntry: Identifiable {
     }
 }
 
-class FileAction: ObservableObject {
+class FileAction {
     enum FileActionType {
         case none
         case move
