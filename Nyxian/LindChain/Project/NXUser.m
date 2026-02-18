@@ -38,6 +38,16 @@
     return self;
 }
 
++ (NXUser*)shared
+{
+    static NXUser *nxUserSingletone = NULL;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        nxUserSingletone = [[NXUser alloc] init];
+    });
+    return nxUserSingletone;
+}
+
 - (NSString*)username
 {
     NSString *username = [[NSUserDefaults standardUserDefaults] valueForKey:@"LDEUsername"];
@@ -59,17 +69,49 @@
 
 - (NSString*)generateHeaderForFileName:(NSString*)fileName
 {
+    /* making sure we have a last path component */
+    fileName = [fileName lastPathComponent];
     return [NSString stringWithFormat:@"//\n// %@\n// %@\n//\n// Created by %@ on %@.\n//\n\n", fileName, self.projectName, self.username, self.datestring];
 }
 
-+ (NXUser*)shared
+- (NSString*)generateFileCreationContentForName:(NSString*)fileName
 {
-    static NXUser *nxUserSingletone = NULL;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        nxUserSingletone = [[NXUser alloc] init];
-    });
-    return nxUserSingletone;
+    /* making sure we have a last path component */
+    fileName = [fileName lastPathComponent];
+    
+    /* preparing */
+    BOOL authgen = NO;
+    BOOL headergen = NO;
+    
+    NSString *pathExtension = [[NSURL fileURLWithPath:fileName] pathExtension];
+    
+    if([@[@"c",@"cpp",@"m",@"mm"] containsObject:pathExtension])
+    {
+        authgen = YES;
+    }
+    else if([pathExtension isEqualToString:@"h"])
+    {
+        authgen = YES;
+        headergen = YES;
+    }
+    
+    /* preparing da content */
+    NSMutableString *content = [[NSMutableString alloc] init];
+    
+    if(authgen)
+    {
+        [content appendFormat:@"//\n// %@\n// %@\n//\n// Created by %@ on %@.\n//\n\n", fileName, self.projectName, self.username, self.datestring];
+    }
+    
+    if(headergen)
+    {
+        NSMutableString *macroname = [[fileName uppercaseString] mutableCopy];
+        [macroname replaceOccurrencesOfString:@"." withString:@"_" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [macroname length])];
+        [macroname replaceOccurrencesOfString:@" " withString:@"_" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [macroname length])];
+        [content appendFormat:@"#ifndef %@\n#define %@\n\n#endif /* %@ */\n", macroname, macroname, macroname];
+    }
+    
+    return content;
 }
 
 @end

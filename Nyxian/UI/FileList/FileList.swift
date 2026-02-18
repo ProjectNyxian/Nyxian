@@ -178,14 +178,14 @@ import UniformTypeIdentifiers
                     confirmTitle: "Overwrite",
                     confirmStyle: .destructive,
                     confirmHandler: {
-                        try? String(getFileContentForName(filename: destination.lastPathComponent)).write(to: destination, atomically: true, encoding: .utf8)
+                        try? String(NXUser.shared().generateFileCreationContent(forName: destination.lastPathComponent)).write(to: destination, atomically: true, encoding: .utf8)
                         self.replaceFile(destination: destination)
                     },
                     addHandler: mode == .file && !isDirectory.boolValue
                 )
             } else {
                 if mode == .file {
-                    try? String(getFileContentForName(filename: destination.lastPathComponent)).write(to: destination, atomically: true, encoding: .utf8)
+                    try? String(NXUser.shared().generateFileCreationContent(forName: destination.lastPathComponent)).write(to: destination, atomically: true, encoding: .utf8)
                 } else {
                     try? FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
                 }

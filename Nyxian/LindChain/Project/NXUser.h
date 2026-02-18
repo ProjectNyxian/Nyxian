@@ -25,7 +25,9 @@
 @property (nonatomic,strong,readwrite) NSString *username;
 @property (nonatomic,strong,readonly) NSString *datestring;
 
-- (NSString*)generateHeaderForFileName:(NSString*)fileName;
 + (NXUser*)shared;
+
+- (NSString*)generateHeaderForFileName:(NSString*)fileName;
+- (NSString*)generateFileCreationContentForName:(NSString*)fileName;
 
 @end
