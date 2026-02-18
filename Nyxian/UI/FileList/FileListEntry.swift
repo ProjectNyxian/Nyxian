@@ -72,16 +72,3 @@ struct FileListEntry: Identifiable {
         }
     }
 }
-
-class FileAction {
-    enum FileActionType {
-        case none
-        case move
-        case copy
-    }
-    
-    //@Published var path: String = ""
-    @Published var action: FileAction.FileActionType = .none
-    
-    static let shared = FileAction()
-}
