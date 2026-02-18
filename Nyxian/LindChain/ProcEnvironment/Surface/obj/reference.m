@@ -42,8 +42,8 @@ bool kvobject_retain(kvobject_t *kvo)
             /* performing another check */
             if(atomic_load(&kvo->invalid))
             {
-                /* its not so boom im sorry */
-                atomic_fetch_sub(&kvo->refcount, 1);
+                /* rollback using release logic */
+                kvobject_release(kvo);
                 return false;
             }
             return true;
