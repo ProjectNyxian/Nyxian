@@ -20,22 +20,13 @@
 import UIKit
 import UniformTypeIdentifiers
 
-@objc class FileListViewController: UIThemedTableViewController, UIDocumentPickerDelegate, UISearchResultsUpdating {
+@objc class FileListViewController: UIThemedTableViewController, UIDocumentPickerDelegate {
     let project: NXProject?
     let path: String
     var entries: [FileListEntry]
-    var filteredEntries: [FileListEntry] = []
     let isSublink: Bool
     let isReadOnly: Bool
     let searchController = UISearchController(searchResultsController: nil)
-    
-    var isSearchActive: Bool {
-        return searchController.isActive && !(searchController.searchBar.text?.isEmpty ?? true)
-    }
-    
-    var currentEntries: [FileListEntry] {
-        return isSearchActive ? filteredEntries : entries
-    }
     
     var openTheLogSheet: Bool {
         get {
@@ -131,14 +122,6 @@ import UniformTypeIdentifiers
             self.title = URL(fileURLWithPath: self.path).lastPathComponent
         }
         
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search Files"
-        searchController.hidesNavigationBarDuringPresentation = true
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = true
-        definesPresentationContext = true
-        
         if UIDevice.current.userInterfaceIdiom == .pad, !self.isSublink {
             self.navigationItem.setLeftBarButton(UIBarButtonItem(primaryAction: UIAction(title: "Close") { [weak self] _ in
                 guard let self = self else { return }
@@ -154,16 +137,6 @@ import UniformTypeIdentifiers
                 self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
             }
         }
-    }
-    
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text, !query.isEmpty else {
-            filteredEntries = []
-            tableView.reloadData()
-            return
-        }
-        filteredEntries = entries.filter { $0.name.localizedCaseInsensitiveContains(query) }
-        tableView.reloadData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -359,25 +332,20 @@ import UniformTypeIdentifiers
                     return "doc.on.doc.fill"
                 }
             }())) { action in
-                PasteBoardServices.copy(mode: .copy, path: self.currentEntries[indexPath.row].path)
+                PasteBoardServices.copy(mode: .copy, path: self.entries[indexPath.row].path)
             }
             let moveAction = UIAction(title: "Move", image: UIImage(systemName: "arrow.right")) { [weak self] action in
                 guard let self = self else { return }
-                let entry = self.currentEntries[indexPath.row]
+                let entry = self.entries[indexPath.row]
                 PasteBoardServices.onMove = {
-                    if let masterIndex = self.entries.firstIndex(where: { $0.path == entry.path }) {
-                        self.entries.remove(at: masterIndex)
-                    }
-                    if self.isSearchActive {
-                        self.filteredEntries.remove(at: indexPath.row)
-                    }
+                    self.entries.removeAll(where: { $0.path == entry.path })
                     self.tableView.deleteRows(at: [indexPath], with: .automatic)
                 }
                 PasteBoardServices.copy(mode: .move, path: entry.path)
             }
             let renameAction = UIAction(title: "Rename", image: UIImage(systemName: "rectangle.and.pencil.and.ellipsis")) { [weak self] action in
                 guard let self = self else { return }
-                let entry: FileListEntry = self.currentEntries[indexPath.row]
+                let entry: FileListEntry = self.entries[indexPath.row]
                 
                 let alert: UIAlertController = UIAlertController(
                     title: "Rename \(entry.type == .dir ? "Folder" : "File")",
@@ -407,12 +375,12 @@ import UniformTypeIdentifiers
             }
             let shareAction = UIAction(title: "Share", image: UIImage(systemName: "square.and.arrow.up.fill")) { [weak self] action in
                 guard let self = self else { return }
-                let entry: FileListEntry = self.currentEntries[indexPath.row]
+                let entry: FileListEntry = self.entries[indexPath.row]
                 share(url: URL(fileURLWithPath: "\(self.path)/\(entry.name)"), remove: false)
             }
             let deleteAction = UIAction(title: "Remove", image: UIImage(systemName: "trash.fill"), attributes: .destructive) { [weak self] action in
                 guard let self = self else { return }
-                let entry = self.currentEntries[indexPath.row]
+                let entry = self.entries[indexPath.row]
                 let fileUrl: URL = URL(fileURLWithPath: "\(self.path)/\(entry.name)")
                 if ((try? FileManager.default.removeItem(at: fileUrl)) != nil), let project = self.project {
                     let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: "\(project.cachePath!))/debug.json")
@@ -421,9 +389,6 @@ import UniformTypeIdentifiers
                     database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
                     if let masterIndex = self.entries.firstIndex(where: { $0.path == entry.path }) {
                         self.entries.remove(at: masterIndex)
-                    }
-                    if self.isSearchActive {
-                        self.filteredEntries.remove(at: indexPath.row)
                     }
                     self.tableView.deleteRows(at: [indexPath], with: .automatic)
                 }
@@ -435,32 +400,25 @@ import UniformTypeIdentifiers
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return currentEntries.count
+        return entries.count
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: true)
         
         if !self.navigationItem.hidesBackButton {
-            let fileListEntry: FileListEntry = currentEntries[indexPath.row]
+            let fileListEntry: FileListEntry = entries[indexPath.row]
             
-            if fileListEntry.type == .dir {
-                let fileVC = FileListViewController(
-                    isSublink: true,
-                    project: project,
-                    path: fileListEntry.path,
-                    isReadOnly: self.isReadOnly
-                )
+            switch(fileListEntry.type) {
+            case .dir:
+                let fileVC = FileListViewController(isSublink: true, project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly)
                 self.navigationController?.pushViewController(fileVC, animated: true)
-            } else {
+                break
+            case .file:
                 if UIDevice.current.userInterfaceIdiom == .pad {
                     NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
                 } else {
-                    let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
-                        project: project,
-                        path: fileListEntry.path,
-                        isReadOnly: self.isReadOnly
-                    ))
+                    let fileVC = UINavigationController(rootViewController: CodeEditorViewController(project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly))
                     fileVC.modalPresentationStyle = .overFullScreen
                     self.present(fileVC, animated: true)
                 }
@@ -471,7 +429,7 @@ import UniformTypeIdentifiers
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileListCell.reuseIdentifier, for: indexPath) as! FileListCell
             
-        let entry = currentEntries[indexPath.row]
+        let entry = entries[indexPath.row]
         cell.configure(with: entry)
             
         return cell
