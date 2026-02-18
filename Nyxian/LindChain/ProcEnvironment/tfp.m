@@ -101,7 +101,14 @@ task_t environment_sendable_mach_task_self(void)
          * syscall messages are sent with MACH_MSG_TYPE_MOVE_SEND,
          * so increment reference count.
          */
-        mach_port_mod_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, 1);
+        kern_return_t kr = mach_port_mod_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, 1);
+        
+        /* no increment, dont loose it */
+        if(kr != KERN_SUCCESS)
+        {
+            return MACH_PORT_NULL;
+        }
+        
         return mach_task_self();
     }
     

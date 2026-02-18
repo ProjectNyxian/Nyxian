@@ -142,6 +142,16 @@ DEFINE_SYSCALL_HANDLER(gettask)
         goto out_proc_release_failure;
     }
     
+    /* retaining port (so we as the kernel dont loose it) */
+    kr = mach_port_mod_refs(mach_task_self(), target->kproc.task, MACH_PORT_RIGHT_SEND, 1);
+    
+    /* mach return check */
+    if(kr != KERN_SUCCESS)
+    {
+        errnov = ESRCH;
+        goto out_proc_release_failure;
+    }
+    
     /* allocating syscall payload */
     kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
     
@@ -151,9 +161,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
         errnov = ENOMEM;
         goto out_proc_release_failure;
     }
-    
-    /* retaining port (so we as the kernel dont loose it) */
-    mach_port_mod_refs(mach_task_self(), target->kproc.task, MACH_PORT_RIGHT_SEND, 1);
     
     /* set task port to be send */
     (*out_ports)[0] = target->kproc.task;
