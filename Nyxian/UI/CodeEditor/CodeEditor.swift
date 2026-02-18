@@ -66,12 +66,18 @@ class CodeEditorViewController: UIViewController {
         self.column = column
         self.isReadOnly = isReadOnly
         
-        if !isReadOnly,
-           let project = project {
-            let cachePath = project.cachePath!
-            
-            self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
-            
+        if !isReadOnly {
+            if let project = project {
+                let cachePath = project.cachePath!
+                
+                self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
+                
+                let suffix = self.path.URLGet().pathExtension
+                if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
+                    self.synpushServer = SynpushServer(self.path)
+                }
+            }
+        } else {
             let suffix = self.path.URLGet().pathExtension
             if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                 self.synpushServer = SynpushServer(self.path)
@@ -703,7 +709,6 @@ class CodeEditorViewController: UIViewController {
         guard self.synpushServer != nil else {
             return
         }
-        
         
         let myAction = UIAction(title: "Jump To Definition", image: UIImage(systemName: "cursorarrow")) { _ in
             self.jumpToDefinition()

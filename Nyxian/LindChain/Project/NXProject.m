@@ -141,6 +141,20 @@
     return [self readStringForKey:@"LDEOutputPath" withDefaultValue:@"Unknown"];
 }
 
++ (NSArray*)sdkCompilerFlags
+{
+    return @[
+        @"-target",
+        @"apple-arm64-ios26.2",
+        @"-isysroot",
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+        @"-resource-dir",
+        [[Bootstrap shared] bootstrapPath:@"/Include"]
+    ];
+}
+
 @end
 
 @implementation NXEntitlementsConfig

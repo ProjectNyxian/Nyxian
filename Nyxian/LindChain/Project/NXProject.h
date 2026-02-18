@@ -55,6 +55,8 @@ static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 @property (nonatomic,readonly) BOOL increment;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
++ (NSArray*)sdkCompilerFlags;
+
 @end
 
 @interface NXEntitlementsConfig : NXPlistHelper

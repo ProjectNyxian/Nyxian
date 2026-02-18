@@ -58,7 +58,13 @@ class Coordinator: NSObject, TextViewDelegate {
             let suffix = parent.path.URLGet().pathExtension
             if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                 parent.project?.projectConfig.reloadIfNeeded()
-                var flags = parent.project?.projectConfig.compilerFlags as! [String]
+                var flags: [String] = {
+                    if parent.isReadOnly {
+                        return NXProjectConfig.sdkCompilerFlags() as! [String]
+                    } else {
+                        return parent.project?.projectConfig.compilerFlags as! [String]
+                    }
+                }()
                 
                 if suffix == "h" {
                     flags.append(contentsOf: ["-x", "objective-c"])
