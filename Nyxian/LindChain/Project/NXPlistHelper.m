@@ -19,29 +19,31 @@
 
 #import <LindChain/Project/NXPlistHelper.h>
 #import <CommonCrypto/CommonDigest.h>
+#import <os/lock.h>
 
-@interface NXPlistHelper ()
-
-@property (nonatomic,strong,readwrite) NSString *savedHash;
-
-@end
-
-@implementation NXPlistHelper
-
-- (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath
-                             withVariables:(NSDictionary<NSString*,NSString*> * _Nonnull)variables
-{
-    self = [super init];
-    _plistPath = plistPath;
-    _savedHash = [self currentHash];
-    _variables = variables;
-    [self reloadData];
-    return self;
+@implementation NXPlistHelper {
+    os_unfair_lock _lock;
+    __strong NSString *_savedHash;
 }
 
-- (instancetype)initWithPlistPath:(NSString*)plistPath
+- (instancetype)initWithPlistPath:(NSString * _Nonnull)plistPath
+                    withVariables:(NSDictionary<NSString*,NSString*> * _Nullable)variables
 {
-    return [self initWithPlistPath:plistPath withVariables:@{}];
+    if(variables == nil)
+    {
+        variables = @{};
+    }
+    
+    self = [super init];
+    if(self)
+    {
+        _lock = OS_UNFAIR_LOCK_INIT;
+        _plistPath = plistPath;
+        _savedHash = [self currentHash];
+        _variables = variables;
+        [self reloadData];
+    }
+    return self;
 }
 
 - (NSString *)currentHash
@@ -62,6 +64,9 @@
 - (BOOL)reloadIfNeeded
 {
     NSString *hash = [self currentHash];
+    
+    os_unfair_lock_lock(&_lock);
+    
     BOOL needsReload = ![hash isEqualToString:_savedHash];
     if(needsReload)
     {
@@ -90,6 +95,9 @@
             _finalVariables = _variables;
         }
     }
+    
+    os_unfair_lock_unlock(&_lock);
+    
     return needsReload;
 }
 
@@ -97,6 +105,22 @@
 {
     _savedHash = @"";
     [self reloadIfNeeded];
+}
+
+- (NSString*)reloadHash
+{
+    return _savedHash;
+}
+
+- (BOOL)reloadIfNeededWithHash:(NSString*)reloadHash
+{
+    if([[self currentHash] isEqualToString:reloadHash])
+    {
+        return NO;
+    }
+    
+    [self reloadIfNeeded];
+    return YES;
 }
 
 - (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth
@@ -169,7 +193,10 @@
 
 - (id)readKey:(NSString*)key
 {
-    return [self expandObject:[_dictionary objectForKey:key]];
+    os_unfair_lock_lock(&_lock);
+    id obj = [self expandObject:[_dictionary objectForKey:key]];
+    os_unfair_lock_unlock(&_lock);
+    return obj;
 }
 
 - (id)readSecureFromKey:(NSString*)key

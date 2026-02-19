@@ -229,7 +229,7 @@
         @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"],
         @"CACHEROOT": _cachePath
     }];
-    _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path]];
+    _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path] withVariables:nil];
     return self;
 }
 

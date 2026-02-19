@@ -625,6 +625,9 @@ class CodeEditorViewController: UIViewController {
         guard let server = synpushServer else { return }
         guard let selectedRange = textView.selectedTextRange else { return }
         
+        let flags: [String] = self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() as! [String] : self.project?.projectConfig.compilerFlags as! [String]
+        server.reparseFile(self.textView.text, withArgs: flags)
+        
         let cursorPosition = selectedRange.start
         let offset = textView.offset(from: textView.beginningOfDocument, to: cursorPosition)
         

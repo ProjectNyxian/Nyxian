@@ -54,28 +54,14 @@ class Coordinator: NSObject, TextViewDelegate {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             guard let parent = self.parent else { return }
+            guard let server = parent.synpushServer else { return }
             
-            let suffix = parent.path.URLGet().pathExtension
-            if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
-                parent.project?.projectConfig.reloadIfNeeded()
-                var flags: [String] = {
-                    if parent.isReadOnly {
-                        return NXProjectConfig.sdkCompilerFlags() as! [String]
-                    } else {
-                        return parent.project?.projectConfig.compilerFlags as! [String]
-                    }
-                }()
-                
-                if suffix == "h" {
-                    flags.append(contentsOf: ["-x", "objective-c"])
-                } else if ["hpp","hh"].contains(suffix) {
-                    flags.append(contentsOf: ["-x", "c++"])
-                }
-                
-                self.parent?.synpushServer?.reparseFile(self.parent?.textView.text, withArgs: flags)
-                self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
-                self.updateDiag()
-            }
+            parent.project?.projectConfig.reloadIfNeeded()
+            let flags: [String] = parent.isReadOnly ? NXProjectConfig.sdkCompilerFlags() as! [String] : parent.project?.projectConfig.compilerFlags as! [String]
+            
+            server.reparseFile(self.parent?.textView.text, withArgs: flags)
+            self.diag = self.parent?.synpushServer?.getDiagnostics() ?? []
+            self.updateDiag()
         }
     }
     

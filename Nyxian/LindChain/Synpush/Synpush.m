@@ -327,9 +327,8 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_destroy(&_mutex);
 }
 
-- (Syndef*)getDefinitionFromFileAtPath:(NSString*)path
-                                AtLine:(unsigned)line
-                                column:(unsigned)column
+- (Syndef*)getDefinitionAtLine:(unsigned)line
+                        column:(unsigned)column
 {
     pthread_mutex_lock(&_mutex);
     
@@ -341,7 +340,7 @@ static BOOL isHeaderFile(const char *path)
     }
     
     /* get the source file we are working with */
-    CXFile file = clang_getFile(_unit, [path UTF8String]);
+    CXFile file = clang_getFile(_unit, [_filepath UTF8String]);
     if(!file)
     {
         pthread_mutex_unlock(&_mutex);
@@ -522,12 +521,6 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_unlock(&_mutex);
     
     return def;
-}
-
-- (Syndef*)getDefinitionAtLine:(unsigned)line
-                        column:(unsigned)column
-{
-    return [self getDefinitionFromFileAtPath:_filepath AtLine:line column:column];
 }
 
 @end

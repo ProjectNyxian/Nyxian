@@ -26,11 +26,13 @@
 @property (nonatomic,strong,readonly) NSString * _Nonnull plistPath;
 @property (nonatomic,strong,readwrite) NSMutableDictionary * _Nonnull dictionary;
 
-- (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath withVariables:(NSDictionary<NSString*,NSString*> * _Nonnull)variables;
-- (instancetype _Nonnull)initWithPlistPath:(NSString * _Nonnull)plistPath;
+- (instancetype _Nullable)initWithPlistPath:(NSString * _Nonnull)plistPath withVariables:(NSDictionary<NSString*,NSString*> * _Nullable)variables;
 
 - (BOOL)reloadIfNeeded;
 - (void)reloadData;
+
+- (NSString * _Nonnull)reloadHash;
+- (BOOL)reloadIfNeededWithHash:(NSString * _Nonnull)reloadHash;
 
 - (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth;
 - (id _Nonnull)expandObject:(id _Nonnull)obj;
