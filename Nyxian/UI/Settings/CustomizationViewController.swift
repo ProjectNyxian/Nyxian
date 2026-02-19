@@ -86,7 +86,7 @@ class CustomizationViewController: UIThemedTableViewController {
             return 1
 #endif // !JAILBREAK_END
         case 1:
-            return 7
+            return 8
         case 2:
             return self.icons.count
         default:
@@ -153,11 +153,14 @@ int main(void)
                 (cell as! ToggleTableCell).configure(title: "Wrap Lines", key: "LDEWrapLines", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
-            } else {
+            } else if indexPath.row == 6 {
                 cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
                 (cell as! ToggleTableCell).configure(title: "Show Line Breaks", key: "LDEShowLineBreaks", defaultValue: true) { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }
+            } else {
+                cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+                (cell as! ToggleTableCell).configure(title: "Autoindent", key: "LDEAutoindent", defaultValue: true)
             }
         } else {
             cell = UITableViewCell(style: .default, reuseIdentifier: nil)

@@ -94,6 +94,57 @@ class Coordinator: NSObject, TextViewDelegate {
         self.debounce?.debounce()
     }
     
+    func textView(_ textView: TextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if self.parent?.autoindent ?? false {
+            guard text == "\n" else { return true }
+            
+            let nsText = textView.text as NSString
+            
+            let precedingText = nsText.substring(to: range.location)
+            let lineStart = precedingText.lastIndex(of: "\n").map {
+                precedingText.distance(from: precedingText.startIndex, to: $0) + 1
+            } ?? 0
+            
+            let previousLine = nsText.substring(with: NSRange(location: lineStart, length: range.location - lineStart))
+            let leadingTabs = previousLine.prefix(while: { $0 == "\t" })
+            var indent = String(leadingTabs)
+            
+            if previousLine.trimmingCharacters(in: .whitespaces).hasSuffix("{") {
+                indent += "\t"
+            }
+            
+            let charAfterCursor: Character? = range.location < nsText.length
+            ? Character(UnicodeScalar(nsText.character(at: range.location))!)
+            : nil
+            
+            let insertion: String
+            let cursorOffset: Int
+            if charAfterCursor == "}" {
+                let deindent = indent.isEmpty ? "" : String(indent.dropLast())
+                insertion = "\n" + indent + "\n" + deindent
+                cursorOffset = 1 + indent.count
+            } else {
+                insertion = "\n" + indent
+                cursorOffset = insertion.count
+            }
+            
+            guard let textRange = textView.textRange(
+                from: textView.position(from: textView.beginningOfDocument, offset: range.location)!,
+                to: textView.position(from: textView.beginningOfDocument, offset: range.location + range.length)!
+            ) else { return true }
+            
+            textView.replace(textRange, withText: insertion)
+            
+            let newCursorPos = range.location + cursorOffset
+            if let pos = textView.position(from: textView.beginningOfDocument, offset: newCursorPos) {
+                textView.selectedTextRange = textView.textRange(from: pos, to: pos)
+            }
+            
+            return false
+        }
+        return true
+    }
+    
     func textViewDidChangeSelection(_ textView: TextView) {
         if self.isInvalidated {
             self.debounce?.debounce()

@@ -48,6 +48,8 @@ class CodeEditorViewController: UIViewController {
     private(set) var undoButton: UIButton?
     private(set) var redoButton: UIButton?
     
+    private(set) var autoindent: Bool = false
+    
     let isReadOnly: Bool
     
     init(
@@ -150,6 +152,11 @@ class CodeEditorViewController: UIViewController {
         self.textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)
         self.textView.isLineWrappingEnabled = booleanDefaults(key: "LDEWrapLines", defaultValue: true)
         self.textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
+        
+        if synpushServer != nil {
+            self.autoindent = booleanDefaults(key: "LDEAutoindent", defaultValue: true)
+        }
+        
         self.textView.lineSelectionDisplayType = .line
         
         self.textView.showsHorizontalScrollIndicator = false;
