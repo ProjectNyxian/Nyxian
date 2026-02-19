@@ -353,7 +353,7 @@ import UniformTypeIdentifiers
                 documentPicker.delegate = self
                 self.present(documentPicker, animated: true)
             })
-            fileMenuElements.append(UIAction(title: "Select", image: UIImage(systemName: "filemenu.and.selection")) { [weak self] _ in
+            fileMenuElements.append(UIAction(title: "Select", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
                 guard let self = self else { return }
                 self.toggleSelectionMode()
             })
@@ -467,6 +467,7 @@ import UniformTypeIdentifiers
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isSelecting {
             selectedPaths.insert(entries[indexPath.row].path)
+            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
             return
         }
 
@@ -507,6 +508,8 @@ import UniformTypeIdentifiers
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if isSelecting {
             selectedPaths.remove(entries[indexPath.row].path)
+            
+            tableView.cellForRow(at: indexPath)?.accessoryType = (entries[indexPath.row].type == .dir) ? .disclosureIndicator : .none
         }
     }
 
