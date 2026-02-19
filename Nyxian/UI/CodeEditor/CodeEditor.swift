@@ -625,25 +625,29 @@ class CodeEditorViewController: UIViewController {
         guard let server = synpushServer else { return }
         guard let selectedRange = textView.selectedTextRange else { return }
         
-        let flags: [String] = self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() as! [String] : self.project?.projectConfig.compilerFlags as! [String]
-        server.reparseFile(self.textView.text, withArgs: flags)
-        
-        let cursorPosition = selectedRange.start
-        let offset = textView.offset(from: textView.beginningOfDocument, to: cursorPosition)
-        
-        let text = textView.text
-        let (line, column) = offsetToLineColumn(text: text, offset: offset)
-        
         DispatchQueue.global(qos: .userInitiated).async {
-            guard let def = server.getDefinitionAtLine(UInt32(line), column: UInt32(column)) else {
-                DispatchQueue.main.async {
-                    self.showNoDefinitionFound()
-                }
-                return
-            }
+            let flags: [String] = self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() as! [String] : self.project?.projectConfig.compilerFlags as! [String]
+            server.reparseFile(self.textView.text, withArgs: flags)
             
             DispatchQueue.main.async {
-                self.openDefinition(def)
+                let cursorPosition = selectedRange.start
+                let offset = self.textView.offset(from: self.textView.beginningOfDocument, to: cursorPosition)
+                
+                let text = self.textView.text
+                let (line, column) = self.offsetToLineColumn(text: text, offset: offset)
+                
+                DispatchQueue.global(qos: .userInitiated).async {
+                    guard let def = server.getDefinitionAtLine(UInt32(line), column: UInt32(column)) else {
+                        DispatchQueue.main.async {
+                            self.showNoDefinitionFound()
+                        }
+                        return
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.openDefinition(def)
+                    }
+                }
             }
         }
     }
