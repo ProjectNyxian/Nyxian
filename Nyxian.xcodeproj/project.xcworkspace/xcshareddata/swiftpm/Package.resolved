@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/migueldeicaza/SwiftTerm",
       "state" : {
-        "revision" : "0b8d99bd19b694df44e1ccaa3891309719d34330",
-        "version" : "1.5.1"
+        "revision" : "5c83a9d214e7354697624c11deb4e488bdcfabad",
+        "version" : "1.10.1"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tree-sitter/tree-sitter-c.git",
       "state" : {
-        "revision" : "2a265d69a4caf57108a73ad2ed1e6922dd2f998c",
-        "version" : "0.23.5"
+        "revision" : "7175a6dd5fc1cee660dce6fe23f6043d75af424a",
+        "version" : "0.20.2"
       }
     },
     {

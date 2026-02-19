@@ -315,6 +315,18 @@
     
     [self updateOriginalFrame];
     self.view.alpha = 0.0;
+    
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        UIView *island = windowBar.buttonIsland;
+        [island removeFromSuperview];
+        [self.view addSubview:island];
+        
+        [NSLayoutConstraint activateConstraints:@[
+            [island.leadingAnchor constraintEqualToAnchor:windowBar.leadingAnchor constant:10],
+            [island.bottomAnchor  constraintEqualToAnchor:windowBar.bottomAnchor  constant:-6],
+        ]];
+    }
 }
 
 - (void)maximizeWindow:(BOOL)animated

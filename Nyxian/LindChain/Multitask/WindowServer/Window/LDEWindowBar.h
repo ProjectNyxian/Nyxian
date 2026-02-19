@@ -24,6 +24,8 @@
 
 @interface LDEWindowBar : UIView
 
+@property (nonatomic, strong, readonly) UIView *buttonIsland;
+
 @property (nonatomic,strong) UIButton *closeButton;
 @property (nonatomic,strong) UIButton *maximizeButton;
 
