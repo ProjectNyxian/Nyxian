@@ -25,16 +25,30 @@ jobs:
           set -e
 
           # Packages we desperately need
-          brew install ldid
-          brew install dpkg
-          brew install libarchive
+          brew install ldid dpkg libarchive
 
-          # We need TheOS for TrollHelper (Btw, TheOS, fix your fucking install bash script)
+      - name: Cache Theos
+        id: cache-theos
+        uses: actions/cache@v4
+        with:
+          path: ~/theos
+          key: theos-${{ runner.os }}-v1
+
+      - name: Install Theos
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        run: |
+          set -e
+
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+
+      - name: Setup
+        run: |
+          set -e
 
           # Setting TheOS stuff up
           echo "THEOS=~/theos" >> $GITHUB_ENV
           echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+
       - name: Build Jailed
         timeout-minutes: 1200
         run: |
