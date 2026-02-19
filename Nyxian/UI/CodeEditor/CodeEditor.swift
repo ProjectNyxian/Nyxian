@@ -32,6 +32,20 @@ func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
     return UserDefaults.standard.bool(forKey: key)
 }
 
+struct BasicCharacterPair: CharacterPair {
+    let leading: String
+    let trailing: String
+}
+
+extension CharacterPair where Self == BasicCharacterPair {
+    static var curlyBraces: Self  { .init(leading: "{", trailing: "}") }
+    static var squareBrackets: Self { .init(leading: "[", trailing: "]") }
+    static var parentheses: Self  { .init(leading: "(", trailing: ")") }
+    static var doubleQuotes: Self  { .init(leading: "\"", trailing: "\"") }
+    static var singleQuotes: Self  { .init(leading: "'", trailing: "'") }
+    static var angleBrackets: Self { .init(leading: "<", trailing: ">") }
+}
+
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController {
     private(set) var path: String
@@ -71,12 +85,10 @@ class CodeEditorViewController: UIViewController {
         if !isReadOnly {
             if let project = project {
                 let cachePath = project.cachePath!
-                
-                self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
-                
                 let suffix = self.path.URLGet().pathExtension
                 if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                     self.synpushServer = SynpushServer(self.path)
+                    self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
                 }
             }
         } else {
@@ -157,6 +169,8 @@ class CodeEditorViewController: UIViewController {
             self.autoindent = booleanDefaults(key: "LDEAutoindent", defaultValue: true)
         }
         
+        self.textView.characterPairTrailingComponentDeletionMode = .immediatelyFollowingLeadingComponent
+        
         self.textView.lineSelectionDisplayType = .line
         
         self.textView.showsHorizontalScrollIndicator = false;
@@ -191,13 +205,18 @@ class CodeEditorViewController: UIViewController {
         }
         
         switch fileURL.pathExtension {
-        case "m","h":
+        case "m":
+            self.textView.characterPairs = [.squareBrackets]
+            fallthrough
+        case "h":
+            self.textView.characterPairs.append(contentsOf: [.curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets])
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
                 "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
                 "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm".URLGet()
             ])
             break
         case "c":
+            self.textView.characterPairs = [.curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_c(), highlightsURL: [
                 "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()
             ])

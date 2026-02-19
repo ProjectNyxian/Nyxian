@@ -94,8 +94,11 @@ class Coordinator: NSObject, TextViewDelegate {
         self.debounce?.debounce()
     }
     
+    var isAutoIndenting = false
+    
     func textView(_ textView: TextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if self.parent?.autoindent ?? false {
+        if !isAutoIndenting,
+           self.parent?.autoindent ?? false {
             guard text == "\n" else { return true }
             
             let nsText = textView.text as NSString
@@ -133,7 +136,9 @@ class Coordinator: NSObject, TextViewDelegate {
                 to: textView.position(from: textView.beginningOfDocument, offset: range.location + range.length)!
             ) else { return true }
             
+            isAutoIndenting = true
             textView.replace(textRange, withText: insertion)
+            isAutoIndenting = false
             
             let newCursorPos = range.location + cursorOffset
             if let pos = textView.position(from: textView.beginningOfDocument, offset: newCursorPos) {
