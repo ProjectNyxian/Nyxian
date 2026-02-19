@@ -13,7 +13,22 @@ jobs:
   build:
     name: Build and Package
     runs-on: macos-26
-
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: jailed
+            name: nyxian.ipa
+            
+          - target: rootless
+            name: nyxian_rootless.deb
+            
+          - target: roothide
+            name: nyxian_roothide.deb
+            
+          - target: rootful
+            name: nyxian_rootful.deb
+            
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,56 +64,18 @@ jobs:
           echo "THEOS=~/theos" >> $GITHUB_ENV
           echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Build Jailed
+      - name: Build ${{ matrix.target }}
         timeout-minutes: 1200
         run: |
           set -e
 
-          # Build the project (jailed)
-          make jailed
+          # Build the project
+          make ${{ matrix.target }}
 
-      - name: Build Rootless
-        run: |
-          set -e
-
-          # Build the project (rootless)
-          make rootless
-
-      - name: Build Roothide
-        run: |
-          set -e
-
-          # Build the project (roothide)
-          make roothide
-
-      - name: Build Rootful
-        run: |
-          set -e
-
-          # Build the project (roothide)
-          make rootful
-
-      - name: Upload Jailed
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: nyxian.ipa
-          path: nyxian.ipa
-
-      - name: Upload Rootless
-        uses: actions/upload-artifact@v4
-        with:
-          name: nyxian_0.9.0_iphoneos-arm64.deb
-          path: nyxian_0.9.0_iphoneos-arm64.deb
-
-      - name: Upload Roothide
-        uses: actions/upload-artifact@v4
-        with:
-          name: nyxian_0.9.0_iphoneos-arm64e.deb
-          path: nyxian_0.9.0_iphoneos-arm64e.deb
-
-      - name: Upload Rootful
-        uses: actions/upload-artifact@v4
-        with:
-          name: nyxian_0.9.0_iphoneos-arm.deb
-          path: nyxian_0.9.0_iphoneos-arm.deb
-
+          name: ${{ matrix.name }}
+          path: |
+            nyxian.ipa
+            nyxian*.deb
