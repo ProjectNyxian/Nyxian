@@ -19,6 +19,8 @@ Nyxian is an iOS app that empowers developers with a full toolchain they can use
 Jailed is the main version of Nyxian. You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
 **Do not use LiveContainer** to use Nyxian, install Nyxian seperately.
 
+**Keep all app extensions when installing!**
+
 ##### Requirements
 
 - iOS/iPadOS 16+
