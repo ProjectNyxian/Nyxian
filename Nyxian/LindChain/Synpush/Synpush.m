@@ -106,7 +106,7 @@ static BOOL isHeaderFile(const char *path)
     {
         /* needs reactivation */
         pthread_mutex_unlock(&_mutex);
-        [self reactivateWithContent:content withArgs:args];
+        [self reactivateWithData:newData withArgs:args];
         return;
     }
     
@@ -247,7 +247,7 @@ static BOOL isHeaderFile(const char *path)
     return active;
 }
 
-- (BOOL)reactivateWithContent:(NSString*)content withArgs:(NSArray*)args
+- (BOOL)reactivateWithData:(NSData*)data withArgs:(NSArray*)args
 {
     /* checking if server is still active */
     if([self isActive])
@@ -273,16 +273,8 @@ static BOOL isHeaderFile(const char *path)
         _args[i] = strdup([args[i] UTF8String]);
     }
     
-    /* creating new data out of content */
-    NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
-    if(!newData)
-    {
-        pthread_mutex_unlock(&_mutex);
-        return NO;
-    }
-    
     /* making sure that bytes doesnt get deallocated randomly */
-    _contentData = newData;
+    _contentData = data;
     _unsaved.Contents = (const char*)_contentData.bytes;
     _unsaved.Length = (unsigned long)_contentData.length;
     
