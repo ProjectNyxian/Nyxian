@@ -187,6 +187,12 @@ void UIKitFixesInit(void)
     
     os_unfair_lock_lock(&lock);
     
+    if(self.process.isSuspended)
+    {
+        os_unfair_lock_unlock(&lock);
+        return;
+    }
+    
     __weak typeof(self) weakSelf = self;
     
     /* update window dimensions */
@@ -273,6 +279,12 @@ void UIKitFixesInit(void)
  
     os_unfair_lock_lock(&lock);
     
+    if(![self.process.processHandle isValid] || self.process.isSuspended)
+    {
+        os_unfair_lock_unlock(&lock);
+        return;
+    }
+    
     if(self.traitCollection.userInterfaceStyle != previousTraitCollection.userInterfaceStyle)
     {
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -291,6 +303,12 @@ void UIKitFixesInit(void)
     CGRect keyboardFrame = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     
     CGFloat bottomInset = keyboardFrame.size.height;
+    
+    if(![self.process.processHandle isValid] || self.process.isSuspended)
+    {
+        os_unfair_lock_unlock(&lock);
+        return;
+    }
     
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
@@ -311,6 +329,12 @@ void UIKitFixesInit(void)
 - (void)keyboardWillHide:(NSNotification *)notification
 {
     os_unfair_lock_lock(&lock);
+    
+    if(![self.process.processHandle isValid] || self.process.isSuspended)
+    {
+        os_unfair_lock_unlock(&lock);
+        return;
+    }
     
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
