@@ -44,6 +44,7 @@ extension CharacterPair where Self == BasicCharacterPair {
     static var doubleQuotes: Self  { .init(leading: "\"", trailing: "\"") }
     static var singleQuotes: Self  { .init(leading: "'", trailing: "'") }
     static var angleBrackets: Self { .init(leading: "<", trailing: ">") }
+    
 }
 
 // MARK: - OnDissapear Container

@@ -104,6 +104,11 @@ class Coordinator: NSObject, TextViewDelegate {
             let nsText = textView.text as NSString
             
             let precedingText = nsText.substring(to: range.location)
+            let unescapedQuotes = precedingText.reduce(0) { count, char in
+                char == "\"" ? count + 1 : count
+            }
+            guard unescapedQuotes % 2 == 0 else { return true }
+
             let lineStart = precedingText.lastIndex(of: "\n").map {
                 precedingText.distance(from: precedingText.startIndex, to: $0) + 1
             } ?? 0
@@ -111,8 +116,11 @@ class Coordinator: NSObject, TextViewDelegate {
             let previousLine = nsText.substring(with: NSRange(location: lineStart, length: range.location - lineStart))
             let leadingTabs = previousLine.prefix(while: { $0 == "\t" })
             var indent = String(leadingTabs)
-            
-            if previousLine.trimmingCharacters(in: .whitespaces).hasSuffix("{") {
+
+            let previousLineContent = previousLine.trimmingCharacters(in: .whitespaces)
+            let isOpeningBlock = previousLineContent.hasSuffix("{")
+
+            if isOpeningBlock {
                 indent += "\t"
             }
             
@@ -122,10 +130,14 @@ class Coordinator: NSObject, TextViewDelegate {
             
             let insertion: String
             let cursorOffset: Int
-            if charAfterCursor == "}" {
+            if charAfterCursor == "}" && isOpeningBlock {
                 let deindent = indent.isEmpty ? "" : String(indent.dropLast())
                 insertion = "\n" + indent + "\n" + deindent
                 cursorOffset = 1 + indent.count
+            } else if charAfterCursor == "}" && !indent.isEmpty {
+                indent.removeLast()
+                insertion = "\n" + indent
+                cursorOffset = insertion.count
             } else {
                 insertion = "\n" + indent
                 cursorOffset = insertion.count
