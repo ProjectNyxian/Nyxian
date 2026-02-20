@@ -86,7 +86,8 @@ DEFINE_SYSCALL_HANDLER(gettask)
         if(ret != SURFACE_SUCCESS ||
            target == NULL)
         {
-            sys_return_failure(ESRCH);
+            errnov = ESRCH;
+            goto out_unlock_failure;
         }
         
         /*
