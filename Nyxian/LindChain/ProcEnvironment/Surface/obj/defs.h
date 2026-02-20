@@ -38,7 +38,6 @@
 typedef struct kvobject kvobject_t;
 typedef struct kvobject kvobject_strong_t;
 typedef struct kvevent kvevent_t;
-typedef struct kvsem kvsem_t;
 
 typedef bool (*kvobject_init_handler_t)(kvobject_t*,kvobject_t*);
 typedef void (*kvobject_deinit_handler_t)(kvobject_t*);
@@ -47,7 +46,8 @@ typedef enum kvObjEvent {
     kvObjEventDeinit = 0,
     kvObjEventRetain,
     kvObjEventRelease,
-    kvObjEventInvalidate
+    kvObjEventInvalidate,
+    kvObjEventUnregister
 } kvevent_type_t;
 
 typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
@@ -57,10 +57,6 @@ struct kvevent {
     kvevent_type_t type;
     uint64_t event_token;
     void *pld;
-};
-
-struct kvsem {
-    
 };
 
 struct kvobject {

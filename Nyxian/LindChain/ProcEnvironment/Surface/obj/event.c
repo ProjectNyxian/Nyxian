@@ -85,6 +85,9 @@ ksurface_return_t kvobject_event_unregister(kvobject_strong_t *kvo,
         return SURFACE_LOOKUP_FAILED;
     }
     
+    /* trigger event as unregistration */
+    event->handler(kvo,kvObjEventUnregister,0,event->pld);
+    
     if(kvo->event_cnt > 1)
     {
         /*
@@ -110,12 +113,23 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
     
     pthread_rwlock_wrlock(&(kvo->event_rwlock));
     
-    /* find all events and execute */
-    for(uint8_t i = 0; i < kvo->event_cnt; i++)
+    if(type == kvObjEventDeinit)
     {
-        if(kvo->event[i].type == type)
+        /* find all events and execute as deinit */
+        for(uint8_t i = 0; i < kvo->event_cnt; i++)
         {
             kvo->event[i].handler(kvo,type,value,kvo->event[i].pld);
+        }
+    }
+    else
+    {
+        /* find all events and execute */
+        for(uint8_t i = 0; i < kvo->event_cnt; i++)
+        {
+            if(kvo->event[i].type == type)
+            {
+                kvo->event[i].handler(kvo,type,value,kvo->event[i].pld);
+            }
         }
     }
     

@@ -214,7 +214,7 @@
 				LindChain/ProcEnvironment/Server/Trust.m,
 				LindChain/ProcEnvironment/Surface/obj/alloc.c,
 				LindChain/ProcEnvironment/Surface/obj/event.c,
-				LindChain/ProcEnvironment/Surface/obj/reference.c,
+				LindChain/ProcEnvironment/Surface/obj/reference.m,
 				LindChain/ProcEnvironment/Surface/obj/sem.c,
 				LindChain/ProcEnvironment/Surface/permit.m,
 				LindChain/ProcEnvironment/Surface/proc/copy.m,
