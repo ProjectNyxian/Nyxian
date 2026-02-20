@@ -185,7 +185,10 @@ void UIKitFixesInit(void)
 {
     [super windowChangesToRect:rect];
     
-    rect = CGRectMake(0, 0, rect.size.width, rect.size.height);
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        rect = CGRectMake(0, 0, rect.size.width, rect.size.height);
+    }
     
     os_unfair_lock_lock(&lock);
     
