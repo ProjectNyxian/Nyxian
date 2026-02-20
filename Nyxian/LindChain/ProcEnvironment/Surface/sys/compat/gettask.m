@@ -29,6 +29,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     
     /* parse arguments */
     pid_t pid = (pid_t)args[0];
+    bool name_only = (bool)args[1];
     
     /* check if the pid passed is the caller them selves */
     bool isCaller = (pid == proc_getpid(sys_proc_copy_));
@@ -39,7 +40,8 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * own task port which is allowed in any case.
      */
     if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid) &&
-       !isCaller)
+       !isCaller &&
+       !name_only)
     {
         sys_return_failure(EPERM);
     }
@@ -93,7 +95,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
          * caller is a special process.
          */
         if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform) &&
-           ((!entitlement_got_entitlement(proc_getentitlements(target), PEEntitlementGetTaskAllowed) && !isCaller) ||
+           ((!entitlement_got_entitlement(proc_getentitlements(target), PEEntitlementGetTaskAllowed) && (!isCaller || !name_only)) ||
             !permitive_over_pid_allowed(sys_proc_copy_, pid)))
         {
             errnov = EPERM;
@@ -119,9 +121,20 @@ DEFINE_SYSCALL_HANDLER(gettask)
         target = kernel_proc_;
     }
     
+    /* getting flavour */
+    task_t task = MACH_PORT_NULL;
+    ksurface_return_t ksr = task_for_proc(target, TASK_KERNEL_PORT, &task);
+    
+    if(ksr != SURFACE_SUCCESS)
+    {
+        /* failure?? */
+        errnov = ESRCH;
+        goto out_proc_release_failure;
+    }
+    
     /* getting port type */
     mach_port_type_t type;
-    kern_return_t kr = mach_port_type(mach_task_self(), target->kproc.task, &type);
+    kern_return_t kr = mach_port_type(mach_task_self(), task, &type);
     
     /* checking if port is valid in the first place */
     if(kr != KERN_SUCCESS ||
@@ -134,7 +147,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     }
     
     /* checking if pid of task port is valid */
-    kr = pid_for_task(target->kproc.task, &pid);
+    kr = pid_for_task(task, &pid);
     if(kr != KERN_SUCCESS ||
        pid != proc_getpid(target))
     {
@@ -143,7 +156,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     }
     
     /* retaining port (so we as the kernel dont loose it) */
-    kr = mach_port_mod_refs(mach_task_self(), target->kproc.task, MACH_PORT_RIGHT_SEND, 1);
+    kr = mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
     
     /* mach return check */
     if(kr != KERN_SUCCESS)
@@ -158,13 +171,13 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
-        mach_port_deallocate(mach_task_self(), target->kproc.task);
+        mach_port_deallocate(mach_task_self(), task);
         errnov = ENOMEM;
         goto out_proc_release_failure;
     }
     
     /* set task port to be send */
-    (*out_ports)[0] = target->kproc.task;
+    (*out_ports)[0] = task;
     *out_ports_cnt = 1;
     
     task_unlock();

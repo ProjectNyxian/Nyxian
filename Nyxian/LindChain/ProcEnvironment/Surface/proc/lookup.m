@@ -50,6 +50,7 @@ ksurface_return_t proc_for_pid(pid_t pid,
 }
 
 ksurface_return_t task_for_proc(ksurface_proc_t *proc,
+                                task_flavor_t flavour,
                                 task_t *task)
 {
     /* sanity check */
@@ -66,7 +67,7 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     }
     
     /* sanity check */
-    if(proc->kproc.task != MACH_PORT_NULL)
+    if(proc->kproc.task == MACH_PORT_NULL)
     {
         kvo_release(proc);
         return SURFACE_FAILED;
@@ -76,6 +77,19 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     task_rdlock();
     
     *task = proc->kproc.task;
+    
+    /* getting flavour */
+    if(environment_supports_full_tfp())
+    {
+        kern_return_t kr = task_get_special_port(*task, flavour, task);
+        
+        if(kr != KERN_SUCCESS)
+        {
+            task_unlock();
+            kvo_release(proc);
+            return SURFACE_FAILED;
+        }
+    }
     
     task_unlock();
     kvo_release(proc);

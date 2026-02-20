@@ -36,7 +36,7 @@ kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
         return KERN_FAILURE;
     }
     
-    int64_t ret = environment_syscall(SYS_gettask, pid, tp_out);
+    int64_t ret = environment_syscall(SYS_gettask, pid, false, tp_out);
     
     if(ret == -1 ||
        *tp_out == MACH_PORT_NULL)
@@ -51,7 +51,25 @@ DEFINE_HOOK(task_name_for_pid, kern_return_t, (mach_port_name_t tp_in,
                                                pid_t pid,
                                                mach_port_name_t *tp_out))
 {
-    return environment_task_for_pid(tp_in, pid, tp_out);
+    /* sanity check */
+    if(tp_out == NULL)
+    {
+        return KERN_FAILURE;
+    }
+    
+    /*
+     * boolean flag to true means that we only want
+     * the name port.
+     */
+    int64_t ret = environment_syscall(SYS_gettask, pid, true, tp_out);
+    
+    if(ret == -1 ||
+       *tp_out == MACH_PORT_NULL)
+    {
+        return KERN_FAILURE;
+    }
+    
+    return KERN_SUCCESS;
 }
 
 bool environment_supports_full_tfp(void)

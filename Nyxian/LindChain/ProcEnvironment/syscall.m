@@ -57,7 +57,7 @@ env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_proctb,      T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_gethostname, T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_sethostname, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_gettask,     T_NUM,  T_POUT, T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_gettask,     T_NUM,  T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_sendtask,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_procpath,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),

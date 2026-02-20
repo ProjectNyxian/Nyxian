@@ -23,6 +23,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_return_t proc_for_pid(pid_t pid, ksurface_proc_t **proc);
-ksurface_return_t task_for_proc(ksurface_proc_t *proc, task_t *task);
+ksurface_return_t task_for_proc(ksurface_proc_t *proc, task_flavor_t flavour, task_t *task);
 
 #endif /* PROC_LOOKUP_H */
