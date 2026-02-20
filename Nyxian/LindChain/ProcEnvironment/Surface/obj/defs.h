@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <stdatomic.h>
 #include <pthread.h>
+#include <mach/mach.h>
 
 #define KVEVENT_MAX 32
 
@@ -37,6 +38,7 @@
 typedef struct kvobject kvobject_t;
 typedef struct kvobject kvobject_strong_t;
 typedef struct kvevent kvevent_t;
+typedef struct kvsem kvsem_t;
 
 typedef bool (*kvobject_init_handler_t)(kvobject_t*,kvobject_t*);
 typedef void (*kvobject_deinit_handler_t)(kvobject_t*);
@@ -55,6 +57,10 @@ struct kvevent {
     kvevent_type_t type;
     uint64_t event_token;
     void *pld;
+};
+
+struct kvsem {
+    
 };
 
 struct kvobject {
