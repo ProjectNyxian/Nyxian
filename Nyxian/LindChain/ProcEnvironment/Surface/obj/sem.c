@@ -67,6 +67,10 @@ ksurface_return_t kvobject_register_sem(kvobject_strong_t *kvo,
     {
         *sem_port = *pld;
     }
+    else
+    {
+        free(pld);
+    }
     
     return ksr;
 }
