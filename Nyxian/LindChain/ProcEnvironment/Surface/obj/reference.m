@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/obj/reference.h>
+#import <LindChain/ProcEnvironment/Surface/obj/event.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #include <stdlib.h>
@@ -46,28 +47,34 @@ bool kvobject_retain(kvobject_t *kvo)
                 kvobject_release(kvo);
                 return false;
             }
+            
+            kvobject_event_trigger(kvo, kvObjEventInvalidate, 0);
+            
             return true;
         }
     }
 }
 
-void kvobject_invalidate(kvobject_t *kvo)
+void kvobject_invalidate(kvobject_strong_t *kvo)
 {
     /* invalidating object */
     atomic_store(&(kvo->invalid), true);
     
-    /* returning */
     return;
 }
 
 
-void kvobject_release(kvobject_t *kvo)
+void kvobject_release(kvobject_strong_t *kvo)
 {
+    kvobject_event_trigger(kvo, kvObjEventRelease, 0);
+    
     /* releasing and trying to get the old reference count */
     int old = atomic_fetch_sub(&kvo->refcount, 1);
     if(old == 1)
     {
         klog_log(@"kvobject:release", @"freeing process @ %p", kvo);
+        
+        kvobject_event_trigger(kvo, kvObjEventDeinit, 0);
         
         /* checking for deinit handler and executing if nonnull */
         if(kvo->deinit != NULL)
@@ -76,6 +83,7 @@ void kvobject_release(kvobject_t *kvo)
         }
         
         pthread_rwlock_destroy(&(kvo->rwlock));
+        pthread_rwlock_destroy(&(kvo->event_rwlock));
         free(kvo);
     }
     else if(old <= 0)

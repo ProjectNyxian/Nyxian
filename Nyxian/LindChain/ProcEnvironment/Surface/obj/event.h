@@ -17,13 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_LOCK_H
-#define KVOBJECT_LOCK_H
+#ifndef KVOBJECT_EVENT_H
+#define KVOBJECT_EVENT_H
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
+#import <LindChain/ProcEnvironment/Surface/obj/event.h>
+#import <LindChain/ProcEnvironment/Surface/return.h>
 
-#define kvo_rdlock(obj) pthread_rwlock_rdlock(&(((kvobject_strong_t *)obj)->rwlock));
-#define kvo_wrlock(obj) pthread_rwlock_wrlock(&(((kvobject_strong_t *)obj)->rwlock));
-#define kvo_unlock(obj) pthread_rwlock_unlock(&(((kvobject_strong_t *)obj)->rwlock));
+ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo, kvobject_event_handler_t handler, kvevent_type_t type, uint64_t *token, void *pld);
+ksurface_return_t kvobject_event_unregister(kvobject_strong_t *kvo, uint64_t token);
+void kvobject_event_trigger(kvobject_strong_t *kvo, kvevent_type_t type, uint8_t value);
 
-#endif /* KVOBJECT_LOCK_H */
+#endif /* KVOBJECT_EVENT_H */

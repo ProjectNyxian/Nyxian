@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-kvobject_t *kvobject_alloc(size_t size,
-                           kvobject_init_handler_t init,
-                           kvobject_deinit_handler_t deinit)
+kvobject_strong_t *kvobject_alloc(size_t size,
+                                  kvobject_init_handler_t init,
+                                  kvobject_deinit_handler_t deinit)
 {
     /*
      * first we gotta check if the size
@@ -68,7 +68,7 @@ kvobject_t *kvobject_alloc(size_t size,
     return kvo;
 }
 
-kvobject_t *kvobject_copy(kvobject_t *kvo)
+kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
 {
     /* sanity check */
     if(!kvo_retain(kvo))
@@ -89,9 +89,10 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
     
     /* setup object initially */
     kvo_dup->size = kvo->size;
-    kvo_dup->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
-    kvo_dup->invalid = false;                       /* the kvobject is not useless obviously, its about to be born */
-    pthread_rwlock_init(&(kvo_dup->rwlock), NULL);  /* initilizing the lock lol */
+    kvo_dup->refcount = 1;                                  /* starting as retained for the caller, cuz the caller gets one reference */
+    kvo_dup->invalid = false;                               /* the kvobject is not useless obviously, its about to be born */
+    pthread_rwlock_init(&(kvo_dup->rwlock), NULL);          /* initilizing the lock lol */
+    pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL);    /* initilizing the other lock lol */
     
     /* setting handlers and running copyit straight */
     kvo_dup->init = kvo->init;
@@ -102,6 +103,7 @@ kvobject_t *kvobject_copy(kvobject_t *kvo)
        !kvo_dup->init(kvo_dup, kvo))
     {
         pthread_rwlock_destroy(&(kvo_dup->rwlock));
+        pthread_rwlock_destroy(&(kvo_dup->event_rwlock));
         free(kvo_dup);
         kvo_dup = NULL;
     }

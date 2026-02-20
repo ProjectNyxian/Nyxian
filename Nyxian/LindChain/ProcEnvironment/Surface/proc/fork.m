@@ -27,6 +27,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
+
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
                            const char *path)
@@ -40,7 +41,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     
     /* creating child process */
     ksurface_proc_t *child = kvo_copy(parent);
-    
+
     /* checking if child is null */
     if(child == NULL)
     {

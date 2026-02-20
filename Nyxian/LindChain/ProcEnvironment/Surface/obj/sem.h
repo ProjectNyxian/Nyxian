@@ -17,13 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_LOCK_H
-#define KVOBJECT_LOCK_H
+#ifndef KVOBJECT_SEM_H
+#define KVOBJECT_SEM_H
 
-#import <LindChain/ProcEnvironment/Surface/obj/defs.h>
-
-#define kvo_rdlock(obj) pthread_rwlock_rdlock(&(((kvobject_strong_t *)obj)->rwlock));
-#define kvo_wrlock(obj) pthread_rwlock_wrlock(&(((kvobject_strong_t *)obj)->rwlock));
-#define kvo_unlock(obj) pthread_rwlock_unlock(&(((kvobject_strong_t *)obj)->rwlock));
-
-#endif /* KVOBJECT_LOCK_H */
+#endif /* KVOBJECT_SEM_H */

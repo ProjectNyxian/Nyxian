@@ -17,8 +17,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_KVOBJECT_ALLOC_H
-#define SURFACE_KVOBJECT_ALLOC_H
+#ifndef KVOBJECT_ALLOC_H
+#define KVOBJECT_ALLOC_H
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 
@@ -26,7 +26,7 @@
 #define kvo_alloc_fastpath(size, name) kvo_alloc(size, GET_KVOBJECT_INIT_HANDLER(name), GET_KVOBJECT_DEINIT_HANDLER(name))
 #define kvo_copy(kvo) (void*)kvobject_copy((kvobject_t*)kvo)
 
-kvobject_t *kvobject_alloc(size_t size, kvobject_init_handler_t init, kvobject_deinit_handler_t deinit);
-kvobject_t *kvobject_copy(kvobject_t *kvo);
+kvobject_strong_t *kvobject_alloc(size_t size, kvobject_init_handler_t init, kvobject_deinit_handler_t deinit);
+kvobject_strong_t *kvobject_copy(kvobject_t *kvo);
 
-#endif /* SURFACE_KVOBJECT_ALLOC_H */
+#endif /* KVOBJECT_ALLOC_H */

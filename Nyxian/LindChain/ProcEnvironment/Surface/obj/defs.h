@@ -17,14 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_KVOBJECT_DEFS_H
-#define SURFACE_KVOBJECT_DEFS_H
+#ifndef KVOBJECT_DEFS_H
+#define KVOBJECT_DEFS_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdatomic.h>
 #include <pthread.h>
+
+#define KVEVENT_MAX 32
 
 #define DEFINE_KVOBJECT_INIT_HANDLER(name) bool kvobject_handler_##name##_init(kvobject_t *kvo, kvobject_t *src)
 #define DEFINE_KVOBJECT_DEINIT_HANDLER(name) void kvobject_handler_##name##_deinit(kvobject_t *kvo)
@@ -33,8 +35,27 @@
 #define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
 
 typedef struct kvobject kvobject_t;
+typedef struct kvobject kvobject_strong_t;
+typedef struct kvevent kvevent_t;
+
 typedef bool (*kvobject_init_handler_t)(kvobject_t*,kvobject_t*);
 typedef void (*kvobject_deinit_handler_t)(kvobject_t*);
+
+typedef enum kvObjEvent {
+    kvObjEventDeinit = 0,
+    kvObjEventRetain,
+    kvObjEventRelease,
+    kvObjEventInvalidate
+} kvevent_type_t;
+
+typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
+
+struct kvevent {
+    kvobject_event_handler_t handler;
+    kvevent_type_t type;
+    uint64_t event_token;
+    void *pld;
+};
 
 struct kvobject {
     /*
@@ -58,6 +79,12 @@ struct kvobject {
     kvobject_init_handler_t init;       /* can safely and shall be nulled if unused */
     kvobject_deinit_handler_t deinit;   /* can safely and shall be nulled if unused */
     
+    /* events */
+    pthread_rwlock_t event_rwlock;
+    kvevent_t event[KVEVENT_MAX];
+    uint8_t event_cnt;
+    uint64_t event_token_counter;
+    
     /*
      * main read-write lock of this structure,
      * mainly used when modifying kcproc.
@@ -68,4 +95,4 @@ struct kvobject {
     size_t size;
 };
 
-#endif /* SURFACE_KVOBJECT_DEFS_H */
+#endif /* KVOBJECT_DEFS_H */

@@ -17,12 +17,14 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_KVOBJECT_H
-#define SURFACE_KVOBJECT_H
+#ifndef KVOBJECT_H
+#define KVOBJECT_H
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 #import <LindChain/ProcEnvironment/Surface/obj/alloc.h>
 #import <LindChain/ProcEnvironment/Surface/obj/lock.h>
 #import <LindChain/ProcEnvironment/Surface/obj/reference.h>
+#import <LindChain/ProcEnvironment/Surface/obj/event.h>
+#import <LindChain/ProcEnvironment/Surface/obj/sem.h>
 
-#endif /* SURFACE_KVOBJECT_H */
+#endif /* KVOBJECT_H */
