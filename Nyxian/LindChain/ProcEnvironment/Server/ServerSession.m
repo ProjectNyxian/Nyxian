@@ -123,21 +123,11 @@
     }
     
     /* iterrating through launchservices */
-    for(LaunchService *ls in [[LaunchServices shared] launchServices])
+    if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementPlatform))
     {
-        /*
-         * this sequence checks if the service identifier passed is matching
-         * and if the process is valid and assigned of the launch service we
-         * check and if the process identifier its process has matches ours
-         */
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier] &&
-            ls.process != nil &&
-            ls.process.pid == proc_getpid(_proc))
-        {
-            /* telling launchservices to set the endpoint for the passed service identifier */
-            [[LaunchServices shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
-            return;
-        }
+        /* telling launchservices to set the endpoint for the passed service identifier */
+        [[LDEBootstrapRegistry shared] setEndpoint:endpoint forServiceIdentifier:serviceIdentifier];
+        return;
     }
 }
 
@@ -170,7 +160,7 @@
     if(entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementLaunchServicesGetEndpoint))
     {
         /* it got it so we as the kernel try to obtain the endpoint first our selves */
-        NSXPCListenerEndpoint *endpoint = [[LaunchServices shared] getEndpointForServiceIdentifier:serviceIdentifier];
+        NSXPCListenerEndpoint *endpoint = [[LDEBootstrapRegistry shared] getEndpointWithServiceIdentifier:serviceIdentifier];
         
         /* replying with the endpoint, no further ecaluation needed, if its nil then its nil */
         reply(endpoint);

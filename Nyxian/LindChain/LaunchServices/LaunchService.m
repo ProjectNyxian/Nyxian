@@ -157,41 +157,12 @@
     return launchServicesSingleton;
 }
 
-- (NSXPCListenerEndpoint*)getEndpointForServiceIdentifier:(NSString *)serviceIdentifier
-{
-    os_unfair_lock_lock(&_lock);
-    for(LaunchService *ls in _launchServices)
-    {
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier])
-        {
-            os_unfair_lock_unlock(&_lock);
-            return [ls endpoint];
-        }
-    }
-    os_unfair_lock_unlock(&_lock);
-    return nil;
-}
-
-- (void)setEndpoint:(NSXPCListenerEndpoint *)endpoint forServiceIdentifier:(NSString *)serviceIdentifier
-{
-    os_unfair_lock_lock(&_lock);
-    for(LaunchService *ls in _launchServices)
-    {
-        if([ls isServiceWithServiceIdentifier:serviceIdentifier])
-        {
-            ls.endpoint = endpoint;
-            break;
-        }
-    }
-    os_unfair_lock_unlock(&_lock);
-}
-
 - (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier
                              protocol:(Protocol *)protocol
                              observer:(id)observer
                      observerProtocol:(Protocol *)observerProtocol
 {
-    NSXPCListenerEndpoint *endpoint = [self getEndpointForServiceIdentifier:serviceIdentifier];
+    NSXPCListenerEndpoint *endpoint = [[LDEBootstrapRegistry shared] getEndpointWithServiceIdentifier:serviceIdentifier];
     if (!endpoint) return nil;
     
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];

@@ -22,6 +22,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/LaunchServices/LDEBootstrapRegistry.h>
 #import <os/lock.h>
 
 @interface LaunchService : NSObject
@@ -52,9 +53,6 @@
 
 - (instancetype)init;
 + (instancetype)shared;
-
-- (NSXPCListenerEndpoint*)getEndpointForServiceIdentifier:(NSString*)serviceIdentifier;
-- (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier;
 
 - (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier protocol:(Protocol *)protocol observer:(id)observer observerProtocol:(Protocol *)observerProtocol;
 

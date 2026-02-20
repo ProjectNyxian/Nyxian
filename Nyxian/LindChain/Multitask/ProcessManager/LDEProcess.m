@@ -121,6 +121,19 @@
             
             weakSelf.identifier = identifier;
             weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
+            
+            ksurface_proc_t *child = proc_fork(proc, innerSelf.pid, [innerSelf.executablePath UTF8String]);
+            if(child == NULL)
+            {
+                [innerSelf terminate];
+            }
+            else
+            {
+                innerSelf.proc = child;
+            }
+                        
+            dispatch_semaphore_signal(sema);
+            
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
             
 #else
@@ -161,14 +174,14 @@
                         
 #if !JAILBREAK_ENV
                         klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
-                        ksurface_return_t error = proc_exit(innerSelf.proc);
-                        if(error != SURFACE_SUCCESS)
-                        {
-                            klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
-                        }
-                        
                         if(innerSelf.proc != NULL)
                         {
+                            ksurface_return_t error = proc_exit(innerSelf.proc);
+                            if(error != SURFACE_SUCCESS)
+                            {
+                                klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
+                            }
+                            
                             kvo_release(innerSelf.proc);
                         }
 #endif /* !JAILBREAK_ENV */
@@ -250,25 +263,14 @@
                             innerSelf.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
                             innerSelf.scene.delegate = innerSelf;
                         });
-                        
-#if !JAILBREAK_ENV
-                        // TODO: We gonna shrink down this part more and more to move the tasks all slowly to the proc api (ie procv2 eventually)
-                        // MARK: The process cannot call UIApplicationMain until its own process was added because of the waittrap it waits in
-                        ksurface_proc_t *child = proc_fork(proc, innerSelf.pid, [innerSelf.executablePath UTF8String]);
-                        if(child == NULL)
-                        {
-                            [innerSelf terminate];
-                        }
-                        else
-                        {
-                            innerSelf.proc = child;
-                        }
-#endif /* !JAILBREAK_ENV */
                     });
                 }
             }];
         }
-        dispatch_semaphore_signal(sema);
+        else
+        {
+            dispatch_semaphore_signal(sema);
+        }
     }];
             
 #if JAILBREAK_ENV

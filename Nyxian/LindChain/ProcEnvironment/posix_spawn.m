@@ -240,6 +240,14 @@ int environment_posix_spawn(pid_t *process_identifier,
         {
             *process_identifier = (pid_t)pid;
         }
+        
+        /*
+         * shitty soloution for now (to for now fix waitpid)
+         * most delay was fixed by making sure it runs
+         * synchronised but this doesnt run synchronised..
+         * meaning SYS_gettask.
+         */
+        usleep(50000);
     }
     
     return 0;
