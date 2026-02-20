@@ -185,6 +185,8 @@ void UIKitFixesInit(void)
 {
     [super windowChangesToRect:rect];
     
+    rect = CGRectMake(0, 0, rect.size.width, rect.size.height);
+    
     os_unfair_lock_lock(&lock);
     
     if(self.process.isSuspended)
