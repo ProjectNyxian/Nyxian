@@ -27,7 +27,6 @@
 
     NSLayoutConstraint *_islandWidthConstraint;
     NSLayoutConstraint *_islandHeightConstraint;
-    NSLayoutConstraint *_islandCenterYConstraint;
 
     BOOL _islandExpanded;
     NSTimer *_collapseTimer;
@@ -154,10 +153,8 @@
 
         _islandWidthConstraint = [island.widthAnchor  constraintEqualToConstant:48.0];
         _islandHeightConstraint = [island.heightAnchor constraintEqualToConstant:26.0];
-        _islandCenterYConstraint = [island.centerYAnchor constraintEqualToAnchor:self.centerYAnchor constant:0];
         [NSLayoutConstraint activateConstraints:@[
             [island.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:10],
-            _islandCenterYConstraint,
             _islandWidthConstraint,
             _islandHeightConstraint,
         ]];
@@ -207,25 +204,24 @@
     }
     _islandExpanded = YES;
 
-    _islandWidthConstraint.constant  = 120.0;
-    _islandHeightConstraint.constant = 58.0;
-
-    CGFloat upwardShift = -((58.0 - 26.0) / 2.0) - 2.0;
-    _islandCenterYConstraint.constant = upwardShift;
-
     CGFloat newRadius = 58.0 / 2.0;
+    
+    UIView *layoutRoot = _buttonIsland.superview ?: self;
 
-    UIImpactFeedbackGenerator *haptic = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-    [haptic prepare];
-    [haptic impactOccurred];
-
+    [layoutRoot layoutIfNeeded];
     [UIView animateWithDuration:0.44 delay:0 usingSpringWithDamping:0.60 initialSpringVelocity:0.6 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         [self layoutIfNeeded];
+        
         self->_buttonIsland.layer.cornerRadius = newRadius;
         self->_dotContainer.alpha     = 0.0;
         self->_dotContainer.transform = CGAffineTransformMakeScale(0.3, 0.3);
         self->_buttonStack.alpha     = 1.0;
         self->_buttonStack.transform = CGAffineTransformIdentity;
+        
+        self->_islandWidthConstraint.constant  = 120.0;
+        self->_islandHeightConstraint.constant = 58.0;
+        
+        [layoutRoot layoutIfNeeded];
     } completion:nil];
 
     [self resetCollapseTimer];
@@ -243,19 +239,24 @@
     [_collapseTimer invalidate];
     _collapseTimer = nil;
 
-    _islandWidthConstraint.constant   = 48.0;
-    _islandHeightConstraint.constant  = 26.0;
-    _islandCenterYConstraint.constant = 0;
-
     CGFloat collapsedRadius = 26.0 / 2.0;
+    
+    UIView *layoutRoot = _buttonIsland.superview ?: self;
 
+    [layoutRoot layoutIfNeeded];
     [UIView animateWithDuration:0.34 delay:0 usingSpringWithDamping:0.78 initialSpringVelocity:0.2 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         [self layoutIfNeeded];
+        
         self->_buttonIsland.layer.cornerRadius = collapsedRadius;
         self->_dotContainer.alpha     = 1.0;
         self->_dotContainer.transform = CGAffineTransformIdentity;
         self->_buttonStack.alpha     = 0.0;
         self->_buttonStack.transform = CGAffineTransformMakeScale(0.5, 0.5);
+        
+        self->_islandWidthConstraint.constant = 48.0;
+        self->_islandHeightConstraint.constant = 26.0;
+        
+        [layoutRoot layoutIfNeeded];
     } completion:nil];
 }
 
