@@ -119,8 +119,8 @@
             if(weakSelf == nil) return;
             __strong typeof(weakSelf) innerSelf = weakSelf;
             
-            weakSelf.identifier = identifier;
-            weakSelf.pid = [weakSelf.extension pidForRequestIdentifier:weakSelf.identifier];
+            innerSelf.identifier = identifier;
+            innerSelf.pid = [innerSelf.extension pidForRequestIdentifier:innerSelf.identifier];
             
             ksurface_proc_t *child = proc_fork(proc, innerSelf.pid, [innerSelf.executablePath UTF8String]);
             if(child == NULL)
@@ -134,7 +134,7 @@
                         
             dispatch_semaphore_signal(sema);
             
-            RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(weakSelf.pid)];
+            RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(innerSelf.pid)];
             
 #else
             
@@ -162,8 +162,8 @@
 #endif /* !JAILBREAK_ENV */
             
             innerSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
-                if(weakSelf == nil) return;
                 __strong typeof(weakSelf) innerSelf = weakSelf;
+                if(innerSelf == nil) return;
                 
                 // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
                 NSArray<RBSProcessState *> *states = [monitor states];
@@ -207,6 +207,9 @@
                     // Initilize once
                     dispatch_once(&innerSelf->_addOnce, ^{
                         dispatch_sync(dispatch_get_main_queue(), ^{
+                            __strong typeof(weakSelf) innerSelf = weakSelf;
+                            if(innerSelf == nil) return;
+                            
                             // Setting process handle directly from process monitor
                             innerSelf.processHandle = handle;
                             FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
@@ -219,14 +222,12 @@
                             
                             @try {
                                 if (!innerSelf.processHandle || !innerSelf.processHandle.identity) {
-                                    @throw [NSException exceptionWithName:@"InvalidProcessIdentity"
-                                                                   reason:@"Process handle or identity is nil"
-                                                                 userInfo:nil];
+                                    @throw [NSException exceptionWithName:@"InvalidProcessIdentity" reason:@"Process handle or identity is nil" userInfo:nil];
                                 }
                                 definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
                             } @catch (NSException *exception) {
-                                klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", weakSelf.pid, exception.reason);
-                                [weakSelf terminate];
+                                klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", innerSelf.pid, exception.reason);
+                                [innerSelf terminate];
                                 return;
                             }
                             
