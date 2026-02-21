@@ -39,15 +39,31 @@ void *dothework(void *work)
     if(!kvo_retain(hep->proc))
     {
         mach_port_deallocate(mach_task_self(), task);
+        mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
+        free(work);
+        return NULL;
     }
     
     task_wrlock();
+    
+    /* checking if pid matches up */
+    pid_t pid;
+    kern_return_t kr = pid_for_task(task, &pid);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        mach_port_deallocate(mach_task_self(), task);
+        mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
+        free(work);
+        return NULL;
+    }
     
     hep->proc->kproc.task = task;
     
     task_unlock();
     kvo_release(hep->proc);
     
+    mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
     free(work);
     return NULL;
 }
@@ -56,6 +72,18 @@ DEFINE_SYSCALL_HANDLER(handoffep)
 {
     /* syscall header */
     sys_name("SYS_handoffep");
+    
+    task_rdlock();
+    
+    /* sanity check */
+    if(sys_proc_copy_->proc->kproc.task != MACH_PORT_NULL)
+    {
+        /* task port already set */
+        task_unlock();
+        sys_return_failure(EPERM);
+    }
+    
+    task_unlock();
     
     /* checking recv input port */
     if(in_recv == MACH_PORT_NULL)
