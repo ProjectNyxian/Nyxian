@@ -19,9 +19,9 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/reference.h>
 #import <LindChain/ProcEnvironment/Surface/obj/event.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #include <stdlib.h>
+#include <assert.h>
 
 bool kvobject_retain(kvobject_t *kvo)
 {
@@ -79,8 +79,6 @@ void kvobject_release(kvobject_strong_t *kvo)
     int old = atomic_fetch_sub(&kvo->refcount, 1);
     if(old == 1)
     {
-        klog_log(@"kvobject:release", @"freeing process @ %p", kvo);
-        
         kvobject_event_trigger(kvo, kvObjEventDeinit, 0);
         
         pthread_rwlock_destroy(&(kvo->rwlock));

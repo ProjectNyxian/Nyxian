@@ -94,7 +94,7 @@ force_not_inherite_entitlements:
     if(proc_insert(child) != SURFACE_SUCCESS)
     {
         /* logging if enabled */
-        klog_log(@"proc:fork", @"fork failed process %p(%d) failed to be inserted", child, proc_getpid(child));
+        klog_log(@"proc:fork", @"[%d] fork failed process %p failed to be inserted", proc_getpid(child), child);
         
         /* releasing child process because of failed insert */
         kvo_release(child);
@@ -151,8 +151,6 @@ out_parent_contract_retain_failed:
     pthread_mutex_unlock(&(child->kproc.children.mutex));
     pthread_mutex_unlock(&(parent->kproc.children.mutex));
     
-    klog_log(@"proc:fork", @"forked process @ %p of process @ %p", child, parent);
-    
     /* child stays retained for the caller */
     return child;
 }
@@ -168,7 +166,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     /* checking if proc is kernel */
     if(proc == kernel_proc_)
     {
-        klog_log(@"proc:exit", @"cannot terminate the kernel");
+        klog_log(@"proc:exit", @"[%d] cannot terminate the kernel", proc_getpid(kernel_proc_));
         return SURFACE_DENIED;
     }
     

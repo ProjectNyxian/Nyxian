@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 ksurface_proc_t *kernel_proc(void)
 {
@@ -62,6 +63,9 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             
             return true;
         }
+        case kvObjEventDeinit:
+            klog_log(@"proc:deinit", @"[%d] deinitilizing process @ %p", proc_getpid(proc), proc);
+            pthread_mutex_destroy(&(proc->kproc.children.mutex));
         default:
             return true;
     }
