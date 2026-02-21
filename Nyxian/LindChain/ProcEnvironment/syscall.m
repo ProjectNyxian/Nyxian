@@ -32,7 +32,8 @@ enum kESysType {
     kESysTypeNum = 4,
     kESysTypePortIn = 5,
     kESysTypePortOut = 6,
-    kESysTypeFDIn = 7,
+    kESysTypeRecvPortIn = 7,
+    kESysTypeFDIn = 8,
 };
 
 typedef struct {
@@ -51,6 +52,7 @@ typedef struct {
 #define T_OLEN  kESysTypeOutLen
 #define T_PIN   kESysTypePortIn
 #define T_POUT  kESysTypePortOut
+#define T_RPIN  kESysTypeRecvPortIn
 #define T_FIN   kESysTypeFDIn
 
 env_sys_entry_t sys_env_entries[] = {
@@ -58,11 +60,10 @@ env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_gethostname, T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_sethostname, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_gettask,     T_NUM,  T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_sendtask,    T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_procpath,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_procbsd,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_handoffep,   T_PIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_handoffep,   T_RPIN, T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */
@@ -113,6 +114,8 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     void *out_payload = NULL;
     uint32_t *out_len = NULL;
     
+    mach_port_t recv_port = MACH_PORT_NULL;
+    
     /* decoding payloads if applicable */
     const env_sys_entry_t *entry = find_syscall_entry(syscall_num);
     
@@ -145,6 +148,9 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
                 case kESysTypePortOut:
                     out_ports[out_ports_cnt++] = (mach_port_t *)val;
                     break;
+                case kESysTypeRecvPortIn:
+                    recv_port = (mach_port_t)val;
+                    break;
                 case kESysTypeFDIn:
                 {
                     fileport_t fileport = MACH_PORT_NULL;
@@ -162,5 +168,5 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     }
     
     /* invoking syscall */
-    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_ports, out_ports_cnt);
+    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_ports, out_ports_cnt, recv_port);
 }

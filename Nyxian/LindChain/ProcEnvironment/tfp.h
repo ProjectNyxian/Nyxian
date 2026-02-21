@@ -30,10 +30,6 @@
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in, pid_t pid,  mach_port_name_t *tp_out);
 
-bool environment_supports_full_tfp(void);
-
-task_t environment_sendable_mach_task_self(void);
-
 void environment_tfp_init(void);
 
 #endif /* PROCENVIRONMENT_TFP_H */

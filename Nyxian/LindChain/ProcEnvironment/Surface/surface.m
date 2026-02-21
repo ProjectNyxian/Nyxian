@@ -175,8 +175,12 @@ static inline void ksurface_kinit_kproc(void)
         environment_panic();
     }
     
+    /* kernel shall only expose its task name */
+    task_t task;
+    kern_return_t kr = task_get_special_port(mach_task_self(), TASK_NAME_PORT, &task);
+    kproc->kproc.task = task;
+    
     /* setting up properties */
-    kproc->kproc.task = environment_sendable_mach_task_self();
     proc_setpid(kproc, getpid());
     proc_setppid(kproc, PID_LAUNCHD);
     proc_setsid(kproc, proc_getpid(kproc));

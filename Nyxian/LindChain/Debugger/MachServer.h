@@ -22,4 +22,7 @@
 
 void machServerInit(void);
 
+void ktfp_setup(void);
+task_t obtainTaskPortWithExceptionRecvRight(mach_port_t recv);
+
 #endif /* LINDCHAIN_DEBUGGER_MACHSERVER_H */

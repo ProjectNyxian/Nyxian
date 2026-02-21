@@ -66,6 +66,11 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         case kvObjEventDeinit:
             klog_log(@"proc:deinit", @"[%d] deinitilizing process @ %p", proc_getpid(proc), proc);
             pthread_mutex_destroy(&(proc->kproc.children.mutex));
+            
+            if(proc->kproc.task != MACH_PORT_NULL)
+            {
+                mach_port_deallocate(mach_task_self(), proc->kproc.task);
+            }
         default:
             return true;
     }

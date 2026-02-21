@@ -92,14 +92,6 @@ struct ksurface_proc {
         task_t task;
         
         /*
-         * exception port of a process that has debugging
-         * enabled, will cause us to receive a right to
-         * their exception port, which might be used to
-         * trigger the exception handler in the process.
-         */
-        mach_port_t eport;
-        
-        /*
          * process structure used to sign reference contracts
          * with child processes.
          */

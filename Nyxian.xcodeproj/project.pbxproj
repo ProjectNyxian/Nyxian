@@ -233,7 +233,6 @@
 				LindChain/ProcEnvironment/Surface/sys/compat/procbsd.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/procpath.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/proctb.m,
-				LindChain/ProcEnvironment/Surface/sys/compat/sendtask.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/signexec.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getgid.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getpid.m,

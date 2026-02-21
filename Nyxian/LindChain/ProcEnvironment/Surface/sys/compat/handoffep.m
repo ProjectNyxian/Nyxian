@@ -20,41 +20,60 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/Debugger/MachServer.h>
+#import <pthread.h>
+
+typedef struct {
+    mach_port_t ep;         /* exception port */
+    ksurface_proc_t *proc;  /* kernel surface process reference */
+} khandoffep_t;
+
+void *dothework(void *work)
+{
+    khandoffep_t *hep = (khandoffep_t*)work;
+    
+    task_t task = obtainTaskPortWithExceptionRecvRight(hep->ep);
+    klog_log(@"handoffep:helper", @"got task kernel port right: %d", task);
+    
+    if(!kvo_retain(hep->proc))
+    {
+        mach_port_deallocate(mach_task_self(), task);
+    }
+    
+    task_wrlock();
+    
+    hep->proc->kproc.task = task;
+    
+    task_unlock();
+    kvo_release(hep->proc);
+    
+    free(work);
+    return NULL;
+}
 
 DEFINE_SYSCALL_HANDLER(handoffep)
 {
     /* syscall header */
     sys_name("SYS_handoffep");
-    sys_need_in_ports_with_cnt(1);
     
-    /* view SYS_gettask note on this */
-    task_wrlock();
-    
-    /* checking if exception port port was already hand off */
-    if(sys_proc_copy_->proc->kproc.eport != MACH_PORT_NULL)
+    /* checking recv input port */
+    if(in_recv == MACH_PORT_NULL)
     {
-        task_unlock();
         sys_return_failure(EINVAL);
     }
-    
-    /* getting port type */
-    mach_port_type_t type;
-    kern_return_t kr = mach_port_type(mach_task_self(), in_ports[0], &type);
-
-    /* checking if port is valid in the first place */
-    if(kr != KERN_SUCCESS ||
-       type == MACH_PORT_TYPE_DEAD_NAME ||
-       type == 0)
+    else
     {
-        /* no rights to the exception port  name? */
-        task_unlock();
-        sys_return_failure(EINVAL);
+        klog_log(@"handoffep", @"got exception receive port: %d", in_recv);
+        
+        khandoffep_t *hep = malloc(sizeof(mach_port_t));
+        hep->ep = in_recv;
+        hep->proc = sys_proc_copy_->proc;
+        
+        pthread_t thread;
+        pthread_create(&thread, NULL, dothework, hep);
+        pthread_detach(thread);
     }
     
-    /* setting task */
-    sys_proc_copy_->proc->kproc.eport = in_ports[0];
-    
-    /* return with succession */
-    task_unlock();
     sys_return;
 }

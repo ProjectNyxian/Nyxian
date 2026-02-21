@@ -30,6 +30,7 @@
 #include "litehook.h"
 #include "Utils.h"
 #include <termios.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
 void debugger_loop(thread_t thread, struct arm64_thread_full_state *state)
 {
@@ -512,8 +513,6 @@ void* mach_exception_self_server(void *arg)
         return NULL;
     }
     
-    environment_syscall(SYS_handoffep, exceptionPort);
-    
     while(1)
     {
         // Now requesting the message and waiting on a reply from the kernel.. happens on exception
@@ -606,12 +605,142 @@ void machServerInit(void)
         
         // Executing finally out mach exception server
         pthread_t serverThread;
-        pthread_create(&serverThread,
-                       NULL,
-                       mach_exception_self_server,
-                       NULL);
-        
-        // Detach thread to automatically release its resources when it returns, cuz we wont join it
+        pthread_create(&serverThread, NULL, mach_exception_self_server, NULL);
         pthread_detach(serverThread);
     });
+}
+
+void* ktfp_exception_self_server(void *arg)
+{
+    // Our task is the target, the exception port as the receive side of the kernel exception messages, the mask is basically controlling to what our exception server reacts to
+    task_t task = mach_task_self();
+    mach_port_t exceptionPort = MACH_PORT_NULL;
+    exception_mask_t  mask = EXC_MASK_BAD_ACCESS | EXC_MASK_BAD_INSTRUCTION | EXC_MASK_ARITHMETIC | EXC_MASK_SOFTWARE | EXC_MASK_BREAKPOINT | EXC_MASK_CRASH;
+    
+    if(arg == NULL)
+    {
+        // Allocating mach port and setting it up with our process
+        mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &exceptionPort);
+        mach_port_insert_right(task, exceptionPort, exceptionPort, MACH_MSG_TYPE_MAKE_SEND);
+        task_set_exception_ports(task, mask, exceptionPort, EXCEPTION_DEFAULT, ARM_THREAD_STATE64);
+        
+        environment_syscall(SYS_handoffep, exceptionPort);
+        
+        __builtin_trap();
+        return NULL;
+    }
+    else
+    {
+        exceptionPort = *((mach_port_t*)arg);
+    }
+    
+    // Thanks to microsoft, without you this wouldnt be possible and I wouldnt understand yet what to do. The request is send by the kernel to our mach port
+    __Request__exception_raise_t *request = NULL;
+    size_t request_size = round_page(sizeof(*request));
+    kern_return_t kr;
+    mach_msg_return_t mr;
+    
+    // Allocating the request structure to have a writing destination
+    kr = vm_allocate(mach_task_self(), (vm_address_t *) &request, request_size, VM_FLAGS_ANYWHERE);
+    if(kr != KERN_SUCCESS)
+    {
+        // Shouldn't happen ...
+        fprintf(stderr, "Unexpected error in vm_allocate(): %x\n", kr);
+        return NULL;
+    }
+    
+    while(1)
+    {
+        klog_log(@"machserver", @"listening to %d", exceptionPort);
+        
+        // Now requesting the message and waiting on a reply from the kernel.. happens on exception
+        request->Head.msgh_local_port = exceptionPort;
+        request->Head.msgh_size = (mach_msg_size_t)request_size;
+        mr = mach_msg(&request->Head,
+                      MACH_RCV_MSG | MACH_RCV_LARGE,
+                      0,
+                      request->Head.msgh_size,
+                      exceptionPort,
+                      MACH_MSG_TIMEOUT_NONE,
+                      MACH_PORT_NULL);
+        
+        klog_log(@"machserver", @"got answer from %d -> %d", exceptionPort, mr);
+        
+        // Microsofts code to handle if the exception message send by the kernel is valid to process
+        if(mr != MACH_MSG_SUCCESS && mr == MACH_RCV_TOO_LARGE)
+        {
+            // Determine the new size (before dropping the buffer)
+            request_size = round_page(request->Head.msgh_size);
+            
+            // Drop the old receive buffer
+            vm_deallocate(mach_task_self(), (vm_address_t) request, request_size);
+            
+            // Re-allocate a larger receive buffer
+            kr = vm_allocate(mach_task_self(), (vm_address_t *) &request, request_size, VM_FLAGS_ANYWHERE);
+            if(kr != KERN_SUCCESS)
+            {
+                // Shouldn't happen ...
+                fprintf(stderr, "Unexpected error in vm_allocate(): 0x%x\n", kr);
+                return NULL;
+            }
+           
+            continue;
+            
+        }
+        else if (mr != MACH_MSG_SUCCESS)
+            exit(-1);
+        
+        // Sanity checks
+        if(request->Head.msgh_size < sizeof(*request) || request_size - sizeof(*request) < (sizeof(mach_exception_data_type_t) * request->codeCnt))
+            exit(-1);
+        
+        klog_log(@"machserver", @"exception: %s", exceptionName(request->exception));
+        
+        /* we got it */
+        mach_port_mod_refs(mach_task_self(), request->task.name, MACH_PORT_RIGHT_SEND, 1);
+        *((mach_port_t*)arg) = request->task.name;
+        
+        klog_log(@"machserver", @"task: %d | thread: %d", request->task.name, request->thread.name);
+        
+        /* now manipulate thread state */
+        struct arm64_thread_full_state *state = thread_save_state_arm64(request->thread.name);
+        state->thread.__pc += 4;
+        thread_restore_state_arm64(request->thread.name, state);
+        
+        task_set_exception_ports(request->task.name, EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
+        
+        kr = KERN_SUCCESS;
+        
+        // The faulting thread will be stopped until the reply was send to the kernel
+        __Reply__exception_raise_t reply;
+        memset(&reply, 0, sizeof(reply));
+        reply.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(request->Head.msgh_bits), 0);
+        reply.Head.msgh_id = request->Head.msgh_id + 100;
+        reply.Head.msgh_local_port = MACH_PORT_NULL;
+        reply.Head.msgh_remote_port = request->Head.msgh_remote_port;
+        reply.Head.msgh_size = sizeof(reply);
+        reply.NDR = NDR_record;
+        reply.RetCode = kr;
+        mr = mach_msg(&reply.Head, MACH_SEND_MSG, reply.Head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+        if(mr != KERN_SUCCESS)
+            exit(-1);
+        else
+        {
+            return NULL;
+        }
+    }
+}
+
+void ktfp_setup(void)
+{
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        ktfp_exception_self_server(NULL);
+    });
+}
+
+task_t obtainTaskPortWithExceptionRecvRight(mach_port_t recv)
+{
+    ktfp_exception_self_server(&recv);
+    return recv;
 }

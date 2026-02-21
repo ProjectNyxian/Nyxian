@@ -148,7 +148,10 @@ typedef int64_t (*syscall_handler_t)(
     /*
      * first is a syscall does is exposing its name
      */
-    const char          **name
+    const char          **name,
+                               
+    /* input receive port */
+    mach_port_t         in_recv
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
@@ -163,7 +166,8 @@ typedef int64_t (*syscall_handler_t)(
     mach_port_t         **out_ports, \
     uint32_t            *out_ports_cnt, \
     errno_t             *err, \
-    const char          **name \
+    const char          **name, \
+    mach_port_t         in_recv  \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname

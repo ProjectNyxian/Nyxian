@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <mach/mach.h>
 #import <LindChain/ProcEnvironment/syscall.h>
+#import <LindChain/Debugger/MachServer.h>
 #import <sys/utsname.h>
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
@@ -72,83 +73,6 @@ DEFINE_HOOK(task_name_for_pid, kern_return_t, (mach_port_name_t tp_in,
     return KERN_SUCCESS;
 }
 
-bool environment_supports_full_tfp(void)
-{
-    /*
-     * apple made it possible to transfer task ports on iOS 26.0, but
-     * the method currently used doesnt work on iOS 26.1 so I guess
-     * they reverted the change back.
-     *
-     * it works cause apple messed up to guard receive task ports
-     * with MPO_IMMOVABLE_RECEIVE which is what makes task ports
-     * unsendable on older and newer iOS than iOS 26.0. Another
-     * option would be that apple tightened the send right of the
-     * task port prior and post iOS 26.0. I also wanna say that
-     * this still works on some iOS 26.1 Beta versions, got patched
-     * in iOS 26.1 Beta 2 or 3.
-     *
-     * very sad tho, but nice that on other versions we got tnfp.
-     */
-    
-    static bool isSupported = false;
-    
-    /*
-     * only checking once for support, kernel version wont change
-     * while nyxian runs obviously.
-     */
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        struct utsname systemInfo;
-        uname(&systemInfo);
-        isSupported = strncmp(systemInfo.release, "25.0", 4) == 0;
-    });
-    
-    return isSupported;
-}
-
-task_t environment_sendable_mach_task_self(void)
-{
-    /*
-     * when full tfp fix is supported that means that the task
-     * port it self can be transferred so we can simply return
-     * the task port back to the caller.
-     */
-    if(environment_supports_full_tfp())
-    {
-        /*
-         * syscall messages are sent with MACH_MSG_TYPE_MOVE_SEND,
-         * so increment reference count.
-         */
-        kern_return_t kr = mach_port_mod_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, 1);
-        
-        /* no increment, dont loose it */
-        if(kr != KERN_SUCCESS)
-        {
-            return MACH_PORT_NULL;
-        }
-        
-        return mach_task_self();
-    }
-    
-    task_t task;
-    
-    /*
-     * iOS prior and post iOS 26.0 seem to deny the transfer of
-     * any task port which is more capable than TASK_NAME_PORT
-     * so basically TASK_INSPECT_PORT wont work and will crash
-     * the process invoking SYS_sendtask, which is also the
-     * reason why its so dificult to research and debug.
-     */
-    kern_return_t kr = task_get_special_port(mach_task_self(), TASK_NAME_PORT, &task);
-    
-    if(kr != KERN_SUCCESS)
-    {
-        return MACH_PORT_NULL;
-    }
-    
-    return task;
-}
-
 /*
  Init
  */
@@ -157,7 +81,7 @@ void environment_tfp_init(void)
     if(environment_is_role(EnvironmentRoleGuest))
     {
         /* sending our task port to the task port system */
-        environment_syscall(SYS_sendtask, environment_sendable_mach_task_self());
+        ktfp_setup();
         
         /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);

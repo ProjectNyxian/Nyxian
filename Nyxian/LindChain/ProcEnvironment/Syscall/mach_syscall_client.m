@@ -117,7 +117,8 @@ int64_t syscall_invoke(syscall_client_t *client,
                        mach_port_t *in_ports,
                        uint32_t in_ports_cnt,
                        mach_port_t **out_ports,
-                       uint32_t out_ports_cnt)
+                       uint32_t out_ports_cnt,
+                       mach_port_t recv)
 {
     /* null pointer check */
     if(client == NULL)
@@ -173,6 +174,15 @@ int64_t syscall_invoke(syscall_client_t *client,
         buffer.req.oolp.disposition = MACH_MSG_TYPE_MOVE_SEND;
         buffer.req.oolp.address = in_ports;
         buffer.req.oolp.count = in_ports_cnt;
+        buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
+    }
+    else if(recv)
+    {
+        buffer.req.body.msgh_descriptor_count = 2;
+        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        buffer.req.oolp.disposition = MACH_MSG_TYPE_MOVE_RECEIVE;
+        buffer.req.oolp.address = &recv;
+        buffer.req.oolp.count = 1;
         buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
     }
     

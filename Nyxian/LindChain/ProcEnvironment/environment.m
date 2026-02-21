@@ -155,10 +155,16 @@ void environment_init(EnvironmentRole role,
          */
         environment_tfp_init();
         
-        /* checking if debugging is meant to be enabled */
-        if(enableDebugging)
-        {
-            environment_client_attach_debugger();
+        if(role == EnvironmentRoleGuest)
+        {            
+            /*
+             * checking if debugging is meant to be enabled
+             * and enable it in case wanted.
+             */
+            if(enableDebugging)
+            {
+                environment_client_attach_debugger();
+            }
         }
         
         /* invoking code execution or let it return */

@@ -78,9 +78,9 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     
     *task = proc->kproc.task;
     
-    /* getting flavour */
-    if(environment_supports_full_tfp())
+    if(proc != kernel_proc_)
     {
+        /* getting flavour */
         kern_return_t kr = task_get_special_port(*task, flavour, task);
         
         if(kr != KERN_SUCCESS)
