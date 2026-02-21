@@ -133,5 +133,10 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
         }
     }
     
+    if(type != kvObjEventCopy)
+    {
+        kvo->main_handler(&kvo, type);
+    }
+    
     pthread_rwlock_unlock(&(kvo->event_rwlock));
 }

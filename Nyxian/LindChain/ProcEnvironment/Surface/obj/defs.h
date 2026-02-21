@@ -29,28 +29,26 @@
 
 #define KVEVENT_MAX 32
 
-#define DEFINE_KVOBJECT_INIT_HANDLER(name) bool kvobject_handler_##name##_init(kvobject_t *kvo, kvobject_t *src)
-#define DEFINE_KVOBJECT_DEINIT_HANDLER(name) void kvobject_handler_##name##_deinit(kvobject_t *kvo)
-
-#define GET_KVOBJECT_INIT_HANDLER(name) kvobject_handler_##name##_init
-#define GET_KVOBJECT_DEINIT_HANDLER(name) kvobject_handler_##name##_deinit
+#define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) bool kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvevent_type_t type)
+#define GET_KVOBJECT_MAIN_EVENT_HANDLER(name) kvobject_event_handler_##name##_main
 
 typedef struct kvobject kvobject_t;
 typedef struct kvobject kvobject_strong_t;
 typedef struct kvevent kvevent_t;
+typedef enum kvObjEvent kvevent_type_t;
 
-typedef bool (*kvobject_init_handler_t)(kvobject_t*,kvobject_t*);
-typedef void (*kvobject_deinit_handler_t)(kvobject_t*);
+typedef bool (*kvobject_main_event_handler_t)(kvobject_t**,kvevent_type_t);
+typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
 
-typedef enum kvObjEvent {
-    kvObjEventDeinit = 0,
+enum kvObjEvent {
+    kvObjEventInit = 0,
+    kvObjEventDeinit,
+    kvObjEventCopy,
     kvObjEventRetain,
     kvObjEventRelease,
     kvObjEventInvalidate,
     kvObjEventUnregister
-} kvevent_type_t;
-
-typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
+};
 
 struct kvevent {
     kvobject_event_handler_t handler;
@@ -78,8 +76,7 @@ struct kvobject {
     _Atomic bool invalid;
     
     /* state handlers for each object */
-    kvobject_init_handler_t init;       /* can safely and shall be nulled if unused */
-    kvobject_deinit_handler_t deinit;   /* can safely and shall be nulled if unused */
+    kvobject_main_event_handler_t main_handler;
     
     /* events */
     pthread_rwlock_t event_rwlock;

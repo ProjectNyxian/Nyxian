@@ -145,7 +145,7 @@ static inline void ksurface_kinit_kserver(void)
 static inline void ksurface_kinit_kproc(void)
 {
     /* creating kproc */
-    ksurface_proc_t *kproc = kvo_alloc_fastpath(sizeof(ksurface_proc_t), proc);
+    ksurface_proc_t *kproc = kvo_alloc(sizeof(ksurface_proc_t), GET_KVOBJECT_MAIN_EVENT_HANDLER(proc));
     
     /* null pointer check */
     if(kproc == NULL)

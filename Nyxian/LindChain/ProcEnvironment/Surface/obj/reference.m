@@ -24,7 +24,9 @@
 #include <stdlib.h>
 
 bool kvobject_retain(kvobject_t *kvo)
-{    
+{
+    assert(kvo != NULL);
+    
     /* performing retain if valid */
     while(1)
     {
@@ -49,7 +51,6 @@ bool kvobject_retain(kvobject_t *kvo)
             }
             
             kvobject_event_trigger(kvo, kvObjEventInvalidate, 0);
-            
             return true;
         }
     }
@@ -57,6 +58,10 @@ bool kvobject_retain(kvobject_t *kvo)
 
 void kvobject_invalidate(kvobject_strong_t *kvo)
 {
+    kvobject_event_trigger(kvo, kvObjEventInvalidate, 0);
+    
+    assert(kvo != NULL);
+    
     /* invalidating object */
     atomic_store(&(kvo->invalid), true);
     
@@ -66,6 +71,8 @@ void kvobject_invalidate(kvobject_strong_t *kvo)
 
 void kvobject_release(kvobject_strong_t *kvo)
 {
+    assert(kvo != NULL);
+    
     kvobject_event_trigger(kvo, kvObjEventRelease, 0);
     
     /* releasing and trying to get the old reference count */
@@ -75,12 +82,6 @@ void kvobject_release(kvobject_strong_t *kvo)
         klog_log(@"kvobject:release", @"freeing process @ %p", kvo);
         
         kvobject_event_trigger(kvo, kvObjEventDeinit, 0);
-        
-        /* checking for deinit handler and executing if nonnull */
-        if(kvo->deinit != NULL)
-        {
-            kvo->deinit(kvo);
-        }
         
         pthread_rwlock_destroy(&(kvo->rwlock));
         pthread_rwlock_destroy(&(kvo->event_rwlock));

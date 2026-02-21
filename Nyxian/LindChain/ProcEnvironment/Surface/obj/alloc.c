@@ -20,13 +20,16 @@
 #import <LindChain/ProcEnvironment/Surface/obj/alloc.h>
 #import <LindChain/ProcEnvironment/Surface/obj/reference.h>
 #import <LindChain/ProcEnvironment/Surface/obj/lock.h>
+#import <LindChain/ProcEnvironment/Surface/obj/event.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 kvobject_strong_t *kvobject_alloc(size_t size,
-                                  kvobject_init_handler_t init,
-                                  kvobject_deinit_handler_t deinit)
+                                  kvobject_main_event_handler_t handler)
 {
+    assert(handler != NULL);
+    
     /*
      * first we gotta check if the size
      * is atleast the size of an kvobject
@@ -52,12 +55,11 @@ kvobject_strong_t *kvobject_alloc(size_t size,
     pthread_rwlock_init(&(kvo->rwlock), NULL);  /* initilizing the lock lol */
     
     /* setting handlers and running init straight */
-    kvo->init = init;
-    kvo->deinit = deinit;
+    kvo->main_handler = handler;
     
     /* checking init handler and executing if nonnull */
-    if(kvo->init != NULL &&
-       !kvo->init(kvo, NULL))
+    if(kvo->main_handler != NULL &&
+       !kvo->main_handler(&kvo, kvObjEventInit))
     {
         pthread_rwlock_destroy(&(kvo->rwlock));
         free(kvo);
@@ -95,12 +97,14 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL);    /* initilizing the other lock lol */
     
     /* setting handlers and running copyit straight */
-    kvo_dup->init = kvo->init;
-    kvo_dup->deinit = kvo->deinit;
+    kvo_dup->main_handler = kvo->main_handler;
+    
+    /* preparing stack array */
+    kvobject_t *kvoarr[2] = { kvo_dup, kvo };
     
     /* checking init handler and executing if nonnull */
-    if(kvo_dup->init != NULL &&
-       !kvo_dup->init(kvo_dup, kvo))
+    if(kvo_dup->main_handler != NULL &&
+       !kvo_dup->main_handler(kvoarr, kvObjEventCopy))
     {
         pthread_rwlock_destroy(&(kvo_dup->rwlock));
         pthread_rwlock_destroy(&(kvo_dup->event_rwlock));
