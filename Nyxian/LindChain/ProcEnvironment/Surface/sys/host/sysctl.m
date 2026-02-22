@@ -385,8 +385,16 @@ DEFINE_SYSCALL_HANDLER(sysctl)
         .proc_copy = sys_proc_copy_,
     };
     
-    /* read name */
-    if(!mach_syscall_copy_in(task, req.namelen * sizeof(int), &(req.name), (userspace_pointer_t)args[0]))
+    size_t count = req.namelen;
+    
+    /* maximum items are 20 so sanity checking */
+    if(count > 20)
+    {
+        sys_return_failure(E2BIG);
+    }
+    
+    /* copy name array from userspace */
+    if(!mach_syscall_copy_in(task, count * sizeof(int), &(req.name), (userspace_pointer_t)args[0]))
     {
         sys_return_failure(EFAULT);
     }
