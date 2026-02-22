@@ -17,18 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LINDCHAIN_KERN_KERN_H
-#define LINDCHAIN_KERN_KERN_H
+#ifndef PROCENVIRONMENT_SYSCTL_H
+#define PROCENVIRONMENT_SYSCTL_H
 
-#import <LindChain/ProcEnvironment/Sysctl/sysctl.h>
+#include <sys/sysctl.h>
 
-int sysctl_kernmaxproc(sysctl_req_t *req);
+void environment_sysctl_init(void);
 
-int sysctl_kernprocall(sysctl_req_t *req);
-int sysctl_kernprocpid(sysctl_req_t *req);
-int sysctl_kernprocuid(sysctl_req_t *req);
-int sysctl_kernprocruid(sysctl_req_t *req);
-
-int sysctl_kernprocargs2(sysctl_req_t *req);
-
-#endif /* LINDCHAIN_KERN_KERN_H */
+#endif /* PROCENVIRONMENT_SYSCTL_H */

@@ -47,19 +47,6 @@
 #define sys_return \
     return 0
 
-#define sys_need_in_payload \
-    if(in_payload == NULL) \
-    { \
-        sys_return_failure(EINVAL); \
-    }
-
-#define sys_need_in_payload_with_len(len) \
-    if(in_payload == NULL || \
-       in_len < len) \
-    { \
-        sys_return_failure(EINVAL); \
-    }
-
 #define sys_need_in_ports \
     if(in_ports == NULL) \
     { \
@@ -74,15 +61,16 @@
     }
 
 #define sys_name(selname) \
-    const char *sname = selname; \
-    *name = sname;
+    { \
+        const char *sname = selname; \
+        *name = sname; \
+    }
     
 
 /* request message coming from the client */
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
     mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
-    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the guest process MARK: Do not trust guest provided payloads blindly */
     mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
@@ -92,13 +80,15 @@ typedef struct {
 typedef struct {
     mach_msg_header_t           header;         /* mach message header */
     mach_msg_body_t             body;           /* mach message body which holds information about descriptors */
-    mach_msg_ool_descriptor_t   ool;            /* mach message descriptor for arbitary length payloads provided by the kernel virtualization layer */
     mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of macg ports provided by the kernel virtualization layer */
     int64_t                     result;         /* syscall return value for the guest */
     errno_t                     err;            /* errno result value from the syscall */
 } syscall_reply_t;
 
 typedef int64_t (*syscall_handler_t)(
+    /* task port of calling process */
+    task_t task,
+                                     
     /*
      * holds information about the process identity
      * that made the syscall
@@ -111,20 +101,6 @@ typedef int64_t (*syscall_handler_t)(
      * normal syscall arguments
      */
     int64_t             *args,
-
-    /*
-     * a special multipurpose argument, a payload
-     * the payload is provided by the guest process
-     * so please do security checks on it!!!
-     */
-    uint8_t             *in_payload,
-    uint32_t            in_len,
-
-    /*
-     * outgoing payload back to the guest process
-     */
-    uint8_t             **out_payload,
-    uint32_t            *out_len,
 
     /*
      * a special multipurpose argument, a ports payload
@@ -155,12 +131,9 @@ typedef int64_t (*syscall_handler_t)(
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
+    task_t              task, \
     void                *proc_copy, \
     int64_t             *args, \
-    uint8_t             *in_payload, \
-    uint32_t            in_len, \
-    uint8_t             **out_payload, \
-    uint32_t            *out_len, \
     mach_port_t         *in_ports, \
     uint32_t            in_ports_cnt, \
     mach_port_t         **out_ports, \

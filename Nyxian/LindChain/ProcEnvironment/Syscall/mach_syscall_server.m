@@ -99,8 +99,6 @@ static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
  */
 static void send_reply(mach_msg_header_t *request,
                        int64_t result,
-                       uint8_t *payload,
-                       uint32_t payload_len,
                        mach_port_t *out_ports,
                        uint32_t out_ports_cnt,
                        errno_t err)
@@ -118,21 +116,6 @@ static void send_reply(mach_msg_header_t *request,
     /* storing syscall result */
     reply.result = result;
     reply.err = err;
-    
-    /* validating payload */
-    reply.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-    
-    if(payload &&
-       payload_len > 0)
-    {
-        /* creating ool descriptor */
-        reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        reply.ool.address = payload;
-        reply.ool.copy = MACH_MSG_VIRTUAL_COPY;
-        reply.ool.size = payload_len;
-        reply.ool.deallocate = TRUE;
-        reply.body.msgh_descriptor_count = 1;
-    }
     
     /* validating ports */
     reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
@@ -180,11 +163,10 @@ static void* syscall_worker_thread(void *ctx)
         /* clear errno */
         errno_t err = 0;
         int64_t result = 0;
-        uint8_t *out_payload = NULL;
-        uint32_t out_len = 0;
         mach_port_t *out_ports = NULL;
         uint32_t out_ports_cnt = 0;
         const char *name = NULL;
+        task_t task = MACH_PORT_NULL;
         
         /* nullifying the buffer */
         memset(&buffer, 0, sizeof(buffer));
@@ -218,6 +200,15 @@ static void* syscall_worker_thread(void *ctx)
             goto cleanup;
         }
         
+        /* getting task port */
+        ksurface_return_t ksr = task_for_proc(proc_copy->proc, TASK_KERNEL_PORT, &task);
+        
+        /* checking return */
+        if(ksr != SURFACE_SUCCESS)
+        {
+            task = MACH_PORT_NULL;
+        }
+        
         /* getting the syscall handler the kernel virtualisation layer previously has set */
         syscall_handler_t handler = NULL;
         
@@ -238,16 +229,15 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(proc_copy, req->args, req->ool.address, req->ool.size, &out_payload, &out_len, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+        result = handler(task, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
         
     cleanup:
 
-        /* deallocate what the guest requested via input buffer (i.e SYS_SETHOSTNAME) (avoiding memory leaks is a extremely good idea ^^) */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)req->ool.address, req->ool.size);
+        /* deallocate what the guest requested via input ports (avoiding port leaks is a extremely good idea ^^) */
         vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
         
         /* destroying copy of process */
-        if(proc_copy != NULL)
+        if(proc_copy != NULL && err != ENOSYS)
         {
             /* check for errno and log if errno is indeed set */
             if(err != 0)
@@ -258,8 +248,14 @@ static void* syscall_worker_thread(void *ctx)
             proc_copy_destroy(proc_copy);
         }
         
+        /* checking task */
+        if(task != MACH_PORT_NULL)
+        {
+            mach_port_deallocate(mach_task_self(), task);
+        }
+        
         /* reply !!!AFTER!!! deallocation */
-        send_reply(&buffer.header, result, out_payload, out_len, out_ports, out_ports_cnt, err);
+        send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
     }
     
     return NULL;

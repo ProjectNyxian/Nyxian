@@ -24,7 +24,6 @@
 syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_kill",           .sysnum = SYS_kill,         .hndl = GET_SYSCALL_HANDLER(kill)           },
     { .name = "SYS_bamset",         .sysnum = SYS_bamset,       .hndl = GET_SYSCALL_HANDLER(bamset)         },
-    { .name = "SYS_proctb",         .sysnum = SYS_proctb,       .hndl = GET_SYSCALL_HANDLER(proctb)         },
     { .name = "SYS_setuid",         .sysnum = SYS_setuid,       .hndl = GET_SYSCALL_HANDLER(setuid)         },
     { .name = "SYS_seteuid",        .sysnum = SYS_seteuid,      .hndl = GET_SYSCALL_HANDLER(seteuid)        },
     { .name = "SYS_setgid",         .sysnum = SYS_setgid,       .hndl = GET_SYSCALL_HANDLER(setgid)         },
@@ -38,13 +37,12 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_geteuid",        .sysnum = SYS_geteuid,      .hndl = GET_SYSCALL_HANDLER(geteuid)        },
     { .name = "SYS_getgid",         .sysnum = SYS_getgid,       .hndl = GET_SYSCALL_HANDLER(getgid)         },
     { .name = "SYS_getegid",        .sysnum = SYS_getegid,      .hndl = GET_SYSCALL_HANDLER(getegid)        },
-    { .name = "SYS_gethostname",    .sysnum = SYS_gethostname,  .hndl = GET_SYSCALL_HANDLER(gethostname)    },
-    { .name = "SYS_sethostname",    .sysnum = SYS_sethostname,  .hndl = GET_SYSCALL_HANDLER(sethostname)    },
     { .name = "SYS_gettask",        .sysnum = SYS_gettask,      .hndl = GET_SYSCALL_HANDLER(gettask)        },
     { .name = "SYS_signexec",       .sysnum = SYS_signexec,     .hndl = GET_SYSCALL_HANDLER(signexec)       },
     { .name = "SYS_procpath",       .sysnum = SYS_procpath,     .hndl = GET_SYSCALL_HANDLER(procpath)       },
-    { .name = "SYS_procbsd",        .sysnum = SYS_procbsd,      .hndl = GET_SYSCALL_HANDLER(procbsd)        },
     { .name = "SYS_handoffep",      .sysnum = SYS_handoffep,    .hndl = GET_SYSCALL_HANDLER(handoffep)      },
     { .name = "SYS_getsid",         .sysnum = SYS_getsid,       .hndl = GET_SYSCALL_HANDLER(getsid)         },
-    { .name = "SYS_setsid",         .sysnum = SYS_setsid,       .hndl = GET_SYSCALL_HANDLER(setsid)         }
+    { .name = "SYS_setsid",         .sysnum = SYS_setsid,       .hndl = GET_SYSCALL_HANDLER(setsid)         },
+    { .name = "SYS_sysctl",         .sysnum = SYS_sysctl,       .hndl = GET_SYSCALL_HANDLER(sysctl)         },
+    { .name = "SYS_sysctlbyname",   .sysnum = SYS_sysctlbyname, .hndl = GET_SYSCALL_HANDLER(sysctlbyname)   }
 };

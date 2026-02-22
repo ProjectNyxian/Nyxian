@@ -88,7 +88,7 @@ force_not_inherite_entitlements:
     /* FIXME: argv[0] shall be used for p_comm and not the last path component */
     const char *name = strrchr(path, '/');
     name = name ? name + 1 : path;
-    strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
+    strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN + 1);
     
     /* insert will retain the child process */
     if(proc_insert(child) != SURFACE_SUCCESS)

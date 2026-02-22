@@ -109,16 +109,12 @@ void syscall_client_destroy(syscall_client_t *client)
  */
 int64_t syscall_invoke(syscall_client_t *client,
                        uint32_t syscall_num,
-                       int64_t args[6],
-                       void *in_payload,
-                       uint32_t in_len,
-                       void *out_payload,
-                       uint32_t *out_len,
+                       int64_t *args,
                        mach_port_t *in_ports,
                        uint32_t in_ports_cnt,
+                       mach_msg_type_name_t in_type,
                        mach_port_t **out_ports,
-                       uint32_t out_ports_cnt,
-                       mach_port_t recv)
+                       uint32_t out_ports_cnt)
 {
     /* null pointer check */
     if(client == NULL)
@@ -149,40 +145,17 @@ int64_t syscall_invoke(syscall_client_t *client,
         memcpy(buffer.req.args, args, sizeof(buffer.req.args));
     }
     
-    /* checking for payload, if present creating ool descriptor */
-    buffer.req.ool.type = MACH_MSG_OOL_DESCRIPTOR;
-    
-    if(in_payload &&
-       in_len > 0)
-    {
-        /* creating ool descriptor */
-        buffer.req.body.msgh_descriptor_count = 1;
-        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.ool.address = in_payload;
-        buffer.req.ool.copy = MACH_MSG_VIRTUAL_COPY;
-        buffer.req.ool.size = in_len;
-    }
-    
     /* checking for mach ports, if present creating ool descriptor for mach ports */
     buffer.req.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
     
     if(in_ports &&
        in_ports_cnt > 0)
     {
-        buffer.req.body.msgh_descriptor_count = 2;
+        buffer.req.body.msgh_descriptor_count = 1;
         buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.oolp.disposition = MACH_MSG_TYPE_MOVE_SEND;
+        buffer.req.oolp.disposition = in_type;
         buffer.req.oolp.address = in_ports;
         buffer.req.oolp.count = in_ports_cnt;
-        buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
-    }
-    else if(recv)
-    {
-        buffer.req.body.msgh_descriptor_count = 2;
-        buffer.req.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
-        buffer.req.oolp.disposition = MACH_MSG_TYPE_MOVE_RECEIVE;
-        buffer.req.oolp.address = &recv;
-        buffer.req.oolp.count = 1;
         buffer.req.oolp.copy = MACH_MSG_PHYSICAL_COPY;
     }
     
@@ -199,21 +172,6 @@ int64_t syscall_invoke(syscall_client_t *client,
     if(kr != KERN_SUCCESS)
     {
         return -1;
-    }
-    
-    /* payload validation & copying it to user allocated memory */
-    if(buffer.reply.ool.address != VM_MIN_ADDRESS)
-    {
-        /* copying reply, but without out_len no copy! */
-        if(out_len != NULL)
-        {
-            uint32_t copy_len = (*out_len < buffer.reply.ool.size) ? *out_len : buffer.reply.ool.size;
-            memcpy(out_payload, (void*)(buffer.reply.ool.address), copy_len);
-            *out_len = buffer.reply.ool.size;
-        }
-        
-        /* deallocating that nasty mess */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)buffer.reply.ool.address, buffer.reply.ool.size);
     }
     
     /* checking for output ports */

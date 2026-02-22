@@ -29,7 +29,8 @@ DEFINE_HOOK(gethostname, int, (char *name,
     /* casting length */
     uint32_t len32 = (uint32_t)len;
     
-    int retval = (int)environment_syscall(SYS_gethostname, name, &len32);
+    int mib[2] = { CTL_KERN, KERN_HOSTNAME };
+    int retval = (int)environment_syscall(SYS_sysctl, mib, name, &len32, NULL, NULL);
     
     /* null terminating string */
     name[len32] = '\0';
@@ -45,7 +46,7 @@ DEFINE_HOOK(sethostname, int, (char *name,
     uint32_t len32 = (uint32_t)len;
     
     /* calling ksurface syscall server */
-    return (int)environment_syscall(SYS_sethostname, (void*)name, len32);
+    return (int)environment_syscall(SYS_sethostname, name, len32);
 }
 
 void environment_hostname_init(void)

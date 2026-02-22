@@ -17,11 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_SETHOSTNAME_H
-#define SURFACE_SYS_SETHOSTNAME_H
+#ifndef SURFACE_SYSCTL_H
+#define SURFACE_SYSCTL_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_SYSCALL_HANDLER(sethostname);
+DEFINE_SYSCALL_HANDLER(sysctl);
+DEFINE_SYSCALL_HANDLER(sysctlbyname);
 
-#endif /* SURFACE_SYS_SETHOSTNAME_H */
+#endif /* SURFACE_SYSCTL_H */

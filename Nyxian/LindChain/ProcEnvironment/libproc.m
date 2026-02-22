@@ -41,7 +41,8 @@ DEFINE_HOOK(proc_listallpids, int, (void *buffer,
     kinfo_proc_t kp[PROC_MAX];
     uint32_t len = sizeof(kp);
     
-    environment_syscall(SYS_proctb, &kp, &len);
+    int mib[3] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL };
+    environment_syscall(SYS_sysctl, mib, 3, &kp, &len);
     
     size_t count = (uint32_t)(len / sizeof(kinfo_proc_t));
     

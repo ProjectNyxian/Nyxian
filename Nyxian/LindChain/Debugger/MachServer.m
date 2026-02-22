@@ -615,18 +615,23 @@ void* ktfp_exception_self_server(void *arg)
     // Our task is the target, the exception port as the receive side of the kernel exception messages, the mask is basically controlling to what our exception server reacts to
     task_t task = mach_task_self();
     mach_port_t exceptionPort = MACH_PORT_NULL;
-    exception_mask_t  mask = EXC_MASK_BAD_ACCESS | EXC_MASK_BAD_INSTRUCTION | EXC_MASK_ARITHMETIC | EXC_MASK_SOFTWARE | EXC_MASK_BREAKPOINT | EXC_MASK_CRASH;
+    exception_mask_t  mask = EXC_MASK_BREAKPOINT;
     
     if(arg == NULL)
     {
         // Allocating mach port and setting it up with our process
         mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &exceptionPort);
         mach_port_insert_right(task, exceptionPort, exceptionPort, MACH_MSG_TYPE_MAKE_SEND);
+        
         task_set_exception_ports(task, mask, exceptionPort, EXCEPTION_DEFAULT, ARM_THREAD_STATE64);
         
         environment_syscall(SYS_handoffep, exceptionPort);
         
         __builtin_trap();
+        
+        mach_port_deallocate(mach_task_self(), exceptionPort);
+        task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
+        
         return NULL;
     }
     else
@@ -706,8 +711,6 @@ void* ktfp_exception_self_server(void *arg)
         struct arm64_thread_full_state *state = thread_save_state_arm64(request->thread.name);
         state->thread.__pc += 4;
         thread_restore_state_arm64(request->thread.name, state);
-        
-        task_set_exception_ports(request->task.name, EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
         
         kr = KERN_SUCCESS;
         

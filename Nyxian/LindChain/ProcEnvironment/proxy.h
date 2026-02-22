@@ -39,9 +39,6 @@ extern syscall_client_t *syscallProxy;
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 int64_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject);
 
-/// Gets process table
-void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt);
-
 /// Signs a MachO at a given path
 void environment_proxy_sign_macho(NSString *path);
 

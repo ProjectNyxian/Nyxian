@@ -78,17 +78,31 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     
     *task = proc->kproc.task;
     
+    kern_return_t kr = KERN_SUCCESS;
+    
     if(proc != kernel_proc_)
     {
         /* getting flavour */
-        kern_return_t kr = task_get_special_port(*task, flavour, task);
+        kr = task_get_special_port(*task, flavour, task);
         
         if(kr != KERN_SUCCESS)
         {
-            task_unlock();
-            kvo_release(proc);
-            return SURFACE_FAILED;
+            goto out_byebye;
         }
+    }
+    else
+    {
+        /* crafting new reference */
+        kr = mach_port_mod_refs(mach_task_self(), *task, MACH_PORT_RIGHT_SEND, 1);
+    }
+    
+    /* sanity check */
+    if(kr != KERN_SUCCESS)
+    {
+out_byebye:
+        task_unlock();
+        kvo_release(proc);
+        return SURFACE_FAILED;
     }
     
     task_unlock();

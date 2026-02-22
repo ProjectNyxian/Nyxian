@@ -123,8 +123,8 @@ DEFINE_SYSCALL_HANDLER(gettask)
     }
     
     /* getting flavour */
-    task_t task = MACH_PORT_NULL;
-    ksurface_return_t ksr = task_for_proc(target, TASK_KERNEL_PORT, &task);
+    task_t exportTask = MACH_PORT_NULL;
+    ksurface_return_t ksr = task_for_proc(target, TASK_KERNEL_PORT, &exportTask);
     
     if(ksr != SURFACE_SUCCESS)
     {
@@ -135,7 +135,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     
     /* getting port type */
     mach_port_type_t type;
-    kern_return_t kr = mach_port_type(mach_task_self(), task, &type);
+    kern_return_t kr = mach_port_type(mach_task_self(), exportTask, &type);
     
     /* checking if port is valid in the first place */
     if(kr != KERN_SUCCESS ||
@@ -144,26 +144,16 @@ DEFINE_SYSCALL_HANDLER(gettask)
     {
         /* no rights to the task name? */
         errnov = ESRCH;
-        goto out_proc_release_failure;
+        goto out_destroy_task_port;
     }
     
     /* checking if pid of task port is valid */
-    kr = pid_for_task(task, &pid);
+    kr = pid_for_task(exportTask, &pid);
     if(kr != KERN_SUCCESS ||
        pid != proc_getpid(target))
     {
         errnov = ESRCH;
-        goto out_proc_release_failure;
-    }
-    
-    /* retaining port (so we as the kernel dont loose it) */
-    kr = mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
-    
-    /* mach return check */
-    if(kr != KERN_SUCCESS)
-    {
-        errnov = ESRCH;
-        goto out_proc_release_failure;
+        goto out_destroy_task_port;
     }
     
     /* allocating syscall payload */
@@ -172,19 +162,20 @@ DEFINE_SYSCALL_HANDLER(gettask)
     /* mach return check */
     if(kr != KERN_SUCCESS)
     {
-        mach_port_deallocate(mach_task_self(), task);
         errnov = ENOMEM;
-        goto out_proc_release_failure;
+        goto out_destroy_task_port;
     }
     
     /* set task port to be send */
-    (*out_ports)[0] = task;
+    (*out_ports)[0] = exportTask;
     *out_ports_cnt = 1;
     
     task_unlock();
     kvo_release(target);
     sys_return;
     
+out_destroy_task_port:
+    mach_port_deallocate(mach_task_self(), exportTask);
 out_proc_release_failure:
     kvo_release(target);
 out_unlock_failure:

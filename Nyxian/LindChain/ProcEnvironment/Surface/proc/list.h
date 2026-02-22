@@ -23,16 +23,26 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 typedef enum {
-    PROC_VIS_NONE = 0,  /* allows a process to see nothing, usually used as error */
-    PROC_VIS_SAME_SID,  /* allows a process to see processes with the same sid */
-    PROC_VIS_SAME_UID,  /* allows a process to see processes with the same uid */
-    PROC_VIS_ALL,       /* allows a process to see all processes */
+    PROC_VIS_NONE = 0,      /* allows a process to see nothing, usually used as error */
+    PROC_VIS_SAME_SID = 1,  /* allows a process to see processes with the same sid */
+    PROC_VIS_SAME_UID = 2,  /* allows a process to see processes with the same uid */
+    PROC_VIS_ALL = 3,       /* allows a process to see all processes */
 } proc_visibility_t;
+
+typedef enum {
+    PROC_FLV_ALL = 0,
+    PROC_FLV_SID = 1,
+    PROC_FLV_UID = 2,
+    PROC_FLV_RUID = 3,
+    PROC_FLV_PID = 4
+} proc_flavour_t;
 
 /* Radix tree context */
 typedef struct {
     ksurface_proc_copy_t *caller;
     proc_visibility_t vis;
+    proc_flavour_t flavour;
+    pid_t dsid;
     uint32_t count;
     kinfo_proc_t *kp;
 } proc_list_radix_walker_t;
@@ -40,9 +50,10 @@ typedef struct {
 /* Side quests xD */
 proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller);
 bool can_see_process(ksurface_proc_copy_t *caller, ksurface_proc_t *target, proc_visibility_t vis);
+bool is_flavour_matching(ksurface_proc_t *target, proc_flavour_t flavour, pid_t dsid);
 static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
-ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy, kinfo_proc_t **kp, uint32_t *count);
+ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy, kinfo_proc_t **kp, uint32_t *count, proc_flavour_t flavour, pid_t dsid);
 
 #endif /* PROC_COPYLIST_H */

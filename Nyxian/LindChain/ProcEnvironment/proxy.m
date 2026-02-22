@@ -93,21 +93,6 @@ int64_t environment_proxy_spawn_process_at_path(NSString *path,
     });
 }
 
-// FIXME: Frida, fix those two following garbage syscall wrappers
-void environment_proxy_getproctable(kinfo_proc_t **pt, uint32_t *pt_cnt)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    
-    kinfo_proc_t kp[PROC_MAX];
-    uint32_t len = sizeof(kp);
-    
-    environment_syscall(SYS_proctb, &kp, &len);
-    
-    *pt = malloc(len);
-    memcpy(*pt, kp, len);
-    *pt_cnt = (uint32_t)(len / sizeof(kinfo_proc_t));
-}
-
 void environment_proxy_sign_macho(NSString *path)
 {
     environment_must_be_role(EnvironmentRoleGuest);

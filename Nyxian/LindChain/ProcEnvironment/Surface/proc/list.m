@@ -66,6 +66,27 @@ bool can_see_process(ksurface_proc_copy_t *caller,
     }
 }
 
+bool is_flavour_matching(ksurface_proc_t *target,
+                         proc_flavour_t flavour,
+                         pid_t dsid)
+{
+    switch(flavour)
+    {
+        case PROC_FLV_ALL:
+            return true;
+        case PROC_FLV_UID:
+            return dsid == proc_geteuid(target);
+        case PROC_FLV_SID:
+            return dsid == proc_getsid(target);
+        case PROC_FLV_RUID:
+            return dsid == proc_getruid(target);
+        case PROC_FLV_PID:
+            return dsid == proc_getruid(target);
+        default:
+            return false;
+    }
+}
+
 void copy_proc_to_user(ksurface_proc_t *proc,
                        kinfo_proc_t *kp)
 {
@@ -93,7 +114,8 @@ void proc_list_radix_walker_callback(pid_t pid,
     kvo_rdlock(proc);
     
     
-    if(can_see_process(w->caller, proc, w->vis))
+    if(can_see_process(w->caller, proc, w->vis) &&
+       is_flavour_matching(proc, w->flavour, w->dsid))
     {
         copy_proc_to_user(proc, &(w->kp[w->count++]));
     }
@@ -104,7 +126,9 @@ void proc_list_radix_walker_callback(pid_t pid,
 
 ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
                             kinfo_proc_t **kp,
-                            uint32_t *count)
+                            uint32_t *count,
+                            proc_flavour_t flavour,
+                            pid_t dsid)
 {
     /* sanity check */
     if(proc_copy == NULL ||
@@ -139,6 +163,8 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
     w->vis = get_proc_visibility(proc_copy);
     w->kp = malloc(sizeof(kinfo_proc_t) * ksurface->proc_info.proc_count);
     w->count = 0;
+    w->flavour = flavour;
+    w->dsid = dsid;
     
     /*
      * now inboking the special functionality of the radix tree

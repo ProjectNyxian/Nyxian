@@ -25,15 +25,11 @@
 #import <stdarg.h>
 
 enum kESysType {
-    kESysTypeInLen = 0,
-    kESysTypeOutLen = 1,
-    kESysTypeIn = 2,
-    kESysTypeOut = 3,
-    kESysTypeNum = 4,
-    kESysTypePortIn = 5,
-    kESysTypePortOut = 6,
-    kESysTypeRecvPortIn = 7,
-    kESysTypeFDIn = 8,
+    kESysTypeNum = 0,
+    kESysTypePortIn = 1,
+    kESysTypePortOut = 2,
+    kESysTypeRecvPortIn = 3,
+    kESysTypeFDIn = 4,
 };
 
 typedef struct {
@@ -46,23 +42,14 @@ typedef struct {
 
 /* internal definitions of kESysType */
 #define T_NUM   kESysTypeNum
-#define T_IN    kESysTypeIn
-#define T_INLEN kESysTypeInLen
-#define T_OUT   kESysTypeOut
-#define T_OLEN  kESysTypeOutLen
 #define T_PIN   kESysTypePortIn
 #define T_POUT  kESysTypePortOut
 #define T_RPIN  kESysTypeRecvPortIn
 #define T_FIN   kESysTypeFDIn
 
 env_sys_entry_t sys_env_entries[] = {
-    SYS_ENTRY(SYS_proctb,      T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_gethostname, T_OUT,  T_OLEN, T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_sethostname, T_IN,   T_INLEN,T_NUM,  T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_gettask,     T_NUM,  T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_procpath,    T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_procbsd,     T_NUM,  T_OUT,  T_OLEN, T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_handoffep,   T_RPIN, T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
@@ -100,21 +87,12 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     /* ending parse */
     va_end(args);
     
-    /* building argument buffer */
-    
     /* port shit */
     mach_port_t in_ports[6] = {};
     mach_port_t *out_ports[6] = {};
     uint32_t in_ports_cnt = 0;
     uint32_t out_ports_cnt = 0;
-    
-    /* payload shit */
-    void *in_payload = NULL;
-    uint32_t in_len = 0;
-    void *out_payload = NULL;
-    uint32_t *out_len = NULL;
-    
-    mach_port_t recv_port = MACH_PORT_NULL;
+    mach_msg_type_name_t type = MACH_MSG_TYPE_MOVE_SEND;
     
     /* decoding payloads if applicable */
     const env_sys_entry_t *entry = find_syscall_entry(syscall_num);
@@ -130,18 +108,6 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
             /* decoding type for type */
             switch(entry->type[a])
             {
-                case kESysTypeInLen:
-                    in_len = (uint32_t)val;
-                    break;
-                case kESysTypeOutLen:
-                    out_len = (uint32_t *)val;
-                    break;
-                case kESysTypeIn:
-                    in_payload = (void *)val;
-                    break;
-                case kESysTypeOut:
-                    out_payload = (void *)val;
-                    break;
                 case kESysTypePortIn:
                     in_ports[in_ports_cnt++] = (mach_port_t)val;
                     break;
@@ -149,7 +115,8 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
                     out_ports[out_ports_cnt++] = (mach_port_t *)val;
                     break;
                 case kESysTypeRecvPortIn:
-                    recv_port = (mach_port_t)val;
+                    in_ports[in_ports_cnt++] = (mach_port_t)val;
+                    type = MACH_MSG_TYPE_MOVE_RECEIVE;
                     break;
                 case kESysTypeFDIn:
                 {
@@ -168,5 +135,5 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     }
     
     /* invoking syscall */
-    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_payload, in_len, out_payload, out_len, in_ports, in_ports_cnt, out_ports, out_ports_cnt, recv_port);
+    return syscall_invoke(syscallProxy, syscall_num, sys_args, in_ports, in_ports_cnt, type, out_ports, out_ports_cnt);
 }

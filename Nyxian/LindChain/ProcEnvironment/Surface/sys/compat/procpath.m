@@ -26,15 +26,18 @@ DEFINE_SYSCALL_HANDLER(procpath)
     /* syscall wrapper */
     sys_name("SYS_procpath");
     
+    /* prepare arguments */
     pid_t pid = (pid_t)args[0];
+    userspace_pointer_t buffer_ptr = (userspace_pointer_t)args[1];
+    userspace_pointer_t size_ptr = (userspace_pointer_t)args[2];
     
     /* getting process */
-    ksurface_proc_t *proc = NULL;
-    ksurface_return_t ret = proc_for_pid(pid, &proc);
+    ksurface_proc_t *target = NULL;
+    ksurface_return_t ret = proc_for_pid(pid, &target);
     
     /* sanity check */
     if(ret != SURFACE_SUCCESS ||
-       proc == NULL)
+       target == NULL)
     {
         sys_return_failure(EINVAL);
     }
@@ -43,42 +46,43 @@ DEFINE_SYSCALL_HANDLER(procpath)
     proc_visibility_t vis = get_proc_visibility(sys_proc_copy_);
     
     /* permission check */
-    if(!can_see_process(sys_proc_copy_, proc, vis))
+    if(!can_see_process(sys_proc_copy_, target, vis))
     {
-        kvo_release(proc);
+        kvo_release(target);
         sys_return_failure(EINVAL);
     }
     
     /* locking process read */
-    kvo_rdlock(proc);
+    kvo_rdlock(target);
+    
+    size_t size = 0;
+    if(!mach_syscall_copy_in(task, sizeof(size_t), &size, size_ptr))
+    {
+        kvo_release(target);
+        sys_return_failure(EINVAL);
+    }
+    
+    size_t buflen = strnlen(target->kproc.kcproc.nyx.executable_path, PATH_MAX - 1) + 1;
+    
+    if(buflen > PATH_MAX)
+    {
+        kvo_unlock(target);
+        kvo_release(target);
+        sys_return_failure(EFAULT);
+    }
     
     /*
      * getting output layout lenght. We have to add 1 more so the
      * nullterminator gets copied with it.
      */
-    *out_len = (uint32_t)strnlen(proc->kproc.kcproc.nyx.executable_path, PATH_MAX - 1) + 1;
-    
-    /* sanity check output lenght */
-    if(*out_len > PATH_MAX)
+    if(!mach_syscall_copy_out(task, buflen, target->kproc.kcproc.nyx.executable_path, buffer_ptr))
     {
-        kvo_unlock(proc);
-        kvo_release(proc);
+        kvo_unlock(target);
+        kvo_release(target);
         sys_return_failure(EFAULT);
     }
     
-    /* copying buffer into mach syscall payload */
-    kern_return_t kr = mach_syscall_payload_create(proc->kproc.kcproc.nyx.executable_path, *out_len, (vm_address_t*)out_payload);
-    
-    /* doneee x3 */
-    kvo_unlock(proc);
-    kvo_release(proc);
-    
-    if(kr == KERN_SUCCESS)
-    {
-        sys_return;
-    }
-    else
-    {
-        sys_return_failure(EFAULT);
-    }
+    kvo_unlock(target);
+    kvo_release(target);
+    sys_return;
 }
