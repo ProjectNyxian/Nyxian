@@ -260,10 +260,15 @@ static void* syscall_worker_thread(void *ctx)
             proc_copy_destroy(proc_copy);
         }
         
-        /* checking task */
+        /* checking task and thread */
         if(task != MACH_PORT_NULL)
         {
             mach_port_deallocate(mach_task_self(), task);
+        }
+        
+        if(thread != MACH_PORT_NULL)
+        {
+            mach_port_deallocate(mach_task_self(), thread);
         }
         
         /* reply !!!AFTER!!! deallocation */
