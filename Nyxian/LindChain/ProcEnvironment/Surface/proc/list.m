@@ -81,7 +81,7 @@ bool is_flavour_matching(ksurface_proc_t *target,
         case PROC_FLV_RUID:
             return dsid == proc_getruid(target);
         case PROC_FLV_PID:
-            return dsid == proc_getruid(target);
+            return dsid == proc_getpid(target);
         default:
             return false;
     }
