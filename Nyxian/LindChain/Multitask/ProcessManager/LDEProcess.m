@@ -238,7 +238,7 @@
                             settings.canShowAlerts = YES;
                             settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
                             settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
-                            settings.foreground = YES;
+                            settings.foreground = NO;
                             
                             settings.deviceOrientation = UIDevice.currentDevice.orientation;
                             settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
