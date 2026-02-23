@@ -181,8 +181,6 @@
                             {
                                 klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
                             }
-                            
-                            kvo_release(innerSelf.proc);
                         }
 #endif /* !JAILBREAK_ENV */
                         
@@ -371,4 +369,13 @@
     });
 }
 
+#if !JAILBREAK_ENV
+
+- (void)dealloc
+{
+    kvo_release(_proc);
+}
+        
+#endif /* JAILBREAK_ENV */
+        
 @end

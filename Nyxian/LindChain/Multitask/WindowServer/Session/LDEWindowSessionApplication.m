@@ -171,9 +171,16 @@ void UIKitFixesInit(void)
     [self.presenter deactivate];
     
     // Do it like on iOS, give application time window for background tasks
+    __weak typeof(self) weakSelf = self;
     self.backgroundEnforcementTimer = [NSTimer scheduledTimerWithTimeInterval:15.0 repeats:NO block:^(NSTimer *sender){
-        if(!self.backgroundEnforcementTimer) return;
-        [self.process suspend];
+        __strong typeof(self) innerSelf = weakSelf;
+        if(innerSelf == nil)
+        {
+            return;
+        }
+        
+        if(!innerSelf.backgroundEnforcementTimer) return;
+        [innerSelf.process suspend];
     }];
     
     os_unfair_lock_unlock(&lock);
