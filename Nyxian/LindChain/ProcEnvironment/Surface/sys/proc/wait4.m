@@ -47,7 +47,6 @@ bool wait4_proc_event_handler(kvobject_strong_t *kvo,
             ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
             /* fallthrough */
         case kvObjEventUnregister:
-            kvo_unlock(proc);
             goto out_byebye;
         case kvObjEventCustom0:
             if((payload->options & WSTOPPED) == WSTOPPED)
