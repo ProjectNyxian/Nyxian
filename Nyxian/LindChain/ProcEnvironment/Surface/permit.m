@@ -78,12 +78,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
         goto out_unlock;
     }
     
-    if(entitlementsNeeded != PEEntitlementNone &&
-       !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
-    {
-        goto out_unlock;
-    }
-    
     /* handling sid bypass */
     if(allowSessionBypass &&
        caller_uid == proc_getruid(targetProc) &&
@@ -95,10 +89,16 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     
     /* handling platform bypass */
     if(allowPlatformBypass &&
-       (caller_uid == proc_getruid(targetProc) || caller_uid == 0) &&
        entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
         allowed = YES;
+        goto out_unlock;
+    }
+    
+    if(entitlementsNeeded != PEEntitlementNone &&
+       !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
+    {
+        /* nope */
         goto out_unlock;
     }
     
@@ -106,7 +106,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     if(targetEntitlementsNeeded != PEEntitlementNone &&
        !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded))
     {
-        /* nope! */
+        /* still nope! */
         goto out_unlock;
     }
     
