@@ -22,7 +22,12 @@
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 
 BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
-                                pid_t targetPid)
+                                pid_t targetPid,
+                                BOOL allowRootBypass,
+                                BOOL allowSessionBypass,
+                                BOOL allowPlatformBypass,
+                                PEEntitlement entitlementsNeeded,
+                                PEEntitlement targetEntitlementsNeeded)
 {
     /* null pointer check */
     if(proc == NULL)
@@ -35,7 +40,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     pid_t caller_sid = proc_getsid(proc);
     
     /* if proc is root its automatically allowed */
-    if(caller_uid == 0)
+    if(allowRootBypass && caller_uid == 0)
     {
         return YES;
     }
@@ -63,14 +68,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     /* locking target process aswell */
     kvo_rdlock(targetProc);
     
-    /* checking if target process is a platformised process and therefore can only be decided at by a other process that is platformised */
-    if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
-       !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
-    {
-        /* nope! */
-        goto out_unlock;
-    }
-    
     /* getting visibility */
     proc_visibility_t vis = get_proc_visibility(proc);
     
@@ -81,9 +78,47 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
         goto out_unlock;
     }
     
-    /* checking if the process is allowed to gain permitives naturally over the target */
-    if(caller_uid == proc_getruid(targetProc) ||
+    if(entitlementsNeeded != PEEntitlementNone &&
+       !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
+    {
+        goto out_unlock;
+    }
+    
+    /* handling sid bypass */
+    if(allowSessionBypass &&
+       caller_uid == proc_getruid(targetProc) &&
        caller_sid == proc_getsid(targetProc))
+    {
+        allowed = YES;
+        goto out_unlock;
+    }
+    
+    /* handling platform bypass */
+    if(allowPlatformBypass &&
+       (caller_uid == proc_getruid(targetProc) || caller_uid == 0) &&
+       entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
+    {
+        allowed = YES;
+        goto out_unlock;
+    }
+    
+    /* checking if target got entitlement if applicable */
+    if(targetEntitlementsNeeded != PEEntitlementNone &&
+       !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded))
+    {
+        /* nope! */
+        goto out_unlock;
+    }
+    
+    /* checking if target process is a platformised process and therefore can only be decided at by a other process that is platformised */
+    if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
+       !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
+    {
+        /* still nope! */
+        goto out_unlock;
+    }
+    
+    if(caller_uid == proc_getruid(targetProc))
     {
         allowed = YES;
     }

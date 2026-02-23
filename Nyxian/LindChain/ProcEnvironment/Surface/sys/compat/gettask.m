@@ -31,24 +31,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
     pid_t pid = (pid_t)args[0];
     bool name_only = (bool)args[1];
     
-    /* check if the pid passed is the caller them selves */
-    bool isCaller = (pid == proc_getpid(sys_proc_copy_));
-    
-    /*
-     * checking if the caller process got the entitlement to
-     * use tfp or if its the caller it self requesting its
-     * own task port which is allowed in any case.
-     */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementTaskForPid) &&
-       !isCaller &&
-       !name_only)
-    {
-        sys_return_failure(EPERM);
-    }
-    
-    /* check if the pid passed is the kernel process */
-    bool isHost = (pid == proc_getpid(kernel_proc_));
-    
     /* placeholder for target process */
     ksurface_proc_t *target = NULL;
     
@@ -69,57 +51,26 @@ DEFINE_SYSCALL_HANDLER(gettask)
      */
     task_rdlock();
     
-    /*
-     * if host we can skip this crap :3
-     *
-     * and we shall skip it in that case,
-     * because I dont wanna take another reference
-     * of kernel_proc_, way too much CPU time for
-     * a fact we already know lol.
-     */
-    if(!isHost)
+    /* getting the target process */
+    ksurface_return_t ret = proc_for_pid(pid, &target);
+        
+    /* checking if successful */
+    if(ret != SURFACE_SUCCESS ||
+        target == NULL)
     {
-        /* getting the target process */
-        ksurface_return_t ret = proc_for_pid(pid, &target);
-        
-        /* checking if successful */
-        if(ret != SURFACE_SUCCESS ||
-           target == NULL)
-        {
-            errnov = ESRCH;
-            goto out_unlock_failure;
-        }
-        
-        /*
-         * checks if target gives permissions to get the task port of it self
-         * in the first place and if the process allows for it except if the
-         * caller is a special process.
-         */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform) &&
-           ((!entitlement_got_entitlement(proc_getentitlements(target), PEEntitlementGetTaskAllowed) && (!isCaller || !name_only)) ||
-            !permitive_over_pid_allowed(sys_proc_copy_, pid)))
-        {
-            errnov = EPERM;
-            goto out_proc_release_failure;
-        }
+        errnov = ESRCH;
+        goto out_unlock_failure;
     }
-    else
+        
+    /*
+     * checks if target gives permissions to get the task port of it self
+     * in the first place and if the process allows for it except if the
+     * caller is a special process.
+     */
+    if(!permitive_over_pid_allowed(sys_proc_copy_, pid, YES, YES, YES, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
     {
-        /* checking if child is entitled */
-        if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform))
-        {
-            errnov = EPERM;
-            goto out_unlock_failure;
-        }
-        
-        /* trying to retain kernel process */
-        if(!kvo_retain(kernel_proc_))
-        {
-            errnov = ESRCH;
-            goto out_unlock_failure;
-        }
-        
-        target = kernel_proc_;
+        errnov = EPERM;
+        goto out_proc_release_failure;
     }
     
     /* getting flavour */

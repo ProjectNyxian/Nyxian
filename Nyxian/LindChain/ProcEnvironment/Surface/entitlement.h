@@ -28,6 +28,9 @@
  @abstract Entitlements which are responsible for the permitives of the environment hostsided
  */
 typedef NS_OPTIONS(uint64_t, PEEntitlement) {
+    /*! No entitlements at all */
+    PEEntitlementNone                               = 0,
+    
     /*! Grants other processes with appropriate permitives to get task port of process .*/
     PEEntitlementGetTaskAllowed                     = 1ull << 0,
     
