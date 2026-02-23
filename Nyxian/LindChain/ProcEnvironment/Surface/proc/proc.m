@@ -27,12 +27,19 @@ ksurface_proc_t *kernel_proc(void)
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
 {
+    /* handle size request */
+    if(kvarr == NULL)
+    {
+        return (int64_t)sizeof(ksurface_proc_t);
+    }
+    
+    /* get our kobj */
     ksurface_proc_t *proc = (ksurface_proc_t*)kvarr[0];
     
     switch(type)
     {
         case kvObjEventInit:
-        {
+        {            
             /* nullify */
             memset(&(proc->kproc), 0, sizeof(ksurface_kproc_t));
             
@@ -56,12 +63,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         mutual_init:
             if(gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
             {
-                return false;
+                return -1;
             }
             
             pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
             
-            return true;
+            return 0;
         }
         case kvObjEventDeinit:
             klog_log(@"proc:deinit", @"[%d] deinitilizing process @ %p", proc_getpid(proc), proc);
@@ -72,6 +79,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
                 mach_port_deallocate(mach_task_self(), proc->kproc.task);
             }
         default:
-            return true;
+            return 0;
     }
 }

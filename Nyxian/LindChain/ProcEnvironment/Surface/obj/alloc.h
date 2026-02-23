@@ -22,10 +22,11 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 
-#define kvo_alloc(size, main) (void*)kvobject_alloc(size, main)
+#define kvo_alloc(main) (void*)kvobject_alloc(main)
+#define kvo_alloc_fastpath(name) (void*)kvobject_alloc(GET_KVOBJECT_MAIN_EVENT_HANDLER(name))
 #define kvo_copy(kvo) (void*)kvobject_copy((kvobject_t*)kvo)
 
-kvobject_strong_t *kvobject_alloc(size_t size, kvobject_main_event_handler_t handler);
+kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler);
 kvobject_strong_t *kvobject_copy(kvobject_t *kvo);
 
 #endif /* KVOBJECT_ALLOC_H */

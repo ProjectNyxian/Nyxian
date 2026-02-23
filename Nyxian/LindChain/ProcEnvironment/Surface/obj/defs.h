@@ -29,7 +29,7 @@
 
 #define KVEVENT_MAX 32
 
-#define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) bool kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvevent_type_t type)
+#define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) int64_t kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvevent_type_t type)
 #define GET_KVOBJECT_MAIN_EVENT_HANDLER(name) kvobject_event_handler_##name##_main
 
 typedef struct kvobject kvobject_t;
@@ -37,11 +37,11 @@ typedef struct kvobject kvobject_strong_t;
 typedef struct kvevent kvevent_t;
 typedef enum kvObjEvent kvevent_type_t;
 
-typedef bool (*kvobject_main_event_handler_t)(kvobject_t**,kvevent_type_t);
+typedef int64_t (*kvobject_main_event_handler_t)(kvobject_t**,kvevent_type_t);
 typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
 
 enum kvObjEvent {
-    kvObjEventInit = 0,
+    kvObjEventInit,
     kvObjEventDeinit,
     kvObjEventCopy,
     kvObjEventRetain,

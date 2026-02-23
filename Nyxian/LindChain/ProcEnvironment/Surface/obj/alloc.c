@@ -25,10 +25,12 @@
 #include <string.h>
 #include <assert.h>
 
-kvobject_strong_t *kvobject_alloc(size_t size,
-                                  kvobject_main_event_handler_t handler)
+kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
 {
     assert(handler != NULL);
+    
+    /* get object size first */
+    size_t size = (size_t)handler(NULL, kvObjEventInit);
     
     /*
      * first we gotta check if the size
@@ -59,7 +61,7 @@ kvobject_strong_t *kvobject_alloc(size_t size,
     
     /* checking init handler and executing if nonnull */
     if(kvo->main_handler != NULL &&
-       !kvo->main_handler(&kvo, kvObjEventInit))
+       kvo->main_handler(&kvo, kvObjEventInit) != 0)
     {
         pthread_rwlock_destroy(&(kvo->rwlock));
         free(kvo);
@@ -104,7 +106,7 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     
     /* checking init handler and executing if nonnull */
     if(kvo_dup->main_handler != NULL &&
-       !kvo_dup->main_handler(kvoarr, kvObjEventCopy))
+       kvo_dup->main_handler(kvoarr, kvObjEventCopy) != 0)
     {
         pthread_rwlock_destroy(&(kvo_dup->rwlock));
         pthread_rwlock_destroy(&(kvo_dup->event_rwlock));
