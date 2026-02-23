@@ -95,6 +95,8 @@ bool thread_restore_state_arm64(thread_act_t thread, struct arm64_thread_full_st
 void state_back_trace(struct arm64_thread_full_state *state, uint64_t maxdepth);
 
 kern_return_t task_thread_index(task_t task, thread_t target, mach_msg_type_number_t *index);
+kern_return_t task_thread_get_unique_id(thread_t thread, uint64_t *unique_id);
+kern_return_t task_thread_for_unique_id(task_t task, uint64_t unique_id, thread_t *out_thread);
 
 uint64_t get_next_pc(struct arm64_thread_full_state *state);
 bool pc_at_software_breakpoint(struct arm64_thread_full_state *state);

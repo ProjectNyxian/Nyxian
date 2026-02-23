@@ -130,6 +130,67 @@ kern_return_t task_thread_index(task_t task,
     return kr;
 }
 
+kern_return_t task_thread_get_unique_id(thread_t thread,
+                                        uint64_t *unique_id)
+{
+    if(thread == MACH_PORT_NULL || unique_id == NULL)
+    {
+        return KERN_INVALID_ARGUMENT;
+    }
+
+    thread_identifier_info_data_t info;
+    mach_msg_type_number_t count = THREAD_IDENTIFIER_INFO_COUNT;
+    kern_return_t kr = thread_info(thread, THREAD_IDENTIFIER_INFO, (thread_info_t)&info, &count);
+    if(kr != KERN_SUCCESS)
+    {
+        return kr;
+    }
+
+    *unique_id = info.thread_id;
+    return KERN_SUCCESS;
+}
+
+kern_return_t task_thread_for_unique_id(task_t task,
+                                        uint64_t unique_id,
+                                        thread_t *out_thread)
+{
+    if(task == MACH_PORT_NULL || out_thread == NULL)
+    {
+        return KERN_INVALID_ARGUMENT;
+    }
+
+    thread_act_array_t threads;
+    mach_msg_type_number_t count;
+
+    kern_return_t kr = task_threads(task, &threads, &count);
+    if(kr != KERN_SUCCESS)
+    {
+        return kr;
+    }
+
+    kern_return_t result = KERN_FAILURE;
+    *out_thread = MACH_PORT_NULL;
+
+    for(mach_msg_type_number_t i = 0; i < count; i++)
+    {
+        uint64_t tid = 0;
+        kern_return_t ikr = task_thread_get_unique_id(threads[i], &tid);
+
+        if(ikr == KERN_SUCCESS && tid == unique_id)
+        {
+            *out_thread = threads[i];
+            result = KERN_SUCCESS;
+        }
+        else
+        {
+            mach_port_deallocate(mach_task_self(), threads[i]);
+        }
+    }
+
+    vm_deallocate(mach_task_self(), (vm_address_t)threads, count * sizeof(thread_act_t));
+    return result;
+}
+
 static bool evaluate_condition(uint32_t cond,
                                uint32_t cpsr)
 {
