@@ -52,15 +52,15 @@ DEFINE_SYSCALL_HANDLER(procpath)
         sys_return_failure(EINVAL);
     }
     
-    /* locking process read */
-    kvo_rdlock(target);
-    
     size_t size = 0;
     if(!mach_syscall_copy_in(task, sizeof(size_t), &size, size_ptr))
     {
         kvo_release(target);
         sys_return_failure(EINVAL);
     }
+    
+    /* locking process read */
+    kvo_rdlock(target);
     
     size_t buflen = strnlen(target->kproc.kcproc.nyx.executable_path, PATH_MAX - 1) + 1;
     
