@@ -22,7 +22,6 @@
 
 ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
                                           kvobject_event_handler_t handler,
-                                          kvevent_type_t type,
                                           uint64_t *token,
                                           void *pld)
 {
@@ -42,7 +41,6 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     
     /* setting up event */
     event->handler = handler;
-    event->type = type;
     event->event_token = kvo->event_token_counter++;
     event->pld = pld;
     
@@ -113,23 +111,20 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
     
     pthread_rwlock_wrlock(&(kvo->event_rwlock));
     
-    if(type == kvObjEventDeinit)
+    /*
+     * execute all events in the chain and remove
+     * events that wanna be removed(return true).
+     */
+    uint8_t i = 0;
+    while(i < kvo->event_cnt)
     {
-        /* find all events and execute as deinit */
-        for(uint8_t i = 0; i < kvo->event_cnt; i++)
+        if(kvo->event[i].handler(kvo, type, value, kvo->event[i].pld))
         {
-            kvo->event[i].handler(kvo,type,value,kvo->event[i].pld);
+            kvo->event[i] = kvo->event[--kvo->event_cnt];
         }
-    }
-    else
-    {
-        /* find all events and execute */
-        for(uint8_t i = 0; i < kvo->event_cnt; i++)
+        else
         {
-            if(kvo->event[i].type == type)
-            {
-                kvo->event[i].handler(kvo,type,value,kvo->event[i].pld);
-            }
+            i++;
         }
     }
     

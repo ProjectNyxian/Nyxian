@@ -38,21 +38,31 @@ typedef struct kvevent kvevent_t;
 typedef enum kvObjEvent kvevent_type_t;
 
 typedef int64_t (*kvobject_main_event_handler_t)(kvobject_t**,kvevent_type_t);
-typedef void (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
+typedef bool (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
 
 enum kvObjEvent {
-    kvObjEventInit,
+    kvObjEventInit = 0,
     kvObjEventDeinit,
     kvObjEventCopy,
     kvObjEventRetain,
     kvObjEventRelease,
     kvObjEventInvalidate,
-    kvObjEventUnregister
+    kvObjEventUnregister,
+    kvObjEventCustom0,
+    kvObjEventCustom1,
+    kvObjEventCustom2,
+    kvObjEventCustom3,
+    kvObjEventCustom4,
+    kvObjEventCustom5,
+    kvObjEventCustom6,
+    kvObjEventCustom7,
+    kvObjEventCustom8,
+    kvObjEventCustom9,
+    kvObjEventCustom10
 };
 
 struct kvevent {
     kvobject_event_handler_t handler;
-    kvevent_type_t type;
     uint64_t event_token;
     void *pld;
 };

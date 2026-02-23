@@ -1,0 +1,155 @@
+/*
+ Copyright (C) 2025 cr4zyengineer
+
+ This file is part of Nyxian.
+
+ Nyxian is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Nyxian is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
+#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+
+typedef struct wait4_payload {
+    userspace_pointer_t status_ptr;
+    userspace_pointer_t rusage_ptr;
+    int options;
+    task_t task;
+    thread_t thread;
+} wait4_payload_t;
+
+bool wait4_proc_event_handler(kvobject_strong_t *kvo,
+                              kvevent_type_t type,
+                              uint8_t val,
+                              void *pld)
+{
+    ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
+    wait4_payload_t *payload = pld;
+    int ecode = 0;
+    
+    kvo_rdlock(proc);
+    
+    switch(type)
+    {
+        case kvObjEventDeinit:
+            ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
+            /* fallthrough */
+        case kvObjEventUnregister:
+            kvo_unlock(proc);
+            goto out_byebye;
+        case kvObjEventCustom0:
+            if((payload->options & WSTOPPED) == WSTOPPED)
+            {
+                ecode = W_STOPCODE(SIGSTOP);
+                goto out_byebye;
+            }
+            break;
+        case kvObjEventCustom1:
+            if((payload->options & WCONTINUED) == WCONTINUED)
+            {
+                ecode = W_STOPCODE(SIGCONT);
+                goto out_byebye;
+            }
+            break;
+        default:
+            return false;
+    }
+    
+    kvo_unlock(proc);
+    
+    return false;
+
+out_byebye:
+    mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
+    
+    thread_resume(payload->thread);
+    
+    mach_port_mod_refs(mach_task_self(), payload->thread, MACH_PORT_RIGHT_SEND, -1);
+    mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
+    
+    kvo_unlock(proc);
+    
+    free(payload);
+    
+    return true;
+}
+
+DEFINE_SYSCALL_HANDLER(wait4)
+{
+    sys_name("wait4");
+    
+    /* prepare arguments */
+    pid_t pid = (pid_t)args[0];
+
+    /* get process reference to target */
+    ksurface_proc_t *target;
+    ksurface_return_t ksr = proc_for_pid(pid, &target);
+    
+    if(ksr != SURFACE_SUCCESS)
+    {
+        sys_return_failure(EINVAL);
+    }
+    
+    /* checking if process is visible */
+    proc_visibility_t vis = get_proc_visibility(sys_proc_copy_);
+    
+    /* perms check */
+    if(!can_see_process(sys_proc_copy_, target, vis))
+    {
+        kvo_release(target);
+        sys_return_failure(EINVAL);
+    }
+    
+    /* creating payload */
+    wait4_payload_t *payload = malloc(sizeof(wait4_payload_t));
+    
+    if(payload == NULL)
+    {
+        kvo_release(target);
+        sys_return_failure(ENOMEM);
+    }
+    
+    mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
+    mach_port_mod_refs(mach_task_self(), thread, MACH_PORT_RIGHT_SEND, 1);
+    
+    /* stuffing payload */
+    payload->task = task;
+    payload->thread = thread;
+    payload->status_ptr = (userspace_pointer_t)args[1];
+    payload->rusage_ptr = (userspace_pointer_t)args[3];
+    payload->options = (int)args[2];
+    
+    /* suspend task */
+    kern_return_t kr = thread_suspend(thread);
+    if(kr != KERN_SUCCESS)
+    {
+        free(payload);
+        kvo_release(target);
+        sys_return_failure(EBADMSG);
+    }
+    
+    /* register event */
+    ksr = kvobject_event_register((kvobject_t*)target, wait4_proc_event_handler, NULL, payload);
+    if(ksr != SURFACE_SUCCESS)
+    {
+        thread_resume(thread);
+        free(payload);
+        kvo_release(target);
+        sys_return_failure(EAGAIN);
+    }
+    
+    kvo_release(target);
+    sys_return;
+}

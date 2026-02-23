@@ -17,6 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/Debugger/Utils.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
@@ -167,6 +168,7 @@ static void* syscall_worker_thread(void *ctx)
         uint32_t out_ports_cnt = 0;
         const char *name = NULL;
         task_t task = MACH_PORT_NULL;
+        thread_t thread = MACH_PORT_NULL;
         
         /* nullifying the buffer */
         memset(&buffer, 0, sizeof(buffer));
@@ -208,6 +210,16 @@ static void* syscall_worker_thread(void *ctx)
         {
             task = MACH_PORT_NULL;
         }
+        else
+        {
+            kr = task_thread_for_unique_id(task, req->thread, &thread);
+            if(kr != KERN_SUCCESS)
+            {
+                err = EAGAIN;
+                result = -1;
+                goto cleanup;
+            }
+        }
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */
         syscall_handler_t handler = NULL;
@@ -229,7 +241,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(task, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+        result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
         
     cleanup:
 

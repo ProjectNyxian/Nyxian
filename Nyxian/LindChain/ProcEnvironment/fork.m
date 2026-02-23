@@ -371,6 +371,7 @@ DEFINE_HOOK(_exit, void, (int code))
     }
     else
     {
+        environment_syscall(SYS_exit, code);
         return ORIG_FUNC(_exit)(code);
     }
 }
@@ -382,34 +383,9 @@ DEFINE_HOOK(exit, void, (int code))
 
 DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
                              int *ecode,
-                             int idk))
+                             int options))
 {
-    task_name_t name;
-    int64_t ret = environment_syscall(SYS_gettask, pid, true, &name);
-    
-    if(ret != 0)
-    {
-        *ecode = 1;
-        return pid;
-    }
-    
-    mach_port_t notify_port;
-    mach_port_t prev;
-    
-    mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &notify_port);
-    
-    mach_port_request_notification(mach_task_self(), name, MACH_NOTIFY_DEAD_NAME, 0, notify_port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &prev);
-    
-    struct {
-        mach_msg_header_t header;
-        mach_msg_trailer_t trailer;
-    } msg;
-    
-    mach_msg(&msg.header, MACH_RCV_MSG, 0, sizeof(msg), notify_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
-    
-    mach_port_deallocate(mach_task_self(), notify_port);
-    mach_port_deallocate(mach_task_self(), name);
-    
+    environment_syscall(SYS_wait4, pid, ecode, options);
     return pid;
 }
 

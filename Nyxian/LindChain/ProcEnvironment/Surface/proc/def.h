@@ -124,12 +124,14 @@ struct ksurface_proc {
          * which can change rapidly.
          */
         struct kcproc {
-            
             /* bsd structure of our process structure */
             kinfo_proc_t bsd;
             
             /* nyxian specific process structure */
             struct knyx_proc {
+                /* return value */
+                uint8_t ret;
+                
                 /* session identifier */
                 pid_t sid;
                 

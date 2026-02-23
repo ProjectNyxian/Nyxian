@@ -22,6 +22,6 @@
 
 #import <Foundation/Foundation.h>
 
-NSString* LCBootstrapMain(NSString *executablePath, int argc, char *argv[]);
+int LCBootstrapMain(NSString *executablePath, int argc, char *argv[]);
 
 #endif /* LIVECONTAINER_LCBOOTSTRAP_H */

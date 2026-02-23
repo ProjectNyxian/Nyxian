@@ -17,6 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/Debugger/Utils.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <stdlib.h>
@@ -119,6 +120,7 @@ int64_t syscall_invoke(syscall_client_t *client,
     /* null pointer check */
     if(client == NULL)
     {
+        errno = EAGAIN;
         return -1;
     }
     
@@ -134,6 +136,14 @@ int64_t syscall_invoke(syscall_client_t *client,
     buffer.req.header.msgh_local_port = client->reply_port;
     buffer.req.header.msgh_size = sizeof(syscall_request_t);
     buffer.req.header.msgh_id = syscall_num;
+    
+    kern_return_t kr = task_thread_get_unique_id(mach_thread_self(), &(buffer.req.thread));
+    
+    if(kr != KERN_SUCCESS)
+    {
+        errno = EAGAIN;
+        return -1;
+    }
     
     /* telling cutie patootie ksurface what syscall we wanna call ^^ */
     buffer.req.syscall_num = syscall_num;
@@ -166,7 +176,7 @@ int64_t syscall_invoke(syscall_client_t *client,
      * uses the same buffer for both operations. The receive buffer size
      * must be large enough to hold the reply plus any trailer.
      */
-    kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(syscall_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(syscall_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
     
     /* checking for succession */
     if(kr != KERN_SUCCESS)

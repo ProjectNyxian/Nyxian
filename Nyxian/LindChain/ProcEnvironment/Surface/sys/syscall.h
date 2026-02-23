@@ -36,6 +36,8 @@
 #import <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
+#import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
+#import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -50,7 +52,7 @@
 #define SYS_procbsd     758         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_handoffep   759         /* handoff exception port to kvirt */
 
-#define SYS_N 24
+#define SYS_N 26
 
 typedef struct {
     const char *name;

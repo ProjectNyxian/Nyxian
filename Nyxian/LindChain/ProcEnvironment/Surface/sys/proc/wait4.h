@@ -17,13 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_H
-#define KVOBJECT_H
+#ifndef SURFACE_SYS_WAIT4_H
+#define SURFACE_SYS_WAIT4_H
 
-#import <LindChain/ProcEnvironment/Surface/obj/defs.h>
-#import <LindChain/ProcEnvironment/Surface/obj/alloc.h>
-#import <LindChain/ProcEnvironment/Surface/obj/lock.h>
-#import <LindChain/ProcEnvironment/Surface/obj/reference.h>
-#import <LindChain/ProcEnvironment/Surface/obj/event.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#endif /* KVOBJECT_H */
+DEFINE_SYSCALL_HANDLER(wait4);
+
+#endif /* SURFACE_SYS_WAIT4_H */

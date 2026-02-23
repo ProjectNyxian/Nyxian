@@ -291,15 +291,28 @@
 - (void)sendSignal:(int)signal
 {
     if(signal == SIGSTOP)
+    {
         _isSuspended = YES;
+    }
     else if(signal == SIGCONT)
+    {
         _isSuspended = NO;
+    }
     
 #if !JAILBREAK_ENV
     [self.extension _kill:signal];
 #else
     shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);
 #endif /* !JAILBREAK_ENV */
+    
+    if(signal == SIGSTOP)
+    {
+        kvobject_event_trigger((kvobject_t*)_proc, kvObjEventCustom0, 0);
+    }
+    else if(signal == SIGCONT)
+    {
+        kvobject_event_trigger((kvobject_t*)_proc, kvObjEventCustom1, 0);
+    }
 }
 
 - (BOOL)suspend

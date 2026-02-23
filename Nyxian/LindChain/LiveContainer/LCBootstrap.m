@@ -176,12 +176,12 @@ void InsertLibrariesIfNeeded(void)
 
 NSString *LCHomePath;
 
-NSString* LCBootstrapMain(NSString *executablePath,
-                          int argc,
-                          char *argv[])
+int LCBootstrapMain(NSString *executablePath,
+                    int argc,
+                    char *argv[])
 {
     // Getting executable path from argv
-    if(executablePath == nil) return @"No executable path";
+    if(executablePath == nil) return 0;
     
     // Getting home path from envp, it is okay if its not present
 retry_getting_home:
@@ -234,10 +234,9 @@ retry_getting_home:
         appExecutableHandle = appHandle;
         const char *dlerr = dlerror();
         
-        if (!appHandle || (uint64_t)appHandle > 0xf00000000000) {
-            if (dlerr)
-                return @(dlerr);
-            return @"dlopen: an unknown error occurred";
+        if(!appHandle || (uint64_t)appHandle > 0xf00000000000 || dlerr)
+        {
+            return 0;
         }
         
         NUDGuestHooksInit();
@@ -250,9 +249,11 @@ retry_getting_home:
 
         // Find main()
         int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
-        if (!appMain)
-            return @"Could not find the main entry point";
+        if(!appMain)
+        {
+            return 0;
+        }
 
-        return [NSString stringWithFormat:@"App returned from its main function with code %d.", appMain(argc, argv)];
+        return appMain(argc, argv);
     }
 }

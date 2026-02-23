@@ -17,14 +17,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_SEM_H
-#define KVOBJECT_SEM_H
+#import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 
-#include <mach/mach.h>
-
-#import <LindChain/ProcEnvironment/Surface/return.h>
-#import <LindChain/ProcEnvironment/Surface/obj/defs.h>
-
-ksurface_return_t kvobject_register_sem(kvobject_strong_t *kvo, kvevent_type_t type, uint64_t *token, semaphore_t *sem_port);
-
-#endif /* KVOBJECT_SEM_H */
+DEFINE_SYSCALL_HANDLER(exit)
+{
+    sys_name("SYS_exit");
+    
+    kvo_rdlock(sys_proc_copy_->proc);
+    sys_proc_copy_->proc->kproc.kcproc.nyx.ret = (uint8_t)(int)args[0];
+    kvo_unlock(sys_proc_copy_->proc);
+    
+    sys_return;
+}

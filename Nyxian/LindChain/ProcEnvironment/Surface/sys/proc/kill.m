@@ -46,7 +46,7 @@ DEFINE_SYSCALL_HANDLER(kill)
        (!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessKill) ||
         !permitive_over_pid_allowed(sys_proc_copy_, pid)))
     {
-        sys_return_failure(EPERM);
+        sys_return_failure(EINVAL);
     }
 
     /* getting the processes high level structure */
@@ -57,7 +57,7 @@ DEFINE_SYSCALL_HANDLER(kill)
          * returns the same value as normal failure to prevent deterministic exploitation,
          * of process reference counting.
          */
-        sys_return_failure(EPERM);
+        sys_return_failure(EINVAL);
     }
     
     /* signaling the process */

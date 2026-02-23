@@ -170,7 +170,8 @@ void environment_init(EnvironmentRole role,
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)
         {
-            LCBootstrapMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
+            int retval = LCBootstrapMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
+            environment_syscall(SYS_exit, retval);
         }
     });
 }

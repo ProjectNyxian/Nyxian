@@ -44,5 +44,7 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_getsid",         .sysnum = SYS_getsid,       .hndl = GET_SYSCALL_HANDLER(getsid)         },
     { .name = "SYS_setsid",         .sysnum = SYS_setsid,       .hndl = GET_SYSCALL_HANDLER(setsid)         },
     { .name = "SYS_sysctl",         .sysnum = SYS_sysctl,       .hndl = GET_SYSCALL_HANDLER(sysctl)         },
-    { .name = "SYS_sysctlbyname",   .sysnum = SYS_sysctlbyname, .hndl = GET_SYSCALL_HANDLER(sysctlbyname)   }
+    { .name = "SYS_sysctlbyname",   .sysnum = SYS_sysctlbyname, .hndl = GET_SYSCALL_HANDLER(sysctlbyname)   },
+    { .name = "SYS_wait4",          .sysnum = SYS_wait4,        .hndl = GET_SYSCALL_HANDLER(wait4)          },
+    { .name = "SYS_exit",           .sysnum = SYS_exit,         .hndl = GET_SYSCALL_HANDLER(exit)           },
 };

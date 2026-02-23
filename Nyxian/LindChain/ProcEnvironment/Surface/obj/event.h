@@ -24,7 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/obj/event.h>
 #import <LindChain/ProcEnvironment/Surface/return.h>
 
-ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo, kvobject_event_handler_t handler, kvevent_type_t type, uint64_t *token, void *pld);
+ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo, kvobject_event_handler_t handler, uint64_t *token, void *pld);
 ksurface_return_t kvobject_event_unregister(kvobject_strong_t *kvo, uint64_t token);
 void kvobject_event_trigger(kvobject_strong_t *kvo, kvevent_type_t type, uint8_t value);
 
