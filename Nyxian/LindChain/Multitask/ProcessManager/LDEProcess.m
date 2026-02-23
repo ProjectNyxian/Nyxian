@@ -299,9 +299,6 @@
     
 #if !JAILBREAK_ENV
     [self.extension _kill:signal];
-#else
-    shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);
-#endif /* !JAILBREAK_ENV */
     
     if(signal == SIGSTOP)
     {
@@ -311,6 +308,9 @@
     {
         kvobject_event_trigger((kvobject_t*)_proc, kvObjEventCustom1, 0);
     }
+#else
+    shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);
+#endif /* !JAILBREAK_ENV */
 }
 
 - (BOOL)suspend

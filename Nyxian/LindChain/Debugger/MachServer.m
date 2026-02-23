@@ -610,6 +610,8 @@ void machServerInit(void)
     });
 }
 
+#if !JAILBREAK_ENV
+
 void* ktfp_exception_self_server(void *arg)
 {
     // Our task is the target, the exception port as the receive side of the kernel exception messages, the mask is basically controlling to what our exception server reacts to
@@ -747,3 +749,5 @@ task_t obtainTaskPortWithExceptionRecvRight(mach_port_t recv)
     ktfp_exception_self_server(&recv);
     return recv;
 }
+
+#endif /* !JAILBREAK_ENV */

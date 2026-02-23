@@ -70,7 +70,7 @@ ksurface_return_t kvobject_event_unregister(kvobject_strong_t *kvo,
     {
         if(kvo->event[i].event_token == token)
         {
-            event_idx = 0;
+            event_idx = i;
             event = &(kvo->event[i]);
             break;
         }
