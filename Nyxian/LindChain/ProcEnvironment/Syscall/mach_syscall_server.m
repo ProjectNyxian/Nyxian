@@ -129,7 +129,7 @@ static void send_reply(mach_msg_header_t *request,
         reply.oolp.count = out_ports_cnt;
         reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
         reply.oolp.deallocate = TRUE;
-        reply.body.msgh_descriptor_count = 2;
+        reply.body.msgh_descriptor_count = 1;
     }
     
     /* sending reply to child */
