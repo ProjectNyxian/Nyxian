@@ -212,67 +212,78 @@ static void* syscall_worker_thread(void *ctx)
         }
         else
         {
-            kr = task_thread_for_unique_id(task, req->thread, &thread);
+            kr = mach_port_mod_refs(task, req->thread, MACH_PORT_RIGHT_SEND, 1);
+            
             if(kr != KERN_SUCCESS)
             {
-                err = EAGAIN;
+                goto skip_thread_port_extraction;
+            }
+            
+            kr = mach_port_extract_right(task, req->thread, MACH_MSG_TYPE_COPY_SEND, &thread, NULL);
+            
+            if(kr != KERN_SUCCESS)
+            {
+                mach_port_mod_refs(task, req->thread, MACH_PORT_RIGHT_SEND, -1);
+                req->thread = MACH_PORT_NULL;
+                goto skip_thread_port_extraction;
+            }
+        }
+        
+    skip_thread_port_extraction:
+        {
+            /* getting the syscall handler the kernel virtualisation layer previously has set */
+            syscall_handler_t handler = NULL;
+            
+            /* checking syscall bounds */
+            if(req->syscall_num < MAX_SYSCALLS)
+            {
+                /* getting handler if bounds are valid */
+                handler = server->handlers[req->syscall_num];
+            }
+            
+            /* checking if the handler was set by the kernel virtualisation layer */
+            if(!handler)
+            {
+                klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_copy), req->syscall_num);
+                err = ENOSYS;
                 result = -1;
                 goto cleanup;
             }
-        }
-        
-        /* getting the syscall handler the kernel virtualisation layer previously has set */
-        syscall_handler_t handler = NULL;
-        
-        /* checking syscall bounds */
-        if(req->syscall_num < MAX_SYSCALLS)
-        {
-            /* getting handler if bounds are valid */
-            handler = server->handlers[req->syscall_num];
-        }
-        
-        /* checking if the handler was set by the kernel virtualisation layer */
-        if(!handler)
-        {
-            klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_copy), req->syscall_num);
-            err = ENOSYS;
-            result = -1;
-            goto cleanup;
-        }
-        
-        /* calling syscall handler */
-        result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
-        
-    cleanup:
-
-        /* deallocate what the guest requested via input ports (avoiding port leaks is a extremely good idea ^^) */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
-        
-        /* destroying copy of process */
-        if(proc_copy != NULL)
-        {
-            /* check for errno and log if errno is indeed set */
-            if(err != 0 && err != ENOSYS)
+            
+            /* calling syscall handler */
+            result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+            
+        cleanup:
+            
+            /* deallocate what the guest requested via input ports (avoiding port leaks is a extremely good idea ^^) */
+            vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
+            
+            /* destroying copy of process */
+            if(proc_copy != NULL)
             {
-                klog_log(@"syscall", @"syscall(%s) from pid %d failed (ERRNO=%s)", name, proc_getpid(proc_copy), strerror(err));
+                /* check for errno and log if errno is indeed set */
+                if(err != 0 && err != ENOSYS)
+                {
+                    klog_log(@"syscall", @"syscall(%s) from pid %d failed (ERRNO=%s)", name, proc_getpid(proc_copy), strerror(err));
+                }
+                
+                proc_copy_destroy(proc_copy);
             }
             
-            proc_copy_destroy(proc_copy);
+            /* checking task and thread */
+            if(task != MACH_PORT_NULL)
+            {
+                mach_port_deallocate(mach_task_self(), task);
+            }
+            
+            if(thread != MACH_PORT_NULL)
+            {
+                mach_port_deallocate(mach_task_self(), thread);
+            }
+            
+            /* reply !!!AFTER!!! deallocation */
+            send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
         }
-        
-        /* checking task and thread */
-        if(task != MACH_PORT_NULL)
-        {
-            mach_port_deallocate(mach_task_self(), task);
-        }
-        
-        if(thread != MACH_PORT_NULL)
-        {
-            mach_port_deallocate(mach_task_self(), thread);
-        }
-        
-        /* reply !!!AFTER!!! deallocation */
-        send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
     }
     
     return NULL;
