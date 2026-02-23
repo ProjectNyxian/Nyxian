@@ -64,7 +64,7 @@ bool wait4_proc_event_handler(kvobject_strong_t *kvo,
             }
             break;
         default:
-            return false;
+            break;
     }
     
     kvo_unlock(proc);
