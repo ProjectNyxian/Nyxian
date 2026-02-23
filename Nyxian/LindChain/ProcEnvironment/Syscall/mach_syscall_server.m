@@ -237,10 +237,10 @@ static void* syscall_worker_thread(void *ctx)
         vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
         
         /* destroying copy of process */
-        if(proc_copy != NULL && err != ENOSYS)
+        if(proc_copy != NULL)
         {
             /* check for errno and log if errno is indeed set */
-            if(err != 0)
+            if(err != 0 && err != ENOSYS)
             {
                 klog_log(@"syscall", @"syscall(%s) from pid %d failed (ERRNO=%s)", name, proc_getpid(proc_copy), strerror(err));
             }
