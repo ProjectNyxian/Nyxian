@@ -162,6 +162,13 @@ ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
     w->caller = proc_copy;
     w->vis = get_proc_visibility(proc_copy);
     w->kp = malloc(sizeof(kinfo_proc_t) * ksurface->proc_info.proc_count);
+    
+    if(w->kp == NULL)
+    {
+        free(w);
+        return SURFACE_NOMEM;
+    }
+    
     w->count = 0;
     w->flavour = flavour;
     w->dsid = dsid;
