@@ -21,6 +21,7 @@
 #define PROCENVIRONMENT_MAPPING_H
 
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#import <LindChain/ProcEnvironment/Surface/tty/def.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Surface/radix/radix.h>

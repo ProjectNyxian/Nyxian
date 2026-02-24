@@ -17,13 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef TTY_TTY_H
-#define TTY_TTY_H
+#ifndef SURFACE_SYS_IOCTL_H
+#define SURFACE_SYS_IOCTL_H
 
-#import <LindChain/ProcEnvironment/Surface/tty/def.h>
-#import <LindChain/ProcEnvironment/Surface/tty/attach.h>
-#import <LindChain/ProcEnvironment/Surface/tty/lookup.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty);
+DEFINE_SYSCALL_HANDLER(ioctl);
 
-#endif /* TTY_TTY_H */
+#endif /* SURFACE_SYS_IOCTL_H */

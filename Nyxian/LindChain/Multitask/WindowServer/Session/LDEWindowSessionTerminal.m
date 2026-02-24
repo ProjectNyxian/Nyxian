@@ -19,6 +19,7 @@
 
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <Nyxian-Swift.h>
 
 @interface LDEWindowSessionTerminal ()
@@ -56,11 +57,20 @@
     self.stdoutPipe = [NSPipe pipe];
     self.stdinPipe = [NSPipe pipe];
     
+    /*
+     * in theory creating it before the process exists,
+     * to have pipes to handoff.
+     */
+    ksurface_tty_t *tty = kvo_alloc_fastpath(tty);
+    
     FDMapObject *mapObject = [FDMapObject emptyMap];
     [mapObject insertOutFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor ErrFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor InPipe:self.stdinPipe.fileHandleForReading.fileDescriptor];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
     _process = process;
+    
+    /* attaching tty to process lifecycle */
+    tty_attach_proc(_process.proc, tty);
     
     _terminal = [[NyxianTerminal alloc] initWithFrame:self.windowRect title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
