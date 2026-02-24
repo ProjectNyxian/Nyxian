@@ -227,6 +227,12 @@ int checkCert(NSData *prov,
               void(^completionHandler)(int status, NSDate* expirationDate, NSString *error)) {
     const char* strPKeyFileData = (const char*)[key bytes];
     const char* strProvFileData = (const char*)[prov bytes];
+    
+    if(pass == nil)
+    {
+        pass = @"";
+    }
+    
     string strPassword = [pass cStringUsingEncoding:NSUTF8StringEncoding];
     
     ZLog::logs.clear();
