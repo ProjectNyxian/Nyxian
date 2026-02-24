@@ -85,9 +85,10 @@ static inline void ksurface_kinit_kinfo(void)
     }
     
     /* setting up process radix tree */
-    klog_log(@"ksurface:kinit:kinfo", @"initilizing radix tree");
+    klog_log(@"ksurface:kinit:kinfo", @"initilizing radix trees");
     ksurface->proc_info.tree.root = NULL;
     ksurface->proc_info.proc_count = 0;
+    ksurface->tty_info.tty.root = NULL;
     
     /* loading hostname from standard user defaults */
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];

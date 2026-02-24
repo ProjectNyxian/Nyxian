@@ -93,7 +93,7 @@ void copy_proc_to_user(ksurface_proc_t *proc,
     memcpy(kp, &(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t));
 }
 
-void proc_list_radix_walker_callback(pid_t pid,
+void proc_list_radix_walker_callback(uint64_t ident,
                                      void *value,
                                      void *ctx)
 {

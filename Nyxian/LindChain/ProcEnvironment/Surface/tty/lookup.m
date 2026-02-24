@@ -19,9 +19,10 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/tty/lookup.h>
+#import <LindChain/LiveContainer/Tweaks/libproc.h>
 
-ksurface_return_t tty_for_handle(uint64_t handle,
-                                 ksurface_tty_t **tty)
+ksurface_return_t tty_for_port(fileport_t port,
+                               ksurface_tty_t **tty)
 {
     /* sanity check */
     if(tty == NULL)
@@ -29,9 +30,30 @@ ksurface_return_t tty_for_handle(uint64_t handle,
         return SURFACE_NULLPTR;
     }
     
-    /* tty lookup */
+    /* getting file descriptor */
+    int fd = fileport_makefd(port);
+    
+    /* validating file descriptor */
+    if(fd < 0)
+    {
+        return SURFACE_FAILED;
+    }
+    
+    /* getting unique object pointer */
+    struct socket_fdinfo si;
+    
+    if(proc_pidfdinfo(getpid(), fd, PROC_PIDFDSOCKETINFO, &si, sizeof(si)) <= 0)
+    {
+        close(fd);
+        return SURFACE_FAILED;
+    }
+    
+    /* disposing that fd, not needed rn */
+    close(fd);
+    
+    /* tty tree lookup */
     tty_table_rdlock();
-    *tty = radix_lookup(&(ksurface->tty_info.tty), handle);
+    *tty = radix_lookup(&(ksurface->tty_info.tty), si.psi.soi_proto.pri_kern_ctl.kcsi_id);
     tty_table_unlock();
     
     /*

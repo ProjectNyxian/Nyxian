@@ -34,7 +34,7 @@ struct ksurface_tty {
     /* file descriptors */
     int masterfd;
     int slavefd;
-    uint64_t slavehandle;
+    uint32_t kslavecid;
 };
 
 #endif /* TTY_DEF_H */

@@ -21,36 +21,50 @@
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <sys/socket.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
 {
+    /* handle size request */
+    if(kvarr == NULL)
+    {
+        return (int64_t)sizeof(ksurface_tty_t);
+    }
+    
     ksurface_tty_t *tty = (ksurface_tty_t*)kvarr[0];
     
     switch(type)
     {
+        case kvObjEventCopy:
+            /* copy not supported */
+            return -1;
         case kvObjEventInit:
         {
             /* creating pipe */
             int fds[2] = {};
-            if(pipe(fds) != 0)
+            if(socketpair(AF_UNIX, SOCK_STREAM, 0, fds) != 0)
             {
                 return -1;
             }
             
-            /* getting unique handler */
-            struct pipe_fdinfo pi;
-            if(proc_pidinfo(getpid(), fds[0], PROC_PIDFDPIPEINFO, &pi, sizeof(pi)) != 0)
+            /* getting unique object pointer */
+            struct socket_fdinfo si;
+            
+            if(proc_pidfdinfo(getpid(), fds[1], PROC_PIDFDSOCKETINFO, &si, sizeof(si)) <= 0)
             {
+                /* notify me, if this happens, apple again had to change something */
                 close(fds[0]);
                 close(fds[1]);
                 return -1;
             }
             
-            tty->slavehandle = pi.pipeinfo.pipe_handle;
+            tty->kslavecid = si.psi.soi_proto.pri_kern_ctl.kcsi_id;
+            tty->masterfd = fds[0];
+            tty->slavefd = fds[1];
             
             /* inserting own tty object */
             tty_table_wrlock();
-            if(radix_insert(&(ksurface->tty_info.tty), tty->slavehandle, tty) != 0)
+            if(radix_insert(&(ksurface->tty_info.tty), tty->kslavecid, tty) != 0)
             {
                 close(fds[0]);
                 close(fds[1]);
@@ -64,9 +78,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
         case kvObjEventDeinit:
             klog_log(@"tty:deinit", @"deinitilizing tty @ %p", tty);
             
+            close(tty->masterfd);
+            close(tty->slavefd);
+            
             /* removing own tty object */
             tty_table_wrlock();
-            radix_remove(&(ksurface->tty_info.tty), tty->slavehandle);
+            radix_remove(&(ksurface->tty_info.tty), tty->kslavecid);
             tty_table_unlock();
             
             /* fallthrough */
@@ -76,4 +93,3 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
     
     return 0;
 }
-

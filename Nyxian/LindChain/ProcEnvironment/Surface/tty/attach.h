@@ -17,12 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef TTY_LOOKUP_H
-#define TTY_LOOKUP_H
+#ifndef TTY_ATTACH_H
+#define TTY_ATTACH_H
 
 #import <LindChain/ProcEnvironment/Surface/tty/def.h>
-#import <LindChain/Private/mach/fileport.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-ksurface_return_t tty_for_port(fileport_t port, ksurface_tty_t **tty);
+ksurface_return_t tty_attach_proc(ksurface_proc_t *proc, ksurface_tty_t *tty);
 
-#endif /* TTY_LOOKUP_H */
+#endif /* TTY_ATTACH_H */

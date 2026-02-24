@@ -243,6 +243,7 @@
 				LindChain/ProcEnvironment/Surface/sys/proc/kill.m,
 				LindChain/ProcEnvironment/Surface/sys/proc/wait4.m,
 				LindChain/ProcEnvironment/Surface/sys/syscall.m,
+				LindChain/ProcEnvironment/Surface/tty/attach.m,
 				LindChain/ProcEnvironment/Surface/tty/lookup.m,
 				LindChain/ProcEnvironment/Surface/tty/tty.m,
 				LindChain/ProcEnvironment/syscall.m,
