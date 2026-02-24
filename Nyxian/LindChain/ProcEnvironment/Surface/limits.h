@@ -20,6 +20,8 @@
 #ifndef PROCENVIRONMENT_LIMITS_H
 #define PROCENVIRONMENT_LIMITS_H
 
+#include <stdint.h>
+
 /*
  * im sorry if you complain about the
  * amount of maximum processes, dont
@@ -39,6 +41,6 @@
  * the maximum count of pid that the
  * radix tree supports.
  */
-#define PID_MAX 1048575
+#define PID_MAX UINT64_MAX
 
 #endif /* PROCENVIRONMENT_LIMITS_H */

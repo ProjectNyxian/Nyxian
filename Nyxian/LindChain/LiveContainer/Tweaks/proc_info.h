@@ -4,6 +4,7 @@
 
 #define PROX_FDTYPE_VNODE       1
 #define PROC_PIDFDVNODEPATHINFO         2
+#define PROC_PIDFDPIPEINFO              6
 
 #define PROC_PIDLISTFDS                 1
 
@@ -63,5 +64,17 @@ struct vnode_fdinfowithpath {
     struct vnode_info_path  pvip;
 };
 
+struct pipe_info {
+    struct vinfo_stat       pipe_stat;
+    uint64_t                pipe_handle;
+    uint64_t                pipe_peerhandle;
+    int                     pipe_status;
+    int                     rfu_1;
+};
+
+struct pipe_fdinfo {
+    struct proc_fileinfo    pfi;
+    struct pipe_info        pipeinfo;
+};
 
 #endif

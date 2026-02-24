@@ -21,7 +21,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <Nyxian-Swift.h>
+#import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import "bridge.h"
+#import <fcntl.h>
 
 #if !JAILBREAK_ENV
 

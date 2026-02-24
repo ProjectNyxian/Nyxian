@@ -20,9 +20,9 @@
 #ifndef RADIX_CONFIG_H
 #define RADIX_CONFIG_H
 
-#define RADIX_BITS   5
-#define RADIX_SIZE   32
-#define RADIX_MASK   0x1F
-#define RADIX_LEVELS 4
+#define RADIX_BITS   8
+#define RADIX_SIZE   256
+#define RADIX_MASK   0xFF
+#define RADIX_LEVELS 8
 
 #endif /* RADIX_CONFIG_H */
