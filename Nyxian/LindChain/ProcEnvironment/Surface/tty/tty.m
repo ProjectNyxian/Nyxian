@@ -25,6 +25,133 @@
 #import <sys/poll.h>
 #include <stdio.h>
 
+static int pump_master_to_slave(ksurface_tty_t *tty,
+                                int m,
+                                int s)
+{
+    ssize_t n = read(m, tty->buf, sizeof(tty->buf));
+    if(n <= 0)
+    {
+        return -1;
+    }
+    
+    /* handling return to newline translation */
+    if(tty->t.c_iflag & ICRNL)
+    {
+        for(ssize_t i = 0; i < n; i++)
+        {
+            if(tty->buf[i] == '\r')
+            {
+                tty->buf[i] = '\n';
+            }
+        }
+    }
+    
+    /* the inverse of the previous translation */
+    else if(tty->t.c_iflag & INLCR)
+    {
+        for(ssize_t i = 0; i < n; i++)
+        {
+            if(tty->buf[i] == '\n')
+                tty->buf[i] = '\r';
+        }
+    }
+    
+    /* remove em all flag lol */
+    if(tty->t.c_iflag & IGNCR)
+    {
+        ssize_t new_n = 0;
+        for(ssize_t i = 0; i < n; i++)
+        {
+            if(tty->buf[i] != '\r')
+            {
+                tty->buf[new_n++] = tty->buf[i];
+            }
+        }
+        n = new_n;
+    }
+    
+    ssize_t off = 0;
+    while(off < n)
+    {
+        ssize_t w = write(s, tty->buf + off, n - off);
+        if(w <= 0)
+        {
+            return -1;
+        }
+        off += w;
+    }
+    
+    
+    return 0;
+}
+
+static int pump_slave_to_master(ksurface_tty_t *tty,
+                                int m,
+                                int s)
+{
+    ssize_t n = read(s, tty->buf, sizeof(tty->buf));
+    ssize_t new_n = 0;
+    if(n <= 0)
+    {
+        return -1;
+    }
+    
+    if(!(tty->t.c_oflag & OPOST))
+    {
+        goto write_out;
+    }
+    
+    for(ssize_t i = 0; i < n; i++)
+    {
+        uint8_t c = tty->buf[i];
+        
+        if(c == '\n')
+        {
+            /* very common flag that will fix the terminal inbuilt post process lol */
+            if(tty->t.c_oflag & ONLCR)
+            {
+                tty->obuf[new_n++] = '\r';
+                tty->obuf[new_n++] = '\n';
+                continue;
+            }
+        }
+        else if(c == '\r')
+        {
+            /* translate return to newline */
+            if(tty->t.c_oflag & OCRNL)
+            {
+                tty->obuf[new_n++] = '\n';
+                continue;
+            }
+            
+            
+            if((tty->t.c_oflag & ONOCR) && tty->ws.ws_col == 0)
+            {
+                continue;
+            }
+        }
+        
+        tty->obuf[new_n++] = c;
+    }
+    
+write_out:
+    {
+        const uint8_t *out = (uint8_t*)((tty->t.c_oflag & OPOST) ? tty->obuf : tty->buf);
+        ssize_t out_n = (tty->t.c_oflag & OPOST) ? new_n : n;
+        
+        ssize_t off = 0;
+        while(off < out_n)
+        {
+            ssize_t w = write(m, out + off, out_n - off);
+            if(w <= 0) return -1;
+            off += w;
+        }
+    }
+    
+    return 0;
+}
+
 static void *tty_pump_thread(void *arg)
 {
     ksurface_tty_t *tty = arg;
@@ -32,67 +159,32 @@ static void *tty_pump_thread(void *arg)
     int m = tty->core_masterfd;
     int s = tty->core_slavefd;
 
-    struct pollfd fds[2];
+    struct pollfd fds[2] = {
+        { .fd = m, .events = POLLIN },
+        { .fd = s, .events = POLLIN },
+    };
 
-    while (tty->alive)
+    while(tty->alive)
     {
-        fds[0].fd = m;
-        fds[0].events = POLLIN;
-
-        fds[1].fd = s;
-        fds[1].events = POLLIN;
-
         int r = poll(fds, 2, -1);
-        
-        if(r < 0)
-        {
-            perror("poll");
-            continue;
-        }
-        else if(r == 0)
+        if(r <= 0)
         {
             continue;
         }
 
         if(fds[0].revents & POLLIN)
         {
-            char buf[4096];
-            ssize_t n = read(m, buf, sizeof(buf));
-            if(n <= 0)
+            if(pump_master_to_slave(tty, m, s) < 0)
             {
                 break;
-            }
-
-            ssize_t off = 0;
-            while(off < n)
-            {
-                ssize_t w = write(s, buf + off, n - off);
-                if(w <= 0)
-                {
-                    break;
-                }
-                off += w;
             }
         }
 
         if(fds[1].revents & POLLIN)
         {
-            char buf[4096];
-            ssize_t n = read(s, buf, sizeof(buf));
-            if(n <= 0)
+            if(pump_slave_to_master(tty, m, s) < 0)
             {
                 break;
-            }
-
-            ssize_t off = 0;
-            while(off < n)
-            {
-                ssize_t w = write(m, buf + off, n - off);
-                if(w <= 0)
-                {
-                    break;
-                }
-                off += w;
             }
         }
     }
@@ -117,6 +209,9 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             return -1;
         case kvObjEventInit:
         {
+            /* zero object out! */
+            bzero(((char*)tty) + sizeof(kvobject_t), sizeof(ksurface_tty_t) - sizeof(kvobject_t));
+            
             /* creating pipe */
             if(socketpair(AF_UNIX, SOCK_STREAM, 0, tty->masterfds) != 0)
             {

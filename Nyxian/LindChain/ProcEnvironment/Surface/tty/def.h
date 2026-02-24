@@ -23,13 +23,17 @@
 #import <LindChain/ProcEnvironment/Surface/obj/kvobject.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <limits.h>
-#include    <unistd.h>
+#include <unistd.h>
+#include <termios.h>
 
 typedef struct ksurface_tty ksurface_tty_t;
 
 struct ksurface_tty {
     /* object header */
     kvobject_t header;
+    
+    /* process */
+    ksurface_proc_t *proc;
     
     /* raw private ksurface api fds */
     int masterfds[2];
@@ -47,6 +51,13 @@ struct ksurface_tty {
     /* the thread */
     pthread_t pump_thread;
     int alive;
+    
+    /* the properties */
+    struct termios t;
+    struct winsize ws;
+    
+    char buf[4096];
+    char obuf[8192];
 };
 
 #endif /* TTY_DEF_H */

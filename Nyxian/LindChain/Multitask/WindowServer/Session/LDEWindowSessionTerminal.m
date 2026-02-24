@@ -59,6 +59,25 @@
      * to have pipes to handoff.
      */
     ksurface_tty_t *tty = kvo_alloc_fastpath(tty);
+    
+    /* setting tty properties */
+    kvo_wrlock(tty);
+    tty->t.c_iflag = ICRNL /*| IXON | BRKINT | INPCK | ISTRIP*/;
+    tty->t.c_oflag = OPOST | ONLCR;
+    /*tty->t.c_cflag = CS8 | CREAD | CLOCAL;
+    tty->t.c_lflag = ICANON | ECHO | ECHOE | ECHOK | ISIG | IEXTEN;
+    tty->t.c_cc[VINTR]  = 0x03;
+    tty->t.c_cc[VQUIT]  = 0x1C;
+    tty->t.c_cc[VERASE] = 0x7F;
+    tty->t.c_cc[VKILL]  = 0x15;
+    tty->t.c_cc[VEOF]   = 0x04;
+    tty->t.c_cc[VSUSP]  = 0x1A;
+    tty->t.c_cc[VSTART] = 0x11;
+    tty->t.c_cc[VSTOP]  = 0x13;
+    tty->t.c_cc[VMIN]   = 1;
+    tty->t.c_cc[VTIME]  = 0;*/
+    kvo_unlock(tty);
+    
     kvo_retain(tty);
     _tty = tty;
     

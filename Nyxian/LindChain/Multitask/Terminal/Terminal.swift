@@ -56,19 +56,8 @@ import UIKit
             let data = fileHandle.availableData
             guard !data.isEmpty else { return }
             
-            let fixed = data.reduce(into: [UInt8]()) { buffer, byte in
-                var byte = byte
-                if byte == 0x0A {
-                    buffer.append(0x0D)
-                } else if byte == 0x0D {
-                    byte = 0x0A
-                    buffer.append(0x0D)
-                }
-                buffer.append(byte)
-            }
-            
             DispatchQueue.main.async {
-                self.feed(byteArray: fixed[...])
+                self.feed(byteArray: ArraySlice<UInt8>(data))
             }
         }
     }
