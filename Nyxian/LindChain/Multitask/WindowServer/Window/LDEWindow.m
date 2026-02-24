@@ -202,9 +202,9 @@
         if (!self.focusView) return;
         self.session.isFocused = YES;
         
-        [self.windowBar changeFocus:true];
-        
         [self.view.superview bringSubviewToFront:self.view];
+        
+        [self.windowBar changeFocus:true];
 
         [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
             self->_focusView.alpha = 0.0;
