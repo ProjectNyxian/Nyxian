@@ -28,7 +28,11 @@ bool tty_proc_event_handler(kvobject_strong_t *kvo,
     switch(type)
     {
         case kvObjEventDeinit:
+        {
+            ksurface_tty_t *tty = (ksurface_tty_t*)pld;
+            kvo_release(tty);
             return true;
+        }
         default:
             return false;
     }
