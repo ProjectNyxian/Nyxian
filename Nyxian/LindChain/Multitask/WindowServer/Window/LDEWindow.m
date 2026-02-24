@@ -169,6 +169,7 @@
 - (void)unfocusWindow
 {
     if (_focusView != nil) return;
+    self.session.isFocused = NO;
     
     [self.windowBar changeFocus:false];
     
@@ -191,12 +192,6 @@
         [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self->_focusView.alpha = 0.12;
             self->_focusView.transform = CGAffineTransformIdentity;
-            
-            // Smooth background color transition
-            [UIView transitionWithView:self->_navigationBar duration:0.11 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-                self->_windowBar.backgroundColor = UIColor.grayColor;
-            } completion:nil];
-            
         } completion:nil];
     });
 }
@@ -205,6 +200,7 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!self.focusView) return;
+        self.session.isFocused = YES;
         
         [self.windowBar changeFocus:true];
         
@@ -213,11 +209,6 @@
         [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
             self->_focusView.alpha = 0.0;
             self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
-
-            [UIView transitionWithView:self->_navigationBar duration:0.11 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-                self->_windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
-            } completion:nil];
-
         } completion:^(BOOL finished) {
             [self->_focusView removeFromSuperview];
             self->_focusView = nil;
@@ -619,8 +610,6 @@
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
     [super traitCollectionDidChange:previousTraitCollection];
-    
-    // Fixes that the color doesnt change when the user changes to dark/light mode
     self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
 }
 

@@ -91,10 +91,6 @@ void UIKitFixesInit(void)
     /* registering to window */
     [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
-    /* fixing keyboard issues */
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-    
     /* initilize lock */
     lock = OS_UNFAIR_LOCK_INIT;
     
@@ -104,9 +100,6 @@ void UIKitFixesInit(void)
 - (BOOL)closeWindow
 {
     [super closeWindow];
-    
-    /* fixing keyboard issues */
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     /* invalidate presenter */
     [_presenter invalidate];
@@ -303,70 +296,6 @@ void UIKitFixesInit(void)
             settings.userInterfaceStyle = self.traitCollection.userInterfaceStyle;
         }];
     }
-    
-    os_unfair_lock_unlock(&lock);
-}
-
-- (void)keyboardWillShow:(NSNotification *)notification
-{
-    os_unfair_lock_lock(&lock);
-    
-    NSDictionary *info = notification.userInfo;
-    CGRect keyboardFrame = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    
-    CGFloat bottomInset = keyboardFrame.size.height;
-    
-    if(![self.process.processHandle isValid] || self.process.isSuspended)
-    {
-        os_unfair_lock_unlock(&lock);
-        return;
-    }
-    
-    [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-        UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
-        currentInsets.bottom = bottomInset;
-        
-        
-        settings.safeAreaInsetsPortrait = currentInsets;
-        settings.safeAreaInsetsLandscapeLeft = currentInsets;
-        settings.safeAreaInsetsLandscapeRight = currentInsets;
-        settings.safeAreaInsetsPortraitUpsideDown = currentInsets;
-    }];
-    
-    isKeyboardShown = true;
-    
-    os_unfair_lock_unlock(&lock);
-}
-
-- (void)keyboardWillHide:(NSNotification *)notification
-{
-    os_unfair_lock_lock(&lock);
-    
-    if(![self.process.processHandle isValid] || self.process.isSuspended)
-    {
-        os_unfair_lock_unlock(&lock);
-        return;
-    }
-    
-    [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-        UIEdgeInsets currentInsets = settings.safeAreaInsetsPortrait;
-        
-        if(self.isFullscreen)
-        {
-            currentInsets.bottom = LDEWindowServer.shared.safeAreaInsets.bottom;
-        }
-        else
-        {
-            currentInsets.bottom = 0;
-        }
-        
-        settings.safeAreaInsetsPortrait = currentInsets;
-        settings.safeAreaInsetsLandscapeLeft = currentInsets;
-        settings.safeAreaInsetsLandscapeRight = currentInsets;
-        settings.safeAreaInsetsPortraitUpsideDown = currentInsets;
-    }];
-    
-    isKeyboardShown = false;
     
     os_unfair_lock_unlock(&lock);
 }
