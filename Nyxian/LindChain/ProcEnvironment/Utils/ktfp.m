@@ -140,15 +140,6 @@ task_t ktfp(obtain_token_t token)
         klog_log(@"ktfp", @"verified port %d is a IKOT_TASK port (means owning the task basically entirely)", request->task.name);
     }
     
-    /* its a task port, now increment its send right so we wont loose it */
-    kr = mach_port_mod_refs(mach_task_self(), request->task.name, MACH_PORT_RIGHT_SEND, 1);
-    
-    if(kr != KERN_SUCCESS)
-    {
-        klog_log(@"ktfp", @"failed to increment reference count, cant safely claim it");
-        goto out_destroy_recv;
-    }
-    
     /* now manipulate thread state */
     arm_thread_state64_t state;
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
