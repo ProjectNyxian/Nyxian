@@ -17,11 +17,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LINDCHAIN_DEBUGGER_MACHSERVER_H
-#define LINDCHAIN_DEBUGGER_MACHSERVER_H
+#ifndef KTFP_KTFP_H
+#define KTFP_KTFP_H
 
 #include <mach/mach.h>
 
-void machServerInit(void);
+#define KTFP_GUEST  0
+#define KTFP_AQUIRE_FROM_RECV(recv) recv
 
-#endif /* LINDCHAIN_DEBUGGER_MACHSERVER_H */
+typedef mach_port_t obtain_token_t;
+
+task_t ktfp(obtain_token_t token);
+
+#endif /* KTFP_KTFP_H */

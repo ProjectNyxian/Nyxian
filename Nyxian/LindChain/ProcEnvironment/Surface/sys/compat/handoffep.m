@@ -21,7 +21,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/Debugger/MachServer.h>
+#import <LindChain/ProcEnvironment/Utils/ktfp.h>
 #import <pthread.h>
 
 typedef struct {
@@ -33,7 +33,7 @@ void *dothework(void *work)
 {
     khandoffep_t *hep = (khandoffep_t*)work;
     
-    task_t task = obtainTaskPortWithExceptionRecvRight(hep->ep);
+    task_t task = ktfp(KTFP_AQUIRE_FROM_RECV(hep->ep));
     klog_log(@"handoffep:helper", @"got task kernel port right: %d", task);
     
     if(!kvo_retain(hep->proc))

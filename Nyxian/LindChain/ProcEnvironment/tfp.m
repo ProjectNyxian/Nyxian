@@ -22,10 +22,10 @@
 #import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/litehook/litehook.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <mach/mach.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/Debugger/MachServer.h>
-#import <sys/utsname.h>
+#import <LindChain/ProcEnvironment/Utils/ktfp.h>
+#import <mach/mach.h>
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
                                        pid_t pid,
@@ -81,7 +81,7 @@ void environment_tfp_init(void)
     if(environment_is_role(EnvironmentRoleGuest))
     {
         /* sending our task port to the task port system */
-        ktfp_setup();
+        ktfp(KTFP_GUEST);
         
         /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
