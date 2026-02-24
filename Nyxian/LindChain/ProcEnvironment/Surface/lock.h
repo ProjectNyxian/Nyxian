@@ -24,6 +24,10 @@
 #define proc_table_wrlock() pthread_rwlock_wrlock(&(ksurface->proc_info.struct_lock))
 #define proc_table_unlock() pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock))
 
+#define tty_table_rdlock() pthread_rwlock_rdlock(&(ksurface->tty_info.struct_lock))
+#define tty_table_wrlock() pthread_rwlock_wrlock(&(ksurface->tty_info.struct_lock))
+#define tty_table_unlock() pthread_rwlock_unlock(&(ksurface->tty_info.struct_lock))
+
 #define host_rdlock() pthread_rwlock_rdlock(&(ksurface->host_info.struct_lock))
 #define host_wrlock() pthread_rwlock_wrlock(&(ksurface->host_info.struct_lock))
 #define host_unlock() pthread_rwlock_unlock(&(ksurface->host_info.struct_lock))

@@ -24,15 +24,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-static inline int radix_chunk(pid_t pid,
+static inline int radix_chunk(uint64_t ident,
                               int level)
 {
     int shift = (RADIX_LEVELS - 1 - level) * RADIX_BITS;
-    return(pid >> shift) & RADIX_MASK;
+    return(ident >> shift) & RADIX_MASK;
 }
 
 void *radix_lookup(radix_tree_t *tree,
-                   pid_t pid)
+                   uint64_t ident)
 {
     radix_node_t *node = tree->root;
     
@@ -43,7 +43,7 @@ void *radix_lookup(radix_tree_t *tree,
             return NULL;
         }
         
-        int chunk = radix_chunk(pid, level);
+        int chunk = radix_chunk(ident, level);
         node = (radix_node_t *)node->slots[chunk];
     }
     
@@ -52,12 +52,12 @@ void *radix_lookup(radix_tree_t *tree,
         return NULL;
     }
     
-    int chunk = radix_chunk(pid, RADIX_LEVELS - 1);
+    int chunk = radix_chunk(ident, RADIX_LEVELS - 1);
     return node->slots[chunk];
 }
 
 int radix_insert(radix_tree_t *tree,
-                 pid_t pid,
+                 uint64_t ident,
                  void *value)
 {
     if(tree->root == NULL)
@@ -69,7 +69,7 @@ int radix_insert(radix_tree_t *tree,
     
     for(int level = 0; level < RADIX_LEVELS - 1; level++)
     {
-        int chunk = radix_chunk(pid, level);
+        int chunk = radix_chunk(ident, level);
         
         if(node->slots[chunk] == NULL)
         {
@@ -79,13 +79,14 @@ int radix_insert(radix_tree_t *tree,
         node = (radix_node_t *)node->slots[chunk];
     }
     
-    int chunk = radix_chunk(pid, RADIX_LEVELS - 1);
+    int chunk = radix_chunk(ident, RADIX_LEVELS - 1);
     node->slots[chunk] = value;
     
     return 0;
 }
 
-void *radix_remove(radix_tree_t *tree, pid_t pid)
+void *radix_remove(radix_tree_t *tree,
+                   uint64_t ident)
 {
     radix_node_t *node = tree->root;
     radix_node_t *path[RADIX_LEVELS];
@@ -99,7 +100,7 @@ void *radix_remove(radix_tree_t *tree, pid_t pid)
         }
         
         path[level] = node;
-        chunks[level] = radix_chunk(pid, level);
+        chunks[level] = radix_chunk(ident, level);
         
         if(level < RADIX_LEVELS - 1)
         {
@@ -137,7 +138,7 @@ void *radix_remove(radix_tree_t *tree, pid_t pid)
 
 static void radix_walk_node(radix_node_t *node,
                             int level,
-                            pid_t pid_prefix,
+                            uint64_t ident_prefix,
                             radix_walk_fn callback,
                             void *ctx)
 {
@@ -153,15 +154,15 @@ static void radix_walk_node(radix_node_t *node,
             continue;
         }
         
-        pid_t pid = pid_prefix | (i << ((RADIX_LEVELS - 1 - level) * RADIX_BITS));
+        uint64_t ident = ident_prefix | (i << ((RADIX_LEVELS - 1 - level) * RADIX_BITS));
         
         if(level == RADIX_LEVELS - 1)
         {
-            callback(pid, node->slots[i], ctx);
+            callback(ident_prefix, node->slots[i], ctx);
         }
         else
         {
-            radix_walk_node((radix_node_t *)node->slots[i], level + 1, pid, callback, ctx);
+            radix_walk_node((radix_node_t *)node->slots[i], level + 1, ident_prefix, callback, ctx);
         }
     }
 }

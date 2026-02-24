@@ -91,6 +91,17 @@ typedef struct {
          */
         ksurface_proc_t *kern_proc;
     } proc_info;
+    
+    struct {
+        /* rwlock securing structures */
+        pthread_rwlock_t struct_lock;
+        
+        /*
+         * radix tree where all processes are
+         * listed inside.
+         */
+        radix_tree_t tty;
+    } tty_info;
 } ksurface_mapping_t;
 
 #endif /* PROCENVIRONMENT_MAPPING_H */

@@ -17,17 +17,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RADIX_H
-#define RADIX_H
+#ifndef TTY_DEF_H
+#define TTY_DEF_H
 
-#import <LindChain/ProcEnvironment/Surface/radix/type/tree.h>
-#include <stdlib.h>
+#import <LindChain/ProcEnvironment/Surface/obj/kvobject.h>
+#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#import <limits.h>
+#include    <unistd.h>
 
-typedef void (*radix_walk_fn)(uint64_t ident, void *value, void *ctx);
+typedef struct ksurface_tty ksurface_tty_t;
 
-void *radix_lookup(radix_tree_t *tree, uint64_t ident);
-int radix_insert(radix_tree_t *tree, uint64_t ident, void *value);
-void *radix_remove(radix_tree_t *tree, uint64_t ident);
-void radix_walk(radix_tree_t *tree, radix_walk_fn callback, void *ctx);
+struct ksurface_tty {
+    /* object header */
+    kvobject_t header;
+    
+    /* file descriptors */
+    int masterfd;
+    int slavefd;
+    uint64_t slavehandle;
+};
 
-#endif /* RADIX_H */
+#endif /* TTY_DEF_H */
