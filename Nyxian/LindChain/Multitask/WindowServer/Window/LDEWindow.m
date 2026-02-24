@@ -234,7 +234,7 @@
     
     self.view.layer.shadowColor = UIColor.blackColor.CGColor;
     self.view.layer.shadowOpacity = 1.0;
-    self.view.layer.shadowRadius = 6;
+    self.view.layer.shadowRadius = 12;
     self.view.layer.shadowOffset = CGSizeMake(0, 0);
     
     self.contentStack = [UIStackView new];
