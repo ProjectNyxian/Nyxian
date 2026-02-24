@@ -170,6 +170,8 @@
 {
     if (_focusView != nil) return;
     
+    [self.windowBar changeFocus:false];
+    
     _focusView = [[UIView alloc] init];
     _focusView.backgroundColor = UIColor.secondarySystemFillColor;
     _focusView.alpha = 0.0;
@@ -203,6 +205,9 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!self.focusView) return;
+        
+        [self.windowBar changeFocus:true];
+        
         [self.view.superview bringSubviewToFront:self.view];
 
         [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -229,7 +234,7 @@
     
     self.view.layer.shadowColor = UIColor.blackColor.CGColor;
     self.view.layer.shadowOpacity = 1.0;
-    self.view.layer.shadowRadius = 12;
+    self.view.layer.shadowRadius = 6;
     self.view.layer.shadowOffset = CGSizeMake(0, 0);
     
     self.contentStack = [UIStackView new];

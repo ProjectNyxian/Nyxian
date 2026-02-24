@@ -30,6 +30,9 @@
 
     BOOL _islandExpanded;
     NSTimer *_collapseTimer;
+    
+    UIView *_closeDot;
+    UIView *_maxDot;
 }
 
 - (instancetype)initWithTitle:(NSString *)title
@@ -82,53 +85,53 @@
     if(isiPad)
     {
         _islandExpanded = NO;
-
-        UIView *island = [[UIView alloc] init];
+        
+        UIVisualEffect *effect;
+        
+        if(@available(iOS 26.0, *))
+        {
+            effect = [UIGlassEffect effectWithStyle:UIGlassEffectStyleClear];
+        }
+        else
+        {
+            effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+        }
+        
+        UIVisualEffectView *island = [[UIVisualEffectView alloc] initWithEffect:effect];
         island.translatesAutoresizingMaskIntoConstraints = NO;
         island.clipsToBounds = YES;
         island.layer.cornerRadius = 26.0 / 2.0;
         island.layer.cornerCurve = kCACornerCurveContinuous;
-
-        UIBlurEffect *islandBlur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
-        UIVisualEffectView *bg = [[UIVisualEffectView alloc] initWithEffect:islandBlur];
-        bg.translatesAutoresizingMaskIntoConstraints = NO;
-        [island addSubview:bg];
-        [NSLayoutConstraint activateConstraints:@[
-            [bg.topAnchor constraintEqualToAnchor:island.topAnchor],
-            [bg.bottomAnchor constraintEqualToAnchor:island.bottomAnchor],
-            [bg.leadingAnchor constraintEqualToAnchor:island.leadingAnchor],
-            [bg.trailingAnchor constraintEqualToAnchor:island.trailingAnchor],
-        ]];
 
         [self addSubview:island];
         _buttonIsland = island;
 
         UIView *dotContainer = [[UIView alloc] init];
         dotContainer.translatesAutoresizingMaskIntoConstraints = NO;
-        [island addSubview:dotContainer];
+        [island.contentView addSubview:dotContainer];
         _dotContainer = dotContainer;
 
-        UIView *closeDot = [self _dotWithColor:UIColor.systemRedColor];
-        UIView *maxDot   = [self _dotWithColor:UIColor.systemGreenColor];
-        [dotContainer addSubview:closeDot];
-        [dotContainer addSubview:maxDot];
+        _closeDot = [self _dotWithColor:UIColor.systemRedColor];
+        _maxDot   = [self _dotWithColor:UIColor.systemGreenColor];
+        [dotContainer addSubview:_closeDot];
+        [dotContainer addSubview:_maxDot];
 
         [NSLayoutConstraint activateConstraints:@[
-            [closeDot.leadingAnchor constraintEqualToAnchor:dotContainer.leadingAnchor],
-            [closeDot.centerYAnchor constraintEqualToAnchor:dotContainer.centerYAnchor],
-            [closeDot.widthAnchor constraintEqualToConstant:9.0],
-            [closeDot.heightAnchor constraintEqualToConstant:9.0],
-            [maxDot.leadingAnchor constraintEqualToAnchor:closeDot.trailingAnchor constant:6.0],
-            [maxDot.trailingAnchor constraintEqualToAnchor:dotContainer.trailingAnchor],
-            [maxDot.centerYAnchor constraintEqualToAnchor:dotContainer.centerYAnchor],
-            [maxDot.widthAnchor constraintEqualToConstant:9.0],
-            [maxDot.heightAnchor constraintEqualToConstant:9.0],
+            [_closeDot.leadingAnchor constraintEqualToAnchor:dotContainer.leadingAnchor],
+            [_closeDot.centerYAnchor constraintEqualToAnchor:dotContainer.centerYAnchor],
+            [_closeDot.widthAnchor constraintEqualToConstant:9.0],
+            [_closeDot.heightAnchor constraintEqualToConstant:9.0],
+            [_maxDot.leadingAnchor constraintEqualToAnchor:_closeDot.trailingAnchor constant:6.0],
+            [_maxDot.trailingAnchor constraintEqualToAnchor:dotContainer.trailingAnchor],
+            [_maxDot.centerYAnchor constraintEqualToAnchor:dotContainer.centerYAnchor],
+            [_maxDot.widthAnchor constraintEqualToConstant:9.0],
+            [_maxDot.heightAnchor constraintEqualToConstant:9.0],
             [dotContainer.centerXAnchor constraintEqualToAnchor:island.centerXAnchor],
             [dotContainer.centerYAnchor constraintEqualToAnchor:island.centerYAnchor],
         ]];
 
-        UIButton *closeBtn = [self _islandButtonWithImage:@"xmark.circle.fill" callback:closeCallback];
-        UIButton *maxBtn = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" callback:maximizeCallback];
+        UIButton *closeBtn = [self _islandButtonWithImage:@"xmark.circle.fill" withBackgroundColor:UIColor.systemRedColor callback:closeCallback];
+        UIButton *maxBtn = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" withBackgroundColor:UIColor.systemGreenColor callback:maximizeCallback];
         _closeButton = closeBtn;
         _maximizeButton = maxBtn;
 
@@ -139,7 +142,7 @@
         stack.translatesAutoresizingMaskIntoConstraints = NO;
         stack.alpha = 0.0;
         stack.transform = CGAffineTransformMakeScale(0.5, 0.5);
-        [island addSubview:stack];
+        [island.contentView addSubview:stack];
         _buttonStack = stack;
 
         [NSLayoutConstraint activateConstraints:@[
@@ -161,7 +164,7 @@
 
         UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
         lp.minimumPressDuration = 0.2;
-        [island addGestureRecognizer:lp];
+        [island.contentView addGestureRecognizer:lp];
         
         UITapGestureRecognizer *bgTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleBackgroundTap:)];
         bgTap.cancelsTouchesInView = NO;
@@ -281,14 +284,17 @@
 }
 
 - (UIButton *)_islandButtonWithImage:(NSString *)name
+                 withBackgroundColor:(UIColor*)backgroundColor
                             callback:(void (^)(void))callback
 {
     UIButtonConfiguration *cfg = [UIButtonConfiguration plainButtonConfiguration];
     cfg.preferredSymbolConfigurationForImage = [UIImageSymbolConfiguration configurationWithPointSize:16 weight:UIImageSymbolWeightSemibold];
     cfg.image = [UIImage systemImageNamed:name];
+    cfg.baseForegroundColor = backgroundColor;
 
     UIButton *btn = [UIButton buttonWithConfiguration:cfg primaryAction:nil];
     btn.translatesAutoresizingMaskIntoConstraints = NO;
+    
     if(callback)
     {
         [btn addAction:[UIAction actionWithHandler:^(__kindof UIAction *a) {
@@ -297,6 +303,24 @@
         }] forControlEvents:UIControlEventTouchUpInside];
     }
     return btn;
+}
+
+- (void)changeFocus:(BOOL)focusState
+{
+    if(focusState)
+    {
+        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+            self->_closeDot.backgroundColor = UIColor.systemRedColor;
+            self->_maxDot.backgroundColor = UIColor.systemGreenColor;
+        } completion:nil];
+    }
+    else
+    {
+        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+            self->_closeDot.backgroundColor = UIColor.systemGrayColor;
+            self->_maxDot.backgroundColor = UIColor.systemGrayColor;
+        } completion:nil];
+    }
 }
 
 - (void)dealloc

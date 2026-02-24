@@ -24,12 +24,13 @@
 
 @interface LDEWindowBar : UIView
 
-@property (nonatomic, strong, readonly) UIView *buttonIsland;
+@property (nonatomic, strong, readonly) UIVisualEffectView *buttonIsland;
 
 @property (nonatomic,strong) UIButton *closeButton;
 @property (nonatomic,strong) UIButton *maximizeButton;
 
 - (instancetype)initWithTitle:(NSString*)title withCloseCallback:(void (^)(void))closeCallback withMaximizeCallback:(void (^)(void))maximizeCallback;
+- (void)changeFocus:(BOOL)focusState;
 
 @end
 
