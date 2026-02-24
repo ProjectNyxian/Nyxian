@@ -27,12 +27,14 @@
 
     NSLayoutConstraint *_islandWidthConstraint;
     NSLayoutConstraint *_islandHeightConstraint;
+    NSLayoutConstraint *_windowBarHeightConstraint;
 
     BOOL _islandExpanded;
     NSTimer *_collapseTimer;
     
     UIView *_closeDot;
     UIView *_maxDot;
+    UIView *_safeAreaFill;
 }
 
 - (instancetype)initWithTitle:(NSString *)title
@@ -47,7 +49,19 @@
 
     BOOL isiPad  = (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad);
     CGFloat barH = isiPad ? 38.0 : 50.0;
+    
+    _safeAreaFill = [[UIView alloc] init];
+    _safeAreaFill.translatesAutoresizingMaskIntoConstraints = NO;
+    _safeAreaFill.backgroundColor = UIColor.quaternarySystemFillColor;
+    [self addSubview:_safeAreaFill];
 
+    [NSLayoutConstraint activateConstraints:@[
+        [_safeAreaFill.topAnchor constraintEqualToAnchor:self.topAnchor],
+        [_safeAreaFill.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
+        [_safeAreaFill.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
+        [_safeAreaFill.heightAnchor constraintEqualToConstant:0],
+    ]];
+    
     UIBlurEffect *blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blur];
     blurView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -71,11 +85,13 @@
     border.backgroundColor = UIColor.systemGray3Color;
     [self addSubview:border];
     _bottomBorder = border;
+    
+    _windowBarHeightConstraint = [self.heightAnchor constraintEqualToConstant:barH];
+    _windowBarHeightConstraint.active = YES;
 
     [NSLayoutConstraint activateConstraints:@[
         [titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
-        [titleLabel.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-        [self.heightAnchor constraintEqualToConstant:barH],
+        [titleLabel.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-19.0],
         [border.heightAnchor constraintEqualToConstant:0.5],
         [border.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
         [border.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
@@ -320,6 +336,28 @@
             self->_closeDot.backgroundColor = UIColor.systemGrayColor;
             self->_maxDot.backgroundColor = UIColor.systemGrayColor;
         } completion:nil];
+    }
+}
+
+- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated
+{
+    CGFloat safeTop = self.window.safeAreaInsets.top;
+    CGFloat baseHeight = 38.0;
+
+    CGFloat newHeight = fullscreen ? baseHeight + safeTop : baseHeight;
+
+    void (^changes)(void) = ^{
+        self->_windowBarHeightConstraint.constant = newHeight;
+        [self layoutIfNeeded];
+    };
+
+    if(animated)
+    {
+        [UIView animateWithDuration:0.3 animations:changes];
+    }
+    else
+    {
+        changes();
     }
 }
 

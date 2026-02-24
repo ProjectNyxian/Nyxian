@@ -32,6 +32,8 @@
 - (instancetype)initWithTitle:(NSString*)title withCloseCallback:(void (^)(void))closeCallback withMaximizeCallback:(void (^)(void))maximizeCallback;
 - (void)changeFocus:(BOOL)focusState;
 
+- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+
 @end
 
 #endif /* LDEWINDOWBAR_H */

@@ -1160,7 +1160,7 @@ static const NSInteger kTagShineView = 7777;
     /* checking if maximised */
     if(window.isMaximized)
     {
-        return allowed;
+        return self.bounds;
     }
     else
     {

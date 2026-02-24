@@ -334,6 +334,8 @@
     
     if(self.isMaximized)
     {
+        [self.windowBar setFullscreen:NO animated:YES];
+        
         self.isMaximized = NO;
         self.session.isFullscreen = NO;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
@@ -358,6 +360,8 @@
     }
     else
     {
+        [self.windowBar setFullscreen:YES animated:YES];
+        
         self.isMaximized = YES;
         self.session.isFullscreen = YES;
         CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
