@@ -241,7 +241,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL: (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+        result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL : (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
         
     cleanup:
 

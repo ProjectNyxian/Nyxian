@@ -50,7 +50,8 @@ typedef struct {
 env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_gettask,     T_NUM,  T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
     SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_handoffep,   T_RPIN, T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_handoffep,   T_RPIN, T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_ioctl,       T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */
@@ -92,7 +93,7 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
     mach_port_t *out_ports[6] = {};
     uint32_t in_ports_cnt = 0;
     uint32_t out_ports_cnt = 0;
-    mach_msg_type_name_t type = MACH_MSG_TYPE_MOVE_SEND;
+    mach_msg_type_name_t type = MACH_MSG_TYPE_COPY_SEND;
     
     /* decoding payloads if applicable */
     const env_sys_entry_t *entry = find_syscall_entry(syscall_num);
@@ -121,10 +122,14 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
                 case kESysTypeFDIn:
                 {
                     fileport_t fileport = MACH_PORT_NULL;
-                    kern_return_t kr = fileport_makeport((int)val, &fileport);
-                    if(kr == KERN_SUCCESS)
+                    if(fileport_makeport((int)val, &fileport) == 0)
                     {
                         in_ports[in_ports_cnt++] = fileport;
+                    }
+                    else
+                    {
+                        errno = EINVAL;
+                        return -1;
                     }
                     break;
                 }

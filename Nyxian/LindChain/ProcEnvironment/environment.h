@@ -34,6 +34,7 @@
 #import <LindChain/ProcEnvironment/application.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/ProcEnvironment/sysctl.h>
+#import <LindChain/ProcEnvironment/ioctl.h>
 #import <LindChain/ProcEnvironment/fork.h>
 #import <LindChain/ProcEnvironment/cred.h>
 #import <LindChain/ProcEnvironment/hostname.h>

@@ -35,7 +35,8 @@
 
 void debugger_loop(thread_t thread, struct arm64_thread_full_state *state)
 {
-    int shouldEcho = isatty(STDIN_FILENO);
+    struct termios termios;
+    int shouldEcho = environment_syscall(SYS_ioctl, STDIN_FILENO, TIOCGETA, &termios) == 0;
     
     if(shouldEcho)
     {

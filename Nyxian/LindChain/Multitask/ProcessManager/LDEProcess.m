@@ -373,7 +373,10 @@
 
 - (void)dealloc
 {
-    kvo_release(_proc);
+    if(_proc != NULL)
+    {
+        kvo_release(_proc);
+    }
 }
         
 #endif /* JAILBREAK_ENV */

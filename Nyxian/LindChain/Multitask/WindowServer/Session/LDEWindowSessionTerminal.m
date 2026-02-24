@@ -28,9 +28,7 @@
 @property (nonatomic) bool focused;
 @property (nonatomic) bool atExit;
 @property (nonatomic) wid_t identifier;
-
-@property (nonatomic,strong) NSPipe *stdoutPipe;
-@property (nonatomic,strong) NSPipe *stdinPipe;
+@property (nonatomic) ksurface_tty_t *tty;
 
 @end
 
@@ -54,17 +52,18 @@
     self.atExit = NO;
     
     /* using NSPipe, because file descriptors are automatically closed */
-    self.stdoutPipe = [NSPipe pipe];
-    self.stdinPipe = [NSPipe pipe];
+
     
     /*
      * in theory creating it before the process exists,
      * to have pipes to handoff.
      */
     ksurface_tty_t *tty = kvo_alloc_fastpath(tty);
+    kvo_retain(tty);
+    _tty = tty;
     
     FDMapObject *mapObject = [FDMapObject emptyMap];
-    [mapObject insertOutFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor ErrFD:self.stdoutPipe.fileHandleForWriting.fileDescriptor InPipe:self.stdinPipe.fileHandleForReading.fileDescriptor];
+    [mapObject insertOutFD:tty->slavefd ErrFD:tty->slavefd InPipe:tty->slavefd];
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
     _process = process;
@@ -72,7 +71,7 @@
     /* attaching tty to process lifecycle */
     tty_attach_proc(_process.proc, tty);
     
-    _terminal = [[NyxianTerminal alloc] initWithFrame:self.windowRect title:process.executablePath.lastPathComponent stdoutFD:self.stdoutPipe.fileHandleForReading.fileDescriptor stdinFD:self.stdinPipe.fileHandleForWriting.fileDescriptor];
+    _terminal = [[NyxianTerminal alloc] initWithFrame:self.windowRect title:process.executablePath.lastPathComponent stdoutFD:tty->masterfd stdinFD:tty->masterfd];
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
     
     __weak typeof(self) weakSelf = self;
@@ -87,7 +86,7 @@
         
         if(strongSelf.focused)
         {
-            dprintf(strongSelf.stdoutPipe.fileHandleForWriting.fileDescriptor, "\n[process exited]\n");
+            write(strongSelf->_tty->slavefd, "\n[process exited]\n", 18);
             
             strongSelf.atExit = YES;
             strongSelf.terminal.inputCallBack = ^{
@@ -167,7 +166,7 @@
     _widthConstraint.constant = rect.size.width;
     
     char *noop = "\0";
-    [_stdoutPipe.fileHandleForWriting writeData:[NSData dataWithBytes:noop length:1]];
+    write(_tty->slavefd, [[NSData dataWithBytes:noop length:1] bytes], 1);
 }
 
 - (NSString*)windowName
@@ -177,6 +176,8 @@
 
 - (void)dealloc
 {
+    kvo_release(_tty);
+    
     NSLog(@"deallocated %@", self);
 }
 

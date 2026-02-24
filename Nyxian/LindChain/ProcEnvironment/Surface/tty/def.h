@@ -31,10 +31,22 @@ struct ksurface_tty {
     /* object header */
     kvobject_t header;
     
-    /* file descriptors */
+    /* raw private ksurface api fds */
+    int masterfds[2];
+    int slavefds[2];
+    
+    /* tty core owns them */
+    int core_masterfd;
+    int core_slavefd;
+    
+    /* file descriptors for usage */
     int masterfd;
     int slavefd;
     uint32_t kslavecid;
+    
+    /* the thread */
+    pthread_t pump_thread;
+    int alive;
 };
 
 #endif /* TTY_DEF_H */

@@ -74,7 +74,7 @@ typedef struct {
     mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
-    thread_t                    thread;         /* thread index */
+    uint64_t                    thread;         /* thread index */
 } syscall_request_t;
 
 /* reply message coming from the kernel virtualization layer */

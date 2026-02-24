@@ -21,6 +21,7 @@
 #import <LindChain/ProcEnvironment/ioctl.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/litehook/litehook.h>
+#include <termios.h>
 #include <sys/ioctl.h>
 
 DEFINE_HOOK(ioctl, int, (int fd,
@@ -52,10 +53,17 @@ DEFINE_HOOK(ioctl, int, (int fd,
     return ret;
 }
 
+DEFINE_HOOK(isatty, int, (int fd))
+{
+    struct termios termios;
+    return environment_syscall(SYS_ioctl, fd, TIOCGETA, &termios) == 0;
+}
+
 void environment_ioctl_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
         DO_HOOK_GLOBAL(ioctl);
+        DO_HOOK_GLOBAL(isatty);
     }
 }
