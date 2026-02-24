@@ -64,15 +64,13 @@ task_t ktfp(obtain_token_t token)
          */
         __builtin_trap();
         
-        /* clear exception port */
-        task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
-        
     out_dealloc:
         /*
          * task kernel port has been handoffed
          * since the exception port was moved to
          * the host process we just need one dealloc.
          */
+        task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
         mach_port_deallocate(mach_task_self(), exceptionPort);
         return MACH_PORT_NULL;
     }
