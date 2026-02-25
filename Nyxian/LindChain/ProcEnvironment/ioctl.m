@@ -59,11 +59,44 @@ DEFINE_HOOK(isatty, int, (int fd))
     return environment_syscall(SYS_ioctl, fd, TIOCGETA, &termios) == 0;
 }
 
+DEFINE_HOOK(tcgetattr, int, (int fd,
+                             struct termios *t))
+{
+    return (int)environment_syscall(SYS_ioctl, fd, TIOCGETA, t);
+}
+
+DEFINE_HOOK(tcsetattr, int, (int fd,
+                             int options,
+                             struct termios *t))
+{
+    unsigned long req;
+
+    switch(options)
+    {
+        case TCSANOW:
+            req = TIOCSETA;
+            break;
+        case TCSADRAIN:
+            req = TIOCSETAW;
+            break;
+        case TCSAFLUSH:
+            req = TIOCSETAF;
+            break;
+        default:
+            errno = EINVAL;
+            return -1;
+    }
+    
+    return (int)environment_syscall(SYS_ioctl, fd, req, t);
+}
+
 void environment_ioctl_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
         DO_HOOK_GLOBAL(ioctl);
         DO_HOOK_GLOBAL(isatty);
+        DO_HOOK_GLOBAL(tcgetattr);
+        DO_HOOK_GLOBAL(tcsetattr);
     }
 }

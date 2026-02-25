@@ -188,9 +188,10 @@
     write(_tty->slavefd, [[NSData dataWithBytes:noop length:1] bytes], 1);
 }
 
-- (NSString*)windowName
+- (NSString*)getWindowName
 {
-    return [self.utilityPath lastPathComponent];
+    NSString *windowName = [super getWindowName];
+    return windowName ?: [self.utilityPath lastPathComponent];
 }
 
 - (void)dealloc

@@ -32,9 +32,6 @@ struct ksurface_tty {
     /* object header */
     kvobject_t header;
     
-    /* process */
-    ksurface_proc_t *proc;
-    
     /* raw private ksurface api fds */
     int masterfds[2];
     int slavefds[2];

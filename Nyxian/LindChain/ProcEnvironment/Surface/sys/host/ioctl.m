@@ -28,14 +28,8 @@ DEFINE_SYSCALL_HANDLER(ioctl)
     
     /* prepare arguments */
     fileport_t port = in_ports[0];
-    int flag = (int)args[1];
-    /* userspace_pointer_t termios_ptr = (userspace_pointer_t)args[2]; MARK: coming later */
-    
-    /* compatibility flag */
-    if(flag != TIOCGETA)
-    {
-        sys_return_failure(ENOSYS);
-    }
+    unsigned long flag = (unsigned long)args[1];
+    userspace_pointer_t termios_ptr = (userspace_pointer_t)args[2];
     
     /* looking up tty */
     ksurface_tty_t *tty = NULL;
@@ -47,5 +41,47 @@ DEFINE_SYSCALL_HANDLER(ioctl)
         sys_return_failure(ENOTTY);
     }
     
+    /* ioctl paths */
+    switch(flag)
+    {
+        case TIOCGETA:
+            kvo_rdlock(tty);
+            
+            if(!mach_syscall_copy_out(task, sizeof(struct termios), &(tty->t), termios_ptr))
+            {
+                goto out_fault;
+            }
+            
+            break;
+        case TIOCSETA:
+            kvo_wrlock(tty);
+            
+            /* there is no rollback from a failed copy-in */
+            struct termios temp;
+            
+            /* TODO: create locking events so that we can implement a way to stop the pumping thread */
+            if(!mach_syscall_copy_in(task, sizeof(struct termios), &(temp), termios_ptr))
+            {
+                goto out_fault;
+            }
+            
+            /* TODO: sanitize fields, dont trust user memory blindly otherwise this could lead to a panic where the tty thread parses illegal data from termios */
+            memcpy(&(tty->t), &temp, sizeof(struct termios));
+            
+            break;
+        default:
+            kvo_unlock(tty);
+            kvo_release(tty);
+            sys_return_failure(ENOSYS);
+    }
+    
+    /* mutual deinit */
+    kvo_unlock(tty);
+    kvo_release(tty);
     sys_return;
+    
+out_fault:
+    kvo_unlock(tty);
+    kvo_release(tty);
+    sys_return_failure(EFAULT);
 }

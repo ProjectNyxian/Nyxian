@@ -375,6 +375,12 @@ void UIKitFixesInit(void)
     return YES;
 }
 
+- (NSString*)getWindowName
+{
+    NSString *windowName = [super getWindowName];
+    return windowName ?: self.process.displayName;
+}
+
 - (void)dealloc
 {
     NSLog(@"deallocated %@", self);

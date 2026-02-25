@@ -29,6 +29,8 @@ static const NSInteger kTagSegmentControl = 5000;
 #import <Nyxian-Swift.h>
 #endif
 
+#import <LindChain/Multitask/WindowServer/Utils.h>
+
 static const NSInteger kTagRunningAppsScrollView = 5001;
 static const NSInteger kTagReflection = 9999;
 static const NSInteger kTagTitle = 8888;
@@ -56,13 +58,14 @@ static const NSInteger kTagShineView = 7777;
 - (instancetype)initWithWindowScene:(UIWindowScene *)windowScene
 {
     static BOOL hasInitialized = NO;
-    if (hasInitialized) {
-        @throw [NSException exceptionWithName:NSInternalInconsistencyException
-                                       reason:@"This class may only be initialized once."
-                                     userInfo:nil];
+    if(hasInitialized)
+    {
+        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:@"This class may only be initialized once." userInfo:nil];
     }
+    
     self = [super initWithWindowScene:windowScene];
-    if (self) {
+    if(self)
+    {
         _windows = [[NSMutableDictionary alloc] init];
         _windowOrder = [[NSMutableArray alloc] init];
         _activeWindowIdentifier = (wid_t)-1;
@@ -73,13 +76,13 @@ static const NSInteger kTagShineView = 7777;
         _launchpad = nil;
 #endif /* !JAILBREAK_ENV */
         
+        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+        {
+            [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
+        }
+        
         hasInitialized = YES;
-    }
-    
-    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-    {
-        [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
     }
     
     return self;
@@ -98,12 +101,6 @@ static const NSInteger kTagShineView = 7777;
 + (instancetype)shared
 {
     return [self sharedWithWindowScene:nil];
-}
-
-- (wid_t)getNextWindowIdentifier
-{
-    static wid_t windowIdentifier = 0;
-    return windowIdentifier++;
 }
 
 - (void)moveWindowToFrontWithNumber:(NSNumber *)number
@@ -200,7 +197,7 @@ static const NSInteger kTagShineView = 7777;
     __weak typeof(self) weakSelf = self;
     
     void (^openAct)(void) = ^{
-        windowIdentifier = [self getNextWindowIdentifier];
+        windowIdentifier = getNextWindowIdentifier();
         [session movedWindowToScene:self.windowScene withIdentifier:windowIdentifier];
         
         if(![session openWindow])

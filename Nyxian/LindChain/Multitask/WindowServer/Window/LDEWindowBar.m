@@ -35,6 +35,8 @@
     UIView *_closeDot;
     UIView *_maxDot;
     UIView *_safeAreaFill;
+    
+    UILabel *_titleLabel;
 }
 
 - (instancetype)initWithTitle:(NSString *)title
@@ -73,12 +75,12 @@
         [blurView.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
     ]];
 
-    UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = title;
-    titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    titleLabel.font = [UIFont systemFontOfSize:isiPad ? 13 : 17 weight:UIFontWeightSemibold];
-    [self addSubview:titleLabel];
+    _titleLabel = [[UILabel alloc] init];
+    _titleLabel.text = title;
+    _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    _titleLabel.textAlignment = NSTextAlignmentCenter;
+    _titleLabel.font = [UIFont systemFontOfSize:isiPad ? 13 : 17 weight:UIFontWeightSemibold];
+    [self addSubview:_titleLabel];
 
     UIView *border = [[UIView alloc] init];
     border.translatesAutoresizingMaskIntoConstraints = NO;
@@ -90,8 +92,8 @@
     _windowBarHeightConstraint.active = YES;
 
     [NSLayoutConstraint activateConstraints:@[
-        [titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
-        [titleLabel.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-19.0],
+        [_titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
+        [_titleLabel.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-19.0],
         [border.heightAnchor constraintEqualToConstant:0.5],
         [border.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
         [border.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
@@ -128,7 +130,7 @@
         _dotContainer = dotContainer;
 
         _closeDot = [self _dotWithColor:UIColor.systemRedColor];
-        _maxDot   = [self _dotWithColor:UIColor.systemGreenColor];
+        _maxDot = [self _dotWithColor:UIColor.systemGreenColor];
         [dotContainer addSubview:_closeDot];
         [dotContainer addSubview:_maxDot];
 
@@ -146,12 +148,10 @@
             [dotContainer.centerYAnchor constraintEqualToAnchor:island.centerYAnchor],
         ]];
 
-        UIButton *closeBtn = [self _islandButtonWithImage:@"xmark.circle.fill" withBackgroundColor:UIColor.systemRedColor callback:closeCallback];
-        UIButton *maxBtn = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" withBackgroundColor:UIColor.systemGreenColor callback:maximizeCallback];
-        _closeButton = closeBtn;
-        _maximizeButton = maxBtn;
+        _closeButton = [self _islandButtonWithImage:@"xmark.circle.fill" withBackgroundColor:UIColor.systemRedColor callback:closeCallback];
+        _maximizeButton = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" withBackgroundColor:UIColor.systemGreenColor callback:maximizeCallback];
 
-        UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[closeBtn, maxBtn]];
+        UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[_closeButton, _maximizeButton]];
         stack.axis = UILayoutConstraintAxisHorizontal;
         stack.spacing = 8;
         stack.alignment = UIStackViewAlignmentCenter;
@@ -162,12 +162,12 @@
         _buttonStack = stack;
 
         [NSLayoutConstraint activateConstraints:@[
-            [stack.centerXAnchor  constraintEqualToAnchor:island.centerXAnchor],
-            [stack.centerYAnchor  constraintEqualToAnchor:island.centerYAnchor],
-            [closeBtn.widthAnchor  constraintEqualToConstant:30.0],
-            [closeBtn.heightAnchor constraintEqualToConstant:30.0],
-            [maxBtn.widthAnchor    constraintEqualToConstant:30.0],
-            [maxBtn.heightAnchor   constraintEqualToConstant:30.0],
+            [stack.centerXAnchor constraintEqualToAnchor:island.centerXAnchor],
+            [stack.centerYAnchor constraintEqualToAnchor:island.centerYAnchor],
+            [_closeButton.widthAnchor constraintEqualToConstant:30.0],
+            [_closeButton.heightAnchor constraintEqualToConstant:30.0],
+            [_maximizeButton.widthAnchor constraintEqualToConstant:30.0],
+            [_maximizeButton.heightAnchor constraintEqualToConstant:30.0],
         ]];
 
         _islandWidthConstraint = [island.widthAnchor  constraintEqualToConstant:48.0];
@@ -232,9 +232,9 @@
         [self layoutIfNeeded];
         
         self->_buttonIsland.layer.cornerRadius = newRadius;
-        self->_dotContainer.alpha     = 0.0;
+        self->_dotContainer.alpha = 0.0;
         self->_dotContainer.transform = CGAffineTransformMakeScale(0.3, 0.3);
-        self->_buttonStack.alpha     = 1.0;
+        self->_buttonStack.alpha = 1.0;
         self->_buttonStack.transform = CGAffineTransformIdentity;
         
         self->_islandWidthConstraint.constant  = 120.0;
@@ -267,9 +267,9 @@
         [self layoutIfNeeded];
         
         self->_buttonIsland.layer.cornerRadius = collapsedRadius;
-        self->_dotContainer.alpha     = 1.0;
+        self->_dotContainer.alpha = 1.0;
         self->_dotContainer.transform = CGAffineTransformIdentity;
-        self->_buttonStack.alpha     = 0.0;
+        self->_buttonStack.alpha = 0.0;
         self->_buttonStack.transform = CGAffineTransformMakeScale(0.5, 0.5);
         
         self->_islandWidthConstraint.constant = 48.0;
@@ -359,6 +359,16 @@
     {
         changes();
     }
+}
+
+- (NSString*)getTitle
+{
+    return _titleLabel.text;
+}
+
+- (void)setTitle:(NSString *)title
+{
+    _titleLabel.text = title;
 }
 
 - (void)dealloc

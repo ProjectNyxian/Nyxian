@@ -48,7 +48,6 @@
     self = [super initWithNibName:nil bundle:nil];
     _session = session;
     _session.isFullscreen = NO;
-    _windowName = session.windowName;
     _delegate = delegate;
     
     [self setupDecoratedView:[_delegate window:self wantsToChangeToRect:[_session windowRect]]];
@@ -198,23 +197,23 @@
 
 - (void)focusWindow
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.focusView) return;
-        self.session.isFocused = YES;
-        
-        [self.view.superview bringSubviewToFront:self.view];
-        
-        [self.windowBar changeFocus:true];
-
-        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-            self->_focusView.alpha = 0.0;
-            self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
-        } completion:^(BOOL finished) {
-            [self->_focusView removeFromSuperview];
-            self->_focusView = nil;
-            [self.delegate windowWantsToFocus:self];
-        }];
-    });
+    assert([NSThread isMainThread]);
+    
+    if (!self.focusView) return;
+    self.session.isFocused = YES;
+    
+    [self.view.superview bringSubviewToFront:self.view];
+    
+    [self.windowBar changeFocus:true];
+    
+    [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self->_focusView.alpha = 0.0;
+        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+    } completion:^(BOOL finished) {
+        [self->_focusView removeFromSuperview];
+        self->_focusView = nil;
+        [self.delegate windowWantsToFocus:self];
+    }];
 }
 
 - (void)setupDecoratedView:(CGRect)dimensions
@@ -244,11 +243,12 @@
     [self.view addSubview:self.contentStack];
     
     __weak typeof(self) weakSelf = self;
-    LDEWindowBar *windowBar = [[LDEWindowBar alloc] initWithTitle:self.windowName withCloseCallback:^{
+    LDEWindowBar *windowBar = [[LDEWindowBar alloc] initWithTitle:self.session.windowName withCloseCallback:^{
         [weakSelf closeWindowWithCompletion:nil];
     } withMaximizeCallback:^{
         [weakSelf maximizeWindow:YES];
     }];
+    self.session.window = self;
     
     windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
     [self.contentStack addArrangedSubview:windowBar];
@@ -615,6 +615,16 @@
 {
     [super traitCollectionDidChange:previousTraitCollection];
     self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+}
+
+- (NSString*)getWindowName
+{
+    return _windowBar.title;
+}
+
+- (void)setWindowName:(NSString *)windowName
+{
+    _windowBar.title = windowName;
 }
 
 - (void)dealloc

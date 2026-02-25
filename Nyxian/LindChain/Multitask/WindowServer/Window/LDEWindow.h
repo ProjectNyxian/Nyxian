@@ -22,8 +22,7 @@
 
 #import "FoundationPrivate.h"
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
-
-typedef int wid_t;
+#import <LindChain/Multitask/WindowServer/Utils.h>
 
 @class LDEWindow;
 
@@ -42,7 +41,7 @@ typedef int wid_t;
 @interface LDEWindow : UIViewController <UIGestureRecognizerDelegate>
 
 @property (nonatomic) wid_t identifier;
-@property (nonatomic) NSString* windowName;
+@property (nonatomic,getter=getWindowName,setter=setWindowName:) NSString* windowName;
 @property (nonatomic) UINavigationBar *navigationBar;
 @property (nonatomic) UINavigationItem *navigationItem;
 @property (nonatomic) UIView *resizeHandle;

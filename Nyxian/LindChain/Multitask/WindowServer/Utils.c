@@ -17,24 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWBAR_H
-#define LDEWINDOWBAR_H
+#import <LindChain/Multitask/WindowServer/Utils.h>
+#include <stdatomic.h>
 
-#import <UIKit/UIKit.h>
-
-@interface LDEWindowBar : UIView
-
-@property (nonatomic, strong, readonly) UIVisualEffectView *buttonIsland;
-
-@property (nonatomic,strong) UIButton *closeButton;
-@property (nonatomic,strong) UIButton *maximizeButton;
-@property (nonatomic,strong,getter=getTitle,setter=setTitle:) NSString *title;
-
-- (instancetype)initWithTitle:(NSString*)title withCloseCallback:(void (^)(void))closeCallback withMaximizeCallback:(void (^)(void))maximizeCallback;
-- (void)changeFocus:(BOOL)focusState;
-
-- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
-
-@end
-
-#endif /* LDEWINDOWBAR_H */
+wid_t getNextWindowIdentifier(void)
+{
+    static _Atomic wid_t lastWindowIdentifier = 0;
+    return atomic_fetch_add(&lastWindowIdentifier, 1);
+}

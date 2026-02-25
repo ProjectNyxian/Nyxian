@@ -18,6 +18,7 @@
 */
 
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
+#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
 
 @implementation LDEWindowSession
 
@@ -68,9 +69,19 @@
     return;
 }
 
-- (NSString*)windowName
+- (NSString*)getWindowName
 {
-    return @"Window";
+    __strong LDEWindow *window = self.window;
+    return (window == nil) ? window.windowName : @"Unknown";
+}
+
+- (void)setWindowName:(NSString *)windowName
+{
+    __strong LDEWindow *window = self.window;
+    if(window != nil)
+    {
+        window.windowName = windowName;
+    }
 }
 
 - (void)movedWindowToScene:(UIWindowScene*)windowScene

@@ -23,14 +23,18 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef int wid_t;
+#import <LindChain/Multitask/WindowServer/Utils.h>
+
+@class LDEWindow;
 
 @interface LDEWindowSession : UIViewController
 
 @property (nonatomic,weak) UIWindowScene *windowScene;
+@property (nonatomic,weak) LDEWindow *window;
 @property (nonatomic) wid_t windowIdentifier;
 
 @property (nonatomic) CGRect windowRect;
+@property (nonatomic,strong,getter=getWindowName,setter=setWindowName:) NSString *windowName;
 
 @property (nonatomic) BOOL isFullscreen;
 @property (nonatomic) BOOL isActive;
@@ -48,7 +52,6 @@ typedef int wid_t;
 - (void)windowChangesToRect:(CGRect)rect;
 
 - (UIImage*)snapshotWindow;
-- (NSString*)windowName;
 
 - (void)movedWindowToScene:(UIWindowScene*)windowScene withIdentifier:(wid_t)identifier;
 
