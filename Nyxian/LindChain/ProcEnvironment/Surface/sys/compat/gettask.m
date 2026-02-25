@@ -75,7 +75,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     
     /* getting flavour */
     task_t exportTask = MACH_PORT_NULL;
-    ksurface_return_t ksr = task_for_proc(target, TASK_KERNEL_PORT, &exportTask);
+    ksurface_return_t ksr = task_for_proc(target, name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT, &exportTask);
     
     if(ksr != SURFACE_SUCCESS)
     {
