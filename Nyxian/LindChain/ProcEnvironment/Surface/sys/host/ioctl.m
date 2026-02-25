@@ -78,7 +78,6 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             
             break;
         default:
-            kvo_unlock(tty);
             kvo_release(tty);
             sys_return_failure(ENOSYS);
     }
