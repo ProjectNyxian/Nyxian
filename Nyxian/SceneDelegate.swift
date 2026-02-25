@@ -19,6 +19,14 @@
 
 import UIKit
 
+class DesktopViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        self.view.backgroundColor = .systemBackground
+    }
+}
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDelegate {
 
     var window: LDEWindowServer?
@@ -97,6 +105,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
             _ = await LDEWindowServer.shared().openWindow(with:  windowSession)
         }
         
+        window?.rootViewController = DesktopViewController()
         window?.makeKeyAndVisible()
     }
     
