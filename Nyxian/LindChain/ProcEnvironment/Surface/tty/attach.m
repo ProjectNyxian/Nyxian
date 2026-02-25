@@ -51,8 +51,12 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
      * attach to process lifecycle
      * and consume callers reference.
      */
-    kvobject_event_register((kvobject_t*)proc, tty_proc_event_handler, NULL, tty);
-    
+    ksurface_return_t ksr = kvo_event_register(proc, tty_proc_event_handler, NULL, tty);
+    if(ksr != SURFACE_SUCCESS)
+    {
+        kvo_release(proc);
+        return SURFACE_FAILED;
+    }
     
     kvo_release(proc);
     return SURFACE_SUCCESS;

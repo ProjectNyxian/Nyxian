@@ -140,7 +140,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     }
     
     /* register event */
-    ksr = kvobject_event_register((kvobject_t*)target, wait4_proc_event_handler, NULL, payload);
+    ksr = kvo_event_register(target, wait4_proc_event_handler, NULL, payload);
     if(ksr != SURFACE_SUCCESS)
     {
         thread_resume(thread);
