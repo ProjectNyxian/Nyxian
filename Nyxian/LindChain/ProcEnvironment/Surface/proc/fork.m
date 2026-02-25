@@ -52,6 +52,23 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     proc_setppid(child, proc_getpid(child));    /* currently we are a safe to use perfect copy of the parent anyways */
     proc_setpid(child, child_pid);
     
+    /*
+     * getting additional process entitlements
+     * from trust cache. if it got PEEntitlementPlatform
+     * we abort the spawn... in case the process spawning wasnt the kernel
+     * or a platform process. platform binaries may only be spawned by other
+     * platform binaries, user allowed platform binaries also count.
+     */
+    PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:[[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]]];
+    PEEntitlement currentEntitlement = proc_getentitlements(child);
+    
+    if(entitlement_got_entitlement(entitlement, PEEntitlementPlatform) &&
+       !entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
+    {
+        kvo_release(child);
+        return NULL;
+    }
+    
     /* checking if parent process is the kernel process */
     if(parent == kernel_proc_)
     {
@@ -64,23 +81,39 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
          * condition because they have platform
          * entitlement.
          */
-        proc_setmobilecred(child);              /* dropping ucred permitives */
-        proc_setsid(child, child_pid);          /* forcing its own process identifier as session identifier */
-        goto force_not_inherite_entitlements;   /* we never(even if a attacker injected inheritance into the kernel process) wanna allow inherting kernel entitlements */
+        proc_setmobilecred(child);                          /* dropping ucred permitives */
+        proc_setsid(child, child_pid);                      /* forcing its own process identifier as session identifier */
+        goto force_not_inherite_entitlements;               /* forcing none, so it gets fresh entitlements from trustcache */
     }
     
     /*
-     * checking if we as the perfect copy of the parent process
-     * dont have PEEntitlementProcessSpawnInheriteEntitlements,
-     * in case we do we simply move on, cuz we just inherite them
-     * and we are a copy already.
+     * process can decide if they want to inherite entitlements or not.
      */
-    if(!entitlement_got_entitlement(proc_getentitlements(child), PEEntitlementProcessSpawnInheriteEntitlements))
+    if(!entitlement_got_entitlement(currentEntitlement, PEEntitlementProcessSpawnInheriteEntitlements))
 force_not_inherite_entitlements:
     {
-        /* setting entitlements according to the hash of the process returned by trustd */
-        proc_setentitlements(child, [[TrustCache shared] getEntitlementsForHash:[[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]]]);
+        /* not allowed/not willing to inherite */
+        currentEntitlement = PEEntitlementNone;
     }
+    else
+    {
+        /* checking for platform status */
+        if(entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
+        {
+            /* platform processes, cannot inherite platformisation */
+            currentEntitlement &= ~PEEntitlementPlatform;
+        }
+        else
+        {
+            /* none platform processes, cannot inherite those */
+            currentEntitlement &= ~PEEntitlementTaskForPid;
+            currentEntitlement &= ~PEEntitlementProcessElevate;
+            currentEntitlement &= ~PEEntitlementTrustCacheWrite;
+        }
+    }
+    
+    /* now we add the ones from trust cache */
+    proc_setentitlements(child, currentEntitlement | entitlement);
     
     /* copying the path */
     strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
