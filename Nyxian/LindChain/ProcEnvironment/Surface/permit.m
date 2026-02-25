@@ -25,7 +25,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
                                 pid_t targetPid,
                                 BOOL allowRootBypass,
                                 BOOL allowSessionBypass,
-                                BOOL allowPlatformBypass,
                                 PEEntitlement entitlementsNeeded,
                                 PEEntitlement targetEntitlementsNeeded)
 {
@@ -91,14 +90,6 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     if(allowSessionBypass &&
        caller_uid == proc_getruid(targetProc) &&
        caller_sid == proc_getsid(targetProc))
-    {
-        allowed = YES;
-        goto out_unlock;
-    }
-    
-    /* handling platform bypass */
-    if(allowPlatformBypass &&
-       entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
         allowed = YES;
         goto out_unlock;

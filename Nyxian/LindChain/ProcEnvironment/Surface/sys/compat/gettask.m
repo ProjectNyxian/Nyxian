@@ -67,7 +67,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * in the first place and if the process allows for it except if the
      * caller is a special process.
      */
-    if(!permitive_over_pid_allowed(sys_proc_copy_, pid, YES, YES, YES, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
+    if(!permitive_over_pid_allowed(sys_proc_copy_, pid, YES, YES, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
     {
         errnov = EPERM;
         goto out_proc_release_failure;
