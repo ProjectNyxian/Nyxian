@@ -21,7 +21,7 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDelegate {
 
-    var window: UIWindow?
+    var window: LDEWindowServer?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -61,34 +61,42 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         
         Bootstrap.shared.bootstrap()
         
-        let tabViewController: UIThemedTabViewController = UIThemedTabViewController()
-        
-        let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))
-        let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
-        
-        let projectsNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
-        let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
-        
-        projectsNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
-        settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
-        
-        var viewControllers: [UIViewController] = [projectsNavigationController, settingsNavigationController]
-        
-        if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
-        {
-            if #available(iOS 26.0, *) {
-                let fakeViewController: UIViewController = UIViewController()
-                fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
-                fakeViewController.tabBarItem.title = "Switcher"
-                fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
-                viewControllers.append(fakeViewController)
+        Task { @MainActor in
+            let windowSession = LDEWindowSession()
+            
+            let tabViewController: UIThemedTabViewController = UIThemedTabViewController()
+            
+            let contentViewController: ContentViewController = ContentViewController(path: Bootstrap.shared.bootstrapPath("/Projects"))
+            let settingsViewController: SettingsViewController = SettingsViewController(style: .insetGrouped)
+            
+            let projectsNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
+            let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
+            
+            projectsNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
+            settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
+            
+            var viewControllers: [UIViewController] = [projectsNavigationController, settingsNavigationController]
+            
+            if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
+            {
+                if #available(iOS 26.0, *) {
+                    let fakeViewController: UIViewController = UIViewController()
+                    fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
+                    fakeViewController.tabBarItem.title = "Switcher"
+                    fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+                    viewControllers.append(fakeViewController)
+                }
             }
+            
+            tabViewController.viewControllers = viewControllers
+            tabViewController.delegate = self;
+            
+            windowSession.addChild(tabViewController)
+            windowSession.view.addSubview(tabViewController.view)
+            
+            _ = await LDEWindowServer.shared().openWindow(with:  windowSession)
         }
         
-        tabViewController.viewControllers = viewControllers
-        tabViewController.delegate = self;
-        
-        window?.rootViewController = tabViewController
         window?.makeKeyAndVisible()
     }
     
