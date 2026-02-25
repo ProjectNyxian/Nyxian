@@ -18,42 +18,34 @@
 */
 
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-
-#if !JAILBREAK_ENV
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
-static const NSInteger kTagSegmentControl = 5000;
-#endif /* !JAILBREAK_ENV */
-
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#if __has_include(<Nyxian-Swift.h>)
-#import <Nyxian-Swift.h>
-#endif
-
 #import <LindChain/Multitask/WindowServer/Utils.h>
 
-static const NSInteger kTagRunningAppsScrollView = 5001;
-static const NSInteger kTagReflection = 9999;
-static const NSInteger kTagTitle = 8888;
-static const NSInteger kTagShineView = 7777;
-
-@interface LDEWindowServer ()
-
-@property (nonatomic, strong) UIStackView *stackView;
-@property (nonatomic, strong) UIStackView *placeholderStack;
-@property (nonatomic, strong) LDEWindow *activeWindow;
-@property (nonatomic, assign) wid_t activeWindowIdentifier;
-@property (nonatomic, strong) UIScrollView *runningAppsScrollView;
-
 #if !JAILBREAK_ENV
-@property (nonatomic, strong) LDEAppLaunchpad *launchpad;
-@property (nonatomic, strong) UISegmentedControl *segmentControl;
+
+#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <Nyxian-Swift.h>
+
 #endif /* !JAILBREAK_ENV */
 
-@property (nonatomic) BOOL isKeyboardVisible;
+#define kTagSegmentControl 5000
+#define kTagRunningAppsScrollView 5001
+#define kTagReflection 9999
+#define kTagTitle 8888
+#define kTagShineView 7777
 
-@end
-
-@implementation LDEWindowServer
+@implementation LDEWindowServer {
+    UIStackView *_stackView;
+    UIStackView *_placeholderStack;
+    LDEWindow *_activeWindow;
+    wid_t _activeWindowIdentifier;
+    UIScrollView *_runningAppsScrollView;
+    LDEAppLaunchpad *_launchPad;
+#if !JAILBREAK_ENV
+    UISegmentedControl *_segmentControl;
+#endif /* !JAILBREAK_ENV */
+    BOOL _isKeyboardVisible;
+}
 
 - (instancetype)initWithWindowScene:(UIWindowScene *)windowScene
 {
@@ -73,7 +65,7 @@ static const NSInteger kTagShineView = 7777;
         _isKeyboardVisible = NO;
         
 #if !JAILBREAK_ENV
-        _launchpad = nil;
+        _launchPad = nil;
 #endif /* !JAILBREAK_ENV */
         
         if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
@@ -105,7 +97,7 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)moveWindowToFrontWithNumber:(NSNumber *)number
 {
-    if (!number || !self.windows[number]) return;
+    if(!number || !self.windows[number]) return;
 
     [self.windowOrder removeObject:number];
     [self.windowOrder insertObject:number atIndex:0];
@@ -194,7 +186,6 @@ static const NSInteger kTagShineView = 7777;
     
     __block wid_t windowIdentifier = (wid_t)-1;
     __block BOOL windowOpened = YES;
-    __weak typeof(self) weakSelf = self;
     
     void (^openAct)(void) = ^{
         windowIdentifier = getNextWindowIdentifier();
@@ -210,9 +201,9 @@ static const NSInteger kTagShineView = 7777;
         window.identifier = windowIdentifier;
         if(window)
         {
-            weakSelf.windows[@(windowIdentifier)] = window;
+            self.windows[@(windowIdentifier)] = window;
             [self windowWantsToFocus:window];
-            [weakSelf.windowOrder insertObject:@(windowIdentifier) atIndex:0];
+            [self.windowOrder insertObject:@(windowIdentifier) atIndex:0];
             [self activateWindowForIdentifier:windowIdentifier animated:YES withCompletion:nil];
         }
         else
@@ -221,13 +212,13 @@ static const NSInteger kTagShineView = 7777;
         }
     };
     
-    LDEWindow *window = self.windows[@(weakSelf.activeWindowIdentifier)];
+    LDEWindow *window = self.windows[@(_activeWindowIdentifier)];
     if(window != nil &&
-       weakSelf.activeWindowIdentifier != window.identifier &&
+       _activeWindowIdentifier != window.identifier &&
        [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
     {
         // close first the old one and wait
-        [self deactivateWindowByPullDown:YES withIdentifier:weakSelf.activeWindowIdentifier withCompletion:^{
+        [self deactivateWindowByPullDown:YES withIdentifier:_activeWindowIdentifier withCompletion:^{
             openAct();
             if(completion) completion(windowOpened);
         }];
@@ -244,30 +235,28 @@ static const NSInteger kTagShineView = 7777;
 {
     assert([NSThread isMainThread]);
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if(self.activeWindowIdentifier == identifier)
-        {
-            self.activeWindowIdentifier = (wid_t)-1;
-        }
-        
-        LDEWindow *window = self.windows[@(identifier)];
-        if(window != nil)
-        {
-            [window closeWindowWithCompletion:^(BOOL closedWindow){
-                if(closedWindow)
-                {
-                    [self.windows removeObjectForKey:@(identifier)];
-                    [self.windowOrder removeObject:@(identifier)];
-                }
-                
-                if(completion) completion(closedWindow);
-            }];
-        }
-        else
-        {
-            if(completion) completion(NO);
-        }
-    });
+    if(_activeWindowIdentifier == identifier)
+    {
+        _activeWindowIdentifier = (wid_t)-1;
+    }
+    
+    LDEWindow *window = self.windows[@(identifier)];
+    if(window != nil)
+    {
+        [window closeWindowWithCompletion:^(BOOL closedWindow){
+            if(closedWindow)
+            {
+                [self.windows removeObjectForKey:@(identifier)];
+                [self.windowOrder removeObject:@(identifier)];
+            }
+            
+            if(completion) completion(closedWindow);
+        }];
+    }
+    else
+    {
+        if(completion) completion(NO);
+    }
 }
 
 - (void)makeKeyAndVisible
@@ -330,72 +319,71 @@ static const NSInteger kTagShineView = 7777;
     ]];
     
 #if !JAILBREAK_ENV
-    self.segmentControl = [[UISegmentedControl alloc] initWithItems:@[@"Running", @"All Apps"]];
-    self.segmentControl.selectedSegmentIndex = 0;
-    self.segmentControl.translatesAutoresizingMaskIntoConstraints = NO;
-    self.segmentControl.tag = kTagSegmentControl;
-    [self.segmentControl addTarget:self action:@selector(segmentChanged:) forControlEvents:UIControlEventValueChanged];
-    [effectView.contentView addSubview:self.segmentControl];
+    _segmentControl = [[UISegmentedControl alloc] initWithItems:@[@"Running", @"All Apps"]];
+    _segmentControl.selectedSegmentIndex = 0;
+    _segmentControl.translatesAutoresizingMaskIntoConstraints = NO;
+    _segmentControl.tag = kTagSegmentControl;
+    [_segmentControl addTarget:self action:@selector(segmentChanged:) forControlEvents:UIControlEventValueChanged];
+    [effectView.contentView addSubview:_segmentControl];
 #endif /* !JAILBREAK_ENV */
     
-    self.runningAppsScrollView = [[UIScrollView alloc] init];
-    self.runningAppsScrollView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.runningAppsScrollView.showsHorizontalScrollIndicator = NO;
-    self.runningAppsScrollView.clipsToBounds = NO;
-    self.runningAppsScrollView.tag = kTagRunningAppsScrollView;
-    [effectView.contentView addSubview:self.runningAppsScrollView];
+    _runningAppsScrollView = [[UIScrollView alloc] init];
+    _runningAppsScrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    _runningAppsScrollView.showsHorizontalScrollIndicator = NO;
+    _runningAppsScrollView.clipsToBounds = NO;
+    _runningAppsScrollView.tag = kTagRunningAppsScrollView;
+    [effectView.contentView addSubview:_runningAppsScrollView];
     
-    UIStackView *stack = [[UIStackView alloc] init];
-    stack.axis = UILayoutConstraintAxisHorizontal;
-    stack.alignment = UIStackViewAlignmentCenter;
-    stack.spacing = 20;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
-    stack.clipsToBounds = NO;
-    self.stackView = stack;
-    [self.runningAppsScrollView addSubview:stack];
+    _stackView = [[UIStackView alloc] init];
+    _stackView.axis = UILayoutConstraintAxisHorizontal;
+    _stackView.alignment = UIStackViewAlignmentCenter;
+    _stackView.spacing = 20;
+    _stackView.translatesAutoresizingMaskIntoConstraints = NO;
+    _stackView.clipsToBounds = NO;
+    [_runningAppsScrollView addSubview:_stackView];
     
     [self buildPlaceholderStackInView:effectView.contentView];
     
 #if !JAILBREAK_ENV
-    self.launchpad = [self getOrCreateLaunchpad];
-    self.launchpad.translatesAutoresizingMaskIntoConstraints = NO;
-    self.launchpad.delegate = self;
-    self.launchpad.hidden = YES;
-    self.launchpad.alpha = 0;
-    [effectView.contentView addSubview:self.launchpad];
+    _launchPad = [self getOrCreateLaunchpad];
+    _launchPad.translatesAutoresizingMaskIntoConstraints = NO;
+    _launchPad.delegate = self;
+    _launchPad.hidden = YES;
+    _launchPad.alpha = 0;
+    [effectView.contentView addSubview:_launchPad];
 #endif /* !JAILBREAK_ENV */
     
     [NSLayoutConstraint activateConstraints:@[
 #if !JAILBREAK_ENV
-        [self.segmentControl.topAnchor constraintEqualToAnchor:effectView.contentView.topAnchor constant:15],
-        [self.segmentControl.centerXAnchor constraintEqualToAnchor:effectView.contentView.centerXAnchor],
-        [self.segmentControl.widthAnchor constraintEqualToConstant:200],
-        [self.segmentControl.heightAnchor constraintEqualToConstant:32],
+        [_segmentControl.topAnchor constraintEqualToAnchor:effectView.contentView.topAnchor constant:15],
+        [_segmentControl.centerXAnchor constraintEqualToAnchor:effectView.contentView.centerXAnchor],
+        [_segmentControl.widthAnchor constraintEqualToConstant:200],
+        [_segmentControl.heightAnchor constraintEqualToConstant:32],
         
-        [self.runningAppsScrollView.topAnchor constraintEqualToAnchor:self.segmentControl.bottomAnchor constant:15],
+        [_runningAppsScrollView.topAnchor constraintEqualToAnchor:_segmentControl.bottomAnchor constant:15],
 #else
         [self.runningAppsScrollView.topAnchor constraintEqualToAnchor:effectView.topAnchor constant:20],
 #endif /* !JAILBREAK_ENV */
         
-        [self.runningAppsScrollView.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-20],
-        [self.runningAppsScrollView.leadingAnchor constraintEqualToAnchor:effectView.contentView.leadingAnchor],
-        [self.runningAppsScrollView.trailingAnchor constraintEqualToAnchor:effectView.contentView.trailingAnchor],
+        [_runningAppsScrollView.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-20],
+        [_runningAppsScrollView.leadingAnchor constraintEqualToAnchor:effectView.contentView.leadingAnchor],
+        [_runningAppsScrollView.trailingAnchor constraintEqualToAnchor:effectView.contentView.trailingAnchor],
         
-        [stack.topAnchor constraintEqualToAnchor:self.runningAppsScrollView.topAnchor],
-        [stack.bottomAnchor constraintEqualToAnchor:self.runningAppsScrollView.bottomAnchor],
-        [stack.leadingAnchor constraintEqualToAnchor:self.runningAppsScrollView.leadingAnchor constant:20],
-        [stack.trailingAnchor constraintEqualToAnchor:self.runningAppsScrollView.trailingAnchor constant:-20],
-        [stack.heightAnchor constraintEqualToAnchor:self.runningAppsScrollView.heightAnchor],
+        [_stackView.topAnchor constraintEqualToAnchor:_runningAppsScrollView.topAnchor],
+        [_stackView.bottomAnchor constraintEqualToAnchor:_runningAppsScrollView.bottomAnchor],
+        [_stackView.leadingAnchor constraintEqualToAnchor:_runningAppsScrollView.leadingAnchor constant:20],
+        [_stackView.trailingAnchor constraintEqualToAnchor:_runningAppsScrollView.trailingAnchor constant:-20],
+        [_stackView.heightAnchor constraintEqualToAnchor:_runningAppsScrollView.heightAnchor],
         
 #if !JAILBREAK_ENV
-        [self.launchpad.topAnchor constraintEqualToAnchor:self.segmentControl.bottomAnchor constant:10],
-        [self.launchpad.leadingAnchor constraintEqualToAnchor:effectView.contentView.leadingAnchor],
-        [self.launchpad.trailingAnchor constraintEqualToAnchor:effectView.contentView.trailingAnchor],
-        [self.launchpad.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-10],
+        [_launchPad.topAnchor constraintEqualToAnchor:_segmentControl.bottomAnchor constant:10],
+        [_launchPad.leadingAnchor constraintEqualToAnchor:effectView.contentView.leadingAnchor],
+        [_launchPad.trailingAnchor constraintEqualToAnchor:effectView.contentView.trailingAnchor],
+        [_launchPad.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-10],
 #endif /* !JAILBREAK_ENV */
     ]];
     
-    self.placeholderStack.hidden = (self.windows.count > 0);
+    _placeholderStack.hidden = (self.windows.count > 0);
     
     [self populateRunningAppTiles];
     
@@ -430,7 +418,7 @@ static const NSInteger kTagShineView = 7777;
         return;
     }
     
-    self.isKeyboardVisible = YES;
+    _isKeyboardVisible = YES;
     
     NSDictionary *userInfo = notification.userInfo;
     CGRect keyboardFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
@@ -446,7 +434,7 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)keyboardWillHideForSwitcher:(NSNotification *)notification
 {
-    self.isKeyboardVisible = NO;
+    _isKeyboardVisible = NO;
     
     if(!self.appSwitcherView)
     {
@@ -487,18 +475,17 @@ static const NSInteger kTagShineView = 7777;
     placeholderLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold];
     placeholderLabel.textColor = [UIColor secondaryLabelColor];
     
-    UIStackView *placeholderStack = [[UIStackView alloc] initWithArrangedSubviews:@[symbolView, placeholderLabel]];
-    placeholderStack.axis = UILayoutConstraintAxisVertical;
-    placeholderStack.alignment = UIStackViewAlignmentCenter;
-    placeholderStack.spacing = 12;
-    placeholderStack.translatesAutoresizingMaskIntoConstraints = NO;
-    self.placeholderStack = placeholderStack;
+    _placeholderStack = [[UIStackView alloc] initWithArrangedSubviews:@[symbolView, placeholderLabel]];
+    _placeholderStack.axis = UILayoutConstraintAxisVertical;
+    _placeholderStack.alignment = UIStackViewAlignmentCenter;
+    _placeholderStack.spacing = 12;
+    _placeholderStack.translatesAutoresizingMaskIntoConstraints = NO;
     
-    [parentView addSubview:placeholderStack];
+    [parentView addSubview:_placeholderStack];
     
     [NSLayoutConstraint activateConstraints:@[
-        [placeholderStack.centerXAnchor constraintEqualToAnchor:self.runningAppsScrollView.centerXAnchor],
-        [placeholderStack.centerYAnchor constraintEqualToAnchor:self.runningAppsScrollView.centerYAnchor constant:-20]
+        [_placeholderStack.centerXAnchor constraintEqualToAnchor:_runningAppsScrollView.centerXAnchor],
+        [_placeholderStack.centerYAnchor constraintEqualToAnchor:_runningAppsScrollView.centerYAnchor constant:-20]
     ]];
 }
 
@@ -513,7 +500,7 @@ static const NSInteger kTagShineView = 7777;
     {
         LDEWindow *window = self.windows[pidKey];
         UIView *tileContainer = [self createTileContainerForWindow:window withKey:pidKey];
-        [self.stackView addArrangedSubview:tileContainer];
+        [_stackView addArrangedSubview:tileContainer];
     }
 }
 
@@ -702,18 +689,15 @@ static const NSInteger kTagShineView = 7777;
 {
     BOOL showLaunchpad = (segment.selectedSegmentIndex == 1);
     
-    [UIView animateWithDuration:0.3
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^{
-        self.launchpad.hidden = !showLaunchpad;
-        self.launchpad.alpha = showLaunchpad ? 1.0 : 0.0;
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self->_launchPad.hidden = !showLaunchpad;
+        self->_launchPad.alpha = showLaunchpad ? 1.0 : 0.0;
         
-        self.runningAppsScrollView.hidden = showLaunchpad;
-        self.runningAppsScrollView.alpha = showLaunchpad ? 0.0 : 1.0;
+        self->_runningAppsScrollView.hidden = showLaunchpad;
+        self->_runningAppsScrollView.alpha = showLaunchpad ? 0.0 : 1.0;
         
-        self.placeholderStack.hidden = showLaunchpad || (self.windows.count > 0);
-        self.placeholderStack.alpha = (showLaunchpad || self.windows.count > 0) ? 0.0 : 1.0;
+        self->_placeholderStack.hidden = showLaunchpad || (self.windows.count > 0);
+        self->_placeholderStack.alpha = (showLaunchpad || self.windows.count > 0) ? 0.0 : 1.0;
     } completion:nil];
     
     UIImpactFeedbackGenerator *impact = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
@@ -796,7 +780,7 @@ static const NSInteger kTagShineView = 7777;
     CGFloat segmentProgress = MIN(1.0, progress / 0.15);
     
 #if !JAILBREAK_ENV
-    self.segmentControl.alpha = 1.0 - segmentProgress;
+    _segmentControl.alpha = 1.0 - segmentProgress;
 #endif /* JAILBREAK_ENV */
     
     CATransform3D transform = CATransform3DIdentity;
@@ -869,7 +853,7 @@ static const NSInteger kTagShineView = 7777;
         
 #if !JAILBREAK_ENV
         [UIView animateWithDuration:0.3 delay:0.25 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.segmentControl.alpha = 1.0;
+            self->_segmentControl.alpha = 1.0;
         } completion:nil];
 #endif /* !JAILBREAK_ENV */
     }
@@ -882,7 +866,7 @@ static const NSInteger kTagShineView = 7777;
         
 #if !JAILBREAK_ENV
         [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:0 animations:^{
-            self.segmentControl.alpha = 1.0;
+            self->_segmentControl.alpha = 1.0;
         } completion:nil];
 #endif /* !JAILBREAK_ENV */
     }
@@ -905,7 +889,7 @@ static const NSInteger kTagShineView = 7777;
     CGFloat exitDriftX = (velocityX / 800.0) * 100;
     exitDriftX = MAX(-150, MIN(150, exitDriftX));
     
-    UIStackView *stack = self.stackView;
+    UIStackView *stack = _stackView;
     
     [UIView animateWithDuration:0.25
                           delay:0
@@ -945,22 +929,18 @@ static const NSInteger kTagShineView = 7777;
         
         tileContainer.hidden = YES;
         
-        [UIView animateWithDuration:0.35
-                              delay:0
-             usingSpringWithDamping:0.8
-              initialSpringVelocity:0.5
-                            options:UIViewAnimationOptionCurveEaseInOut
-                         animations:^{
+        [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             [stack removeArrangedSubview:tileContainer];
             [tileContainer removeFromSuperview];
             [stack layoutIfNeeded];
             [stack.superview layoutIfNeeded];
         } completion:^(BOOL finished) {
-            if (self.windows.count == 0 && self.placeholderStack) {
-                self.placeholderStack.alpha = 0;
-                self.placeholderStack.hidden = NO;
+            if(self.windows.count == 0 && self->_placeholderStack)
+            {
+                self->_placeholderStack.alpha = 0;
+                self->_placeholderStack.hidden = NO;
                 [UIView animateWithDuration:0.3 animations:^{
-                    self.placeholderStack.alpha = 1;
+                    self->_placeholderStack.alpha = 1;
                 }];
             }
         }];
@@ -1021,22 +1001,17 @@ static const NSInteger kTagShineView = 7777;
     self.appSwitcherTopConstraint = [self.appSwitcherView.topAnchor constraintEqualToAnchor:self.bottomAnchor];
     self.appSwitcherTopConstraint.active = YES;
     
-    [UIView animateWithDuration:0.5
-                          delay:0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^{
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:1.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self layoutIfNeeded];
     } completion:^(BOOL finished) {
         [self.appSwitcherView removeFromSuperview];
         self.appSwitcherView = nil;
         self.appSwitcherTopConstraint = nil;
-        self.placeholderStack = nil;
-        self.stackView = nil;
-        self.runningAppsScrollView = nil;
+        self->_placeholderStack = nil;
+        self->_stackView = nil;
+        self->_runningAppsScrollView = nil;
 #if !JAILBREAK_ENV
-        self.segmentControl = nil;
+        self->_segmentControl = nil;
 #endif /* !JAILBREAK_ENV */
     }];
     
@@ -1055,7 +1030,7 @@ static const NSInteger kTagShineView = 7777;
     switch(pan.state)
     {
         case UIGestureRecognizerStateBegan:
-            if(self.isKeyboardVisible)
+            if(_isKeyboardVisible)
             {
                 [self.appSwitcherView endEditing:YES];
                 pan.enabled = NO;
@@ -1105,7 +1080,7 @@ static const NSInteger kTagShineView = 7777;
         UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
         UIView *view = gestureRecognizer.view;
         
-        BOOL isTilePan = (view.superview.superview == self.stackView);
+        BOOL isTilePan = (view.superview.superview == _stackView);
         
         if(isTilePan)
         {
@@ -1129,9 +1104,9 @@ static const NSInteger kTagShineView = 7777;
 
 - (void)windowWantsToClose:(LDEWindow *)window
 {
-    if(self.activeWindow == window)
+    if(_activeWindow == window)
     {
-        self.activeWindow = nil;
+        _activeWindow = nil;
     }
     [window deinit];
     [self.windows removeObjectForKey:@(window.identifier)];
@@ -1213,12 +1188,12 @@ static const NSInteger kTagShineView = 7777;
 #if !JAILBREAK_ENV
 - (LDEAppLaunchpad*)getOrCreateLaunchpad
 {
-    if(!self.launchpad)
+    if(!_launchPad)
     {
-        self.launchpad = [[LDEAppLaunchpad alloc] init];
-        self.launchpad.delegate = self;
+        _launchPad = [[LDEAppLaunchpad alloc] init];
+        _launchPad.delegate = self;
     }
-    return self.launchpad;
+    return _launchPad;
 }
 #endif /* !JAILBREAK_ENV */
 

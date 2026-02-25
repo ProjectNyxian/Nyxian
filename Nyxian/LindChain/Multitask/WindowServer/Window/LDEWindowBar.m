@@ -332,6 +332,7 @@
     }
     else
     {
+        [self collapseIsland];
         [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self->_closeDot.backgroundColor = UIColor.systemGrayColor;
             self->_maxDot.backgroundColor = UIColor.systemGrayColor;

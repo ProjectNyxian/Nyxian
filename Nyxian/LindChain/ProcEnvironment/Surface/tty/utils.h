@@ -17,9 +17,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEAPPTILE_H
-#define LDEAPPTILE_H
+#ifndef TTY_UTILS_H
+#define TTY_UTILS_H
 
+#import <LindChain/ProcEnvironment/Surface/tty/def.h>
 
+ksurface_return_t tty_suspend(ksurface_tty_t *tty);
+ksurface_return_t tty_resume(ksurface_tty_t *tty);
 
-#endif /* LDEAPPTILE_H */
+#endif /* TTY_UTILS_H */

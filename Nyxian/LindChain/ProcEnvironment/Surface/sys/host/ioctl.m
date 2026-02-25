@@ -19,6 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
+#import <LindChain/ProcEnvironment/Surface/tty/utils.h>
 #include <termios.h>
 
 DEFINE_SYSCALL_HANDLER(ioctl)
@@ -59,14 +60,21 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             /* there is no rollback from a failed copy-in */
             struct termios temp;
             
-            /* TODO: create locking events so that we can implement a way to stop the pumping thread */
             if(!mach_syscall_copy_in(task, sizeof(struct termios), &(temp), termios_ptr))
+            {
+                goto out_fault;
+            }
+            
+            ksurface_return_t ksr = tty_suspend(tty);
+            if(ksr != SURFACE_SUCCESS)
             {
                 goto out_fault;
             }
             
             /* TODO: sanitize fields, dont trust user memory blindly otherwise this could lead to a panic where the tty thread parses illegal data from termios */
             memcpy(&(tty->t), &temp, sizeof(struct termios));
+            
+            tty_resume(tty);
             
             break;
         default:
