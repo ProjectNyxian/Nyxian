@@ -48,4 +48,5 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_wait4",          .sysnum = SYS_wait4,        .hndl = GET_SYSCALL_HANDLER(wait4)          },
     { .name = "SYS_exit",           .sysnum = SYS_exit,         .hndl = GET_SYSCALL_HANDLER(exit)           },
     { .name = "SYS_ioctl",          .sysnum = SYS_ioctl,        .hndl = GET_SYSCALL_HANDLER(ioctl)          },
+    { .name = "SYS_setent",         .sysnum = SYS_setent,       .hndl = GET_SYSCALL_HANDLER(setent)         },
 };

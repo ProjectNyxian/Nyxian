@@ -39,6 +39,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
 #import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -52,8 +53,9 @@
 #define SYS_procpath    757         /* gets process path of a pid */
 #define SYS_procbsd     758         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_handoffep   759         /* handoff exception port to kvirt */
+#define SYS_setent      760         /* sets entitlements (sanitized ofc) */
 
-#define SYS_N 27
+#define SYS_N 28
 
 typedef struct {
     const char *name;

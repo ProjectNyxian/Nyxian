@@ -231,6 +231,7 @@
 				LindChain/ProcEnvironment/Surface/sys/compat/gettask.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/handoffep.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/procpath.m,
+				LindChain/ProcEnvironment/Surface/sys/compat/setent.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/signexec.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getgid.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getpid.m,
