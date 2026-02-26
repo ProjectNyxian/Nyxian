@@ -71,6 +71,7 @@ DEFINE_SYSCALL_HANDLER(setuid)
     sys_return_failure(EPERM);
     
 out_update:
+    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
     proc_copy_update(sys_proc_copy_);
     sys_return;
 }
@@ -110,6 +111,7 @@ DEFINE_SYSCALL_HANDLER(seteuid)
     sys_return_failure(EPERM);
     
 out_update:
+    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
     proc_copy_update(sys_proc_copy_);
     sys_return;
 }
@@ -169,6 +171,7 @@ DEFINE_SYSCALL_HANDLER(setreuid)
         }
     }
     
+    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
     proc_copy_update(sys_proc_copy_);
     sys_return;
 }
