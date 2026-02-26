@@ -20,7 +20,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
@@ -59,7 +58,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      * or a platform process. platform binaries may only be spawned by other
      * platform binaries, user allowed platform binaries also count.
      */
-    PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:[[LDETrust shared] entHashOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]]];
+    PEEntitlement entitlement = [[LDETrust shared] entitlementsOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
     PEEntitlement currentEntitlement = proc_getentitlements(child);
     
     if(entitlement_got_entitlement(entitlement, PEEntitlementPlatform) &&

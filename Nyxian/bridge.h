@@ -38,10 +38,10 @@
 #import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
+#import <LindChain/ProcEnvironment/Surface/trust.h>
 
 /* Daemon Interfaces Headers */
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Services/trustd/LDETrust.h>
 
 /* Multitask Headers */
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
@@ -53,7 +53,6 @@
 /* Kernel Virtualisation Layer Headers */
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 
 bool liveProcessIsAvailable(void);

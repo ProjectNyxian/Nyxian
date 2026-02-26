@@ -67,44 +67,6 @@
     return NO;
 }
 
-- (NSString*)entHashOfExecutableAtPath:(NSString *)path
-{
-    // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
-    // RIGHT HERE
-    if([path isEqualToString:@"/usr/libexec/trustd"] ||
-       [path isEqualToString:@"/usr/libexec/installd"])
-    {
-        return @"com.cr4zy.nyxian.daemon.trustcache_daemon";
-    }
-    
-    [self connect];
-    
-    __block NSString *entHashExport = nil;
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
-    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
-        /* semaphores remember the signal, it doesnt have to catch them in time */
-        dispatch_semaphore_signal(sema);
-    }];
-    
-    if(proxy == NULL)
-    {
-        /* semaphores remember the signal, it doesnt have to catch them in time */
-        dispatch_semaphore_signal(sema);
-    }
-    else
-    {
-        [proxy getHashOfExecutableAtPath:path withReply:^(NSString *entHash){
-            entHashExport = entHash;
-            dispatch_semaphore_signal(sema);
-        }];
-    }
-    
-    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
-    
-    return entHashExport;
-}
-
 - (BOOL)executableAllowedToLaunchAtPath:(NSString*)path
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
@@ -141,6 +103,61 @@
     dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     
     return allowedToLaunch;
+}
+
+- (NSData*)getTokenOfExecutableAtPath:(NSString *)path
+{
+    [self connect];
+    
+    __block NSData *token = nil;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy getTokenOfExecutablePath:path withReply:^(NSData *replyData){
+            token = replyData;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
+    
+    return token;
+}
+
+- (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path
+{
+    if([path isEqualToString:@"/usr/libexec/trustd"] ||
+       [path isEqualToString:@"/usr/libexec/installd"])
+    {
+        return PEEntitlementSystemDaemon;
+    }
+    
+    NSData *data = [self getTokenOfExecutableAtPath:path];
+    if(data == nil)
+    {
+        return PEEntitlementNone;
+    }
+    
+    ksurface_ent_token_t *token = (ksurface_ent_token_t*)data.bytes;
+    
+    ksurface_return_t ksr = entitlement_token_verify_static_key(token);
+    if(ksr == KERN_SUCCESS)
+    {
+        return token->blob.entitlement;
+    }
+    
+    return PEEntitlementNone;
 }
 
 @end

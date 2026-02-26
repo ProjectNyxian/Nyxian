@@ -19,6 +19,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/entitlement.h>
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <LindChain/ProcEnvironment/Surface/key.h>
 #include <OpenSSL/hmac.h>
 
 ksurface_return_t entitlement_token_generate_for_entitlement(ksurface_proc_t *proc,
@@ -106,5 +107,50 @@ ksurface_return_t entitlement_token_consume(ksurface_proc_t *consumer,
     consumer->kproc.kcproc.nyx.entitlements |= token->blob.entitlement;
     kvo_unlock(consumer);
     
+    return SURFACE_SUCCESS;
+}
+
+ksurface_return_t entitlement_token_mach_gen(ksurface_ent_token_t *token,
+                                             const char *cdhash,
+                                             PEEntitlement entitlement)
+{
+    /* copy cdhash and entitlements over */
+    memcpy((void*)(token->blob.cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
+    token->blob.entitlement = entitlement;
+    arc4random_buf(&(token->blob.nonce), sizeof(uint64_t));
+    
+    /* generating cryptographic key */
+    unsigned int mac_len = 0;
+    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char*)&(token->blob), sizeof(ksurface_ent_blob_t), token->mac, &mac_len);
+    
+    /* sanity check */
+    if(mac_len != 32)
+    {
+        return SURFACE_FAILED;
+    }
+    
+    return SURFACE_SUCCESS;
+}
+
+ksurface_return_t entitlement_token_verify_static_key(ksurface_ent_token_t *token)
+{
+    assert(token != NULL);
+    
+    uint8_t expected[32];
+    unsigned int mac_len = 0;
+
+    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char *)&(token->blob), sizeof(ksurface_ent_blob_t), expected, &mac_len);
+    
+    /* sanity check */
+    if(mac_len != 32)
+    {
+        return SURFACE_DENIED;
+    }
+    
+    if(CRYPTO_memcmp(expected, token->mac, 32) != 0)
+    {
+        return SURFACE_DENIED;
+    }
+
     return SURFACE_SUCCESS;
 }

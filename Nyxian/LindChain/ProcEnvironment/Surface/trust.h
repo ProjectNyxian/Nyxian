@@ -17,16 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETRUSTPROTOCOL_H
-#define LDETRUSTPROTOCOL_H
+#ifndef SIGNING_TRUST_H
+#define SIGNING_TRUST_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
-@protocol LDETrustProtocol <NSObject>
+int macho_after_sign(NSString *path, PEEntitlement entitlement);    /* MARK: unavailable on guest environment, but doesnt really matter runtime tokens arent signed with a valid cdhash associated with such binary */
+int macho_read_token(NSString *path, ksurface_ent_token_t *token);
 
-- (void)executableAllowedToExecutedAtPath:(NSString*)path withReply:(void (^)(BOOL))reply;
-- (void)getTokenOfExecutablePath:(NSString*)path withReply:(void (^)(NSData*))reply;
-
-@end
-
-#endif /* LDETRUSTPROTOCOL_H */
+#endif /* SIGNING_TRUST_H */

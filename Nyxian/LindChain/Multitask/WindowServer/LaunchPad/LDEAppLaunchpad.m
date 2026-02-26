@@ -23,7 +23,6 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/Services/trustd/LDETrust.h>
-#import <LindChain/ProcEnvironment/Server/Trust.h>
 
 NSArray *entitlementsMenuStructure = @[
     @{
@@ -364,8 +363,8 @@ NSArray *entitlementsMenuStructure = @[
         {
             bEntitlement &= ~bTargetEntitlement;
         }
-        NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:application.executablePath];
-        [[TrustCache shared] setEntitlementsForHash:entHash usingEntitlements:bEntitlement];
+        //NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:application.executablePath];
+        //[[TrustCache shared] setEntitlementsForHash:entHash usingEntitlements:bEntitlement];
         [[LDEProcessManager shared] closeIfRunningUsingBundleIdentifier:application.bundleIdentifier];
     }];
 }
@@ -399,8 +398,8 @@ NSArray *entitlementsMenuStructure = @[
         [subMenus addObject:(UIMenu*)clearContainer];
         
         LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:app.bundleID];
-        NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:applicationObject.executablePath];
-        PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
+        //NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:applicationObject.executablePath];
+        //PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
         
         for(NSDictionary *category in entitlementsMenuStructure)
         {
@@ -414,7 +413,7 @@ NSArray *entitlementsMenuStructure = @[
             {
                 NSString *name = item[@"name"];
                 NSNumber *value = item[@"value"];
-                [actions addObject:[self createEntitlementActionWithTitle:name withCurrentEntitlement:entitlement withTargetEntitlement:value.unsignedLongLongValue withApplication:applicationObject]];
+                //[actions addObject:[self createEntitlementActionWithTitle:name withCurrentEntitlement:entitlement withTargetEntitlement:value.unsignedLongLongValue withApplication:applicationObject]];
             }
             
             UIImage *menuIcon = [UIImage systemImageNamed:iconName];

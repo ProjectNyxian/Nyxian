@@ -107,7 +107,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             var menu: [UIMenuElement] = [openMenu]
             
             // MARK: Entitlement Menu
-            if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application?.executablePath) {
+            /*if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application?.executablePath) {
                 let entitlement: PEEntitlement = TrustCache.shared().getEntitlementsForHash(entHash)
                 var entMenuItems: [UIMenu] = []
                 
@@ -125,7 +125,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 
                 let entMenu: UIMenu = UIMenu(title: "Entitlements", image: UIImage(systemName: "checkmark.seal.text.page.fill"), children: entMenuItems)
                 menu.append(entMenu)
-            }
+            }*/
             
             let clearContainerAction = UIAction(title: "Clear Data Container", image: UIImage(systemName: "arrow.up.trash.fill")) { _ in
                 guard let application = application else { return }
@@ -233,8 +233,8 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             } else {
                 entitlement.insert(targetEntitlement)
             }
-            let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application.executablePath)
-            TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: entitlement)
+            //let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application.executablePath)
+            //TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: entitlement)
             LDEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
         }
     }

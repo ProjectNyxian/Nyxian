@@ -21,6 +21,7 @@
 #define LDETRUST_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 @interface LDETrust : NSObject
 
@@ -29,8 +30,9 @@
 - (instancetype)init;
 + (instancetype)shared;
 
-- (NSString*)entHashOfExecutableAtPath:(NSString*)path;
 - (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
+- (NSData*)getTokenOfExecutableAtPath:(NSString*)path;
+- (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path;
 
 @end
 

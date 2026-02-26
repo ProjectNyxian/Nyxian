@@ -263,12 +263,10 @@ class Builder {
                 }
                 LCAppInfo(bundlePath: project.bundlePath)?.patchExecAndSignIfNeed(completionHandler: { [weak self] result, errorDescription in
                     guard let self = self else { return }
+                    macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
                     if result {
                         if(LDEApplicationWorkspace.shared().installApplication(atBundlePath: self.project.bundlePath)) {
                             let application: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: project.projectConfig.bundleid)
-                            if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application.executablePath) {
-                                TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
-                            }
                             LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad))
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
@@ -285,13 +283,10 @@ class Builder {
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
                 MachOObject(path: self.project.machoPath).signAndWriteBack()
+                macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
                 
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
-                        if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: path) {
-                            TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: project.entitlementsConfig.generateEntitlements())
-                        }
-                        
                         let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
                         LDEWindowServer.shared().openWindow(with: TerminalSession, withCompletion: nil)
                     }

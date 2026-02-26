@@ -17,22 +17,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_TRUST_H
-#define PROCENVIRONMENT_TRUST_H
+#ifndef SURFACE_KEY_H
+#define SURFACE_KEY_H
 
-#import <Foundation/Foundation.h>
-#import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#include <stdint.h>
 
-@interface TrustCache : NSObject
+const uint8_t *get_static_kernel_key(void);
 
-@property (nonatomic,strong) NSMutableDictionary<NSString*,NSNumber*> *cache;
-
-- (instancetype)init;
-+ (instancetype)shared;
-
-- (PEEntitlement)getEntitlementsForHash:(NSString*)hash;
-- (void)setEntitlementsForHash:(NSString*)hash usingEntitlements:(PEEntitlement)entitlements;
-
-@end
-
-#endif /* PROCENVIRONMENT_TRUST_H */
+#endif /* SURFACE_KEY_H */

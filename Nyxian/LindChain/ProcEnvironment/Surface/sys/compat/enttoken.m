@@ -67,7 +67,14 @@ DEFINE_SYSCALL_HANDLER(enttoken)
             
             break;
         }
+        case ET_MOD:
+        {
+            ksurface_ent_token_t token;
+            
+            
+        }
         default:
+            sys_return_failure(EINVAL);
             break;
     }
     
