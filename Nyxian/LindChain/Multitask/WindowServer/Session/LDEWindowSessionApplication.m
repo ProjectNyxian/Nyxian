@@ -404,6 +404,7 @@ void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *b
                 LDEWindowSessionApplication *session = (LDEWindowSessionApplication*)window.session;
                 if([session.process.bundleIdentifier isEqualToString:bundleIdentifier])
                 {
+                    [window.view.superview bringSubviewToFront:window.view];
                     [window focusWindow];
                     break;
                 }
