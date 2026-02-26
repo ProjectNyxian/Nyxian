@@ -40,8 +40,8 @@
     LDEWindow *_activeWindow;
     wid_t _activeWindowIdentifier;
     UIScrollView *_runningAppsScrollView;
-    LDEAppLaunchpad *_launchPad;
 #if !JAILBREAK_ENV
+    LDEAppLaunchpad *_launchPad;
     UISegmentedControl *_segmentControl;
 #endif /* !JAILBREAK_ENV */
     BOOL _isKeyboardVisible;
@@ -362,7 +362,7 @@
         
         [_runningAppsScrollView.topAnchor constraintEqualToAnchor:_segmentControl.bottomAnchor constant:15],
 #else
-        [self.runningAppsScrollView.topAnchor constraintEqualToAnchor:effectView.topAnchor constant:20],
+        [_runningAppsScrollView.topAnchor constraintEqualToAnchor:effectView.topAnchor constant:20],
 #endif /* !JAILBREAK_ENV */
         
         [_runningAppsScrollView.bottomAnchor constraintEqualToAnchor:effectView.contentView.bottomAnchor constant:-20],
