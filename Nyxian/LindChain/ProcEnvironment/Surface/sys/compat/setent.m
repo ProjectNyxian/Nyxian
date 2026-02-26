@@ -23,12 +23,14 @@
 DEFINE_SYSCALL_HANDLER(setent)
 {
     sys_name("SYS_setent");
+    kvo_wrlock(sys_proc_);
     
     /* MARK: THIS IS USER SUPPLIED */
     PEEntitlement userPassed = (PEEntitlement)args[0];
     
     /* getting the added mask out of both entitlements */
-    PEEntitlement added = (~proc_getentitlements(sys_proc_copy_)) & userPassed;
+    PEEntitlement added = (~proc_getentitlements(sys_proc_)) & userPassed;
+    PEEntitlement removed = proc_getentitlements(sys_proc_) & (~userPassed);
     
     /*
      * only platform process entitlement
@@ -36,20 +38,29 @@ DEFINE_SYSCALL_HANDLER(setent)
      * and not all.
      */
     if(added != PEEntitlementNone &&
-       !entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform))
+       !entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementPlatform))
     {
+        kvo_unlock(sys_proc_);
         sys_return_failure(EPERM);
     }
     
     /* deny setting certain entitlements */
-    if(added & (PEEntitlementPlatform | PEEntitlementProcessElevate | PEEntitlementTaskForPid |
-                PEEntitlementTrustCacheWrite))
+    if(added & (PEEntitlementPlatform | PEEntitlementProcessElevate | PEEntitlementTaskForPid))
     {
+        kvo_unlock(sys_proc_);
         sys_return_failure(EPERM);
     }
     
-    proc_setentitlements(sys_proc_copy_, userPassed);
-    proc_copy_update(sys_proc_copy_);
+    /* deny removing certain entitlements */
+    if(removed & (PEEntitlementProcessSpawnInheriteEntitlements) &&
+       !entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementPlatform))
+    {
+        kvo_unlock(sys_proc_);
+        sys_return_failure(EPERM);
+    }
     
+    proc_setentitlements(sys_proc_, userPassed);
+    
+    kvo_unlock(sys_proc_);
     sys_return;
 }

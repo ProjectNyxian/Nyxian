@@ -23,7 +23,8 @@
 DEFINE_SYSCALL_HANDLER(setsid)
 {
     sys_name("SYS_setsid");
-    proc_setsid(sys_proc_copy_, proc_getpid(sys_proc_copy_));
-    proc_copy_update(sys_proc_copy_);
+    kvo_wrlock(sys_proc_);
+    proc_setsid(sys_proc_, proc_getpid(sys_proc_copy_));
+    kvo_unlock(sys_proc_);
     sys_return;
 }

@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
-bool proc_is_privileged(ksurface_proc_copy_t *proc)
+bool proc_is_privileged(ksurface_proc_t *proc)
 {
     /* Checking if process is entitled to elevate. */
     if(entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementProcessElevate))
@@ -38,17 +38,18 @@ DEFINE_SYSCALL_HANDLER(setuid)
 {
     /* syscall wrapper */
     sys_name("SYS_setuid");
+    kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */
     uid_t uid = (uid_t)args[0];
     
     /* checking if process is priveleged enough */
-    if(proc_is_privileged(sys_proc_copy_))
+    if(proc_is_privileged(sys_proc_))
     {
         /* process is privelegedm updating credentials */
-        proc_setruid(sys_proc_copy_, uid);
-        proc_seteuid(sys_proc_copy_, uid);
-        proc_setsvuid(sys_proc_copy_, uid);
+        proc_setruid(sys_proc_, uid);
+        proc_seteuid(sys_proc_, uid);
+        proc_setsvuid(sys_proc_, uid);
         
         /* update and return */
         goto out_update;
@@ -56,11 +57,11 @@ DEFINE_SYSCALL_HANDLER(setuid)
     else
     {
         /* setting if ruid or svuid matches the wished uid */
-        if(uid == proc_getruid(sys_proc_copy_) ||
-           uid == proc_getsvuid(sys_proc_copy_))
+        if(uid == proc_getruid(sys_proc_) ||
+           uid == proc_getsvuid(sys_proc_))
         {
             /* updating credentials */
-            proc_seteuid(sys_proc_copy_, uid);
+            proc_seteuid(sys_proc_, uid);
             
             /* update and return */
             goto out_update;
@@ -68,11 +69,12 @@ DEFINE_SYSCALL_HANDLER(setuid)
     }
     
     /* setting errno on failure */
+    kvo_unlock(sys_proc_);
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }
 
@@ -80,27 +82,28 @@ DEFINE_SYSCALL_HANDLER(seteuid)
 {
     /* syscall wrapper */
     sys_name("SYS_seteuid");
+    kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */
     uid_t euid = (uid_t)args[0];
     
     /* checking if process is priveleged enough */
-    if(proc_is_privileged(sys_proc_copy_))
+    if(proc_is_privileged(sys_proc_))
     {
         /* updating credentials */
-        proc_seteuid(sys_proc_copy_, euid);
+        proc_seteuid(sys_proc_, euid);
         
         /* update and return */
         goto out_update;
     }
     else
     {
-        if(euid == proc_getruid(sys_proc_copy_) ||
-           euid == proc_geteuid(sys_proc_copy_) ||
-           euid == proc_getsvuid(sys_proc_copy_))
+        if(euid == proc_getruid(sys_proc_) ||
+           euid == proc_geteuid(sys_proc_) ||
+           euid == proc_getsvuid(sys_proc_))
         {
             /* updating credentials */
-            proc_seteuid(sys_proc_copy_, euid);
+            proc_seteuid(sys_proc_, euid);
             
             /* update and return */
             goto out_update;
@@ -108,11 +111,12 @@ DEFINE_SYSCALL_HANDLER(seteuid)
     }
     
     /* setting errno on failure */
+    kvo_unlock(sys_proc_);
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }
 
@@ -120,18 +124,19 @@ DEFINE_SYSCALL_HANDLER(setreuid)
 {
     /* syscall wrapper */
     sys_name("SYS_setreuid");
+    kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */
     uid_t ruid = (uid_t)args[0];
     uid_t euid = (uid_t)args[1];
     
     /* getting current credentials from copy */
-    uid_t cur_ruid = proc_getruid(sys_proc_copy_);
-    uid_t cur_euid = proc_geteuid(sys_proc_copy_);
-    uid_t cur_svuid = proc_getsvuid(sys_proc_copy_);
+    uid_t cur_ruid = proc_getruid(sys_proc_);
+    uid_t cur_euid = proc_geteuid(sys_proc_);
+    uid_t cur_svuid = proc_getsvuid(sys_proc_);
     
     /* performing privelege test */
-    bool privileged = proc_is_privileged(sys_proc_copy_);
+    bool privileged = proc_is_privileged(sys_proc_);
     
     /* performing ruid priv check */
     if(ruid != (uid_t)-1 &&
@@ -158,20 +163,20 @@ DEFINE_SYSCALL_HANDLER(setreuid)
     /* setting credential */
     if(ruid != (uid_t)-1)
     {
-        proc_setruid(sys_proc_copy_, ruid);
+        proc_setruid(sys_proc_, ruid);
     }
     
     /* setting credential */
     if(euid != (uid_t)-1)
     {
-        proc_seteuid(sys_proc_copy_, euid);
+        proc_seteuid(sys_proc_, euid);
         if(privileged)
         {
-            proc_setsvuid(sys_proc_copy_, euid);
+            proc_setsvuid(sys_proc_, euid);
         }
     }
     
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }

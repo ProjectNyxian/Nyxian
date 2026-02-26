@@ -76,7 +76,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     task_rdlock();
     
     /* sanity check */
-    if(sys_proc_copy_->proc->kproc.task != MACH_PORT_NULL)
+    if(sys_proc_->kproc.task != MACH_PORT_NULL)
     {
         /* task port already set */
         task_unlock();
@@ -96,7 +96,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
         
         khandoffep_t *hep = malloc(sizeof(mach_port_t));
         hep->ep = in_recv;
-        hep->proc = sys_proc_copy_->proc;
+        hep->proc = sys_proc_;
         
         pthread_t thread;
         pthread_create(&thread, NULL, dothework, hep);

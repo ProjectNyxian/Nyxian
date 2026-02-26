@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
-extern bool proc_is_privileged(ksurface_proc_copy_t *proc);
+extern bool proc_is_privileged(ksurface_proc_t *proc);
 
 DEFINE_SYSCALL_HANDLER(setgid)
 {
@@ -32,24 +32,26 @@ DEFINE_SYSCALL_HANDLER(setgid)
     /* getting arguments */
     gid_t gid = (gid_t)args[0];
     
+    kvo_wrlock(sys_proc_);
+    
     /* checking privelege */
-    if(proc_is_privileged(sys_proc_copy_))
+    if(proc_is_privileged(sys_proc_))
     {
         /* updating credentials */
-        proc_setrgid(sys_proc_copy_, gid);
-        proc_setegid(sys_proc_copy_, gid);
-        proc_setsvgid(sys_proc_copy_, gid);
+        proc_setrgid(sys_proc_, gid);
+        proc_setegid(sys_proc_, gid);
+        proc_setsvgid(sys_proc_, gid);
         
         /* update and return */
         goto out_update;
     }
     else
     {
-        if(gid == proc_getrgid(sys_proc_copy_) ||
-           gid == proc_getsvgid(sys_proc_copy_))
+        if(gid == proc_getrgid(sys_proc_) ||
+           gid == proc_getsvgid(sys_proc_))
         {
             /* updating credentials */
-            proc_setegid(sys_proc_copy_, gid);
+            proc_setegid(sys_proc_, gid);
             
             /* update and return */
             goto out_update;
@@ -57,11 +59,12 @@ DEFINE_SYSCALL_HANDLER(setgid)
     }
     
     /* setting errno on failure */
+    kvo_unlock(sys_proc_);
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }
 
@@ -73,23 +76,25 @@ DEFINE_SYSCALL_HANDLER(setegid)
     /* getting arguments */
     gid_t egid = (gid_t)args[0];
     
+    kvo_wrlock(sys_proc_);
+    
     /* checking privelege */
-    if(proc_is_privileged(sys_proc_copy_))
+    if(proc_is_privileged(sys_proc_))
     {
         /* updating credentials */
-        proc_setegid(sys_proc_copy_, egid);
+        proc_setegid(sys_proc_, egid);
         
         /* update and return */
         goto out_update;
     }
     else
     {
-        if(egid == proc_getrgid(sys_proc_copy_) ||
-           egid == proc_getegid(sys_proc_copy_) ||
-           egid == proc_getsvgid(sys_proc_copy_))
+        if(egid == proc_getrgid(sys_proc_) ||
+           egid == proc_getegid(sys_proc_) ||
+           egid == proc_getsvgid(sys_proc_))
         {
             /* updating credentials */
-            proc_setegid(sys_proc_copy_, egid);
+            proc_setegid(sys_proc_, egid);
             
             /* update and return */
             goto out_update;
@@ -97,11 +102,12 @@ DEFINE_SYSCALL_HANDLER(setegid)
     }
     
     /* setting errno on failure */
+    kvo_unlock(sys_proc_);
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }
 
@@ -109,18 +115,19 @@ DEFINE_SYSCALL_HANDLER(setregid)
 {
     /* syscall wrapper */
     sys_name("SYS_setregid");
+    kvo_wrlock(sys_proc_);
     
     /* getting arguments */
     gid_t rgid = (gid_t)args[0];
     gid_t egid = (gid_t)args[1];
     
     /* getting current credentials */
-    gid_t cur_rgid = proc_getrgid(sys_proc_copy_);
-    gid_t cur_egid = proc_getegid(sys_proc_copy_);
-    gid_t cur_svgid = proc_getsvgid(sys_proc_copy_);
+    gid_t cur_rgid = proc_getrgid(sys_proc_);
+    gid_t cur_egid = proc_getegid(sys_proc_);
+    gid_t cur_svgid = proc_getsvgid(sys_proc_);
     
     /* getting privele status of the process */
-    bool privileged = proc_is_privileged(sys_proc_copy_);
+    bool privileged = proc_is_privileged(sys_proc_);
     
     /* performing rgid priv check */
     if(rgid != (gid_t)-1 &&
@@ -147,20 +154,20 @@ DEFINE_SYSCALL_HANDLER(setregid)
     /* setting credential */
     if(rgid != (gid_t)-1)
     {
-        proc_setrgid(sys_proc_copy_, rgid);
+        proc_setrgid(sys_proc_, rgid);
     }
     
     /* setting credential */
     if(egid != (gid_t)-1)
     {
-        proc_setegid(sys_proc_copy_, egid);
+        proc_setegid(sys_proc_, egid);
         if(privileged)
         {
-            proc_setsvgid(sys_proc_copy_, egid);
+            proc_setsvgid(sys_proc_, egid);
         }
     }
     
-    sys_proc_copy_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
-    proc_copy_update(sys_proc_copy_);
+    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    kvo_unlock(sys_proc_);
     sys_return;
 }

@@ -71,23 +71,6 @@ ksurface_proc_copy_t *proc_copy_for_proc(ksurface_proc_t *proc,
     return proc_copy;
 }
 
-ksurface_return_t proc_copy_update(ksurface_proc_copy_t *proc_copy)
-{
-    /* null pointer check */
-    if(proc_copy == NULL ||
-       proc_copy->proc == NULL)
-    {
-        return SURFACE_NULLPTR;
-    }
-    
-    /* update the original reference */
-    kvo_wrlock(proc_copy->proc);
-    memcpy(&(proc_copy->proc->kproc.kcproc), &(proc_copy->kproc.kcproc), sizeof(ksurface_kcproc_t));
-    kvo_unlock(proc_copy->proc);
-    
-    return SURFACE_SUCCESS;
-}
-
 ksurface_return_t proc_copy_recopy(ksurface_proc_copy_t *proc_copy)
 {
     /* null pointer check */
