@@ -302,11 +302,18 @@
     
     if(signal == SIGSTOP)
     {
-        kvobject_event_trigger((kvobject_t*)_proc, kvObjEventCustom0, 0);
+        kvo_wrlock(_proc);
+        _proc->kproc.kcproc.bsd.kp_proc.p_stat = SSTOP;
+        _proc->kproc.kcproc.nyx.p_stop_reported = 0;
+        kvo_event_trigger(_proc, kvObjEventCustom0, 0);
+        kvo_unlock(_proc);
     }
     else if(signal == SIGCONT)
     {
-        kvobject_event_trigger((kvobject_t*)_proc, kvObjEventCustom1, 0);
+        kvo_wrlock(_proc);
+        _proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
+        kvo_event_trigger(_proc, kvObjEventCustom1, 0);
+        kvo_unlock(_proc);
     }
 #else
     shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);

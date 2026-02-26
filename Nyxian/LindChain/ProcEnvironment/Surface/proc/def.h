@@ -135,6 +135,9 @@ struct ksurface_proc {
                 /* session identifier */
                 pid_t sid;
                 
+                /* wait4 markers */
+                int p_stop_reported;
+                
                 /* executable path at which the macho is located at */
                 char executable_path[PATH_MAX];
                 

@@ -35,7 +35,7 @@ DEFINE_SYSCALL_HANDLER(enttoken)
     {
         case ET_CREATE:
         {
-            ksurface_return_t ksr = entitlement_token_generate_for_entitlement(sys_proc_copy_->proc, entitlement, &token);
+            ksurface_return_t ksr = entitlement_token_generate_for_entitlement(sys_proc_, entitlement, &token);
             
             if(ksr != SURFACE_SUCCESS)
             {
@@ -58,7 +58,7 @@ DEFINE_SYSCALL_HANDLER(enttoken)
                 sys_return_failure(EFAULT);
             }
             
-            ksurface_return_t ksr = entitlement_token_consume(sys_proc_copy_->proc, &token);
+            ksurface_return_t ksr = entitlement_token_consume(sys_proc_, &token);
             
             if(ksr != SURFACE_SUCCESS)
             {
@@ -66,12 +66,6 @@ DEFINE_SYSCALL_HANDLER(enttoken)
             }
             
             break;
-        }
-        case ET_MOD:
-        {
-            ksurface_ent_token_t token;
-            
-            
         }
         default:
             sys_return_failure(EINVAL);

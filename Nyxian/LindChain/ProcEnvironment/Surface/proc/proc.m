@@ -52,6 +52,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
             proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
             proc->kproc.kcproc.nyx.ret = 0;
+            proc->kproc.kcproc.nyx.p_stop_reported = 0;
             
             goto mutual_init;
         }
@@ -61,7 +62,9 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
             memcpy(&(proc->kproc.kcproc), &(src->kproc.kcproc), sizeof(ksurface_kcproc_t));
             
+            proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
             proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+            proc->kproc.kcproc.nyx.p_stop_reported = 0;
             
         mutual_init:
             if(gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)

@@ -91,7 +91,8 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     /* prepare arguments */
     pid_t pid = (pid_t)args[0];
-
+    int options = (int)args[2];
+    
     /* get process reference to target */
     ksurface_proc_t *target;
     ksurface_return_t ksr = proc_for_pid(pid, &target);
@@ -101,12 +102,15 @@ DEFINE_SYSCALL_HANDLER(wait4)
         sys_return_failure(EINVAL);
     }
     
+    kvo_wrlock(target);
+    
     /* checking if process is visible */
     proc_visibility_t vis = get_proc_visibility(sys_proc_copy_);
     
     /* perms check */
     if(!can_see_process(sys_proc_copy_, target, vis))
     {
+        kvo_unlock(target);
         kvo_release(target);
         sys_return_failure(EINVAL);
     }
@@ -116,8 +120,26 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     if(payload == NULL)
     {
+        kvo_unlock(target);
         kvo_release(target);
         sys_return_failure(ENOMEM);
+    }
+    
+    /* check if one stopping is still in await to be received */
+    if((options & WSTOPPED) == WSTOPPED)
+    {
+        if(target->kproc.kcproc.bsd.kp_proc.p_stat == SSTOP &&
+           target->kproc.kcproc.nyx.p_stop_reported == 0)
+        {
+            target->kproc.kcproc.nyx.p_stop_reported = 1;
+            
+            int ecode = W_STOPCODE(SIGSTOP);
+            mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
+            
+            kvo_unlock(target);
+            kvo_release(target);
+            sys_return;
+        }
     }
     
     mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
@@ -128,13 +150,14 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->thread = thread;
     payload->status_ptr = (userspace_pointer_t)args[1];
     payload->rusage_ptr = (userspace_pointer_t)args[3];
-    payload->options = (int)args[2];
+    payload->options = options;
     
     /* suspend task */
     kern_return_t kr = thread_suspend(thread);
     if(kr != KERN_SUCCESS)
     {
         free(payload);
+        kvo_unlock(target);
         kvo_release(target);
         sys_return_failure(EBADMSG);
     }
@@ -145,10 +168,12 @@ DEFINE_SYSCALL_HANDLER(wait4)
     {
         thread_resume(thread);
         free(payload);
+        kvo_unlock(target);
         kvo_release(target);
         sys_return_failure(EAGAIN);
     }
     
+    kvo_unlock(target);
     kvo_release(target);
     sys_return;
 }

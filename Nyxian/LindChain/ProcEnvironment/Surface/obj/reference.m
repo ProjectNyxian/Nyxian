@@ -50,7 +50,6 @@ bool kvobject_retain(kvobject_t *kvo)
                 return false;
             }
             
-            kvobject_event_trigger(kvo, kvObjEventInvalidate, 0);
             return true;
         }
     }
@@ -72,8 +71,6 @@ void kvobject_invalidate(kvobject_strong_t *kvo)
 void kvobject_release(kvobject_strong_t *kvo)
 {
     assert(kvo != NULL);
-    
-    kvobject_event_trigger(kvo, kvObjEventRelease, 0);
     
     /* releasing and trying to get the old reference count */
     int old = atomic_fetch_sub(&kvo->refcount, 1);
