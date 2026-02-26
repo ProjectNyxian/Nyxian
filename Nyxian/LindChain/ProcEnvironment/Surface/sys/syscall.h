@@ -40,6 +40,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/enttoken.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -54,6 +55,7 @@
 #define SYS_procbsd     758         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_handoffep   759         /* handoff exception port to kvirt */
 #define SYS_setent      760         /* sets entitlements (sanitized ofc) */
+#define SYS_enttoken    761         /* generation and consumption of token full of authority */
 
 #define SYS_N 28
 

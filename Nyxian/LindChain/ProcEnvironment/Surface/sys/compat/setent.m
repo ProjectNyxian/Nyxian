@@ -27,18 +27,19 @@ DEFINE_SYSCALL_HANDLER(setent)
     /* MARK: THIS IS USER SUPPLIED */
     PEEntitlement userPassed = (PEEntitlement)args[0];
     
+    /* getting the added mask out of both entitlements */
+    PEEntitlement added = (~proc_getentitlements(sys_proc_copy_)) & userPassed;
+    
     /*
      * only platform process entitlement
-     * can set entitlements of it self,
+     * can add entitlements of it self,
      * and not all.
      */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform))
+    if(added != PEEntitlementNone &&
+       !entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementPlatform))
     {
         sys_return_failure(EPERM);
     }
-    
-    /* getting the added mask out of both entitlements */
-    PEEntitlement added = (~proc_getentitlements(sys_proc_copy_)) & userPassed;
     
     /* deny setting certain entitlements */
     if(added & (PEEntitlementPlatform | PEEntitlementProcessElevate | PEEntitlementTaskForPid |
