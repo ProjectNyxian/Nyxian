@@ -58,6 +58,10 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
         return SURFACE_FAILED;
     }
     
+    kvo_wrlock(proc);
+    proc->kproc.kcproc.bsd.kp_proc.p_flag |= P_CONTROLT;
+    kvo_unlock(proc);
+    
     kvo_release(proc);
     return SURFACE_SUCCESS;
 }
