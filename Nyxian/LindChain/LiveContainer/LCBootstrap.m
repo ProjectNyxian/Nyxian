@@ -190,7 +190,7 @@ retry_getting_home:
         
         if(home == NULL)
         {
-            setenv("HOME", [[LCHomePath stringByAppendingPathComponent:@"var/mobile"] UTF8String], 1);
+            setenv("HOME", [[LCHomePath stringByAppendingPathComponent:@"Documents/var/mobile"] UTF8String], 1);
             goto retry_getting_home;
         }
         
