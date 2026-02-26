@@ -44,8 +44,6 @@ enum kvObjEvent {
     kvObjEventInit = 0,
     kvObjEventDeinit,
     kvObjEventCopy,
-    kvObjEventRetain,
-    kvObjEventRelease,
     kvObjEventInvalidate,
     kvObjEventUnregister,
     kvObjEventCustom0,
