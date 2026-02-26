@@ -48,8 +48,8 @@ typedef struct {
  @function environment_fork_init
  @abstract Initializes fork environment.
  @discussion
-    Fixes fork() and exec*() family symbols using a creative thread snapshotting and conditioning system.
+    Fixes vfork() and exec*() family symbols using a creative thread snapshotting and conditioning system.
  */
-void environment_fork_init(void);
+void environment_vfork_init(void);
 
 #endif /* PROCENVIRONMENT_FORK_H */

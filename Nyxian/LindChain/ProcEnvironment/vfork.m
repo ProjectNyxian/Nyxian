@@ -17,7 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/fork.h>
+#import <LindChain/ProcEnvironment/vfork.h>
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/litehook/litehook.h>
@@ -120,7 +120,7 @@ bool fork_helper_thread_trap(void)
 #pragma mark - fork() fix
 
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
-DEFINE_HOOK(fork, pid_t, (void))
+DEFINE_HOOK(vfork, pid_t, (void))
 {
     /*
      * allocating local thread snapshot, which
@@ -391,11 +391,11 @@ DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
 
 #pragma mark - Initilizer
 
-void environment_fork_init(void)
+void environment_vfork_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
     {
-        DO_HOOK_GLOBAL(fork);
+        DO_HOOK_GLOBAL(vfork);
         DO_HOOK_GLOBAL(execl);
         DO_HOOK_GLOBAL(execle);
         DO_HOOK_GLOBAL(execlp);

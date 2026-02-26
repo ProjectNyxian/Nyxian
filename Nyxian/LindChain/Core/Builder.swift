@@ -295,6 +295,7 @@ class Builder {
                 }
             }
         } else {
+            macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
             try? self.package()
         }
 #else
