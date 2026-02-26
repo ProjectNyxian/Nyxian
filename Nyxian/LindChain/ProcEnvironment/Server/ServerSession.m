@@ -72,6 +72,14 @@
        (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
         entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
+        if([environment objectForKey:@"DYLD_INSERT_LIBRARIES"] &&
+           !entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementPlatform))
+            /* TODO: add root user check without causing race condition */
+        {
+            reply(-1);
+            return;
+        }
+        
         /* invoking spawn */
         pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc enableDebugging:NO process:nil withSession:nil];
         
