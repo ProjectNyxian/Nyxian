@@ -213,6 +213,7 @@
 				LindChain/ProcEnvironment/Server/Server.m,
 				LindChain/ProcEnvironment/Server/ServerSession.m,
 				LindChain/ProcEnvironment/Server/Trust.m,
+				LindChain/ProcEnvironment/Surface/entitlement.m,
 				LindChain/ProcEnvironment/Surface/obj/alloc.c,
 				LindChain/ProcEnvironment/Surface/obj/event.c,
 				LindChain/ProcEnvironment/Surface/obj/reference.m,

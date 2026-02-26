@@ -90,6 +90,9 @@ static inline void ksurface_kinit_kinfo(void)
     ksurface->proc_info.proc_count = 0;
     ksurface->tty_info.tty.root = NULL;
     
+    /* generate secret */
+    arc4random_buf(ksurface->kernel_token_key, sizeof(ksurface->kernel_token_key));
+    
     /* loading hostname from standard user defaults */
     NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
     

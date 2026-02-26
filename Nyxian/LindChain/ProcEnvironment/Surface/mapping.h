@@ -40,6 +40,9 @@ typedef struct {
      */
     syscall_server_t *sys_server;
     
+    /* kernels secret for entitlement blobs */
+    uint8_t kernel_token_key[32];
+    
     /*
      * structure that holds host information.
      * Such as hostname.

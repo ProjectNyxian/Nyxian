@@ -20,8 +20,13 @@
 #ifndef PROC_ENTITLEMENT_H
 #define PROC_ENTITLEMENT_H
 
+#include <LindChain/ProcEnvironment/Surface/return.h>
 #import <Foundation/Foundation.h>
 #include <stdint.h>
+
+typedef struct ksurface_proc ksurface_proc_t;
+typedef struct ksurface_ent_blob ksurface_ent_blob_t;
+typedef struct ksurface_ent_token ksurface_ent_token_t;
 
 /*!
  @enum PEEntitlement
@@ -104,6 +109,21 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     PEEntitlementKernel                             = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
 };
 
+struct __attribute__((packed)) ksurface_ent_blob {
+    pid_t issuer_pid;
+    PEEntitlement entitlement;
+    uint64_t nonce;
+};
+
+struct __attribute__((packed)) ksurface_ent_token {
+    struct ksurface_ent_blob blob;
+    uint8_t mac[32];
+};
+
 #define entitlement_got_entitlement(present,needed) ((present & needed) == needed)
+
+ksurface_return_t entitlement_token_generate_for_entitlement(ksurface_proc_t *proc, PEEntitlement entitlement, ksurface_ent_token_t *token);
+ksurface_return_t entitlement_token_verify(ksurface_ent_token_t *token);
+ksurface_return_t entitlement_token_consume(ksurface_proc_t *consumer, ksurface_ent_token_t *token);
 
 #endif /* PROC_ENTITLEMENT_H */

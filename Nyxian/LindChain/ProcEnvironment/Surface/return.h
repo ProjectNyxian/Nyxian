@@ -20,6 +20,8 @@
 #ifndef PROCENVIRONMENT_RETURN_H
 #define PROCENVIRONMENT_RETURN_H
 
+#include <stdint.h>
+
 typedef uint8_t ksurface_return_t;
 
 #define SURFACE_SUCCESS         0
