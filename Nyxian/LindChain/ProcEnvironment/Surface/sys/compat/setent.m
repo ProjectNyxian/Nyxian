@@ -31,26 +31,14 @@ DEFINE_SYSCALL_HANDLER(setent)
     PEEntitlement added = (~proc_getentitlements(sys_proc_)) & userPassed;
     PEEntitlement removed = proc_getentitlements(sys_proc_) & (~userPassed);
     
-    /*
-     * only platform process entitlement
-     * can add entitlements of it self,
-     * and not all.
-     */
-    if(added != PEEntitlementNone &&
-       !entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementPlatform))
+    /* deny adding entitlements not present in max entitlements */
+    if(!entitlement_got_entitlement(proc_getmaxentitlements(sys_proc_), added))
     {
         kvo_unlock(sys_proc_);
         sys_return_failure(EPERM);
     }
     
-    /* deny setting certain entitlements */
-    if(added & (PEEntitlementPlatform | PEEntitlementProcessElevate | PEEntitlementTaskForPid))
-    {
-        kvo_unlock(sys_proc_);
-        sys_return_failure(EPERM);
-    }
-    
-    /* deny removing certain entitlements */
+    /* deny removing certain entitlements without platformisation  */
     if(removed & (PEEntitlementProcessSpawnInheriteEntitlements) &&
        !entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementPlatform))
     {

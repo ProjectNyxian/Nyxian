@@ -29,10 +29,12 @@
 #define proc_getpid(proc) proc->kproc.kcproc.bsd.kp_proc.p_pid
 #define proc_getppid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_ppid
 #define proc_getentitlements(proc) proc->kproc.kcproc.nyx.entitlements
+#define proc_getmaxentitlements(proc) proc->kproc.kcproc.nyx.max_entitlements
 
 #define proc_setpid(proc, pid) proc->kproc.kcproc.bsd.kp_proc.p_pid = pid
 #define proc_setppid(proc, ppid) proc->kproc.kcproc.bsd.kp_proc.p_oppid = ppid; proc->kproc.kcproc.bsd.kp_eproc.e_ppid = ppid; proc->kproc.kcproc.bsd.kp_eproc.e_pgid = ppid
 #define proc_setentitlements(proc, entitlement) proc->kproc.kcproc.nyx.entitlements = entitlement
+#define proc_setmaxentitlements(proc, entitlement) proc->kproc.kcproc.nyx.max_entitlements = entitlement
 
 /// UID Helper macros
 #define proc_getruid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_ruid
@@ -144,6 +146,9 @@ struct ksurface_proc {
                 
                 /* entitlements the process has */
                 PEEntitlement entitlements;
+                
+                /* entitlements the process spawned with*/
+                PEEntitlement max_entitlements;
             } nyx;
         } kcproc;
     } kproc;

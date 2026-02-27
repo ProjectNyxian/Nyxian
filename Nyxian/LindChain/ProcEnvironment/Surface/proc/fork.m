@@ -111,7 +111,9 @@ force_not_inherite_entitlements:
     }
     
     /* now we add the ones from trust cache */
-    proc_setentitlements(child, currentEntitlement | entitlement);
+    PEEntitlement combined_entitlement = currentEntitlement | entitlement;
+    proc_setentitlements(child, combined_entitlement);
+    proc_setmaxentitlements(child, combined_entitlement);
     
     /* copying the path */
     strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
