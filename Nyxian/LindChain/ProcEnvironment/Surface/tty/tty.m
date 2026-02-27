@@ -204,6 +204,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
     
     switch(type)
     {
+        case kvObjEventSnapshot:
         case kvObjEventCopy:
             /* copy not supported */
             return -1;

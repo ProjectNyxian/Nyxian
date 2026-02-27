@@ -76,13 +76,25 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             
             return 0;
         }
-        case kvObjEventDeinit:
-            klog_log(@"proc:deinit", @"[%d] deinitilizing process @ %p", proc_getpid(proc), proc);
-            pthread_mutex_destroy(&(proc->kproc.children.mutex));
+        case kvObjEventSnapshot:
+        {
+            /* copy the object into the other object */
+            ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
+            memcpy(&(proc->kproc.kcproc), &(src->kproc.kcproc), sizeof(ksurface_kcproc_t));
             
-            if(proc->kproc.task != MACH_PORT_NULL)
+            /* done */
+            return 0;
+        }
+        case kvObjEventDeinit:
+            if(proc->header.base_type != kvObjBaseTypeObjectSnapshot)
             {
-                mach_port_deallocate(mach_task_self(), proc->kproc.task);
+                klog_log(@"proc:deinit", @"deinitilizing process @ %p", proc);
+                pthread_mutex_destroy(&(proc->kproc.children.mutex));
+                
+                if(proc->kproc.task != MACH_PORT_NULL)
+                {
+                    mach_port_deallocate(mach_task_self(), proc->kproc.task);
+                }
             }
         default:
             return 0;

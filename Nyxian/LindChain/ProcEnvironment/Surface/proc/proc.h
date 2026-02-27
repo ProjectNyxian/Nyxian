@@ -21,7 +21,6 @@
 #define PROC_PROC_H
 
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>

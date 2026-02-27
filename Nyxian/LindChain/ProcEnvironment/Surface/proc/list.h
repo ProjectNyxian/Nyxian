@@ -39,7 +39,7 @@ typedef enum {
 
 /* Radix tree context */
 typedef struct {
-    ksurface_proc_copy_t *caller;
+    ksurface_proc_snapshot_t *caller;
     proc_visibility_t vis;
     proc_flavour_t flavour;
     pid_t dsid;
@@ -48,12 +48,12 @@ typedef struct {
 } proc_list_radix_walker_t;
 
 /* Side quests xD */
-proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller);
-bool can_see_process(ksurface_proc_copy_t *caller, ksurface_proc_t *target, proc_visibility_t vis);
+proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller);
+bool can_see_process(ksurface_proc_snapshot_t *caller, ksurface_proc_t *target, proc_visibility_t vis);
 bool is_flavour_matching(ksurface_proc_t *target, proc_flavour_t flavour, pid_t dsid);
 static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
-ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy, kinfo_proc_t **kp, uint32_t *count, proc_flavour_t flavour, pid_t dsid);
+ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, uint32_t *count, proc_flavour_t flavour, pid_t dsid);
 
 #endif /* PROC_COPYLIST_H */

@@ -20,16 +20,15 @@
 #import <LindChain/ProcEnvironment/Surface/tty/attach.h>
 
 /* typedef bool (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*); */
-bool tty_proc_event_handler(kvobject_strong_t *kvo,
-                            kvevent_type_t type,
+bool tty_proc_event_handler(kvobject_event_type_t type,
                             uint8_t value,
-                            void *pld)
+                            kvobject_event_t *event)
 {
     switch(type)
     {
         case kvObjEventDeinit:
         {
-            ksurface_tty_t *tty = (ksurface_tty_t*)pld;
+            ksurface_tty_t *tty = (ksurface_tty_t*)(event->ctx);
             kvo_release(tty);
             return true;
         }
@@ -51,7 +50,7 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
      * attach to process lifecycle
      * and consume callers reference.
      */
-    ksurface_return_t ksr = kvo_event_register(proc, tty_proc_event_handler, NULL, tty);
+    ksurface_return_t ksr = kvo_event_register(proc, tty_proc_event_handler, tty, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         kvo_release(proc);

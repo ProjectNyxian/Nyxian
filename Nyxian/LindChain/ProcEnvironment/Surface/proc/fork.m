@@ -21,7 +21,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/Services/trustd/LDETrust.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>

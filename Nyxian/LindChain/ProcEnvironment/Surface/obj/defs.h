@@ -27,26 +27,24 @@
 #include <pthread.h>
 #include <mach/mach.h>
 
-#define KVEVENT_MAX 32
-
-#define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) int64_t kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvevent_type_t type)
+#define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) int64_t kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvobject_event_type_t type)
 #define GET_KVOBJECT_MAIN_EVENT_HANDLER(name) kvobject_event_handler_##name##_main
 
-typedef struct kvobject kvobject_t;
-typedef struct kvobject kvobject_strong_t;
-typedef struct kvevent kvevent_t;
-typedef enum kvObjEvent kvevent_type_t;
+/* enumeration of kernel virt object base types */
+enum kvObjBaseType {
+    kvObjBaseTypeObject = 0,                        /* normal allocated object with referencing */
+    kvObjBaseTypeObjectSnapshot = 1,                /* snapshot of object also with referencing, but with seperate memory */
+};
 
-typedef int64_t (*kvobject_main_event_handler_t)(kvobject_t**,kvevent_type_t);
-typedef bool (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*);
-
+/* enumeration of kernel virt object events */
 enum kvObjEvent {
-    kvObjEventInit = 0,
-    kvObjEventDeinit,
-    kvObjEventCopy,
-    kvObjEventInvalidate,
-    kvObjEventUnregister,
-    kvObjEventCustom0,
+    kvObjEventInit = 0,                             /* object initilizes                            MARK: important for main event handler */
+    kvObjEventDeinit,                               /* object deinitilizes                          MARK: important for main event handler */
+    kvObjEventCopy,                                 /* object copies into new object                MARK: important for main event handler */
+    kvObjEventSnapshot,                             /* object snapshots into snapshotted object     MARK: important for main event handler */
+    kvObjEventInvalidate,                           /* object becomes invalidated */
+    kvObjEventUnregister,                           /* object event handler gets unregistered, only called on the affected handler */
+    kvObjEventCustom0,                              /* custom object events */
     kvObjEventCustom1,
     kvObjEventCustom2,
     kvObjEventCustom3,
@@ -59,13 +57,48 @@ enum kvObjEvent {
     kvObjEventCustom10
 };
 
+/* enumeration of kernel virt object states */
+enum kvObjState {
+    kvObjStateNormal = 0,                           /* object is in normal state */
+    kvObjStateInvalid                               /* object is invalidated and cannot be retained, only released, its used to mark a object as meaningless */
+};
+
+/* enumeration for type of snapshotting */
+enum kvObjSnap {
+    kvObjSnapStatic = 0,                            /* dont create reference back nor set orig pointer */
+    kvObjSnapReferenced,                            /* creates new reference and sets orig pointer */
+    kvObjSnapConsumeReference                       /* consumes callers reference and sets orig pointer */
+};
+
+/* kernel virt object types */
+typedef struct kvobject     kvobject_t;             /* weak object type (needs retain on use) */
+typedef struct kvobject     kvobject_strong_t;      /* strong object (referenced for calle) */
+typedef struct kvobject     kvobject_snapshot_t;    /* snapshot of object (references object usually) */
+
+/* kernel virt object event type */
+typedef struct kvevent      kvobject_event_t;
+
+/* kernel virt object enumeration types */
+typedef enum kvObjBaseType  kvobject_base_type_t;
+typedef enum kvObjEvent     kvobject_event_type_t;
+typedef enum kvObjState     kvobject_state_t;
+typedef enum kvObjSnap      kvobject_snapshot_options_t;
+
+typedef int64_t (*kvobject_main_event_handler_t)(kvobject_t**, kvobject_event_type_t);
+typedef bool (*kvobject_event_handler_t)(kvobject_event_type_t, uint8_t, kvobject_event_t*);
+
 struct kvevent {
-    kvobject_event_handler_t handler;
-    uint64_t event_token;
-    void *pld;
+    kvobject_event_t *previous;                     /* pointer to previous event */
+    kvobject_event_t *next;                         /* pointer to next event */
+    kvobject_t *owner;                              /* pointer of who owns the event */
+    kvobject_event_handler_t handler;               /* pointer to handler */
+    void *ctx;                                      /* pointer to payload MARK: if heap allocated, deallocate it on unregistration */
 };
 
 struct kvobject {
+    /* type of object */
+    kvobject_base_type_t base_type;
+    
     /*
      * reference count of an object if
      * it hits zero it will release
@@ -74,23 +107,21 @@ struct kvobject {
     _Atomic int refcount;
     
     /*
-     * invalidation boolean value marks a
-     * object as effectively useless, any new
-     * retains will fail cuz it doesnt matter
-     * anymore what a kernel operation might
-     * wanna do with this object as its literally
+     * the object state value marks a
+     * object as effectively useless if its state
+     * is invalid, any new retains will fail cuz it
+     * doesnt matter anymore what a kernel operation
+     * might wanna do with this object as its literally
      * marked as not useful anymore.
      */
-    _Atomic bool invalid;
+    _Atomic kvobject_state_t state;
     
     /* state handlers for each object */
     kvobject_main_event_handler_t main_handler;
     
     /* events */
     pthread_rwlock_t event_rwlock;
-    kvevent_t event[KVEVENT_MAX];
-    uint8_t event_cnt;
-    uint64_t event_token_counter;
+    kvobject_event_t *event;
     
     /*
      * main read-write lock of this structure,
@@ -100,6 +131,9 @@ struct kvobject {
     
     /* size for duplication */
     size_t size;
+    
+    /* reference back to original (for snapshot) */
+    kvobject_strong_t *orig;
 };
 
 #endif /* KVOBJECT_DEFS_H */

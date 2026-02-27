@@ -19,7 +19,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 
-proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller)
+proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
 {
     /* something went wrong here, dont let anyone see ^^ */
     if(caller == NULL)
@@ -44,7 +44,7 @@ proc_visibility_t get_proc_visibility(ksurface_proc_copy_t *caller)
     return PROC_VIS_SAME_SID;
 }
 
-bool can_see_process(ksurface_proc_copy_t *caller,
+bool can_see_process(ksurface_proc_snapshot_t *caller,
                      ksurface_proc_t *target,
                      proc_visibility_t vis)
 {
@@ -124,7 +124,7 @@ void proc_list_radix_walker_callback(uint64_t ident,
     kvo_release(proc);
 }
 
-ksurface_return_t proc_list(ksurface_proc_copy_t *proc_copy,
+ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
                             kinfo_proc_t **kp,
                             uint32_t *count,
                             proc_flavour_t flavour,

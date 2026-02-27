@@ -30,13 +30,12 @@ typedef struct wait4_payload {
     thread_t thread;
 } wait4_payload_t;
 
-bool wait4_proc_event_handler(kvobject_strong_t *kvo,
-                              kvevent_type_t type,
+bool wait4_proc_event_handler(kvobject_event_type_t type,
                               uint8_t val,
-                              void *pld)
+                              kvobject_event_t *event)
 {
-    ksurface_proc_t *proc = (ksurface_proc_t*)kvo;
-    wait4_payload_t *payload = pld;
+    ksurface_proc_t *proc = (ksurface_proc_t*)(event->owner);
+    wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
     int ecode = 0;
     
     kvo_rdlock(proc);
@@ -45,9 +44,11 @@ bool wait4_proc_event_handler(kvobject_strong_t *kvo,
     {
         case kvObjEventDeinit:
             ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
-            /* fallthrough */
-        case kvObjEventUnregister:
             goto out_byebye;
+        case kvObjEventUnregister:
+            mach_port_mod_refs(mach_task_self(), payload->thread, MACH_PORT_RIGHT_SEND, -1);
+            mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
+            free(payload);
         case kvObjEventCustom0:
             if((payload->options & WSTOPPED) == WSTOPPED)
             {
@@ -67,21 +68,12 @@ bool wait4_proc_event_handler(kvobject_strong_t *kvo,
     }
     
     kvo_unlock(proc);
-    
     return false;
 
 out_byebye:
     mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
-    
     thread_resume(payload->thread);
-    
-    mach_port_mod_refs(mach_task_self(), payload->thread, MACH_PORT_RIGHT_SEND, -1);
-    mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
-    
     kvo_unlock(proc);
-    
-    free(payload);
-    
     return true;
 }
 
@@ -105,10 +97,10 @@ DEFINE_SYSCALL_HANDLER(wait4)
     kvo_wrlock(target);
     
     /* checking if process is visible */
-    proc_visibility_t vis = get_proc_visibility(sys_proc_copy_);
+    proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
     /* perms check */
-    if(!can_see_process(sys_proc_copy_, target, vis))
+    if(!can_see_process(sys_proc_snapshot_, target, vis))
     {
         kvo_unlock(target);
         kvo_release(target);
@@ -163,7 +155,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     }
     
     /* register event */
-    ksr = kvo_event_register(target, wait4_proc_event_handler, NULL, payload);
+    ksr = kvo_event_register(target, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         thread_resume(thread);

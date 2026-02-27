@@ -40,10 +40,10 @@ DEFINE_SYSCALL_HANDLER(getsid)
     }
     
     /* getting visibility */
-    proc_visibility_t vis = get_proc_visibility(sys_proc_copy_);
+    proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
     /* permission check */
-    if(!can_see_process(sys_proc_copy_, proc, vis))
+    if(!can_see_process(sys_proc_snapshot_, proc, vis))
     {
         kvo_release(proc);
         sys_return_failure(EINVAL);

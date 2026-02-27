@@ -173,7 +173,6 @@
                     dispatch_once(&innerSelf->_removeOnce, ^{
                         
 #if !JAILBREAK_ENV
-                        klog_log(@"LDEProcess", @"pid %d died", innerSelf.pid);
                         if(innerSelf.proc != NULL)
                         {
                             ksurface_return_t error = proc_exit(innerSelf.proc);
@@ -386,6 +385,6 @@
     }
 }
         
-#endif /* JAILBREAK_ENV */
+#endif /* !JAILBREAK_ENV */
         
 @end

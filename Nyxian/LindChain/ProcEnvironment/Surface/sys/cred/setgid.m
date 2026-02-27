@@ -20,7 +20,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 extern bool proc_is_privileged(ksurface_proc_t *proc);
 

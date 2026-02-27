@@ -34,7 +34,7 @@ bool kvobject_retain(kvobject_t *kvo)
         int current = atomic_load(&kvo->refcount);
         
         /* checking if object can be retained */
-        if(current <= 0 || atomic_load(&kvo->invalid))
+        if(current <= 0 || (atomic_load(&kvo->state) == kvObjStateInvalid))
         {
             return false;
         }
@@ -43,10 +43,10 @@ bool kvobject_retain(kvobject_t *kvo)
         if(atomic_compare_exchange_weak(&kvo->refcount, &current, current + 1))
         {
             /* performing another check */
-            if(atomic_load(&kvo->invalid))
+            if(atomic_load(&kvo->state) == kvObjStateInvalid)
             {
                 /* rollback using release logic */
-                kvobject_release(kvo);
+                kvo_release(kvo);
                 return false;
             }
             
@@ -57,12 +57,9 @@ bool kvobject_retain(kvobject_t *kvo)
 
 void kvobject_invalidate(kvobject_strong_t *kvo)
 {
-    kvobject_event_trigger(kvo, kvObjEventInvalidate, 0);
-    
     assert(kvo != NULL);
-    
-    /* invalidating object */
-    atomic_store(&(kvo->invalid), true);
+    kvo_event_trigger(kvo, kvObjEventInvalidate, 0);
+    atomic_store(&(kvo->state), kvObjStateInvalid);
     
     return;
 }
@@ -78,8 +75,17 @@ void kvobject_release(kvobject_strong_t *kvo)
     {
         kvobject_event_trigger(kvo, kvObjEventDeinit, 0);
         
-        pthread_rwlock_destroy(&(kvo->rwlock));
-        pthread_rwlock_destroy(&(kvo->event_rwlock));
+        /* only a normal object has these locks */
+        if(kvo->base_type == kvObjBaseTypeObject)
+        {
+            pthread_rwlock_destroy(&(kvo->rwlock));
+            pthread_rwlock_destroy(&(kvo->event_rwlock));
+        }
+        else if(kvo->base_type == kvObjBaseTypeObjectSnapshot && kvo->orig != NULL)
+        {
+            kvo_release(kvo->orig);
+        }
+        
         free(kvo);
     }
     else if(old <= 0)

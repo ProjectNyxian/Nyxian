@@ -37,7 +37,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
      * used to only allow the spawn of binaries which are already signed.
      * all this is done to ensure the user does consent do these things!
      */
-    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_copy_), PEEntitlementProcessSpawn))
+    if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementProcessSpawn))
     {
         sys_return_failure(EPERM);
     }

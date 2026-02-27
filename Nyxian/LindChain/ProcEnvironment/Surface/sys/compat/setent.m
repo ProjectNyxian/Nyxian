@@ -18,7 +18,6 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 DEFINE_SYSCALL_HANDLER(setent)
 {

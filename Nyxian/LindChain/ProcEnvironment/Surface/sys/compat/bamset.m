@@ -29,7 +29,7 @@ DEFINE_SYSCALL_HANDLER(bamset)
     bool active = args[0];
     
     /* getting process */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_copy_)];
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_snapshot_)];
     if(process)
     {
         process.audioBackgroundModeUsage = active;

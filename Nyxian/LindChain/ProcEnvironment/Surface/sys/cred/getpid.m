@@ -25,7 +25,7 @@ DEFINE_SYSCALL_HANDLER(getpid)
     /* syscall wrapper */
     sys_name("SYS_getpid");
     
-    return proc_getpid(sys_proc_copy_);
+    return proc_getpid(sys_proc_snapshot_);
 }
 
 DEFINE_SYSCALL_HANDLER(getppid)
@@ -33,5 +33,5 @@ DEFINE_SYSCALL_HANDLER(getppid)
     /* syscall wrapper */
     sys_name("SYS_getppid");
     
-    return proc_getppid(sys_proc_copy_);
+    return proc_getppid(sys_proc_snapshot_);
 }

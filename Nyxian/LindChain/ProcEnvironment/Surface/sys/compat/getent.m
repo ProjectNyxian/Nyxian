@@ -25,5 +25,5 @@ DEFINE_SYSCALL_HANDLER(getent)
     /* syscall wrapper */
     sys_name("SYS_getent");
     
-    return proc_getentitlements(sys_proc_copy_);
+    return proc_getentitlements(sys_proc_snapshot_);
 }

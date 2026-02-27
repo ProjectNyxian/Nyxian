@@ -21,7 +21,7 @@
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 
-BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
+BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
                                 pid_t targetPid,
                                 BOOL allowRootBypass,
                                 BOOL allowSessionBypass,
@@ -52,7 +52,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_copy_t *proc,
     BOOL allowed = NO;
     
     /* checking if proc is targetProc */
-    if(proc->proc == targetProc)
+    if((ksurface_proc_t*)(proc->header.orig) == targetProc)
     {
         allowed = YES;
         goto out_release_target;

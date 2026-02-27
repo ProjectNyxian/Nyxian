@@ -66,6 +66,7 @@
 
 /// Nyxian process typedefinitions
 typedef struct ksurface_proc ksurface_proc_t;
+typedef struct ksurface_proc ksurface_proc_snapshot_t;
 typedef struct kchildren ksurface_kproc_children_t;
 typedef struct kinfo_proc kinfo_proc_t;
 typedef struct kcproc ksurface_kcproc_t;
@@ -147,25 +148,5 @@ struct ksurface_proc {
         } kcproc;
     } kproc;
 };
-
-/// Structure for the copy API
-typedef struct {
-    /* reference back to copied process */
-    ksurface_proc_t *proc;
-    
-    /*
-     * the actual process structure, not meant
-     * to be copied tho. In this case its here
-     * for convenience.
-     */
-    struct {
-        
-        /*
-         * copyable process structure, includes all process properties
-         * which can change rapidly.
-         */
-        ksurface_kcproc_t kcproc;
-    } kproc;
-} ksurface_proc_copy_t;
 
 #endif /* PROC_DEF_H */

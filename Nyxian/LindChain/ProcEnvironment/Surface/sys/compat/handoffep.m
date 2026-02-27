@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Utils/ktfp.h>
 #import <pthread.h>

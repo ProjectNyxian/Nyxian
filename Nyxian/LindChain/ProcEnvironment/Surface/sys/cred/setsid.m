@@ -18,13 +18,12 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 
 DEFINE_SYSCALL_HANDLER(setsid)
 {
     sys_name("SYS_setsid");
     kvo_wrlock(sys_proc_);
-    proc_setsid(sys_proc_, proc_getpid(sys_proc_copy_));
+    proc_setsid(sys_proc_, proc_getpid(sys_proc_));
     kvo_unlock(sys_proc_);
     sys_return;
 }

@@ -31,11 +31,14 @@
 #define SYSCALL_SERVER_THREADS  4
 #define SYSCALL_QUEUE_LIMIT     32
 
+typedef struct ksurface_proc ksurface_proc_t;
+typedef struct ksurface_proc ksurface_proc_snapshot_t;
+
 /* safe snapshot */
-#define sys_proc_copy_ ((ksurface_proc_copy_t*)proc_copy)
+#define sys_proc_snapshot_ proc_snapshot
 
 /* reference for modification */
-#define sys_proc_ (((ksurface_proc_copy_t*)proc_copy)->proc)
+#define sys_proc_ ((ksurface_proc_t*)(sys_proc_snapshot_->header.orig))
 
 /* helping macros for returns and checks */
 #define sys_return_failure(errval) \
@@ -86,10 +89,10 @@ typedef struct {
 
 typedef int64_t (*syscall_handler_t)(
     /* task port of calling process */
-    task_t task,
+    task_t                      task,
     
     /* thread port of calling processes thread */
-    thread_t thread,
+    thread_t                    thread,
                                      
     /*
      * holds information about the process identity
@@ -97,53 +100,53 @@ typedef int64_t (*syscall_handler_t)(
      * which is very important, because this is our security
      * ensurace
      */
-    void                *proc_copy,
+    ksurface_proc_snapshot_t    *proc_snapshot,
 
     /*
      * normal syscall arguments
      */
-    int64_t             *args,
+    int64_t                     *args,
 
     /*
      * a special multipurpose argument, a ports payload
      * that is guest provided.
      */
-    mach_port_t         *in_ports,
-    uint32_t            in_ports_cnt,
+    mach_port_t                 *in_ports,
+    uint32_t                    in_ports_cnt,
 
     /*
      * outgoing ports back to the guest process
      */
-    mach_port_t         **out_ports,
-    uint32_t            *out_ports_cnt,
+    mach_port_t                 **out_ports,
+    uint32_t                    *out_ports_cnt,
 
     /*
      * sets errno in the guest process by the client receiving it
      * and setting errno from the reply
      */
-    errno_t             *err,
+    errno_t                     *err,
                                      
     /*
      * first is a syscall does is exposing its name
      */
-    const char          **name,
+    const char                  **name,
                                
     /* input receive port */
-    mach_port_t         in_recv
+    mach_port_t                 in_recv
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
-    task_t              task, \
-    thread_t            thread, \
-    void                *proc_copy, \
-    int64_t             *args, \
-    mach_port_t         *in_ports, \
-    uint32_t            in_ports_cnt, \
-    mach_port_t         **out_ports, \
-    uint32_t            *out_ports_cnt, \
-    errno_t             *err, \
-    const char          **name, \
-    mach_port_t         in_recv  \
+    task_t                  task, \
+    thread_t                thread, \
+ksurface_proc_snapshot_t    *proc_snapshot, \
+    int64_t                 *args, \
+    mach_port_t             *in_ports, \
+    uint32_t                in_ports_cnt, \
+    mach_port_t             **out_ports, \
+    uint32_t                *out_ports_cnt, \
+    errno_t                 *err, \
+    const char              **name, \
+    mach_port_t             in_recv  \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname

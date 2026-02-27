@@ -33,7 +33,7 @@ typedef struct {
     size_t newlen;
     errno_t err;
     task_t task;
-    ksurface_proc_copy_t *proc_copy;
+    ksurface_proc_snapshot_t *proc_snapshot;
 } sysctl_req_t;
 
 typedef int (*sysctl_fn_t)(sysctl_req_t *req);
@@ -146,7 +146,7 @@ int sysctl_kernproc(sysctl_req_t *req)
     /* writing processes to buf */
     kinfo_proc_t *kpbuf = NULL;
     uint32_t count = 0;
-    ksurface_return_t ksr = proc_list(req->proc_copy, &kpbuf, &count, flavour, req->name[3]);
+    ksurface_return_t ksr = proc_list(req->proc_snapshot, &kpbuf, &count, flavour, req->name[3]);
     
     proc_table_unlock();
     
@@ -277,7 +277,7 @@ int sysctl_kernhostname(sysctl_req_t *req)
     
     if(req->newp && req->newlen)
     {
-        if(!entitlement_got_entitlement(proc_getentitlements(req->proc_copy), PEEntitlementHostManager))
+        if(!entitlement_got_entitlement(proc_getentitlements(req->proc_snapshot), PEEntitlementHostManager))
         {
             req->err = EPERM;
             return -1;
@@ -374,15 +374,15 @@ DEFINE_SYSCALL_HANDLER(sysctl)
     
     /* prepare request */
     sysctl_req_t req = {
-        .name = {},
-        .namelen = (u_int)args[1],
-        .oldp = (userspace_pointer_t)args[2],
-        .oldlenp = (userspace_pointer_t)args[3],
-        .newp = (userspace_pointer_t)args[4],
-        .newlen = (size_t)args[5],
-        .err = 0,
-        .task = task,
-        .proc_copy = sys_proc_copy_,
+        .name           = {},
+        .namelen        = (u_int)args[1],
+        .oldp           = (userspace_pointer_t)args[2],
+        .oldlenp        = (userspace_pointer_t)args[3],
+        .newp           = (userspace_pointer_t)args[4],
+        .newlen         = (size_t)args[5],
+        .err            = 0,
+        .task           = task,
+        .proc_snapshot  = sys_proc_snapshot_,
     };
     
     size_t count = req.namelen;
@@ -440,15 +440,15 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
     }
     
     sysctl_req_t req = {
-        .name     = {},
-        .namelen  = (u_int)found->mib_len,
-        .oldp     = (userspace_pointer_t)args[1],
-        .oldlenp  = (userspace_pointer_t)args[2],
-        .newp     = (userspace_pointer_t)args[3],
-        .newlen   = (size_t)args[4],
-        .err      = 0,
-        .task     = task,
-        .proc_copy = sys_proc_copy_,
+        .name           = {},
+        .namelen        = (u_int)found->mib_len,
+        .oldp           = (userspace_pointer_t)args[1],
+        .oldlenp        = (userspace_pointer_t)args[2],
+        .newp           = (userspace_pointer_t)args[3],
+        .newlen         = (size_t)args[4],
+        .err            = 0,
+        .task           = task,
+        .proc_snapshot  = sys_proc_snapshot_,
     };
     
     memcpy(req.name, found->mib, found->mib_len * sizeof(int));

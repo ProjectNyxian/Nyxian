@@ -20,7 +20,6 @@
 #import <LindChain/Debugger/Utils.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/copy.h>
 #import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #include <pthread.h>
@@ -47,7 +46,7 @@ typedef struct {
  * To ensure safety in nyxian we rely on the XNU kernel, as asking processes for their pid is extremely stupid
  * So we ensure nothing can be tempered
  */
-static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
+static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg)
 {
     /* checking if audit trailer is within bounds */
     size_t trailer_offset = round_msg(msg->msgh_size);
@@ -83,16 +82,16 @@ static ksurface_proc_copy_t *get_caller_proc_copy(mach_msg_header_t *msg)
     }
     
     /* creating process copy with process reference consumption */
-    ksurface_proc_copy_t *proc_copy = proc_copy_for_proc(proc, kProcCopyOptionConsumedReferenceCopy);
+    ksurface_proc_snapshot_t *proc_snapshot = kvo_snapshot(proc, kvObjSnapConsumeReference);
     
     /* null pointer check */
-    if(proc_copy == NULL)
+    if(proc_snapshot == NULL)
     {
         kvo_release(proc);
         return NULL;
     }
     
-    return proc_copy;
+    return proc_snapshot;
 }
 
 /*
@@ -191,10 +190,10 @@ static void* syscall_worker_thread(void *ctx)
         syscall_request_t *req = (syscall_request_t *)&buffer.header;
         
         /* getting the callers identity from the payload */
-        ksurface_proc_copy_t *proc_copy = get_caller_proc_copy(&buffer.header);
+        ksurface_proc_snapshot_t *proc_snapshot = get_caller_proc_snapshot(&buffer.header);
         
         /* null pointer check */
-        if(proc_copy == NULL)
+        if(proc_snapshot == NULL)
         {
             /* checking if proc copy is null */
             err = EAGAIN;
@@ -203,7 +202,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* getting task port */
-        ksurface_return_t ksr = task_for_proc(proc_copy->proc, TASK_KERNEL_PORT, &task);
+        ksurface_return_t ksr = task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
         
         /* checking return */
         if(ksr != SURFACE_SUCCESS)
@@ -234,30 +233,24 @@ static void* syscall_worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_copy), req->syscall_num);
+            klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_snapshot), req->syscall_num);
             err = ENOSYS;
             result = -1;
             goto cleanup;
         }
         
         /* calling syscall handler */
-        result = handler(task, thread, proc_copy, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL : (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+        result = handler(task, thread, proc_snapshot, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL : (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
         
     cleanup:
 
         /* deallocate what the guest requested via input ports (avoiding port leaks is a extremely good idea ^^) */
         vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
         
-        /* destroying copy of process */
-        if(proc_copy != NULL)
+        /* destroying snapshot of process */
+        if(proc_snapshot != NULL)
         {
-            /* check for errno and log if errno is indeed set */
-            if(err != 0 && err != ENOSYS)
-            {
-                klog_log(@"syscall", @"syscall(%s) from pid %d failed (ERRNO=%s)", name, proc_getpid(proc_copy), strerror(err));
-            }
-            
-            proc_copy_destroy(proc_copy);
+            kvo_release(proc_snapshot);
         }
         
         /* checking task and thread */
