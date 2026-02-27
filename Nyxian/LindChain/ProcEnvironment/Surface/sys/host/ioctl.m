@@ -32,6 +32,15 @@ DEFINE_SYSCALL_HANDLER(ioctl)
     unsigned long flag = (unsigned long)args[1];
     userspace_pointer_t termios_ptr = (userspace_pointer_t)args[2];
     
+    switch(flag)
+    {
+        case TIOCGETA:
+        case TIOCSETA:
+            break;
+        default:
+            sys_return_failure(ENOSYS);
+    }
+    
     /* looking up tty */
     ksurface_tty_t *tty = NULL;
     ksurface_return_t ksr = tty_for_port(port, &tty);
@@ -77,9 +86,6 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             tty_resume(tty);
             
             break;
-        default:
-            kvo_release(tty);
-            sys_return_failure(ENOSYS);
     }
     
     /* mutual deinit */
