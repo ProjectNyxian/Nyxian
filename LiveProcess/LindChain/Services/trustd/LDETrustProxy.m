@@ -59,14 +59,10 @@ NSString *cdHashOfExecutableAtPath(NSString *path);
 - (void)getTokenOfExecutablePath:(NSString *)path
                        withReply:(void (^)(NSData *))reply
 {
-    ksurface_ent_token_t token;
-    if(macho_read_token(path, &token) == -1)
-    {
-        reply(nil);
-        return;
-    }
+    ksurface_ent_mach_t mach;
+    macho_read_token(path, &mach);
     
-    NSData *data = [NSData dataWithBytes:&token length:sizeof(ksurface_ent_token_t)];
+    NSData *data = [NSData dataWithBytes:&mach length:sizeof(ksurface_ent_mach_t)];
     reply(data);
 }
 

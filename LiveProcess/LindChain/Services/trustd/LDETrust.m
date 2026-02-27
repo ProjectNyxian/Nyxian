@@ -149,12 +149,12 @@
         return PEEntitlementNone;
     }
     
-    ksurface_ent_token_t *token = (ksurface_ent_token_t*)data.bytes;
+    ksurface_ent_mach_t *mach = (ksurface_ent_mach_t*)data.bytes;
     
-    ksurface_return_t ksr = entitlement_token_verify_static_key(token);
+    ksurface_return_t ksr = entitlement_mach_verify(mach);
     if(ksr == KERN_SUCCESS)
     {
-        return token->blob.entitlement;
+        return mach->token.blob.entitlement;
     }
     
     return PEEntitlementNone;

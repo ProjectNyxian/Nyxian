@@ -30,27 +30,28 @@ ksurface_return_t entitlement_token_generate_for_entitlement(ksurface_proc_t *pr
     
     kvo_rdlock(proc);
     
+    /* permitive check */
+    if(!entitlement_got_entitlement(proc_getentitlements(proc), entitlement))
+    {
+        kvo_unlock(proc);
+        return SURFACE_DENIED;
+    }
+    
     /* zero blob */
     bzero(&(token->blob), sizeof(ksurface_ent_blob_t));
     
     /* stuffing blob */
     token->blob.issuer_pid = proc_getpid(proc);
-    token->blob.entitlement = entitlement & proc_getentitlements(proc);
+    token->blob.entitlement = entitlement & proc_getmaxentitlements(proc);
     arc4random_buf(&(token->blob.nonce), sizeof(uint64_t));
     
     /* generating cryptographic key */
     unsigned int mac_len = 0;
     HMAC(EVP_sha256(), ksurface->kernel_token_key, 32, (unsigned char*)&(token->blob), sizeof(ksurface_ent_blob_t), token->mac, &mac_len);
     
-    /* sanity check */
-    if(mac_len != 32)
-    {
-        kvo_unlock(proc);
-        return SURFACE_FAILED;
-    }
-    
     kvo_unlock(proc);
-    return SURFACE_SUCCESS;
+    
+    return (mac_len != 32) ? SURFACE_FAILED : SURFACE_SUCCESS;
 }
 
 ksurface_return_t entitlement_token_verify(ksurface_ent_token_t *token)
@@ -104,6 +105,7 @@ ksurface_return_t entitlement_token_consume(ksurface_proc_t *consumer,
     
     /* token is valid now consume */
     kvo_wrlock(consumer);
+    consumer->kproc.kcproc.nyx.max_entitlements |= token->blob.entitlement;
     consumer->kproc.kcproc.nyx.entitlements |= token->blob.entitlement;
     kvo_unlock(consumer);
     
@@ -132,14 +134,14 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_token_t *token,
     return SURFACE_SUCCESS;
 }
 
-ksurface_return_t entitlement_token_verify_static_key(ksurface_ent_token_t *token)
+ksurface_return_t entitlement_mach_verify(ksurface_ent_mach_t *mach)
 {
-    assert(token != NULL);
+    assert(mach != NULL);
     
     uint8_t expected[32];
     unsigned int mac_len = 0;
 
-    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char *)&(token->blob), sizeof(ksurface_ent_blob_t), expected, &mac_len);
+    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char *)&(mach->token.blob), sizeof(ksurface_ent_blob_t), expected, &mac_len);
     
     /* sanity check */
     if(mac_len != 32)
@@ -147,10 +149,19 @@ ksurface_return_t entitlement_token_verify_static_key(ksurface_ent_token_t *toke
         return SURFACE_DENIED;
     }
     
-    if(CRYPTO_memcmp(expected, token->mac, 32) != 0)
+    if(CRYPTO_memcmp(expected, mach->token.mac, 32) != 0)
     {
         return SURFACE_DENIED;
     }
+    
+    /* blob is valid */
+    mach->blob_valid = true;
 
+    /* check if cdhash check by trustd is valid */
+    if(!mach->cdhash_valid)
+    {
+        return SURFACE_DENIED;
+    }
+    
     return SURFACE_SUCCESS;
 }

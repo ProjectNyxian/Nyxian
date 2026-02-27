@@ -350,8 +350,10 @@ int macho_after_sign(NSString *path,
 #endif /* HOST_ENV */
 
 int macho_read_token(NSString *path,
-                     ksurface_ent_token_t *token)
+                     ksurface_ent_mach_t *mach)
 {
+    bzero(mach, sizeof(ksurface_ent_mach_t));
+    
     int fd = open([path UTF8String], O_RDONLY);
     if(fd < 0)
     {
@@ -398,27 +400,31 @@ int macho_read_token(NSString *path,
         perror("lseek data"); close(fd);
         return -1;
     }
-    if(read(fd, token, len) != (ssize_t)len)
+    
+    if(read(fd, &(mach->token), len) != (ssize_t)len)
     {
         perror("read data");
         close(fd);
         return -1;
     }
     
+    
     char *hash = cd_hash_of_executable_at_fd(fd);
+    
+    close(fd);
+    
+    strncpy(mach->cdhash, hash, USER_FSIGNATURES_CDHASH_LEN);
     
     if(hash == NULL)
     {
-        close(fd);
         return -1;
     }
     
-    if(strncmp(hash, token->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) != 0)
+    if(strncmp(hash, mach->token.blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
-        close(fd);
+        mach->cdhash_valid = true;
         return -1;
     }
 
-    close(fd);
     return 0;
 }
