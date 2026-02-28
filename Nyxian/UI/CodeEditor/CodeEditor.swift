@@ -44,7 +44,6 @@ extension CharacterPair where Self == BasicCharacterPair {
     static var doubleQuotes: Self  { .init(leading: "\"", trailing: "\"") }
     static var singleQuotes: Self  { .init(leading: "'", trailing: "'") }
     static var angleBrackets: Self { .init(leading: "<", trailing: ">") }
-    
 }
 
 // MARK: - OnDissapear Container
@@ -206,18 +205,15 @@ class CodeEditorViewController: UIViewController {
         }
         
         switch fileURL.pathExtension {
-        case "m":
-            self.textView.characterPairs = [.squareBrackets]
-            fallthrough
-        case "h":
-            self.textView.characterPairs.append(contentsOf: [.curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets])
+        case "m","h":
+            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
                 "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
                 "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm".URLGet()
             ])
             break
         case "c":
-            self.textView.characterPairs = [.curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
+            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_c(), highlightsURL: [
                 "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()
             ])

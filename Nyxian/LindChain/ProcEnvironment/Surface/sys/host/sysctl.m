@@ -54,51 +54,55 @@ typedef struct {
 
 int sysctl_kernmaxproc(sysctl_req_t *req)
 {
-    /* deref oldlenp */
-    size_t oldlenp = 0;
+    size_t user_outlen = 0;
+    size_t needed = sizeof(int);
+    int maxproc = PROC_MAX;
     
-    /* initial dereference */
-    if(req->oldlenp != NULL)
+    /* if user provided oldlenp, copy it in */
+    if(req->oldlenp != NULL &&
+       !mach_syscall_copy_in(req->task, sizeof(size_t), &user_outlen, req->oldlenp))
     {
-        if(!mach_syscall_copy_in(req->task, sizeof(size_t), &oldlenp, req->oldlenp))
+        req->err = EFAULT;
+        return -1;
+    }
+    
+    /* if oldp is set user wants the value */
+    if(req->oldp)
+    {
+        /* sanitizing buffer lenght */
+        if(user_outlen < needed)
+        {
+            req->err = ENOMEM;
+            return -1;
+        }
+        
+        if(!mach_syscall_copy_out(req->task, sizeof(int), &maxproc, req->oldp))
         {
             req->err = EFAULT;
             return -1;
         }
     }
     
-    if(req->oldp && req->oldlenp && oldlenp >= sizeof(int))
+    /* always copy out size */
+    if(req->oldlenp != NULL &&
+       !mach_syscall_copy_out(req->task, sizeof(size_t), &needed, req->oldlenp))
     {
-        int oldpval = PROC_MAX;
-        if(!mach_syscall_copy_out(req->task, sizeof(int), &oldpval, req->oldp))
-        {
-            goto fault_out;
-        }
-        return 0;
+        req->err = EFAULT;
+        return -1;
     }
     
-    if(req->oldlenp)
-    {
-        oldlenp = sizeof(int);
-        if(!mach_syscall_copy_out(req->task, sizeof(size_t), &oldlenp, req->oldlenp))
-        {
-            goto fault_out;
-        }
-    }
-    
-    req->err = EINVAL;
-    return -1;
-
-fault_out:
-    req->err = EFAULT;
-    return -1;
+    return 0;
 }
 
 int sysctl_kernproc(sysctl_req_t *req)
 {
+    /* prepare arguments */
     proc_flavour_t flavour;
+    size_t user_outlen = 0;
+    size_t needed = 0;
     
-    switch(req->name[3])
+    /* finding out flavour */
+    switch(req->name[2])
     {
         case KERN_PROC_ALL:
             flavour = PROC_FLV_ALL;
@@ -115,58 +119,52 @@ int sysctl_kernproc(sysctl_req_t *req)
         case KERN_PROC_PID:
             flavour = PROC_FLV_PID;
             
+            /* some flavours require 4 */
         validate:
             if(!req->oldlenp || req->namelen != 4)
             {
-                goto invalid;
+                req->err = EINVAL;
+                return -1;
             }
             
             break;
         default:
-        invalid:
-            errno = EINVAL;
+            req->err = EINVAL;
             return -1;
     }
     
-    /* deref oldlenp */
-    size_t oldlenp = 0;
-    
-    /* initial dereference */
-    if(req->oldlenp != NULL)
+    /* if user provided oldlenp, copy it in */
+    if(req->oldlenp != NULL &&
+       !mach_syscall_copy_in(req->task, sizeof(size_t), &user_outlen, req->oldlenp))
     {
-        if(!mach_syscall_copy_in(req->task, sizeof(size_t), &oldlenp, req->oldlenp))
-        {
-            req->err = EFAULT;
-            return -1;
-        }
+        req->err = EFAULT;
+        return -1;
     }
     
+    /* copying current process table */
     proc_table_rdlock();
-    
-    /* writing processes to buf */
     kinfo_proc_t *kpbuf = NULL;
-    uint32_t count = 0;
-    ksurface_return_t ksr = proc_list(req->proc_snapshot, &kpbuf, &count, flavour, req->name[3]);
-    
+    ksurface_return_t ksr = proc_list(req->proc_snapshot, &kpbuf, &needed, flavour, req->name[3]);
     proc_table_unlock();
     
+    /* checking if succeeded  */
     if(ksr != SURFACE_SUCCESS)
     {
-        errno = ENOMEM;
+        req->err = ENOMEM;
         goto out_free_kpbuf_and_ret_excp;
     }
     
-    size_t written = count * sizeof(kinfo_proc_t);
-    if(written == 0)
+    /* getting how many processes we currently have */
+    if(needed == 0)
     {
-        errno = ENOMEM;
+        req->err = ENOMEM;
         goto out_free_kpbuf_and_ret_excp;
     }
     
-    /* size request */
-    if(req->oldp == NULL || oldlenp == 0)
+    /* size only query */
+    if(req->oldp == NULL)
     {
-        if(!mach_syscall_copy_out(req->task, sizeof(size_t), &written, req->oldlenp))
+        if(!mach_syscall_copy_out(req->task, sizeof(size_t), &needed, req->oldlenp))
         {
             req->err = EFAULT;
             goto out_free_kpbuf_and_ret_excp;
@@ -174,26 +172,28 @@ int sysctl_kernproc(sysctl_req_t *req)
         goto out_free_kpbuf;
     }
     
-    /* copy request fails (buffer too small )*/
-    if(oldlenp < written)
+    /* copy request fails (buffer too small) */
+    if(user_outlen < needed)
     {
-        if(!mach_syscall_copy_out(req->task, sizeof(size_t), &written, req->oldlenp))
+        if(!mach_syscall_copy_out(req->task, sizeof(size_t), &needed, req->oldlenp))
         {
             req->err = EFAULT;
             goto out_free_kpbuf_and_ret_excp;
         }
-        errno = ENOMEM;
+        req->err = ENOMEM;
         goto out_free_kpbuf_and_ret_excp;
     }
-    
-    /* copy out result */
-    if(!mach_syscall_copy_out(req->task, sizeof(size_t), &written, req->oldlenp))
+    else
     {
-        req->err = EFAULT;
-        goto out_free_kpbuf_and_ret_excp;
+        if(!mach_syscall_copy_out(req->task, needed, kpbuf, req->oldp))
+        {
+            req->err = EFAULT;
+            goto out_free_kpbuf_and_ret_excp;
+        }
     }
     
-    if(!mach_syscall_copy_out(req->task, written, kpbuf, req->oldp))
+    /* copy out buffer lenght */
+    if(!mach_syscall_copy_out(req->task, sizeof(size_t), &needed, req->oldlenp))
     {
         req->err = EFAULT;
         goto out_free_kpbuf_and_ret_excp;
@@ -331,10 +331,6 @@ static const sysctl_name_map_entry_t sysctl_name_map[] = {
     { "kern.hostname",          { CTL_KERN, KERN_HOSTNAME                }, 2 },
     { "kern.maxproc",           { CTL_KERN, KERN_MAXPROC                 }, 2 },
     { "kern.proc.all",          { CTL_KERN, KERN_PROC, KERN_PROC_ALL     }, 3 },
-    { "kern.proc.pid",          { CTL_KERN, KERN_PROC, KERN_PROC_PID     }, 3 },
-    { "kern.proc.uid",          { CTL_KERN, KERN_PROC, KERN_PROC_UID     }, 3 },
-    { "kern.proc.ruid",         { CTL_KERN, KERN_PROC, KERN_PROC_RUID    }, 3 },
-    { "kern.proc.session",      { CTL_KERN, KERN_PROC, KERN_PROC_SESSION }, 3 },
 };
 
 /* lookup symbol */
@@ -454,7 +450,7 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
     memcpy(req.name, found->mib, found->mib_len * sizeof(int));
     
     sysctl_fn_t fn = sysctl_lookup(&req);
-    if (fn != NULL)
+    if(fn != NULL)
     {
         int ret = fn(&req);
         *err = req.err;

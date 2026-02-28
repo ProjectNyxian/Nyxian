@@ -117,7 +117,9 @@ void proc_list_radix_walker_callback(uint64_t ident,
     if(can_see_process(w->caller, proc, w->vis) &&
        is_flavour_matching(proc, w->flavour, w->dsid))
     {
-        copy_proc_to_user(proc, &(w->kp[w->count++]));
+        kinfo_proc_t *cur_kp = (kinfo_proc_t*)(((char*)w->kp) + w->len);
+        copy_proc_to_user(proc, cur_kp);
+        w->len += sizeof(kinfo_proc_t);
     }
     
     kvo_unlock(proc);
@@ -126,14 +128,14 @@ void proc_list_radix_walker_callback(uint64_t ident,
 
 ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
                             kinfo_proc_t **kp,
-                            uint32_t *count,
+                            size_t *len,
                             proc_flavour_t flavour,
                             pid_t dsid)
 {
     /* sanity check */
     if(proc_copy == NULL ||
        kp == NULL ||
-       count == NULL)
+       len == NULL)
     {
         return SURFACE_NULLPTR;
     }
@@ -169,7 +171,6 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
         return SURFACE_NOMEM;
     }
     
-    w->count = 0;
     w->flavour = flavour;
     w->dsid = dsid;
     
@@ -180,7 +181,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     radix_walk(&(ksurface->proc_info.tree), proc_list_radix_walker_callback, w);
     
     /* setting count and kp, to prevent memory corruption ^^ */
-    *count = w->count;
+    *len = w->len;
     *kp = w->kp;
     free(w);
     

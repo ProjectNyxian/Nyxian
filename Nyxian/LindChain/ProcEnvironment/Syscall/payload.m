@@ -128,8 +128,6 @@ bool mach_syscall_copy_out(task_t task,
     return true;
 }
 
-#include <stdio.h>
-
 char *mach_syscall_copy_str_in(task_t task,
                                userspace_pointer_t src,
                                size_t len)
@@ -142,7 +140,6 @@ char *mach_syscall_copy_str_in(task_t task,
         kern_return_t kr = vm_read_overwrite(task, (vm_address_t)src + clen, sizeof(buf), (vm_address_t)&buf, &rlen);
         if(kr != KERN_SUCCESS)
         {
-            printf("[*] %s\n", mach_error_string(kr));
             return NULL;
         }
         

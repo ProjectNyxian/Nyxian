@@ -43,7 +43,7 @@ typedef struct {
     proc_visibility_t vis;
     proc_flavour_t flavour;
     pid_t dsid;
-    uint32_t count;
+    size_t len;
     kinfo_proc_t *kp;
 } proc_list_radix_walker_t;
 
@@ -54,6 +54,6 @@ bool is_flavour_matching(ksurface_proc_t *target, proc_flavour_t flavour, pid_t 
 static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
-ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, uint32_t *count, proc_flavour_t flavour, pid_t dsid);
+ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, size_t *len, proc_flavour_t flavour, pid_t dsid);
 
 #endif /* PROC_COPYLIST_H */
