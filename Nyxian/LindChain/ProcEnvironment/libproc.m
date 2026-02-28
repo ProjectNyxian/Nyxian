@@ -237,6 +237,11 @@ DEFINE_HOOK(kill, int, (pid_t pid, int sig))
     return (int)environment_syscall(SYS_kill, pid, sig);
 }
 
+DEFINE_HOOK(raise, int, (int sig))
+{
+    return HOOK_FUNC(kill)(getpid(), sig);
+}
+
 void environment_libproc_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
@@ -246,5 +251,6 @@ void environment_libproc_init(void)
         DO_HOOK_GLOBAL(proc_pidpath);
         DO_HOOK_GLOBAL(proc_pid_rusage);
         DO_HOOK_GLOBAL(kill);
+        DO_HOOK_GLOBAL(raise);
     }
 }

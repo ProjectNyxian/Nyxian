@@ -27,7 +27,7 @@ typedef struct wait4_payload {
     userspace_pointer_t rusage_ptr;
     int options;
     task_t task;
-    thread_t thread;
+    mach_msg_header_t header;
 } wait4_payload_t;
 
 bool wait4_proc_event_handler(kvobject_event_type_t type,
@@ -46,9 +46,9 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
             goto out_byebye;
         case kvObjEventUnregister:
-            mach_port_mod_refs(mach_task_self(), payload->thread, MACH_PORT_RIGHT_SEND, -1);
             mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
             free(payload);
+            return true;
         case kvObjEventCustom0:
             if((payload->options & WSTOPPED) == WSTOPPED)
             {
@@ -72,15 +72,13 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
 
 out_byebye:
     mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
-    thread_resume(payload->thread);
     kvo_unlock(proc);
+    send_reply(&(payload->header), 0, NULL, 0, 0);
     return true;
 }
 
 DEFINE_SYSCALL_HANDLER(wait4)
-{
-    sys_name("wait4");
-    
+{    
     /* prepare arguments */
     pid_t pid = (pid_t)args[0];
     int options = (int)args[2];
@@ -135,35 +133,25 @@ DEFINE_SYSCALL_HANDLER(wait4)
     }
     
     mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
-    mach_port_mod_refs(mach_task_self(), thread, MACH_PORT_RIGHT_SEND, 1);
     
     /* stuffing payload */
     payload->task = task;
-    payload->thread = thread;
     payload->status_ptr = (userspace_pointer_t)args[1];
     payload->rusage_ptr = (userspace_pointer_t)args[3];
     payload->options = options;
-    
-    /* suspend task */
-    kern_return_t kr = thread_suspend(thread);
-    if(kr != KERN_SUCCESS)
-    {
-        free(payload);
-        kvo_unlock(target);
-        kvo_release(target);
-        sys_return_failure(EBADMSG);
-    }
+    payload->header = *request;
     
     /* register event */
     ksr = kvo_event_register(target, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
-        thread_resume(thread);
         free(payload);
         kvo_unlock(target);
         kvo_release(target);
         sys_return_failure(EAGAIN);
     }
+    
+    *reply = false;
     
     kvo_unlock(target);
     kvo_release(target);

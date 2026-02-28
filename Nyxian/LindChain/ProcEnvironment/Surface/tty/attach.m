@@ -19,7 +19,6 @@
 
 #import <LindChain/ProcEnvironment/Surface/tty/attach.h>
 
-/* typedef bool (*kvobject_event_handler_t)(kvobject_strong_t*,kvevent_type_t,uint8_t,void*); */
 bool tty_proc_event_handler(kvobject_event_type_t type,
                             uint8_t value,
                             kvobject_event_t *event)
@@ -27,6 +26,10 @@ bool tty_proc_event_handler(kvobject_event_type_t type,
     switch(type)
     {
         case kvObjEventDeinit:
+        {
+            return true;
+        }
+        case kvObjEventUnregister:
         {
             ksurface_tty_t *tty = (ksurface_tty_t*)(event->ctx);
             kvo_release(tty);

@@ -36,7 +36,6 @@ bool proc_is_privileged(ksurface_proc_t *proc)
 DEFINE_SYSCALL_HANDLER(setuid)
 {
     /* syscall wrapper */
-    sys_name("SYS_setuid");
     kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */
@@ -80,7 +79,6 @@ out_update:
 DEFINE_SYSCALL_HANDLER(seteuid)
 {
     /* syscall wrapper */
-    sys_name("SYS_seteuid");
     kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */
@@ -122,7 +120,6 @@ out_update:
 DEFINE_SYSCALL_HANDLER(setreuid)
 {
     /* syscall wrapper */
-    sys_name("SYS_setreuid");
     kvo_wrlock(sys_proc_);
     
     /* getting args, nu checks needed the syscall server does them */

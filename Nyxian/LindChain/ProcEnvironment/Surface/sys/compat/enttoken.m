@@ -20,9 +20,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/enttoken.h>
 
 DEFINE_SYSCALL_HANDLER(enttoken)
-{
-    sys_name("SYS_enttoken");
-    
+{    
     /* prepare arguments */
     PEEntitlement entitlement = (PEEntitlement)args[0];
     int flag = (int)args[1];

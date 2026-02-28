@@ -33,8 +33,6 @@ void *dothework(void *work)
     khandoffep_t *hep = (khandoffep_t*)work;
     
     task_t task = ktfp(KTFP_AQUIRE_FROM_RECV(hep->ep));
-    klog_log(@"handoffep:helper", @"got task kernel port right: %d", task);
-    
     if(!kvo_retain(hep->proc))
     {
         mach_port_deallocate(mach_task_self(), task);
@@ -68,10 +66,7 @@ void *dothework(void *work)
 }
 
 DEFINE_SYSCALL_HANDLER(handoffep)
-{
-    /* syscall header */
-    sys_name("SYS_handoffep");
-    
+{    
     task_rdlock();
     
     /* sanity check */
@@ -91,8 +86,6 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     }
     else
     {
-        klog_log(@"handoffep", @"got exception receive port: %d", in_recv);
-        
         khandoffep_t *hep = malloc(sizeof(mach_port_t));
         hep->ep = in_recv;
         hep->proc = sys_proc_;

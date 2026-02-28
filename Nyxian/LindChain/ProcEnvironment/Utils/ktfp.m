@@ -96,8 +96,6 @@ task_t ktfp(obtain_token_t token)
         goto out_destroy_recv;
     }
     
-    klog_log(@"ktfp", @"listening to %d", exceptionPort);
-    
     // Now requesting the message and waiting on a reply from the kernel.. happens on exception
     request->Head.msgh_local_port = exceptionPort;
     request->Head.msgh_size = (mach_msg_size_t)request_size;
@@ -113,8 +111,6 @@ task_t ktfp(obtain_token_t token)
         klog_log(@"ktfp", @"failed receiving task port");
         goto out_destroy_recv;
     }
-    
-    klog_log(@"ktfp", @"got answer from %d -> %d", exceptionPort, mr);
     
     /* task port validation */
     ipc_info_object_type_t type;
@@ -132,10 +128,6 @@ task_t ktfp(obtain_token_t token)
     {
         klog_log(@"ktfp", @"port %d holding ipc object with type %d is not a IKOT_TASK", request->task.name, type);
         goto out_destroy_recv;
-    }
-    else
-    {
-        klog_log(@"ktfp", @"verified port %d is a IKOT_TASK port (means owning the task basically entirely)", request->task.name);
     }
     
     /* now manipulate thread state */

@@ -21,7 +21,6 @@
 
 DEFINE_SYSCALL_HANDLER(setsid)
 {
-    sys_name("SYS_setsid");
     kvo_wrlock(sys_proc_);
     proc_setsid(sys_proc_, proc_getpid(sys_proc_));
     kvo_unlock(sys_proc_);

@@ -25,7 +25,6 @@
 DEFINE_SYSCALL_HANDLER(signexec)
 {
     /* syscall wrapper */
-    sys_name("SYS_signexec");
     sys_need_in_ports_with_cnt(1);
     
     /*

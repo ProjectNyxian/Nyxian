@@ -366,8 +366,6 @@ static sysctl_fn_t sysctl_lookup(sysctl_req_t *req)
 
 DEFINE_SYSCALL_HANDLER(sysctl)
 {
-    sys_name("SYS_sysctl");
-    
     /* prepare request */
     sysctl_req_t req = {
         .name           = {},
@@ -408,9 +406,7 @@ DEFINE_SYSCALL_HANDLER(sysctl)
 }
 
 DEFINE_SYSCALL_HANDLER(sysctlbyname)
-{
-    sys_name("SYS_sysctlbyname");
-    
+{    
     char *name_buf = mach_syscall_copy_str_in(task, (userspace_pointer_t)args[0], 128);
     
     if(name_buf == NULL)

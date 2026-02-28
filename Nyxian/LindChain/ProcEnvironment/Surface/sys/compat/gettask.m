@@ -23,10 +23,7 @@
 #import <LindChain/ProcEnvironment/tfp.h>
 
 DEFINE_SYSCALL_HANDLER(gettask)
-{
-    /* syscall wrapper */
-    sys_name("SYS_gettask");
-    
+{    
     /* parse arguments */
     pid_t pid = (pid_t)args[0];
     bool name_only = (bool)args[1];

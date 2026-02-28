@@ -24,7 +24,6 @@
 
 DEFINE_SYSCALL_HANDLER(ioctl)
 {
-    sys_name("SYS_ioctl");
     sys_need_in_ports_with_cnt(1);
     
     /* prepare arguments */

@@ -24,8 +24,6 @@
 
 DEFINE_SYSCALL_HANDLER(getsid)
 {
-    sys_name("SYS_getsid");
-    
     pid_t pid = (pid_t)args[0];
     
     /* getting process */

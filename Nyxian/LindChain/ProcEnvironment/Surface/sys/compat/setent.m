@@ -21,7 +21,6 @@
 
 DEFINE_SYSCALL_HANDLER(setent)
 {
-    sys_name("SYS_setent");
     kvo_wrlock(sys_proc_);
     
     /* MARK: THIS IS USER SUPPLIED */

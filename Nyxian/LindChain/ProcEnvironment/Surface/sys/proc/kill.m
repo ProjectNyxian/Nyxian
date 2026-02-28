@@ -23,10 +23,7 @@
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(kill)
-{
-    /* syscall wrapper */
-    sys_name("SYS_kill");
-    
+{    
     /* getting args, nu checks needed the syscall server does them */
     pid_t pid = (pid_t)args[0];
     int signal = (int)args[1];

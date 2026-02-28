@@ -21,10 +21,7 @@
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(bamset)
-{
-    /* syscall wrapper */
-    sys_name("SYS_bamset");
-    
+{    
     /* getting boolean */
     bool active = args[0];
     

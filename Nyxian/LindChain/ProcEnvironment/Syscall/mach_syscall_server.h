@@ -60,12 +60,6 @@ typedef struct ksurface_proc ksurface_proc_snapshot_t;
     { \
         sys_return_failure(EINVAL); \
     }
-
-#define sys_name(selname) \
-    { \
-        const char *sname = selname; \
-        *name = sname; \
-    }
     
 
 /* request message coming from the client */
@@ -75,7 +69,6 @@ typedef struct {
     mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
-    uint64_t                    thread;         /* thread index */
 } syscall_request_t;
 
 /* reply message coming from the kernel virtualization layer */
@@ -88,11 +81,11 @@ typedef struct {
 } syscall_reply_t;
 
 typedef int64_t (*syscall_handler_t)(
+    /* request header */
+    mach_msg_header_t *request,
+                                     
     /* task port of calling process */
     task_t                      task,
-    
-    /* thread port of calling processes thread */
-    thread_t                    thread,
                                      
     /*
      * holds information about the process identity
@@ -125,28 +118,26 @@ typedef int64_t (*syscall_handler_t)(
      * and setting errno from the reply
      */
     errno_t                     *err,
-                                     
-    /*
-     * first is a syscall does is exposing its name
-     */
-    const char                  **name,
                                
     /* input receive port */
-    mach_port_t                 in_recv
+    mach_port_t                 in_recv,
+                                     
+    /* syscall can decide if it wants to respond or not */
+    bool                        *reply
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
-    task_t                  task, \
-    thread_t                thread, \
-ksurface_proc_snapshot_t    *proc_snapshot, \
-    int64_t                 *args, \
-    mach_port_t             *in_ports, \
-    uint32_t                in_ports_cnt, \
-    mach_port_t             **out_ports, \
-    uint32_t                *out_ports_cnt, \
-    errno_t                 *err, \
-    const char              **name, \
-    mach_port_t             in_recv  \
+    mach_msg_header_t           *request, \
+    task_t                      task, \
+    ksurface_proc_snapshot_t    *proc_snapshot, \
+    int64_t                     *args, \
+    mach_port_t                 *in_ports, \
+    uint32_t                    in_ports_cnt, \
+    mach_port_t                 **out_ports, \
+    uint32_t                    *out_ports_cnt, \
+    errno_t                     *err, \
+    mach_port_t                 in_recv,  \
+    bool                        *reply \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
@@ -159,5 +150,7 @@ int syscall_server_start(syscall_server_t *server);
 void syscall_server_stop(syscall_server_t *server);
 mach_port_t syscall_server_get_port(syscall_server_t *server);
 void syscall_server_register(syscall_server_t *server, uint32_t syscall_num, syscall_handler_t handler);
+
+void send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, errno_t err);
 
 #endif /* MACH_SYSCALL_SERVER_H */

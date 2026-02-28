@@ -23,9 +23,6 @@
 
 DEFINE_SYSCALL_HANDLER(procpath)
 {
-    /* syscall wrapper */
-    sys_name("SYS_procpath");
-    
     /* prepare arguments */
     pid_t pid = (pid_t)args[0];
     userspace_pointer_t buffer_ptr = (userspace_pointer_t)args[1];

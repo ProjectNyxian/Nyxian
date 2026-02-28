@@ -97,11 +97,11 @@ static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg
 /*
  * This is the symbol that sends the result from the syscall back to the guest process
  */
-static void send_reply(mach_msg_header_t *request,
-                       int64_t result,
-                       mach_port_t *out_ports,
-                       uint32_t out_ports_cnt,
-                       errno_t err)
+void send_reply(mach_msg_header_t *request,
+                int64_t result,
+                mach_port_t *out_ports,
+                uint32_t out_ports_cnt,
+                errno_t err)
 {
     /* allocating a reply */
     syscall_reply_t reply;
@@ -165,9 +165,9 @@ static void* syscall_worker_thread(void *ctx)
         int64_t result = 0;
         mach_port_t *out_ports = NULL;
         uint32_t out_ports_cnt = 0;
-        const char *name = NULL;
         task_t task = MACH_PORT_NULL;
         thread_t thread = MACH_PORT_NULL;
+        bool reply = true;
         
         /* nullifying the buffer */
         memset(&buffer, 0, sizeof(buffer));
@@ -209,16 +209,6 @@ static void* syscall_worker_thread(void *ctx)
         {
             task = MACH_PORT_NULL;
         }
-        else
-        {
-            kr = task_thread_for_unique_id(task, req->thread, &thread);
-            if(kr != KERN_SUCCESS)
-            {
-                err = EAGAIN;
-                result = -1;
-                goto cleanup;
-            }
-        }
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */
         syscall_handler_t handler = NULL;
@@ -240,7 +230,17 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(task, thread, proc_snapshot, req->args, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL : (mach_port_t*)(req->oolp.address), (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count, &out_ports, &out_ports_cnt, &err, &name, (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL);
+        result = handler(&buffer.header,
+                         task,
+                         proc_snapshot,
+                         req->args,
+                         (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? NULL : (mach_port_t*)(req->oolp.address),
+                         (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? 0 : req->oolp.count,
+                         &out_ports,
+                         &out_ports_cnt,
+                         &err,
+                         (req->oolp.disposition == MACH_MSG_TYPE_MOVE_RECEIVE) ? *((mach_port_t*)req->oolp.address) : MACH_PORT_NULL,
+                         &reply);
         
     cleanup:
 
@@ -264,8 +264,11 @@ static void* syscall_worker_thread(void *ctx)
             mach_port_deallocate(mach_task_self(), thread);
         }
         
-        /* reply !!!AFTER!!! deallocation */
-        send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
+        if(reply)
+        {
+            /* reply !!!AFTER!!! deallocation */
+            send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
+        }
     }
     
     return NULL;
