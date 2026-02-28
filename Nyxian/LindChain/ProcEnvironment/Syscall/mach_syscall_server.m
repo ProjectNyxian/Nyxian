@@ -134,6 +134,9 @@ void send_reply(mach_msg_header_t *request,
     
     /* sending reply to child */
     mach_msg(&reply.header, MACH_SEND_MSG, sizeof(reply), 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    
+    /* releasing mach message resources */
+    mach_msg_destroy(request);
 }
 
 /*
@@ -256,8 +259,6 @@ static void* syscall_worker_thread(void *ctx)
             /* reply !!!AFTER!!! deallocation */
             send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
         }
-        
-        mach_msg_destroy(&buffer.header);
     }
     
     return NULL;
