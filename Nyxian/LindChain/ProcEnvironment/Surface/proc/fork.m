@@ -199,11 +199,11 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     /* checking if proc is kernel */
     if(proc == kernel_proc_)
     {
-        klog_log(@"proc:exit", @"[%d] cannot terminate the kernel", proc_getpid(kernel_proc_));
+        klog_log(@"proc:exit", @"cannot terminate the kernel");
         return SURFACE_DENIED;
     }
     
-    /* retain process that wants to exit*/
+    /* retain process that wants to exit */
     if(!kvo_retain(proc))
     {
         return SURFACE_FAILED;
@@ -239,7 +239,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         pthread_mutex_lock(&(proc->kproc.children.mutex));
     }
     
-    /* lock */
+    /* unlock */
     pthread_mutex_unlock(&(proc->kproc.children.mutex));
     
     /* remove from parent */
@@ -307,6 +307,75 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     {
         [process terminate];
     }
+    
+    return SURFACE_SUCCESS;
+}
+
+ksurface_return_t proc_zombify(ksurface_proc_t *proc)
+{
+    /* null pointer check */
+    if(proc == NULL)
+    {
+        return SURFACE_NULLPTR;
+    }
+    
+    /* checking if proc is kernel */
+    if(proc == kernel_proc_)
+    {
+        klog_log(@"proc:exit", @"cannot zombify the kernel");
+        return SURFACE_DENIED;
+    }
+    
+    /* retain process that wants to be zombified */
+    if(!kvo_retain(proc))
+    {
+        return SURFACE_FAILED;
+    }
+    
+    pthread_mutex_lock(&(proc->kproc.children.mutex));
+    
+    /* killing all children of the exiting process */
+    while(proc->kproc.children.children_cnt > 0)
+    {
+        /* get index of last child */
+        uint64_t idx = proc->kproc.children.children_cnt - 1;
+        ksurface_proc_t *child = proc->kproc.children.children[idx];
+        
+        /* retaining child */
+        if(!kvo_retain(child))
+        {
+            /* in case we cannot retain the child, we skip the child */
+            continue;
+        }
+        
+        /*
+         * have to unlock it so proc_exit can claim the lock
+         * on the recurse. as its needed to zombify all processes
+         * underneath.
+         */
+        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        proc_exit(child);
+        kvo_release(child);
+        pthread_mutex_lock(&(proc->kproc.children.mutex));
+    }
+    
+    /* when parent is the kernel dont zombify, kill immediately */
+    if(proc->kproc.children.parent == kernel_proc_)
+    {
+        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        kvo_release(proc);
+        proc_exit(proc);
+        return SURFACE_SUCCESS;
+    }
+    
+    pthread_mutex_unlock(&(proc->kproc.children.mutex));
+    
+    /* mark as zombified */
+    kvo_wrlock(proc);
+    proc->kproc.kcproc.bsd.kp_proc.p_stat = SZOMB;
+    kvo_event_trigger(proc, kvObjEventCustom2, 0);
+    kvo_unlock(proc);
+    kvo_release(proc);
     
     return SURFACE_SUCCESS;
 }

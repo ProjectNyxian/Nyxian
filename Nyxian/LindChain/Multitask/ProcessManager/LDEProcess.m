@@ -175,7 +175,7 @@
 #if !JAILBREAK_ENV
                         if(innerSelf.proc != NULL)
                         {
-                            ksurface_return_t error = proc_exit(innerSelf.proc);
+                            ksurface_return_t error = proc_zombify(innerSelf.proc);
                             if(error != SURFACE_SUCCESS)
                             {
                                 klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);

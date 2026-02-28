@@ -42,6 +42,9 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
     
     switch(type)
     {
+        case kvObjEventCustom2:
+            proc_exit((ksurface_proc_t*)(event->owner));
+            return false;
         case kvObjEventDeinit:
             ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
             goto out_byebye;
@@ -141,6 +144,20 @@ DEFINE_SYSCALL_HANDLER(wait4)
             kvo_release(target);
             sys_return;
         }
+    }
+    
+    /* checking if zombified process is still in await */
+    if(target->kproc.kcproc.bsd.kp_proc.p_stat == SZOMB)
+    {
+        target->kproc.kcproc.nyx.p_stop_reported = 1;
+        
+        int ecode = (target->kproc.kcproc.nyx.ret << 8) & 0xff00;
+        mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
+        
+        free(payload);
+        kvo_unlock(target);
+        kvo_release(target);
+        sys_return;
     }
     
     mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
