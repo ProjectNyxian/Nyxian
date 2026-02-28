@@ -153,6 +153,14 @@ task_t ktfp(obtain_token_t token)
     
     task_t exportedTask = request->task.name;
     
+    kr = mach_port_mod_refs(mach_task_self(), exportedTask, MACH_PORT_RIGHT_SEND, 1);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        klog_log(@"ktfp", @"failed to increment tsdk port send right");
+        goto out_destroy_recv;
+    }
+    
     /* after replying the kernel will happily continue executing the task */
     __Reply__exception_raise_t reply;
     memset(&reply, 0, sizeof(reply));
@@ -164,6 +172,10 @@ task_t ktfp(obtain_token_t token)
     reply.NDR = NDR_record;
     reply.RetCode = kr;
     mr = mach_msg(&reply.Head, MACH_SEND_MSG, reply.Head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    
+    /* destroying mach message */
+    mach_msg_destroy(&(request->Head));
+    
     if(mr != KERN_SUCCESS)
     {
         klog_log(@"ktfp", @"failed to reply back to guest");

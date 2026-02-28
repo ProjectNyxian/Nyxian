@@ -33,12 +33,15 @@ void *dothework(void *work)
     khandoffep_t *hep = (khandoffep_t*)work;
     
     task_t task = ktfp(KTFP_AQUIRE_FROM_RECV(hep->ep));
+    
+    if(task == MACH_PORT_NULL)
+    {
+        goto release_work;
+    }
+    
     if(!kvo_retain(hep->proc))
     {
-        mach_port_deallocate(mach_task_self(), task);
-        mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
-        free(work);
-        return NULL;
+        goto release_task;
     }
     
     task_wrlock();
@@ -47,20 +50,22 @@ void *dothework(void *work)
     pid_t pid;
     kern_return_t kr = pid_for_task(task, &pid);
     
-    if(kr != KERN_SUCCESS)
+    if(kr != KERN_SUCCESS ||
+       pid != proc_getpid(hep->proc))
     {
-        mach_port_deallocate(mach_task_self(), task);
-        mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
-        free(work);
-        return NULL;
+        goto release_task;
     }
     
     hep->proc->kproc.task = task;
     
     task_unlock();
     kvo_release(hep->proc);
+    free(work);
+    return NULL;
     
-    mach_port_mod_refs(mach_task_self(), hep->ep, MACH_PORT_RIGHT_RECEIVE, -1);
+release_task:
+    mach_port_deallocate(mach_task_self(), task);
+release_work:
     free(work);
     return NULL;
 }
@@ -84,6 +89,13 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     khandoffep_t *hep = malloc(sizeof(mach_port_t));
     hep->ep = sys_in_ports[0];
     hep->proc = sys_proc_;
+    
+    /*
+     * zero out receive in port
+     * so destroying the mach message
+     * wont release it.
+     */
+    sys_in_ports[0] = MACH_PORT_NULL;
     
     /* performing ktfp */
     pthread_t thread;

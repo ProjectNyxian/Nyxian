@@ -166,7 +166,6 @@ static void* syscall_worker_thread(void *ctx)
         mach_port_t *out_ports = NULL;
         uint32_t out_ports_cnt = 0;
         task_t task = MACH_PORT_NULL;
-        thread_t thread = MACH_PORT_NULL;
         bool reply = true;
         
         /* nullifying the buffer */
@@ -240,10 +239,6 @@ static void* syscall_worker_thread(void *ctx)
                          &reply);
         
     cleanup:
-
-        /* deallocate what the guest requested via input ports (avoiding port leaks is a extremely good idea ^^) */
-        vm_deallocate(mach_task_self(), (mach_vm_address_t)req->oolp.address, req->oolp.count * sizeof(mach_port_t));
-        
         /* destroying snapshot of process */
         if(proc_snapshot != NULL)
         {
@@ -256,16 +251,13 @@ static void* syscall_worker_thread(void *ctx)
             mach_port_deallocate(mach_task_self(), task);
         }
         
-        if(thread != MACH_PORT_NULL)
-        {
-            mach_port_deallocate(mach_task_self(), thread);
-        }
-        
         if(reply)
         {
             /* reply !!!AFTER!!! deallocation */
             send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
         }
+        
+        mach_msg_destroy(&buffer.header);
     }
     
     return NULL;
