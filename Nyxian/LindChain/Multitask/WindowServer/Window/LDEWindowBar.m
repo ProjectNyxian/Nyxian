@@ -91,9 +91,17 @@
     _windowBarHeightConstraint = [self.heightAnchor constraintEqualToConstant:barH];
     _windowBarHeightConstraint.active = YES;
 
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {
+        [_titleLabel.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-19.0].active = YES;
+    }
+    else
+    {
+        [_titleLabel.centerYAnchor constraintEqualToAnchor:self.centerYAnchor].active = YES;
+    }
+    
     [NSLayoutConstraint activateConstraints:@[
         [_titleLabel.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
-        [_titleLabel.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-19.0],
         [border.heightAnchor constraintEqualToConstant:0.5],
         [border.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
         [border.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
@@ -342,23 +350,26 @@
 
 - (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated
 {
-    CGFloat safeTop = self.window.safeAreaInsets.top;
-    CGFloat baseHeight = 38.0;
-
-    CGFloat newHeight = fullscreen ? baseHeight + safeTop : baseHeight;
-
-    void (^changes)(void) = ^{
-        self->_windowBarHeightConstraint.constant = newHeight;
-        [self layoutIfNeeded];
-    };
-
-    if(animated)
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
-        [UIView animateWithDuration:0.3 animations:changes];
-    }
-    else
-    {
-        changes();
+        CGFloat safeTop = self.window.safeAreaInsets.top;
+        CGFloat baseHeight = 38.0;
+        
+        CGFloat newHeight = fullscreen ? baseHeight + safeTop : baseHeight;
+        
+        void (^changes)(void) = ^{
+            self->_windowBarHeightConstraint.constant = newHeight;
+            [self layoutIfNeeded];
+        };
+        
+        if(animated)
+        {
+            [UIView animateWithDuration:0.3 animations:changes];
+        }
+        else
+        {
+            changes();
+        }
     }
 }
 

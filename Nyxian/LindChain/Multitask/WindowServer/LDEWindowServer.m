@@ -1132,7 +1132,14 @@
     /* checking if maximised */
     if(window.isMaximized)
     {
-        return self.bounds;
+        if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+        {
+            return self.bounds;
+        }
+        else
+        {
+            return allowed;
+        }
     }
     else
     {
