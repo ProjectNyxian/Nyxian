@@ -375,7 +375,7 @@ DEFINE_SYSCALL_HANDLER(sysctl)
         .newp           = (userspace_pointer_t)args[4],
         .newlen         = (size_t)args[5],
         .err            = 0,
-        .task           = task,
+        .task           = sys_task_,
         .proc_snapshot  = sys_proc_snapshot_,
     };
     
@@ -388,7 +388,7 @@ DEFINE_SYSCALL_HANDLER(sysctl)
     }
     
     /* copy name array from userspace */
-    if(!mach_syscall_copy_in(task, count * sizeof(int), &(req.name), (userspace_pointer_t)args[0]))
+    if(!mach_syscall_copy_in(sys_task_, count * sizeof(int), &(req.name), (userspace_pointer_t)args[0]))
     {
         sys_return_failure(EFAULT);
     }
@@ -407,7 +407,7 @@ DEFINE_SYSCALL_HANDLER(sysctl)
 
 DEFINE_SYSCALL_HANDLER(sysctlbyname)
 {    
-    char *name_buf = mach_syscall_copy_str_in(task, (userspace_pointer_t)args[0], 128);
+    char *name_buf = mach_syscall_copy_str_in(sys_task_, (userspace_pointer_t)args[0], 128);
     
     if(name_buf == NULL)
     {
@@ -439,7 +439,7 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
         .newp           = (userspace_pointer_t)args[3],
         .newlen         = (size_t)args[4],
         .err            = 0,
-        .task           = task,
+        .task           = sys_task_,
         .proc_snapshot  = sys_proc_snapshot_,
     };
     

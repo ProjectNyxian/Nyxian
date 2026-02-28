@@ -50,6 +50,9 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             free(payload);
             return true;
         case kvObjEventCustom0:
+            kvo_wrlock(((ksurface_proc_t*)event->owner));
+            ((ksurface_proc_t*)event->owner)->kproc.kcproc.nyx.p_stop_reported = 1;
+            kvo_unlock(((ksurface_proc_t*)event->owner));
             if((payload->options & WSTOPPED) == WSTOPPED)
             {
                 ecode = W_STOPCODE(SIGSTOP);
@@ -115,6 +118,13 @@ DEFINE_SYSCALL_HANDLER(wait4)
         sys_return_failure(ENOMEM);
     }
     
+    /* stuffing payload */
+    payload->task = sys_task_;
+    payload->status_ptr = (userspace_pointer_t)args[1];
+    payload->rusage_ptr = (userspace_pointer_t)args[3];
+    payload->options = options;
+    payload->header = *request;
+    
     /* check if one stopping is still in await to be received */
     if((options & WSTOPPED) == WSTOPPED)
     {
@@ -126,20 +136,14 @@ DEFINE_SYSCALL_HANDLER(wait4)
             int ecode = W_STOPCODE(SIGSTOP);
             mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
             
+            free(payload);
             kvo_unlock(target);
             kvo_release(target);
             sys_return;
         }
     }
     
-    mach_port_mod_refs(mach_task_self(), task, MACH_PORT_RIGHT_SEND, 1);
-    
-    /* stuffing payload */
-    payload->task = task;
-    payload->status_ptr = (userspace_pointer_t)args[1];
-    payload->rusage_ptr = (userspace_pointer_t)args[3];
-    payload->options = options;
-    payload->header = *request;
+    mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
     
     /* register event */
     ksr = kvo_event_register(target, wait4_proc_event_handler, payload, NULL);

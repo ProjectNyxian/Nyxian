@@ -23,9 +23,9 @@
 #import <LindChain/Private/mach/fileport.h>
 
 DEFINE_SYSCALL_HANDLER(signexec)
-{
+{    
     /* syscall wrapper */
-    sys_need_in_ports_with_cnt(1);
+    sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_SEND);
     
     /*
      * checking entitlements weither the process is entitled enough to
@@ -43,13 +43,13 @@ DEFINE_SYSCALL_HANDLER(signexec)
     
     /* validating mach port before use */
     mach_port_type_t type;
-    if(mach_port_type(mach_task_self(), in_ports[0], &type) != KERN_SUCCESS)
+    if(mach_port_type(mach_task_self(), sys_in_ports[0], &type) != KERN_SUCCESS)
     {
         sys_return_failure(EINVAL);
     }
     
     /* creating file descriptor out of mach fileport */
-    int fd = fileport_makefd(in_ports[0]);
+    int fd = fileport_makefd(sys_in_ports[0]);
     
     /* checking file descriptor */
     if(fd == -1)

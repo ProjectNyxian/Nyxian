@@ -36,10 +36,10 @@ DEFINE_SYSCALL_HANDLER(enttoken)
         switch(flag)
         {
             case ET_VERIFY_MACH:
-                succeed = mach_syscall_copy_in(task, sizeof(ksurface_ent_mach_t), &mach, token_ptr);
+                succeed = mach_syscall_copy_in(sys_task_, sizeof(ksurface_ent_mach_t), &mach, token_ptr);
                 break;
             default:
-                succeed = mach_syscall_copy_in(task, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr);
+                succeed = mach_syscall_copy_in(sys_task_, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr);
         }
         
         if(!succeed)
@@ -60,7 +60,7 @@ DEFINE_SYSCALL_HANDLER(enttoken)
                 sys_return_failure(EPERM);
             }
             
-            if(!mach_syscall_copy_out(task, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr))
+            if(!mach_syscall_copy_out(sys_task_, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr))
             {
                 sys_return_failure(EFAULT);
             }

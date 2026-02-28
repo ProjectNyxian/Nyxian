@@ -24,10 +24,10 @@
 
 DEFINE_SYSCALL_HANDLER(ioctl)
 {
-    sys_need_in_ports_with_cnt(1);
+    sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_SEND);
     
     /* prepare arguments */
-    fileport_t port = in_ports[0];
+    fileport_t port = sys_in_ports[0];
     unsigned long flag = (unsigned long)args[1];
     userspace_pointer_t termios_ptr = (userspace_pointer_t)args[2];
     
@@ -56,7 +56,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
         case TIOCGETA:
             kvo_rdlock(tty);
             
-            if(!mach_syscall_copy_out(task, sizeof(struct termios), &(tty->t), termios_ptr))
+            if(!mach_syscall_copy_out(sys_task_, sizeof(struct termios), &(tty->t), termios_ptr))
             {
                 goto out_fault;
             }
@@ -68,7 +68,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             /* there is no rollback from a failed copy-in */
             struct termios temp;
             
-            if(!mach_syscall_copy_in(task, sizeof(struct termios), &(temp), termios_ptr))
+            if(!mach_syscall_copy_in(sys_task_, sizeof(struct termios), &(temp), termios_ptr))
             {
                 goto out_fault;
             }

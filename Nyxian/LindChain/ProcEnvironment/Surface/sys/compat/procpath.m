@@ -50,7 +50,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
     }
     
     size_t size = 0;
-    if(!mach_syscall_copy_in(task, sizeof(size_t), &size, size_ptr))
+    if(!mach_syscall_copy_in(sys_task_, sizeof(size_t), &size, size_ptr))
     {
         kvo_release(target);
         sys_return_failure(EINVAL);
@@ -72,7 +72,7 @@ DEFINE_SYSCALL_HANDLER(procpath)
      * getting output layout lenght. We have to add 1 more so the
      * nullterminator gets copied with it.
      */
-    if(!mach_syscall_copy_out(task, buflen, target->kproc.kcproc.nyx.executable_path, buffer_ptr))
+    if(!mach_syscall_copy_out(sys_task_, buflen, target->kproc.kcproc.nyx.executable_path, buffer_ptr))
     {
         kvo_unlock(target);
         kvo_release(target);

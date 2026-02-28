@@ -82,6 +82,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
             memcpy(&(proc->kproc.kcproc), &(src->kproc.kcproc), sizeof(ksurface_kcproc_t));
             
+            if(src->kproc.task != MACH_PORT_NULL)
+            {
+                kern_return_t kr = mach_port_mod_refs(mach_task_self(), src->kproc.task, MACH_PORT_RIGHT_SEND, 1);
+                proc->kproc.task = src->kproc.task;
+            }
+            
             /* done */
             return 0;
         }
@@ -90,12 +96,14 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             {
                 klog_log(@"proc:deinit", @"deinitilizing process @ %p", proc);
                 pthread_mutex_destroy(&(proc->kproc.children.mutex));
-                
-                if(proc->kproc.task != MACH_PORT_NULL)
-                {
-                    mach_port_deallocate(mach_task_self(), proc->kproc.task);
-                }
             }
+            
+            if(proc->kproc.task != MACH_PORT_NULL)
+            {
+                mach_port_deallocate(mach_task_self(), proc->kproc.task);
+            }
+            
+            /* fallthrough */
         default:
             return 0;
     }

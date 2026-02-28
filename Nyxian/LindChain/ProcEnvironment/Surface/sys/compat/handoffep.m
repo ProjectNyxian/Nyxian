@@ -66,7 +66,8 @@ void *dothework(void *work)
 }
 
 DEFINE_SYSCALL_HANDLER(handoffep)
-{    
+{
+    sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_RECEIVE);
     task_rdlock();
     
     /* sanity check */
@@ -79,21 +80,15 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     
     task_unlock();
     
-    /* checking recv input port */
-    if(in_recv == MACH_PORT_NULL)
-    {
-        sys_return_failure(EINVAL);
-    }
-    else
-    {
-        khandoffep_t *hep = malloc(sizeof(mach_port_t));
-        hep->ep = in_recv;
-        hep->proc = sys_proc_;
-        
-        pthread_t thread;
-        pthread_create(&thread, NULL, dothework, hep);
-        pthread_detach(thread);
-    }
+    /* preparing ktfp */
+    khandoffep_t *hep = malloc(sizeof(mach_port_t));
+    hep->ep = sys_in_ports[0];
+    hep->proc = sys_proc_;
+    
+    /* performing ktfp */
+    pthread_t thread;
+    pthread_create(&thread, NULL, dothework, hep);
+    pthread_detach(thread);
     
     sys_return;
 }
