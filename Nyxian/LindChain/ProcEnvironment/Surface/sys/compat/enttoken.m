@@ -28,21 +28,41 @@ DEFINE_SYSCALL_HANDLER(enttoken)
     int flag = (int)args[1];
     userspace_pointer_t token_ptr = (userspace_pointer_t)args[2];
     
-    /* now switch */
-    ksurface_ent_token_t token;
+    /* copy token/mach in if applicable */
+    ksurface_ent_mach_t mach;
     
+    if(flag != ET_CREATE)
+    {
+        bool succeed = false;
+        
+        switch(flag)
+        {
+            case ET_VERIFY_MACH:
+                succeed = mach_syscall_copy_in(task, sizeof(ksurface_ent_mach_t), &mach, token_ptr);
+                break;
+            default:
+                succeed = mach_syscall_copy_in(task, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr);
+        }
+        
+        if(!succeed)
+        {
+            sys_return_failure(EFAULT);
+        }
+    }
+    
+    /* switching */
     switch(flag)
     {
         case ET_CREATE:
         {
-            ksurface_return_t ksr = entitlement_token_generate_for_entitlement(sys_proc_, entitlement, &token);
+            ksurface_return_t ksr = entitlement_token_generate_for_entitlement(sys_proc_, entitlement, &(mach.token));
             
             if(ksr != SURFACE_SUCCESS)
             {
                 sys_return_failure(EPERM);
             }
             
-            if(!mach_syscall_copy_out(task, sizeof(ksurface_ent_token_t), &token, token_ptr))
+            if(!mach_syscall_copy_out(task, sizeof(ksurface_ent_token_t), &(mach.token), token_ptr))
             {
                 sys_return_failure(EFAULT);
             }
@@ -51,14 +71,29 @@ DEFINE_SYSCALL_HANDLER(enttoken)
         }
         case ET_CONSUME:
         {
-            ksurface_ent_token_t token;
+            ksurface_return_t ksr = entitlement_token_consume(sys_proc_, &(mach.token));
             
-            if(!mach_syscall_copy_in(task, sizeof(ksurface_ent_token_t), &token, token_ptr))
+            if(ksr != SURFACE_SUCCESS)
             {
-                sys_return_failure(EFAULT);
+                sys_return_failure(EPERM);
             }
             
-            ksurface_return_t ksr = entitlement_token_consume(sys_proc_, &token);
+            break;
+        }
+        case ET_VERIFY:
+        {
+            ksurface_return_t ksr = entitlement_token_verify(&(mach.token));
+            
+            if(ksr != SURFACE_SUCCESS)
+            {
+                sys_return_failure(EPERM);
+            }
+            
+            break;
+        }
+        case ET_VERIFY_MACH:
+        {            
+            ksurface_return_t ksr = entitlement_mach_verify(&mach);
             
             if(ksr != SURFACE_SUCCESS)
             {

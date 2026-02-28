@@ -22,8 +22,10 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#define ET_CREATE   0   /* creates entitlements token */
-#define ET_CONSUME  1   /* consumes entitlements token */
+#define ET_CREATE       0   /* creates entitlements token */
+#define ET_CONSUME      1   /* consumes entitlements token */
+#define ET_VERIFY       2   /* verifies entitlements token */
+#define ET_VERIFY_MACH  3   /* verifies special mach entitlements token */
 
 DEFINE_SYSCALL_HANDLER(enttoken);
 

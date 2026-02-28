@@ -423,8 +423,8 @@ int macho_read_token(NSString *path,
     if(strncmp(hash, mach->token.blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
         mach->cdhash_valid = true;
-        return -1;
+        return 0;
     }
 
-    return 0;
+    return -1;
 }
