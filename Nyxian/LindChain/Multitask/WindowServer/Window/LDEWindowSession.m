@@ -85,7 +85,7 @@
 }
 
 - (void)movedWindowToScene:(UIWindowScene*)windowScene
-            withIdentifier:(wid_t)identifier
+            withIdentifier:(id_t)identifier
 {
     self.windowIdentifier = identifier;
     

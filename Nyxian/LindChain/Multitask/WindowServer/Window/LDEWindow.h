@@ -22,7 +22,6 @@
 
 #import "FoundationPrivate.h"
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
-#import <LindChain/Multitask/WindowServer/Utils.h>
 
 @class LDEWindow;
 
@@ -40,7 +39,7 @@
 
 @interface LDEWindow : UIViewController <UIGestureRecognizerDelegate>
 
-@property (nonatomic) wid_t identifier;
+@property (nonatomic) id_t identifier;
 @property (nonatomic,getter=getWindowName,setter=setWindowName:) NSString* windowName;
 @property (nonatomic) UINavigationBar *navigationBar;
 @property (nonatomic) UINavigationItem *navigationItem;

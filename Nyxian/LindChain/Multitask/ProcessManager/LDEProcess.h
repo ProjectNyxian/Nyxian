@@ -53,7 +53,7 @@
 
 // Info properties
 @property (nonatomic) pid_t pid;
-@property (nonatomic) wid_t wid;
+@property (nonatomic) id_t wid;
 
 // Background modes suspension fix
 @property (nonatomic) BOOL audioBackgroundModeUsage;

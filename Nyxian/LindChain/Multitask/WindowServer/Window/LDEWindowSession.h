@@ -23,15 +23,13 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import <LindChain/Multitask/WindowServer/Utils.h>
-
 @class LDEWindow;
 
 @interface LDEWindowSession : UIViewController
 
 @property (nonatomic,weak) UIWindowScene *windowScene;
 @property (nonatomic,weak) LDEWindow *window;
-@property (nonatomic) wid_t windowIdentifier;
+@property (nonatomic) id_t windowIdentifier;
 
 @property (nonatomic) CGRect windowRect;
 @property (nonatomic,strong,getter=getWindowName,setter=setWindowName:) NSString *windowName;
@@ -53,7 +51,7 @@
 
 - (UIImage*)snapshotWindow;
 
-- (void)movedWindowToScene:(UIWindowScene*)windowScene withIdentifier:(wid_t)identifier;
+- (void)movedWindowToScene:(UIWindowScene*)windowScene withIdentifier:(id_t)identifier;
 
 @end
 

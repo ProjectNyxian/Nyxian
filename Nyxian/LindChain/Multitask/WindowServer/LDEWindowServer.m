@@ -19,7 +19,6 @@
 
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/Utils.h>
 
 #if !JAILBREAK_ENV
 
@@ -38,7 +37,7 @@
     UIStackView *_stackView;
     UIStackView *_placeholderStack;
     LDEWindow *_activeWindow;
-    wid_t _activeWindowIdentifier;
+    id_t _activeWindowIdentifier;
     UIScrollView *_runningAppsScrollView;
 #if !JAILBREAK_ENV
     LDEAppLaunchpad *_launchPad;
@@ -60,7 +59,7 @@
     {
         _windows = [[NSMutableDictionary alloc] init];
         _windowOrder = [[NSMutableArray alloc] init];
-        _activeWindowIdentifier = (wid_t)-1;
+        _activeWindowIdentifier = (id_t)-1;
         _appSwitcherView = nil;
         _isKeyboardVisible = NO;
         
@@ -103,7 +102,7 @@
     [self.windowOrder insertObject:number atIndex:0];
 }
 
-- (void)activateWindowForIdentifier:(wid_t)identifier
+- (void)activateWindowForIdentifier:(id_t)identifier
                            animated:(BOOL)animated
                      withCompletion:(void (^)(void))completion
 {
@@ -134,7 +133,7 @@
 }
 
 - (void)deactivateWindowByPullDown:(BOOL)pullDown
-                    withIdentifier:(wid_t)identifier
+                    withIdentifier:(id_t)identifier
                     withCompletion:(void (^)(void))completion
 {
     assert([NSThread isMainThread]);
@@ -162,14 +161,14 @@
     }];
 }
 
-- (void)focusWindowForIdentifier:(wid_t)identifier
+- (void)focusWindowForIdentifier:(id_t)identifier
 {
     LDEWindow *window = self.windows[@(identifier)];
     if (!window) return;
     [window focusWindow];
 }
 
-- (LDEWindowSession*)windowSessionForIdentifier:(wid_t)identifier
+- (LDEWindowSession*)windowSessionForIdentifier:(id_t)identifier
 {
     LDEWindow *window = self.windows[@(identifier)];
     if(window != nil)
@@ -184,11 +183,14 @@
 {
     assert([NSThread isMainThread]);
     
-    __block wid_t windowIdentifier = (wid_t)-1;
+    __block id_t windowIdentifier = (id_t)-1;
     __block BOOL windowOpened = YES;
     
     void (^openAct)(void) = ^{
-        windowIdentifier = getNextWindowIdentifier();
+        /* getting next window identifier */
+        static id_t nextWindowIdentifier = 0;
+        windowIdentifier = nextWindowIdentifier++;
+        
         [session movedWindowToScene:self.windowScene withIdentifier:windowIdentifier];
         
         if(![session openWindow])
@@ -230,14 +232,14 @@
     }
 }
 
-- (void)closeWindowWithIdentifier:(wid_t)identifier
+- (void)closeWindowWithIdentifier:(id_t)identifier
                    withCompletion:(void (^)(BOOL))completion
 {
     assert([NSThread isMainThread]);
     
     if(_activeWindowIdentifier == identifier)
     {
-        _activeWindowIdentifier = (wid_t)-1;
+        _activeWindowIdentifier = (id_t)-1;
     }
     
     LDEWindow *window = self.windows[@(identifier)];
@@ -284,7 +286,7 @@
 // TODO: FRIDA! PLS MAKE LDEWINDOWSERVERTILEVIEW!!!! IM SO LAZY ONG
 - (void)handleLongPress:(UILongPressGestureRecognizer *)recognizer
 {
-    if(_activeWindowIdentifier == (wid_t)-1 &&
+    if(_activeWindowIdentifier == (id_t)-1 &&
        (recognizer.state == UIGestureRecognizerStateBegan || recognizer == nil))
     {
         if(!self.appSwitcherView)
@@ -719,7 +721,7 @@
         return;
     }
     
-    wid_t identifier = (wid_t)tileWrapper.tag;
+    id_t identifier = (id_t)tileWrapper.tag;
     [self activateWindowForIdentifier:identifier animated:YES withCompletion:nil];
 }
 
@@ -919,7 +921,7 @@
         );
         reflection.alpha = 0;
     } completion:^(BOOL finished) {
-        wid_t identifier = (wid_t)tileWrapper.tag;
+        id_t identifier = (id_t)tileWrapper.tag;
         LDEWindow *window = self.windows[@(identifier)];
         
         if(window)
@@ -1115,7 +1117,7 @@
 
 - (void)windowWantsToMinimize:(LDEWindow *)window
 {
-    _activeWindowIdentifier = (wid_t)-1;
+    _activeWindowIdentifier = (id_t)-1;
 }
 
 - (CGRect)window:(LDEWindow*)window wantsToChangeToRect:(CGRect)rect

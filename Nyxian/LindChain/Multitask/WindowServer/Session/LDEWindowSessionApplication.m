@@ -308,7 +308,7 @@ void UIKitFixesInit(void)
 - (void)prepareForInject
 {
     /* making sure LDEProcess wont close this */
-    self.process.wid = (wid_t)-1;
+    self.process.wid = (id_t)-1;
     self.process.session = nil;
 }
 

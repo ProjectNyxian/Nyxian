@@ -150,7 +150,7 @@
             }
             else
             {
-                if(process.wid != (wid_t)-1)
+                if(process.wid != (id_t)-1)
                 {
                     if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
                     {

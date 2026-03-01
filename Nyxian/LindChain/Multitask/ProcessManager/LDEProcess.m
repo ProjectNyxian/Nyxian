@@ -54,7 +54,7 @@
     if(self.executablePath == nil) return nil;
     if(![[LDETrust shared] executableAllowedToLaunchAtPath:self.executablePath]) return nil;
     
-    self.wid = (wid_t)-1;
+    self.wid = (id_t)-1;
     
     NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
     if(!liveProcessBundle)

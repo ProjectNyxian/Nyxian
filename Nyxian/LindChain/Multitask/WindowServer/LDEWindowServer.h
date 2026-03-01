@@ -46,12 +46,12 @@
 + (instancetype)shared;
 
 - (void)openWindowWithSession:(LDEWindowSession*)session withCompletion:(void (^)(BOOL))completion;
-- (void)closeWindowWithIdentifier:(wid_t)identifier  withCompletion:(void (^)(BOOL))completion;
+- (void)closeWindowWithIdentifier:(id_t)identifier  withCompletion:(void (^)(BOOL))completion;
 
-- (void)activateWindowForIdentifier:(wid_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
+- (void)activateWindowForIdentifier:(id_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
 
-- (void)focusWindowForIdentifier:(wid_t)identifier;
-- (LDEWindowSession*)windowSessionForIdentifier:(wid_t)identifier;
+- (void)focusWindowForIdentifier:(id_t)identifier;
+- (LDEWindowSession*)windowSessionForIdentifier:(id_t)identifier;
 
 - (void)showAppSwitcherExternal;
 

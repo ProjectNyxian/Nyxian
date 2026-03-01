@@ -27,7 +27,7 @@
 @property (nonatomic,strong) TerminalViewObjC *terminal;
 @property (nonatomic) bool focused;
 @property (nonatomic) bool atExit;
-@property (nonatomic) wid_t identifier;
+@property (nonatomic) id_t identifier;
 @property (nonatomic) ksurface_tty_t *tty;
 
 @end
