@@ -27,11 +27,9 @@
 #import <sys/poll.h>
 #include <stdio.h>
 
-static int pump_master_to_slave(ksurface_tty_t *tty,
-                                int m,
-                                int s)
+static int tty_input(ksurface_tty_t *tty)
 {
-    ssize_t n = read(m, tty->buf, sizeof(tty->buf));
+    ssize_t n = read(tty->core_masterfd, tty->buf, sizeof(tty->buf));
     if(n <= 0)
     {
         return -1;
@@ -120,7 +118,7 @@ static int pump_master_to_slave(ksurface_tty_t *tty,
     ssize_t off = 0;
     while(off < n)
     {
-        ssize_t w = write(s, tty->buf + off, n - off);
+        ssize_t w = write(tty->core_slavefd, tty->buf + off, n - off);
         if(w <= 0)
         {
             return -1;
@@ -132,11 +130,9 @@ static int pump_master_to_slave(ksurface_tty_t *tty,
     return 0;
 }
 
-static int pump_slave_to_master(ksurface_tty_t *tty,
-                                int m,
-                                int s)
+static int tty_output(ksurface_tty_t *tty)
 {
-    ssize_t n = read(s, tty->buf, sizeof(tty->buf));
+    ssize_t n = read(tty->core_slavefd, tty->buf, sizeof(tty->buf));
     ssize_t new_n = 0;
     if(n <= 0)
     {
@@ -189,7 +185,7 @@ write_out:
         ssize_t off = 0;
         while(off < out_n)
         {
-            ssize_t w = write(m, out + off, out_n - off);
+            ssize_t w = write(tty->core_masterfd, out + off, out_n - off);
             if(w <= 0) return -1;
             off += w;
         }
@@ -220,7 +216,7 @@ static void *tty_pump_thread(void *arg)
 
         if(fds[0].revents & POLLIN)
         {
-            if(pump_master_to_slave(tty, m, s) < 0)
+            if(tty_input(tty) < 0)
             {
                 break;
             }
@@ -228,7 +224,7 @@ static void *tty_pump_thread(void *arg)
 
         if(fds[1].revents & POLLIN)
         {
-            if(pump_slave_to_master(tty, m, s) < 0)
+            if(tty_output(tty) < 0)
             {
                 break;
             }
