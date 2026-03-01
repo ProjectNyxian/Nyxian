@@ -22,7 +22,95 @@
 #import <xpc/xpc.h>
 #include <LindChain/ProcEnvironment/Utils/fd.h>
 
+@implementation FDObject
+
+- (instancetype)init
+{
+    self = [super init];
+    return self;
+}
+
++ (instancetype)objectForFileDescriptor:(int)fd
+{
+    FDObject *object = [[self alloc] init];
+    if(object != nil)
+    {
+        object.fd = xpc_fd_create(fd);
+    }
+    return object;
+}
+
+- (void)setFileDescriptor:(int)fd
+{
+    _fd = xpc_fd_create(fd);
+}
+
+- (void)dup2:(int)fd
+{
+    int cfd = xpc_fd_dup(_fd);
+    if(cfd == fd)
+    {
+        return;
+    }
+    else
+    {
+        dup2(cfd, fd);
+        close(cfd);
+    }
+}
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    if([coder respondsToSelector:@selector(encodeXPCObject:forKey:)])
+    {
+        [(id)coder encodeXPCObject:_fd forKey:@"fd"];
+    }
+    
+    return;
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    self = [super init];
+    if([coder respondsToSelector:@selector(decodeXPCObjectOfType:forKey:)])
+    {
+        _fd = [(id)coder decodeXPCObjectOfType:XPC_TYPE_FD forKey:@"fd"];
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    FDObject *copy = [[[self class] allocWithZone:zone] init];
+    copy.fd = [self.fd copy];
+    return copy;
+}
+
+@end
+
 @implementation FDMapObject
+
+- (instancetype)init
+{
+    self = [super init];
+    if(self == nil)
+    {
+        return nil;
+    }
+    
+    self.fd_map = [[NSMutableDictionary alloc] init];
+    
+    if(self.fd_map == nil)
+    {
+        return nil;
+    }
+    return self;
+}
 
 + (instancetype)currentMap
 {
@@ -40,174 +128,136 @@
 + (instancetype)stdfdMap
 {
     FDMapObject *map = [self emptyMap];
-    map.fd_map = xpc_array_create_empty();
     
-    // Stdout
-    xpc_object_t dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", STDOUT_FILENO);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDOUT_FILENO);
-    xpc_array_append_value(map.fd_map, dict);
+    if(map == nil)
+    {
+        return nil;
+    }
     
-    // Stderr
-    dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", STDERR_FILENO);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDERR_FILENO);
-    xpc_array_append_value(map.fd_map, dict);
+    /* creating fd objects */
+    FDObject *stdoutObject = [FDObject objectForFileDescriptor:STDOUT_FILENO];
+    FDObject *stderrObject = [FDObject objectForFileDescriptor:STDERR_FILENO];
+    FDObject *stdinObject = [FDObject objectForFileDescriptor:STDIN_FILENO];
     
-    // Stdin
-    dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", STDIN_FILENO);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDIN_FILENO);
-    xpc_array_append_value(map.fd_map, dict);
+    /* sanity check */
+    if(stdoutObject == nil ||
+       stderrObject == nil ||
+       stdinObject == nil)
+    {
+        return nil;
+    }
+    
+    /* setting them */
+    [map.fd_map setObject:stdoutObject forKey:@(STDOUT_FILENO)];
+    [map.fd_map setObject:stderrObject forKey:@(STDERR_FILENO)];
+    [map.fd_map setObject:stdinObject forKey:@(STDIN_FILENO)];
     
     return map;
 }
 
 #pragma mark - Copying and applying file descriptor map (Unlike NSFileHandle this is used to transfer entire file descriptor maps)
 
-- (void)insertOutFD:(int)stdoutFD
-              ErrFD:(int)stderrFD
-              InPipe:(int)stdinFD
-{
-    _fd_map = xpc_array_create_empty();
-    
-    // Stdout
-    xpc_object_t dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stdoutFD);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDOUT_FILENO);
-    xpc_array_append_value(_fd_map, dict);
-    
-    // Stderr
-    dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stderrFD);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDERR_FILENO);
-    xpc_array_append_value(_fd_map, dict);
-    
-    // Stdin
-    dict = xpc_dictionary_create_empty();
-    xpc_dictionary_set_fd(dict, "actual_fd", stdinFD);
-    xpc_dictionary_set_int64(dict, "wished_fd", STDIN_FILENO);
-    xpc_array_append_value(_fd_map, dict);
-}
-
 - (void)copy_fd_map
 {
-    _fd_map = xpc_array_create_empty();
-    
     int numFDs = 0;
     struct proc_fdinfo *fdinfo = NULL;
     
     get_all_fds(&numFDs, &fdinfo);
-
-    for (int i = 0; i < numFDs; i++) {
+    
+    for(int i = 0; i < numFDs; i++)
+    {
         int fd = fdinfo[i].proc_fd;
-        @try {
-            xpc_object_t dict = xpc_dictionary_create_empty();
-            xpc_dictionary_set_fd(dict, "actual_fd", fd);
-            xpc_dictionary_set_int64(dict, "wished_fd", fd);
-            xpc_array_append_value(_fd_map, dict);
-        } @catch (__unused NSException *ex) {
+        FDObject *fdObject = [FDObject objectForFileDescriptor:fd];
+        
+        if(fdObject == nil)
+        {
             continue;
         }
+        
+        [self.fd_map setObject:fdObject forKey:@(fd)];
     }
 
     free(fdinfo);
     return;
 }
 
-/// Intended for a brand new process, overmapping the fd map
+/// Intended for a brand new process, overmapping the current fd map
 - (void)apply_fd_map
 {
     close_all_fd();
-    if (!_fd_map) return;
-    xpc_array_apply(_fd_map, ^bool(size_t index, xpc_object_t entry){
-        int wished_fd   = (int)xpc_dictionary_get_int64(entry, "wished_fd");
-        int incoming_fd = xpc_dictionary_dup_fd(entry, "actual_fd");
-
-        if (incoming_fd >= 0)
-        {
-            if (dup2(incoming_fd, wished_fd) < 0)
-            {
-                perror("dup2");
-            }
-            if (incoming_fd != wished_fd)
-            {
-                close(incoming_fd);
-            }
-        }
-
-        return true;
-    });
+    if(!_fd_map)
+    {
+        return;
+    }
+    
+    for(NSNumber *key in _fd_map.allKeys)
+    {
+        FDObject *fdObject = _fd_map[key];
+        [fdObject dup2:[key intValue]];
+    }
 }
 
 #pragma mark - Handling file descriptors without affecting host (Used by fork() and posix_spawn() fix for example)
 
-// TODO: Only handle them as xpc dictionaries on encoding and decoding (will save power and time later on)
+- (int)appendFileDescriptor:(int)fd withMappingToLoc:(int)loc
+{
+    if(!_fd_map)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    FDObject *object = [FDObject objectForFileDescriptor:fd];
+    
+    if(object == nil)
+    {
+        errno = EBADF;
+        return -1;
+    }
+    
+    [_fd_map setObject:object forKey:@(loc)];
+    
+    return 0;
+}
+
+- (int)appendFileDescriptor:(int)fd
+{
+    return [self appendFileDescriptor:fd withMappingToLoc:fd];
+}
+
 - (int)closeWithFileDescriptor:(int)fd
 {
-    if (!_fd_map) return -1;
+    if(!_fd_map)
+    {
+        errno = EINVAL;
+        return -1;
+    }
     
-    __block int ret = -1;
+    [_fd_map removeObjectForKey:@(fd)];
     
-    NSObject<OS_xpc_object> *new_fd_map = xpc_array_create_empty();
-    
-    xpc_array_apply(_fd_map, ^bool(size_t index, xpc_object_t entry){
-        int wished_fd   = (int)xpc_dictionary_get_int64(entry, "wished_fd");
-        if(wished_fd != fd)
-        {
-            xpc_array_append_value(new_fd_map, entry);
-        }
-        else
-        {
-            // Hit it! so it was in it!
-            ret = 0;
-        }
-        return true;
-    });
-    
-    _fd_map = new_fd_map;
-    
-    return ret;
+    return 0;
 }
 
 - (int)dup2WithOldFileDescriptor:(int)oldFd withNewFileDescriptor:(int)newFd
 {
     if (!_fd_map) return -1;
 
-    __block int ret = -1;
-    xpc_object_t new_fd_map = xpc_array_create(NULL, 0);
-
-    // MARK: Main logic for replacements
-    xpc_array_apply(_fd_map, ^bool(size_t index, xpc_object_t entry) {
-        int wished_fd = (int)xpc_dictionary_get_int64(entry, "wished_fd");
-
-        if(wished_fd == newFd)
-        {
-            xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
-            xpc_dictionary_set_fd(dict, "actual_fd", oldFd);
-            xpc_dictionary_set_int64(dict, "wished_fd", newFd);
-            xpc_array_append_value(new_fd_map, dict);
-            ret = newFd;
-        }
-        else
-        {
-            xpc_array_append_value(new_fd_map, entry);
-        }
-        return true;
-    });
-
-    // MARK: Sub logic in case it was never in it, because they we have to add it
-    if(ret == -1)
+    /* find object in reference to oldFD */
+    FDObject *fdObject = [_fd_map objectForKey:@(oldFd)];
+    
+    if(fdObject == nil)
     {
-        xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
-        xpc_dictionary_set_fd(dict, "actual_fd", oldFd);
-        xpc_dictionary_set_int64(dict, "wished_fd", newFd);
-        xpc_array_append_value(new_fd_map, dict);
-        ret = newFd;
+        errno = EBADF;
+        return -1;
     }
-
-    _fd_map = new_fd_map;
-    return ret;
+    
+    /* remove from old location */
+    [_fd_map removeObjectForKey:@(oldFd)];
+    
+    /* re-add at new location */
+    [_fd_map setObject:fdObject forKey:@(newFd)];
+    
+    return 0;
 }
 
 #pragma mark - Transmission
@@ -219,23 +269,17 @@
 
 - (void)encodeWithCoder:(nonnull NSCoder *)coder
 {
-    if([coder respondsToSelector:@selector(encodeXPCObject:forKey:)])
-    {
-        [(id)coder encodeXPCObject:_fd_map forKey:@"fd_map"];
-    }
-    
+    [coder encodeObject:[_fd_map copy] forKey:@"fd_map"];
     return;
 }
 
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
 {
     self = [super init];
-    if([coder respondsToSelector:@selector(decodeXPCObjectOfType:forKey:)])
+    NSDictionary *dictionary = [coder decodeObjectOfClasses:[NSSet setWithObjects:[NSDictionary class], [NSNumber class], [FDObject class], nil] forKey:@"fd_map"];
+    if(dictionary != nil)
     {
-        struct _xpc_type_s *arrayType = (struct _xpc_type_s *)XPC_TYPE_ARRAY;
-        NSObject<OS_xpc_object> *obj = [(id)coder decodeXPCObjectOfType:arrayType
-                                                                 forKey:@"fd_map"];
-        if(obj) _fd_map = obj;
+        _fd_map = [dictionary mutableCopy];
     }
     return self;
 }

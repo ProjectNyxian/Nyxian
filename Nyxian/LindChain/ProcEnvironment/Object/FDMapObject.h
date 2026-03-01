@@ -33,6 +33,53 @@
 /* ----------------------------------------------------------------------
  *  Class Declarations
  * -------------------------------------------------------------------- */
+
+/*!
+ @class FDObject
+ @abstract A wrapper managing a singular file descriptor.
+ @discussion
+    FDObject provides an Objective-C interface for copying,
+    applying, and manipulating the file descriptor of a process.
+    It is designed to be passed across XPC boundaries and supports
+    NSSecureCoding for safe serialization.
+ */
+@interface FDObject : PEObject <NSSecureCoding,NSCopying>
+
+/*!
+ @property fd
+ @abstract The underlying XPC object representing the file descriptor.
+ @discussion
+    This property is typically managed internally by FDObject
+    and should not be modified directly by clients.
+ */
+@property (nonatomic,strong) NSObject<OS_xpc_object> *fd;
+
+/*!
+ @method objectForFileDescriptor:
+ @abstract Returns a instance that is referencing the current file descriptor passed.
+ @param fd
+    file descriptor at wish to be converted to a FDObject.
+ */
++ (instancetype)objectForFileDescriptor:(int)fd;
+
+/*!
+ @method setFileDescriptor:
+ @abstract Sets file descriptor to a other file descriptor in the object.
+ @param fd
+    file descriptor at wish as a replacement.
+ */
+- (void)setFileDescriptor:(int)fd;
+
+/*!
+ @method dup2:
+ @abstract Converts the object back to a file descriptor.
+ @param fd
+    file descriptor opened/replaced with.
+ */
+- (void)dup2:(int)fd;
+
+@end
+
 /*!
  @class FDMapObject
  @abstract A wrapper for managing a process's file descriptor map.
@@ -46,12 +93,12 @@
 
 /*!
  @property fd_map
- @abstract The underlying XPC object representing the file descriptor map.
+ @abstract The underlying NS object representing the file descriptor map.
  @discussion
     This property is typically managed internally by FDMapObject
     and should not be modified directly by clients.
  */
-@property (nonatomic) NSObject<OS_xpc_object> *fd_map;
+@property (nonatomic) NSMutableDictionary<NSNumber*,FDObject*> *fd_map;
 
 /*!
  @method currentMap
@@ -59,11 +106,11 @@
  */
 + (instancetype)currentMap;
 
+/*!
+ @method emptyMap
+ @abstract Returns a instance of a empty file descriptor table.
+ */
 + (instancetype)emptyMap;
-
-+ (instancetype)stdfdMap;
-
-- (void)insertOutFD:(int)stdoutFD ErrFD:(int)stderrFD InPipe:(int)stdinFD;
 
 /*!
  @method copy_fd_map
@@ -84,6 +131,24 @@
     with a specific descriptor layout.
  */
 - (void)apply_fd_map;
+
+/*!
+ @method appendFileDescriptor:withMappingToLoc:
+ @abstract Adds file descriptor to file descriptor map object.
+ @param fd
+    The integer representing the file descriptor to apend.
+ @param loc
+    The file descriptor it shall get applied to when calling [FDMapObject apply_fd_map].
+ */
+- (int)appendFileDescriptor:(int)fd withMappingToLoc:(int)loc;
+
+/*!
+ @method appendFileDescriptor:
+ @abstract Adds file descriptor to file descriptor map object.
+ @param fd
+    The integer representing the file descriptor to apend.
+ */
+- (int)appendFileDescriptor:(int)fd;
 
 /*!
  @method closeWithFileDescriptor:

@@ -53,6 +53,8 @@ void ResecureDecoder(void)
                               [FileObject class],
                               [MachPortObject class],
                               [NSXPCListenerEndpoint class],
+                              [FDObject class],
+                              [NSDictionary class],
                               nil];
         });
         

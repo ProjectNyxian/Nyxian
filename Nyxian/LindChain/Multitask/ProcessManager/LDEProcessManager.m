@@ -181,7 +181,9 @@
     if(outp != nil && inp != nil)
     {
         mapObject = [FDMapObject emptyMap];
-        [mapObject insertOutFD:outp.fileHandleForWriting.fileDescriptor ErrFD:outp.fileHandleForWriting.fileDescriptor InPipe:inp.fileHandleForReading.fileDescriptor];
+        [mapObject appendFileDescriptor:outp.fileHandleForReading.fileDescriptor withMappingToLoc:STDIN_FILENO];
+        [mapObject appendFileDescriptor:outp.fileHandleForWriting.fileDescriptor withMappingToLoc:STDOUT_FILENO];
+        [mapObject appendFileDescriptor:outp.fileHandleForWriting.fileDescriptor withMappingToLoc:STDERR_FILENO];
     }
     
     /* enforce cooldown */
