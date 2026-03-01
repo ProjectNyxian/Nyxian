@@ -46,7 +46,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             proc_exit((ksurface_proc_t*)(event->owner));
             return false;
         case kvObjEventDeinit:
-            ecode = (proc->kproc.kcproc.nyx.ret << 8) & 0xff00;
+            ecode = (proc->nyx.ret << 8) & 0xff00;
             goto out_byebye;
         case kvObjEventUnregister:
             mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
@@ -54,7 +54,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             return true;
         case kvObjEventCustom0:
             kvo_wrlock(((ksurface_proc_t*)event->owner));
-            ((ksurface_proc_t*)event->owner)->kproc.kcproc.nyx.p_stop_reported = 1;
+            ((ksurface_proc_t*)event->owner)->nyx.p_stop_reported = 1;
             kvo_unlock(((ksurface_proc_t*)event->owner));
             if((payload->options & WSTOPPED) == WSTOPPED)
             {
@@ -131,10 +131,10 @@ DEFINE_SYSCALL_HANDLER(wait4)
     /* check if one stopping is still in await to be received */
     if((options & WSTOPPED) == WSTOPPED)
     {
-        if(target->kproc.kcproc.bsd.kp_proc.p_stat == SSTOP &&
-           target->kproc.kcproc.nyx.p_stop_reported == 0)
+        if(target->bsd.kp_proc.p_stat == SSTOP &&
+           target->nyx.p_stop_reported == 0)
         {
-            target->kproc.kcproc.nyx.p_stop_reported = 1;
+            target->nyx.p_stop_reported = 1;
             
             int ecode = W_STOPCODE(SIGSTOP);
             mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
@@ -147,11 +147,11 @@ DEFINE_SYSCALL_HANDLER(wait4)
     }
     
     /* checking if zombified process is still in await */
-    if(target->kproc.kcproc.bsd.kp_proc.p_stat == SZOMB)
+    if(target->bsd.kp_proc.p_stat == SZOMB)
     {
-        target->kproc.kcproc.nyx.p_stop_reported = 1;
+        target->nyx.p_stop_reported = 1;
         
-        int ecode = (target->kproc.kcproc.nyx.ret << 8) & 0xff00;
+        int ecode = (target->nyx.ret << 8) & 0xff00;
         mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
         
         free(payload);

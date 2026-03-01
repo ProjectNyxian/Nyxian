@@ -59,7 +59,7 @@ DEFINE_SYSCALL_HANDLER(setgid)
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    sys_proc_->bsd.kp_proc.p_flag |= P_SUGID;
     kvo_unlock(sys_proc_);
     sys_return;
 }
@@ -99,7 +99,7 @@ DEFINE_SYSCALL_HANDLER(setegid)
     sys_return_failure(EPERM);
     
 out_update:
-    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    sys_proc_->bsd.kp_proc.p_flag |= P_SUGID;
     kvo_unlock(sys_proc_);
     sys_return;
 }
@@ -158,7 +158,7 @@ DEFINE_SYSCALL_HANDLER(setregid)
         }
     }
     
-    sys_proc_->kproc.kcproc.bsd.kp_proc.p_flag |= P_SUGID;
+    sys_proc_->bsd.kp_proc.p_flag |= P_SUGID;
     kvo_unlock(sys_proc_);
     sys_return;
 }

@@ -56,7 +56,7 @@ void *dothework(void *work)
         goto release_task;
     }
     
-    hep->proc->kproc.task = task;
+    hep->proc->task = task;
     
     task_unlock();
     kvo_release(hep->proc);
@@ -76,7 +76,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     task_rdlock();
     
     /* sanity check */
-    if(sys_proc_->kproc.task != MACH_PORT_NULL)
+    if(sys_proc_->task != MACH_PORT_NULL)
     {
         /* task port already set */
         task_unlock();

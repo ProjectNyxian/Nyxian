@@ -67,7 +67,7 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     }
     
     /* sanity check */
-    if(proc->kproc.task == MACH_PORT_NULL)
+    if(proc->task == MACH_PORT_NULL)
     {
         kvo_release(proc);
         return SURFACE_FAILED;
@@ -76,7 +76,7 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     /* view note in SYS_gettask */
     task_rdlock();
     
-    *task = proc->kproc.task;
+    *task = proc->task;
     
     kern_return_t kr = KERN_SUCCESS;
     

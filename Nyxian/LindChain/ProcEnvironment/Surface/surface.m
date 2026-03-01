@@ -182,7 +182,7 @@ static inline void ksurface_kinit_kproc(void)
     /* kernel shall only expose its task name */
     task_t task;
     kern_return_t kr = task_get_special_port(mach_task_self(), TASK_NAME_PORT, &task);
-    kproc->kproc.task = task;
+    kproc->task = task;
     
     /* setting up properties */
     proc_setpid(kproc, getpid());
@@ -191,10 +191,10 @@ static inline void ksurface_kinit_kproc(void)
     proc_setentitlements(kproc, PEEntitlementKernel);
     
     /* setting executable path */
-    strlcpy(kproc->kproc.kcproc.nyx.executable_path, buf, PATH_MAX);
+    strlcpy(kproc->nyx.executable_path, buf, PATH_MAX);
     const char *name = strrchr(buf, '/');
     name = name ? name + 1 : buf;
-    strlcpy(kproc->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN);
+    strlcpy(kproc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* storing kproc */
     ksurface->proc_info.kern_proc = kproc;

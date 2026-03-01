@@ -302,15 +302,15 @@
     if(signal == SIGSTOP)
     {
         kvo_wrlock(_proc);
-        _proc->kproc.kcproc.bsd.kp_proc.p_stat = SSTOP;
-        _proc->kproc.kcproc.nyx.p_stop_reported = 0;
+        _proc->bsd.kp_proc.p_stat = SSTOP;
+        _proc->nyx.p_stop_reported = 0;
         kvo_event_trigger(_proc, kvObjEventCustom0, 0);
         kvo_unlock(_proc);
     }
     else if(signal == SIGCONT)
     {
         kvo_wrlock(_proc);
-        _proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
+        _proc->bsd.kp_proc.p_stat = SRUN;
         kvo_event_trigger(_proc, kvObjEventCustom1, 0);
         kvo_unlock(_proc);
     }

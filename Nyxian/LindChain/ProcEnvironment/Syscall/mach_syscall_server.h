@@ -36,7 +36,7 @@ typedef struct ksurface_proc ksurface_proc_snapshot_t;
 
 /* safe snapshot */
 #define sys_proc_snapshot_ proc_snapshot
-#define sys_task_ sys_proc_snapshot_->kproc.task
+#define sys_task_ sys_proc_snapshot_->task
 
 /* reference for modification */
 #define sys_proc_ ((ksurface_proc_t*)(sys_proc_snapshot_->header.orig))

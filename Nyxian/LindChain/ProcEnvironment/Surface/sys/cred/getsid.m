@@ -51,7 +51,7 @@ DEFINE_SYSCALL_HANDLER(getsid)
     kvo_rdlock(proc);
     
     /* getting sid */
-    pid_t sid = proc->kproc.kcproc.nyx.sid;
+    pid_t sid = proc->nyx.sid;
     
     /* doneee x3 */
     kvo_unlock(proc);

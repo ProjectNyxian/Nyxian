@@ -30,6 +30,8 @@
 #define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) int64_t kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvobject_event_type_t type)
 #define GET_KVOBJECT_MAIN_EVENT_HANDLER(name) kvobject_event_handler_##name##_main
 
+#define kv_content_zero(kvo) bzero(((char*)kvo) + sizeof(kvobject_t), sizeof(*kvo) - sizeof(kvobject_t))
+
 /* enumeration of kernel virt object base types */
 enum kvObjBaseType {
     kvObjBaseTypeObject = 0,                        /* normal allocated object with referencing */

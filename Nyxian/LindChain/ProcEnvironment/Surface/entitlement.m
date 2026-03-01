@@ -105,8 +105,8 @@ ksurface_return_t entitlement_token_consume(ksurface_proc_t *consumer,
     
     /* token is valid now consume */
     kvo_wrlock(consumer);
-    consumer->kproc.kcproc.nyx.max_entitlements |= token->blob.entitlement;
-    consumer->kproc.kcproc.nyx.entitlements |= token->blob.entitlement;
+    consumer->nyx.max_entitlements |= token->blob.entitlement;
+    consumer->nyx.entitlements |= token->blob.entitlement;
     kvo_unlock(consumer);
     
     return SURFACE_SUCCESS;

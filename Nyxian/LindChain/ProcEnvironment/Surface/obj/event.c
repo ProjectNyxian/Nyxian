@@ -27,13 +27,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
                                           void *context,
                                           kvobject_event_t **event)
 {
-    assert(kvo != NULL && handler != NULL);
-    
-    /* sanity checking object type */
-    if(kvo->base_type != kvObjBaseTypeObject)
-    {
-        return SURFACE_SUCCESS;
-    }
+    assert(kvo != NULL && handler != NULL && kvo->base_type != kvObjBaseTypeObjectSnapshot);
     
     pthread_rwlock_wrlock(&(kvo->event_rwlock));
     

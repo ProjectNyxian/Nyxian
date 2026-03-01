@@ -39,7 +39,7 @@ bool kvobject_retain(kvobject_t *kvo)
             return false;
         }
         
-        /* retaining process */
+        /* retaining object */
         if(atomic_compare_exchange_weak(&kvo->refcount, &current, current + 1))
         {
             /* performing another check */
@@ -60,8 +60,6 @@ void kvobject_invalidate(kvobject_strong_t *kvo)
     assert(kvo != NULL);
     kvo_event_trigger(kvo, kvObjEventInvalidate, 0);
     atomic_store(&(kvo->state), kvObjStateInvalid);
-    
-    return;
 }
 
 
@@ -96,6 +94,4 @@ void kvobject_release(kvobject_strong_t *kvo)
          */
         environment_panic();
     }
-    
-    return;
 }

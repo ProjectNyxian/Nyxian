@@ -211,7 +211,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
         case kvObjEventInit:
         {
             /* zero object out! */
-            bzero(((char*)tty) + sizeof(kvobject_t), sizeof(ksurface_tty_t) - sizeof(kvobject_t));
+            kv_content_zero(tty);
             
             /* creating pipe */
             if(socketpair(AF_UNIX, SOCK_STREAM, 0, tty->masterfds) != 0)

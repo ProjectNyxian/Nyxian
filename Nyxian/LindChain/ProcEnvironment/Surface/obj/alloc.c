@@ -75,6 +75,8 @@ kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
 
 kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
 {
+    assert(kvo != NULL);
+    
     /* sanity check */
     if(!kvo_retain(kvo))
     {
@@ -82,6 +84,8 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     }
     
     kvo_rdlock(kvo);
+    
+    assert(kvo->base_type != kvObjBaseTypeObjectSnapshot);
     
     /* getting object size */
     size_t size = (size_t)kvo->main_handler(NULL, kvObjEventInit);
@@ -128,6 +132,8 @@ out_unlock:
 kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
                                        kvobject_snapshot_options_t option)
 {
+    assert(kvo != NULL);
+    
     /* sanity check */
     if(!kvo_retain(kvo))
     {
@@ -135,6 +141,8 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
     }
     
     kvo_rdlock(kvo);
+    
+    assert(kvo->base_type != kvObjBaseTypeObjectSnapshot);
     
     /* getting object size */
     size_t size = (size_t)kvo->main_handler(NULL, kvObjEventInit);

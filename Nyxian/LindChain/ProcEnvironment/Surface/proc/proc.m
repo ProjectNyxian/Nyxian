@@ -41,51 +41,64 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         case kvObjEventInit:
         {            
             /* nullify */
-            memset(&(proc->kproc), 0, sizeof(ksurface_kproc_t));
+            kv_content_zero(proc);
             
             /* setting fresh properties */
-            proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_ngroups = 1;
-            proc->kproc.kcproc.bsd.kp_proc.p_priority = PUSER;
-            proc->kproc.kcproc.bsd.kp_proc.p_usrpri = PUSER;
-            proc->kproc.kcproc.bsd.kp_eproc.e_tdev = -1;
-            proc->kproc.kcproc.bsd.kp_eproc.e_flag = 2;
-            proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
-            proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
-            proc->kproc.kcproc.nyx.ret = 0;
-            proc->kproc.kcproc.nyx.p_stop_reported = 0;
+            proc->bsd.kp_eproc.e_ucred.cr_ngroups = 1;
+            proc->bsd.kp_proc.p_priority = PUSER;
+            proc->bsd.kp_proc.p_usrpri = PUSER;
+            proc->bsd.kp_eproc.e_tdev = -1;
+            proc->bsd.kp_eproc.e_flag = 2;
+            proc->bsd.kp_proc.p_stat = SRUN;
+            proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+            proc->nyx.ret = 0;
+            proc->nyx.p_stop_reported = 0;
             
             goto mutual_init;
         }
         case kvObjEventCopy:
         {
-            /* copy the object into the other object */
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
-            memcpy(&(proc->kproc.kcproc), &(src->kproc.kcproc), sizeof(ksurface_kcproc_t));
             
-            proc->kproc.kcproc.bsd.kp_proc.p_stat = SRUN;
-            proc->kproc.kcproc.bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
-            proc->kproc.kcproc.nyx.p_stop_reported = 0;
+            /* copy the object into the other object */
+            kv_content_zero(proc);
+            memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
+            memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
+            
+            proc->bsd.kp_proc.p_stat = SRUN;
+            proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+            proc->nyx.p_stop_reported = 0;
             
         mutual_init:
-            if(gettimeofday(&proc->kproc.kcproc.bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
+            if(gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
             {
                 return -1;
             }
             
-            pthread_mutex_init(&(proc->kproc.children.mutex), NULL);
+            pthread_mutex_init(&(proc->children.mutex), NULL);
             
             return 0;
         }
         case kvObjEventSnapshot:
         {
-            /* copy the object into the other object */
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
-            memcpy(&(proc->kproc.kcproc), &(src->kproc.kcproc), sizeof(ksurface_kcproc_t));
             
-            if(src->kproc.task != MACH_PORT_NULL)
+            /* copy the object into the other object */
+            kv_content_zero(proc);
+            memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
+            memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
+            
+            if(src->task != MACH_PORT_NULL)
             {
-                kern_return_t kr = mach_port_mod_refs(mach_task_self(), src->kproc.task, MACH_PORT_RIGHT_SEND, 1);
-                proc->kproc.task = src->kproc.task;
+                kern_return_t kr = mach_port_mod_refs(mach_task_self(), src->task, MACH_PORT_RIGHT_SEND, 1);
+                
+                /* dont allow us to loose the send right to the task port */
+                if(kr != KERN_SUCCESS)
+                {
+                    return -1;
+                }
+                
+                proc->task = src->task;
             }
             
             /* done */
@@ -95,12 +108,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             if(proc->header.base_type != kvObjBaseTypeObjectSnapshot)
             {
                 klog_log(@"proc:deinit", @"deinitilizing process @ %p", proc);
-                pthread_mutex_destroy(&(proc->kproc.children.mutex));
+                pthread_mutex_destroy(&(proc->children.mutex));
             }
             
-            if(proc->kproc.task != MACH_PORT_NULL)
+            if(proc->task != MACH_PORT_NULL)
             {
-                mach_port_deallocate(mach_task_self(), proc->kproc.task);
+                mach_port_deallocate(mach_task_self(), proc->task);
             }
             
             /* fallthrough */

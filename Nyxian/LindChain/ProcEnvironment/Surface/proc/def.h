@@ -26,37 +26,37 @@
 #include <sys/sysctl.h>
 
 /// Helper macros
-#define proc_getpid(proc) proc->kproc.kcproc.bsd.kp_proc.p_pid
-#define proc_getppid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_ppid
-#define proc_getentitlements(proc) proc->kproc.kcproc.nyx.entitlements
-#define proc_getmaxentitlements(proc) proc->kproc.kcproc.nyx.max_entitlements
+#define proc_getpid(proc) proc->bsd.kp_proc.p_pid
+#define proc_getppid(proc) proc->bsd.kp_eproc.e_ppid
+#define proc_getentitlements(proc) proc->nyx.entitlements
+#define proc_getmaxentitlements(proc) proc->nyx.max_entitlements
 
-#define proc_setpid(proc, pid) proc->kproc.kcproc.bsd.kp_proc.p_pid = pid
-#define proc_setppid(proc, ppid) proc->kproc.kcproc.bsd.kp_proc.p_oppid = ppid; proc->kproc.kcproc.bsd.kp_eproc.e_ppid = ppid; proc->kproc.kcproc.bsd.kp_eproc.e_pgid = ppid
-#define proc_setentitlements(proc, entitlement) proc->kproc.kcproc.nyx.entitlements = entitlement
-#define proc_setmaxentitlements(proc, entitlement) proc->kproc.kcproc.nyx.max_entitlements = entitlement
+#define proc_setpid(proc, pid) proc->bsd.kp_proc.p_pid = pid
+#define proc_setppid(proc, ppid) proc->bsd.kp_proc.p_oppid = ppid; proc->bsd.kp_eproc.e_ppid = ppid; proc->bsd.kp_eproc.e_pgid = ppid
+#define proc_setentitlements(proc, entitlement) proc->nyx.entitlements = entitlement
+#define proc_setmaxentitlements(proc, entitlement) proc->nyx.max_entitlements = entitlement
 
 /// UID Helper macros
-#define proc_getruid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_ruid
-#define proc_geteuid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_uid
-#define proc_getsvuid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_svuid
+#define proc_getruid(proc) proc->bsd.kp_eproc.e_pcred.p_ruid
+#define proc_geteuid(proc) proc->bsd.kp_eproc.e_ucred.cr_uid
+#define proc_getsvuid(proc) proc->bsd.kp_eproc.e_pcred.p_svuid
 
-#define proc_setruid(proc, ruid) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_ruid = ruid
-#define proc_seteuid(proc, uid) proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_uid = uid
-#define proc_setsvuid(proc, svuid) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_svuid = svuid
+#define proc_setruid(proc, ruid) proc->bsd.kp_eproc.e_pcred.p_ruid = ruid
+#define proc_seteuid(proc, uid) proc->bsd.kp_eproc.e_ucred.cr_uid = uid
+#define proc_setsvuid(proc, svuid) proc->bsd.kp_eproc.e_pcred.p_svuid = svuid
 
 /// GID Helper macros
-#define proc_getrgid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_rgid
-#define proc_getegid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[0]
-#define proc_getsvgid(proc) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_svgid
+#define proc_getrgid(proc) proc->bsd.kp_eproc.e_pcred.p_rgid
+#define proc_getegid(proc) proc->bsd.kp_eproc.e_ucred.cr_groups[0]
+#define proc_getsvgid(proc) proc->bsd.kp_eproc.e_pcred.p_svgid
 
-#define proc_setrgid(proc, rgid) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_rgid = rgid
-#define proc_setegid(proc, gid) proc->kproc.kcproc.bsd.kp_eproc.e_ucred.cr_groups[0] = gid
-#define proc_setsvgid(proc, svgid) proc->kproc.kcproc.bsd.kp_eproc.e_pcred.p_svgid = svgid
+#define proc_setrgid(proc, rgid) proc->bsd.kp_eproc.e_pcred.p_rgid = rgid
+#define proc_setegid(proc, gid) proc->bsd.kp_eproc.e_ucred.cr_groups[0] = gid
+#define proc_setsvgid(proc, svgid) proc->bsd.kp_eproc.e_pcred.p_svgid = svgid
 
 /// SID Helper macros
-#define proc_getsid(proc) proc->kproc.kcproc.nyx.sid
-#define proc_setsid(proc, ssid) proc->kproc.kcproc.nyx.sid = ssid
+#define proc_getsid(proc) proc->nyx.sid
+#define proc_setsid(proc, ssid) proc->nyx.sid = ssid
 
 #define proc_setmobilecred(proc) proc_setruid(proc, 501); proc_seteuid(proc, 501); proc_setsvuid(proc, 501); proc_setrgid(proc, 501); proc_setegid(proc, 501); proc_setsvgid(proc, 501)
 
@@ -71,8 +71,6 @@ typedef struct ksurface_proc ksurface_proc_t;
 typedef struct ksurface_proc ksurface_proc_snapshot_t;
 typedef struct kchildren ksurface_kproc_children_t;
 typedef struct kinfo_proc kinfo_proc_t;
-typedef struct kcproc ksurface_kcproc_t;
-typedef struct kproc ksurface_kproc_t;
 typedef struct knyx_proc knyx_proc_t;
 
 /// Nyxian process structure
@@ -80,78 +78,67 @@ struct ksurface_proc {
     /* header of process */
     kvobject_t header;
     
+    
     /*
-     * the actual process structure, not meant
-     * to be copied tho.
+     * task port of a process, the biggest permitive
+     * a other process can have over a process, once
+     * given to a other process we cannot take it back
+     * we cannot control the mach kernel!
      */
-    struct kproc {
+    task_t task;
+    
+    /*
+     * process structure used to sign reference contracts
+     * with child processes.
+     */
+    struct kchildren {
         
         /*
-         * task port of a process, the biggest permitive
-         * a other process can have over a process, once
-         * given to a other process we cannot take it back
-         * we cannot control the mach kernel!
+         * special mutex to make sure nothing happens at the same
+         * time on kchildren.
          */
-        task_t task;
+        pthread_mutex_t mutex;
+        
+        /* the reference held by the child of the parent */
+        ksurface_proc_t *parent;
+        
+        /* children references the parent holds */
+        ksurface_proc_t *children[CHILD_PROC_MAX];
         
         /*
-         * process structure used to sign reference contracts
-         * with child processes.
+         * the index at which the child exist in its parents
+         * children array.
          */
-        struct kchildren {
-            
-            /*
-             * special mutex to make sure nothing happens at the same
-             * time on kchildren.
-             */
-            pthread_mutex_t mutex;
-            
-            /* the reference held by the child of the parent */
-            ksurface_proc_t *parent;
-            
-            /* children references the parent holds */
-            ksurface_proc_t *children[CHILD_PROC_MAX];
-            
-            /*
-             * the index at which the child exist in its parents
-             * children array.
-             */
-            uint64_t parent_cld_idx;
-            
-            /* count of children in the children array */
-            uint64_t children_cnt;
-        } children;
+        uint64_t parent_cld_idx;
         
-        /*
-         * copyable process structure, includes all process properties
-         * which can change rapidly.
-         */
-        struct kcproc {
-            /* bsd structure of our process structure */
-            kinfo_proc_t bsd;
-            
-            /* nyxian specific process structure */
-            struct knyx_proc {
-                /* return value */
-                uint8_t ret;
-                
-                /* session identifier */
-                pid_t sid;
-                
-                /* wait4 markers */
-                int p_stop_reported;
-                
-                /* executable path at which the macho is located at */
-                char executable_path[PATH_MAX];
-                
-                /* entitlements the process has */
-                PEEntitlement entitlements;
-                
-                /* entitlements the process spawned with*/
-                PEEntitlement max_entitlements;
-            } nyx;
-        } kcproc;
-    } kproc;
+        /* count of children in the children array */
+        uint64_t children_cnt;
+    } children;
+    
+    
+    /* bsd structure of our process structure */
+    kinfo_proc_t bsd;
+    
+    /* nyxian specific process structure */
+    struct knyx_proc {
+        /* return value */
+        uint8_t ret;
+        
+        /* session identifier */
+        pid_t sid;
+        
+        /* wait4 markers */
+        int p_stop_reported;
+        
+        /* executable path at which the macho is located at */
+        char executable_path[PATH_MAX];
+        
+        /* entitlements the process has */
+        PEEntitlement entitlements;
+        
+        /* entitlements the process spawned with*/
+        PEEntitlement max_entitlements;
+    } nyx;
 };
 
 #endif /* PROC_DEF_H */

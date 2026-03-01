@@ -17,12 +17,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
+#ifndef UCRED_UCRED_H
+#define UCRED_UCRED_H
 
-DEFINE_SYSCALL_HANDLER(exit)
-{
-    kvo_rdlock(sys_proc_);
-    sys_proc_->nyx.ret = (uint8_t)(int)args[0];
-    kvo_unlock(sys_proc_);
-    sys_return;
-}
+#import <LindChain/ProcEnvironment/Surface/ucred/defs.h>
+
+DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(ucred);
+
+ksurface_ucred_t *ucred_for_path(const char *path);
+
+#endif /* UCRED_UCRED_H */

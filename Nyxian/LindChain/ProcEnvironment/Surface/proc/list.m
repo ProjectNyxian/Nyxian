@@ -90,7 +90,7 @@ bool is_flavour_matching(ksurface_proc_t *target,
 void copy_proc_to_user(ksurface_proc_t *proc,
                        kinfo_proc_t *kp)
 {
-    memcpy(kp, &(proc->kproc.kcproc.bsd), sizeof(kinfo_proc_t));
+    memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
 }
 
 void proc_list_radix_walker_callback(uint64_t ident,

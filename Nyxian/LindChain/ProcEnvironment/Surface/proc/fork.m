@@ -116,12 +116,12 @@ force_not_inherite_entitlements:
     proc_setmaxentitlements(child, combined_entitlement);
     
     /* copying the path */
-    strlcpy(child->kproc.kcproc.nyx.executable_path, path, PATH_MAX);
+    strlcpy(child->nyx.executable_path, path, PATH_MAX);
         
     /* FIXME: argv[0] shall be used for p_comm and not the last path component */
     const char *name = strrchr(path, '/');
     name = name ? name + 1 : path;
-    strlcpy(child->kproc.kcproc.bsd.kp_proc.p_comm, name, MAXCOMLEN + 1);
+    strlcpy(child->bsd.kp_proc.p_comm, name, MAXCOMLEN + 1);
     
     /* insert will retain the child process */
     if(proc_insert(child) != SURFACE_SUCCESS)
@@ -151,16 +151,16 @@ out_parent_contract_retain_failed:
     }
     
     /* locking children structure */
-    pthread_mutex_lock(&(parent->kproc.children.mutex));
+    pthread_mutex_lock(&(parent->children.mutex));
     
     /*
      * checking if it would exceed maximum amount
      * of child processes per process.
      */
-    if(parent->kproc.children.children_cnt >= CHILD_PROC_MAX || !kvo_retain(child))
+    if(parent->children.children_cnt >= CHILD_PROC_MAX || !kvo_retain(child))
     {
         /* unlocking parent mutex again */
-        pthread_mutex_unlock(&(parent->kproc.children.mutex));
+        pthread_mutex_unlock(&(parent->children.mutex));
         
         /* releasing all references */
         kvo_release(parent);
@@ -170,19 +170,19 @@ out_parent_contract_retain_failed:
     }
     
     /* locking children structure numero two */
-    pthread_mutex_lock(&(child->kproc.children.mutex));
+    pthread_mutex_lock(&(child->children.mutex));
     
     /* performing contract */
-    child->kproc.children.parent = parent;
-    child->kproc.children.parent_cld_idx = parent->kproc.children.children_cnt++;
-    parent->kproc.children.children[child->kproc.children.parent_cld_idx] = child;
+    child->children.parent = parent;
+    child->children.parent_cld_idx = parent->children.children_cnt++;
+    parent->children.children[child->children.parent_cld_idx] = child;
     
     /*
      * okay both parties signed the contract so now
      * releasing both locks we currently hold.
      */
-    pthread_mutex_unlock(&(child->kproc.children.mutex));
-    pthread_mutex_unlock(&(parent->kproc.children.mutex));
+    pthread_mutex_unlock(&(child->children.mutex));
+    pthread_mutex_unlock(&(parent->children.mutex));
     
     /* child stays retained for the caller */
     return child;
@@ -210,14 +210,14 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
     }
     
     /* lock mutex */
-    pthread_mutex_lock(&(proc->kproc.children.mutex));
+    pthread_mutex_lock(&(proc->children.mutex));
     
     /* killing all children of the exiting process */
-    while(proc->kproc.children.children_cnt > 0)
+    while(proc->children.children_cnt > 0)
     {
         /* get index of last child */
-        uint64_t idx = proc->kproc.children.children_cnt - 1;
-        ksurface_proc_t *child = proc->kproc.children.children[idx];
+        uint64_t idx = proc->children.children_cnt - 1;
+        ksurface_proc_t *child = proc->children.children[idx];
         
         /* retaining child */
         if(!kvo_retain(child))
@@ -227,7 +227,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         }
         
         /* unlocking our mutex */
-        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        pthread_mutex_unlock(&(proc->children.mutex));
         
         /* calling exit on the child */
         proc_exit(child);
@@ -236,14 +236,14 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         kvo_release(child);
         
         /* relocking */
-        pthread_mutex_lock(&(proc->kproc.children.mutex));
+        pthread_mutex_lock(&(proc->children.mutex));
     }
     
     /* unlock */
-    pthread_mutex_unlock(&(proc->kproc.children.mutex));
+    pthread_mutex_unlock(&(proc->children.mutex));
     
     /* remove from parent */
-    ksurface_proc_t *parent = proc->kproc.children.parent;
+    ksurface_proc_t *parent = proc->children.parent;
     
     /* null pointer checking parent */
     if(parent != NULL)
@@ -257,33 +257,33 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         }
         
         /* lock order: parent → child */
-        pthread_mutex_lock(&(parent->kproc.children.mutex));
-        pthread_mutex_lock(&(proc->kproc.children.mutex));
+        pthread_mutex_lock(&(parent->children.mutex));
+        pthread_mutex_lock(&(proc->children.mutex));
         
-        uint64_t my_idx = proc->kproc.children.parent_cld_idx;
-        uint64_t last_idx = parent->kproc.children.children_cnt - 1;
+        uint64_t my_idx = proc->children.parent_cld_idx;
+        uint64_t last_idx = parent->children.children_cnt - 1;
         
         /* swap with last if needed */
         if(my_idx != last_idx)
         {
-            ksurface_proc_t *last_proc = parent->kproc.children.children[last_idx];
+            ksurface_proc_t *last_proc = parent->children.children[last_idx];
             
-            pthread_mutex_lock(&(last_proc->kproc.children.mutex));
-            parent->kproc.children.children[my_idx] = last_proc;
-            last_proc->kproc.children.parent_cld_idx = my_idx;
-            pthread_mutex_unlock(&(last_proc->kproc.children.mutex));
+            pthread_mutex_lock(&(last_proc->children.mutex));
+            parent->children.children[my_idx] = last_proc;
+            last_proc->children.parent_cld_idx = my_idx;
+            pthread_mutex_unlock(&(last_proc->children.mutex));
         }
         
         /* clear slot and decrement */
-        parent->kproc.children.children[last_idx] = NULL;
-        parent->kproc.children.children_cnt--;
+        parent->children.children[last_idx] = NULL;
+        parent->children.children_cnt--;
         
         /* clear our parent reference */
-        proc->kproc.children.parent = NULL;
-        proc->kproc.children.parent_cld_idx = 0;
+        proc->children.parent = NULL;
+        proc->children.parent_cld_idx = 0;
         
-        pthread_mutex_unlock(&(proc->kproc.children.mutex));
-        pthread_mutex_unlock(&(parent->kproc.children.mutex));
+        pthread_mutex_unlock(&(proc->children.mutex));
+        pthread_mutex_unlock(&(parent->children.mutex));
         
         /* release relationship references */
         kvo_release(proc);
@@ -332,14 +332,14 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
         return SURFACE_FAILED;
     }
     
-    pthread_mutex_lock(&(proc->kproc.children.mutex));
+    pthread_mutex_lock(&(proc->children.mutex));
     
     /* killing all children of the exiting process */
-    while(proc->kproc.children.children_cnt > 0)
+    while(proc->children.children_cnt > 0)
     {
         /* get index of last child */
-        uint64_t idx = proc->kproc.children.children_cnt - 1;
-        ksurface_proc_t *child = proc->kproc.children.children[idx];
+        uint64_t idx = proc->children.children_cnt - 1;
+        ksurface_proc_t *child = proc->children.children[idx];
         
         /* retaining child */
         if(!kvo_retain(child))
@@ -353,26 +353,26 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
          * on the recurse. as its needed to zombify all processes
          * underneath.
          */
-        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        pthread_mutex_unlock(&(proc->children.mutex));
         proc_exit(child);
         kvo_release(child);
-        pthread_mutex_lock(&(proc->kproc.children.mutex));
+        pthread_mutex_lock(&(proc->children.mutex));
     }
     
     /* when parent is the kernel dont zombify, kill immediately */
-    if(proc->kproc.children.parent == kernel_proc_)
+    if(proc->children.parent == kernel_proc_)
     {
-        pthread_mutex_unlock(&(proc->kproc.children.mutex));
+        pthread_mutex_unlock(&(proc->children.mutex));
         kvo_release(proc);
         proc_exit(proc);
         return SURFACE_SUCCESS;
     }
     
-    pthread_mutex_unlock(&(proc->kproc.children.mutex));
+    pthread_mutex_unlock(&(proc->children.mutex));
     
     /* mark as zombified */
     kvo_wrlock(proc);
-    proc->kproc.kcproc.bsd.kp_proc.p_stat = SZOMB;
+    proc->bsd.kp_proc.p_stat = SZOMB;
     kvo_event_trigger(proc, kvObjEventCustom2, 0);
     kvo_unlock(proc);
     kvo_release(proc);
