@@ -30,7 +30,7 @@
 @property (nonatomic,strong) NSLayoutConstraint *heigthConstraint;
 @property (nonatomic,strong) NSLayoutConstraint *widthConstraint;
 
-@property (nonatomic,strong) LDEProcess *process;
+@property (nonatomic,weak) LDEProcess *process;
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath;
 

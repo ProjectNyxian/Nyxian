@@ -37,6 +37,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
         case TIOCSETA:
         case TIOCSPGRP:
         case TIOCGPGRP:
+        case TIOCGWINSZ:
             break;
         default:
             sys_return_failure(ENOSYS);
@@ -115,7 +116,13 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             break;
         case TIOCGPGRP:
             kvo_rdlock(tty);
-            if(!mach_syscall_copy_in(sys_task_, sizeof(pid_t), &user_pgrp, user_ptr))
+            if(!mach_syscall_copy_out(sys_task_, sizeof(pid_t), &(tty->pgrp), user_ptr))
+            {
+                goto out_fault;
+            }
+        case TIOCGWINSZ:
+            kvo_rdlock(tty);
+            if(!mach_syscall_copy_out(sys_task_, sizeof(struct winsize), &(tty->ws), user_ptr))
             {
                 goto out_fault;
             }

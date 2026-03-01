@@ -19,25 +19,6 @@
 
 import UIKit
 
-extension UIColor {
-    /// Returns the brightness value (0 = dark, 1 = bright)
-    var brightness: CGFloat {
-        var brightness: CGFloat = 0
-        getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
-        return brightness
-    }
-    
-    /// Returns the darker of two colors
-    func darker(than other: UIColor) -> UIColor {
-        return self.brightness < other.brightness ? self : other
-    }
-
-    /// Returns the lighter of two colors
-    func lighter(than other: UIColor) -> UIColor {
-        return self.brightness > other.brightness ? self : other
-    }
-}
-
 var currentTheme: LDETheme?
 var currentNavigationBarAppearance = UINavigationBarAppearance()
 var currentTabBarAppearance = UITabBarAppearance()

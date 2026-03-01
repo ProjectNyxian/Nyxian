@@ -22,9 +22,9 @@
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <Nyxian-Swift.h>
 
-@interface LDEWindowSessionTerminal ()
+@interface LDEWindowSessionTerminal () <TerminalViewDelegateObjC>
 
-@property (nonatomic,strong) NyxianTerminal *terminal;
+@property (nonatomic,strong) TerminalViewObjC *terminal;
 @property (nonatomic) bool focused;
 @property (nonatomic) bool atExit;
 @property (nonatomic) wid_t identifier;
@@ -60,6 +60,11 @@
      */
     ksurface_tty_t *tty = kvo_alloc_fastpath(tty);
     
+    if(tty == NULL)
+    {
+        return NO;
+    }
+    
     /* setting tty properties */
     kvo_wrlock(tty);
     tty->t.c_iflag = ICRNL | ISTRIP | INPCK /*| IXON | BRKINT*/;
@@ -82,15 +87,48 @@
     _tty = tty;
     
     FDMapObject *mapObject = [FDMapObject emptyMap];
+    
+    if(mapObject == nil)
+    {
+        kvo_release(tty);
+        return NO;
+    }
+    
     [mapObject insertOutFD:tty->slavefd ErrFD:tty->slavefd InPipe:tty->slavefd];
+    
+    
     LDEProcess *process = nil;
     [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
+    
+    if(process == nil)
+    {
+        kvo_release(tty);
+        return NO;
+    }
+    
     _process = process;
     
     /* attaching tty to process lifecycle */
-    tty_attach_proc(_process.proc, tty);
+    ksurface_return_t ksr = tty_attach_proc(_process.proc, tty);
     
-    _terminal = [[NyxianTerminal alloc] initWithFrame:self.windowRect title:process.executablePath.lastPathComponent stdoutFD:tty->masterfd stdinFD:tty->masterfd];
+    if(ksr != SURFACE_SUCCESS)
+    {
+        [process terminate];
+        kvo_release(tty);
+        return NO;
+    }
+    
+    /* finally starting terminal */
+    _terminal = [[TerminalViewObjC alloc] initWithFrame:self.windowRect masterFD:tty->masterfd];
+    
+    if(_terminal == nil)
+    {
+        [process terminate];
+        kvo_release(tty);
+        return NO;
+    }
+    
+    _terminal.objcDelegate = self;
     _terminal.translatesAutoresizingMaskIntoConstraints = NO;
     
     __weak typeof(self) weakSelf = self;
@@ -108,12 +146,6 @@
             write(strongSelf->_tty->slavefd, "\n[process exited]\n", 18);
             
             strongSelf.atExit = YES;
-            strongSelf.terminal.inputCallBack = ^{
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    __strong typeof(self) strongSelf = weakSelf;
-                    [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
-                });
-            };
         }
         else
         {
@@ -144,8 +176,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
-    self.terminal.stdinHandle = nil;
-    self.terminal.stdoutHandle = nil;
+    self.terminal.ttyHandle = nil;
     [_process terminate];
     
     return YES;
@@ -194,9 +225,39 @@
     return windowName ?: [self.utilityPath lastPathComponent];
 }
 
+- (void)sendWithSource:(TerminalView * _Nonnull)source data:(NSData * _Nonnull)data
+{
+    if(self.atExit)
+    {
+        [[LDEWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
+    }
+    
+    write(self.terminal.ttyHandle.fileDescriptor, data.bytes, data.length);
+}
+
+- (void)setTerminalTitleWithSource:(TerminalView * _Nonnull)source title:(NSString * _Nonnull)title
+{
+    self.windowName = title;
+}
+
+- (void)sizeChangedWithSource:(TerminalView * _Nonnull)source newCols:(NSInteger)newCols newRows:(NSInteger)newRows
+{
+    /* updating window size */
+    kvo_wrlock(_tty);
+    _tty->ws.ws_col = newCols;
+    _tty->ws.ws_row = newRows;
+    kvo_unlock(_tty);
+    
+    /* notifying child process */
+    [self.process sendSignal:SIGWINCH];
+}
+
 - (void)dealloc
 {
-    kvo_release(_tty);
+    if(_tty != NULL)
+    {
+        kvo_release(_tty);
+    }
     
     NSLog(@"deallocated %@", self);
 }
