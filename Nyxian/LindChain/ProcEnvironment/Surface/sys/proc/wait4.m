@@ -27,7 +27,7 @@ typedef struct wait4_payload {
     userspace_pointer_t rusage_ptr;
     int options;
     task_t task;
-    mach_msg_header_t header;
+    recv_buffer_t *buffer;
 } wait4_payload_t;
 
 bool wait4_proc_event_handler(kvobject_event_type_t type,
@@ -79,7 +79,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
 out_byebye:
     mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
     kvo_unlock(proc);
-    send_reply(&(payload->header), 0, NULL, 0, 0);
+    send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
     return true;
 }
 
@@ -126,7 +126,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->status_ptr = (userspace_pointer_t)args[1];
     payload->rusage_ptr = (userspace_pointer_t)args[3];
     payload->options = options;
-    payload->header = *request;
+    payload->buffer = recv_buffer;
     
     /* check if one stopping is still in await to be received */
     if((options & WSTOPPED) == WSTOPPED)

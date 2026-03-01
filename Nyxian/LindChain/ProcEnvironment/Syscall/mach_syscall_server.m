@@ -36,12 +36,6 @@ struct syscall_server {
     syscall_handler_t handlers[MAX_SYSCALLS];
 };
 
-typedef struct {
-    mach_msg_header_t header;
-    uint8_t body[sizeof(syscall_request_t)];
-    mach_msg_max_trailer_t trailer;
-} recv_buffer_t;
-
 /*
  * To ensure safety in nyxian we rely on the XNU kernel, as asking processes for their pid is extremely stupid
  * So we ensure nothing can be tempered
@@ -101,7 +95,8 @@ void send_reply(mach_msg_header_t *request,
                 int64_t result,
                 mach_port_t *out_ports,
                 uint32_t out_ports_cnt,
-                errno_t err)
+                errno_t err,
+                bool release_req)
 {
     /* allocating a reply */
     syscall_reply_t reply;
@@ -133,10 +128,20 @@ void send_reply(mach_msg_header_t *request,
     }
     
     /* sending reply to child */
-    mach_msg(&reply.header, MACH_SEND_MSG, sizeof(reply), 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    mach_msg_return_t mr = mach_msg(&reply.header, MACH_SEND_MSG, sizeof(reply), 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    
+    if(mr != MACH_MSG_SUCCESS)
+    {
+        mach_msg_destroy(&(reply.header));
+    }
     
     /* releasing mach message resources */
     mach_msg_destroy(request);
+    
+    if(release_req)
+    {
+        vm_deallocate(mach_task_self(), (vm_address_t)request, sizeof(recv_buffer_t));
+    }
 }
 
 /*
@@ -151,7 +156,7 @@ static void* syscall_worker_thread(void *ctx)
     syscall_server_t *server = (syscall_server_t *)ctx;
     
     /* receive buffer to receive request from guest */
-    recv_buffer_t buffer;
+    recv_buffer_t *buffer = NULL;
     
     /*
      * setting options, this is what XPC cannot really give us
@@ -163,36 +168,40 @@ static void* syscall_worker_thread(void *ctx)
     /* worker thread request loop */
     while(server->running)
     {
-        /* clear errno */
-        errno_t err = 0;
-        int64_t result = 0;
-        mach_port_t *out_ports = NULL;
-        uint32_t out_ports_cnt = 0;
-        task_t task = MACH_PORT_NULL;
-        bool reply = true;
+        /* allocating new buffer if applicable */
+        if(buffer == NULL)
+        {
+            kern_return_t kr = vm_allocate(mach_task_self(), (vm_address_t*)&buffer, sizeof(recv_buffer_t), VM_FLAGS_ANYWHERE);
+            
+            if(kr != KERN_SUCCESS)
+            {
+                /* ohh no, spin spin :c */
+                continue;
+            }
+        }
         
-        /* nullifying the buffer */
-        memset(&buffer, 0, sizeof(buffer));
+        /* variables prepared for the caller  */
+        errno_t err = 0;                    /* errno */
+        int64_t result = 0;                 /* the return value of the syscall */
+        mach_port_t *out_ports = NULL;      /* the outports the syscall exports to the caller */
+        uint32_t out_ports_cnt = 0;         /* the amount of outports the syscall exports to the caller */
+        task_t task = MACH_PORT_NULL;       /* the mach task of the caller */
+        bool reply = true;                  /* weither the syscall wants the syscall worker thread to immediately return to the caller */
         
-        /* waiting for the kernel to give us the childs request */
-        kern_return_t kr = mach_msg(&buffer.header, options, 0, sizeof(buffer), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+        /* waiting for the syscall client to invoke its syscall */
+        mach_msg_return_t mr = mach_msg(&(buffer->header), options, 0, sizeof(recv_buffer_t), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         
         /* evaluating if the request received from the kernel was geniune */
-        if(kr != KERN_SUCCESS)
+        if(mr != MACH_MSG_SUCCESS)
         {
-            if(!server->running)
-            {
-                /* in case the server is marked as not running we exit */
-                break;
-            }
             continue;
         }
         
-        /* parsing request */
-        syscall_request_t *req = (syscall_request_t *)&buffer.header;
+        /* getting request from receive buffer */
+        syscall_request_t *req = (syscall_request_t *)&(buffer->header);
         
         /* getting the callers identity from the payload */
-        ksurface_proc_snapshot_t *proc_snapshot = get_caller_proc_snapshot(&buffer.header);
+        ksurface_proc_snapshot_t *proc_snapshot = get_caller_proc_snapshot(&(buffer->header));
         
         /* null pointer check */
         if(proc_snapshot == NULL)
@@ -225,21 +234,13 @@ static void* syscall_worker_thread(void *ctx)
         /* checking if the handler was set by the kernel virtualisation layer */
         if(!handler)
         {
-            klog_log(@"syscall", @"syscall from pid %d failed (EXCEPTION: %d is not a valid syscall)", proc_getpid(proc_snapshot), req->syscall_num);
             err = ENOSYS;
             result = -1;
             goto cleanup;
         }
         
         /* calling syscall handler */
-        result = handler(proc_snapshot,
-                         &buffer.header,
-                         req->args,
-                         req->oolp,
-                         &out_ports,
-                         &out_ports_cnt,
-                         &err,
-                         &reply);
+        result = handler(proc_snapshot, buffer, req->args, req->oolp, &out_ports, &out_ports_cnt, &err, &reply);
         
     cleanup:
         /* destroying snapshot of process */
@@ -257,7 +258,12 @@ static void* syscall_worker_thread(void *ctx)
         if(reply)
         {
             /* reply !!!AFTER!!! deallocation */
-            send_reply(&buffer.header, result, out_ports, out_ports_cnt, err);
+            send_reply(&(req->header), result, out_ports, out_ports_cnt, err, false);
+        }
+        else
+        {
+            /* syscall aquired buffer */
+            buffer = NULL;
         }
     }
     

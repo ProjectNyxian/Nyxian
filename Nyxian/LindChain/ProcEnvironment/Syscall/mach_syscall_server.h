@@ -67,7 +67,14 @@ typedef struct {
     mach_msg_ool_ports_descriptor_t oolp;       /* mach message descriptor for arbitary amount of mach ports provided by the guest process */
     uint32_t                    syscall_num;    /* syscall the guest process wants to call */
     int64_t                     args[6];        /* syscall arguments for general purpose MARK: not for buffers! */
+    mach_msg_max_trailer_t      trailer;        /* trailer in includes clients identity */
 } syscall_request_t;
+
+typedef struct {
+    mach_msg_header_t header;
+    uint8_t body[sizeof(syscall_request_t)];
+    mach_msg_max_trailer_t trailer;
+} recv_buffer_t;
 
 /* reply message coming from the kernel virtualization layer */
 typedef struct {
@@ -88,7 +95,7 @@ typedef int64_t (*syscall_handler_t)(
     ksurface_proc_snapshot_t        *proc_snapshot,
                                      
     /* request header */
-    mach_msg_header_t               *request,
+    recv_buffer_t                   *recv_buffer,
 
     /*
      * normal syscall arguments
@@ -112,7 +119,7 @@ typedef int64_t (*syscall_handler_t)(
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
     ksurface_proc_snapshot_t        *proc_snapshot, \
-    mach_msg_header_t               *request, \
+    recv_buffer_t                   *recv_buffer, \
     int64_t                         *args, \
     mach_msg_ool_ports_descriptor_t in_ports, \
     mach_port_t                     **out_ports, \
@@ -132,6 +139,6 @@ void syscall_server_stop(syscall_server_t *server);
 mach_port_t syscall_server_get_port(syscall_server_t *server);
 void syscall_server_register(syscall_server_t *server, uint32_t syscall_num, syscall_handler_t handler);
 
-void send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, errno_t err);
+void send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, errno_t err, bool release_req);
 
 #endif /* MACH_SYSCALL_SERVER_H */
