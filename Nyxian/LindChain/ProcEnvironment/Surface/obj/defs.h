@@ -116,7 +116,7 @@ struct kvobject {
      */
     _Atomic kvobject_state_t state;
     
-    /* state handlers for each object */
+    /* state handler for each object */
     kvobject_main_event_handler_t main_handler;
     
     /* events */
@@ -128,9 +128,6 @@ struct kvobject {
      * mainly used when modifying kcproc.
      */
     pthread_rwlock_t rwlock;
-    
-    /* size for duplication */
-    size_t size;
     
     /* reference back to original (for snapshot) */
     kvobject_strong_t *orig;

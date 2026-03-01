@@ -51,7 +51,6 @@ kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
     }
     
     /* setting up kvobject for usage */
-    kvo->size = size;                           /* noting size down */
     kvo->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
     kvo->base_type = kvObjBaseTypeObject;
     kvo->state = kvObjStateNormal;
@@ -84,8 +83,11 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     
     kvo_rdlock(kvo);
     
+    /* getting object size */
+    size_t size = (size_t)kvo->main_handler(NULL, kvObjEventInit);
+    
     /* creating new object */
-    kvobject_t *kvo_dup = calloc(1, kvo->size);
+    kvobject_t *kvo_dup = calloc(1, size);
     
     /* checking if allocation was successful */
     if(kvo_dup == NULL)
@@ -94,7 +96,6 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     }
     
     /* setup object initially */
-    kvo_dup->size = kvo->size;
     kvo_dup->refcount = 1;                                  /* starting as retained for the caller, cuz the caller gets one reference */
     kvo_dup->base_type = kvObjBaseTypeObject;
     kvo_dup->state = kvObjStateNormal;
@@ -135,8 +136,11 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
     
     kvo_rdlock(kvo);
     
+    /* getting object size */
+    size_t size = (size_t)kvo->main_handler(NULL, kvObjEventInit);
+    
     /* creating new snapshot object */
-    kvobject_t *kvo_snap = calloc(1, kvo->size);
+    kvobject_t *kvo_snap = calloc(1, size);
     
     /* checking if allocation was successful */
     if(kvo_snap == NULL)
@@ -145,7 +149,6 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
     }
     
     /* setup object initially */
-    kvo_snap->size = kvo->size;
     kvo_snap->refcount = 1;                                 /* starting as retained for the caller, cuz the caller gets one reference */
     kvo_snap->base_type = kvObjBaseTypeObjectSnapshot;
     kvo_snap->state = kvObjStateNormal;
