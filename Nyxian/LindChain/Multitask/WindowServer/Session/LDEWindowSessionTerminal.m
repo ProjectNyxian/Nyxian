@@ -62,7 +62,7 @@
     
     /* setting tty properties */
     kvo_wrlock(tty);
-    tty->t.c_iflag = ICRNL /*| IXON | BRKINT | INPCK | ISTRIP*/;
+    tty->t.c_iflag = ICRNL | ISTRIP | INPCK /*| IXON | BRKINT*/;
     tty->t.c_oflag = OPOST | ONLCR;
     /*tty->t.c_cflag = CS8 | CREAD | CLOCAL;
     tty->t.c_lflag = ICANON | ECHO | ECHOE | ECHOK | ISIG | IEXTEN;

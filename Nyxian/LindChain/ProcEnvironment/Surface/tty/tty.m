@@ -35,40 +35,37 @@ static int pump_master_to_slave(ksurface_tty_t *tty,
         return -1;
     }
     
-    /* handling return to newline translation */
-    if(tty->t.c_iflag & ICRNL)
+    ssize_t new_n = 0;
+    for(ssize_t i = 0; i < n; i++)
     {
-        for(ssize_t i = 0; i < n; i++)
+        /* removing high bit on ISTRIP */
+        if(tty->t.c_iflag & ISTRIP)
         {
-            if(tty->buf[i] == '\r')
-            {
-                tty->buf[i] = '\n';
-            }
+            tty->buf[i] = tty->buf[i] & 0b01111111;
         }
-    }
-    
-    /* the inverse of the previous translation */
-    else if(tty->t.c_iflag & INLCR)
-    {
-        for(ssize_t i = 0; i < n; i++)
+        
+        /* if ignore then dont do anything */
+        if((tty->t.c_iflag & IGNCR) &&
+           tty->buf[i] == '\r')
         {
-            if(tty->buf[i] == '\n')
-                tty->buf[i] = '\r';
+            continue;
         }
-    }
-    
-    /* remove em all flag lol */
-    if(tty->t.c_iflag & IGNCR)
-    {
-        ssize_t new_n = 0;
-        for(ssize_t i = 0; i < n; i++)
+        
+        /* handling return to newline translation */
+        if(tty->t.c_iflag & ICRNL &&
+           tty->buf[i] == '\r')
         {
-            if(tty->buf[i] != '\r')
-            {
-                tty->buf[new_n++] = tty->buf[i];
-            }
+            tty->buf[i] = '\n';
         }
-        n = new_n;
+        
+        /* the inverse of the previous translation */
+        else if(tty->t.c_iflag & INLCR &&
+                tty->buf[i] == '\n')
+        {
+            tty->buf[i] = '\r';
+        }
+        
+        tty->buf[new_n++] = tty->buf[i];
     }
     
     ssize_t off = 0;
