@@ -18,9 +18,11 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <sys/socket.h>
 #import <sys/poll.h>
 #include <stdio.h>
@@ -42,6 +44,53 @@ static int pump_master_to_slave(ksurface_tty_t *tty,
         if(tty->t.c_iflag & ISTRIP)
         {
             tty->buf[i] = tty->buf[i] & 0b01111111;
+        }
+        
+        if(tty->t.c_lflag & ISIG)
+        {
+            int signal = -1;
+
+            if (tty->buf[i] == tty->t.c_cc[VINTR])
+            {
+                signal = SIGINT;
+            }
+            else if(tty->buf[i] == tty->t.c_cc[VQUIT])
+            {
+                signal = SIGQUIT;
+            }
+            else if (tty->buf[i] == tty->t.c_cc[VSUSP])
+            {
+                signal = SIGTSTP;
+            }
+            else if (tty->buf[i] == tty->t.c_cc[VKILL])
+            {
+                signal = SIGKILL;
+            }
+
+            if(signal != -1)
+            {
+                kinfo_proc_t *kp  = NULL;
+                size_t len = 0;
+
+                proc_table_rdlock();
+                ksurface_return_t ksr = proc_list(kernel_proc_, &kp, &len, PROC_FLV_SID, tty->pgrp);
+                proc_table_unlock();
+
+                if(ksr == SURFACE_SUCCESS)
+                {
+                    size_t count = len / sizeof(kinfo_proc_t);
+                    for(size_t i = 0; i < count; i++)
+                    {
+                        LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
+                        if(process)
+                        {
+                            [process sendSignal:signal];
+                        }
+                    }
+                    free(kp);
+                }
+                continue;
+            }
         }
         
         /* if ignore then dont do anything */

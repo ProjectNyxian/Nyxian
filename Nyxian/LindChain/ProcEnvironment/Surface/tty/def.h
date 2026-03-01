@@ -55,6 +55,9 @@ struct ksurface_tty {
     
     char buf[4096];
     char obuf[8192];
+    
+    /* foreground process group */
+    pid_t pgrp;
 };
 
 #endif /* TTY_DEF_H */

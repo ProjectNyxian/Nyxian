@@ -62,6 +62,9 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
     
     kvo_wrlock(proc);
     proc->bsd.kp_proc.p_flag |= P_CONTROLT;
+    
+    /* TODO: implement pgrp support */
+    tty->pgrp = proc_getsid(proc);
     kvo_unlock(proc);
     
     kvo_release(proc);

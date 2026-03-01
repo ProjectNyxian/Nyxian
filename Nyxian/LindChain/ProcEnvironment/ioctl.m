@@ -90,6 +90,19 @@ DEFINE_HOOK(tcsetattr, int, (int fd,
     return (int)environment_syscall(SYS_ioctl, fd, req, t);
 }
 
+DEFINE_HOOK(tcsetpgrp, int, (int fd,
+                             pid_t pgrp))
+{
+    return (int)environment_syscall(SYS_ioctl, fd, TIOCSPGRP, &pgrp);
+}
+
+DEFINE_HOOK(tcgetpgrp, int, (int fd))
+{
+    pid_t pgrp = 0;
+    int ret = (int)environment_syscall(SYS_ioctl, fd, TIOCGPGRP, &pgrp);
+    return (ret == 0) ? pgrp : -1;
+}
+
 void environment_ioctl_init(void)
 {
     if(environment_is_role(EnvironmentRoleGuest))
@@ -98,5 +111,7 @@ void environment_ioctl_init(void)
         DO_HOOK_GLOBAL(isatty);
         DO_HOOK_GLOBAL(tcgetattr);
         DO_HOOK_GLOBAL(tcsetattr);
+        DO_HOOK_GLOBAL(tcsetpgrp);
+        DO_HOOK_GLOBAL(tcgetpgrp);
     }
 }

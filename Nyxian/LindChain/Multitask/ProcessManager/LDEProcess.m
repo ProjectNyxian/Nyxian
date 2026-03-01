@@ -287,6 +287,21 @@
  */
 - (void)sendSignal:(int)signal
 {
+#if !JAILBREAK_ENV
+    /* signals not supported at all */
+    if(signal == SIGTTIN ||
+       signal == SIGTTOU)
+    {
+        return;
+    }
+    
+    /* for some reason apple doesnt support SIGTSTP on iOS */
+    if(signal == SIGTSTP)
+    {
+        signal = SIGSTOP;
+    }
+#endif /* !JAILBREAK_ENV */
+    
     if(signal == SIGSTOP)
     {
         _isSuspended = YES;
