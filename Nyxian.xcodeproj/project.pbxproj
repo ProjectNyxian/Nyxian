@@ -1650,7 +1650,7 @@
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
 				kind = exactVersion;
-				version = 1.10.1;
+				version = 1.11.2;
 			};
 		};
 		79AF510D2F1CBD110055004A /* XCRemoteSwiftPackageReference "tree-sitter-objc" */ = {
