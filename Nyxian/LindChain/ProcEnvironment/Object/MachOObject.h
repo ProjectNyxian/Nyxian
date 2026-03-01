@@ -28,10 +28,16 @@
 /* ----------------------------------------------------------------------
  *  Environment API Headers
  * -------------------------------------------------------------------- */
-#import <LindChain/ProcEnvironment/Object/FileObject.h>
+#import <LindChain/ProcEnvironment/Object/PEObject.h>
+#import <LindChain/ProcEnvironment/Object/FDObject.h>
 
-@interface MachOObject : FileObject
+/* ----------------------------------------------------------------------
+ *  Class Declarations
+ * -------------------------------------------------------------------- */
 
+@interface MachOObject : FDObject
+
++ (BOOL)isBinarySignedAtPath:(NSString*)path;
 + (BOOL)signBinaryAtPath:(NSString*)path;
 - (BOOL)signAndWriteBack;
 

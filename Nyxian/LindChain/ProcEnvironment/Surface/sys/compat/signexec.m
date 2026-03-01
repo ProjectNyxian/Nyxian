@@ -62,7 +62,7 @@ DEFINE_SYSCALL_HANDLER(signexec)
      * on return the file descriptor is destroyed by default
      * by ARC on the PEObject
      */
-    MachOObject *machOObject = [[MachOObject alloc] initWithFileDescriptor:fd withPath:@"I am a silly sillyhead ^^"];
+    MachOObject *machOObject = [MachOObject objectForFileDescriptor:fd];
     
     /* null pointer check */
     if(machOObject == NULL)

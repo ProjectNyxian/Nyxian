@@ -92,7 +92,7 @@
     [self connect];
     
     __block BOOL result = NO;
-    ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithDirectory:bundlePath];
+    ArchiveObject *archiveObject = [ArchiveObject objectForDirectoryAtPath:bundlePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     
     id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
@@ -122,7 +122,7 @@
     [self connect];
     
     __block BOOL result = NO;
-    ArchiveObject *archiveObject = [[ArchiveObject alloc] initWithArchive:packagePath];
+    ArchiveObject *archiveObject = [ArchiveObject objectForFileAtPath:packagePath];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     
     id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
@@ -289,7 +289,7 @@
     }
     else
     {
-        [_connection.remoteObjectProxy fastpathUtility:[[FileObject alloc] initWithPath:utilityPath] withReply:^(NSString *fastPathRet, BOOL fastSigned){
+        [_connection.remoteObjectProxy fastpathUtility:[FDObject objectForFileAtPath:utilityPath] withName:[utilityPath lastPathComponent] withReply:^(NSString *fastPathRet, BOOL fastSigned){
             fastpath = fastSigned ? fastPathRet : nil;
             dispatch_semaphore_signal(sema);
         }];

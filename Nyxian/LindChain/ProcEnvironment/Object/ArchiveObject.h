@@ -28,14 +28,18 @@
 /* ----------------------------------------------------------------------
  *  Environment API Headers
  * -------------------------------------------------------------------- */
-#import <LindChain/ProcEnvironment/Object/FileObject.h>
+#import <LindChain/ProcEnvironment/Object/PEObject.h>
+#import <LindChain/ProcEnvironment/Object/FDObject.h>
 
-@interface ArchiveObject : FileObject
+/* ----------------------------------------------------------------------
+ *  Class Declarations
+ * -------------------------------------------------------------------- */
+
+@interface ArchiveObject : FDObject
 
 @property (nonatomic,strong) NSString *temporaryZipArchivePath;
 
-- (instancetype)initWithDirectory:(NSString *)path;
-- (instancetype)initWithArchive:(NSString *)path;
++ (instancetype)objectForDirectoryAtPath:(NSString*)path;
 
 - (NSString*)extractArchive;
 

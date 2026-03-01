@@ -31,6 +31,10 @@
  * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Object/PEObject.h>
 
+/* ----------------------------------------------------------------------
+ *  Class Declarations
+ * -------------------------------------------------------------------- */
+
 @interface MachPortObject : PEObject <NSSecureCoding>
 
 @property (nonatomic, readonly) mach_port_t port;

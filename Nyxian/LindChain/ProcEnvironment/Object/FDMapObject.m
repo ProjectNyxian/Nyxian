@@ -22,77 +22,6 @@
 #import <xpc/xpc.h>
 #include <LindChain/ProcEnvironment/Utils/fd.h>
 
-@implementation FDObject
-
-- (instancetype)init
-{
-    self = [super init];
-    return self;
-}
-
-+ (instancetype)objectForFileDescriptor:(int)fd
-{
-    FDObject *object = [[self alloc] init];
-    if(object != nil)
-    {
-        object.fd = xpc_fd_create(fd);
-    }
-    return object;
-}
-
-- (void)setFileDescriptor:(int)fd
-{
-    _fd = xpc_fd_create(fd);
-}
-
-- (void)dup2:(int)fd
-{
-    int cfd = xpc_fd_dup(_fd);
-    if(cfd == fd)
-    {
-        return;
-    }
-    else
-    {
-        dup2(cfd, fd);
-        close(cfd);
-    }
-}
-
-+ (BOOL)supportsSecureCoding
-{
-    return YES;
-}
-
-- (void)encodeWithCoder:(nonnull NSCoder *)coder
-{
-    if([coder respondsToSelector:@selector(encodeXPCObject:forKey:)])
-    {
-        [(id)coder encodeXPCObject:_fd forKey:@"fd"];
-    }
-    
-    return;
-}
-
-- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
-{
-    self = [super init];
-    if([coder respondsToSelector:@selector(decodeXPCObjectOfType:forKey:)])
-    {
-        _fd = [(id)coder decodeXPCObjectOfType:XPC_TYPE_FD forKey:@"fd"];
-    }
-    return self;
-}
-
-- (id)copyWithZone:(NSZone *)zone
-{
-    FDObject *copy = [[[self class] allocWithZone:zone] init];
-    copy.fd = [self.fd copy];
-    return copy;
-}
-
-@end
-
 @implementation FDMapObject
 
 - (instancetype)init
@@ -115,6 +44,12 @@
 + (instancetype)currentMap
 {
     FDMapObject *map = [[FDMapObject alloc] init];
+    
+    if(map == nil)
+    {
+        return nil;
+    }
+    
     [map copy_fd_map];
     return map;
 }
@@ -122,36 +57,6 @@
 + (instancetype)emptyMap
 {
     FDMapObject *map = [[FDMapObject alloc] init];
-    return map;
-}
-
-+ (instancetype)stdfdMap
-{
-    FDMapObject *map = [self emptyMap];
-    
-    if(map == nil)
-    {
-        return nil;
-    }
-    
-    /* creating fd objects */
-    FDObject *stdoutObject = [FDObject objectForFileDescriptor:STDOUT_FILENO];
-    FDObject *stderrObject = [FDObject objectForFileDescriptor:STDERR_FILENO];
-    FDObject *stdinObject = [FDObject objectForFileDescriptor:STDIN_FILENO];
-    
-    /* sanity check */
-    if(stdoutObject == nil ||
-       stderrObject == nil ||
-       stdinObject == nil)
-    {
-        return nil;
-    }
-    
-    /* setting them */
-    [map.fd_map setObject:stdoutObject forKey:@(STDOUT_FILENO)];
-    [map.fd_map setObject:stderrObject forKey:@(STDERR_FILENO)];
-    [map.fd_map setObject:stdinObject forKey:@(STDIN_FILENO)];
-    
     return map;
 }
 
@@ -192,8 +97,17 @@
     
     for(NSNumber *key in _fd_map.allKeys)
     {
+        if(key == nil)
+        {
+            continue;
+        }
+        
         FDObject *fdObject = _fd_map[key];
-        [fdObject dup2:[key intValue]];
+        
+        if(fdObject != nil)
+        {
+            [fdObject dup2:[key intValue]];
+        }
     }
 }
 

@@ -25,8 +25,20 @@
  * -------------------------------------------------------------------- */
 #import <Foundation/Foundation.h>
 
-@interface PEObject : NSObject
+/* ----------------------------------------------------------------------
+ *  Class Declarations
+ * -------------------------------------------------------------------- */
 
+/*!
+ @class `PEObject`
+ @abstract The object wrapper for any ProcessEnvironment object.
+ */
+@interface PEObject : NSObject <NSSecureCoding>
+
+/*!
+ @method `deinit`
+ @abstract handles deinitilization.
+ */
 - (void)deinit;
 
 @end

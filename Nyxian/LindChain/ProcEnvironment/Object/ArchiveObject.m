@@ -22,27 +22,43 @@
 
 @implementation ArchiveObject
 
-- (instancetype)initWithDirectory:(NSString *)path
++ (instancetype)objectForDirectoryAtPath:(NSString*)path
 {
-    // First we create a temporary zip archive
-    _temporaryZipArchivePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.zip", [[NSUUID UUID] UUIDString]]];
-    if(!zipDirectoryAtPath(path, _temporaryZipArchivePath, YES)) return nil;
+    NSString *temporaryZipArchivePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.zip", [[NSUUID UUID] UUIDString]]];
     
-    // Now if successful we open that temporary zip archive
-    self = [super initWithPath:_temporaryZipArchivePath];
-    return self;
-}
-
-- (instancetype)initWithArchive:(NSString *)path
-{
-    self = [super initWithPath:path];
-    return self;
+    if(!zipDirectoryAtPath(path, temporaryZipArchivePath, YES))
+    {
+        return nil;
+    }
+    
+    ArchiveObject *archiveObject = [self objectForFileAtPath:temporaryZipArchivePath];
+    
+    if(archiveObject == nil)
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:temporaryZipArchivePath error:nil];
+        return nil;
+    }
+    
+    archiveObject.temporaryZipArchivePath = temporaryZipArchivePath;
+    
+    return archiveObject;
 }
 
 - (NSString*)extractArchive
 {
+    int tmpfd = xpc_fd_dup(self.fd);
+    
+    if(tmpfd < 0)
+    {
+        return nil;
+    }
+    
     NSString *destinationPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@", [[NSUUID UUID] UUIDString]]];
-    unzipArchiveFromFileDescriptor(self.fd, destinationPath);
+    
+    unzipArchiveFromFileDescriptor(tmpfd, destinationPath);
+    
+    close(tmpfd);
+    
     return destinationPath;
 }
 

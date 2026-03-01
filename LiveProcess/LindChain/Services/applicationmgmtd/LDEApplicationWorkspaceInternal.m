@@ -357,13 +357,13 @@ bool checkCodeSignature(const char* path);
     reply([[LDEApplicationWorkspaceInternal shared] clearContainerForBundleID:bundleID]);
 }
 
-- (void)fastpathUtility:(FileObject*)object
+- (void)fastpathUtility:(FDObject*)object
+               withName:(NSString*)name
               withReply:(void (^)(NSString*,BOOL))reply;
 {
     // Write out
-    NSURL *url = [NSURL fileURLWithPath:object.path];
-    NSString *fastPath = [[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:[url lastPathComponent]];
-    [object writeOut:[[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:[url lastPathComponent]]];
+    NSString *fastPath = [[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:name];
+    [object writeOut:[[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:name]];
     bool isSigned = checkCodeSignature([fastPath UTF8String]);
     if(!isSigned)
     {

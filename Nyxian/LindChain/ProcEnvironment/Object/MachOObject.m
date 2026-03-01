@@ -24,6 +24,11 @@
 
 @implementation MachOObject
 
++ (BOOL)isBinarySignedAtPath:(NSString *)path
+{
+    return checkCodeSignature([path UTF8String]);
+}
+
 + (BOOL)signBinaryAtPath:(NSString*)path
 {
     environment_must_be_role(EnvironmentRoleHost);

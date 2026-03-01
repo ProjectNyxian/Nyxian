@@ -29,91 +29,46 @@
  *  Environment API Headers
  * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Object/PEObject.h>
+#import <LindChain/ProcEnvironment/Object/FDObject.h>
 
 /* ----------------------------------------------------------------------
  *  Class Declarations
  * -------------------------------------------------------------------- */
 
 /*!
- @class FDObject
- @abstract A wrapper managing a singular file descriptor.
+ @class `FDMapObject`
+ @abstract Manages file descriptor mappings for process initilization.
  @discussion
-    FDObject provides an Objective-C interface for copying,
-    applying, and manipulating the file descriptor of a process.
-    It is designed to be passed across XPC boundaries and supports
-    NSSecureCoding for safe serialization.
- */
-@interface FDObject : PEObject <NSSecureCoding,NSCopying>
-
-/*!
- @property fd
- @abstract The underlying XPC object representing the file descriptor.
- @discussion
-    This property is typically managed internally by FDObject
-    and should not be modified directly by clients.
- */
-@property (nonatomic,strong) NSObject<OS_xpc_object> *fd;
-
-/*!
- @method objectForFileDescriptor:
- @abstract Returns a instance that is referencing the current file descriptor passed.
- @param fd
-    file descriptor at wish to be converted to a FDObject.
- */
-+ (instancetype)objectForFileDescriptor:(int)fd;
-
-/*!
- @method setFileDescriptor:
- @abstract Sets file descriptor to a other file descriptor in the object.
- @param fd
-    file descriptor at wish as a replacement.
- */
-- (void)setFileDescriptor:(int)fd;
-
-/*!
- @method dup2:
- @abstract Converts the object back to a file descriptor.
- @param fd
-    file descriptor opened/replaced with.
- */
-- (void)dup2:(int)fd;
-
-@end
-
-/*!
- @class FDMapObject
- @abstract A wrapper for managing a process's file descriptor map.
- @discussion
-    FDMapObject provides an Objective-C interface for copying,
+    `FDMapObject` provides an Objective-C interface for copying,
     applying, and manipulating the file descriptor table of a process.
     It is designed to be passed across XPC boundaries and supports
-    NSSecureCoding for safe serialization.
+    `NSSecureCoding` for safe serialization.
  */
-@interface FDMapObject : PEObject <NSSecureCoding>
+@interface FDMapObject : PEObject
 
 /*!
- @property fd_map
+ @property `fd_map`
  @abstract The underlying NS object representing the file descriptor map.
  @discussion
-    This property is typically managed internally by FDMapObject
+    This property is typically managed internally by `FDMapObject`
     and should not be modified directly by clients.
  */
 @property (nonatomic) NSMutableDictionary<NSNumber*,FDObject*> *fd_map;
 
 /*!
- @method currentMap
+ @method `currentMap`
  @abstract Returns a instance that is referencing the current FD map of the process.
  */
 + (instancetype)currentMap;
 
 /*!
- @method emptyMap
+ @method `emptyMap*
  @abstract Returns a instance of a empty file descriptor table.
  */
 + (instancetype)emptyMap;
 
 /*!
- @method copy_fd_map
+ @method `copy_fd_map`
  @abstract Copies the file descriptor map of the current process.
  @discussion
     This method captures the current process’s file descriptor table
@@ -123,7 +78,7 @@
 - (void)copy_fd_map;
 
 /*!
- @method apply_fd_map
+ @method `apply_fd_map`
  @abstract Applies the stored file descriptor map to the current process.
  @discussion
     This method overwrites the process’s current file descriptor table
@@ -133,7 +88,7 @@
 - (void)apply_fd_map;
 
 /*!
- @method appendFileDescriptor:withMappingToLoc:
+ @method `appendFileDescriptor:withMappingToLoc:`
  @abstract Adds file descriptor to file descriptor map object.
  @param fd
     The integer representing the file descriptor to apend.
@@ -143,7 +98,7 @@
 - (int)appendFileDescriptor:(int)fd withMappingToLoc:(int)loc;
 
 /*!
- @method appendFileDescriptor:
+ @method `appendFileDescriptor:`
  @abstract Adds file descriptor to file descriptor map object.
  @param fd
     The integer representing the file descriptor to apend.
@@ -151,7 +106,7 @@
 - (int)appendFileDescriptor:(int)fd;
 
 /*!
- @method closeWithFileDescriptor:
+ @method `closeWithFileDescriptor:`
  @abstract Closes a specific file descriptor.
  @param fd
     The integer file descriptor to close.
@@ -161,7 +116,7 @@
 - (int)closeWithFileDescriptor:(int)fd;
 
 /*!
- @method dup2WithOldFileDescriptor:withNewFileDescriptor:
+ @method `dup2WithOldFileDescriptor:withNewFileDescriptor:`
  @abstract Duplicates a file descriptor to a new one, replacing it if necessary.
  @param oldFd
     The source file descriptor to duplicate.

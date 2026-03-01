@@ -22,7 +22,6 @@
 #import <ResecureDecoder.h>
 #import <LindChain/ProcEnvironment/Object/ArchiveObject.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
-#import <LindChain/ProcEnvironment/Object/FileObject.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 
 void ResecureDecoder(void)
@@ -48,13 +47,11 @@ void ResecureDecoder(void)
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             allowedClasses = [NSSet setWithObjects:
+                              [NSXPCListenerEndpoint class],
                               [ArchiveObject class],
                               [FDMapObject class],
-                              [FileObject class],
                               [MachPortObject class],
-                              [NSXPCListenerEndpoint class],
                               [FDObject class],
-                              [NSDictionary class],
                               nil];
         });
         

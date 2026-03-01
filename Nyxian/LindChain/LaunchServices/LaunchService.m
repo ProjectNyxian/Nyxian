@@ -40,6 +40,14 @@
     NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
     [mutableDictionary setObject:[Server getTicket] forKey:@"LSEndpoint"];
     
+#if DEBUG
+    FDMapObject *mapObject = [FDMapObject emptyMap];
+    [mapObject appendFileDescriptor:STDIN_FILENO withMappingToLoc:STDIN_FILENO];
+    [mapObject appendFileDescriptor:STDOUT_FILENO withMappingToLoc:STDOUT_FILENO];
+    [mapObject appendFileDescriptor:STDERR_FILENO withMappingToLoc:STDERR_FILENO];
+    [mutableDictionary setObject:mapObject forKey:@"LSMapObject"];
+#endif /* DEBUG */
+    
     pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withKernelSurfaceProcess:kernel_proc_];
     if(pid == 0) [self ignition];
     
