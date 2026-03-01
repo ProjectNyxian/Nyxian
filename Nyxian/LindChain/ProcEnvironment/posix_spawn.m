@@ -201,7 +201,12 @@ int environment_posix_spawn(pid_t *process_identifier,
         if(!checkCodeSignature(resolved))
         {
             /* attempt signing */
-            environment_proxy_sign_macho([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
+            int ret = (int)environment_syscall(SYS_signexec, resolved);
+            
+            if(ret != 0)
+            {
+                return ret;
+            }
             
             /* checking if kernel virt signed executable */
             if(!checkCodeSignature(resolved))

@@ -19,6 +19,7 @@
 
 #import "LDEApplicationWorkspaceInternal.h"
 #import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/Utils/Zip.h>
 #import <Security/Security.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
@@ -367,7 +368,7 @@ bool checkCodeSignature(const char* path);
     bool isSigned = checkCodeSignature([fastPath UTF8String]);
     if(!isSigned)
     {
-        environment_proxy_sign_macho(fastPath);
+        environment_syscall(SYS_signexec, [fastPath UTF8String]);
         isSigned = checkCodeSignature([fastPath UTF8String]);
         if(!isSigned)
         {

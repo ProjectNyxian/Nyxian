@@ -96,7 +96,7 @@ DEFINE_HOOK(dlopen, void *, (const char * __path, int __mode))
     if(!checkCodeSignature(__path))
     {
         // Sign if invalid
-        environment_proxy_sign_macho([NSString stringWithCString:__path encoding:NSUTF8StringEncoding]);
+        environment_syscall(SYS_signexec, __path);
     }
     
     // Continue with opening

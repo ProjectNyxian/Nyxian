@@ -93,26 +93,6 @@ int64_t environment_proxy_spawn_process_at_path(NSString *path,
     });
 }
 
-void environment_proxy_sign_macho(NSString *path)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    
-    /* open file descriptor */
-    int fd = open([path UTF8String], O_RDWR);
-    
-    /* checking file descriptor */
-    if(fd == -1)
-    {
-        return;
-    }
-    
-    /* calling syscall */
-    environment_syscall(SYS_signexec, fd);
-    
-    /* closing file descriptor */
-    close(fd);
-}
-
 void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint *endpoint,
                                                            NSString *serviceIdentifier)
 {

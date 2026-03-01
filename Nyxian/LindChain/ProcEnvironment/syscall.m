@@ -30,6 +30,7 @@ enum kESysType {
     kESysTypePortOut = 2,
     kESysTypeRecvPortIn = 3,
     kESysTypeFDIn = 4,
+    kESysTypeFileIn = 5,
 };
 
 typedef struct {
@@ -41,17 +42,18 @@ typedef struct {
 #define SYS_ENTRY(num, t0, t1, t2, t3, t4, t5) { .syscall_num = (num), .type = { (t0), (t1), (t2), (t3), (t4), (t5) } }
 
 /* internal definitions of kESysType */
-#define T_NUM   kESysTypeNum
-#define T_PIN   kESysTypePortIn
-#define T_POUT  kESysTypePortOut
-#define T_RPIN  kESysTypeRecvPortIn
-#define T_FIN   kESysTypeFDIn
+#define T_NUM       kESysTypeNum
+#define T_PIN       kESysTypePortIn
+#define T_POUT      kESysTypePortOut
+#define T_RPIN      kESysTypeRecvPortIn
+#define T_FIN       kESysTypeFDIn
+#define T_FILEIN    kESysTypeFileIn
 
 env_sys_entry_t sys_env_entries[] = {
-    SYS_ENTRY(SYS_gettask,     T_NUM,  T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_signexec,    T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_handoffep,   T_RPIN, T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
-    SYS_ENTRY(SYS_ioctl,       T_FIN,  T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
+    SYS_ENTRY(SYS_gettask,     T_NUM,       T_NUM,  T_POUT, T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_signexec,    T_FILEIN,    T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_handoffep,   T_RPIN,      T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM),
+    SYS_ENTRY(SYS_ioctl,       T_FIN,       T_NUM,  T_NUM,  T_NUM, T_NUM, T_NUM)
 };
 
 /* also making our lives easier */
@@ -128,9 +130,36 @@ int64_t environment_syscall(uint32_t syscall_num, ...)
                     }
                     else
                     {
+                        errno = EBADF;
+                        return -1;
+                    }
+                    break;
+                }
+                case kESysTypeFileIn:
+                {
+                    const char *path = (char*)val;
+                    
+                    int fd = open(path, O_RDWR);
+                    
+                    if(fd < 0)
+                    {
                         errno = EINVAL;
                         return -1;
                     }
+                    
+                    fileport_t fileport = MACH_PORT_NULL;
+                    if(fileport_makeport(fd, &fileport) == 0)
+                    {
+                        in_ports[in_ports_cnt++] = fileport;
+                    }
+                    else
+                    {
+                        close(fd);
+                        errno = EBADF;
+                        return -1;
+                    }
+                    
+                    close(fd);
                     break;
                 }
                 default:
