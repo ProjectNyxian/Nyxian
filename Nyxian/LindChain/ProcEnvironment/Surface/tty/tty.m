@@ -17,6 +17,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
@@ -27,9 +28,33 @@
 #import <sys/poll.h>
 #include <stdio.h>
 
+static void tty_kill(ksurface_tty_t *tty, int sig)
+{
+    kinfo_proc_t *kp  = NULL;
+    size_t len = 0;
+
+    proc_table_rdlock();
+    ksurface_return_t ksr = proc_list(kernel_proc_, &kp, &len, PROC_FLV_SID, tty->pgrp);
+    proc_table_unlock();
+
+    if(ksr == SURFACE_SUCCESS)
+    {
+        size_t count = len / sizeof(kinfo_proc_t);
+        for(size_t i = 0; i < count; i++)
+        {
+            LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
+            if(process)
+            {
+                [process sendSignal:sig];
+            }
+        }
+        free(kp);
+    }
+}
+
 static int tty_input(ksurface_tty_t *tty)
 {
-    ssize_t n = read(tty->core_masterfd, tty->buf, sizeof(tty->buf));
+    ssize_t n = read(tty->kernelfds[MASTERFD], tty->rbuf, TTY_MAX_RD);
     if(n <= 0)
     {
         return -1;
@@ -41,84 +66,65 @@ static int tty_input(ksurface_tty_t *tty)
         /* removing high bit on ISTRIP */
         if(tty->t.c_iflag & ISTRIP)
         {
-            tty->buf[i] = tty->buf[i] & 0b01111111;
+            tty->rbuf[i] &= 0b01111111;
         }
         
         if(tty->t.c_lflag & ISIG)
         {
             int signal = -1;
 
-            if (tty->buf[i] == tty->t.c_cc[VINTR])
+            if(tty->rbuf[i] == tty->t.c_cc[VINTR])
             {
                 signal = SIGINT;
             }
-            else if(tty->buf[i] == tty->t.c_cc[VQUIT])
+            else if(tty->rbuf[i] == tty->t.c_cc[VQUIT])
             {
                 signal = SIGQUIT;
             }
-            else if (tty->buf[i] == tty->t.c_cc[VSUSP])
+            else if(tty->rbuf[i] == tty->t.c_cc[VSUSP])
             {
                 signal = SIGTSTP;
             }
-            else if (tty->buf[i] == tty->t.c_cc[VKILL])
+            else if(tty->rbuf[i] == tty->t.c_cc[VKILL])
             {
                 signal = SIGKILL;
             }
 
             if(signal != -1)
             {
-                kinfo_proc_t *kp  = NULL;
-                size_t len = 0;
-
-                proc_table_rdlock();
-                ksurface_return_t ksr = proc_list(kernel_proc_, &kp, &len, PROC_FLV_SID, tty->pgrp);
-                proc_table_unlock();
-
-                if(ksr == SURFACE_SUCCESS)
-                {
-                    size_t count = len / sizeof(kinfo_proc_t);
-                    for(size_t i = 0; i < count; i++)
-                    {
-                        LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
-                        if(process)
-                        {
-                            [process sendSignal:signal];
-                        }
-                    }
-                    free(kp);
-                }
+                tty_kill(tty, signal);
                 continue;
             }
         }
         
         /* if ignore then dont do anything */
         if((tty->t.c_iflag & IGNCR) &&
-           tty->buf[i] == '\r')
+           tty->rbuf[i] == '\r')
         {
             continue;
         }
         
         /* handling return to newline translation */
         if(tty->t.c_iflag & ICRNL &&
-           tty->buf[i] == '\r')
+           tty->rbuf[i] == '\r')
         {
-            tty->buf[i] = '\n';
+            tty->rbuf[i] = '\n';
         }
         
         /* the inverse of the previous translation */
         else if(tty->t.c_iflag & INLCR &&
-                tty->buf[i] == '\n')
+                tty->rbuf[i] == '\n')
         {
-            tty->buf[i] = '\r';
+            tty->rbuf[i] = '\r';
         }
         
-        tty->buf[new_n++] = tty->buf[i];
+        tty->rbuf[new_n++] = tty->rbuf[i];
     }
     
     ssize_t off = 0;
     while(off < n)
     {
-        ssize_t w = write(tty->core_slavefd, tty->buf + off, n - off);
+        ssize_t w = write(tty->kernelfds[SLAVEFD], tty->rbuf + off, n - off);
         if(w <= 0)
         {
             return -1;
@@ -126,13 +132,12 @@ static int tty_input(ksurface_tty_t *tty)
         off += w;
     }
     
-    
     return 0;
 }
 
 static int tty_output(ksurface_tty_t *tty)
 {
-    ssize_t n = read(tty->core_slavefd, tty->buf, sizeof(tty->buf));
+    ssize_t n = read(tty->kernelfds[SLAVEFD], tty->rbuf, TTY_MAX_RD);
     ssize_t new_n = 0;
     if(n <= 0)
     {
@@ -146,7 +151,7 @@ static int tty_output(ksurface_tty_t *tty)
     
     for(ssize_t i = 0; i < n; i++)
     {
-        uint8_t c = tty->buf[i];
+        uint8_t c = tty->rbuf[i];
         
         if(c == '\n')
         {
@@ -179,13 +184,13 @@ static int tty_output(ksurface_tty_t *tty)
     
 write_out:
     {
-        const uint8_t *out = (uint8_t*)((tty->t.c_oflag & OPOST) ? tty->obuf : tty->buf);
+        const uint8_t *out = (uint8_t*)((tty->t.c_oflag & OPOST) ? tty->obuf : tty->rbuf);
         ssize_t out_n = (tty->t.c_oflag & OPOST) ? new_n : n;
         
         ssize_t off = 0;
         while(off < out_n)
         {
-            ssize_t w = write(tty->core_masterfd, out + off, out_n - off);
+            ssize_t w = write(tty->kernelfds[MASTERFD], out + off, out_n - off);
             if(w <= 0) return -1;
             off += w;
         }
@@ -198,12 +203,9 @@ static void *tty_pump_thread(void *arg)
 {
     ksurface_tty_t *tty = arg;
 
-    int m = tty->core_masterfd;
-    int s = tty->core_slavefd;
-
     struct pollfd fds[2] = {
-        { .fd = m, .events = POLLIN },
-        { .fd = s, .events = POLLIN },
+        { .fd = tty->kernelfds[MASTERFD], .events = POLLIN },
+        { .fd = tty->kernelfds[SLAVEFD] , .events = POLLIN },
     };
 
     while(tty->alive)
@@ -256,37 +258,57 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             kv_content_zero(tty);
             
             /* creating pipe */
-            if(socketpair(AF_UNIX, SOCK_STREAM, 0, tty->masterfds) != 0)
+            int masterpair[2];
+            if(socketpair(AF_UNIX, SOCK_STREAM, 0, masterpair) != 0)
             {
                 return -1;
             }
             
             /* creating pipe */
-            if(socketpair(AF_UNIX, SOCK_STREAM, 0, tty->slavefds) != 0)
+            int slavepair[2];
+            if(socketpair(AF_UNIX, SOCK_STREAM, 0, slavepair) != 0)
             {
+                close(masterpair[0]);
+                close(masterpair[1]);
                 return -1;
             }
             
             /* getting unique object pointer */
-            struct socket_fdinfo si;
+            struct socket_fdinfo master_si;
+            if(proc_pidfdinfo(getpid(), slavepair[0], PROC_PIDFDSOCKETINFO, &master_si, sizeof(struct socket_fdinfo)) <= 0)
+            {
+                /* notify me, if this happens, apple again had to change something */
+                goto out_fail;
+            }
             
-            if(proc_pidfdinfo(getpid(), tty->slavefds[0], PROC_PIDFDSOCKETINFO, &si, sizeof(si)) <= 0)
+            struct socket_fdinfo slave_si;
+            if(proc_pidfdinfo(getpid(), masterpair[0], PROC_PIDFDSOCKETINFO, &slave_si, sizeof(struct socket_fdinfo)) <= 0)
             {
                 /* notify me, if this happens, apple again had to change something */
                 goto out_fail;
             }
             
             /* the 2nd fd is always the fd the tty object manages */
-            tty->kslavecid = si.psi.soi_proto.pri_kern_ctl.kcsi_id;
-            tty->masterfd = tty->masterfds[0];
-            tty->core_masterfd = tty->masterfds[1];
-            tty->slavefd = tty->slavefds[0];
-            tty->core_slavefd = tty->slavefds[1];
+            tty->userspacekcid[MASTERFD] = master_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
+            tty->userspacekcid[SLAVEFD] = slave_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
+            tty->userspacefd[MASTERFD] = masterpair[0];
+            tty->userspacefd[SLAVEFD] = slavepair[0];
+            tty->kernelfds[MASTERFD] = masterpair[1];
+            tty->kernelfds[SLAVEFD] = slavepair[1];
             
             /* inserting own tty object */
             tty_table_wrlock();
-            if(radix_insert(&(ksurface->tty_info.tty), tty->kslavecid, tty) != 0)
+            if(radix_insert(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD], tty) != 0)
             {
+                tty_table_unlock();
+                goto out_fail;
+            }
+            if(radix_insert(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD], tty) != 0)
+            {
+                if(radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]) == NULL)
+                {
+                    environment_panic();
+                }
                 tty_table_unlock();
                 goto out_fail;
             }
@@ -303,10 +325,10 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             return 0;
         
         out_fail:
-            close(tty->slavefds[0]);
-            close(tty->slavefds[1]);
-            close(tty->masterfds[0]);
-            close(tty->masterfds[1]);
+            close(tty->userspacefd[MASTERFD]);
+            close(tty->userspacefd[SLAVEFD]);
+            close(tty->kernelfds[MASTERFD]);
+            close(tty->kernelfds[SLAVEFD]);
             return -1;
         }
         case kvObjEventDeinit:
@@ -315,19 +337,20 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             /* making sure deinit happens, with the threads consent */
             tty->alive = 0;
             
-            shutdown(tty->core_masterfd, SHUT_RDWR);
-            shutdown(tty->core_slavefd, SHUT_RDWR);
+            shutdown(tty->kernelfds[SLAVEFD],  SHUT_RDWR);
+            shutdown(tty->kernelfds[MASTERFD], SHUT_RDWR);
 
             pthread_join(tty->pump_thread, NULL);
             
-            close(tty->slavefds[0]);
-            close(tty->slavefds[1]);
-            close(tty->masterfds[0]);
-            close(tty->masterfds[1]);
+            close(tty->userspacefd[MASTERFD]);
+            close(tty->userspacefd[SLAVEFD]);
+            close(tty->kernelfds[MASTERFD]);
+            close(tty->kernelfds[SLAVEFD]);
             
             /* removing own tty object */
             tty_table_wrlock();
-            radix_remove(&(ksurface->tty_info.tty), tty->kslavecid);
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]);
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD]);
             tty_table_unlock();
             
             /* fallthrough */

@@ -26,24 +26,23 @@
 #include <unistd.h>
 #include <termios.h>
 
+#define TTY_MAX_RD 4096
+
+#define MASTERFD 0
+#define SLAVEFD 1
+
 typedef struct ksurface_tty ksurface_tty_t;
 
 struct ksurface_tty {
     /* object header */
     kvobject_t header;
     
-    /* raw private ksurface api fds */
-    int masterfds[2];
-    int slavefds[2];
+    /* file descriptors */
+    int userspacefd[2];     /* ownable by userspace processes */
+    int kernelfds[2];       /* owned by the kernel tty driver */
     
-    /* tty core owns them */
-    int core_masterfd;
-    int core_slavefd;
-    
-    /* file descriptors for usage */
-    int masterfd;
-    int slavefd;
-    uint32_t kslavecid;
+    /* userspace file descriptors kernel identifiers */
+    uint32_t userspacekcid[2];
     
     /* the thread */
     pthread_t pump_thread;
@@ -53,8 +52,9 @@ struct ksurface_tty {
     struct termios t;
     struct winsize ws;
     
-    char buf[4096];
-    char obuf[8192];
+    /* buffers used by the tty driver */
+    char rbuf[TTY_MAX_RD];
+    char obuf[TTY_MAX_RD * 2];
     
     /* foreground process group */
     pid_t pgrp;

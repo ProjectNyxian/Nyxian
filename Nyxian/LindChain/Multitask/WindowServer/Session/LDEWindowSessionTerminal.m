@@ -94,9 +94,9 @@
         return NO;
     }
     
-    [mapObject appendFileDescriptor:tty->slavefd withMappingToLoc:STDIN_FILENO];
-    [mapObject appendFileDescriptor:tty->slavefd withMappingToLoc:STDOUT_FILENO];
-    [mapObject appendFileDescriptor:tty->slavefd withMappingToLoc:STDERR_FILENO];
+    [mapObject appendFileDescriptor:tty->userspacefd[SLAVEFD] withMappingToLoc:STDIN_FILENO];
+    [mapObject appendFileDescriptor:tty->userspacefd[SLAVEFD] withMappingToLoc:STDOUT_FILENO];
+    [mapObject appendFileDescriptor:tty->userspacefd[SLAVEFD] withMappingToLoc:STDERR_FILENO];
     
     
     LDEProcess *process = nil;
@@ -121,7 +121,7 @@
     }
     
     /* finally starting terminal */
-    _terminal = [[TerminalViewObjC alloc] initWithFrame:self.windowRect masterFD:tty->masterfd];
+    _terminal = [[TerminalViewObjC alloc] initWithFrame:self.windowRect masterFD:tty->userspacefd[MASTERFD]];
     
     if(_terminal == nil)
     {
@@ -145,7 +145,7 @@
         
         if(strongSelf.focused)
         {
-            write(strongSelf->_tty->slavefd, "\n[process exited]\n", 18);
+            write(strongSelf->_tty->userspacefd[SLAVEFD], "\n[process exited]\n", 18);
             
             strongSelf.atExit = YES;
         }
@@ -218,7 +218,7 @@
     _widthConstraint.constant = rect.size.width;
     
     char *noop = "\0";
-    write(_tty->slavefd, [[NSData dataWithBytes:noop length:1] bytes], 1);
+    write(_tty->userspacefd[SLAVEFD], [[NSData dataWithBytes:noop length:1] bytes], 1);
 }
 
 - (NSString*)getWindowName
