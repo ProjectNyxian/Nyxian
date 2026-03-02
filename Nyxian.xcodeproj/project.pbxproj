@@ -250,7 +250,6 @@
 				LindChain/ProcEnvironment/Surface/tty/lookup.m,
 				LindChain/ProcEnvironment/Surface/tty/tty.m,
 				LindChain/ProcEnvironment/Surface/tty/utils.m,
-				LindChain/ProcEnvironment/Surface/ucred/ucred.m,
 				LindChain/ProcEnvironment/syscall.m,
 				LindChain/ProcEnvironment/Syscall/mach_syscall_client.m,
 				LindChain/ProcEnvironment/Syscall/mach_syscall_server.m,
