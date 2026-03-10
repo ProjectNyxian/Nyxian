@@ -20,15 +20,12 @@
 #import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
 #import <LindChain/ProcEnvironment/tfp.h>
+#import <LindChain/ProcEnvironment/panic.h>
 
 ksurface_return_t proc_for_pid(pid_t pid,
                                ksurface_proc_t **proc)
 {
-    /* sanity check */
-    if(proc == NULL)
-    {
-        return SURFACE_NULLPTR;
-    }
+    assert(proc != NULL);
     
     /* process lookup */
     proc_table_rdlock();
@@ -53,59 +50,72 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
                                 task_flavor_t flavour,
                                 task_t *task)
 {
-    /* sanity check */
-    if(proc == NULL &&
-       task == NULL)
-    {
-        return SURFACE_NULLPTR;
-    }
-    
-    /* process retention */
-    if(!kvo_retain(proc))
-    {
-        return SURFACE_RETAIN_FAILED;
-    }
-    
-    /* sanity check */
-    if(proc->task == MACH_PORT_NULL)
-    {
-        kvo_release(proc);
-        return SURFACE_FAILED;
-    }
+    assert(proc != NULL && task != NULL);
     
     /* view note in SYS_gettask */
     task_rdlock();
     
-    *task = proc->task;
-    
-    kern_return_t kr = KERN_SUCCESS;
-    
-    if(proc != kernel_proc_)
+    if(proc->task == MACH_PORT_NULL)
     {
-        /* getting flavour */
-        kr = task_get_special_port(*task, flavour, task);
-        
-        if(kr != KERN_SUCCESS)
-        {
-            goto out_byebye;
-        }
-    }
-    else
-    {
-        /* crafting new reference */
-        kr = mach_port_mod_refs(mach_task_self(), *task, MACH_PORT_RIGHT_SEND, 1);
-    }
-    
-    /* sanity check */
-    if(kr != KERN_SUCCESS)
-    {
-out_byebye:
         task_unlock();
-        kvo_release(proc);
         return SURFACE_FAILED;
     }
     
+    /* temporary task port to not leak port value on failure */
+    task_t tmp_task = proc->task;
+    
+    /*
+     * validating ipc port type making sure the type
+     * matches supported types and handling them appropriate
+     * to their type.
+     */
+    ipc_info_object_type_t ipc_port_type;
+    mach_vm_address_t placeholder_address;
+    kern_return_t kr = mach_port_kobject(mach_task_self(), tmp_task, &ipc_port_type, &placeholder_address);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        task_unlock();
+        return SURFACE_FAILED;
+    }
+    
+    if(ipc_port_type == IPC_OTYPE_TASK_CONTROL)
+    {
+        /*
+         * its control task port, so we can
+         * export a task port of the flavourt in
+         * question.
+         *
+         * task_get_special_port() does create a
+         * new mach port reference.
+         */
+        kr = task_get_special_port(tmp_task, flavour, &tmp_task);
+    }
+    else if(ipc_port_type == IPC_OTYPE_TASK_NAME)
+    {
+        /*
+         * its name task port, so we can
+         * just create a new reference of the name.
+         * its a task name, because the kernel decided
+         * that only a task name shall be exported, prior.
+         */
+        kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
+    }
+    else
+    {
+        /* shall never happen, invalid type */
+        environment_panic();
+    }
+    
     task_unlock();
-    kvo_release(proc);
+    
+    if(kr != KERN_SUCCESS)
+    {
+        return SURFACE_FAILED;
+    }
+    
+    /* exporting task port */
+    *task = tmp_task;
+    
     return SURFACE_SUCCESS;
 }
