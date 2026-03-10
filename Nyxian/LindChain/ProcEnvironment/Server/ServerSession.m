@@ -31,7 +31,10 @@
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-@implementation ServerSession
+@implementation ServerSession {
+    pid_t _processIdentifier;
+    ksurface_proc_t *_proc;
+}
 
 - (instancetype)initWithProcessidentifier:(pid_t)pid
 {
@@ -63,8 +66,6 @@
             return;
         }
     }
-    
-    klog_log(@"syscall:spawn", @"pid %d requested to spawn process\nPATH: %@\nARGS: %@\nENVP: %@", _processIdentifier, path, arguments, environment);
     
     if(path &&
        arguments &&
