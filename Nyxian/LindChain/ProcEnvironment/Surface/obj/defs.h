@@ -32,6 +32,8 @@
 
 #define kv_content_zero(kvo) bzero(((char*)kvo) + sizeof(kvobject_t), sizeof(*kvo) - sizeof(kvobject_t))
 
+#define KVOBJECT_EVENT_MAX 1024
+
 /* enumeration of kernel virt object base types */
 enum kvObjBaseType {
     kvObjBaseTypeObject = 0,                        /* normal allocated object with referencing */

@@ -32,13 +32,20 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     pthread_rwlock_wrlock(&(kvo->event_rwlock));
     
     /* find last event */
+    uint16_t event_cnt = 0;
     kvobject_event_t *last_event = kvo->event;
     if(last_event != NULL)
     {
         while(last_event->next != NULL)
         {
+            event_cnt++;
             last_event = last_event->next;
         }
+    }
+    
+    if(event_cnt > KVOBJECT_EVENT_MAX)
+    {
+        return SURFACE_LIMIT;
     }
     
     /* allocating new event */
