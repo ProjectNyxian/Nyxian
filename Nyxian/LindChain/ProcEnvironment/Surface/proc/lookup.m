@@ -79,32 +79,31 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
         return SURFACE_FAILED;
     }
     
-    if(ipc_port_type == IPC_OTYPE_TASK_CONTROL)
+    switch(ipc_port_type)
     {
-        /*
-         * its control task port, so we can
-         * export a task port of the flavourt in
-         * question.
-         *
-         * task_get_special_port() does create a
-         * new mach port reference.
-         */
-        kr = task_get_special_port(tmp_task, flavour, &tmp_task);
-    }
-    else if(ipc_port_type == IPC_OTYPE_TASK_NAME)
-    {
-        /*
-         * its name task port, so we can
-         * just create a new reference of the name.
-         * its a task name, because the kernel decided
-         * that only a task name shall be exported, prior.
-         */
-        kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
-    }
-    else
-    {
-        /* shall never happen, invalid type */
-        environment_panic();
+        case IPC_OTYPE_TASK_CONTROL:
+            /*
+             * its control task port, so we can
+             * export a task port of the flavourt in
+             * question.
+             *
+             * task_get_special_port() does create a
+             * new mach port reference.
+             */
+            kr = task_get_special_port(tmp_task, flavour, &tmp_task);
+            break;
+        case IPC_OTYPE_TASK_NAME:
+            /*
+             * its name task port, so we can
+             * just create a new reference of the name.
+             * its a task name, because the kernel decided
+             * that only a task name shall be exported, prior.
+             */
+            kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
+            break;
+        default:
+            /* shall never happen, invalid type */
+            environment_panic();
     }
     
     task_unlock();
