@@ -46,9 +46,9 @@ ksurface_return_t proc_for_pid(pid_t pid,
     return SURFACE_SUCCESS;
 }
 
-ksurface_return_t task_for_proc(ksurface_proc_t *proc,
-                                task_flavor_t flavour,
-                                task_t *task)
+ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
+                                     task_flavor_t flavour,
+                                     task_t *task)
 {
     assert(proc != NULL && task != NULL);
     
@@ -118,4 +118,26 @@ ksurface_return_t task_for_proc(ksurface_proc_t *proc,
     *task = tmp_task;
     
     return SURFACE_SUCCESS;
+}
+
+ksurface_return_t proc_task_for_pid(pid_t pid,
+                                    task_flavor_t flavour,
+                                    task_t *task)
+{
+    /* looking up proc (creates reference) */
+    ksurface_proc_t *proc = NULL;
+    ksurface_return_t ksr = proc_for_pid(pid, &proc);
+    
+    if(ksr != SURFACE_SUCCESS)
+    {
+        return ksr;
+    }
+    
+    /* looking up task port */
+    ksr = proc_task_for_proc(proc, flavour, task);
+    
+    /* we dont need proc anymore */
+    kvo_release(proc);
+    
+    return ksr;
 }

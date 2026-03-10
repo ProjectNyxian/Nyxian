@@ -213,7 +213,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* getting task port */
-        ksurface_return_t ksr = task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
+        ksurface_return_t ksr = proc_task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
         
         /* checking return */
         if(ksr != SURFACE_SUCCESS)
