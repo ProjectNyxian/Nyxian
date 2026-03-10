@@ -28,12 +28,6 @@ DEFINE_SYSCALL_HANDLER(gettask)
     pid_t pid = (pid_t)args[0];
     bool name_only = (bool)args[1];
     
-    /* placeholder for target process */
-    ksurface_proc_t *target = NULL;
-    
-    /* placeholder for error code */
-    int errnov = 0;
-    
     /*
      * claiming read onto task so no other process can
      * at the same time add their task port which could
@@ -48,10 +42,13 @@ DEFINE_SYSCALL_HANDLER(gettask)
      */
     task_rdlock();
     
+    /* predefined variables */
+    ksurface_proc_t *target;
+    errno_t errnov;
+    
     /* getting the target process */
     ksurface_return_t ret = proc_for_pid(pid, &target);
-        
-    /* checking if successful */
+    
     if(ret != SURFACE_SUCCESS ||
         target == NULL)
     {
@@ -70,7 +67,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
         goto out_proc_release_failure;
     }
     
-    /* getting flavour */
+    /* getting task port of flavour */
     task_t exportTask = MACH_PORT_NULL;
     ksurface_return_t ksr = proc_task_for_proc(target, name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT, &exportTask);
     
@@ -81,33 +78,9 @@ DEFINE_SYSCALL_HANDLER(gettask)
         goto out_proc_release_failure;
     }
     
-    /* getting port type */
-    mach_port_type_t type;
-    kern_return_t kr = mach_port_type(mach_task_self(), exportTask, &type);
+    /* allocating syscall payload, so we can export it to the syscall caller */
+    kern_return_t kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
     
-    /* checking if port is valid in the first place */
-    if(kr != KERN_SUCCESS ||
-       type == MACH_PORT_TYPE_DEAD_NAME ||
-       type == 0)
-    {
-        /* no rights to the task name? */
-        errnov = ESRCH;
-        goto out_destroy_task_port;
-    }
-    
-    /* checking if pid of task port is valid */
-    kr = pid_for_task(exportTask, &pid);
-    if(kr != KERN_SUCCESS ||
-       pid != proc_getpid(target))
-    {
-        errnov = ESRCH;
-        goto out_destroy_task_port;
-    }
-    
-    /* allocating syscall payload */
-    kr = mach_syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
-    
-    /* mach return check */
     if(kr != KERN_SUCCESS)
     {
         errnov = ENOMEM;
