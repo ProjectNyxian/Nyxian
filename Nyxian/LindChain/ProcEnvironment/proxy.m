@@ -30,7 +30,7 @@
 NSObject<ServerProtocol> *hostProcessProxy = nil;
 syscall_client_t *syscallProxy = NULL;
 
-static id _Nullable sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
+static id _Nullable sync_call_with_timeout_id(void (^invoke)(void (^reply)(id)))
 {
     __block id result = nil;
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -46,23 +46,6 @@ static id _Nullable sync_call_with_timeout(void (^invoke)(void (^reply)(id)))
     );
     if (waited != 0) return nil; // timeout
     return result;
-}
-
-static unsigned int sync_call_with_timeout_uint(void (^invoke)(void (^reply)(unsigned int)))
-{
-    __block unsigned int result = -1;
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-    invoke(^(unsigned int val){
-        result = val;
-        dispatch_semaphore_signal(sem);
-    });
-
-    long waited = dispatch_semaphore_wait(
-        sem,
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(PROXY_MAX_DISPATCH_TIME * NSEC_PER_SEC))
-    );
-    return (waited == 0) ? result : -1;
 }
 
 static int64_t sync_call_with_timeout_int64(void (^invoke)(void (^reply)(int64_t)))
@@ -102,7 +85,7 @@ void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint
 NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSString *serviceIdentifier)
 {
     environment_must_be_role(EnvironmentRoleGuest);
-    return sync_call_with_timeout(PROXY_TYPE_REPLY(NSXPCListenerEndpoint*){
+    return sync_call_with_timeout_id(PROXY_TYPE_REPLY(NSXPCListenerEndpoint*){
         [hostProcessProxy getEndpointOfServiceIdentifier:serviceIdentifier withReply:reply];
     });
 }
