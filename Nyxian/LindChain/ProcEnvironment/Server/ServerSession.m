@@ -47,7 +47,7 @@
  posix_spawn
  */
 - (void)spawnProcessWithPath:(NSString*)path
-               withArguments:(NSArray*)arguments
+               withArguments:(NSArray<NSObject<NSSecureCoding,NSCopying>*>*)arguments
     withEnvironmentVariables:(NSDictionary *)environment
                withMapObject:(FDMapObject*)mapObject
                    withReply:(void (^)(int64_t))reply

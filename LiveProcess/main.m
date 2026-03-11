@@ -98,10 +98,12 @@ void overwriteEnvironmentProperties(NSDictionary *enviroDict)
     }
 }
 
-void createArgv(NSArray<NSString *> *arguments,
+void createArgv(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
                 int *argc,
-                char ***argv) {
-    if (!arguments) {
+                char ***argv)
+{
+    if(!arguments)
+    {
         *argc = 0;
         return;
     }
@@ -110,8 +112,19 @@ void createArgv(NSArray<NSString *> *arguments,
     *argc = (int)count;
     
     *argv = malloc(sizeof(char *) * (count + 1));
-    for (NSInteger i = 0; i < count; i++) {
-        (*argv)[i] = strdup(arguments[i].UTF8String);
+    for(NSInteger i = 0; i < count; i++)
+    {
+        NSObject<NSSecureCoding,NSCopying> *arg = arguments[i];
+        
+        if([arg isKindOfClass:[NSString class]])
+        {
+            (*argv)[i] = strdup(((NSString*)arg).UTF8String);
+        }
+        else
+        {
+            /* is NSNull */
+            argv[i] = NULL;
+        }
     }
     (*argv)[count] = NULL;
 }

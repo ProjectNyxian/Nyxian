@@ -31,8 +31,8 @@
 
 #pragma mark - posix_spawn helper
 
-NSArray<NSString *> *createNSArrayFromArgv(int argc,
-                                           char *const argv[])
+NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(int argc,
+                                                                     char *const argv[])
 {
     /* sanity check */
     if(argc <= 0 || argv == NULL)
@@ -41,7 +41,7 @@ NSArray<NSString *> *createNSArrayFromArgv(int argc,
     }
     
     /* creating mutable array with predefined argv lenght  */
-    NSMutableArray<NSString *> *array = [NSMutableArray arrayWithCapacity:argc];
+    NSMutableArray<NSObject<NSSecureCoding,NSCopying> *> *array = [NSMutableArray arrayWithCapacity:argc];
     
     /*
      * itterating through each argument and stuff the mutable
@@ -49,14 +49,17 @@ NSArray<NSString *> *createNSArrayFromArgv(int argc,
      */
     for(int i = 0; i < argc; i++)
     {
-        /* sanity check */
-        if(argv[i] == NULL)
-        {
-            continue;
-        }
+        NSObject<NSSecureCoding,NSCopying> *arg = nil;
         
-        /* converting C into NSString */
-        NSString *arg = [NSString stringWithCString:argv[i] encoding:NSUTF8StringEncoding];
+        if(argv[i] != NULL)
+        {
+            /* converting C into NSString */
+            arg = [NSString stringWithCString:argv[i] encoding:NSUTF8StringEncoding];
+        }
+        else
+        {
+            arg = [NSNull null];
+        }
         
         /* sanity checking arg object */
         if(arg != NULL)
