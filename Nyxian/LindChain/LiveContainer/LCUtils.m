@@ -77,19 +77,6 @@ extern NSUserDefaults *lcUserDefaults;
     return ans;
 }
 
-+ (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData
-                             password:(NSString*)password
-{
-    NSError *error;
-    NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
-    NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
-    if (error) {
-        return nil;
-    }
-    NSString* ans = [NSClassFromString(@"ZSigner") getTeamIdWithProv:profileData key:keyData pass:password];
-    return ans;
-}
-
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler
 {
     NSError *error;
