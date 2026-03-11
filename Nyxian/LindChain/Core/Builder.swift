@@ -261,21 +261,23 @@ class Builder {
                 if LCUtils.certificateData() == nil {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Miscellanous > Import Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
                 }
-                LCAppInfo(bundlePath: project.bundlePath)?.patchExecAndSignIfNeed(completionHandler: { [weak self] result, errorDescription in
+                
+                LCUtils.signAppBundle(withZSign: URL(fileURLWithPath: project.bundlePath)) { [weak self] result, error in
                     guard let self = self else { return }
                     macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
                     if result {
-                        if(LDEApplicationWorkspace.shared().installApplication(atBundlePath: self.project.bundlePath)) {
-                            let application: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: project.projectConfig.bundleid)
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad))
+                        if LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) {
+                            DispatchQueue.main.async {
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad))
+                            }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
                         }
                     } else {
-                        nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:errorDescription ?? "Unknown error happened signing application"])
+                        nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:error?.localizedDescription ?? "Unknown error happened signing application"])
                     }
                     semaphore.signal()
-                }, progressHandler: { progress in }, forceSign: false)
+                }
                 semaphore.wait()
                 
                 if let nsError = nsError {

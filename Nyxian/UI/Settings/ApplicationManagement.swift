@@ -191,33 +191,18 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     return
                 }
                 
-                let bundleURL = bundle.bundleURL
-                let lcapp = LCAppInfo(bundlePath: bundleURL.path)
-                lcapp!.patchExecAndSignIfNeed(completionHandler: { [weak self] result, error in
+                LCUtils.signAppBundle(withZSign: bundle.bundleURL) { [weak self] result, error in
                     guard let self = self else { return }
-                    if result {
-                        lcapp!.save()
-                        let bundlePath = lcapp!.bundlePath()
-                        let bundleId = lcapp!.bundleIdentifier()
-                        if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundlePath) {
-                            DispatchQueue.main.async {
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundleId, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
-                                let appObject: LDEApplicationObject = LDEApplicationWorkspace.shared().applicationObject(forBundleID: bundle.bundleIdentifier)
-                                if let index = self.applications.firstIndex(where: { $0.bundleIdentifier == appObject.bundleIdentifier }) {
-                                    self.applications[index] = appObject
-                                } else {
-                                    self.applications.append(appObject)
-                                }
-                                self.tableView.reloadData()
-                            }
-                        } else {
-                            NotificationServer.NotifyUser(level: .error, notification: "Failed to install application.")
+                    
+                    if result,
+                       LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
+                        DispatchQueue.main.async {
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
                         }
-                        try? fileManager.removeItem(atPath: workRoot)
                     } else {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to sign application.")
+                        NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
                     }
-                }, progressHandler: { _ in }, forceSign: false)
+                }
             } catch {
                 NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
             }

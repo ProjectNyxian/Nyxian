@@ -158,7 +158,6 @@
 				LindChain/LaunchServices/LaunchService.m,
 				LindChain/litehook/LICENSE,
 				LindChain/litehook/litehook.c,
-				LindChain/LiveContainer/LCAppInfo.m,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,
 				LindChain/LiveContainer/LCUtils.m,

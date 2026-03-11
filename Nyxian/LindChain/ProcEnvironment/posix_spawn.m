@@ -22,7 +22,6 @@
 #import <LindChain/ProcEnvironment/posix_spawn.h>
 #import <LindChain/litehook/litehook.h>
 #import <LindChain/LiveContainer/LCUtils.h>
-#import <LindChain/LiveContainer/LCAppInfo.h>
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
 #import <sys/sysctl.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>

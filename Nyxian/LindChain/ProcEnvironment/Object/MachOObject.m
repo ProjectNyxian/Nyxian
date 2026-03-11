@@ -19,7 +19,7 @@
 
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
-#import <LindChain/LiveContainer/LCAppInfo.h>
+#import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 
 @implementation MachOObject
@@ -55,20 +55,24 @@
     [fm copyItemAtPath:path toPath:binPath error:nil];
     
     // Run signer
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    dispatch_async(dispatch_queue_create("sign-queue", DISPATCH_QUEUE_CONCURRENT), ^{
-        LCAppInfo *appInfo = [[PrivClass(LCAppInfo) alloc] initWithBundlePath:bundlePath];
-        [appInfo patchExecAndSignIfNeedWithCompletionHandler:^(BOOL succeeded, NSString *errorDescription){
-            dispatch_semaphore_signal(sema);
-        } progressHandler:^(NSProgress *progress) {
-        } forceSign:NO];
-    });
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    __block NSError *error = nil;
+    [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
+        error = error;
+    }];
     
-    BOOL retval = checkCodeSignature([binPath UTF8String]);
-    if(retval) [fm moveItemAtPath:binPath toPath:path error:nil];
-    [fm removeItemAtPath:bundlePath error:nil];
-    return retval;
+    if(error != nil)
+    {
+        return NO;
+    }
+    
+    if(checkCodeSignature([binPath UTF8String]))
+    {
+        [fm moveItemAtPath:binPath toPath:path error:nil];
+        [fm removeItemAtPath:bundlePath error:nil];
+        return YES;
+    }
+    
+    return NO;
 }
 
 - (BOOL)signAndWriteBack
@@ -97,20 +101,24 @@
     if(![self writeOut:binPath]) return NO;
     
     // Run signer
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    dispatch_async(dispatch_queue_create("sign-queue", DISPATCH_QUEUE_CONCURRENT), ^{
-    LCAppInfo *appInfo = [[PrivClass(LCAppInfo) alloc] initWithBundlePath:bundlePath];
-        [appInfo patchExecAndSignIfNeedWithCompletionHandler:^(BOOL succeeded, NSString *errorDescription){
-            dispatch_semaphore_signal(sema);
-        } progressHandler:^(NSProgress *progress) {
-        } forceSign:NO];
-    });
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    __block NSError *error = nil;
+    [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
+        error = error;
+    }];
     
-    BOOL retval = checkCodeSignature([binPath UTF8String]);
-    if(retval && ![self writeIn:binPath]) retval = NO;
-    [fm removeItemAtPath:bundlePath error:nil];
-    return retval;
+    if(error != nil)
+    {
+        return NO;
+    }
+    
+    if(checkCodeSignature([binPath UTF8String]))
+    {
+        [fm moveItemAtPath:binPath toPath:bundlePath error:nil];
+        [fm removeItemAtPath:bundlePath error:nil];
+        return YES;
+    }
+    
+    return NO;
 }
 
 @end

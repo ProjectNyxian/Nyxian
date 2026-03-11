@@ -1,5 +1,5 @@
 #import "LCUtils.h"
-#import "LCAppInfo.h"
+#import <LindChain/LiveContainer/LCMachOUtils.h>
 #import "ZSign/zsigner.h"
 #import "FoundationPrivate.h"
 #import <Security/Security.h>
@@ -150,19 +150,42 @@ extern NSUserDefaults *lcUserDefaults;
 
 #pragma mark Code signing
 
-+ (NSProgress *)signAppBundleWithZSign:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler {
++ (NSProgress *)signAppBundleWithZSign:(NSURL *)path
+                     completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
+{
     NSError *error;
-
-    // use zsign as our signer~
+    
+    /* trying to make a new NSBundle for the bundle at path */
+    NSBundle *bundle = [NSBundle bundleWithURL:path];
+    
+    if(bundle == nil)
+    {
+        /* TODO: craft a error */
+        completionHandler(NO, error);
+    }
+    
+    /* patching executable slice if necessary */
+    __block bool has64bitSlice = NO;
+    NSString *errorStr = LCParseMachO(bundle.executablePath.UTF8String, false, ^(const char *path, struct mach_header_64 *header, int fd, void* filePtr){
+        if(header->cputype == CPU_TYPE_ARM64) {
+            has64bitSlice |= YES;
+            int patchResult = LCPatchExecSlice(path, header, YES);
+        }
+    });
+    
+    /* patching arm64e things */
+    LCPatchAppBundleFixupARM64eSlice(path);
+    
+    /* use zsign as our signer~ (yeah daddy tim, were using zsigner as our signer, am i a bad girl now ;3) */
     NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
     NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
-    // Load libraries from Documents, yeah
-
+    /* load libraries from Documents, yeah~ */
+    
     if (error) {
         completionHandler(NO, error);
         return nil;
     }
-
+    
     NSLog(@"[LC] starting signing...");
     
     NSProgress* ans = [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
@@ -170,7 +193,9 @@ extern NSUserDefaults *lcUserDefaults;
     return ans;
 }
 
-+ (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData password:(NSString*)password {
++ (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData
+                             password:(NSString*)password
+{
     NSError *error;
     NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
     NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
@@ -181,7 +206,8 @@ extern NSUserDefaults *lcUserDefaults;
     return ans;
 }
 
-+ (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler {
++ (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler
+{
     NSError *error;
     NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
     NSData *profileData = [NSData dataWithContentsOfURL:profilePath];

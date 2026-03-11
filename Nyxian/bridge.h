@@ -34,7 +34,6 @@
 #if !JAILBREAK_ENV
 
 /* LiveContainer Headers */
-#import <LindChain/LiveContainer/LCAppInfo.h>
 #import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
