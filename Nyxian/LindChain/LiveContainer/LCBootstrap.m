@@ -1,6 +1,28 @@
-#import "FoundationPrivate.h"
-#import "LCMachOUtils.h"
-#import "utils.h"
+/*
+ SPDX-License-Identifier: AGPL-3.0-or-later
+
+ Copyright (C) 2025 khanhduytran0
+ Copyright (C) 2026 cr4zyengineer
+
+ This file is part of LiveContainer.
+
+ LiveContainer is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ LiveContainer is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#import <LindChain/Private/FoundationPrivate.h>
+#import <LindChain/LiveContainer/LCMachOUtils.h>
+#import <LindChain/LiveContainer/utils.h>
 
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
@@ -13,7 +35,7 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #import <LindChain/litehook/litehook.h>
-#import "Tweaks/Tweaks.h"
+#import <LindChain/LiveContainer/Tweaks/Tweaks.h>
 #include <mach-o/ldsyms.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>

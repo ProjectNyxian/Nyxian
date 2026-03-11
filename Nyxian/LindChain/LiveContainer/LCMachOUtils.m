@@ -1,8 +1,30 @@
+/*
+ SPDX-License-Identifier: AGPL-3.0-or-later
+
+ Copyright (C) 2025 khanhduytran0
+ Copyright (C) 2026 cr4zyengineer
+
+ This file is part of LiveContainer.
+
+ LiveContainer is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ LiveContainer is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #import <Foundation/Foundation.h>
 #import <sys/stat.h>
 #import <libgen.h>
 #import <LindChain/litehook/litehook.h>
-#import "LCUtils.h"
+#import <LindChain/LiveContainer/LCUtils.h>
 
 static uint32_t rnd32(uint32_t v,
                       uint32_t r)
@@ -367,49 +389,6 @@ struct code_signature_command* findSignatureCommand(struct mach_header_64* heade
     return codeSignCommand;
 }
 
-NSString* getEntitlementXML(struct mach_header_64* header, void** entitlementXMLPtrOut) {
-    struct code_signature_command* codeSignCommand = findSignatureCommand(header);
-
-    if(!codeSignCommand) {
-        return @"Unable to find LC_CODE_SIGNATURE command.";
-    }
-    struct ui_CS_SuperBlob* blob = (void*)header + codeSignCommand->dataoff;
-    if(blob->magic != OSSwapInt32(0xfade0cc0)) {
-        return [NSString stringWithFormat:@"CodeSign blob magic mismatch %8x.", blob->magic];
-    }
-    struct ui_CS_BlobIndex* entitlementBlobIndex = 0;
-    struct ui_CS_BlobIndex* nowIndex = (void*)blob + sizeof(struct ui_CS_SuperBlob);
-    for(int i = 0; i < OSSwapInt32(blob->count); i++) {
-        if(OSSwapInt32(nowIndex->type) == 5) {
-            entitlementBlobIndex = nowIndex;
-            break;
-        }
-        nowIndex = (void*)nowIndex + sizeof(struct ui_CS_BlobIndex);
-    }
-    if(entitlementBlobIndex == 0) {
-        return @"[LC] entitlement blob index not found.";
-    }
-    struct ui_CS_blob* entitlementBlob = (void*)blob + OSSwapInt32(entitlementBlobIndex->offset);
-    if(entitlementBlob->magic != OSSwapInt32(0xfade7171)) {
-        return [NSString stringWithFormat:@"EntitlementBlob magic mismatch %8x.", blob->magic];
-    };
-    int32_t xmlLength = OSSwapInt32(entitlementBlob->length) - sizeof(struct ui_CS_blob);
-    void* xmlPtr = (void*)entitlementBlob + sizeof(struct ui_CS_blob);
-    
-    if(entitlementXMLPtrOut) {
-        *entitlementXMLPtrOut = xmlPtr;
-    }
-
-    // entitlement xml in executable don't have \0 so we have to copy it first
-    char* xmlString = malloc(xmlLength + 1);
-    memcpy(xmlString, xmlPtr, xmlLength);
-    xmlString[xmlLength] = 0;
-
-    NSString* ans = [NSString stringWithUTF8String:xmlString];
-    free(xmlString);
-    return ans;
-}
-
 bool checkCodeSignature(const char* path) {
     __block bool checked = false;
     __block bool ans = false;
@@ -449,15 +428,6 @@ bool checkCodeSignature(const char* path) {
             ans = false;
             return;
         }
-    });
-    return ans;
-}
-
-NSString* getLCEntitlementXML(void) {
-    __block NSString* ans = @"Failed to find main executable?";
-    // it seems the debug build messes the code signature region up, so we search the executable file on the disk instead.
-    LCParseMachO(NSBundle.mainBundle.executablePath.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
-        ans = getEntitlementXML(header, 0);
     });
     return ans;
 }
