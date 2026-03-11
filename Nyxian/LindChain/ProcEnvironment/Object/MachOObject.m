@@ -55,10 +55,13 @@
     [fm copyItemAtPath:path toPath:binPath error:nil];
     
     // Run signer
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     __block NSError *error = nil;
     [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
         error = error;
+        dispatch_semaphore_signal(sema);
     }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     if(error != nil)
     {
@@ -72,6 +75,7 @@
         return YES;
     }
     
+    [fm removeItemAtPath:bundlePath error:nil];
     return NO;
 }
 
@@ -101,23 +105,27 @@
     if(![self writeOut:binPath]) return NO;
     
     // Run signer
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     __block NSError *error = nil;
     [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
         error = error;
+        dispatch_semaphore_signal(sema);
     }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     if(error != nil)
     {
         return NO;
     }
     
-    if(checkCodeSignature([binPath UTF8String]))
+    if(checkCodeSignature([binPath UTF8String]) &&
+       [self writeIn:binPath])
     {
-        [fm moveItemAtPath:binPath toPath:bundlePath error:nil];
         [fm removeItemAtPath:bundlePath error:nil];
         return YES;
     }
     
+    [fm removeItemAtPath:bundlePath error:nil];
     return NO;
 }
 
