@@ -13,7 +13,4 @@ int dyld_get_program_sdk_version(void);
 + (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData password:(NSString*)password;
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler;
 
-+ (NSString *)teamIdentifier;
-+ (NSString *)appGroupID;
-
 @end
