@@ -25,6 +25,10 @@
 
 #import <Foundation/Foundation.h>
 #import <mach-o/loader.h>
+#import <mach-o/fat.h>
+#import <mach-o/dyld.h>
+#import <mach-o/dyld_images.h>
+#import <mach-o/ldsyms.h>
 
 typedef void (^LCParseMachOCallback)(const char *path, struct mach_header_64 *header, int fd, void* filePtr);
 

@@ -133,7 +133,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				LindChain/JBSupport/tshelper,
-				LindChain/litehook/LICENSE,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};
@@ -156,7 +155,6 @@
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/Init.mm,
 				LindChain/LaunchServices/LaunchService.m,
-				LindChain/litehook/LICENSE,
 				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,
