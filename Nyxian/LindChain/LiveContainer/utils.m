@@ -1,7 +1,7 @@
 /*
  SPDX-License-Identifier: AGPL-3.0-or-later
 
- Copyright (C) 2025 khanhduytran0
+ Copyright (C) 2023 - 2026 LiveContainer
  Copyright (C) 2026 cr4zyengineer
 
  This file is part of LiveContainer.

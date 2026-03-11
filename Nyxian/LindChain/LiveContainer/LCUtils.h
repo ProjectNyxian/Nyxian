@@ -1,7 +1,7 @@
 /*
  SPDX-License-Identifier: AGPL-3.0-or-later
 
- Copyright (C) 2025 khanhduytran0
+ Copyright (C) 2023 - 2026 LiveContainer
  Copyright (C) 2026 cr4zyengineer
 
  This file is part of LiveContainer.
@@ -17,7 +17,7 @@
  GNU Affero General Public License for more details.
 
  You should have received a copy of the GNU Affero General Public License
- along with LiveContainer. If not, see <https://www.gnu.org/licenses/>.
+ along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #ifndef LIVECONTAINER_LCUTILS_H
