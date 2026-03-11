@@ -32,31 +32,31 @@
 + (BOOL)signBinaryAtPath:(NSString*)path
 {
     environment_must_be_role(EnvironmentRoleHost);
+    
+    __block NSError *error = nil;
+    
     NSFileManager *fm = [NSFileManager defaultManager];
     
     NSString *bundlePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[[NSUUID UUID] UUIDString] stringByAppendingPathExtension:@"app"]];
     NSString *binPath = [bundlePath stringByAppendingPathComponent:@"main"];
     NSString *infoPath = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
     
-    // Create bundle structure
+    /* create bundle structure */
     [fm createDirectoryAtPath:bundlePath withIntermediateDirectories:YES attributes:nil error:nil];
     
-    // Write Info.plist with hash marker
-    NSDictionary *plistDict = @{
+    /* create pseudo info.plist TODO: actual make a single macho signer */
+    [[NSPropertyListSerialization dataWithPropertyList:@{
         @"CFBundleIdentifier" : [[NSBundle mainBundle] bundleIdentifier],
-        @"CFBundleExecutable" : @"main",
-        @"CFBundleVersion"    : @"1.0.0"
-    };
-    NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistDict
-                                                                   format:NSPropertyListXMLFormat_v1_0
-                                                                  options:0
-                                                                    error:nil];
-    [plistData writeToFile:infoPath atomically:YES];
-    [fm copyItemAtPath:path toPath:binPath error:nil];
+        @"CFBundleExecutable" : @"main"
+    } format:NSPropertyListXMLFormat_v1_0 options:0 error:&error] writeToFile:infoPath atomically:YES];
     
-    // Run signer
+    if(error != nil)
+    {
+        return NO;
+    }
+    
+    /* run signer~~ UwU */
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    __block NSError *error = nil;
     [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
         error = error;
         dispatch_semaphore_signal(sema);
@@ -82,31 +82,34 @@
 - (BOOL)signAndWriteBack
 {
     environment_must_be_role(EnvironmentRoleHost);
+    
+    __block NSError *error = nil;
+    
     NSFileManager *fm = [NSFileManager defaultManager];
     
     NSString *bundlePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[[NSUUID UUID] UUIDString] stringByAppendingPathExtension:@"app"]];
     NSString *binPath = [bundlePath stringByAppendingPathComponent:@"main"];
     NSString *infoPath = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
     
-    // Create bundle structure
+    /* create bundle structure */
     [fm createDirectoryAtPath:bundlePath withIntermediateDirectories:YES attributes:nil error:nil];
     
-    // Write Info.plist with hash marker
-    NSDictionary *plistDict = @{
+    /* create pseudo info.plist TODO: actual make a single macho signer */
+    [[NSPropertyListSerialization dataWithPropertyList:@{
         @"CFBundleIdentifier" : [[NSBundle mainBundle] bundleIdentifier],
-        @"CFBundleExecutable" : @"main",
-        @"CFBundleVersion"    : @"1.0.0"
-    };
-    NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistDict
-                                                                   format:NSPropertyListXMLFormat_v1_0
-                                                                  options:0
-                                                                    error:nil];
-    [plistData writeToFile:infoPath atomically:YES];
+        @"CFBundleExecutable" : @"main"
+    } format:NSPropertyListXMLFormat_v1_0 options:0 error:&error] writeToFile:infoPath atomically:YES];
+    
+    if(error != nil)
+    {
+        return NO;
+    }
+    
+    /* write binary from file descriptor to our selves */
     if(![self writeOut:binPath]) return NO;
     
-    // Run signer
+    /* run signer~~ UwU */
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    __block NSError *error = nil;
     [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
         error = error;
         dispatch_semaphore_signal(sema);
