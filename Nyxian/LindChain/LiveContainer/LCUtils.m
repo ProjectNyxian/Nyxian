@@ -37,7 +37,7 @@ extern NSUserDefaults *lcUserDefaults;
 + (NSProgress *)signAppBundleWithZSign:(NSURL *)path
                      completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
 {
-    NSError *error;
+    __block NSError *error = nil;
     
     /* trying to make a new NSBundle for the bundle at path */
     NSBundle *bundle = [NSBundle bundleWithURL:path];
@@ -49,13 +49,24 @@ extern NSUserDefaults *lcUserDefaults;
     }
     
     /* patching executable slice if necessary */
-    __block bool has64bitSlice = NO;
     NSString *errorStr = LCParseMachO(bundle.executablePath.UTF8String, false, ^(const char *path, struct mach_header_64 *header, int fd, void* filePtr){
-        if(header->cputype == CPU_TYPE_ARM64) {
-            has64bitSlice |= YES;
-            int patchResult = LCPatchExecSlice(path, header, YES);
+        if(header->cputype != CPU_TYPE_ARM64 ||
+           LCPatchExecSlice(path, header, YES) != 0)
+        {
+            error = [NSError errorWithDomain:@"com.nyxian.lcutils" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"unsupported executable format" } ];
         }
     });
+    
+    if(errorStr)
+    {
+        error = [NSError errorWithDomain:@"com.nyxian.lcutils" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"unsupported executable format" } ];
+    }
+    
+    if(error)
+    {
+        completionHandler(NO, error);
+        return nil;
+    }
     
     /* patching arm64e things */
     LCPatchAppBundleFixupARM64eSlice(path);
@@ -65,16 +76,7 @@ extern NSUserDefaults *lcUserDefaults;
     NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
     /* load libraries from Documents, yeah~ */
     
-    if (error) {
-        completionHandler(NO, error);
-        return nil;
-    }
-    
-    NSLog(@"[LC] starting signing...");
-    
-    NSProgress* ans = [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
-    
-    return ans;
+    return [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
 }
 
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler
