@@ -68,7 +68,7 @@
         return NO;
     }
     
-    if(checkCodeSignature([binPath UTF8String]))
+    if([self isBinarySignedAtPath:binPath])
     {
         [fm moveItemAtPath:binPath toPath:path error:nil];
         [fm removeItemAtPath:bundlePath error:nil];
@@ -121,7 +121,7 @@
         return NO;
     }
     
-    if(checkCodeSignature([binPath UTF8String]) &&
+    if([self.class isBinarySignedAtPath:binPath] &&
        [self writeIn:binPath])
     {
         [fm removeItemAtPath:bundlePath error:nil];
