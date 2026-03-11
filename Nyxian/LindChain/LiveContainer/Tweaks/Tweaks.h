@@ -17,7 +17,7 @@
  GNU Affero General Public License for more details.
 
  You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ along with LiveContainer. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #ifndef TWEAKS_TWEAKS_H
