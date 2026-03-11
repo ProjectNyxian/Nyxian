@@ -32,11 +32,6 @@ extern NSUserDefaults *lcUserDefaults;
     return [NSUserDefaults.standardUserDefaults objectForKey:@"LCCertificatePassword"];
 }
 
-+ (void)setCertificatePassword:(NSString *)certPassword
-{
-    [NSUserDefaults.standardUserDefaults setObject:certPassword forKey:@"LCCertificatePassword"];
-}
-
 #pragma mark Code signing
 
 + (NSProgress *)signAppBundleWithZSign:(NSURL *)path
