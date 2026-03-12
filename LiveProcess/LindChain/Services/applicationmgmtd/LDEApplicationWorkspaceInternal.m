@@ -121,23 +121,93 @@ bool checkCodeSignature(const char* path);
  */
 - (BOOL)doWeTrustThatBundle:(NSBundle*)bundle
 {
-    if(!bundle) return NO;
-    //else if(![bundle validateBundleMetadataWithError:nil]) return NO;
-    //else if(![bundle isAppTypeBundle]) return NO;
-    //else if(![bundle validateAppMetadataWithError:nil]) return NO;
-    //else if(![bundle isApplicableToCurrentOSVersionWithError:nil]) return NO;
-    //else if(![bundle isApplicableToCurrentDeviceFamilyWithError:nil]) return NO;
-    //else if(![bundle isApplicableToCurrentDeviceCapabilitiesWithError:nil]) return NO;
+    /*
+     * checking for obvious thing lol, and checking for
+     * info dictionary, every iOS app needs to have one.
+     */
+    if(bundle == nil ||
+       bundle.infoDictionary == nil)
+    {
+        return NO;
+    }
     
-    // MARK: Validate certificate using LC`s CS Check
-    if(!checkCodeSignature([[bundle.executableURL path] UTF8String])) return NO;
+    /* checking if needed info keys exist */
+    if(bundle.infoDictionary[@"CFBundleExecutable"] == nil ||
+       bundle.infoDictionary[@"CFBundleIdentifier"] == nil ||
+       bundle.infoDictionary[@"MinimumOSVersion"] == nil)
+    {
+        return NO;
+    }
+    
+    /* checking if info keys match the correct class type */
+    if(![bundle.infoDictionary[@"CFBundleExecutable"] isKindOfClass:[NSString class]] ||
+       ![bundle.infoDictionary[@"CFBundleIdentifier"] isKindOfClass:[NSString class]] ||
+       ![bundle.infoDictionary[@"MinimumOSVersion"] isKindOfClass:[NSString class]])
+    {
+        return NO;
+    }
+    
+    /* now extracting key values */
+    NSString *bundleIdentifier = bundle.infoDictionary[@"CFBundleIdentifier"];
+    NSString *minimumVersion = bundle.infoDictionary[@"MinimumOSVersion"];
+    
+    /* executable path validation */
+    NSString *executableName = bundle.infoDictionary[@"CFBundleExecutable"];
+    NSString *lastPathComponent = bundle.executableURL.lastPathComponent;
+
+    if(lastPathComponent == nil ||
+       ![executableName isEqualToString:lastPathComponent] ||
+       ![[NSFileManager defaultManager] isReadableFileAtPath:bundle.executablePath])
+    {
+        return NO;
+    }
+    
+    /* code signature check */
+    if(!checkCodeSignature([bundle.executablePath UTF8String]))
+    {
+        return NO;
+    }
+    
+    /* bundle identifier validation */
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z0-9_]+)+$" options:0 error:nil];
+
+    if(regex == nil)
+    {
+        return NO;
+    }
+
+    NSUInteger matches = [regex numberOfMatchesInString:bundleIdentifier options:0 range:NSMakeRange(0, bundleIdentifier.length)];
+
+    if(matches == 0)
+    {
+        return NO;
+    }
+    
+    /* minimum version validation */
+    NSArray *components = [minimumVersion componentsSeparatedByString:@"."];
+    
+    if(components == nil)
+    {
+        return NO;
+    }
+    
+    NSOperatingSystemVersion requiredVersion = {
+        components.count > 0 ? [components[0] integerValue] : 0,
+        components.count > 1 ? [components[1] integerValue] : 0,
+        components.count > 2 ? [components[2] integerValue] : 0
+    };
+
+    if(![[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:requiredVersion])
+    {
+        return NO;
+    }
     
     return YES;
 }
 
 - (BOOL)installApplicationWithPayloadPath:(NSString*)payloadPath
 {
-    // finding bundle
+    /* finding installable application bundle in the path */
     NSBundle *bundle = nil;
     NSArray<NSString *> *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:payloadPath error:nil];
     
