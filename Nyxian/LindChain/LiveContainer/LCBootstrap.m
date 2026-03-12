@@ -43,10 +43,6 @@
 #import <LindChain/LiveContainer/LCBootstrap.h>
 #import <malloc/malloc.h>
 
-NSUserDefaults *lcUserDefaults;
-NSBundle *lcMainBundle;
-NSBundle *guestMainBundle;
-
 /* https://github.com/opensource-apple/CF/blob/3cc41a76b1491f50813e28a4ec09954ffa359e6f/CFRuntime.h#L222 */
 typedef struct __CFRuntimeBase {
     uintptr_t _cfisa;
@@ -84,8 +80,6 @@ void overwriteMainNSBundle(NSBundle *newBundle,
     // Overwrite NSBundle.mainBundle
     // iOS 16: x19 is _MergedGlobals
     // iOS 17: x19 is _MergedGlobals+4
-
-    lcMainBundle = [NSBundle mainBundle];
     
     NSString *oldPath = NSBundle.mainBundle.executablePath;
     uint32_t *mainBundleImpl = (uint32_t *)method_getImplementation(class_getClassMethod(NSBundle.class, @selector(mainBundle)));
@@ -228,7 +222,7 @@ int LCBootstrapMain(NSString *executablePath,
     }
     
     /* MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be) */
-    guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
+    NSBundle *guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
     
     /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
     overwriteExecPath(executablePath.fileSystemRepresentation);

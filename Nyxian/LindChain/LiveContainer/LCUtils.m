@@ -30,8 +30,6 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <dlfcn.h>
 
-extern NSUserDefaults *lcUserDefaults;
-
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)
 - (BOOL)safari_isHTTPFamilyURL {

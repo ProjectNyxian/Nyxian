@@ -45,7 +45,6 @@ uint32_t guestAppSdkVersion = 0;
 uint32_t guestAppSdkVersionSet = 0;
 
 void* appExecutableHandle = 0;
-const char* lcMainBundlePath = NULL;
 void overwriteAppExecutableFileType(void);
 
 static inline int translateImageIndex(int origin)
@@ -367,7 +366,6 @@ void DyldHooksInit(void)
                     break;
                 }
             }
-            lcMainBundlePath = lcMainBundle.bundlePath.fileSystemRepresentation;
             
             DO_HOOK_GLOBAL(dlsym);
             DO_HOOK_GLOBAL(_dyld_image_count);
