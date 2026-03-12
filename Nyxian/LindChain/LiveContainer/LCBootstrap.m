@@ -41,29 +41,41 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/LiveContainer/LCBootstrap.h>
+#import <malloc/malloc.h>
 
 NSUserDefaults *lcUserDefaults;
 NSBundle *lcMainBundle;
 NSBundle *guestMainBundle;
 
-void overwriteMainCFBundle(void) {
-    // Overwrite CFBundleGetMainBundle
-    uint32_t *pc = (uint32_t *)CFBundleGetMainBundle;
-    void **mainBundleAddr = 0;
-    while (true) {
-        uint64_t addr = aarch64_get_tbnz_jump_address(*pc, (uint64_t)pc);
-        if (addr) {
-            // adrp <- pc-1
-            // tbnz <- pc
-            // ...
-            // ldr  <- addr
-            mainBundleAddr = (void **)aarch64_emulate_adrp_ldr(*(pc-1), *(uint32_t *)addr, (uint64_t)(pc-1));
-            break;
-        }
-        ++pc;
-    }
-    assert(mainBundleAddr != NULL);
-    *mainBundleAddr = (__bridge void *)NSBundle.mainBundle._cfBundle;
+/* https://github.com/opensource-apple/CF/blob/3cc41a76b1491f50813e28a4ec09954ffa359e6f/CFRuntime.h#L222 */
+typedef struct __CFRuntimeBase {
+    uintptr_t _cfisa;
+    uint8_t _cfinfo[4];
+#if __LP64__
+    uint32_t _rc;
+#endif
+} CFRuntimeBase;
+
+void overwriteMainCFBundle(void)
+{
+    /* literally overwriting object, this is normal memory */
+    CFBundleRef dst = CFBundleGetMainBundle();
+    CFBundleRef src = (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
+    
+    /*
+     * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
+     * skip it... preserve identity (pointer) and retain count
+     */
+    const size_t kHeaderSize = sizeof(CFRuntimeBase);
+    size_t size = malloc_size(dst);
+    
+    /*
+     * retain everything in src payload first
+     * so objects survive when dst's old pointers get orphaned.
+     */
+    CFRetain(src);
+    
+    memcpy((uint8_t *)dst + kHeaderSize, (uint8_t *)src + kHeaderSize, size - kHeaderSize);
 }
 
 void overwriteMainNSBundle(NSBundle *newBundle,
