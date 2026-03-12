@@ -200,7 +200,9 @@
             applicationObject.executablePath
         ],
         @"LSEnvironment": @{
-            @"HOME": applicationObject.containerPath
+            @"HOME": applicationObject.containerPath,
+            @"CFFIXED_USER_HOME": applicationObject.containerPath,
+            @"TMPDIR": [applicationObject.containerPath stringByAppendingPathComponent:@"Tmp"]
         },
         @"LDEDebugEnabled": @(enableDebugging)
     }];

@@ -196,86 +196,61 @@ void InsertLibrariesIfNeeded(void)
     }
 }
 
-NSString *LCHomePath;
-
 int LCBootstrapMain(NSString *executablePath,
                     int argc,
                     char *argv[])
 {
-    // Getting executable path from argv
-    if(executablePath == nil) return 0;
-    
-    // Getting home path from envp, it is okay if its not present
-retry_getting_home:
+    if(executablePath == nil)
     {
-        const char *home = getenv("HOME");
-        
-        if(home == NULL)
-        {
-            setenv("HOME", [[LCHomePath stringByAppendingPathComponent:@"Documents/var/mobile"] UTF8String], 1);
-            goto retry_getting_home;
-        }
-        
-        /* fixing PWD */
-        setenv("PWD", home, 0);
-        chdir(getenv("PWD"));
-        
-        // Getting guestMainBundle, if applicable
-        // Now trying to get bundle
-        // MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be)
-        guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
-        
-        // Setup directories
-        if(home)
-        {
-            NSString *homePath = [NSString stringWithCString:home encoding:NSUTF8StringEncoding];
-            
-            if(guestMainBundle.bundleIdentifier)
-            {
-                NSArray *dirList = @[@"Library/Caches", @"Documents", @"SystemData", @"Tmp"];
-                for (NSString *dir in dirList)
-                    [[NSFileManager defaultManager] createDirectoryAtPath:[homePath stringByAppendingPathComponent:dir] withIntermediateDirectories:YES attributes:nil error:nil];
-            }
-            
-            // Setup environment variables
-            setenv("CFFIXED_USER_HOME", homePath.UTF8String, 1);
-            setenv("TMPDIR", [[NSString stringWithFormat:@"%@/Tmp", homePath] UTF8String], 1);
-        }
-        
-        // Overwrite them better now?
-        // MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically
-        overwriteExecPath(executablePath.fileSystemRepresentation);
-        
-        // Overwriting main bundle with guests bundle
-        overwriteMainNSBundle(guestMainBundle, executablePath);
-        overwriteMainCFBundle();
-
-        // Preload executable to bypass RT_NOLOAD
-        appMainImageIndex = _dyld_image_count();
-        void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
-        appExecutableHandle = appHandle;
-        const char *dlerr = dlerror();
-        
-        if(!appHandle || (uint64_t)appHandle > 0xf00000000000 || dlerr)
-        {
-            return 0;
-        }
-        
-        NUDGuestHooksInit();
-        SecItemGuestHooksInit();
-        NSFMGuestHooksInit();
-        UIKitGuestHooksInit();
-        initDead10ccFix();
-        DyldHooksInit();
-        InsertLibrariesIfNeeded();
-
-        // Find main()
-        int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
-        if(!appMain)
-        {
-            return 0;
-        }
-
-        return appMain(argc, argv);
+        return 1;
     }
+    
+    /* fixing up pwd if home is not null */
+    const char *home = getenv("HOME");
+    
+    if(home != NULL)
+    {
+        /* fixing PWD (incase nobody set it yet) */
+        setenv("PWD", home, 0);
+        chdir(home);
+    }
+    
+    /* MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be) */
+    guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
+    
+    /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
+    overwriteExecPath(executablePath.fileSystemRepresentation);
+    
+    /* Overwriting main bundle with guests bundle */
+    overwriteMainNSBundle(guestMainBundle, executablePath);
+    overwriteMainCFBundle();
+    
+    /* Preload executable to bypass RT_NOLOAD */
+    appMainImageIndex = _dyld_image_count();
+    void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
+    appExecutableHandle = appHandle;
+    const char *dlerr = dlerror();
+    
+    if(!appHandle || (uint64_t)appHandle > 0xf00000000000 || dlerr)
+    {
+        return 1;
+    }
+    
+    /* perform other hooks */
+    NUDGuestHooksInit();
+    SecItemGuestHooksInit();
+    NSFMGuestHooksInit();
+    UIKitGuestHooksInit();
+    initDead10ccFix();
+    DyldHooksInit();
+    InsertLibrariesIfNeeded();
+    
+    /* find main  */
+    int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
+    if(!appMain)
+    {
+        return 1;
+    }
+    
+    return appMain(argc, argv);
 }

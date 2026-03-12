@@ -221,55 +221,64 @@ bool checkCodeSignature(const char* path);
         }
     }
     
-    // Check if bundle is valid for LDEApplicationWorkspace
-    if(!bundle) return NO;
-    else if(![self doWeTrustThatBundle:bundle]) return NO;
+    /* bundle validation */
+    if(!bundle)
+    {
+        return NO;
+    }
     
-    // File manager
+    /* next bundle validation */
+    if(![self doWeTrustThatBundle:bundle])
+    {
+        return NO;
+    }
+    
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
-    // Now generate installPath
+    /* reinstall if such a app is already installed  */
     NSURL *installURL = nil;
     NSBundle *previousApplication = [self applicationBundleForBundleID:[bundle bundleIdentifier]];
     if(previousApplication)
     {
-        // It existed before, using old path
+        /* need reinstallation */
         installURL = previousApplication.bundleURL;
         [fileManager removeItemAtURL:installURL error:nil];
         previousApplication = nil;
     }
     else
     {
-        // It didnt existed before, using new path
+        /* need new installation */
         installURL = [[self.applicationsURL URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]] URLByAppendingPathComponent:[bundle.bundleURL lastPathComponent]];
     }
     
-    // Now installing at install location
-    if(![fileManager createDirectoryAtURL:[installURL URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]) return NO;
-    if(![fileManager moveItemAtURL:bundle.bundleURL toURL:installURL error:nil]) return NO;
-    
-    // If existed we add object
-    NSError *error = nil;
-    bundle = [NSBundle bundleWithURL:installURL];
-    
-    // checking if adding it was successful
-    if(bundle != nil)
-    {
-        [self.bundles setObject:bundle forKey:bundle.bundleIdentifier];
-        LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithNSBundle:bundle];
-        if(object != nil)
-        {
-            for(NSXPCConnection *client in [[ServiceServer sharedService] clients])
-            {
-                [client.remoteObjectProxy applicationWasInstalled:object];
-            }
-        }
-        return YES;
-    }
-    else
+    /* install it at location */
+    if(![fileManager createDirectoryAtURL:[installURL URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil] ||
+       ![fileManager moveItemAtURL:bundle.bundleURL toURL:installURL error:nil])
     {
         return NO;
     }
+    
+    /* getting new bundle */
+    bundle = [NSBundle bundleWithURL:installURL];
+    
+    /* checking weither bundle is valid */
+    if(bundle == nil)
+    {
+        return NO;
+    }
+    
+    /* notifying listeners about it */
+    [self.bundles setObject:bundle forKey:bundle.bundleIdentifier];
+    LDEApplicationObject *object = [[LDEApplicationObject alloc] initWithNSBundle:bundle];
+    if(object != nil)
+    {
+        for(NSXPCConnection *client in [[ServiceServer sharedService] clients])
+        {
+            [client.remoteObjectProxy applicationWasInstalled:object];
+        }
+    }
+    
+    return YES;
 }
 
 - (BOOL)deleteApplicationWithBundleID:(NSString *)bundleID
@@ -320,20 +329,66 @@ bool checkCodeSignature(const char* path);
 
 - (NSURL*)applicationContainerForBundleID:(NSString *)bundleID
 {
+    /* gathering bundle */
     NSBundle *bundle = [self applicationBundleForBundleID:bundleID];
-    if(!bundle) return nil;
+    if(bundle == nil)
+    {
+        return nil;
+    }
+    
+    /* checking against container  */
     NSString *uuid = [[bundle.bundleURL URLByDeletingLastPathComponent] lastPathComponent];
-    return [self.containersURL URLByAppendingPathComponent:uuid];
+    
+    if(uuid == nil)
+    {
+        return nil;
+    }
+    
+    NSURL *containerURL = [self.containersURL URLByAppendingPathComponent:uuid];
+    
+    /* creating if it doesnt exist */
+    BOOL isDirectory = NO;
+    if(![[NSFileManager defaultManager] fileExistsAtPath:[containerURL path] isDirectory:&isDirectory])
+create_container:
+    {
+        NSError *error = nil;
+        [[NSFileManager defaultManager] createDirectoryAtURL:containerURL withIntermediateDirectories:YES attributes:nil error:&error];
+        
+        if(error != nil)
+        {
+            return nil;
+        }
+        
+        /* bootstrapping data container */
+        NSArray *dirList = @[@"Library/Caches", @"Documents", @"SystemData", @"Tmp"];
+        for(NSString *dir in dirList)
+        {
+            [[NSFileManager defaultManager] createDirectoryAtURL:[containerURL URLByAppendingPathComponent:dir] withIntermediateDirectories:YES attributes:nil error:&error];
+            
+            if(error != nil)
+            {
+                [[NSFileManager defaultManager] removeItemAtURL:containerURL error:nil];
+                return nil;
+            }
+        }
+    }
+    else
+    {
+        /* it shall only be a directory */
+        if(!isDirectory)
+        {
+            [[NSFileManager defaultManager] removeItemAtURL:containerURL error:nil];
+            goto create_container;
+        }
+    }
+    
+    return containerURL;
 }
 
 - (BOOL)clearContainerForBundleID:(NSString*)bundleID
 {
     NSURL *containerURL = [self applicationContainerForBundleID:bundleID];
     [[NSFileManager defaultManager] removeItemAtURL:containerURL error:nil];
-    [[NSFileManager defaultManager] createDirectoryAtURL:containerURL
-                             withIntermediateDirectories:true
-                                              attributes:nil
-                                                   error:nil];
     return YES;
 }
 

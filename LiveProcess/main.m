@@ -131,9 +131,8 @@ void createArgv(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
     (*argv)[count] = NULL;
 }
 
-extern NSString *LCHomePath;
-
-int LiveProcessMain(int argc, char *argv[]) {
+int LiveProcessMain(int argc, char *argv[])
+{
     // Let NSExtensionContext initialize, once it's done it will call CFRunLoopStop
     CFRunLoopRun();
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
@@ -162,7 +161,6 @@ int LiveProcessMain(int argc, char *argv[]) {
         environment_client_connect_to_syscall_proxy(syscallPort);
     }
     
-    LCHomePath = NSHomeDirectory();
     if(environmentDictionary) overwriteEnvironmentProperties(environmentDictionary);
     if(argumentDictionary) createArgv(argumentDictionary, &argc, &argv);
     
