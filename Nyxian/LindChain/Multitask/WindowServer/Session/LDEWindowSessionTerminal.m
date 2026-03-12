@@ -21,6 +21,7 @@
 
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <Nyxian-Swift.h>
 
@@ -100,9 +101,19 @@
     [mapObject appendFileDescriptor:tty->userspacefd[SLAVEFD] withMappingToLoc:STDOUT_FILENO];
     [mapObject appendFileDescriptor:tty->userspacefd[SLAVEFD] withMappingToLoc:STDERR_FILENO];
     
+    NSString *homePath = [[LDEApplicationWorkspace shared] utilityHomePath];
+    if(homePath == nil)
+    {
+        kvo_release(tty);
+        return NO;
+    }
     
     LDEProcess *process = nil;
-    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{} withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
+    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{
+        @"HOME": homePath,
+        @"CFFIXED_USER_HOME": homePath,
+        @"TMPDIR": [homePath stringByAppendingPathComponent:@"Tmp"]
+    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
     
     if(process == nil)
     {

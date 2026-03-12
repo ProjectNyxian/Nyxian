@@ -330,6 +330,35 @@
     return application;
 }
 
+- (NSString*)utilityHomePath
+{
+    [self connect];
+    
+    __block NSString *utilityHomePath = nil;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [_connection.remoteObjectProxy utilityHomePathWithReply:^(NSString *reply){
+            utilityHomePath = reply;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
+    return utilityHomePath;
+}
+
 - (void)applicationWasInstalled:(LDEApplicationObject*)app
 {
     dispatch_async(dispatch_get_main_queue(), ^{

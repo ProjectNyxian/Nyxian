@@ -346,6 +346,55 @@ bool checkCodeSignature(const char* path);
     return;
 }
 
+- (void)utilityHomePathWithReply:(void (^)(NSString*))reply
+{
+    NSString *homePath = [NSHomeDirectory() stringByAppendingPathComponent:@"/Documents/var/mobile"];
+    
+    NSURL *homeURL = [NSURL fileURLWithPath:homePath];
+    
+    if(homeURL == nil)
+    {
+        reply(nil);
+        return;
+    }
+    
+    /* checking if homepath is indeed existing */
+    BOOL isDirectory = NO;
+    if(![[NSFileManager defaultManager] fileExistsAtPath:[homeURL path] isDirectory:&isDirectory])
+create_home:
+    {
+        NSError *error = nil;
+        [[NSFileManager defaultManager] createDirectoryAtURL:homeURL withIntermediateDirectories:YES attributes:nil error:&error];
+        
+        if(error != nil)
+        {
+            reply(nil);
+            return;
+        }
+        
+        /* bootstrapping home path */
+        [[NSFileManager defaultManager] createDirectoryAtURL:[homeURL URLByAppendingPathComponent:@"Tmp"] withIntermediateDirectories:YES attributes:nil error:&error];
+        
+        if(error != nil)
+        {
+            [[NSFileManager defaultManager] removeItemAtURL:homeURL error:nil];
+            reply(nil);
+            return;
+        }
+    }
+    else
+    {
+        /* it shall only be a directory */
+        if(!isDirectory)
+        {
+            [[NSFileManager defaultManager] removeItemAtURL:homeURL error:nil];
+            goto create_home;
+        }
+    }
+    
+    reply(homePath);
+}
+
 - (void)applicationInstalledWithBundleID:(NSString *)bundleID
                                withReply:(void (^)(BOOL))reply {
     reply([[LDEApplicationWorkspaceInternal shared] applicationInstalledWithBundleID:bundleID]);
