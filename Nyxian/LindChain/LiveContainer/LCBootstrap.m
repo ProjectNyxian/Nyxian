@@ -52,11 +52,11 @@ typedef struct __CFRuntimeBase {
 #endif
 } CFRuntimeBase;
 
-void overwriteMainCFBundle(void)
+void overwriteMainNSBundle(NSBundle *bundle)
 {
     /* literally overwriting object, this is normal memory */
-    CFBundleRef dst = CFBundleGetMainBundle();
-    CFBundleRef src = (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
+    CFBundleRef dst = (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
+    CFBundleRef src = (__bridge CFBundleRef)bundle._cfBundle;
     
     /*
      * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
@@ -74,36 +74,9 @@ void overwriteMainCFBundle(void)
     memcpy((uint8_t *)dst + kHeaderSize, (uint8_t *)src + kHeaderSize, size - kHeaderSize);
 }
 
-void overwriteMainNSBundle(NSBundle *newBundle,
-                           NSString *executablePath)
+void overwriteProgInfo(NSString *executablePath)
 {
-    // Overwrite NSBundle.mainBundle
-    // iOS 16: x19 is _MergedGlobals
-    // iOS 17: x19 is _MergedGlobals+4
-    
-    NSString *oldPath = NSBundle.mainBundle.executablePath;
-    uint32_t *mainBundleImpl = (uint32_t *)method_getImplementation(class_getClassMethod(NSBundle.class, @selector(mainBundle)));
-    for (int i = 0; i < 20; i++) {
-        void **_MergedGlobals = (void **)aarch64_emulate_adrp_add(mainBundleImpl[i], mainBundleImpl[i+1], (uint64_t)&mainBundleImpl[i]);
-        if (!_MergedGlobals) continue;
-
-        // In iOS 17, adrp+add gives _MergedGlobals+4, so it uses ldur instruction instead of ldr
-        if ((mainBundleImpl[i+4] & 0xFF000000) == 0xF8000000) {
-            uint64_t ptr = (uint64_t)_MergedGlobals - 4;
-            _MergedGlobals = (void **)ptr;
-        }
-
-        for (int mgIdx = 0; mgIdx < 20; mgIdx++) {
-            if (_MergedGlobals[mgIdx] == (__bridge void *)NSBundle.mainBundle) {
-                _MergedGlobals[mgIdx] = (__bridge void *)newBundle;
-                break;
-            }
-        }
-    }
-    
-    assert(![NSBundle.mainBundle.executablePath isEqualToString:oldPath]);
-    
-    // Overwriting the process information from previous main bundle
+    /* overwriting the process information from previous main bundle */
     NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
     objcArgv[0] = executablePath;
     [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
@@ -114,7 +87,7 @@ void overwriteMainNSBundle(NSBundle *newBundle,
     *_CFGetProcessPath() = strdup(executablePath.UTF8String);
     Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
     if(swiftNSProcessInfo) {
-        // Swizzle the arguments method to return the ObjC arguments
+        /* swizzle the arguments method to return the ObjC arguments */
         SEL selector = @selector(arguments);
         method_setImplementation(class_getInstanceMethod(swiftNSProcessInfo, selector), class_getMethodImplementation(NSProcessInfo.class, selector));
     }
@@ -225,11 +198,11 @@ int LCBootstrapMain(NSString *executablePath,
     NSBundle *guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
     
     /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
-    overwriteExecPath(executablePath.fileSystemRepresentation);
     
-    /* Overwriting main bundle with guests bundle */
-    overwriteMainNSBundle(guestMainBundle, executablePath);
-    overwriteMainCFBundle();
+    /* super fast overwrite everthing process related */
+    overwriteExecPath(executablePath.fileSystemRepresentation);
+    overwriteMainNSBundle(guestMainBundle);
+    overwriteProgInfo(executablePath);
     
     /* Preload executable to bypass RT_NOLOAD */
     appMainImageIndex = _dyld_image_count();
