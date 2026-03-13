@@ -186,13 +186,11 @@ int LCBootstrapMain(NSString *executablePath,
     /* fixing up pwd if home is not null */
     const char *home = getenv("HOME");
     
-    if(home != NULL)
+    if(home != NULL &&
+       getenv("PWD") == nil &&
+       setenv("PWD", home, 0) == 0)
     {
-        /* fixing PWD (incase nobody set it yet) */
-        if(setenv("PWD", home, 0) == 0)
-        {
-            chdir(home);
-        }
+        chdir(home);
     }
     
     /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
