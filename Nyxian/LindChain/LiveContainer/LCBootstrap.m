@@ -52,11 +52,10 @@ typedef struct __CFRuntimeBase {
 #endif
 } CFRuntimeBase;
 
-void overwriteMainNSBundle(NSBundle *bundle)
+void overwriteMainNSBundle(CFBundleRef src)
 {
     /* literally overwriting object, this is normal memory */
     CFBundleRef dst = (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
-    CFBundleRef src = (__bridge CFBundleRef)bundle._cfBundle;
     
     /*
      * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
@@ -190,18 +189,22 @@ int LCBootstrapMain(NSString *executablePath,
     if(home != NULL)
     {
         /* fixing PWD (incase nobody set it yet) */
-        setenv("PWD", home, 0);
-        chdir(home);
+        if(setenv("PWD", home, 0) == 0)
+        {
+            chdir(home);
+        }
     }
-    
-    /* MARK: For some very stupid reason it returns a bundle eitherway, a none null value (as it shall be) */
-    NSBundle *guestMainBundle = [[NSBundle alloc] initWithPathForMainBundle:[executablePath stringByDeletingLastPathComponent]];
     
     /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
     
     /* super fast overwrite everthing process related */
     overwriteExecPath(executablePath.fileSystemRepresentation);
-    overwriteMainNSBundle(guestMainBundle);
+    CFBundleRef guestMainCFBundle = CFBundleCreate(CFAllocatorGetDefault(), (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
+    if(guestMainCFBundle != nil)
+    {
+        overwriteMainNSBundle(guestMainCFBundle);
+        CFRelease(guestMainCFBundle);
+    }
     overwriteProgInfo(executablePath);
     
     /* Preload executable to bypass RT_NOLOAD */
