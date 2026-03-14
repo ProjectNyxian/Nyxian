@@ -32,13 +32,18 @@
 
 #pragma mark - posix_spawn helper
 
-NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(int argc,
-                                                                     char *const argv[])
+NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(char *const argv[])
 {
     /* sanity check */
-    if(argc <= 0 || argv == NULL)
+    if(argv == NULL)
     {
         return @[];
+    }
+    
+    int argc = 0;
+    while(argv[argc] != NULL)
+    {
+        argc++;
     }
     
     /* creating mutable array with predefined argv lenght  */
@@ -219,24 +224,11 @@ int environment_posix_spawn(pid_t *process_identifier,
             }
         }
         
-        /* sanity check */
-        if(argv == NULL)
-        {
-            return 1;
-        }
-        
-        /* counting arguments */
-        int count = 0;
-        while(argv[count] != NULL)
-        {
-            count++;
-        }
-        
         /* create fd map object or take it */
         FDMapObject *mapObject = fa ? (*fa)->mapObject : [FDMapObject currentMap];
         
         /* trying to spawn process */
-        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(count, argv), EnvironmentDictionaryFromEnvp(envp), mapObject);
+        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject);
         
         /* return (if its negative then its not a valid pid) */
         if(pid == -1)
