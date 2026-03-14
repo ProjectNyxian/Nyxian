@@ -87,12 +87,12 @@ BOOL environment_must_be_role(EnvironmentRole role)
 
 #pragma mark - Initilizer
 
-void environment_init(EnvironmentRole role,
-                      EnvironmentExec exec,
-                      NSString *executablePath,
-                      int argc,
-                      char *argv[],
-                      bool enableDebugging)
+int environment_init(EnvironmentRole role,
+                     EnvironmentExec exec,
+                     NSString *executablePath,
+                     int argc,
+                     char *argv[],
+                     bool enableDebugging)
 {
     assert(executablePath != nil && argv != NULL);
     
@@ -102,6 +102,8 @@ void environment_init(EnvironmentRole role,
         fprintf(stderr, "[!] invalid role\n");
         exit(1);
     }
+    
+    __block int retval = 0;
     
     /* making sure this is only initilized once */
     static dispatch_once_t onceToken;
@@ -136,8 +138,7 @@ void environment_init(EnvironmentRole role,
             }
             else
             {
-                fprintf(stderr, "[!] couldnt find ksurface_kinit\n");
-                exit(1);
+                retval = 1;
             }
         }
         else
@@ -178,8 +179,9 @@ void environment_init(EnvironmentRole role,
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)
         {
-            int retval = LCBootstrapMain(executablePath, argc, argv);
-            environment_syscall(SYS_exit, retval);
+            retval = LCBootstrapMain(executablePath, argc, argv);
         }
     });
+    
+    return retval;
 }

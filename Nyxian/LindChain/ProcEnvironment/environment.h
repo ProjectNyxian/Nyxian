@@ -48,7 +48,7 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 /*!
- @enum EnvironmentRole
+ @enum `EnvironmentRole`
  @abstract Defines the role of the current environment.
  */
 typedef NS_ENUM(NSInteger, EnvironmentRole) {
@@ -63,22 +63,22 @@ typedef NS_ENUM(NSInteger, EnvironmentRole) {
 };
 
 /*!
- @enum EnvironmentExec
+ @enum `EnvironmentExec`
  @abstract Defines how the environment shall be executed.
  */
 typedef NS_ENUM(NSInteger, EnvironmentExec) {
     /*! No environment execution type set */
     EnvironmentExecNone = 0,
     
-    /*! The environment will execute after init using LiveContainer and wont return from `environment_init(5)` */
+    /*! The environment will execute after init using LiveContainer and will return the exit code of the executable from `environment_init` */
     EnvironmentExecLiveContainer = 1,
     
-    /*! The environment wont execute anything and will straightup return for a custom execution method `environment_init(5)` */
+    /*! The environment wont execute anything and will straightup return for a custom execution method `environment_init` */
     EnvironmentExecCustom  = 2,
 };
 
 /*!
- @function environment_client_connect_to_host
+ @function `environment_client_connect_to_host`
  @abstract Connects the client to the host environment using a preshipped endpoint.
  @discussion
     This function establishes a connection between a guest process and
@@ -91,7 +91,7 @@ typedef NS_ENUM(NSInteger, EnvironmentExec) {
 void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attribute__((deprecated("Use environment_client_connect_to_syscall_proxy(1) instead")));
 
 /*!
- @function environment_client_connect_to_syscall_proxy
+ @function `environment_client_connect_to_syscall_proxy`
  @abstract Connects the client to the syscall proxy using a preshipped mach port object(mpo).
  @discussion
     This function establishes a connection between a guest process and
@@ -104,7 +104,7 @@ void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attri
 void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
 
 /*!
- @function environment_client_attach_debugger
+ @function `environment_client_attach_debugger`
  @abstract Attaches a debugger to the guest environment
  @discussion
     This function attaches a mach exception handling debugger to the guest environment.
@@ -112,7 +112,7 @@ void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
 void environment_client_attach_debugger(void);
 
 /*!
- @function environment_is_role
+ @function `environment_is_role`
  @abstract Returns a boolean value representing if it is the given role
  @discussion
     This function is used by the modular environment API subsystems to check if certain implementations are applied to the correct role.
@@ -123,7 +123,7 @@ void environment_client_attach_debugger(void);
 BOOL environment_is_role(EnvironmentRole role);
 
 /*!
- @function environment_must_be_role
+ @function `environment_must_be_role`
  @abstract Returns a boolean value representing if it is the given role and crashes the process if its not.
  @discussion
     This function is used by the modular environment API subsystems to check if certain implementations are applied to the correct role, and exit from irreversible issues due to that.
@@ -134,10 +134,10 @@ BOOL environment_is_role(EnvironmentRole role);
 BOOL environment_must_be_role(EnvironmentRole role);
 
 /*!
- @function environment_init
+ @function `environment_init`
  @abstract Initializes the environment with a given role.
  @discussion
-    This function initializes the environment with the given role. It can and shall only be called once. This function never returns NO!
+    This function initializes the environment with the given role. It can and shall only be called once.
  
  @param role
     Represents the environment role wished to be init as.
@@ -151,7 +151,9 @@ BOOL environment_must_be_role(EnvironmentRole role);
     Arguments used for the binary.
  @param enableDebugging
     Enables debugging inside of a process that runs in Nyxian
+ @return
+    Exit code of the process or environment it self.
  */
-void environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[], bool enableDebugging);
+int environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[], bool enableDebugging);
 
 #endif /* PROCENVIRONMENT_ENVIRONMENT_H */

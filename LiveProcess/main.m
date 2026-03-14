@@ -42,22 +42,29 @@
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
+
 @end
+
 @implementation LiveProcessHandler
+
 static NSExtensionContext *extensionContext;
 static NSDictionary *retrievedAppInfo;
-+ (NSExtensionContext *)extensionContext {
+
++ (NSExtensionContext *)extensionContext
+{
     return extensionContext;
 }
 
-+ (NSDictionary *)retrievedAppInfo {
++ (NSDictionary *)retrievedAppInfo
+{
     return retrievedAppInfo;
 }
 
-- (void)beginRequestWithExtensionContext:(NSExtensionContext *)context {
+- (void)beginRequestWithExtensionContext:(NSExtensionContext *)context
+{
     extensionContext = context;
     retrievedAppInfo = [context.inputItems.firstObject userInfo];
-    // Return control to LiveContainerMain
+    /* returns control back to LiveContainerMain */
     CFRunLoopStop(CFRunLoopGetMain());
 }
 @end
@@ -105,7 +112,7 @@ void overwriteArguments(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
                         int *argc,
                         char ***argv)
 {
-    if(!arguments)
+    if(!arguments || arguments.count < 1)
     {
         *argc = 0;
         return;
@@ -177,48 +184,56 @@ int LiveProcessMain(int argc, char *argv[])
         if(environment_syscall(SYS_setuid, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
            environment_syscall(SYS_setgid, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
         {
-            exit(1);
+            return 1;
         }
         
         if([service isEqualToString:@"installd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]));
+            return LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]);
         } else if([service isEqualToString:@"trustd"])
         {
-            exit(LDEServiceMain(argc, argv, [LDETrustProxy class]));
+            return LDEServiceMain(argc, argv, [LDETrustProxy class]);
         }
     }
     else if([mode isEqualToString:@"spawn"])
     {
         /* path for normal spawns (they go through LC, thanks to Duy Tran and his research <3) */
-        environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv, debuggingEnabled.boolValue);
+        return environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv, debuggingEnabled.boolValue);
     }
     
-    exit(0);
+    return 1;
 }
 
-// this is our fake UIApplicationMain called from _xpc_objc_uimain (xpc_main)
+/* this is our fake UIApplicationMain called from _xpc_objc_uimain (xpc_main) */
 __attribute__((visibility("default")))
-int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName) {
-    return LiveProcessMain(argc, argv);
+int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName)
+{
+    int retval = LiveProcessMain(argc, argv);
+    
+    /* redirecting exit status to ksurface and XNU */
+    environment_syscall(SYS_exit, retval);
+    exit(retval);   /* fatal */
 }
 
-// NSExtensionMain will load UIKit and call UIApplicationMain, so we need to redirect it to our fake one
-DEFINE_HOOK(dlopen, void*, (void* dyldApiInstancePtr, const char* path, int mode)) {
-    if(path && !strcmp(path, "/System/Library/Frameworks/UIKit.framework/UIKit")) {
-        // switch back to original dlopen
+/* NSExtensionMain will load UIKit and call UIApplicationMain, so we need to redirect it to our fake one */
+DEFINE_HOOK(dlopen, void*, (void* dyldApiInstancePtr, const char* path, int mode))
+{
+    if(path && !strcmp(path, "/System/Library/Frameworks/UIKit.framework/UIKit"))
+    {
+        /* switch back to original dlopen */
         performHookDyldApi("dlopen", 2, (void**)&orig_dlopen, orig_dlopen);
-        // FIXME: may be incompatible with jailbreak tweaks?
+        /* FIXME: may be incompatible with jailbreak tweaks? */
         return RTLD_MAIN_ONLY;
-    } else {
+    }
+    else
+    {
         __attribute__((musttail)) return orig_dlopen(dyldApiInstancePtr, path, mode);
     }
 }
 
-void hook_do_nothing(void) {}
-
-// Extension entry point
-int NSExtensionMain(int argc, char * argv[]) {
+/* Extension entry point */
+int NSExtensionMain(int argc, char * argv[])
+{
     /* resecure decoder, instead of bluntly removing validation entirely */
     ResecureDecoder();
     
