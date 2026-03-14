@@ -173,13 +173,13 @@ void environment_init(EnvironmentRole role,
             
             /* making guest related LC patches */
             LCOverwriteExecutablePath(executablePath);
-            
-            /* invoking code execution or let it return */
-            if(exec == EnvironmentExecLiveContainer)
-            {
-                int retval = LCBootstrapMain(executablePath, argc, argv);
-                environment_syscall(SYS_exit, retval);
-            }
+        }
+        
+        /* invoking code execution or let it return */
+        if(exec == EnvironmentExecLiveContainer)
+        {
+            int retval = LCBootstrapMain(executablePath, argc, argv);
+            environment_syscall(SYS_exit, retval);
         }
     });
 }
