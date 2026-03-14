@@ -89,9 +89,10 @@ void clear_environment(void)
 
 void overwriteEnvironmentProperties(NSDictionary *enviroDict)
 {
-    clear_environment();
     if(enviroDict)
     {
+        clear_environment();
+        
         for (NSString *key in enviroDict)
         {
             NSString *value = enviroDict[key];
@@ -100,9 +101,9 @@ void overwriteEnvironmentProperties(NSDictionary *enviroDict)
     }
 }
 
-void createArgv(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
-                int *argc,
-                char ***argv)
+void overwriteArguments(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
+                        int *argc,
+                        char ***argv)
 {
     if(!arguments)
     {
@@ -133,11 +134,11 @@ void createArgv(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
 
 int LiveProcessMain(int argc, char *argv[])
 {
-    // Let NSExtensionContext initialize, once it's done it will call CFRunLoopStop
+    /* let NSExtensionContext initialize, once it's done it will call CFRunLoopStop */
     CFRunLoopRun();
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
     
-    // MARK: New API that will overtake the previous one
+    /* MARK: New API that will overtake the previous one */
     NSXPCListenerEndpoint* endpoint = appInfo[@"LSEndpoint"];
     NSString* executablePath = appInfo[@"LSExecutablePath"];
     NSString *mode = appInfo[@"LSServiceMode"];
@@ -146,26 +147,31 @@ int LiveProcessMain(int argc, char *argv[])
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
     NSNumber *debuggingEnabled = appInfo[@"LDEDebugEnabled"];
-    
-    // Setup fd map
-    if(mapObject) [mapObject apply_fd_map];
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-    
-    // Setting up environment
-    environment_client_connect_to_host(endpoint);
-    
     MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
-    if(syscallPort != NULL)
+    
+    assert(endpoint != nil && executablePath != nil && mode != nil && syscallPort != nil);
+    
+    if(mapObject != nil)
     {
-        environment_client_connect_to_syscall_proxy(syscallPort);
+        /* apply file descriptor map passed from host environment */
+        [mapObject apply_fd_map];
+        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stderr, NULL, _IONBF, 0);
     }
     
-    if(environmentDictionary) overwriteEnvironmentProperties(environmentDictionary);
-    if(argumentDictionary) createArgv(argumentDictionary, &argc, &argv);
+    /* connecting to host */
+    environment_client_connect_to_host(endpoint);
+    environment_client_connect_to_syscall_proxy(syscallPort);
+    
+    /* overwriting environment and arguments */
+    overwriteEnvironmentProperties(environmentDictionary);
+    overwriteArguments(argumentDictionary, &argc, &argv);
     
     if([mode isEqualToString:@"management"])
     {
+        /* path for internal daemons serving nyxian */
+        assert(service != nil);
+        
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv, debuggingEnabled.boolValue);
 
         if(environment_syscall(SYS_setuid, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
@@ -184,7 +190,7 @@ int LiveProcessMain(int argc, char *argv[])
     }
     else if([mode isEqualToString:@"spawn"])
     {
-        // posix_spawn and similar implementation
+        /* path for normal spawns (they go through LC, thanks to Duy Tran and his research <3) */
         environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv, debuggingEnabled.boolValue);
     }
     
