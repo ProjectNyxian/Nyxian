@@ -51,10 +51,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             proc->bsd.kp_proc.p_usrpri = PUSER;
             proc->bsd.kp_eproc.e_tdev = -1;
             proc->bsd.kp_eproc.e_flag = 2;
-            proc->bsd.kp_proc.p_stat = SRUN;
-            proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
-            proc->nyx.ret = 0;
-            proc->nyx.p_stop_reported = 0;
             
             goto mutual_init;
         }
@@ -67,11 +63,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
             memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
             
+        mutual_init:
             proc->bsd.kp_proc.p_stat = SRUN;
             proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
+            proc->nyx.ret = 128 + SIGKILL;
             proc->nyx.p_stop_reported = 0;
             
-        mutual_init:
             if(gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
             {
                 return -1;
