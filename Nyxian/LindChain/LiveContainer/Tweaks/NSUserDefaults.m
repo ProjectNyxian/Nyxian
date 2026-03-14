@@ -34,9 +34,6 @@ void NUDGuestHooksInit(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        appContainerPath = [NSString stringWithUTF8String:getenv("HOME")];
-        appContainerURL = [NSURL URLWithString:appContainerPath];
-        
         swizzle_objc_method(@selector(initWithDomain:user:byHost:containerPath:containingPreferences:),
                             NSClassFromString(@"CFPrefsPlistSource"),
                             @selector(hook_initWithDomain:user:byHost:containerPath:containingPreferences:),
@@ -54,8 +51,11 @@ void NUDGuestHooksInit(void)
         *_CFPrefsCurrentAppIdentifierCache = (__bridge CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
         
         NSUserDefaults* newStandardUserDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"whatever"];
-        [newStandardUserDefaults _setIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
-        NSUserDefaults.standardUserDefaults = newStandardUserDefaults;
+        if(newStandardUserDefaults != nil)
+        {
+            [newStandardUserDefaults _setIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
+            NSUserDefaults.standardUserDefaults = newStandardUserDefaults;
+        }
         
         NSFileManager* fm = NSFileManager.defaultManager;
         NSURL* libraryPath = [fm URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask].lastObject;
