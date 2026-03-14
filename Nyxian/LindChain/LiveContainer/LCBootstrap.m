@@ -88,7 +88,7 @@ void LCOverwriteExecutablePath(NSString *executablePath)
      * remember its now owned by the main bundle's prior
      * object.
      */
-    CFOverwrite(guestMainCFBundle, (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle);
+    CFOverwrite((__bridge CFBundleRef)NSBundle.mainBundle._cfBundle, guestMainCFBundle);
     CFRelease(guestMainCFBundle);
     
     /*

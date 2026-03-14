@@ -23,8 +23,8 @@
 #include <assert.h>
 #include <malloc/malloc.h>
 
-void CFOverwrite(CFTypeRef src,
-                 CFTypeRef dst)
+void CFOverwrite(CFTypeRef dst,
+                 CFTypeRef src)
 {
     assert(src != NULL && dst != NULL);
     

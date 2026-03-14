@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include <CoreFoundation/CoreFoundation.h>
 
+#define cfheader_size() sizeof(CFRuntimeBase)
+
 /* https://github.com/opensource-apple/CF/blob/3cc41a76b1491f50813e28a4ec09954ffa359e6f/CFRuntime.h#L222 */
 typedef struct __CFRuntimeBase {
     uintptr_t _cfisa;
@@ -34,8 +36,6 @@ typedef struct __CFRuntimeBase {
 #endif
 } CFRuntimeBase;
 
-#define cfheader_size() sizeof(CFRuntimeBase)
-
-void CFOverwrite(CFTypeRef src, CFTypeRef dst);
+void CFOverwrite(CFTypeRef dst, CFTypeRef src);
 
 #endif /* CFTOOLS_H */
