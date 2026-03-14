@@ -44,26 +44,8 @@
 #import <malloc/malloc.h>
 #import <LindChain/Utils/CFTools.h>
 
-void overwriteProgInfo(NSString *executablePath)
+int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char* newPath, uint32_t* bufsize)
 {
-    /* overwriting the process information from previous main bundle */
-    NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
-    objcArgv[0] = executablePath;
-    [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
-    
-    /* using the actual executable path */
-    NSProcessInfo.processInfo.processName = [executablePath lastPathComponent];
-    *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
-    *_CFGetProcessPath() = strdup(executablePath.UTF8String);
-    Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
-    if(swiftNSProcessInfo) {
-        /* swizzle the arguments method to return the ObjC arguments */
-        SEL selector = @selector(arguments);
-        method_setImplementation(class_getInstanceMethod(swiftNSProcessInfo, selector), class_getMethodImplementation(NSProcessInfo.class, selector));
-    }
-}
-
-int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char* newPath, uint32_t* bufsize) {
     assert(dyldApiInstancePtr != 0);
     char** dyldConfig = dyldApiInstancePtr[1];
     assert(dyldConfig != 0);
@@ -83,7 +65,8 @@ int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char
         assert(os_tpro_is_supported());
         os_thread_self_restrict_tpro_to_rw();
     }
-    *mainExecutablePathPtr = newPath;
+    /* MARK: setting a copy of the path as the new pointer (required cuz objc NSString UTF8String pointers are not safe and can become stale) */
+    *mainExecutablePathPtr = strdup(newPath);
     if(ret != KERN_SUCCESS) {
         os_thread_self_restrict_tpro_to_ro();
     }
@@ -91,14 +74,53 @@ int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char
     return 0;
 }
 
-void overwriteExecPath(const char *newExecPath) {
-    // dyld4 stores executable path in a different place (iOS 15.0 +)
-    // https://github.com/apple-oss-distributions/dyld/blob/ce1cc2088ef390df1c48a1648075bbd51c5bbc6a/dyld/DyldAPIs.cpp#L802
+void overwriteExecutablePath(NSString *executablePath)
+{
+    /* first overwriting bundle */
+    CFBundleRef guestMainCFBundle = CFBundleCreate(NULL, (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
+    assert(guestMainCFBundle != nil);
+    
+    /*
+     * overwrites CF object, means all our pointers become
+     * unsafe, it also takes a reference of passed Bundle
+     * so we can safely release our bundle... after that
+     * we shouldnt touch our bundle ever again, because
+     * remember its now owned by the main bundle's prior
+     * object.
+     */
+    CFOverwrite(guestMainCFBundle, (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle);
+    CFRelease(guestMainCFBundle);
+    
+    /*
+     * dyld4 stores executable path in a different place (iOS 15.0 +)
+     * https://github.com/apple-oss-distributions/dyld/blob/ce1cc2088ef390df1c48a1648075bbd51c5bbc6a/dyld/DyldAPIs.cpp#L802
+     */
     int (*orig__NSGetExecutablePath)(void* dyldPtr, char* buf, uint32_t* bufsize);
     performHookDyldApi("_NSGetExecutablePath", 2, (void**)&orig__NSGetExecutablePath, hook__NSGetExecutablePath_overwriteExecPath);
-    _NSGetExecutablePath((char*)newExecPath, NULL);
-    // put the original function back
+    _NSGetExecutablePath((char*)[executablePath UTF8String], NULL);
+    /* put the original function back */
     performHookDyldApi("_NSGetExecutablePath", 2, (void**)&orig__NSGetExecutablePath, orig__NSGetExecutablePath);
+    
+    /* overwriting the process information from previous main bundle */
+    NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
+    objcArgv[0] = executablePath;
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+    [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
+#pragma clang diagnostic pop
+    
+    /* using the actual executable path */
+    NSProcessInfo.processInfo.processName = [executablePath lastPathComponent];
+    *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
+    *_CFGetProcessPath() = strdup(executablePath.UTF8String);
+    Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
+    if(swiftNSProcessInfo)
+    {
+        /* swizzle the arguments method to return the ObjC arguments */
+        SEL selector = @selector(arguments);
+        method_setImplementation(class_getInstanceMethod(swiftNSProcessInfo, selector), class_getMethodImplementation(NSProcessInfo.class, selector));
+    }
 }
 
 static void *getAppEntryPoint(void *handle) {
@@ -165,16 +187,7 @@ int LCBootstrapMain(NSString *executablePath,
     }
     
     /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
-    
-    /* super fast overwrite everthing process related */
-    overwriteExecPath(executablePath.fileSystemRepresentation);
-    CFBundleRef guestMainCFBundle = CFBundleCreate(NULL, (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
-    if(guestMainCFBundle != nil)
-    {
-        CFOverwrite(guestMainCFBundle, (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle);
-        CFRelease(guestMainCFBundle);
-    }
-    overwriteProgInfo(executablePath);
+    overwriteExecutablePath(executablePath);
     
     /* Preload executable to bypass RT_NOLOAD */
     appMainImageIndex = _dyld_image_count();

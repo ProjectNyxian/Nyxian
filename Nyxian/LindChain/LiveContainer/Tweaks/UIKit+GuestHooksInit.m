@@ -28,9 +28,6 @@
 #import <LindChain/Utils/Swizzle.h>
 #import <objc/message.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-
 // Handler for AppDelegate
 @implementation UIApplication(LiveContainerHook)
 
@@ -84,11 +81,12 @@ void UIKitGuestHooksInit(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
         swizzle_objc_method(@selector(_connectUISceneFromFBSScene:transitionContext:), [UIApplication class], @selector(hook__connectUISceneFromFBSScene:transitionContext:), nil);
+#pragma clang diagnostic pop
         swizzle_objc_method(@selector(__supportedInterfaceOrientations), [UIViewController class], @selector(hook___supportedInterfaceOrientations), nil);
         swizzle_objc_method(@selector(shouldAutorotateToInterfaceOrientation:), [UIViewController class], @selector(hook_shouldAutorotateToInterfaceOrientation:), nil);
         swizzle_objc_method(@selector(setAutorotates:forceUpdateInterfaceOrientation:), [UIWindow class], @selector(hook_setAutorotates:forceUpdateInterfaceOrientation:), nil);
     });
 }
-
-#pragma clang diagnostic pop
