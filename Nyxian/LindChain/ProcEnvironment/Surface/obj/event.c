@@ -135,7 +135,7 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
                             kvobject_event_type_t type,
                             uint8_t value)
 {
-    assert(kvo != NULL && type != kvObjEventCopy);
+    assert(kvo != NULL && type != kvObjEventCopy && type != kvObjEventUnregister);
     
     /* sanity checking object type */
     if(kvo->base_type != kvObjBaseTypeObject)
