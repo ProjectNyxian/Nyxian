@@ -31,14 +31,15 @@ void CFOverwrite(CFTypeRef src,
     /* literally overwriting object, this is normal memory */
     CFTypeID srcID = CFGetTypeID(src);
     CFTypeID dstID = CFGetTypeID(dst);
-    
     assert(srcID == dstID);
     
     /*
      * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
      * skip it... preserve identity (pointer) and retain count
      */
+    size_t src_size = malloc_size(src);
     size_t size = malloc_size(dst);
+    assert(src_size <= size);
     
     /*
      * retain everything in src payload first
