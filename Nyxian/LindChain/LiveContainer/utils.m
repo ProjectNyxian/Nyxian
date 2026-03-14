@@ -38,16 +38,6 @@ void __assert_rtn(const char* func, const char* file, int line, const char* fail
     abort(); // silent compiler warning
 }
 
-uint64_t aarch64_get_tbnz_jump_address(uint32_t instruction, uint64_t pc) {
-    // Check that this is a tbnz instruction
-    if ((instruction & 0xFF000000) != 0x37000000) {
-        return 0;
-    }
-
-    uint32_t imm = ((instruction >> 5) & 0xFFFF) * 4;
-    return imm + pc;
-}
-
 // https://github.com/pinauten/PatchfinderUtils/blob/master/Sources/CFastFind/CFastFind.c
 //
 //  CFastFind.c
@@ -80,60 +70,6 @@ uint64_t aarch64_emulate_adrp(uint32_t instruction, uint64_t pc) {
     
     // Emulate
     return (pc & ~(0xFFFULL)) + imm;
-}
-
-bool aarch64_emulate_add_imm(uint32_t instruction, uint32_t *dst, uint32_t *src, uint32_t *imm) {
-    // Check that this is an add instruction with immediate
-    if ((instruction & 0xFF000000) != 0x91000000) {
-        return 0;
-    }
-    
-    int32_t imm12 = (instruction & 0x3FFC00) >> 10;
-    
-    uint8_t shift = (instruction & 0xC00000) >> 22;
-    switch (shift) {
-        case 0:
-            *imm = imm12;
-            break;
-            
-        case 1:
-            *imm = imm12 << 12;
-            break;
-            
-        default:
-            return false;
-    }
-    
-    *dst = instruction & 0x1F;
-    *src = (instruction >> 5) & 0x1F;
-    
-    return true;
-}
-
-/**
- * Emulate an adrp and add instruction at the given pc value
- * Returns destination
- */
-
-uint64_t aarch64_emulate_adrp_add(uint32_t instruction, uint32_t addInstruction, uint64_t pc) {
-    uint64_t adrp_target = aarch64_emulate_adrp(instruction, pc);
-    if (!adrp_target) {
-        return 0;
-    }
-    
-    uint32_t addDst;
-    uint32_t addSrc;
-    uint32_t addImm;
-    if (!aarch64_emulate_add_imm(addInstruction, &addDst, &addSrc, &addImm)) {
-        return 0;
-    }
-    
-    if ((instruction & 0x1F) != addSrc) {
-        return 0;
-    }
-    
-    // Emulate
-    return adrp_target + (uint64_t) addImm;
 }
 
 /**
