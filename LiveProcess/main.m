@@ -166,7 +166,7 @@ int LiveProcessMain(int argc, char *argv[])
     
     if([mode isEqualToString:@"management"])
     {
-        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, nil, 0, nil, debuggingEnabled.boolValue);
+        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv, debuggingEnabled.boolValue);
 
         if(environment_syscall(SYS_setuid, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
            environment_syscall(SYS_setgid, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
@@ -185,7 +185,7 @@ int LiveProcessMain(int argc, char *argv[])
     else if([mode isEqualToString:@"spawn"])
     {
         // posix_spawn and similar implementation
-        environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, [executablePath UTF8String], argc, argv, debuggingEnabled.boolValue);
+        environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv, debuggingEnabled.boolValue);
     }
     
     exit(0);

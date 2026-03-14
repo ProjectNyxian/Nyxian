@@ -25,6 +25,7 @@
 
 #import <Foundation/Foundation.h>
 
+void LCOverwriteExecutablePath(NSString *executablePath);
 int LCBootstrapMain(NSString *executablePath, int argc, char *argv[]);
 
 #endif /* LIGHTCONTAINER_LCBOOTSTRAP_H */

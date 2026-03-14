@@ -89,11 +89,13 @@ BOOL environment_must_be_role(EnvironmentRole role)
 
 void environment_init(EnvironmentRole role,
                       EnvironmentExec exec,
-                      const char *executablePath,
+                      NSString *executablePath,
                       int argc,
                       char *argv[],
                       bool enableDebugging)
 {
+    assert(executablePath != nil && argv != NULL);
+    
     /* checking role */
     if(role > EnvironmentRoleGuest)
     {
@@ -168,13 +170,16 @@ void environment_init(EnvironmentRole role,
             {
                 environment_client_attach_debugger();
             }
-        }
-        
-        /* invoking code execution or let it return */
-        if(exec == EnvironmentExecLiveContainer)
-        {
-            int retval = LCBootstrapMain([NSString stringWithCString:executablePath encoding:NSUTF8StringEncoding], argc, argv);
-            environment_syscall(SYS_exit, retval);
+            
+            /* making guest related LC patches */
+            LCOverwriteExecutablePath(executablePath);
+            
+            /* invoking code execution or let it return */
+            if(exec == EnvironmentExecLiveContainer)
+            {
+                int retval = LCBootstrapMain(executablePath, argc, argv);
+                environment_syscall(SYS_exit, retval);
+            }
         }
     });
 }

@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
 #if !JAILBREAK_ENV
         if(liveProcessIsAvailable())
         {
-            environment_init(EnvironmentRoleHost, EnvironmentExecCustom, [[[NSBundle mainBundle] executablePath] UTF8String], argc, argv, false);
+            environment_init(EnvironmentRoleHost, EnvironmentExecCustom, NSBundle.mainBundle.executablePath, argc, argv, false);
             
             /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
             [LaunchServices shared];                                /* invokes launch services startup*/

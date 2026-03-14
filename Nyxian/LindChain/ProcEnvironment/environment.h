@@ -152,6 +152,6 @@ BOOL environment_must_be_role(EnvironmentRole role);
  @param enableDebugging
     Enables debugging inside of a process that runs in Nyxian
  */
-void environment_init(EnvironmentRole role, EnvironmentExec exec, const char *executablePath, int argc, char *argv[], bool enableDebugging);
+void environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[], bool enableDebugging);
 
 #endif /* PROCENVIRONMENT_ENVIRONMENT_H */

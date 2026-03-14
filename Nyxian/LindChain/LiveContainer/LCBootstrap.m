@@ -74,7 +74,7 @@ int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char
     return 0;
 }
 
-void overwriteExecutablePath(NSString *executablePath)
+void LCOverwriteExecutablePath(NSString *executablePath)
 {
     /* first overwriting bundle */
     CFBundleRef guestMainCFBundle = CFBundleCreate(NULL, (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
@@ -185,9 +185,6 @@ int LCBootstrapMain(NSString *executablePath,
     {
         chdir(home);
     }
-    
-    /* MARK: We need to first actually overwrite executable path so dyld doesnt complain about @rpath stuff logically */
-    overwriteExecutablePath(executablePath);
     
     /* Preload executable to bypass RT_NOLOAD */
     appMainImageIndex = _dyld_image_count();
