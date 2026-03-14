@@ -42,36 +42,7 @@
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/LiveContainer/LCBootstrap.h>
 #import <malloc/malloc.h>
-
-/* https://github.com/opensource-apple/CF/blob/3cc41a76b1491f50813e28a4ec09954ffa359e6f/CFRuntime.h#L222 */
-typedef struct __CFRuntimeBase {
-    uintptr_t _cfisa;
-    uint8_t _cfinfo[4];
-#if __LP64__
-    uint32_t _rc;
-#endif
-} CFRuntimeBase;
-
-void overwriteMainNSBundle(CFBundleRef src)
-{
-    /* literally overwriting object, this is normal memory */
-    CFBundleRef dst = (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
-    
-    /*
-     * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
-     * skip it... preserve identity (pointer) and retain count
-     */
-    const size_t kHeaderSize = sizeof(CFRuntimeBase);
-    size_t size = malloc_size(dst);
-    
-    /*
-     * retain everything in src payload first
-     * so objects survive when dst's old pointers get orphaned.
-     */
-    CFRetain(src);
-    
-    memcpy((uint8_t *)dst + kHeaderSize, (uint8_t *)src + kHeaderSize, size - kHeaderSize);
-}
+#import <LindChain/Utils/CFTools.h>
 
 void overwriteProgInfo(NSString *executablePath)
 {
@@ -197,10 +168,10 @@ int LCBootstrapMain(NSString *executablePath,
     
     /* super fast overwrite everthing process related */
     overwriteExecPath(executablePath.fileSystemRepresentation);
-    CFBundleRef guestMainCFBundle = CFBundleCreate(CFAllocatorGetDefault(), (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
+    CFBundleRef guestMainCFBundle = CFBundleCreate(NULL, (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
     if(guestMainCFBundle != nil)
     {
-        overwriteMainNSBundle(guestMainCFBundle);
+        CFOverwrite(guestMainCFBundle, (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle);
         CFRelease(guestMainCFBundle);
     }
     overwriteProgInfo(executablePath);
