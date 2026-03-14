@@ -29,12 +29,15 @@ void CFOverwrite(CFTypeRef src,
     assert(src != NULL && dst != NULL);
     
     /* literally overwriting object, this is normal memory */
+    CFTypeID srcID = CFGetTypeID(src);
+    CFTypeID dstID = CFGetTypeID(dst);
+    
+    assert(srcID == dstID);
     
     /*
      * CFRuntimeBase = isa (8) + refcount/flags (8) = 16 bytes
      * skip it... preserve identity (pointer) and retain count
      */
-    const size_t kHeaderSize = sizeof(CFRuntimeBase);
     size_t size = malloc_size(dst);
     
     /*
@@ -43,5 +46,5 @@ void CFOverwrite(CFTypeRef src,
      */
     CFRetain(src);
     
-    memcpy((uint8_t *)dst + kHeaderSize, (uint8_t *)src + kHeaderSize, size - kHeaderSize);
+    memcpy((uint8_t *)dst + cfheader_size(), (uint8_t *)src + cfheader_size(), size - cfheader_size());
 }

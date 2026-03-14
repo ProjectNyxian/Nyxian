@@ -34,6 +34,8 @@ typedef struct __CFRuntimeBase {
 #endif
 } CFRuntimeBase;
 
+#define cfheader_size() sizeof(CFRuntimeBase)
+
 void CFOverwrite(CFTypeRef src, CFTypeRef dst);
 
 #endif /* CFTOOLS_H */
