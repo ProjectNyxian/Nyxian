@@ -150,7 +150,7 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
     
     kvo_rdlock(kvo);
     
-    assert(kvo->base_type == kvObjBaseTypeObject);
+    assert(kvo->base_type == kvObjBaseTypeObject && kvo->main_handler != NULL);
     
     /* getting object size */
     size_t size = (size_t)kvo->main_handler(NULL, kvObjEventInit);
@@ -183,8 +183,7 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
     kvobject_t *kvoarr[2] = { kvo_snap, kvo };
     
     /* checking init handler and executing if nonnull */
-    if(kvo_snap->main_handler != NULL &&
-       kvo_snap->main_handler(kvoarr, kvObjEventSnapshot) != 0)
+    if(kvo_snap->main_handler(kvoarr, kvObjEventSnapshot) != 0)
     {
         free(kvo_snap);
         kvo_snap = NULL;
