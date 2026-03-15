@@ -227,8 +227,18 @@ int environment_posix_spawn(pid_t *process_identifier,
         /* create fd map object or take it */
         FDMapObject *mapObject = fa ? (*fa)->mapObject : [FDMapObject currentMap];
         
+        /* getting cwd */
+        char *cwd = getcwd(NULL, 0);
+        
+        if(cwd == NULL)
+        {
+            return -1;
+        }
+        
+        NSString *nsCwd = [NSString stringWithCString:cwd encoding:NSUTF8StringEncoding];
+        
         /* trying to spawn process */
-        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject);
+        int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject, nsCwd);
         
         /* return (if its negative then its not a valid pid) */
         if(pid == -1)

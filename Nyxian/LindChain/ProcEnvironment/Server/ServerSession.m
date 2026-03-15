@@ -52,6 +52,7 @@
                withArguments:(NSArray<NSObject<NSSecureCoding,NSCopying>*>*)arguments
     withEnvironmentVariables:(NSDictionary *)environment
                withMapObject:(FDMapObject*)mapObject
+        withWorkingDirectory:(NSString *)workingDirectory
                    withReply:(void (^)(int64_t))reply
 {
     /* sanity checking proc */
@@ -72,6 +73,7 @@
     if(path &&
        arguments &&
        environment &&
+       workingDirectory &&
        (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
         entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
@@ -90,7 +92,7 @@
             @"LSArguments": arguments,
             @"LSEnvironment": environment,
             @"LSMapObject": mapObject,
-            //@"LSWorkingDirectory":
+            @"LSWorkingDirectory": workingDirectory,
         } withKernelSurfaceProcess:_proc];
         
 #if KLOG_ENABLED

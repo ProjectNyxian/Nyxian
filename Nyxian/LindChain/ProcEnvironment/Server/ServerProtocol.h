@@ -35,7 +35,7 @@
 /*
  posix_spawn
  */
-- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray<NSObject<NSSecureCoding,NSCopying>*>*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withReply:(void (^)(int64_t))reply;
+- (void)spawnProcessWithPath:(NSString*)path withArguments:(NSArray<NSObject<NSSecureCoding,NSCopying>*>*)arguments withEnvironmentVariables:(NSDictionary *)environment withMapObject:(FDMapObject*)mapObject withWorkingDirectory:(NSString*)workingDirectory withReply:(void (^)(int64_t))reply;
 
 /*
  Launch Services
