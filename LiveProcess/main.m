@@ -186,13 +186,15 @@ int LiveProcessMain(int argc, char *argv[])
             return 1;
         }
         
-        if([service isEqualToString:@"installd"])
+        /* get the class it self lol */
+        Class ServiceClass = NSClassFromString(service);
+        
+        if(ServiceClass == nil)
         {
-            return LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]);
-        } else if([service isEqualToString:@"ksurfaced"])
-        {
-            return LDEServiceMain(argc, argv, [LDETrustProxy class]);
+            return 1;
         }
+        
+        return LDEServiceMain(argc, argv, ServiceClass);
     }
     else if([mode isEqualToString:@"spawn"])
     {

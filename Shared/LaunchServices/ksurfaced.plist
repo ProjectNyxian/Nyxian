@@ -15,6 +15,6 @@
 	<key>LSGroupIdentifier</key>
 	<integer>0</integer>
 	<key>LSIntegratedServiceName</key>
-	<string>ksurfaced</string>
+	<string>LDETrustProxy</string>
 </dict>
 </plist>

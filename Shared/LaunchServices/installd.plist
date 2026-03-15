@@ -15,6 +15,6 @@
 	<key>LSGroupIdentifier</key>
 	<integer>1</integer>
 	<key>LSIntegratedServiceName</key>
-	<string>installd</string>
+	<string>LDEApplicationWorkspaceProxy</string>
 </dict>
 </plist>
