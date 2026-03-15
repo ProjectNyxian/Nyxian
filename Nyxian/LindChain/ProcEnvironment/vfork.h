@@ -43,6 +43,9 @@ typedef struct {
     /* File descriptors */
     FDMapObject *mapObject;
     
+    /* process state backup */
+    char *cwd;
+    
     bool suceeded;
 } fork_thread_snapshot_t;
 

@@ -142,6 +142,12 @@ DEFINE_HOOK(vfork, pid_t, (void))
     }
     
     /* preparing for thread handoff */
+    local_fork_thread_snapshot->cwd = getcwd(NULL, 0);
+    if(local_fork_thread_snapshot->cwd == NULL)
+    {
+        errno = ENOMEM;
+        return -1;
+    }
     local_fork_thread_snapshot->ret_pid = 0;
     local_fork_thread_snapshot->thread = mach_thread_self();
     
@@ -166,6 +172,9 @@ DEFINE_HOOK(vfork, pid_t, (void))
     
     if(pid != 0)
     {
+        /* restore cwd */
+        chdir(local_fork_thread_snapshot->cwd);
+        free(local_fork_thread_snapshot->cwd);
         free(local_fork_thread_snapshot);
         local_fork_thread_snapshot = NULL;
     }
