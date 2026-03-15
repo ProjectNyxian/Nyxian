@@ -236,6 +236,7 @@ int environment_posix_spawn(pid_t *process_identifier,
         }
         
         NSString *nsCwd = [NSString stringWithCString:cwd encoding:NSUTF8StringEncoding];
+        free(cwd);
         
         /* trying to spawn process */
         int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject, nsCwd);
