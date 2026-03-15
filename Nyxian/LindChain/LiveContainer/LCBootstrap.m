@@ -187,6 +187,13 @@ int LCBootstrapMain(NSString *executablePath,
         return 1;
     }
     
+    /* find main */
+    int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
+    if(!appMain)
+    {
+        return 1;
+    }
+    
     /* perform other hooks */
     NUDGuestHooksInit();
     SecItemGuestHooksInit();
@@ -195,13 +202,6 @@ int LCBootstrapMain(NSString *executablePath,
     initDead10ccFix();
     DyldHooksInit();
     InsertLibrariesIfNeeded();
-    
-    /* find main  */
-    int (*appMain)(int, char**) = getAppEntryPoint(appHandle);
-    if(!appMain)
-    {
-        return 1;
-    }
     
     return appMain(argc, argv);
 }
