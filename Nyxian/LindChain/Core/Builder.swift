@@ -270,7 +270,11 @@ class Builder {
                     if result {
                         if LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) {
                             DispatchQueue.main.async {
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe)
+                                let mapObject: FDMapObject = FDMapObject.emptyMap()
+                                mapObject.appendFileDescriptor(inPipe!.fileHandleForReading.fileDescriptor, withMappingToLoc: STDIN_FILENO)
+                                mapObject.appendFileDescriptor(outPipe!.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDOUT_FILENO)
+                                mapObject.appendFileDescriptor(outPipe!.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDERR_FILENO)
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: ["LSMapObject":mapObject], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
                             }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])

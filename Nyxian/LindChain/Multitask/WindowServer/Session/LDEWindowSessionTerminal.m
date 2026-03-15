@@ -109,11 +109,19 @@
     }
     
     LDEProcess *process = nil;
-    [[LDEProcessManager shared] spawnProcessWithPath:_utilityPath withArguments:@[self.utilityPath] withEnvironmentVariables:@{
-        @"HOME": homePath,
-        @"CFFIXED_USER_HOME": homePath,
-        @"TMPDIR": [homePath stringByAppendingPathComponent:@"Tmp"]
-    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process withSession:nil];
+    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:@{
+        @"LSServiceMode": @"spawn",
+        @"LSExecutablePath": _utilityPath,
+        @"LSArguments": @[self.utilityPath],
+        @"LSEnvironment": @{
+            @"HOME": homePath,
+            @"CFFIXED_USER_HOME": homePath,
+            @"TMPDIR": [homePath stringByAppendingPathComponent:@"/Tmp"]
+        },
+        @"LSWorkingDirectory": homePath,
+        @"LSMapObject": mapObject
+    } withKernelSurfaceProcess:kernel_proc_];
+    process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
     
     if(process == nil)
     {

@@ -154,10 +154,25 @@ int LiveProcessMain(int argc, char *argv[])
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
     MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
+    NSString *workingDirectory = appInfo[@"LSWorkingDirectory"];
     
     assert(endpoint != nil && executablePath != nil && mode != nil && syscallPort != nil);
     
-    if(mapObject != nil)
+    /* setting working directory correctly */
+    if(workingDirectory != nil &&
+       [workingDirectory isKindOfClass:[NSString class]])
+    {
+        /* was passed, setting to destination */
+        chdir([workingDirectory UTF8String]);
+    }
+    else
+    {
+        /* wasnt passed, setting to root */
+        chdir([[NSHomeDirectory() stringByAppendingPathComponent:@"/Documents"] UTF8String]);
+    }
+    
+    if(mapObject != nil &&
+       [mapObject isKindOfClass:[FDMapObject class]])
     {
         /* apply file descriptor map passed from host environment */
         [mapObject apply_fd_map];

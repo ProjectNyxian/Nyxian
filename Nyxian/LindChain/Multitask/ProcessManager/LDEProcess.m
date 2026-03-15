@@ -30,6 +30,7 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#import <LindChain/ProcEnvironment/Server/Server.h>
 #else
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
@@ -48,8 +49,10 @@
     
     self.session = session;
     
+    /* insert required items */
     NSMutableDictionary *mutableItems = [items mutableCopy];
     mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
+    mutableItems[@"LSEndpoint"] = [Server getTicket];
     items = [mutableItems copy];
     
     self.executablePath = items[@"LSExecutablePath"];

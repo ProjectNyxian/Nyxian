@@ -710,7 +710,7 @@
 
 - (void)launchpadDidSelectAppWithBundleID:(NSString *)bundleID
 {
-    [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withKernelSurfaceProcess:kernel_proc_ doRestartIfRunning:NO outPipe:nil inPipe:nil];
+    [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
 }
 
 #endif /* !JAILBREAK_ENV */

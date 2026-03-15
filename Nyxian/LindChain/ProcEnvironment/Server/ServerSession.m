@@ -84,7 +84,14 @@
         }
         
         /* invoking spawn */
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil withSession:nil];
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:@{
+            @"LSServiceMode": @"spawn",
+            @"LSExecutablePath": path,
+            @"LSArguments": arguments,
+            @"LSEnvironment": environment,
+            @"LSMapObject": mapObject,
+            //@"LSWorkingDirectory":
+        } withKernelSurfaceProcess:_proc];
         
 #if KLOG_ENABLED
         if(pid != -1)

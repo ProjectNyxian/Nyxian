@@ -119,10 +119,9 @@
 }
 
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier
+                                withItems:(NSDictionary*)items
                  withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
-                                  outPipe:(NSPipe*)outp
-                                   inPipe:(NSPipe*)inp
 {
     LDEWindowSessionApplication *session = nil;
     
@@ -176,23 +175,13 @@
         return -1;
     }
     
-    [self enforceSpawnCooldown];
-    
-    FDMapObject *mapObject = nil;
-    if(outp != nil && inp != nil)
-    {
-        mapObject = [FDMapObject emptyMap];
-        [mapObject appendFileDescriptor:outp.fileHandleForReading.fileDescriptor withMappingToLoc:STDIN_FILENO];
-        [mapObject appendFileDescriptor:outp.fileHandleForWriting.fileDescriptor withMappingToLoc:STDOUT_FILENO];
-        [mapObject appendFileDescriptor:outp.fileHandleForWriting.fileDescriptor withMappingToLoc:STDERR_FILENO];
-    }
-    
     /* enforce cooldown */
     [self enforceSpawnCooldown];
     
     /* creating process */
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"LSEndpoint": [Server getTicket],
+    NSMutableDictionary *mutableItems = [items mutableCopy];
+    
+    [mutableItems setValuesForKeysWithDictionary:@{
         @"LSServiceMode": @"spawn",
         @"LSExecutablePath": applicationObject.executablePath,
         @"LSArguments": @[
@@ -201,16 +190,12 @@
         @"LSEnvironment": @{
             @"HOME": applicationObject.containerPath,
             @"CFFIXED_USER_HOME": applicationObject.containerPath,
-            @"TMPDIR": [applicationObject.containerPath stringByAppendingPathComponent:@"Tmp"]
-        }
+            @"TMPDIR": [applicationObject.containerPath stringByAppendingPathComponent:@"/Tmp"]
+        },
+        @"LSWorkingDirectory": [applicationObject.containerPath stringByAppendingPathComponent:@"/Documents"]
     }];
     
-    if(mapObject != nil)
-    {
-        [dictionary setObject:mapObject forKey:@"LSMapObject"];
-    }
-    
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:[dictionary copy] withKernelSurfaceProcess:proc withSession:session];
+    LDEProcess *process = [[LDEProcess alloc] initWithItems:mutableItems withKernelSurfaceProcess:proc withSession:session];
     
     /* null pointer check */
     if(process == nil)
@@ -227,62 +212,6 @@
     
     os_unfair_lock_unlock(&processes_array_lock);
 
-    return pid;
-}
-
-- (pid_t)spawnProcessWithPath:(NSString*)binaryPath
-                withArguments:(NSArray *)arguments
-     withEnvironmentVariables:(NSDictionary*)environment
-                withMapObject:(FDMapObject*)mapObject
-     withKernelSurfaceProcess:(ksurface_proc_t*)proc
-                      process:(LDEProcess**)processReply
-                  withSession:(LDEWindowSessionApplication*)session
-{
-    /* enforce cooldown */
-    [self enforceSpawnCooldown];
-    
-    /* creating process */
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"LSEndpoint": [Server getTicket],
-        @"LSServiceMode": @"spawn",
-        @"LSExecutablePath": binaryPath,
-        @"LSArguments": arguments,
-        @"LSEnvironment": environment
-    }];
-    
-    if(mapObject != nil)
-    {
-        [dictionary setObject:mapObject forKey:@"LSMapObject"];
-    }
-    
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:[dictionary copy] withKernelSurfaceProcess:proc withSession:session];
-    
-    /* null pointer check */
-    if(process == nil)
-    {
-        return -1;
-    }
-    
-    /* getting pid of process */
-    pid_t pid = process.pid;
-    
-    /* aquiring lock */
-    os_unfair_lock_lock(&processes_array_lock);
-    
-    /* setting process */
-    [self.processes setObject:process forKey:@(pid)];
-    
-    /* release lock */
-    os_unfair_lock_unlock(&processes_array_lock);
-    
-    /* checking if its non-null */
-    if(processReply != NULL)
-    {
-        /* replying with the process */
-        *processReply = process;
-    }
-    
-    /* returning process identifier */
     return pid;
 }
 

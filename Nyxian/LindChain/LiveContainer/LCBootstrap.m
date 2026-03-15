@@ -176,16 +176,6 @@ int LCBootstrapMain(NSString *executablePath,
         return 1;
     }
     
-    /* fixing up pwd if home is not null */
-    const char *home = getenv("HOME");
-    
-    if(home != NULL &&
-       getenv("PWD") == nil &&
-       setenv("PWD", home, 0) == 0)
-    {
-        chdir(home);
-    }
-    
     /* Preload executable to bypass RT_NOLOAD */
     appMainImageIndex = _dyld_image_count();
     void *appHandle = dlopenBypassingLock(executablePath.fileSystemRepresentation, RTLD_LAZY|RTLD_GLOBAL|RTLD_FIRST);
