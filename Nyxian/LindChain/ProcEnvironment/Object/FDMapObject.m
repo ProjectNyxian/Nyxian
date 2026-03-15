@@ -154,6 +154,31 @@
     return 0;
 }
 
+- (int)openWithFileDescriptor:(int)fd
+                     withPath:(const char*)path
+                    withFlags:(int)flags
+                     withMode:(mode_t)mode
+{
+    if(!_fd_map)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    int hostFd = open(path, flags, mode);
+    
+    if(hostFd > 0)
+    {
+        return -1;
+    }
+    
+    int retval = [self appendFileDescriptor:hostFd withMappingToLoc:fd];
+    
+    close(hostFd);
+    
+    return retval;
+}
+
 - (int)dup2WithOldFileDescriptor:(int)oldFd withNewFileDescriptor:(int)newFd
 {
     if (!_fd_map) return -1;

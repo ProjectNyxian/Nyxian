@@ -50,6 +50,7 @@ int environment_posix_spawnp(pid_t *process_identifier, const char *path, const 
 int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actions_t **fa);
 int environment_posix_spawn_file_actions_destroy(environment_posix_spawn_file_actions_t **fa);
 
+int environment_posix_spawn_file_actions_addopen(environment_posix_spawn_file_actions_t **fa, int child_fd, const char *path, int flags, mode_t mode);
 int environment_posix_spawn_file_actions_adddup2(environment_posix_spawn_file_actions_t **fa, int host_fd, int child_fd);
 int environment_posix_spawn_file_actions_addclose(environment_posix_spawn_file_actions_t **fa, int child_fd);
 

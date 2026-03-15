@@ -349,6 +349,22 @@ int environment_posix_spawn_file_actions_addclose(environment_posix_spawn_file_a
     return [(*fa)->mapObject closeWithFileDescriptor:child_fd];
 }
 
+int environment_posix_spawn_file_actions_addopen(environment_posix_spawn_file_actions_t **fa,
+                                                 int child_fd,
+                                                 const char *path,
+                                                 int flags,
+                                                 mode_t mode)
+{
+    /* sanity check */
+    if(fa == NULL || *fa == NULL)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    
+    return [(*fa)->mapObject openWithFileDescriptor:child_fd withPath:path withFlags:flags withMode:mode];
+}
+
 #pragma mark - Initilizer
 
 void environment_posix_spawn_init(void)
@@ -366,5 +382,6 @@ void environment_posix_spawn_init(void)
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_destroy, environment_posix_spawn_file_actions_destroy, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_adddup2, environment_posix_spawn_file_actions_adddup2, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_addclose, environment_posix_spawn_file_actions_addclose, nil);
+        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_addopen, environment_posix_spawn_file_actions_addopen, nil);
     }
 }

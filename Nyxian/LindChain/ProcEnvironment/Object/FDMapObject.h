@@ -117,6 +117,8 @@
  */
 - (int)closeWithFileDescriptor:(int)fd;
 
+- (int)openWithFileDescriptor:(int)fd withPath:(const char*)path withFlags:(int)flags withMode:(mode_t)mode;
+
 /*!
  @method `dup2WithOldFileDescriptor:withNewFileDescriptor:`
  @abstract Duplicates a file descriptor to a new one, replacing it if necessary.
