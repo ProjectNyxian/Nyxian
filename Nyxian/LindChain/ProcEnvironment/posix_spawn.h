@@ -44,19 +44,8 @@ typedef struct {
     FDMapObject *mapObject;
 } environment_posix_spawn_file_actions_t;
 
-int environment_posix_spawn(pid_t *process_identifier,
-                            const char *path,
-                            const environment_posix_spawn_file_actions_t **fa,
-                            const posix_spawnattr_t *spawn_attr,
-                            char *const argv[],
-                            char *const envp[]);
-
-int environment_posix_spawnp(pid_t *process_identifier,
-                             const char *path,
-                             const environment_posix_spawn_file_actions_t **file_actions,
-                             const posix_spawnattr_t *spawn_attr,
-                             char *const argv[],
-                             char *const envp[]);
+int environment_posix_spawn(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
+int environment_posix_spawnp(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
 
 int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actions_t **fa);
 int environment_posix_spawn_file_actions_destroy(environment_posix_spawn_file_actions_t **fa);

@@ -267,13 +267,13 @@ int environment_posix_spawn(pid_t *process_identifier,
 
 int environment_posix_spawnp(pid_t *process_identifier,
                              const char *path,
-                             const environment_posix_spawn_file_actions_t **file_actions,
+                             const environment_posix_spawn_file_actions_t **fa,
                              const posix_spawnattr_t *spawn_attr,
                              char *const argv[],
                              char *const envp[])
 {
     /* calling the actual posix_spawn() fix but with environment_which(1) */
-    return environment_posix_spawn(process_identifier, environment_which(path), file_actions, spawn_attr, argv, envp);
+    return environment_posix_spawn(process_identifier, environment_which(path), fa, spawn_attr, argv, envp);
 }
 
 #pragma mark - posix file actions
