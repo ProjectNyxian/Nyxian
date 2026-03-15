@@ -40,7 +40,7 @@ NSString *cdHashOfExecutableAtPath(NSString *path);
 }
 
 + (NSString *)servcieIdentifier {
-    return @"com.cr4zy.trustd";
+    return @"com.cr4zy.ksurfaced";
 }
 
 + (Protocol*)serviceProtocol

@@ -189,7 +189,7 @@ int LiveProcessMain(int argc, char *argv[])
         if([service isEqualToString:@"installd"])
         {
             return LDEServiceMain(argc, argv, [LDEApplicationWorkspaceProxy class]);
-        } else if([service isEqualToString:@"trustd"])
+        } else if([service isEqualToString:@"ksurfaced"])
         {
             return LDEServiceMain(argc, argv, [LDETrustProxy class]);
         }

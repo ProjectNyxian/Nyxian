@@ -54,7 +54,7 @@
     
     if(launchServices != nil)
     {
-        _connection = [launchServices connectToService:@"com.cr4zy.trustd" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
+        _connection = [launchServices connectToService:@"com.cr4zy.ksurfaced" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
         _connection.invalidationHandler = ^{
             __strong typeof(self) strongSelf = weakSelf;
             if(!strongSelf) return;
@@ -73,7 +73,7 @@
 {
     // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
     // RIGHT HERE
-    if([path isEqualToString:@"/usr/libexec/trustd"] ||
+    if([path isEqualToString:@"/usr/libexec/ksurfaced"] ||
        [path isEqualToString:@"/usr/libexec/installd"])
     {
         return YES;
@@ -139,7 +139,7 @@
 
 - (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path
 {
-    if([path isEqualToString:@"/usr/libexec/trustd"] ||
+    if([path isEqualToString:@"/usr/libexec/ksurfaced"] ||
        [path isEqualToString:@"/usr/libexec/installd"])
     {
         return PEEntitlementSystemDaemon;

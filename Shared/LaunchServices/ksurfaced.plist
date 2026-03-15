@@ -3,18 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>LSServiceIdentifier</key>
-	<string>com.cr4zy.trustd</string>
+	<string>com.cr4zy.ksurfaced</string>
 	<key>LSShouldAutorestart</key>
 	<true/>
 	<key>LSExecutablePath</key>
-	<string>/usr/libexec/trustd</string>
+	<string>/usr/libexec/ksurfaced</string>
 	<key>LSServiceMode</key>
 	<string>management</string>
 	<key>LSUserIdentifier</key>
-	<integer>1</integer>
+	<integer>0</integer>
 	<key>LSGroupIdentifier</key>
-	<integer>1</integer>
+	<integer>0</integer>
 	<key>LSIntegratedServiceName</key>
-	<string>trustd</string>
+	<string>ksurfaced</string>
 </dict>
 </plist>
