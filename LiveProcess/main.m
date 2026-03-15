@@ -153,7 +153,6 @@ int LiveProcessMain(int argc, char *argv[])
     NSDictionary *environmentDictionary = appInfo[@"LSEnvironment"];
     NSArray *argumentDictionary = appInfo[@"LSArguments"];
     FDMapObject *mapObject = appInfo[@"LSMapObject"];
-    NSNumber *debuggingEnabled = appInfo[@"LDEDebugEnabled"];
     MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
     
     assert(endpoint != nil && executablePath != nil && mode != nil && syscallPort != nil);
@@ -179,7 +178,7 @@ int LiveProcessMain(int argc, char *argv[])
         /* path for internal daemons serving nyxian */
         assert(service != nil);
         
-        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv, debuggingEnabled.boolValue);
+        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv);
 
         if(environment_syscall(SYS_setuid, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
            environment_syscall(SYS_setgid, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
@@ -198,7 +197,7 @@ int LiveProcessMain(int argc, char *argv[])
     else if([mode isEqualToString:@"spawn"])
     {
         /* path for normal spawns (they go through LC, thanks to Duy Tran and his research <3) */
-        return environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv, debuggingEnabled.boolValue);
+        return environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv);
     }
     
     return 1;

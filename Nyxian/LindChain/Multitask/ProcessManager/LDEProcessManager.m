@@ -123,7 +123,6 @@
                        doRestartIfRunning:(BOOL)doRestartIfRunning
                                   outPipe:(NSPipe*)outp
                                    inPipe:(NSPipe*)inp
-                          enableDebugging:(BOOL)enableDebugging
 {
     LDEWindowSessionApplication *session = nil;
     
@@ -203,8 +202,7 @@
             @"HOME": applicationObject.containerPath,
             @"CFFIXED_USER_HOME": applicationObject.containerPath,
             @"TMPDIR": [applicationObject.containerPath stringByAppendingPathComponent:@"Tmp"]
-        },
-        @"LDEDebugEnabled": @(enableDebugging)
+        }
     }];
     
     if(mapObject != nil)
@@ -237,7 +235,6 @@
      withEnvironmentVariables:(NSDictionary*)environment
                 withMapObject:(FDMapObject*)mapObject
      withKernelSurfaceProcess:(ksurface_proc_t*)proc
-              enableDebugging:(BOOL)enableDebugging
                       process:(LDEProcess**)processReply
                   withSession:(LDEWindowSessionApplication*)session
 {
@@ -250,8 +247,7 @@
         @"LSServiceMode": @"spawn",
         @"LSExecutablePath": binaryPath,
         @"LSArguments": arguments,
-        @"LSEnvironment": environment,
-        @"LDEDebugEnabled": @(enableDebugging)
+        @"LSEnvironment": environment
     }];
     
     if(mapObject != nil)

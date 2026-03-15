@@ -154,6 +154,6 @@ BOOL environment_must_be_role(EnvironmentRole role);
  @return
     Exit code of the process or environment it self.
  */
-int environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[], bool enableDebugging);
+int environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[]);
 
 #endif /* PROCENVIRONMENT_ENVIRONMENT_H */

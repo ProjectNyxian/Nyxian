@@ -113,7 +113,7 @@
         @"HOME": homePath,
         @"CFFIXED_USER_HOME": homePath,
         @"TMPDIR": [homePath stringByAppendingPathComponent:@"Tmp"]
-    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ enableDebugging:YES process:&process withSession:nil];
+    } withMapObject:mapObject withKernelSurfaceProcess:kernel_proc_ process:&process withSession:nil];
     
     if(process == nil)
     {

@@ -103,7 +103,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
+                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -156,7 +156,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let application = self.applications[indexPath.row]
-        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
+        LDEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil)
     }
     
     @objc func plusButtonPressed() {
@@ -199,7 +199,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     if result,
                        LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
                         DispatchQueue.main.async {
-                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil, enableDebugging: false)
+                            LDEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false, outPipe: nil, in: nil)
                         }
                     } else {
                         NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")

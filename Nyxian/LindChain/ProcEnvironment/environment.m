@@ -91,8 +91,7 @@ int environment_init(EnvironmentRole role,
                      EnvironmentExec exec,
                      NSString *executablePath,
                      int argc,
-                     char *argv[],
-                     bool enableDebugging)
+                     char *argv[])
 {
     assert(executablePath != nil && argv != NULL);
     
@@ -166,11 +165,12 @@ int environment_init(EnvironmentRole role,
             /*
              * checking if debugging is meant to be enabled
              * and enable it in case wanted.
+             * TODO: This is the responsibility of the host side tbh
              */
-            if(enableDebugging)
+            /*if(enableDebugging)
             {
                 environment_client_attach_debugger();
-            }
+            }*/
             
             /* making guest related LC patches */
             LCOverwriteExecutablePath(executablePath);

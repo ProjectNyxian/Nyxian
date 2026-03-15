@@ -270,7 +270,7 @@ class Builder {
                     if result {
                         if LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) {
                             DispatchQueue.main.async {
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe, enableDebugging: (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad))
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true, outPipe: outPipe, in: inPipe)
                             }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])

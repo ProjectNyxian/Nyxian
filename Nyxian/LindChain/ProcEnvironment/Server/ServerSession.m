@@ -84,7 +84,7 @@
         }
         
         /* invoking spawn */
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc enableDebugging:NO process:nil withSession:nil];
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withKernelSurfaceProcess:_proc process:nil withSession:nil];
         
 #if KLOG_ENABLED
         if(pid != -1)
