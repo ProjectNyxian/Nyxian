@@ -20,6 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Object/FDObject.h>
+#include <fcntl.h>
 
 @implementation FDObject
 
@@ -268,6 +269,36 @@
     FDObject *copy = [[[self class] allocWithZone:zone] init];
     copy.fd = [self.fd copy];
     return copy;
+}
+
++ (BOOL)forceVnodeReassignment:(NSString*)path
+{
+    if(path == nil)
+    {
+        return NO;
+    }
+    
+    NSFileManager *fm = [NSFileManager defaultManager];
+
+    NSString *uuid = [[NSUUID UUID] UUIDString];
+    NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:uuid];
+
+    /* move to temporary directory */
+    NSError *error = nil;
+    if(![fm moveItemAtPath:path toPath:tmpPath error:&error])
+    {
+        return NO;
+    }
+
+    /* move it back to original location */
+    if(![fm moveItemAtPath:tmpPath toPath:path error:&error])
+    {
+        /* attempt recovery */
+        [fm moveItemAtPath:tmpPath toPath:path error:nil];
+        return NO;
+    }
+
+    return YES;
 }
 
 @end

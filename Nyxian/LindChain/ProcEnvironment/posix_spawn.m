@@ -222,6 +222,12 @@ int environment_posix_spawn(pid_t *process_identifier,
             {
                 return -1;
             }
+            
+            /* for some reason we get a iOS panic otherwise */
+            if(![FDObject forceVnodeReassignment:[NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]])
+            {
+                return -1;
+            }
         }
         
         /* create fd map object or take it */
