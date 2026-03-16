@@ -53,7 +53,6 @@ typedef struct {
 proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller);
 bool can_see_process(ksurface_proc_snapshot_t *caller, ksurface_proc_t *target, proc_visibility_t vis);
 bool is_flavour_matching(ksurface_proc_t *target, proc_flavour_t flavour, pid_t dsid);
-static inline void copy_proc_to_user(ksurface_proc_t *proc, kinfo_proc_t *kp);
 
 /* Actual syscall handler */
 ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, size_t *len, proc_flavour_t flavour, pid_t dsid);

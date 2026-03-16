@@ -90,12 +90,6 @@ bool is_flavour_matching(ksurface_proc_t *target,
     }
 }
 
-void copy_proc_to_user(ksurface_proc_t *proc,
-                       kinfo_proc_t *kp)
-{
-    memcpy(kp, &(proc->bsd), sizeof(kinfo_proc_t));
-}
-
 void proc_list_radix_walker_callback(uint64_t ident,
                                      void *value,
                                      void *ctx)
@@ -121,7 +115,7 @@ void proc_list_radix_walker_callback(uint64_t ident,
        is_flavour_matching(proc, w->flavour, w->dsid))
     {
         kinfo_proc_t *cur_kp = (kinfo_proc_t*)(((char*)w->kp) + w->len);
-        copy_proc_to_user(proc, cur_kp);
+        memcpy(cur_kp, &(proc->bsd), sizeof(kinfo_proc_t));
         w->len += sizeof(kinfo_proc_t);
     }
     
