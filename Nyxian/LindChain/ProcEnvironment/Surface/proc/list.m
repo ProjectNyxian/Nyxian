@@ -24,11 +24,7 @@
 
 proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
 {
-    /* something went wrong here, dont let anyone see ^^ */
-    if(caller == NULL)
-    {
-        return PROC_VIS_NONE;
-    }
+    assert(caller != NULL);
     
     /*
      * if its root or a entitled process the ofc show em
@@ -51,6 +47,8 @@ bool can_see_process(ksurface_proc_snapshot_t *caller,
                      ksurface_proc_t *target,
                      proc_visibility_t vis)
 {
+    assert(caller != NULL);
+    
     /*
      * this symbol returns if a passed process can see
      * a other process, the other process passed .
@@ -73,6 +71,8 @@ bool is_flavour_matching(ksurface_proc_t *target,
                          proc_flavour_t flavour,
                          pid_t dsid)
 {
+    assert(target != NULL);
+    
     switch(flavour)
     {
         case PROC_FLV_ALL:
@@ -129,13 +129,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
                             proc_flavour_t flavour,
                             pid_t dsid)
 {
-    /* sanity check */
-    if(proc_copy == NULL ||
-       kp == NULL ||
-       len == NULL)
-    {
-        return SURFACE_NULLPTR;
-    }
+    assert(proc_copy != NULL && kp != NULL && len != NULL);
     
     /*
      * allocating exactly the amount of processes structures
