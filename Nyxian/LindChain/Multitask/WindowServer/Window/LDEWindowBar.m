@@ -401,4 +401,18 @@
     NSLog(@"deallocated %@", self);
 }
 
+- (UIView *)hitTest:(CGPoint)point
+          withEvent:(UIEvent *)event
+{
+    if(_buttonIsland && !_buttonIsland.hidden)
+    {
+        CGPoint islandPoint = [self convertPoint:point toView:_buttonIsland];
+        if([_buttonIsland pointInside:islandPoint withEvent:event])
+        {
+            return [_buttonIsland hitTest:islandPoint withEvent:event];
+        }
+    }
+    return [super hitTest:point withEvent:event];
+}
+
 @end
