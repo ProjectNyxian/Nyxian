@@ -27,7 +27,7 @@ Jailed is the main version of Nyxian. You need a free or paid apple developer ac
 - AltStore 2.0+ / SideStore 0.6.0+
 
 ##### Download:
-<a href="https://stikstore.app/altdirect/?url=https://raw.githubusercontent.com/ProjectNyxian/Nyxian/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
+<a href="https://stikstore.app/altdirect/?url=https://nyxian.app/apps.json&exclude=livecontainer" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
 </a>
 <a href="https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.6/nyxian.ipa" target="_blank">
