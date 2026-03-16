@@ -44,6 +44,46 @@ typedef struct {
     FDMapObject *mapObject;
 } environment_posix_spawn_file_actions_t;
 
+/* https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/bsd/sys/spawn_internal.h#L352-L360 */
+typedef enum {
+    PSFA_OPEN = 0,
+    PSFA_CLOSE = 1,
+    PSFA_DUP2 = 2,
+    PSFA_INHERIT = 3,
+    PSFA_FILEPORT_DUP2 = 4,
+    PSFA_CHDIR = 5,
+    PSFA_FCHDIR = 6
+} psfa_t;
+
+/* https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/bsd/sys/spawn_internal.h#L375-L394 */
+typedef struct _psfa_action {
+    psfa_t  psfaa_type;                         /* file action type */
+    union {
+        int psfaa_filedes;                  /* fd to operate on */
+        mach_port_name_t psfaa_fileport;    /* fileport to operate on */
+    };
+    union {
+        struct {
+            int     psfao_oflag;            /* open flags to use */
+            mode_t  psfao_mode;             /* mode for open */
+            char    psfao_path[PATH_MAX];   /* path to open */
+        } psfaa_openargs;
+        struct {
+            int psfad_newfiledes;           /* new file descriptor to use */
+        } psfaa_dup2args;
+        struct {
+            char    psfac_path[PATH_MAX];   /* path to chdir */
+        } psfaa_chdirargs;
+    };
+} _psfa_action_t;
+
+/* https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/bsd/sys/spawn_internal.h#L414 */
+typedef struct _posix_spawn_file_actions {
+    int             psfa_act_alloc;         /* available actions space */
+    int             psfa_act_count;         /* count of defined actions */
+    _psfa_action_t  psfa_act_acts[];        /* actions array (uses c99) */
+} *_posix_spawn_file_actions_t;
+
 int environment_posix_spawn(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
 int environment_posix_spawnp(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
 
