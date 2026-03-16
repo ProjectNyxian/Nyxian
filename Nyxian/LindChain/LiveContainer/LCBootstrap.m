@@ -101,18 +101,10 @@ void LCOverwriteExecutablePath(NSString *executablePath)
     /* put the original function back */
     performHookDyldApi("_NSGetExecutablePath", 2, (void**)&orig__NSGetExecutablePath, orig__NSGetExecutablePath);
     
-    /* overwriting the process information from previous main bundle */
-    NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
-    objcArgv[0] = executablePath;
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
-#pragma clang diagnostic pop
-    
-    /* using the actual executable path */
-    NSProcessInfo.processInfo.processName = [executablePath lastPathComponent];
-    *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
+    /* overwriting remaining upper systems */
+    NSString *procName = [executablePath lastPathComponent];
+    NSProcessInfo.processInfo.processName = procName;
+    *_CFGetProgname() = strdup(procName.UTF8String);
     *_CFGetProcessPath() = strdup(executablePath.UTF8String);
     Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
     if(swiftNSProcessInfo)
