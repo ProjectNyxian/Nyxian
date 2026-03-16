@@ -20,6 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
+#import <LindChain/ProcEnvironment/Surface/lock.h>
 
 proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
 {
@@ -147,7 +148,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
      * safe state where we can copy the process structures
      * directly into kp.
      */
-    pthread_rwlock_rdlock(&(ksurface->proc_info.struct_lock));
+    proc_table_rdlock();
     
     /*
      * allocating exactly the amount of processes structures
@@ -158,7 +159,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     /* sanity check */
     if(w == NULL)
     {
-        pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
+        proc_table_unlock();
         return SURFACE_NOMEM;
     }
     
@@ -169,8 +170,8 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     
     if(w->kp == NULL)
     {
+        proc_table_unlock();
         free(w);
-        pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
         return SURFACE_NOMEM;
     }
     
@@ -189,7 +190,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     free(w);
     
     /* unlocking proc table */
-    pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
+    proc_table_unlock();
     
     return SURFACE_SUCCESS;
 }
