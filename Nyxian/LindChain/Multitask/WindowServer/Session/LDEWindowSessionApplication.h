@@ -33,11 +33,12 @@
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
 
 - (instancetype)initWithProcess:(LDEProcess*)process;
+
++ (void)bringSessionToFrontWithBundleIdentifier:(NSString*)bundleIdentifier;
+
 - (void)prepareForInject;
 - (BOOL)injectProcess:(LDEProcess*)process;
 
 @end
-
-void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *bundleIdentifier);
 
 #endif /* LDEWINDOWSESSIONAPPLICATION_H */

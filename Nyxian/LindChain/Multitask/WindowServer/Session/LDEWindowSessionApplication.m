@@ -68,6 +68,29 @@ void UIKitFixesInit(void)
     return self;
 }
 
++ (void)bringSessionToFrontWithBundleIdentifier:(NSString*)bundleIdentifier
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) return;
+        LDEWindowServer *windowServer = [LDEWindowServer shared];
+        assert(windowServer != nil);
+        
+        for(NSNumber *key in windowServer.windows)
+        {
+            LDEWindow *window = windowServer.windows[key];
+            
+            if(window != nil &&
+               [window.session isKindOfClass:[LDEWindowSessionApplication class]] &&
+               [((LDEWindowSessionApplication*)(window.session)).process.bundleIdentifier isEqualToString:bundleIdentifier])
+            {
+                [window.view.superview bringSubviewToFront:window.view];
+                [window focusWindow];
+                break;
+            }
+        }
+    });
+}
+
 - (BOOL)openWindow
 {
     if(![super openWindow])
@@ -389,28 +412,3 @@ void UIKitFixesInit(void)
 }
 
 @end
-
-void LDEBringApplicationSessionToFrontAssosiatedWithBundleIdentifier(NSString *bundleIdentifier)
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) return;
-        LDEWindowServer *windowServer = [LDEWindowServer shared];
-        if(windowServer == nil) return;
-        
-        for(NSNumber *key in windowServer.windows)
-        {
-            LDEWindow *window = windowServer.windows[key];
-            if(window == nil) continue;
-            if([window.session isKindOfClass:[LDEWindowSessionApplication class]])
-            {
-                LDEWindowSessionApplication *session = (LDEWindowSessionApplication*)window.session;
-                if([session.process.bundleIdentifier isEqualToString:bundleIdentifier])
-                {
-                    [window.view.superview bringSubviewToFront:window.view];
-                    [window focusWindow];
-                    break;
-                }
-            }
-        }
-    });
-}
