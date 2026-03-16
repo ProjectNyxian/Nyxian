@@ -123,23 +123,23 @@ void LCOverwriteExecutablePath(NSString *executablePath)
     }
 }
 
-static void *getAppEntryPoint(void *handle) {
-    uint32_t entryoff = 0;
-    const struct mach_header_64 *header = (struct mach_header_64 *)getGuestAppHeader();
-    uint8_t *imageHeaderPtr = (uint8_t*)header + sizeof(struct mach_header_64);
-    struct load_command *command = (struct load_command *)imageHeaderPtr;
-    for (int i = 0; (i < header->ncmds) > 0; ++i)
+static void *getAppEntryPoint(void *handle)
+{
+    const struct mach_header_64 *header = (const struct mach_header_64 *)getGuestAppHeader();
+    const struct load_command *cmd = (const struct load_command *) ((uintptr_t)header + sizeof(struct mach_header_64));
+
+    for(uint32_t i = 0; i < header->ncmds; i++)
     {
-        if(command->cmd == LC_MAIN) {
-            struct entry_point_command ucmd = *(struct entry_point_command *)imageHeaderPtr;
-            entryoff = (uint32_t)ucmd.entryoff;
-            break;
+        if(__builtin_expect(cmd->cmd == LC_MAIN, 0))
+        {
+            const struct entry_point_command *ec = (const struct entry_point_command *)cmd;
+            assert(ec->entryoff > 0);
+            return (void *)((uintptr_t)header + ec->entryoff);
         }
-        imageHeaderPtr += command->cmdsize;
-        command = (struct load_command *)imageHeaderPtr;
+        cmd = (const struct load_command *)((uintptr_t)cmd + cmd->cmdsize);
     }
-    assert(entryoff > 0);
-    return (void *)header + entryoff;
+
+    __builtin_unreachable();
 }
 
 void InsertLibrariesIfNeeded(void)

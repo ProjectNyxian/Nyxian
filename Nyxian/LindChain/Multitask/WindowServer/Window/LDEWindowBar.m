@@ -159,7 +159,17 @@
         ]];
 
         _closeButton = [self _islandButtonWithImage:@"xmark.circle.fill" withBackgroundColor:UIColor.systemRedColor callback:closeCallback];
-        _maximizeButton = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" withBackgroundColor:UIColor.systemGreenColor callback:maximizeCallback];
+        
+        __weak typeof(self) weakSelf = self;
+        _maximizeButton = [self _islandButtonWithImage:@"arrow.up.left.and.arrow.down.right.circle.fill" withBackgroundColor:UIColor.systemGreenColor callback:^{
+            maximizeCallback();
+            
+            __strong typeof(self) strongSelf = weakSelf;
+            if(strongSelf != nil)
+            {
+                [strongSelf collapseIsland];
+            }
+        }];
 
         UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[_closeButton, _maximizeButton]];
         stack.axis = UILayoutConstraintAxisHorizontal;
@@ -184,6 +194,7 @@
         _islandHeightConstraint = [island.heightAnchor constraintEqualToConstant:26.0];
         [NSLayoutConstraint activateConstraints:@[
             [island.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:10],
+            [island.topAnchor constraintEqualToAnchor:_titleLabel.centerYAnchor constant:-13.0],
             _islandWidthConstraint,
             _islandHeightConstraint,
         ]];
