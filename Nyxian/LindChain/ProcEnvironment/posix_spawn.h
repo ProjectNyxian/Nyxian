@@ -33,17 +33,6 @@
  * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
-/*!
- @typedef environment_posix_spawn_file_actions_t
- @abstract
-    An opaque type representing file actions for posix_spawn within the environment API.
- @discussion
-    The contents of this type are private and should not be accessed directly. Unless YOU KNOW WHAT YOU DO!
- */
-typedef struct {
-    FDMapObject *mapObject;
-} environment_posix_spawn_file_actions_t;
-
 /* https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/bsd/sys/spawn_internal.h#L352-L360 */
 typedef enum {
     PSFA_OPEN = 0,
@@ -84,15 +73,8 @@ typedef struct _posix_spawn_file_actions {
     _psfa_action_t  psfa_act_acts[];        /* actions array (uses c99) */
 } *_posix_spawn_file_actions_t;
 
-int environment_posix_spawn(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
-int environment_posix_spawnp(pid_t *process_identifier, const char *path, const environment_posix_spawn_file_actions_t **fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
-
-int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actions_t **fa);
-int environment_posix_spawn_file_actions_destroy(environment_posix_spawn_file_actions_t **fa);
-
-int environment_posix_spawn_file_actions_addopen(environment_posix_spawn_file_actions_t **fa, int child_fd, const char *path, int flags, mode_t mode);
-int environment_posix_spawn_file_actions_adddup2(environment_posix_spawn_file_actions_t **fa, int host_fd, int child_fd);
-int environment_posix_spawn_file_actions_addclose(environment_posix_spawn_file_actions_t **fa, int child_fd);
+int environment_posix_spawn(pid_t *process_identifier, const char *path, const posix_spawn_file_actions_t *fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
+int environment_posix_spawnp(pid_t *process_identifier, const char *path, const posix_spawn_file_actions_t *fa, const posix_spawnattr_t *spawn_attr, char *const argv[], char *const envp[]);
 
 void environment_posix_spawn_init(void);
 

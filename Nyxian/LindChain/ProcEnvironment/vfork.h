@@ -26,6 +26,7 @@
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #include <stdlib.h>
 #import <LindChain/Debugger/Utils.h>
+#include <spawn.h>
 
 typedef struct {
     /* Stack properties*/
@@ -41,7 +42,7 @@ typedef struct {
     thread_act_t thread;
     
     /* File descriptors */
-    FDMapObject *mapObject;
+    posix_spawn_file_actions_t fa;
     
     /* process state backup */
     char *cwd;

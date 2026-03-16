@@ -195,7 +195,7 @@ char *environment_which(const char *name)
 
 int environment_posix_spawn(pid_t *process_identifier,
                             const char *path,
-                            const environment_posix_spawn_file_actions_t **fa,
+                            const posix_spawn_file_actions_t *fa,
                             const posix_spawnattr_t *spawn_attr,
                             char *const argv[],
                             char *const envp[])
@@ -225,18 +225,55 @@ int environment_posix_spawn(pid_t *process_identifier,
         }
         
         /* create fd map object or take it */
-        FDMapObject *mapObject = fa ? (*fa)->mapObject : [FDMapObject currentMap];
+        FDMapObject *mapObject = [FDMapObject currentMap];
         
         /* getting cwd */
-        char *cwd = getcwd(NULL, 0);
+        char cwd[PATH_MAX] = {};
         
-        if(cwd == NULL)
+        if(fa == NULL)
         {
-            return -1;
+            goto skip_fileactions;
+        }
+        
+        /* interpretting file actions :3c */
+        _posix_spawn_file_actions_t *faPtr = (_posix_spawn_file_actions_t*)fa;
+        
+        for(uint64_t i = 0; i < (*faPtr)->psfa_act_count; i++)
+        {
+            switch((*faPtr)->psfa_act_acts[i].psfaa_type)
+            {
+                case PSFA_OPEN:
+                    [mapObject openWithFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes withPath:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_path withFlags:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_oflag withMode:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_mode];
+                    break;
+                case PSFA_CLOSE:
+                    [mapObject closeWithFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes];
+                    break;
+                case PSFA_DUP2:
+                    [mapObject dup2WithOldFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes withNewFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_dup2args.psfad_newfiledes];
+                    break;
+                case PSFA_INHERIT:
+                    [mapObject appendFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes];
+                    break;
+                case PSFA_FILEPORT_DUP2:
+                    /* S0n */
+                    break;
+                case PSFA_CHDIR:
+                    /* not available on iOS but shrug, add it anyways */
+                    strlcpy(cwd, (*faPtr)->psfa_act_acts[i].psfaa_chdirargs.psfac_path, PATH_MAX);
+                    break;
+                case PSFA_FCHDIR:
+                    /* S0n */
+                    break;
+            }
+        }
+        
+    skip_fileactions:
+        if(cwd[0] == '\0')
+        {
+            getcwd(cwd, PATH_MAX);
         }
         
         NSString *nsCwd = [NSString stringWithCString:cwd encoding:NSUTF8StringEncoding];
-        free(cwd);
         
         /* trying to spawn process */
         int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject, nsCwd);
@@ -267,102 +304,13 @@ int environment_posix_spawn(pid_t *process_identifier,
 
 int environment_posix_spawnp(pid_t *process_identifier,
                              const char *path,
-                             const environment_posix_spawn_file_actions_t **fa,
+                             const posix_spawn_file_actions_t *fa,
                              const posix_spawnattr_t *spawn_attr,
                              char *const argv[],
                              char *const envp[])
 {
     /* calling the actual posix_spawn() fix but with environment_which(1) */
     return environment_posix_spawn(process_identifier, environment_which(path), fa, spawn_attr, argv, envp);
-}
-
-#pragma mark - posix file actions
-
-int environment_posix_spawn_file_actions_init(environment_posix_spawn_file_actions_t **fa)
-{
-    /* sanity check */
-    if(fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    /* allocating file actions */
-    *fa = malloc(sizeof(environment_posix_spawn_file_actions_t));
-    
-    /* sanity check */
-    if(*fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    /* stuffing the rest */
-    (*fa)->mapObject = [[FDMapObject alloc] init];
-    [(*fa)->mapObject copy_fd_map];
-    
-    return 0;
-}
-
-int environment_posix_spawn_file_actions_destroy(environment_posix_spawn_file_actions_t **fa)
-{
-    /* sanity check */
-    if(fa == NULL || *fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    /* let ARC do the job */
-    (*fa)->mapObject = nil;
-    
-    /* releasing file actions */
-    free(*fa);
-    return 0;
-}
-
-// MARK: Management
-int environment_posix_spawn_file_actions_adddup2(environment_posix_spawn_file_actions_t **fa,
-                                                 int host_fd,
-                                                 int child_fd)
-{
-    /* sanity check */
-    if(fa == NULL || *fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    return [(*fa)->mapObject dup2WithOldFileDescriptor:host_fd withNewFileDescriptor:child_fd];;
-}
-
-int environment_posix_spawn_file_actions_addclose(environment_posix_spawn_file_actions_t **fa,
-                                                  int child_fd)
-{
-    /* sanity check */
-    if(fa == NULL || *fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    return [(*fa)->mapObject closeWithFileDescriptor:child_fd];
-}
-
-int environment_posix_spawn_file_actions_addopen(environment_posix_spawn_file_actions_t **fa,
-                                                 int child_fd,
-                                                 const char *path,
-                                                 int flags,
-                                                 mode_t mode)
-{
-    /* sanity check */
-    if(fa == NULL || *fa == NULL)
-    {
-        errno = EFAULT;
-        return -1;
-    }
-    
-    return [(*fa)->mapObject openWithFileDescriptor:child_fd withPath:path withFlags:flags withMode:mode];
 }
 
 #pragma mark - Initilizer
@@ -376,12 +324,5 @@ void environment_posix_spawn_init(void)
         // MARK: Fixing spawning of child processes
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn, environment_posix_spawn, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawnp, environment_posix_spawnp, nil);
-        
-        // MARK: Fixing file actions, so developers can redirect file descriptors
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_init, environment_posix_spawn_file_actions_init, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_destroy, environment_posix_spawn_file_actions_destroy, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_adddup2, environment_posix_spawn_file_actions_adddup2, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_addclose, environment_posix_spawn_file_actions_addclose, nil);
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn_file_actions_addopen, environment_posix_spawn_file_actions_addopen, nil);
     }
 }

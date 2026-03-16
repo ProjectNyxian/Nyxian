@@ -20,7 +20,7 @@
 */
 
 #include <LindChain/ProcEnvironment/Utils/fd.h>
-#import <LindChain/LiveContainer/Tweaks/libproc.h>
+#include <LindChain/LiveContainer/Tweaks/libproc.h>
 #include <stdlib.h>
 #include <unistd.h>
 

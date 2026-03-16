@@ -50,7 +50,7 @@ void *fork_helper_thread(void *args)
     if(snapshot->ret_pid == 0)
     {
         /* creating copy of current fd map */
-        snapshot->mapObject = [FDMapObject currentMap];
+        posix_spawn_file_actions_init(&(snapshot->fa));
         
         /* getting arm64 thread state of our own thread. */
         snapshot->thread_state = thread_save_state_arm64(snapshot->thread);
@@ -173,6 +173,7 @@ DEFINE_HOOK(vfork, pid_t, (void))
     if(pid != 0)
     {
         /* restore cwd */
+        posix_spawn_file_actions_destroy(&(local_fork_thread_snapshot->fa));
         chdir(local_fork_thread_snapshot->cwd);
         free(local_fork_thread_snapshot->cwd);
         free(local_fork_thread_snapshot);
@@ -197,18 +198,10 @@ int environment_execvpa(const char * __path,
         return -1;
     }
     
-    /* creating file actions structure */
-    environment_posix_spawn_file_actions_t *fileActions = malloc(sizeof(environment_posix_spawn_file_actions_t));
-    
-    /*
-     * MARK: AHHH Apple, pls dont hate me for the poor none ARC friendly code here
-     * MARK: Atleast I hope ARC does reference counting on these structs
-     */
-    fileActions->mapObject = local_fork_thread_snapshot->mapObject;
-    
+    /* FIXME: the new technique is more prone to guarded file descriptors for some reason, a way is needed to test if a file descriptor is guarded or not */
     /* commiting the posix spawn */
-    int retval = find_binary ? environment_posix_spawnp(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp) :
-                               environment_posix_spawn(&local_fork_thread_snapshot->ret_pid, __path, (const environment_posix_spawn_file_actions_t**)&fileActions, nil, __argv, __envp);
+    int retval = find_binary ? environment_posix_spawnp(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp) :
+                               environment_posix_spawn(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp);
     
     /* evaluating return */
     if(retval != 0)
@@ -216,9 +209,6 @@ int environment_execvpa(const char * __path,
         errno = EBADEXEC;
         return -1;
     }
-    
-    /* destroying file actions, were done with it */
-    free(fileActions);
     
     /*
      * trapping into fork helper, but only if its
@@ -351,7 +341,7 @@ DEFINE_HOOK(close, int, (int fd))
 {
     if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
-        return [local_fork_thread_snapshot->mapObject closeWithFileDescriptor:fd];
+        return posix_spawn_file_actions_addclose(&(local_fork_thread_snapshot->fa), fd);
     }
     else
     {
@@ -364,7 +354,7 @@ DEFINE_HOOK(dup2, int, (int oldFD,
 {
     if(local_fork_thread_snapshot && local_fork_thread_snapshot->ret_pid == 0)
     {
-        return [local_fork_thread_snapshot->mapObject dup2WithOldFileDescriptor:oldFD withNewFileDescriptor:newFD];
+        return posix_spawn_file_actions_adddup2(&(local_fork_thread_snapshot->fa), oldFD, newFD);
     }
     else
     {
