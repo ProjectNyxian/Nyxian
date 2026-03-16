@@ -30,7 +30,7 @@
 
 extern ksurface_mapping_t *ksurface;
 
-void ksurface_sethostname(NSString *hostname);
+int ksurface_sethostname(NSString *hostname);
 void ksurface_kinit(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */

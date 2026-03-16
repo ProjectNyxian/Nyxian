@@ -26,30 +26,37 @@
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 #import <LindChain/LiveContainer/utils.h>
+#import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
 
 ksurface_mapping_t *ksurface = NULL;
 
-/* TODO: check against same regex pattern as in the syscall */
-void ksurface_sethostname(NSString *hostname)
+int ksurface_sethostname(NSString *hostname)
 {
-    /* sanity check */
-    if(hostname == nil &&
+    if(hostname == nil ||
        [hostname length] > MAXHOSTNAMELEN)
     {
-        return;
+        return -1;
+    }
+    
+    /* checking regex pattern */
+    if(!is_valid_hostname_regex([hostname UTF8String]))
+    {
+        return -1;
     }
     
     /* locking host info so hostname can be set */
     host_wrlock();
     
     /* setting hostname */
-    klog_log(@"surface", @"setting hostname to %@", hostname);
+    klog_log(@"surface", @"setting hostname to \"%@\"", hostname);
     
     /* copying hostname over to hostinfo */
     strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
     
     /* unlocking again */
     host_unlock();
+    
+    return 0;
 }
 
 static inline void ksurface_kinit_kalloc(void)

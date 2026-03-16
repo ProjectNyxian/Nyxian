@@ -23,6 +23,9 @@
 #define SURFACE_SYSCTL_H
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <stdbool.h>
+
+bool is_valid_hostname_regex(const char *hostname);
 
 DEFINE_SYSCALL_HANDLER(sysctl);
 DEFINE_SYSCALL_HANDLER(sysctlbyname);
