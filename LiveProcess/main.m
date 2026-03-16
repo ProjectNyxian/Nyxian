@@ -114,7 +114,7 @@ void overwriteArguments(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
-    [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:arguments];
+    [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:arguments ? arguments : @[]];
 #pragma clang diagnostic pop
     
     if(!arguments || arguments.count < 1)
