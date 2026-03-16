@@ -144,13 +144,6 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     }
     
     /*
-     * aquire read onto proc table so we can reach a
-     * safe state where we can copy the process structures
-     * directly into kp.
-     */
-    proc_table_rdlock();
-    
-    /*
      * allocating exactly the amount of processes structures
      * we need.
      */
@@ -159,13 +152,20 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     /* sanity check */
     if(w == NULL)
     {
-        proc_table_unlock();
         return SURFACE_NOMEM;
     }
     
     /* setting up radix walker */
     w->caller = proc_copy;
     w->vis = get_proc_visibility(proc_copy);
+    
+    /*
+     * aquire read onto proc table so we can reach a
+     * safe state where we can copy the process structures
+     * directly into kp.
+     */
+    proc_table_rdlock();
+    
     w->kp = malloc(sizeof(kinfo_proc_t) * ksurface->proc_info.proc_count);
     
     if(w->kp == NULL)
