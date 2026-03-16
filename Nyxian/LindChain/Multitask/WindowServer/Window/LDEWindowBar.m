@@ -188,9 +188,8 @@
             _islandHeightConstraint,
         ]];
 
-        UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-        lp.minimumPressDuration = 0.2;
-        [island.contentView addGestureRecognizer:lp];
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+        [island.contentView addGestureRecognizer:tap];
         
         UITapGestureRecognizer *bgTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleBackgroundTap:)];
         bgTap.cancelsTouchesInView = NO;
@@ -200,9 +199,9 @@
     return self;
 }
 
-- (void)handleLongPress:(UILongPressGestureRecognizer *)gr
+- (void)handleTap:(UILongPressGestureRecognizer *)gr
 {
-    if(gr.state == UIGestureRecognizerStateBegan)
+    if(gr.state == UIGestureRecognizerStateRecognized)
     {
         [self expandIsland];
     }

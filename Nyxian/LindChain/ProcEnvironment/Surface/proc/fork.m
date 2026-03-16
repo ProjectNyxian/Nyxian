@@ -32,12 +32,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
                            const char *path)
 {
-    /* null pointer check */
-    if(parent == NULL ||
-       path == NULL)
-    {
-        return NULL;
-    }
+    assert(parent != NULL && path != NULL);
     
     /* creating child process */
     ksurface_proc_t *child = kvo_copy(parent);
