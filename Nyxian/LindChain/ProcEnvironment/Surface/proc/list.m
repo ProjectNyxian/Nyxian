@@ -170,6 +170,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     if(w->kp == NULL)
     {
         free(w);
+        pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock));
         return SURFACE_NOMEM;
     }
     
