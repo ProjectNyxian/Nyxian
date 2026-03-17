@@ -281,20 +281,30 @@
     NSFileManager *fm = [NSFileManager defaultManager];
 
     NSString *uuid = [[NSUUID UUID] UUIDString];
-    NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:uuid];
-
-    /* move to temporary directory */
-    NSError *error = nil;
-    if(![fm moveItemAtPath:path toPath:tmpPath error:&error])
+    NSString *tmpPath = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:uuid];
+    
+    if(tmpPath == nil)
     {
         return NO;
     }
 
-    /* move it back to original location */
+    /* ->copy<- to temporary directory */
+    NSError *error = nil;
+    if(![fm copyItemAtPath:path toPath:tmpPath error:&error])
+    {
+        return NO;
+    }
+    
+    /* unlinking original */
+    if(unlink(path.fileSystemRepresentation) != 0)
+    {
+        [fm removeItemAtPath:tmpPath error:nil];
+        return NO;
+    }
+
+    /* move copy back to original location */
     if(![fm moveItemAtPath:tmpPath toPath:path error:&error])
     {
-        /* attempt recovery */
-        [fm moveItemAtPath:tmpPath toPath:path error:nil];
         return NO;
     }
 
