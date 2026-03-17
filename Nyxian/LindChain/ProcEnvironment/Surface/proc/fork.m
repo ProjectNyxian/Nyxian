@@ -370,8 +370,8 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     /* mark as zombified */
     kvo_wrlock(proc);
     proc->bsd.kp_proc.p_stat = SZOMB;
-    kvo_event_trigger(proc, kvObjEventCustom2, 0);
     kvo_unlock(proc);
+    kvo_event_trigger(proc, kvObjEventCustom2, 0);
     kvo_release(proc);
     
     return SURFACE_SUCCESS;

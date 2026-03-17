@@ -128,8 +128,8 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
      * initilizing the locks after initilize, because
      * the lock is unnecessary at init time.
      */
-    pthread_rwlock_init(&(kvo->rwlock), NULL);
-    pthread_rwlock_init(&(kvo->event_rwlock), NULL);
+    pthread_rwlock_init(&(kvo_dup->rwlock), NULL);
+    pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL);
     
 out_unlock:
     kvo_unlock(kvo);

@@ -324,15 +324,15 @@
         kvo_wrlock(_proc);
         _proc->bsd.kp_proc.p_stat = SSTOP;
         _proc->nyx.p_stop_reported = 0;
-        kvo_event_trigger(_proc, kvObjEventCustom0, 0);
         kvo_unlock(_proc);
+        kvo_event_trigger(_proc, kvObjEventCustom0, 0);
     }
     else if(signal == SIGCONT)
     {
         kvo_wrlock(_proc);
         _proc->bsd.kp_proc.p_stat = SRUN;
-        kvo_event_trigger(_proc, kvObjEventCustom1, 0);
         kvo_unlock(_proc);
+        kvo_event_trigger(_proc, kvObjEventCustom1, 0);
     }
 #else
     shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);

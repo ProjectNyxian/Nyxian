@@ -36,43 +36,48 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
                               uint8_t val,
                               kvobject_event_t *event)
 {
+    if(type == kvObjEventInvalidate)
+    {
+        return false;
+    }
+    
     ksurface_proc_t *proc = (ksurface_proc_t*)(event->owner);
     wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
     int ecode = 0;
     
-    kvo_rdlock(proc);
+    kvo_wrlock(proc);
     
     switch(type)
     {
-        case kvObjEventCustom2:
-            proc_exit((ksurface_proc_t*)(event->owner));
+        case kvObjEventCustom2: /* reap (triggers deinit, which triggers the unregistration) */
+            proc_exit(proc);
+            kvo_unlock(proc);
             return false;
-        case kvObjEventDeinit:
+        case kvObjEventCustom0: /* stopped */
+            proc->nyx.p_stop_reported = 1;
+            if((payload->options & WSTOPPED) == WSTOPPED)
+            {
+                ecode = W_STOPCODE(SIGSTOP);
+                goto out_trigger_unregister;
+            }
+            break;
+        case kvObjEventCustom1: /* contined */
+            if((payload->options & WCONTINUED) == WCONTINUED)
+            {
+                ecode = W_STOPCODE(SIGCONT);
+                goto out_trigger_unregister;
+            }
+            break;
+        case kvObjEventDeinit:  /* exited */
         {
             ecode = proc->nyx.p_status;
-            goto out_byebye;
+            goto out_trigger_unregister;
         }
         case kvObjEventUnregister:
             mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
             free(payload);
+            kvo_unlock(proc);
             return true;
-        case kvObjEventCustom0:
-            kvo_wrlock(((ksurface_proc_t*)event->owner));
-            ((ksurface_proc_t*)event->owner)->nyx.p_stop_reported = 1;
-            kvo_unlock(((ksurface_proc_t*)event->owner));
-            if((payload->options & WSTOPPED) == WSTOPPED)
-            {
-                ecode = W_STOPCODE(SIGSTOP);
-                goto out_byebye;
-            }
-            break;
-        case kvObjEventCustom1:
-            if((payload->options & WCONTINUED) == WCONTINUED)
-            {
-                ecode = W_STOPCODE(SIGCONT);
-                goto out_byebye;
-            }
-            break;
         default:
             break;
     }
@@ -80,7 +85,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
     kvo_unlock(proc);
     return false;
 
-out_byebye:
+out_trigger_unregister:
     mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
     kvo_unlock(proc);
     send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
