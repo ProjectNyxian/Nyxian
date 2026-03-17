@@ -123,15 +123,12 @@ struct ksurface_proc {
     
     /* nyxian specific process structure */
     struct knyx_proc {
-        /* return value */
-        uint8_t ret;
-        
         /* session identifier */
         pid_t sid;
         
         /* wait4 markers */
+        int p_status;
         int p_stop_reported;
-        int p_exit_set;
         
         /* executable path at which the macho is located at */
         char executable_path[PATH_MAX];

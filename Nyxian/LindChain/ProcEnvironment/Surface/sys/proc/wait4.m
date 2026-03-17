@@ -49,14 +49,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             return false;
         case kvObjEventDeinit:
         {
-            if(proc->nyx.p_exit_set)
-            {
-                ecode = (proc->nyx.ret << 8) & 0xff00;
-            }
-            else
-            {
-                ecode = W_EXITCODE(0, SIGKILL);
-            }
+            ecode = proc->nyx.p_status;
             goto out_byebye;
         }
         case kvObjEventUnregister:
@@ -139,40 +132,24 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->options = options;
     payload->buffer = recv_buffer;
     
-    /* check if one stopping is still in await to be received */
-    if((options & WSTOPPED) == WSTOPPED)
+    /* looking if state is already set */
+    if(target->bsd.kp_proc.p_stat == SSTOP &&
+       target->nyx.p_stop_reported == 0 &&
+       ((options & WSTOPPED) == WSTOPPED))
     {
-        if(target->bsd.kp_proc.p_stat == SSTOP &&
-           target->nyx.p_stop_reported == 0)
-        {
-            target->nyx.p_stop_reported = 1;
-            
-            int ecode = W_STOPCODE(SIGSTOP);
-            mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
-            
-            free(payload);
-            kvo_unlock(target);
-            kvo_release(target);
-            sys_return;
-        }
-    }
-    
-    /* checking if zombified process is still in await */
-    if(target->bsd.kp_proc.p_stat == SZOMB)
-    {
-        target->nyx.p_stop_reported = 1;
-        
-        int ecode;
-        if(target->nyx.p_exit_set)
-        {
-            ecode = (target->nyx.ret << 8) & 0xff00;
-        }
-        else
-        {
-            ecode = W_EXITCODE(0, SIGKILL);
-        }
+        /* process has already stopped, reporting */
+        int ecode = W_STOPCODE(SIGSTOP);
         mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
         
+        goto out_release_payload;
+    }
+    else if(target->bsd.kp_proc.p_stat == SZOMB)
+    {
+        /* process has already exited, reporting */
+        mach_syscall_copy_out(payload->task, sizeof(int), &(target->nyx.p_status), payload->status_ptr);
+        
+    out_release_payload:
+        target->nyx.p_stop_reported = 1;
         free(payload);
         kvo_unlock(target);
         kvo_release(target);
