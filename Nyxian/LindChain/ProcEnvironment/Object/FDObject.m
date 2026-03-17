@@ -305,6 +305,7 @@
     /* move copy back to original location */
     if(![fm moveItemAtPath:tmpPath toPath:path error:&error])
     {
+        [fm removeItemAtPath:tmpPath error:nil];
         return NO;
     }
 

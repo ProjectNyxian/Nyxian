@@ -48,8 +48,17 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             proc_exit((ksurface_proc_t*)(event->owner));
             return false;
         case kvObjEventDeinit:
-            ecode = (proc->nyx.ret << 8) & 0xff00;
+        {
+            if(proc->nyx.p_exit_set)
+            {
+                ecode = (proc->nyx.ret << 8) & 0xff00;
+            }
+            else
+            {
+                ecode = W_EXITCODE(0, SIGKILL);
+            }
             goto out_byebye;
+        }
         case kvObjEventUnregister:
             mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
             free(payload);
@@ -153,7 +162,15 @@ DEFINE_SYSCALL_HANDLER(wait4)
     {
         target->nyx.p_stop_reported = 1;
         
-        int ecode = (target->nyx.ret << 8) & 0xff00;
+        int ecode;
+        if(target->nyx.p_exit_set)
+        {
+            ecode = (target->nyx.ret << 8) & 0xff00;
+        }
+        else
+        {
+            ecode = W_EXITCODE(0, SIGKILL);
+        }
         mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
         
         free(payload);

@@ -25,6 +25,7 @@ DEFINE_SYSCALL_HANDLER(exit)
 {
     kvo_rdlock(sys_proc_);
     sys_proc_->nyx.ret = (uint8_t)(int)args[0];
+    sys_proc_->nyx.p_exit_set = 1;
     kvo_unlock(sys_proc_);
     sys_return;
 }

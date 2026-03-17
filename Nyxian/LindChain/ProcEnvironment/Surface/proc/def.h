@@ -131,6 +131,7 @@ struct ksurface_proc {
         
         /* wait4 markers */
         int p_stop_reported;
+        int p_exit_set;
         
         /* executable path at which the macho is located at */
         char executable_path[PATH_MAX];
