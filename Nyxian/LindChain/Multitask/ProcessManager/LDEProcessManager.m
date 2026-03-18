@@ -105,13 +105,14 @@
     /* getting process identifier */
     pid_t pid = process.pid;
     
-    /* aquiring lock */
+    if(pid == -1)
+    {
+        return -1;
+    }
+    
+    /* inserting process */
     os_unfair_lock_lock(&processes_array_lock);
-    
-    /* set process object */
     [self.processes setObject:process forKey:@(pid)];
-    
-    /* releasing lock */
     os_unfair_lock_unlock(&processes_array_lock);
     
     /* returning pid */
@@ -124,46 +125,31 @@
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
     LDEWindowSessionApplication *session = nil;
+    LDEProcess *existingProcess = nil;
     
     os_unfair_lock_lock(&processes_array_lock);
+    
     for(NSNumber *key in self.processes)
     {
         LDEProcess *process = self.processes[key];
-        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
+        if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
+        {
+            existingProcess = process;
+            break;
+        }
+    }
+    
+    os_unfair_lock_unlock(&processes_array_lock);
+
+    if(existingProcess != nil)
+    {
+        if(doRestartIfRunning)
+        {
+            [existingProcess terminate];
+        }
         else
         {
-            if(doRestartIfRunning)
-            {
-                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-                {
-                    LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:process.wid];
-                    if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
-                    {
-                        [((LDEWindowSessionApplication*) windowSession) prepareForInject];
-                        
-                        session = (LDEWindowSessionApplication*)windowSession;
-                    }
-                }
-                
-                /* TODO: find preexisting window before termination and inject new process into it */
-                [process terminate];
-            }
-            else
-            {
-                if(process.wid != (id_t)-1)
-                {
-                    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-                    {
-                        [[LDEWindowServer shared] focusWindowForIdentifier:process.wid];
-                    }
-                    else
-                    {
-                        [[LDEWindowServer shared] activateWindowForIdentifier:process.wid animated:YES withCompletion:nil];
-                    }
-                }
-                os_unfair_lock_unlock(&processes_array_lock);
-                return process.pid;
-            }
+            return existingProcess.pid;
         }
     }
     
@@ -171,7 +157,6 @@
     if(!applicationObject.isLaunchAllowed)
     {
         [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"\"%@\" Is No Longer Available", applicationObject.displayName] delay:0.0];
-        os_unfair_lock_unlock(&processes_array_lock);
         return -1;
     }
     
@@ -200,16 +185,20 @@
     /* null pointer check */
     if(process == nil)
     {
-        os_unfair_lock_unlock(&processes_array_lock);
         return -1;
     }
     
     /* getting pid of process */
     pid_t pid = process.pid;
     
-    /* setting process */
-    [self.processes setObject:process forKey:@(pid)];
+    if(pid == -1)
+    {
+        return -1;
+    }
     
+    /* setting process */
+    os_unfair_lock_lock(&processes_array_lock);
+    [self.processes setObject:process forKey:@(pid)];
     os_unfair_lock_unlock(&processes_array_lock);
 
     return pid;

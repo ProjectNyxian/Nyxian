@@ -47,6 +47,7 @@
  
 #if !JAILBREAK_ENV
     
+    self.pid = -1;
     self.session = session;
     
     /* insert required items */
@@ -119,6 +120,10 @@
 #if !JAILBREAK_ENV
     
     [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
+        /*
+         * FIXME: forkbomb is half way fixed... there is one problem tho, for what ever reason the identifier is nil after a forkbomb
+         * idk why, maybe its cuz one thread is already here, i dont know...
+         */
         if(identifier)
         {
             if(weakSelf == nil) return;
