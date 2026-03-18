@@ -67,6 +67,7 @@ class FileListCell: UITableViewCell {
         if let textLabel = textLabel {
             NSLayoutConstraint.activate([
                 textLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
                 textLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
             ])
         }
