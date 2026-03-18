@@ -199,8 +199,8 @@ int environment_execvpa(const char * __path,
     }
     
     /* commiting the posix spawn */
-    int retval = find_binary ? environment_posix_spawnp(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp) :
-                               environment_posix_spawn(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp);
+    int retval = find_binary ? environment_posix_spawnp(&(local_fork_thread_snapshot->ret_pid), __path, &(local_fork_thread_snapshot->fa), NULL, __argv, __envp) :
+                               environment_posix_spawn(&(local_fork_thread_snapshot->ret_pid), __path, &(local_fork_thread_snapshot->fa), NULL, __argv, __envp);
     
     /* evaluating return */
     if(retval != 0)
