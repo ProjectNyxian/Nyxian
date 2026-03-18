@@ -169,7 +169,18 @@ import UniformTypeIdentifiers
             setToolbarItems(nil, animated: true)
             navigationController?.setToolbarHidden(true, animated: true)
             tabBarController?.tabBar.isHidden = false
-            navigationItem.setLeftBarButton(nil, animated: true)
+            
+            if UIDevice.current.userInterfaceIdiom == .pad,
+               !self.isSublink {
+                self.navigationItem.setLeftBarButton(UIBarButtonItem(primaryAction: UIAction(title: "Close") { [weak self] _ in
+                    guard let self = self else { return }
+                    UserDefaults.standard.set(nil, forKey: "LDELastProjectSelected")
+                    self.dismiss(animated: true)
+                }), animated: true)
+            } else {
+                navigationItem.setLeftBarButton(nil, animated: true)
+            }
+            
             self.refreshControl = UIRefreshControl()
             self.refreshControl?.addTarget(self, action: #selector(performRefresh), for: .valueChanged)
             tableView.reloadData()
