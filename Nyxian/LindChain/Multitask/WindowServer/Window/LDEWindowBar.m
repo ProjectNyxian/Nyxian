@@ -128,7 +128,9 @@
         UIVisualEffectView *island = [[UIVisualEffectView alloc] initWithEffect:effect];
         island.translatesAutoresizingMaskIntoConstraints = NO;
         island.clipsToBounds = YES;
-        island.layer.cornerRadius = 26.0 / 2.0;
+        
+        /* FIXME: weird liquid glass artifacts get rendered... */
+        island.layer.cornerRadius = 13.0;
         island.layer.cornerCurve = kCACornerCurveContinuous;
 
         [self addSubview:island];
@@ -193,7 +195,7 @@
         _islandWidthConstraint = [island.widthAnchor  constraintEqualToConstant:48.0];
         _islandHeightConstraint = [island.heightAnchor constraintEqualToConstant:26.0];
         [NSLayoutConstraint activateConstraints:@[
-            [island.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:10],
+            [island.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:7],
             [island.topAnchor constraintEqualToAnchor:_titleLabel.centerYAnchor constant:-13.0],
             _islandWidthConstraint,
             _islandHeightConstraint,
@@ -242,8 +244,6 @@
         return;
     }
     _islandExpanded = YES;
-
-    CGFloat newRadius = 58.0 / 2.0;
     
     UIView *layoutRoot = _buttonIsland.superview ?: self;
 
@@ -251,7 +251,6 @@
     [UIView animateWithDuration:0.44 delay:0 usingSpringWithDamping:0.60 initialSpringVelocity:0.6 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         [self layoutIfNeeded];
         
-        self->_buttonIsland.layer.cornerRadius = newRadius;
         self->_dotContainer.alpha = 0.0;
         self->_dotContainer.transform = CGAffineTransformMakeScale(0.3, 0.3);
         self->_buttonStack.alpha = 1.0;
@@ -277,8 +276,6 @@
 
     [_collapseTimer invalidate];
     _collapseTimer = nil;
-
-    CGFloat collapsedRadius = 26.0 / 2.0;
     
     UIView *layoutRoot = _buttonIsland.superview ?: self;
 
@@ -286,7 +283,7 @@
     [UIView animateWithDuration:0.34 delay:0 usingSpringWithDamping:0.78 initialSpringVelocity:0.2 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         [self layoutIfNeeded];
         
-        self->_buttonIsland.layer.cornerRadius = collapsedRadius;
+        self->_buttonIsland.layer.cornerRadius = 13.0;
         self->_dotContainer.alpha = 1.0;
         self->_dotContainer.transform = CGAffineTransformIdentity;
         self->_buttonStack.alpha = 0.0;
