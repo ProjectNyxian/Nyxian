@@ -192,9 +192,6 @@
         return -1;
     }
     
-    /* remove from old location */
-    [_fd_map removeObjectForKey:@(oldFd)];
-    
     /* re-add at new location */
     [_fd_map setObject:fdObject forKey:@(newFd)];
     
