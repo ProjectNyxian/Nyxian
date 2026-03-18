@@ -216,7 +216,6 @@ void initDead10ccFix(void)
 
 - (void)_terminateWithStatus:(int)status {
     // Fake implementation from UIApplication
-    NSLog(@"[LC] _handleTaskCompletionAndTerminate");
     [self handleAppDidEnterBackgroundReal];
     //    NSLog(@"Backtrace: %@", [NSThread performSelector:@selector(ams_symbolicatedCallStackSymbols)]);
     if([[NSClassFromString(@"UIApplication") sharedApplication] applicationState] != 0) {

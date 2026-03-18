@@ -145,6 +145,16 @@
     {
         if(doRestartIfRunning)
         {
+            if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+            {
+                LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
+                if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
+                {
+                    [((LDEWindowSessionApplication*) windowSession) prepareForInject];
+                    session = (LDEWindowSessionApplication*)windowSession;
+                }
+            }
+            
             [existingProcess terminate];
         }
         else

@@ -104,7 +104,6 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
         command = [NSString stringWithFormat:@"ld64 %@", [flags componentsJoinedByString:@" "]];
     }
     
-    /* Todo: add a way to retrieve the error string to process it */
     NSString *error = NULL;
     int ret = shell(command, 501, NULL, &error);
     self.error = error;
