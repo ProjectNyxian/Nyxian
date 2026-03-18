@@ -32,7 +32,6 @@ ksurface_return_t proc_for_pid(pid_t pid,
     /* process lookup */
     proc_table_rdlock();
     *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
-    proc_table_unlock();
     
     /*
      * caller expects retained process object, so
@@ -42,9 +41,11 @@ ksurface_return_t proc_for_pid(pid_t pid,
     if(*proc == NULL ||
        !kvo_retain(*proc))
     {
+        proc_table_unlock();
         return SURFACE_RETAIN_FAILED;
     }
     
+    proc_table_unlock();
     return SURFACE_SUCCESS;
 }
 
