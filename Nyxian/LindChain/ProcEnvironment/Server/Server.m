@@ -30,12 +30,15 @@
 
 @end
 
-@implementation Server
+@implementation Server {
+    NSLock *_lock;
+}
 
 - (instancetype)init
 {
     self = [super init];
     _canConnectTable = [[NSMutableSet alloc] init];
+    _lock = [[NSLock alloc] init];
     return self;
 }
 
@@ -61,6 +64,8 @@
 
 - (BOOL)endpointUnregisterAndValidate:(xpc_endpoint_t)endpoint
 {
+    [_lock lock];
+    
     xpc_endpoint_t catchedEndpoint = nil;
     for(xpc_endpoint_t allowedEndpoint in _canConnectTable)
     {
@@ -74,9 +79,11 @@
     if(catchedEndpoint != nil)
     {
         [_canConnectTable removeObject:catchedEndpoint];
+        [_lock unlock];
         return YES;
     }
 
+    [_lock unlock];
     return NO;
 }
 
@@ -85,7 +92,11 @@
     NSXPCListener *listener = [NSXPCListener anonymousListener];
     listener.delegate = self;
     [listener resume];
+    
+    [_lock lock];
     [_canConnectTable addObject:[listener.endpoint _endpoint]];
+    [_lock unlock];
+    
     return listener;
 }
 
