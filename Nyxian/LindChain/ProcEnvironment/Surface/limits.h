@@ -31,7 +31,7 @@
  * about this to apple, their the reason
  * why, launchd doesnt let us spawn more.
  */
-#define PROC_MAX 1024
+#define PROC_MAX 500    /* TODO: find a way to get the limit programatically */
 
 /*
  * why would a process need more than 128
