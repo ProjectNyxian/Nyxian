@@ -198,7 +198,6 @@ int environment_execvpa(const char * __path,
         return -1;
     }
     
-    /* FIXME: the new technique is more prone to guarded file descriptors for some reason, a way is needed to test if a file descriptor is guarded or not */
     /* commiting the posix spawn */
     int retval = find_binary ? environment_posix_spawnp(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp) :
                                environment_posix_spawn(&(local_fork_thread_snapshot->ret_pid), __path, NULL, NULL, __argv, __envp);

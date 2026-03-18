@@ -21,8 +21,10 @@
 
 #include <LindChain/ProcEnvironment/Utils/fd.h>
 #include <LindChain/LiveContainer/Tweaks/libproc.h>
+#include <LindChain/Private/sys/guarded.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 void get_all_fds(int *numFDs,
                  struct proc_fdinfo **fdinfo)
@@ -58,4 +60,11 @@ void close_all_fd(void)
     {
         close(fdinfo[i].proc_fd);
     }
+}
+
+bool fd_is_guarded(int fd)
+{
+    guardid_t unknownguard = 0;
+    change_fdguard_np(fd, &unknownguard, GUARD_CLOSE, &unknownguard, GUARD_CLOSE, NULL);
+    return (errno == EPERM);
 }

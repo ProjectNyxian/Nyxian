@@ -20,6 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Object/FDObject.h>
+#include <LindChain/ProcEnvironment/Utils/fd.h>
 #include <fcntl.h>
 
 @implementation FDObject
@@ -32,6 +33,11 @@
 
 + (instancetype)objectForFileDescriptor:(int)fd
 {
+    if(fd_is_guarded(fd))
+    {
+        return nil;
+    }
+    
     FDObject *object = [[self alloc] init];
     if(object != nil)
     {
