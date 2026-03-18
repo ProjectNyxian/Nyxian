@@ -133,16 +133,14 @@ bool checkCodeSignature(const char* path);
     
     /* checking if needed info keys exist */
     if(bundle.infoDictionary[@"CFBundleExecutable"] == nil ||
-       bundle.infoDictionary[@"CFBundleIdentifier"] == nil ||
-       bundle.infoDictionary[@"MinimumOSVersion"] == nil)
+       bundle.infoDictionary[@"CFBundleIdentifier"] == nil)
     {
         return NO;
     }
     
     /* checking if info keys match the correct class type */
     if(![bundle.infoDictionary[@"CFBundleExecutable"] isKindOfClass:[NSString class]] ||
-       ![bundle.infoDictionary[@"CFBundleIdentifier"] isKindOfClass:[NSString class]] ||
-       ![bundle.infoDictionary[@"MinimumOSVersion"] isKindOfClass:[NSString class]])
+       ![bundle.infoDictionary[@"CFBundleIdentifier"] isKindOfClass:[NSString class]])
     {
         return NO;
     }
@@ -169,7 +167,7 @@ bool checkCodeSignature(const char* path);
     }
     
     /* bundle identifier validation */
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z0-9_]+)+$" options:0 error:nil];
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^[a-zA-Z][a-zA-Z0-9-]*(\\.[a-zA-Z0-9-]+)+$" options:0 error:nil];
 
     if(regex == nil)
     {
@@ -184,6 +182,13 @@ bool checkCodeSignature(const char* path);
     }
     
     /* minimum version validation */
+    if(bundle.infoDictionary[@"MinimumOSVersion"] == nil &&
+       ![bundle.infoDictionary[@"MinimumOSVersion"] isKindOfClass:[NSString class]])
+    {
+        /* some apps like cocoatop dont have that key */
+        return YES;
+    }
+    
     NSArray *components = [minimumVersion componentsSeparatedByString:@"."];
     
     if(components == nil)
