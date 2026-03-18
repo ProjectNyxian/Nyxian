@@ -86,7 +86,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
         case IPC_OTYPE_TASK_CONTROL:
             /*
              * its control task port, so we can
-             * export a task port of the flavourt in
+             * export a task port of the flavour in
              * question.
              *
              * task_get_special_port() does create a

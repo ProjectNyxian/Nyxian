@@ -57,7 +57,11 @@
         return nil;
     }
     
-    return [self objectForFileDescriptor:fd];
+    FDObject *object = [self objectForFileDescriptor:fd];
+    
+    close(fd);
+    
+    return object;
 }
 
 + (instancetype)objectForFileAtPath:(NSString*)path
@@ -100,13 +104,9 @@
         return NO;
     }
     
-    /* get current position to be restored later */
-    off_t cur = lseek(tmpfd, 0, SEEK_CUR);
-    
     /* reset temporary file descriptor to the beginning of the file */
     if(lseek(tmpfd, 0, SEEK_SET) == -1)
     {
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -115,7 +115,6 @@
     int dstFd = open([path UTF8String], O_WRONLY | O_CREAT | O_TRUNC, 0777);
     if(dstFd == -1)
     {
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -133,7 +132,6 @@
             ssize_t w = write(dstFd, buffer + bytesWritten, bytesRead - bytesWritten);
             if(w == -1)
             {
-                lseek(tmpfd, cur, SEEK_SET);
                 close(tmpfd);
                 close(dstFd);
                 return NO;
@@ -144,16 +142,10 @@
     }
     
     /* closing and resetting tmp because we dont need it anymore anyways */
-    lseek(tmpfd, cur, SEEK_SET);
     close(tmpfd);
+    close(dstFd);
     
     if(bytesRead == -1)
-    {
-        close(dstFd);
-        return NO;
-    }
-    
-    if(close(dstFd) == -1)
     {
         return NO;
     }
@@ -171,13 +163,9 @@
         return NO;
     }
     
-    /* get current position to be restored later */
-    off_t cur = lseek(tmpfd, 0, SEEK_CUR);
-    
     /* reset temporary file descriptor to the beginning of the file */
     if(lseek(tmpfd, 0, SEEK_SET) == -1)
     {
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -186,7 +174,6 @@
     int srcFd = open([path UTF8String], O_RDONLY);
     if(srcFd == -1)
     {
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -197,7 +184,6 @@
     if(lseek(tmpfd, 0, SEEK_SET) == -1)
     {
         close(srcFd);
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -205,7 +191,6 @@
     if(ftruncate(tmpfd, 0) == -1)
     {
         close(srcFd);
-        lseek(tmpfd, cur, SEEK_SET);
         close(tmpfd);
         return NO;
     }
@@ -218,7 +203,6 @@
             ssize_t w = write(tmpfd, buffer + bytesWritten, bytesRead - bytesWritten);
             if(w == -1)
             {
-                lseek(tmpfd, cur, SEEK_SET);
                 close(tmpfd);
                 close(srcFd);
                 return NO;
@@ -226,19 +210,12 @@
             bytesWritten += w;
         }
     }
+    
+    close(tmpfd);
+    close(srcFd);
 
     if(bytesRead == -1)
     {
-        lseek(tmpfd, cur, SEEK_SET);
-        close(tmpfd);
-        close(srcFd);
-        return NO;
-    }
-
-    if(close(srcFd) == -1)
-    {
-        lseek(tmpfd, cur, SEEK_SET);
-        close(tmpfd);
         return NO;
     }
     
