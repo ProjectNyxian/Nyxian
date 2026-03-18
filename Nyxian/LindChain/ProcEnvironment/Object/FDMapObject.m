@@ -167,7 +167,7 @@
     
     int hostFd = open(path, flags, mode);
     
-    if(hostFd > 0)
+    if(hostFd < 0)
     {
         return -1;
     }
