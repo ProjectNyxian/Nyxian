@@ -33,13 +33,18 @@ ksurface_return_t proc_for_pid(pid_t pid,
     proc_table_rdlock();
     *proc = radix_lookup(&(ksurface->proc_info.tree), pid);
     
+    if(*proc == NULL)
+    {
+        proc_table_unlock();
+        return SURFACE_UNAVAILABLE;
+    }
+    
     /*
      * caller expects retained process object, so
      * attempting to retain it and if it doesnt work
      * returning with an error.
      */
-    if(*proc == NULL ||
-       !kvo_retain(*proc))
+    if(!kvo_retain(*proc))
     {
         proc_table_unlock();
         return SURFACE_RETAIN_FAILED;
