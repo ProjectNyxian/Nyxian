@@ -65,7 +65,7 @@
 
 - (NSArray*)compilerFlags
 {
-    NSArray *compilerFlags = [self readArrayForKey:@"LDECompilerFlags" withDefaultValue:@[]];
+    NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
     
     if([self projectFormat] == NXProjectFormatFalcon)
     {
@@ -94,7 +94,7 @@
 
 - (NSArray*)linkerFlags
 {
-    NSArray *linkerFlags = [self readArrayForKey:@"LDELinkerFlags" withDefaultValue:@[]];
+    NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
     
     if([self projectFormat] == NXProjectFormatFalcon)
     {

@@ -46,6 +46,5 @@
 - (NSInteger)readIntegerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
 - (BOOL)readBooleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
 - (double)readDoubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
-- (NSArray * _Nonnull)readArrayForKey:(NSString * _Nonnull)key withDefaultValue:(NSArray * _Nonnull)defaultValue;
 
 @end

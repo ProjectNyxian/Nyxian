@@ -230,11 +230,4 @@
     return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] doubleValue];
 }
 
-- (NSArray*)readArrayForKey:(NSString *)key
-           withDefaultValue:(NSArray*)defaultValue
-{
-    NSArray *array = [self readSecureFromKey:key withDefaultValue:defaultValue];
-    return array;
-}
-
 @end
