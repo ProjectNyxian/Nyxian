@@ -103,7 +103,7 @@ force_not_inherite_entitlements:
     else
     {
         /* checking for platform status */
-        if(entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
+        if(entitlement_got_entitlement(proc_getmaxentitlements(child), PEEntitlementPlatform))
         {
             /*
              * platform processes, cannot inherite platformisation,
@@ -115,10 +115,7 @@ force_not_inherite_entitlements:
         else
         {
             /* none platform processes, cannot inherite those */
-            currentEntitlement &= ~PEEntitlementTaskForPid;
-            currentEntitlement &= ~PEEntitlementProcessElevate;
-            currentEntitlement &= ~PEEntitlementTrustCacheWrite;
-            currentEntitlement &= ~PEEntitlementTrustCacheRead;
+            currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate | PEEntitlementTrustCacheManager);
         }
     }
     
