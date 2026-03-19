@@ -176,10 +176,6 @@
 - (BOOL)launchServiceToggle { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]; }
 - (BOOL)launchServiceGetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]; }
 - (BOOL)launchServiceManager { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]; }
-- (BOOL)trustCacheRead { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_read" withDefaultValue:NO]; }
-- (BOOL)trustCacheWrite { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_write" withDefaultValue:NO]; }
-- (BOOL)trustCacheManager { return [self readBooleanForKey:@"com.nyxian.pe.trustcache_manager" withDefaultValue:NO]; }
-- (BOOL)enforceDeviceSpoof { return [self readBooleanForKey:@"com.nyxian.pe.enforce_device_spoof" withDefaultValue:NO]; }
 - (BOOL)dyldHideLiveProcess { return [self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:YES]; }
 - (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:YES]; }
 - (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
@@ -202,10 +198,6 @@
     if([self launchServiceToggle]) entitlements |= PEEntitlementLaunchServicesToggle;
     if([self launchServiceGetEndpoint]) entitlements |= PEEntitlementLaunchServicesGetEndpoint;
     if([self launchServiceManager]) entitlements |= PEEntitlementLaunchServicesManager;
-    if([self trustCacheRead]) entitlements |= PEEntitlementTrustCacheRead;
-    if([self trustCacheWrite]) entitlements |= PEEntitlementTrustCacheWrite;
-    if([self trustCacheManager]) entitlements |= PEEntitlementTrustCacheManager;
-    if([self enforceDeviceSpoof]) entitlements |= PEEntitlementEnforceDeviceSpoof;
     if([self dyldHideLiveProcess]) entitlements |= PEEntitlementDyldHideLiveProcess;
     if([self processSpawnInheriteEntitlements]) entitlements |= PEEntitlementProcessSpawnInheriteEntitlements;
     if([self platform]) entitlements |= PEEntitlementPlatform;

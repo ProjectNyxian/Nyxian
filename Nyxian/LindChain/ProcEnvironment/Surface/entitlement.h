@@ -45,8 +45,11 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Grants process to get task port of processes. */
     PEEntitlementTaskForPid                         = 1ull << 1,
     
-    /*! Grants process to get task port of Nyxian it self.  banned: PEEntitlementPlatform is now the new  PEEntitlementTaskForPidHost */
-    //PEEntitlementTaskForPidHost                     = 1ull << 2,
+    /*
+     * MARK: banned, because too powerful and replaced with PEEntitlementPlatform
+     *
+     * PEEntitlementTaskForPidHost                     = 1ull << 2,
+     */
     
     /*! Grants process to enumerate processes. */
     PEEntitlementProcessEnumeration                 = 1ull << 3,
@@ -84,17 +87,19 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     /*! Grants process to manage launch services. */
     PEEntitlementLaunchServicesManager              = PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint,
     
-    /*! Grants process to read from trust cache. */
-    PEEntitlementTrustCacheRead                     = 1ull << 15,
+    /*
+     * MARK: there is no trustcache anymore
+     *
+     * PEEntitlementTrustCacheRead                     = 1ull << 15,
+     * PEEntitlementTrustCacheWrite                    = 1ull << 16,
+     * PEEntitlementTrustCacheManager                  = PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite,
+     */
     
-    /*! Grants process to write to trust cache. (caution: never use this) */
-    PEEntitlementTrustCacheWrite                    = 1ull << 16,
-    
-    /*! Grants process to manage trust cache */
-    PEEntitlementTrustCacheManager                  = PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite,
-    
-    /*! Enforces device spoofing settings */
-    PEEntitlementEnforceDeviceSpoof                 = 1ull << 17,
+    /*
+     * MARK: there is no device spoofing currently
+     *
+     * PEEntitlementEnforceDeviceSpoof                 = 1ull << 17,
+     */
     
     /*! Hides LiveProcess in DYLD Api. (recommended) */
     PEEntitlementDyldHideLiveProcess                = 1ull << 18,
@@ -107,9 +112,9 @@ typedef NS_OPTIONS(uint64_t, PEEntitlement) {
     
     PEEntitlementSandboxedApplication               = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementDyldHideLiveProcess,
     PEEntitlementUserApplication                    = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
-    PEEntitlementSystemApplication                  = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess,
-    PEEntitlementSystemDaemon                       = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheRead | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
-    PEEntitlementKernel                             = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementTrustCacheManager | PEEntitlementPlatform
+    PEEntitlementSystemApplication                  = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSystemDaemon                       = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,
+    PEEntitlementKernel                             = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementPlatform
 };
 
 struct __attribute__((packed)) ksurface_ent_blob {

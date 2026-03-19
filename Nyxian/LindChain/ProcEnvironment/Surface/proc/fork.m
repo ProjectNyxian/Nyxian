@@ -115,7 +115,7 @@ force_not_inherite_entitlements:
         else
         {
             /* none platform processes, cannot inherite those */
-            currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate | PEEntitlementTrustCacheManager);
+            currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate);
         }
     }
     
