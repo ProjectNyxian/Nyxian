@@ -25,103 +25,106 @@
 
 BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
                                 pid_t targetPid,
-                                BOOL allowRootBypass,
                                 BOOL allowSessionBypass,
                                 PEEntitlement entitlementsNeeded,
                                 PEEntitlement targetEntitlementsNeeded)
 {
-    /* null pointer check */
-    if(proc == NULL)
-    {
-        return NO;
-    }
+    assert(proc != nil);
     
-    /* getting uid */
-    uid_t caller_uid = proc_getruid(proc);
-    pid_t caller_sid = proc_getsid(proc);
-    
-    /* getting process */
+    /*
+     * getting target process, because
+     * we have to check if the caller
+     * process has the needed priveleges
+     * to operate onto the target process
+     */
     ksurface_proc_t *targetProc = NULL;
     ksurface_return_t ret = proc_for_pid(targetPid, &targetProc);
     
-    /* sanity check */
-    if(ret != SURFACE_SUCCESS ||
-       targetProc == NULL)
+    if(ret != SURFACE_SUCCESS)
     {
         return NO;
     }
     
-    BOOL allowed = NO;
-    
-    /* checking if proc is targetProc */
+    /*
+     * checking if its the same process,
+     * meaning the target and the caller,
+     * because the caller shall have
+     * permitive over it self.
+     */
     if((ksurface_proc_t*)(proc->header.orig) == targetProc)
     {
-        allowed = YES;
-        goto out_release_target;
+        kvo_release(targetProc);
+        return YES;
     }
+    
+    proc_visibility_t vis = get_proc_visibility(proc);
     
     /* locking target process aswell */
     kvo_rdlock(targetProc);
     
-    /* getting visibility */
-    proc_visibility_t vis = get_proc_visibility(proc);
-    
-    /* checking if process can even see the target */
+    /*
+     * checking if process can even see the target,
+     * otherwise it shouldnt be able to have
+     * permitives over a process. not seeing it means
+     * it doesnt exist for the caller.
+     */
     if(!can_see_process(proc, targetProc, vis))
     {
-        /* also nope! */
-        goto out_unlock;
+        goto out_no;
     }
     
-    /* checking if target process is a platformised process and therefore can only be decided at by a other process that is platformised */
+    /*
+     * checking if target process is a platformised process
+     * and therefore can only be decided at by a other process
+     * that is platformised
+     */
     if(entitlement_got_entitlement(proc_getentitlements(targetProc), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
     {
-        /* never allow permitive on platform from non platform */
-        goto out_unlock;
+        goto out_no;
     }
     
-    /* if proc is root its >not< automatically allowed */
-    if(allowRootBypass && caller_uid == 0)
-    {
-        allowed = YES;
-        goto out_unlock;
-    }
-    
-    /* handling sid bypass */
     if(allowSessionBypass &&
-       caller_uid == proc_getruid(targetProc) &&
-       caller_sid == proc_getsid(targetProc))
+       proc_getsid(proc) == proc_getsid(targetProc))
     {
-        allowed = YES;
-        goto out_unlock;
+        goto out_euid_check;
     }
     
-    /* checking if target got entitlement if applicable */
+    /*
+     * checking if target got entitlement as it
+     * doesnt meet any bypassing requirements or
+     * bypassing might be NO on all types.
+     */
     if(targetEntitlementsNeeded != PEEntitlementNone &&
        !entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded))
     {
-        /* still nope! */
-        goto out_unlock;
+        goto out_no;
     }
     
     if(entitlementsNeeded != PEEntitlementNone &&
        !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
     {
-        /* nope */
-        goto out_unlock;
+        goto out_no;
     }
     
-    if(caller_uid == proc_getruid(targetProc) ||
-       entitlement_got_entitlement(proc_getentitlements(proc), PEEntitlementPlatform))
+    /*
+     * the final userspace check, if the process
+     * got the entitlement it has to be in the
+     * same UID as the target.
+     */
+out_euid_check:
+    if(proc_geteuid(proc) != 0 &&
+       proc_geteuid(proc) != proc_geteuid(targetProc))
     {
-        allowed = YES;
+    out_no:
+        kvo_unlock(targetProc);
+        kvo_release(targetProc);
+        return NO;
     }
     
-out_unlock:
+out_yes:
     kvo_unlock(targetProc);
-out_release_target:
     kvo_release(targetProc);
-    return allowed;
+    return YES;
 }

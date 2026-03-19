@@ -41,9 +41,9 @@ DEFINE_SYSCALL_HANDLER(kill)
      * also checks if the caller process has the entitlement to kill
      * and checks if the process has permitive over the other process.
      */
-    if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, YES, YES, PEEntitlementProcessKill, PEEntitlementNone))
+    if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, YES, PEEntitlementProcessKill, PEEntitlementNone))
     {
-        sys_return_failure(EINVAL);
+        sys_return_failure(EPERM);
     }
 
     /* getting the processes high level structure */
@@ -54,7 +54,7 @@ DEFINE_SYSCALL_HANDLER(kill)
          * returns the same value as normal failure to prevent deterministic exploitation,
          * of process reference counting.
          */
-        sys_return_failure(EINVAL);
+        sys_return_failure(ESRCH);
     }
     
     /* signaling the process */
