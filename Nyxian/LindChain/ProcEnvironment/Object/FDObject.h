@@ -105,8 +105,10 @@
  @abstract Converts the object back to a file descriptor.
  @param fd
     file descriptor opened/replaced with.
+ @return
+    Returns boolean value true when duplication to fd is successful.
  */
-- (void)dup2:(int)fd;
+- (BOOL)dup2:(int)fd;
 
 /*!
  @method `writeOut:`

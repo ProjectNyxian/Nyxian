@@ -96,18 +96,32 @@
     _fd = xpc_fd_create(fd);
 }
 
-- (void)dup2:(int)fd
+- (BOOL)dup2:(int)fd
 {
+    if(fd < 0 ||
+       fd_is_guarded(fd))
+    {
+        return NO;
+    }
+    
     int cfd = xpc_fd_dup(_fd);
     if(cfd == fd)
     {
-        return;
+        return YES;
     }
     else
     {
-        dup2(cfd, fd);
+        int retval = dup2(cfd, fd);
+        
         close(cfd);
+        
+        if(retval < 0)
+        {
+            return NO;
+        }
     }
+    
+    return YES;
 }
 
 - (BOOL)writeOut:(NSString*)path
