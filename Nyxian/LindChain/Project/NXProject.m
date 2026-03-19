@@ -22,18 +22,30 @@
 #import <LindChain/Project/NXProject.h>
 #import <LindChain/Utils/LDEThreadController.h>
 #import <LindChain/Project/NXCodeTemplate.h>
+#import <LindChain/Project/NXUser.h>
 #import <Nyxian-Swift.h>
-
-
 
 @implementation NXProjectConfig
 
 - (NXProjectFormat)projectFormat
 {
-    NSString *projectFormat = [self readStringForKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
+    NSString *projectFormat = [self readSecureFromKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
     
     if([projectFormat isEqualToString:@"NXKate"])
     {
+        /*
+         * TODO: add deprecation message to project issue navigator
+         * this wont exist for ever, i plan on removing compat
+         * for older project types after each 5th newest project
+         * format, meaning NXKate will be removed
+         * after 4 new project formats being released.
+         * there can also be formats like NXProjectFormatFalconR1
+         * the R would stand for revision, but revisions will be
+         * safe from this rule... only major project formats..
+         * so for NXProjectFormatFalconR1 to be removed for example
+         * NXProjectFormatFalcon needs to be removed, revisions
+         * compatibility will die together with the original.
+         */
         return NXProjectFormatKate;
     }
     else if([projectFormat isEqualToString:@"NXFalcon"])
@@ -44,12 +56,12 @@
     return NXProjectFormatDefault;
 }
 
-- (NSString*)executable { return [self readStringForKey:@"LDEExecutable" withDefaultValue:@"Unknown"]; }
-- (NSString*)displayName { return [self readStringForKey:@"LDEDisplayName" withDefaultValue:[self executable]]; }
-- (NSString*)bundleid { return [self readStringForKey:@"LDEBundleIdentifier" withDefaultValue:@"com.unknown.fallback.id"]; }
-- (NSString*)version { return [self readStringForKey:@"LDEBundleVersion" withDefaultValue:@"1.0"]; }
-- (NSString*)shortVersion { return [self readStringForKey:@"LDEBundleShortVersion" withDefaultValue:@"1.0"]; }
-- (NSDictionary*)infoDictionary { return [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:[[NSDictionary alloc] init] classType:NSDictionary.class]; }
+- (NSString*)executable { return [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"]; }
+- (NSString*)displayName { return [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]]; }
+- (NSString*)bundleid { return [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]]; }
+- (NSString*)version { return [self readSecureFromKey:@"LDEBundleVersion" withDefaultValue:@"1.0"]; }
+- (NSString*)shortVersion { return [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]]; }
+- (NSDictionary*)infoDictionary { return [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}]; }
 
 - (NSArray*)compilerFlags
 {
@@ -65,7 +77,7 @@
         
         [array addObjectsFromArray:@[
             @"-target",
-            [self readStringForKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
+            [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
             @"-isysroot",
             [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
             [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
@@ -96,7 +108,7 @@
             @"-platform_version",
             @"ios",
             [self platformMinimumVersion],
-            [self readStringForKey:@"LDEVersion" withDefaultValue:@"26.2"],
+            [self readSecureFromKey:@"LDEVersion" withDefaultValue:@"26.2"],
             @"-arch",
             @"arm64",
             @"-syslibroot",
@@ -112,7 +124,7 @@
     return @[];
 }
 
-- (NSString*)platformMinimumVersion { return [self readStringForKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"]; }
+- (NSString*)platformMinimumVersion { return [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"]; }
 - (int)type { return (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp]; }
 - (int)threads
 {
@@ -140,7 +152,7 @@
 
 - (NSString*)outputPath
 {
-    return [self readStringForKey:@"LDEOutputPath" withDefaultValue:@"Unknown"];
+    return [self readSecureFromKey:@"LDEOutputPath" withDefaultValue:@"Unknown"];
 }
 
 + (NSArray*)sdkCompilerFlags

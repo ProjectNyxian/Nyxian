@@ -203,50 +203,37 @@
 
 - (id)readSecureFromKey:(NSString*)key
        withDefaultValue:(id)value
-              classType:Class
 {
     id valueOfKey = [self readKey:key];
-    if(!valueOfKey && ![valueOfKey isKindOfClass:Class])
+    if(!valueOfKey && ![valueOfKey isKindOfClass:[value class]])
     {
         valueOfKey = value;
     }
     return valueOfKey;
 }
 
-- (NSString *)readStringForKey:(NSString *)key
-              withDefaultValue:(NSString *)defaultValue
-{
-    return [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSString class]];
-}
-
-- (NSNumber*)readNumberForKey:(NSString *)key
-             withDefaultValue:(NSNumber *)defaultValue
-{
-    return [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSNumber class]];
-}
-
 - (NSInteger)readIntegerForKey:(NSString *)key
               withDefaultValue:(NSInteger)defaultValue
 {
-    return [[self readNumberForKey:key withDefaultValue:@(defaultValue)] integerValue];
+    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] integerValue];
 }
 
 - (BOOL)readBooleanForKey:(NSString *)key
          withDefaultValue:(BOOL)defaultValue
 {
-    return [[self readNumberForKey:key withDefaultValue:@(defaultValue)] boolValue];
+    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] boolValue];
 }
 
 - (double)readDoubleForKey:(NSString *)key
           withDefaultValue:(double)defaultValue
 {
-    return [[self readNumberForKey:key withDefaultValue:@(defaultValue)] doubleValue];
+    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] doubleValue];
 }
 
 - (NSArray*)readArrayForKey:(NSString *)key
            withDefaultValue:(NSArray*)defaultValue
 {
-    NSArray *array = [self readSecureFromKey:key withDefaultValue:defaultValue classType:[NSArray class]];
+    NSArray *array = [self readSecureFromKey:key withDefaultValue:defaultValue];
     return array;
 }
 
