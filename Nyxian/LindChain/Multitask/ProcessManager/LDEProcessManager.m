@@ -230,13 +230,8 @@
     /* getting process identifier */
     pid_t pid = process.pid;
     
-    /* aquiring lock */
     os_unfair_lock_lock(&processes_array_lock);
-    
-    /* set process object */
     [self.processes setObject:process forKey:@(pid)];
-    
-    /* releasing lock */
     os_unfair_lock_unlock(&processes_array_lock);
     
     /* returning pid */

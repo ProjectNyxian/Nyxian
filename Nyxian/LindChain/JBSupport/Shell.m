@@ -102,7 +102,8 @@ static int runCommand(NSString *command,
         {
             /* rootful */
             path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games"];
-        } else
+        }
+        else
         {
             /* rootless */
             path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot];

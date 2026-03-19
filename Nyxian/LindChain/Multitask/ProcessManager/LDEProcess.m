@@ -141,7 +141,7 @@
             {
                 innerSelf.proc = child;
             }
-                        
+            
             dispatch_semaphore_signal(sema);
             
             RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(innerSelf.pid)];
@@ -168,6 +168,8 @@
             self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", bundleID, @"default"];
             RBSProcessHandle* processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:nil];
             self.pid = processHandle.pid;
+            
+            dispatch_semaphore_signal(sema);
             
 #endif /* !JAILBREAK_ENV */
             
