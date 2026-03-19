@@ -310,7 +310,6 @@
 #if !JAILBREAK_ENV
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
-                    @"com.nyxian.pe.task_for_pid_host": @(NO),
                     @"com.nyxian.pe.process_enumeration": @(NO),
                     @"com.nyxian.pe.process_kill": @(NO),
                     @"com.nyxian.pe.process_spawn": @(NO),
@@ -345,7 +344,6 @@
                         @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                         @"-resource-dir",
                         @"$(BSROOT)/Include",
-                        @"-fobjc-arc"
                     ],
                     @"LDELinkerFlags": @[
                         @"-platform_version",
@@ -367,7 +365,6 @@
 #if !JAILBREAK_ENV
                     @"com.nyxian.pe.get_task_allowed": @(YES),
                     @"com.nyxian.pe.task_for_pid": @(NO),
-                    @"com.nyxian.pe.task_for_pid_host": @(NO),
                     @"com.nyxian.pe.process_enumeration": @(NO),
                     @"com.nyxian.pe.process_kill": @(NO),
                     @"com.nyxian.pe.process_spawn": @(NO),
