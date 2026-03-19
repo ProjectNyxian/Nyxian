@@ -93,23 +93,27 @@ static int runCommand(NSString *command,
     createArgv(command, args, &argc, &argv);
     
     NSString *jbroot = IGottaNeedTheActualJBRootMate();
-    NSString *path;
     
-    if([jbroot isEqualToString:@"/"])
-    {
-        /* rootful */
-        path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games"];
-    } else
-    {
-        /* rootless */
-        path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot];
-    }
-    
-    NSArray *baseEnv = @[
-        path,
-        [NSString stringWithFormat:@"HOME=%@", NSHomeDirectory()],
-        [NSString stringWithFormat:@"TMPDIR=%@", NSTemporaryDirectory()]
-    ];
+    static NSString *path;
+    static dispatch_once_t onceToken;
+    static NSArray *baseEnv;
+    dispatch_once(&onceToken, ^{
+        if([jbroot isEqualToString:@"/"])
+        {
+            /* rootful */
+            path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games"];
+        } else
+        {
+            /* rootless */
+            path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot];
+        }
+        
+        baseEnv = @[
+            path,
+            [NSString stringWithFormat:@"HOME=%@", NSHomeDirectory()],
+            [NSString stringWithFormat:@"TMPDIR=%@", NSTemporaryDirectory()]
+        ];
+    });
 
     NSMutableArray *envStrings = [NSMutableArray arrayWithArray:baseEnv];
     if(extraEnv)
@@ -137,20 +141,15 @@ static int runCommand(NSString *command,
     posix_spawnattr_set_persona_uid_np(&attr, uid);
     posix_spawnattr_set_persona_gid_np(&attr, uid);
 
-    int result = posix_spawn(&pid,
-                             [[jbroot stringByAppendingString:command] UTF8String],
-                             &actions,
-                             &attr,
-                             (char * const *)argv,
-                             (char * const *)envp);
+    int result = posix_spawn(&pid, [[jbroot stringByAppendingString:command] UTF8String], &actions, &attr, (char * const *)argv, (char * const *)envp);
 
     posix_spawnattr_destroy(&attr);
+    posix_spawn_file_actions_destroy(&actions);
     
     int status = 0;
 
     if(result != 0)
     {
-        NSLog(@"Failed to spawn process");
         goto cleanup;
     }
 
@@ -163,7 +162,8 @@ cleanup:
     char buffer[1024];
     ssize_t bytesRead;
     
-    while ((bytesRead = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
+    while((bytesRead = read(outPipe[0], buffer, sizeof(buffer))) > 0)
+    {
         [outputData appendBytes:buffer length:bytesRead];
     }
     
