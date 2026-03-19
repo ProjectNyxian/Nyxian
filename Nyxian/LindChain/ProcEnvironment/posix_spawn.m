@@ -25,10 +25,10 @@
 #import <LindChain/litehook/litehook.h>
 #import <LindChain/LiveContainer/LCUtils.h>
 #import <LindChain/LiveContainer/ZSign/zsigner.h>
-#import <sys/sysctl.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/syscall.h>
+#import <fcntl.h>
 
 #pragma mark - posix_spawn helper
 
@@ -279,29 +279,41 @@ int environment_posix_spawn(pid_t *process_identifier,
     
     for(uint64_t i = 0; i < (*faPtr)->psfa_act_count; i++)
     {
+        _psfa_action_t *action = &((*faPtr)->psfa_act_acts[i]);
+        
+        /* TODO: handle failure */
         switch((*faPtr)->psfa_act_acts[i].psfaa_type)
         {
             case PSFA_OPEN:
-                [mapObject openWithFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes withPath:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_path withFlags:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_oflag withMode:(*faPtr)->psfa_act_acts[i].psfaa_openargs.psfao_mode];
+                [mapObject openWithFileDescriptor:action->psfaa_filedes withPath:action->psfaa_openargs.psfao_path withFlags:action->psfaa_openargs.psfao_oflag withMode:action->psfaa_openargs.psfao_mode];
                 break;
             case PSFA_CLOSE:
-                [mapObject closeWithFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes];
+                [mapObject closeWithFileDescriptor:action->psfaa_filedes];
                 break;
             case PSFA_DUP2:
-                [mapObject dup2WithOldFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes withNewFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_dup2args.psfad_newfiledes];
+                [mapObject dup2WithOldFileDescriptor:action->psfaa_filedes withNewFileDescriptor:action->psfaa_dup2args.psfad_newfiledes];
                 break;
             case PSFA_INHERIT:
-                [mapObject appendFileDescriptor:(*faPtr)->psfa_act_acts[i].psfaa_filedes];
+                [mapObject appendFileDescriptor:action->psfaa_filedes];
                 break;
             case PSFA_FILEPORT_DUP2:
-                /* S0n */
+                [mapObject appendFilePort:action->psfaa_fileport withMappingToLoc:action->psfaa_dup2args.psfad_newfiledes];
                 break;
             case PSFA_CHDIR:
                 /* not available on iOS but shrug, add it anyways */
-                strlcpy(cwd, (*faPtr)->psfa_act_acts[i].psfaa_chdirargs.psfac_path, PATH_MAX);
+                strlcpy(cwd, action->psfaa_chdirargs.psfac_path, PATH_MAX);
                 break;
             case PSFA_FCHDIR:
-                /* S0n */
+            {
+                /* not available on iOS but shrug, add it anyways */
+                char path[PATH_MAX];
+                if(fcntl(action->psfaa_filedes, F_GETPATH, path) != -1)
+                {
+                    strlcpy(cwd, path, PATH_MAX);
+                }
+                break;
+            }
+            default:
                 break;
         }
     }

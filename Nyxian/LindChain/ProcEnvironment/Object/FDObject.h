@@ -26,6 +26,7 @@
  *  Apple API Headers
  * -------------------------------------------------------------------- */
 #import <Foundation/Foundation.h>
+#import <LindChain/Private/mach/fileport.h>
 
 /* ----------------------------------------------------------------------
  *  Environment API Headers
@@ -65,6 +66,16 @@
     A instance that is referencing the current file descriptor passed.
  */
 + (instancetype)objectForFileDescriptor:(int)fd;
+
+/*!
+ @method `objectForFilePort:`
+ @abstract Creates a object for a file descriptor.
+ @param fp
+    file port at wish to be converted to a FDObject.
+ @return
+    A instance that is referencing the current file descriptor passed.
+ */
++ (instancetype)objectForFilePort:(fileport_t)fp;
 
 /*!
  @method `objectForFileAtPath:withFlags:withPermissions:`

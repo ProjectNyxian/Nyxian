@@ -46,6 +46,22 @@
     return object;
 }
 
++ (instancetype)objectForFilePort:(fileport_t)fp
+{
+    int fd = fileport_makefd(fp);
+    
+    if(fd < 0)
+    {
+        return nil;
+    }
+    
+    FDObject *object = [self objectForFileDescriptor:fd];
+    
+    close(fd);
+    
+    return object;
+}
+
 + (instancetype)objectForFileAtPath:(NSString*)path
                           withFlags:(int)flags
                     withPermissions:(int)perm

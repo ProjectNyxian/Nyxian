@@ -136,6 +136,28 @@
     return 0;
 }
 
+- (int)appendFilePort:(fileport_t)fp
+     withMappingToLoc:(int)loc
+{
+    if(!_fd_map)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    
+    FDObject *object = [FDObject objectForFilePort:fp];
+    
+    if(object == nil)
+    {
+        errno = EBADF;
+        return -1;
+    }
+    
+    [_fd_map setObject:object forKey:@(loc)];
+    
+    return 0;
+}
+
 - (int)appendFileDescriptor:(int)fd
 {
     return [self appendFileDescriptor:fd withMappingToLoc:fd];

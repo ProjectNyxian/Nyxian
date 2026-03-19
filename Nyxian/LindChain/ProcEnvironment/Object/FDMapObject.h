@@ -100,6 +100,16 @@
 - (int)appendFileDescriptor:(int)fd withMappingToLoc:(int)loc;
 
 /*!
+ @method `appendFilePort:withMappingToLoc:`
+ @abstract Adds file descriptor to file descriptor map object.
+ @param fp
+    The integer representing the file port to apend.
+ @param loc
+    The file descriptor it shall get applied to when calling [FDMapObject apply_fd_map].
+ */
+- (int)appendFilePort:(fileport_t)fp withMappingToLoc:(int)loc;
+
+/*!
  @method `appendFileDescriptor:`
  @abstract Adds file descriptor to file descriptor map object.
  @param fd
