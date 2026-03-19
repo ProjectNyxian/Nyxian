@@ -34,29 +34,38 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
 {
     assert(parent != NULL && path != NULL);
     
-    /* creating child process */
     ksurface_proc_t *child = kvo_copy(parent);
-
-    /* checking if child is null */
+    
     if(child == NULL)
     {
         return NULL;
     }
     
-    /* setting child process properties */
-    proc_setppid(child, proc_getpid(child));    /* currently we are a safe to use perfect copy of the parent anyways */
-    proc_setpid(child, child_pid);
+    /*
+     * setting child process identifiers
+     * which are safe to change now, such
+     * as the ppid, the ppid becomes the pid
+     * because the ppid is the pid of the copy
+     * and the copy is the copy of the parent.
+     */
+    proc_setppid(child, proc_getpid(child));
+    proc_setpid(child, child_pid);  /* function passed pid of child */
     
     /*
-     * getting additional process entitlements
-     * from trust cache. if it got PEEntitlementPlatform
-     * we abort the spawn... in case the process spawning wasnt the kernel
-     * or a platform process. platform binaries may only be spawned by other
-     * platform binaries, user allowed platform binaries also count.
+     * getting the entitlements passed of the
+     * executables code signature blob if
+     * applicable. if signed correctly it
+     * will return the entitlements of
+     * sayed executable.
      */
     PEEntitlement entitlement = [[LDETrust shared] entitlementsOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
     PEEntitlement currentEntitlement = proc_getentitlements(child);
     
+    /*
+     * only a platform process, may be able to
+     * spawn a other platform process otherwise
+     * this would be exploitable.
+     */
     if(entitlement_got_entitlement(entitlement, PEEntitlementPlatform) &&
        !entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
     {
@@ -64,30 +73,31 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
         return NULL;
     }
     
-    /* checking if parent process is the kernel process */
+    /*
+     * checking if parent process is the kernel
+     * process, because the kernel process
+     * regardless of what its own entitlements
+     * are shall drop the entitlements of the
+     * child process and force a new session id
+     * and ucred. this is also to prevent a attack
+     * to change the kernels entitlements with
+     * a vulnerability and then escalate it by
+     * making it spawn process with entitlement
+     * inheritence as code on iOS has to be signed
+     * a attacker cannot change this would causing
+     * ksurface to crash.
+     */
     if(parent == kernel_proc_)
     {
-        /*
-         * dropping permitives to the permitives
-         * of a standard userspace program, means
-         * entitlements from trustcache, mobile user
-         * and so on, but dont worry, although daemons
-         * initially start as mobile, there is no race
-         * condition because they have platform
-         * entitlement.
-         */
         proc_setmobilecred(child);                          /* dropping ucred permitives */
         proc_setsid(child, child_pid);                      /* forcing its own process identifier as session identifier */
         goto force_not_inherite_entitlements;               /* forcing none, so it gets fresh entitlements from trustcache */
     }
     
-    /*
-     * process can decide if they want to inherite entitlements or not.
-     */
+    /* process can decide if they want to inherite entitlements or not */
     if(!entitlement_got_entitlement(currentEntitlement, PEEntitlementProcessSpawnInheriteEntitlements))
 force_not_inherite_entitlements:
     {
-        /* not allowed/not willing to inherite */
         currentEntitlement = PEEntitlementNone;
     }
     else
@@ -95,7 +105,11 @@ force_not_inherite_entitlements:
         /* checking for platform status */
         if(entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
         {
-            /* platform processes, cannot inherite platformisation */
+            /*
+             * platform processes, cannot inherite platformisation,
+             * for obvious reasons, but other special entitlements
+             * like in the else branch forbidden.
+             */
             currentEntitlement &= ~PEEntitlementPlatform;
         }
         else
@@ -104,15 +118,19 @@ force_not_inherite_entitlements:
             currentEntitlement &= ~PEEntitlementTaskForPid;
             currentEntitlement &= ~PEEntitlementProcessElevate;
             currentEntitlement &= ~PEEntitlementTrustCacheWrite;
+            currentEntitlement &= ~PEEntitlementTrustCacheRead;
         }
     }
     
-    /* now we add the ones from trust cache */
+    /*
+     * now combining the current eneitlements
+     * and the entitlements of the executable.
+     */
     PEEntitlement combined_entitlement = currentEntitlement | entitlement;
     proc_setentitlements(child, combined_entitlement);
     proc_setmaxentitlements(child, combined_entitlement);
     
-    /* copying the path */
+    /* copying the executables path */
     strlcpy(child->nyx.executable_path, path, PATH_MAX);
         
     /* FIXME: argv[0] shall be used for p_comm and not the last path component */
@@ -123,7 +141,6 @@ force_not_inherite_entitlements:
     /* insert will retain the child process */
     if(proc_insert(child) != SURFACE_SUCCESS)
     {
-        /* logging if enabled */
         klog_log(@"proc:fork", @"[%d] fork failed process %p failed to be inserted", proc_getpid(child), child);
         
         /* releasing child process because of failed insert */
@@ -141,32 +158,27 @@ force_not_inherite_entitlements:
      * and create a reference contract.
      */
     if(!kvo_retain(parent))
-out_parent_contract_retain_failed:
     {
-        proc_remove_by_pid(proc_getpid(child));
-        return NULL;
+        goto out_parent_contract_retain_failed;
     }
     
-    /* locking children structure */
     pthread_mutex_lock(&(parent->children.mutex));
     
     /*
      * checking if it would exceed maximum amount
      * of child processes per process.
      */
-    if(parent->children.children_cnt >= CHILD_PROC_MAX || !kvo_retain(child))
+    if(parent->children.children_cnt >= CHILD_PROC_MAX ||
+       !kvo_retain(child))
     {
-        /* unlocking parent mutex again */
         pthread_mutex_unlock(&(parent->children.mutex));
-        
-        /* releasing all references */
         kvo_release(parent);
         
-        /* does already return */
-        goto out_parent_contract_retain_failed;
+    out_parent_contract_retain_failed:
+        proc_remove_by_pid(proc_getpid(child));
+        return NULL;
     }
     
-    /* locking children structure numero two */
     pthread_mutex_lock(&(child->children.mutex));
     
     /* performing contract */
@@ -174,10 +186,6 @@ out_parent_contract_retain_failed:
     child->children.parent_cld_idx = parent->children.children_cnt++;
     parent->children.children[child->children.parent_cld_idx] = child;
     
-    /*
-     * okay both parties signed the contract so now
-     * releasing both locks we currently hold.
-     */
     pthread_mutex_unlock(&(child->children.mutex));
     pthread_mutex_unlock(&(parent->children.mutex));
     
