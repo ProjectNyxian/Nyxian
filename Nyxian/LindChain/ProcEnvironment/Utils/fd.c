@@ -58,7 +58,10 @@ void close_all_fd(void)
 
     for (int i = 0; i < numFDs; i++)
     {
-        close(fdinfo[i].proc_fd);
+        if(!fd_is_guarded(fdinfo[i].proc_fd))
+        {
+            close(fdinfo[i].proc_fd);
+        }
     }
 }
 
