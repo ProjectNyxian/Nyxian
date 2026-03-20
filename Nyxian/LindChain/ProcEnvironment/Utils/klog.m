@@ -136,6 +136,7 @@ void klog_log_internal(NSString *system, NSString *format, ...)
             /* opening ^^ */
             NSString *kfd_path = [NSString stringWithFormat:@"%@/Documents/klog.txt", NSHomeDirectory()];
             kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_APPEND, 0777);
+            write(kfd, "\n", 1);
             
             df = [[NSDateFormatter alloc] init];
             df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
