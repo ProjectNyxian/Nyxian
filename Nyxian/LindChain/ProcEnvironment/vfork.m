@@ -393,8 +393,8 @@ DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
 
 void environment_vfork_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         DO_HOOK_GLOBAL(vfork);
         DO_HOOK_GLOBAL(execl);
         DO_HOOK_GLOBAL(execle);
@@ -407,5 +407,5 @@ void environment_vfork_init(void)
         DO_HOOK_GLOBAL(exit);
         DO_HOOK_GLOBAL(_exit);
         DO_HOOK_GLOBAL(waitpid);
-    }
+    });
 }

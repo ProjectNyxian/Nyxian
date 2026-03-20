@@ -246,13 +246,13 @@ DEFINE_HOOK(raise, int, (int sig))
 
 void environment_libproc_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         DO_HOOK_GLOBAL(proc_listallpids);
         DO_HOOK_GLOBAL(proc_name);
         DO_HOOK_GLOBAL(proc_pidpath);
         DO_HOOK_GLOBAL(proc_pid_rusage);
         DO_HOOK_GLOBAL(kill);
         DO_HOOK_GLOBAL(raise);
-    }
+    });
 }

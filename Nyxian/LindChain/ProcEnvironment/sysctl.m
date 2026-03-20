@@ -47,11 +47,29 @@ DEFINE_HOOK(sysctlbyname, int, (const char *name,
     return (ret == -1 && errno == ENOSYS) ? ORIG_FUNC(sysctlbyname)(name, oldp, oldlenp, newp, newlen) : ret;
 }
 
+DEFINE_HOOK(gethostname, int, (char *name,
+                               size_t len))
+{
+    int mib[2] = { CTL_KERN, KERN_HOSTNAME };
+    int retval = (int)environment_syscall(SYS_sysctl, mib, 2, name, &len, NULL, NULL);
+    name[len] = '\0';
+    return retval;
+}
+
+DEFINE_HOOK(sethostname, int, (char *name,
+                               size_t len))
+{
+    int mib[2] = { CTL_KERN, KERN_HOSTNAME };
+    return (int)environment_syscall(SYS_sysctl, mib, 2, NULL, NULL, name, len);
+}
+
 void environment_sysctl_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         DO_HOOK_GLOBAL(sysctl);
         DO_HOOK_GLOBAL(sysctlbyname);
-    }
+        DO_HOOK_GLOBAL(gethostname);
+        DO_HOOK_GLOBAL(sethostname);
+    });
 }

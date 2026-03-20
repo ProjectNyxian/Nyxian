@@ -433,10 +433,9 @@ done:
 
 void environment_posix_spawn_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
-        // MARK: Fixing spawning of child processes
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawn, environment_posix_spawn, nil);
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, posix_spawnp, environment_posix_spawnp, nil);
-    }
+    });
 }

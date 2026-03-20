@@ -39,7 +39,6 @@
 #import <LindChain/ProcEnvironment/ioctl.h>
 #import <LindChain/ProcEnvironment/vfork.h>
 #import <LindChain/ProcEnvironment/cred.h>
-#import <LindChain/ProcEnvironment/hostname.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>

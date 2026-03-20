@@ -95,32 +95,20 @@ int environment_init(EnvironmentRole role,
 {
     assert(executablePath != nil && argv != NULL);
     
-    /* checking role */
-    if(role > EnvironmentRoleGuest)
-    {
-        fprintf(stderr, "[!] invalid role\n");
-        exit(1);
-    }
-    
     __block int retval = 0;
     
     /* making sure this is only initilized once */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         /* checking role */
+        if(role > EnvironmentRoleGuest)
+        {
+            fprintf(stderr, "[!] invalid role\n");
+            exit(1);
+        }
         
         /* setting environment role */
         environmentRole = role;
-        
-        /* initilizing subsystems of environment */
-        environment_libproc_init();
-        environment_application_init();
-        environment_posix_spawn_init();
-        environment_vfork_init();
-        environment_sysctl_init();
-        environment_ioctl_init();
-        environment_cred_init();
-        environment_hostname_init();
         
         /* kernel start vs handshake */
         if(role == EnvironmentRoleHost)
@@ -142,6 +130,15 @@ int environment_init(EnvironmentRole role,
         }
         else
         {
+            /* initilizing subsystems of environment */
+            environment_cred_init();
+            environment_posix_spawn_init();
+            environment_vfork_init();
+            environment_sysctl_init();
+            environment_libproc_init();
+            environment_ioctl_init();
+            environment_application_init();
+            
             /*
              * waiting till syscalling starts to work
              * for this process before handing off
@@ -151,17 +148,14 @@ int environment_init(EnvironmentRole role,
             {
                 relax();
             }
-        }
-        
-        /*
-         * task_for_pid(3) is fixed last, because otherwise
-         * a other process could compromise this process
-         * easily which we ofc shall not let happen.
-         */
-        environment_tfp_init();
-        
-        if(role == EnvironmentRoleGuest)
-        {            
+            
+            /*
+             * task_for_pid(3) is fixed last, because otherwise
+             * a other process could compromise this process
+             * easily which we ofc shall not let happen.
+             */
+            environment_tfp_init();
+            
             /*
              * checking if debugging is meant to be enabled
              * and enable it in case wanted.

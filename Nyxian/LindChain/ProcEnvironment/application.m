@@ -131,12 +131,11 @@ void environment_signal_child_handler(int code)
 
 void environment_application_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
-        // MARK: GUEST Init
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         swizzle_objc_method(@selector(setActive:error:), [AVAudioSession class], @selector(hook_setActive:error:), nil);
         swizzle_objc_method(@selector(setActive:withOptions:error:), [AVAudioSession class], @selector(hook_setActive:withOptions:error:), nil);
         
         signal(SIGUSR1, environment_signal_child_handler);
-    }
+    });
 }

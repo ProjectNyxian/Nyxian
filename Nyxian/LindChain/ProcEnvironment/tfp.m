@@ -80,13 +80,13 @@ DEFINE_HOOK(task_name_for_pid, kern_return_t, (mach_port_name_t tp_in,
  */
 void environment_tfp_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         /* sending our task port to the task port system */
         ktfp(KTFP_GUEST);
         
         /* hooking tfp api */
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
         DO_HOOK_GLOBAL(task_name_for_pid);
-    }
+    });
 }

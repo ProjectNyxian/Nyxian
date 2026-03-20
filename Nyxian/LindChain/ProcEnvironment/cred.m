@@ -108,24 +108,21 @@ void environment_cred_init(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(environment_is_role(EnvironmentRoleGuest))
-        {
-            DO_HOOK_GLOBAL(getuid);
-            DO_HOOK_GLOBAL(getgid);
-            DO_HOOK_GLOBAL(geteuid);
-            DO_HOOK_GLOBAL(getegid);
-            DO_HOOK_GLOBAL(getppid);
-            DO_HOOK_GLOBAL(setuid);
-            DO_HOOK_GLOBAL(setgid);
-            DO_HOOK_GLOBAL(setruid);
-            DO_HOOK_GLOBAL(setreuid);
-            DO_HOOK_GLOBAL(setrgid);
-            DO_HOOK_GLOBAL(seteuid);
-            DO_HOOK_GLOBAL(setegid);
-            DO_HOOK_GLOBAL(setregid);
-            DO_HOOK_GLOBAL(getpid);
-            DO_HOOK_GLOBAL(getsid);
-            DO_HOOK_GLOBAL(setsid);
-        }
+        DO_HOOK_GLOBAL(getuid);
+        DO_HOOK_GLOBAL(getgid);
+        DO_HOOK_GLOBAL(geteuid);
+        DO_HOOK_GLOBAL(getegid);
+        DO_HOOK_GLOBAL(getppid);
+        DO_HOOK_GLOBAL(setuid);
+        DO_HOOK_GLOBAL(setgid);
+        DO_HOOK_GLOBAL(setruid);
+        DO_HOOK_GLOBAL(setreuid);
+        DO_HOOK_GLOBAL(setrgid);
+        DO_HOOK_GLOBAL(seteuid);
+        DO_HOOK_GLOBAL(setegid);
+        DO_HOOK_GLOBAL(setregid);
+        DO_HOOK_GLOBAL(getpid);
+        DO_HOOK_GLOBAL(getsid);
+        DO_HOOK_GLOBAL(setsid);
     });
 }

@@ -107,13 +107,13 @@ DEFINE_HOOK(tcgetpgrp, int, (int fd))
 
 void environment_ioctl_init(void)
 {
-    if(environment_is_role(EnvironmentRoleGuest))
-    {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         DO_HOOK_GLOBAL(ioctl);
         DO_HOOK_GLOBAL(isatty);
         DO_HOOK_GLOBAL(tcgetattr);
         DO_HOOK_GLOBAL(tcsetattr);
         DO_HOOK_GLOBAL(tcsetpgrp);
         DO_HOOK_GLOBAL(tcgetpgrp);
-    }
+    });
 }
