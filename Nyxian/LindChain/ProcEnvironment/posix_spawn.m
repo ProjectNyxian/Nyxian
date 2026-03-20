@@ -124,67 +124,6 @@ NSDictionary<NSString*,NSString*> *NSDictionaryFromCDictionary(char *const envp[
     return [dict copy];
 }
 
-char *environment_which(const char *name)
-{
-    /* sanity check */
-    if(name == NULL)
-    {
-        return NULL;
-    }
-    
-    /*
-     * checking weither slash exists
-     * in the character buffer.
-     */
-    if(strchr(name, '/'))
-    {
-        if(access(name, X_OK) != 0)
-        {
-            return NULL;
-        }
-        return realpath(name, NULL);
-    }
-    
-    /*
-     * getting "PATH" environment variable,
-     * because "PATH" contains all binary
-     * search paths where binaries could
-     * be located.
-     */
-    const char *path = getenv("PATH");
-    
-    /* sanity check */
-    if(!path)
-    {
-        return NULL;
-    }
-    
-    /* create modifable copy of path */
-    char *copy = strdup(path);
-    
-    /* sanity checking copy */
-    if(copy == NULL)
-    {
-        return NULL;
-    }
-    
-    /* here we go */
-    char *token = strtok(copy, ":");
-    while(token)
-    {
-        char candidate[PATH_MAX];
-        snprintf(candidate, sizeof(candidate), "%s/%s", token, name);
-        if(access(candidate, X_OK) == 0)
-        {
-            free(copy);
-            return realpath(candidate, NULL);
-        }
-        token = strtok(NULL, ":");
-    }
-    free(copy);
-    return NULL;
-}
-
 #pragma mark - posix_spawn implementation
 
 int environment_posix_spawn(pid_t *process_identifier,
@@ -368,15 +307,126 @@ skip_fileactions:
     return 0;
 }
 
-int environment_posix_spawnp(pid_t *process_identifier,
-                             const char *path,
-                             const posix_spawn_file_actions_t *fa,
-                             const posix_spawnattr_t *spawn_attr,
-                             char *const argv[],
-                             char *const envp[])
+/*
+ * https://github.com/Apple-FOSS-Mirror/Libc/blob/2ca2ae74647714acfc18674c3114b1a5d3325d7d/sys/posix_spawn.c#L1358
+ *
+ * skidded from apple it self..
+ */
+int environment_posix_spawnp(pid_t * __restrict pid,
+                             const char * __restrict file,
+                             const posix_spawn_file_actions_t *file_actions,
+                             const posix_spawnattr_t * __restrict attrp,
+                             char *const argv[ __restrict],
+                             char *const envp[ __restrict])
 {
-    /* calling the actual posix_spawn() fix but with environment_which(1) */
-    return environment_posix_spawn(process_identifier, environment_which(path), fa, spawn_attr, argv, envp);
+    const char *env_path;
+    char *bp;
+    char *cur;
+    char *p;
+    char **memp;
+    int lp;
+    int ln;
+    int cnt;
+    int err = 0;
+    int eacces = 0;
+    struct stat sb;
+    char path_buf[PATH_MAX];
+    
+    if((env_path = getenv("PATH")) == NULL)
+    {
+        env_path = _PATH_DEFPATH;
+    }
+    
+    /* If it's an absolute or relative path name, it's easy. */
+    if(index(file, '/'))
+    {
+        bp = (char *)file;
+        cur = NULL;
+        goto retry;
+    }
+    bp = path_buf;
+    
+    /* If it's an empty path name, fail in the usual POSIX way. */
+    if (*file == '\0')
+        return (ENOENT);
+    
+    if ((cur = alloca(strlen(env_path) + 1)) == NULL)
+        return ENOMEM;
+    strcpy(cur, env_path);
+    while ((p = strsep(&cur, ":")) != NULL) {
+        /*
+         * It's a SHELL path -- double, leading and trailing colons
+         * mean the current directory.
+         */
+        if (*p == '\0') {
+            p = ".";
+            lp = 1;
+        } else {
+            lp = (int)strlen(p);
+        }
+        ln = (int)strlen(file);
+        
+        /*
+         * If the path is too long complain.  This is a possible
+         * security issue; given a way to make the path too long
+         * the user may spawn the wrong program.
+         */
+        if (lp + ln + 2 > sizeof(path_buf)) {
+            err = ENAMETOOLONG;
+            goto done;
+        }
+        bcopy(p, path_buf, lp);
+        path_buf[lp] = '/';
+        bcopy(file, path_buf + lp + 1, ln);
+        path_buf[lp + ln + 1] = '\0';
+        
+        retry:        err = environment_posix_spawn(pid, bp, file_actions, attrp, argv, envp);
+        switch (err) {
+            case E2BIG:
+            case ENOMEM:
+            case ETXTBSY:
+                goto done;
+            case ELOOP:
+            case ENAMETOOLONG:
+            case ENOENT:
+            case ENOTDIR:
+                break;
+            case ENOEXEC:
+                for (cnt = 0; argv[cnt]; ++cnt)
+                    ;
+                memp = alloca((cnt + 2) * sizeof(char *));
+                if (memp == NULL) {
+                    /* errno = ENOMEM; XXX override ENOEXEC? */
+                    goto done;
+                }
+                memp[0] = "sh";
+                memp[1] = bp;
+                bcopy(argv + 1, memp + 2, cnt * sizeof(char *));
+                err = environment_posix_spawn(pid, _PATH_BSHELL, file_actions, attrp, memp, envp);
+                goto done;
+            default:
+                /*
+                 * EACCES may be for an inaccessible directory or
+                 * a non-executable file.  Call stat() to decide
+                 * which.  This also handles ambiguities for EFAULT
+                 * and EIO, and undocumented errors like ESTALE.
+                 * We hope that the race for a stat() is unimportant.
+                 */
+                if (stat(bp, &sb) != 0)
+                    break;
+                if (err == EACCES) {
+                    eacces = 1;
+                    continue;
+                }
+                goto done;
+        }
+    }
+    if (eacces)
+        err = EACCES;
+    else
+        err = ENOENT;
+done:
+    return (err);
 }
 
 #pragma mark - Initilizer
