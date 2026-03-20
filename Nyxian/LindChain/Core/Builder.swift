@@ -270,12 +270,21 @@ class Builder {
                     if result {
                         if LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) {
                             DispatchQueue.main.async {
-                                let mapObject: FDMapObject = FDMapObject.emptyMap()
+                                var mapObject: FDMapObject? = nil
+                                
                                 if let inPipe = inPipe,
                                    let outPipe = outPipe {
-                                    mapObject.appendFileDescriptor(inPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: STDIN_FILENO)
-                                    mapObject.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDOUT_FILENO)
-                                    mapObject.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDERR_FILENO)
+                                    
+                                    /*
+                                     * creating empty mapobject and adding new pipes
+                                     * to it we will need so we can receive prints
+                                     * to for example the console of the IDE
+                                     * workspace.
+                                     */
+                                    mapObject = FDMapObject.emptyMap()
+                                    mapObject?.appendFileDescriptor(inPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: STDIN_FILENO)
+                                    mapObject?.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDOUT_FILENO)
+                                    mapObject?.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDERR_FILENO)
                                     
                                     /*
                                      * shitty solution for now, but fixes the issue
@@ -283,13 +292,11 @@ class Builder {
                                      * gets terminated because someone has to hold
                                      * the receive pipes even if we close them.
                                      */
-                                    mapObject.appendFileDescriptor(inPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: 100)
-                                    mapObject.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
-                                    
-                                    LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: ["LSMapObject":mapObject], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
-                                } else {
-                                    LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                                    mapObject?.appendFileDescriptor(inPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: 100)
+                                    mapObject?.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
                                 }
+                                
+                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["LSMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
                             }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
