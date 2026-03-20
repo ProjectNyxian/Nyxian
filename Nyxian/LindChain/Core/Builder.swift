@@ -276,6 +276,16 @@ class Builder {
                                     mapObject.appendFileDescriptor(inPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: STDIN_FILENO)
                                     mapObject.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDOUT_FILENO)
                                     mapObject.appendFileDescriptor(outPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: STDERR_FILENO)
+                                    
+                                    /*
+                                     * shitty solution for now, but fixes the issue
+                                     * where a process that prints debug text
+                                     * gets terminated because someone has to hold
+                                     * the receive pipes even if we close them.
+                                     */
+                                    mapObject.appendFileDescriptor(inPipe.fileHandleForWriting.fileDescriptor, withMappingToLoc: 100)
+                                    mapObject.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
+                                    
                                     LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: ["LSMapObject":mapObject], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
                                 } else {
                                     LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
