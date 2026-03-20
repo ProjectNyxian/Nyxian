@@ -32,7 +32,7 @@
 
 #pragma mark - posix_spawn helper
 
-NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(char *const argv[])
+NSArray<NSString*> *NSArrayFromCArray(char *const argv[])
 {
     /* sanity check */
     if(argv == NULL)
@@ -57,15 +57,8 @@ NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(char *const
     {
         NSObject<NSSecureCoding,NSCopying> *arg = nil;
         
-        if(argv[i] != NULL)
-        {
-            /* converting C into NSString */
-            arg = [NSString stringWithCString:argv[i] encoding:NSUTF8StringEncoding];
-        }
-        else
-        {
-            arg = [NSNull null];
-        }
+        /* converting C into NSString */
+        arg = [NSString stringWithCString:argv[i] encoding:NSUTF8StringEncoding];
         
         /* sanity checking arg object */
         if(arg != NULL)
@@ -79,7 +72,7 @@ NSArray<NSObject<NSSecureCoding,NSCopying> *> *createNSArrayFromArgv(char *const
     return [array copy];
 }
 
-NSDictionary *EnvironmentDictionaryFromEnvp(char *const envp[])
+NSDictionary<NSString*,NSString*> *NSDictionaryFromCDictionary(char *const envp[])
 {
     /* sanity check */
     if(envp == NULL)
@@ -121,7 +114,8 @@ NSDictionary *EnvironmentDictionaryFromEnvp(char *const envp[])
         NSString *value = [entry substringFromIndex:equalRange.location + 1];
             
         /* sanity check */
-        if(key && value)
+        if(key &&
+           value)
         {
             dict[key] = value;
         }
@@ -338,7 +332,7 @@ skip_fileactions:
      * trying to spawn process via old ass ServerSession API, which
      * then triggers the subsystem LDEProcess on the host side.
      */
-    int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], createNSArrayFromArgv(argv), EnvironmentDictionaryFromEnvp(envp), mapObject, nsCwd);
+    int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], NSArrayFromCArray(argv), NSDictionaryFromCDictionary(envp), mapObject, nsCwd);
     
     /* it shouldnt be negative */
     if(pid == -1)

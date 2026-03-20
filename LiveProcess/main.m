@@ -112,6 +112,8 @@ void overwriteArguments(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
                         int *argc,
                         char ***argv)
 {
+    assert(argc != NULL && argv != NULL);
+    
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
     [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:arguments ? arguments : @[]];
@@ -134,11 +136,6 @@ void overwriteArguments(NSArray<NSObject<NSSecureCoding,NSCopying>*> *arguments,
         if([arg isKindOfClass:[NSString class]])
         {
             (*argv)[i] = strdup(((NSString*)arg).UTF8String);
-        }
-        else
-        {
-            /* is NSNull */
-            argv[i] = NULL;
         }
     }
     (*argv)[count] = NULL;
