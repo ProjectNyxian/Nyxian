@@ -36,18 +36,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(kvo->event_rwlock));
     
     /* find last event */
-    uint16_t event_cnt = 0;
-    kvobject_event_t *last_event = kvo->event;
-    if(last_event != NULL)
-    {
-        while(last_event->next != NULL)
-        {
-            event_cnt++;
-            last_event = last_event->next;
-        }
-    }
-    
-    if(event_cnt > KVOBJECT_EVENT_MAX)
+    if(kvo->event_count >= KVOBJECT_EVENT_MAX)
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
         return SURFACE_LIMIT;
@@ -62,37 +51,33 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
         return SURFACE_NOMEM;
     }
     
+    /* setting mutex */
+    if(pthread_mutex_init(&(e_event->in_use), NULL) != 0)
+    {
+        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
+        free(e_event);
+        return SURFACE_FAILED;
+    }
+    
     /* setting properties */
-    e_event->previous = last_event;
-    e_event->next = NULL;
+    e_event->previous = NULL;
+    e_event->next = kvo->event;
     e_event->owner = kvo;
     e_event->handler = handler;
     e_event->ctx = context;
     e_event->mask = mask;
-    if(pthread_mutex_init(&(e_event->in_use), NULL) != 0)
-    {
-        free(e_event);
-        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
-        return SURFACE_FAILED;
-    }
     
-    /* now insert new event */
-    if(last_event == NULL)
-    {
-        kvo->event = e_event;
-    }
-    else
-    {
-        last_event->next = e_event;
-    }
+    /* now insert new event as the first event (faster) */
+    kvo->event = e_event;
+    kvo->event_count++;
+    
+    PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
     
     /* if event back pointer is givven, set it */
     if(event != NULL)
     {
         *event = e_event;
     }
-    
-    PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
     
     return SURFACE_SUCCESS;
 }
@@ -163,7 +148,8 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
                 current->owner->event = current->next;
             }
             
-            /* freeing event */
+            /* removing event */
+            kvo->event_count--;
             pthread_mutex_destroy(&(current->in_use));
             free(current);
         }

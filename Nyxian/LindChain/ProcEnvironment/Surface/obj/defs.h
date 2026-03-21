@@ -130,6 +130,7 @@ struct kvobject {
     
     /* events */
     pthread_rwlock_t event_rwlock;
+    uint64_t event_count;
     kvobject_event_t *event;
     
     /*
