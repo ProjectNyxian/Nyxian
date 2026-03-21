@@ -68,6 +68,10 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     e_event->mask = mask;
     
     /* now insert new event as the first event (faster) */
+    if(kvo->event != NULL)
+    {
+        kvo->event->previous = e_event;
+    }
     kvo->event = e_event;
     kvo->event_count++;
     
