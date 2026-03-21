@@ -31,17 +31,12 @@ bool waittask_proc_event_handler(kvobject_event_type_t type,
                                  uint8_t val,
                                  kvobject_event_t *event)
 {
-    if(type == kvObjEventInvalidate)
-    {
-        return false;
-    }
-    
     waittask_payload_t *payload = (waittask_payload_t*)(event->ctx);
     
     switch(type)
     {
         case kvObjEventDeinit:
-        case kvObjEventCustom2: /* task port available */
+        case kvObjEventCustom3: /* task port available */
             send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
             return true;
         case kvObjEventUnregister:
@@ -107,7 +102,7 @@ DEFINE_SYSCALL_HANDLER(waittask)
     mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
     
     /* register event */
-    ksr = kvo_event_register(target, waittask_proc_event_handler, payload, NULL);
+    ksr = kvo_event_register(target, kvObjEventCustom3, waittask_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         free(payload);

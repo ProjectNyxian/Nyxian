@@ -44,23 +44,24 @@ enum kvObjBaseType {
 
 /* enumeration of kernel virt object events */
 enum kvObjEvent {
-    kvObjEventInit = 0,                             /* object initilizes                            MARK: important for main event handler */
-    kvObjEventDeinit,                               /* object deinitilizes                          MARK: important for main event handler */
-    kvObjEventCopy,                                 /* object copies into new object                MARK: important for main event handler */
-    kvObjEventSnapshot,                             /* object snapshots into snapshotted object     MARK: important for main event handler */
-    kvObjEventInvalidate,                           /* object becomes invalidated */
-    kvObjEventUnregister,                           /* object event handler gets unregistered, only called on the affected handler */
-    kvObjEventCustom0,                              /* custom object events */
-    kvObjEventCustom1,
-    kvObjEventCustom2,
-    kvObjEventCustom3,
-    kvObjEventCustom4,
-    kvObjEventCustom5,
-    kvObjEventCustom6,
-    kvObjEventCustom7,
-    kvObjEventCustom8,
-    kvObjEventCustom9,
-    kvObjEventCustom10
+    kvObjEventNone = 0,                             /* nothing, but for event registration relevant, they cannot escape getting deinit or unregistration notif */
+    kvObjEventInit = 1ull << 0,                     /* object initilizes                            MARK: important for main event handler */
+    kvObjEventDeinit = 1ull << 1,                   /* object deinitilizes                          MARK: important for main event handler */
+    kvObjEventCopy = 1ull << 2,                     /* object copies into new object                MARK: important for main event handler */
+    kvObjEventSnapshot = 1ull << 3,                 /* object snapshots into snapshotted object     MARK: important for main event handler */
+    kvObjEventInvalidate = 1ull << 4,               /* object becomes invalidated */
+    kvObjEventUnregister = 1ull << 5,               /* object event handler gets unregistered, only called on the affected handler */
+    kvObjEventCustom0 = 1ull << 6,                  /* custom object events */
+    kvObjEventCustom1 = 1ull << 7,
+    kvObjEventCustom2 = 1ull << 8,
+    kvObjEventCustom3 = 1ull << 9,
+    kvObjEventCustom4 = 1ull << 10,
+    kvObjEventCustom5 = 1ull << 11,
+    kvObjEventCustom6 = 1ull << 12,
+    kvObjEventCustom7 = 1ull << 13,
+    kvObjEventCustom8 = 1ull << 14,
+    kvObjEventCustom9 = 1ull << 15,
+    kvObjEventCustom10 = 1ull << 16
 };
 
 /* enumeration of kernel virt object states */
@@ -98,6 +99,8 @@ struct kvevent {
     kvobject_event_t *next;                         /* pointer to next event */
     kvobject_t *owner;                              /* pointer of who owns the event */
     kvobject_event_handler_t handler;               /* pointer to handler */
+    kvobject_event_type_t mask;                     /* event mask decides for what the handler does things */
+    pthread_mutex_t in_use;                         /* usage marker (can cause freeze if no reference to the object exists anymore) */
     void *ctx;                                      /* pointer to payload MARK: if heap allocated, deallocate it on unregistration */
 };
 

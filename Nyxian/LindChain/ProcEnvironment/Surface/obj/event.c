@@ -21,17 +21,19 @@
 
 #import <LindChain/ProcEnvironment/Surface/obj/event.h>
 #import <LindChain/ProcEnvironment/Surface/obj/reference.h>
+#import <LindChain/ProcEnvironment/Surface/lock.h>
 #import <stdlib.h>
 #import <assert.h>
 
 ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
+                                          kvobject_event_type_t mask,
                                           kvobject_event_handler_t handler,
                                           void *context,
                                           kvobject_event_t **event)
 {
     assert(kvo != NULL && handler != NULL && kvo->base_type != kvObjBaseTypeObjectSnapshot);
     
-    pthread_rwlock_wrlock(&(kvo->event_rwlock));
+    PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(kvo->event_rwlock));
     
     /* find last event */
     uint16_t event_cnt = 0;
@@ -47,6 +49,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     
     if(event_cnt > KVOBJECT_EVENT_MAX)
     {
+        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
         return SURFACE_LIMIT;
     }
     
@@ -55,7 +58,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     
     if(e_event == NULL)
     {
-        pthread_rwlock_unlock(&(kvo->event_rwlock));
+        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
         return SURFACE_NOMEM;
     }
     
@@ -65,6 +68,8 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     e_event->owner = kvo;
     e_event->handler = handler;
     e_event->ctx = context;
+    e_event->mask = mask;
+    pthread_mutex_init(&(e_event->in_use), NULL);
     
     /* now insert new event */
     if(last_event == NULL)
@@ -82,51 +87,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
         *event = e_event;
     }
     
-    pthread_rwlock_unlock(&(kvo->event_rwlock));
-    
-    return SURFACE_SUCCESS;
-}
-
-ksurface_return_t kvobject_event_unregister(kvobject_event_t *event)
-{
-    assert(event != NULL && event->owner != NULL);
-    
-    /*
-     * we need a reference to the owner
-     * so it cannot and then cause a data
-     * corruption.
-     */
-    if(!kvo_retain(event->owner))
-    {
-        return SURFACE_RETAIN_FAILED;
-    }
-    
-    /* locking the structure obviously */
-    pthread_rwlock_wrlock(&(event->owner->event_rwlock));
-    
-    /* triggering event */
-    event->handler(kvObjEventUnregister, 0, event);
-    
-    /* relinking previous and next */
-    if(event->previous != NULL)
-    {
-        event->previous->next = event->next;
-    }
-    
-    if(event->next != NULL)
-    {
-        event->next->previous = event->previous;
-    }
-    
-    if(event->previous == NULL)
-    {
-        event->owner->event = event->next;
-    }
-    
-    /* releasing locks and resources */
-    pthread_rwlock_unlock(&(event->owner->event_rwlock));
-    kvo_release(event->owner);
-    free(event);
+    PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
     
     return SURFACE_SUCCESS;
 }
@@ -143,7 +104,10 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
         return;
     }
     
-    pthread_rwlock_wrlock(&(kvo->event_rwlock));
+    /* the main event handler shall always be called */
+    kvo->main_handler(&kvo, type);
+    
+    PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(kvo->event_rwlock));
     
     /*
      * execute all events in the chain and remove
@@ -154,37 +118,43 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
     {
         /* pointer to current event */
         kvobject_event_t *current = last_event;
-        
-        /* calling event handler */
-        bool will_remove = current->handler(type, value, current);
-        
-        /* deinit is always removal */
-        if(type == kvObjEventDeinit)
-        {
-            will_remove = true;
-        }
-        
-        /* updating last event */
         last_event = current->next;
         
+        if(type != kvObjEventDeinit && (current->mask & type) != type)
+        {
+            continue;
+        }
+        
+        if(pthread_mutex_trylock(&(current->in_use)) != 0)
+        {
+            continue;
+        }
+        
+        /* unlocking again to allow recurse */
+        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
+        bool will_remove = current->handler(type, value, current);
+        PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(kvo->event_rwlock));
+        
+        pthread_mutex_unlock(&(current->in_use));
+        
         /* remove if applicable */
-        if(will_remove)
+        if(will_remove || type == kvObjEventDeinit)
         {
             /* triggering unregistration event */
             current->handler(kvObjEventUnregister, 0, current);
             
             /* relinking previous and next */
-            if(current->previous != NULL)
-            {
-                current->previous->next = current->next;
-            }
-            
             if(current->next != NULL)
             {
                 current->next->previous = current->previous;
             }
             
-            if(current->previous == NULL) {
+            if(current->previous != NULL)
+            {
+                current->previous->next = current->next;
+            }
+            else
+            {
                 current->owner->event = current->next;
             }
             
@@ -193,8 +163,5 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
         }
     }
     
-    /* the main event handler shall always be called */
-    kvo->main_handler(&kvo, type);
-    
-    pthread_rwlock_unlock(&(kvo->event_rwlock));
+    PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
 }

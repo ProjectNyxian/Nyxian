@@ -36,11 +36,6 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
                               uint8_t val,
                               kvobject_event_t *event)
 {
-    if(type == kvObjEventInvalidate)
-    {
-        return false;
-    }
-    
     ksurface_proc_t *proc = (ksurface_proc_t*)(event->owner);
     wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
     int ecode = 0;
@@ -164,7 +159,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
     
     /* register event */
-    ksr = kvo_event_register(target, wait4_proc_event_handler, payload, NULL);
+    ksr = kvo_event_register(target, kvObjEventCustom0 | kvObjEventCustom1 | kvObjEventCustom2, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         free(payload);

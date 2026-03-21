@@ -62,7 +62,7 @@ void *dothework(void *work)
     
     task_unlock();
     
-    kvo_event_trigger(hep->proc, kvObjEventCustom2, 0);
+    kvo_event_trigger(hep->proc, kvObjEventCustom3, 0);
     kvo_release(hep->proc);
     free(work);
     return NULL;
