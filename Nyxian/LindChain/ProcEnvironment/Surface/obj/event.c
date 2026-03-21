@@ -69,7 +69,12 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     e_event->handler = handler;
     e_event->ctx = context;
     e_event->mask = mask;
-    pthread_mutex_init(&(e_event->in_use), NULL);
+    if(pthread_mutex_init(&(e_event->in_use), NULL) != 0)
+    {
+        free(e_event);
+        PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
+        return SURFACE_FAILED;
+    }
     
     /* now insert new event */
     if(last_event == NULL)
@@ -158,7 +163,8 @@ void kvobject_event_trigger(kvobject_strong_t *kvo,
                 current->owner->event = current->next;
             }
             
-            /* freeing  event */
+            /* freeing event */
+            pthread_mutex_destroy(&(current->in_use));
             free(current);
         }
     }
