@@ -43,6 +43,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/enttoken.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -58,8 +59,9 @@
 #define SYS_handoffep   759         /* handoff exception port to kvirt */
 #define SYS_setent      760         /* sets entitlements (sanitized ofc) */
 #define SYS_enttoken    761         /* generation and consumption of token full of authority */
+#define SYS_waittask    762         /* waits till task port of a task is available */
 
-#define SYS_N 28
+#define SYS_N 29
 
 typedef struct {
     const char *name;

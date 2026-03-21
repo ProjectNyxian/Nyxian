@@ -61,6 +61,8 @@ void *dothework(void *work)
     hep->proc->task = task;
     
     task_unlock();
+    
+    kvo_event_trigger(hep->proc, kvObjEventCustom2, 0);
     kvo_release(hep->proc);
     free(work);
     return NULL;

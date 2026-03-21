@@ -64,12 +64,6 @@ void environment_client_connect_to_syscall_proxy(MachPortObject *mpo)
     syscallProxy = client;
 }
 
-void environment_client_attach_debugger(void)
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    machServerInit();
-}
-
 #pragma mark - Role/Restriction checkers and enforcers
 
 BOOL environment_is_role(EnvironmentRole role)
@@ -149,25 +143,14 @@ int environment_init(EnvironmentRole role,
                 relax();
             }
             
+            LCOverwriteExecutablePath(executablePath);
+            
             /*
              * task_for_pid(3) is fixed last, because otherwise
              * a other process could compromise this process
              * easily which we ofc shall not let happen.
              */
             environment_tfp_init();
-            
-            /*
-             * checking if debugging is meant to be enabled
-             * and enable it in case wanted.
-             * TODO: This is the responsibility of the host side tbh
-             */
-            /*if(enableDebugging)
-            {
-                environment_client_attach_debugger();
-            }*/
-            
-            /* making guest related LC patches */
-            LCOverwriteExecutablePath(executablePath);
         }
         
         /* invoking code execution or let it return */

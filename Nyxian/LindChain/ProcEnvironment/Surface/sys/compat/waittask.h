@@ -19,13 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LINDCHAIN_DEBUGGER_MACHSERVER_H
-#define LINDCHAIN_DEBUGGER_MACHSERVER_H
+#ifndef SURFACE_SYS_WAITTASK_H
+#define SURFACE_SYS_WAITTASK_H
 
-#include <mach/mach.h>
-#include <stdlib.h>
-#include <LindChain/ProcEnvironment/Surface/return.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-ksurface_return_t ndb_attach(pid_t pid);
+DEFINE_SYSCALL_HANDLER(waittask);
 
-#endif /* LINDCHAIN_DEBUGGER_MACHSERVER_H */
+#endif /* SURFACE_SYS_WAITTASK_H */

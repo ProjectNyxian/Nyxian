@@ -296,7 +296,9 @@ class Builder {
                                     mapObject?.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
                                 }
                                 
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["LSMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                                let pid = LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["LSMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                                
+                                ndb_attach(pid)
                             }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])

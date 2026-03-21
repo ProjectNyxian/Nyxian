@@ -228,6 +228,7 @@
 				LindChain/ProcEnvironment/Surface/sys/compat/procpath.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/setent.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/signexec.m,
+				LindChain/ProcEnvironment/Surface/sys/compat/waittask.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getgid.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getpid.m,
 				LindChain/ProcEnvironment/Surface/sys/cred/getsid.m,
@@ -288,8 +289,6 @@
 		79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Debugger/Logger.m,
-				LindChain/Debugger/MachServer.m,
 				LindChain/Debugger/Utils.m,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,

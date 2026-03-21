@@ -103,14 +103,6 @@ void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attri
 void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
 
 /*!
- @function `environment_client_attach_debugger`
- @abstract Attaches a debugger to the guest environment
- @discussion
-    This function attaches a mach exception handling debugger to the guest environment.
- */
-void environment_client_attach_debugger(void);
-
-/*!
  @function `environment_is_role`
  @abstract Returns a boolean value representing if it is the given role
  @discussion

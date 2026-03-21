@@ -274,7 +274,7 @@ skip_fileactions:
     int64_t pid = environment_proxy_spawn_process_at_path([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding], NSArrayFromCArray(argv), NSDictionaryFromCDictionary(envp), mapObject, nsCwd);
     
     /* it shouldnt be negative */
-    if(pid == -1)
+    if(pid < 0)
     {
         /* lacking entitlements? */
         errno = EBADEXEC;
@@ -287,22 +287,7 @@ skip_fileactions:
         *process_identifier = (pid_t)pid;
     }
     
-    /*
-     * shitty soloution for now (to for now fix waitpid)
-     * most delay was fixed by making sure it runs
-     * synchronised, but the guest process sending its
-     * task port to the host side happens after
-     * ServerSession API returns. So to make sure
-     * a process waiting using waitpid on the guest
-     * to stop after SIGSTOP for example to debug it
-     * must be guaranteed to be able to get the other guest
-     * processes task port. this will likely change in the
-     * future by using the event api to wait on that task
-     * port of the guest in a other API, the problems with
-     * that tho is the nature of not knowing when that might
-     * happen, so this is the simplest solution for now.
-     */
-    usleep(50000);
+    environment_syscall(SYS_waittask, pid);
     
     return 0;
 }

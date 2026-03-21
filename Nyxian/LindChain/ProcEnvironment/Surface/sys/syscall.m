@@ -52,4 +52,5 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_ioctl",          .sysnum = SYS_ioctl,        .hndl = GET_SYSCALL_HANDLER(ioctl)          },
     { .name = "SYS_setent",         .sysnum = SYS_setent,       .hndl = GET_SYSCALL_HANDLER(setent)         },
     { .name = "SYS_enttoken",       .sysnum = SYS_enttoken,     .hndl = GET_SYSCALL_HANDLER(enttoken)       },
+    { .name = "SYS_waittask",       .sysnum = SYS_waittask,     .hndl = GET_SYSCALL_HANDLER(waittask)       },
 };
