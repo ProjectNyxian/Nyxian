@@ -61,19 +61,27 @@ kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
     /* setting handlers and running init straight */
     kvo->main_handler = handler;
     
-    /* checking init handler and executing if nonnull */
-    if(kvo->main_handler(&kvo, kvObjEventInit) != 0)
+    /* safely initilizing both locks */
+    if(pthread_rwlock_init(&(kvo->rwlock), NULL) != 0)
     {
+        free(kvo);
+    }
+    
+    if(pthread_rwlock_init(&(kvo->event_rwlock), NULL) != 0)
+    {
+        pthread_rwlock_destroy(&(kvo->rwlock));
         free(kvo);
         return NULL;
     }
     
-    /*
-     * initilizing the locks after initilize, because
-     * the lock is unnecessary at init time.
-     */
-    pthread_rwlock_init(&(kvo->rwlock), NULL);
-    pthread_rwlock_init(&(kvo->event_rwlock), NULL);
+    /* checking init handler and executing if nonnull */
+    if(kvo->main_handler(&kvo, kvObjEventInit) != 0)
+    {
+        pthread_rwlock_destroy(&(kvo->rwlock));
+        pthread_rwlock_destroy(&(kvo->event_rwlock));
+        free(kvo);
+        return NULL;
+    }
     
     /* returning da object */
     return kvo;
@@ -117,19 +125,28 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     /* preparing stack array */
     kvobject_t *kvoarr[2] = { kvo_dup, kvo };
     
+    /* safely initilizing both locks */
+    if(pthread_rwlock_init(&(kvo_dup->rwlock), NULL) != 0)
+    {
+        free(kvo_dup);
+    }
+    
+    if(pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL) != 0)
+    {
+        pthread_rwlock_destroy(&(kvo_dup->rwlock));
+        free(kvo_dup);
+        kvo_dup = NULL;
+        goto out_unlock;
+    }
+    
     /* checking init handler and executing if nonnull */
     if(kvo_dup->main_handler(kvoarr, kvObjEventCopy) != 0)
     {
+        pthread_rwlock_destroy(&(kvo_dup->rwlock));
+        pthread_rwlock_destroy(&(kvo_dup->event_rwlock));
         free(kvo_dup);
         kvo_dup = NULL;
     }
-    
-    /*
-     * initilizing the locks after initilize, because
-     * the lock is unnecessary at init time.
-     */
-    pthread_rwlock_init(&(kvo_dup->rwlock), NULL);
-    pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL);
     
 out_unlock:
     kvo_unlock(kvo);
