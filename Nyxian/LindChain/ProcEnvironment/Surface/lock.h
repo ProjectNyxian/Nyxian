@@ -22,20 +22,32 @@
 #ifndef PROCENVIRONMENT_LOCK_H
 #define PROCENVIRONMENT_LOCK_H
 
-#define proc_table_rdlock() pthread_rwlock_rdlock(&(ksurface->proc_info.struct_lock))
-#define proc_table_wrlock() pthread_rwlock_wrlock(&(ksurface->proc_info.struct_lock))
-#define proc_table_unlock() pthread_rwlock_unlock(&(ksurface->proc_info.struct_lock))
+#import <LindChain/ProcEnvironment/panic.h>
 
-#define tty_table_rdlock() pthread_rwlock_rdlock(&(ksurface->tty_info.struct_lock))
-#define tty_table_wrlock() pthread_rwlock_wrlock(&(ksurface->tty_info.struct_lock))
-#define tty_table_unlock() pthread_rwlock_unlock(&(ksurface->tty_info.struct_lock))
+#if DEBUG
+#define PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(ptr) ({ int _e = pthread_rwlock_rdlock(ptr); if (_e) environment_panic(); })
+#define PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(ptr) ({ int _e = pthread_rwlock_wrlock(ptr); if (_e) environment_panic(); })
+#define PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(ptr) ({ int _e = pthread_rwlock_unlock(ptr); if (_e) environment_panic(); })
+#else
+#define PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(ptr) pthread_rwlock_rdlock(ptr);
+#define PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(ptr) pthread_rwlock_wrlock(ptr);
+#define PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(ptr) pthread_rwlock_unlock(ptr);
+#endif /* DEBUG */
 
-#define host_rdlock() pthread_rwlock_rdlock(&(ksurface->host_info.struct_lock))
-#define host_wrlock() pthread_rwlock_wrlock(&(ksurface->host_info.struct_lock))
-#define host_unlock() pthread_rwlock_unlock(&(ksurface->host_info.struct_lock))
+#define proc_table_rdlock() PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(&(ksurface->proc_info.struct_lock))
+#define proc_table_wrlock() PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(ksurface->proc_info.struct_lock))
+#define proc_table_unlock() PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(ksurface->proc_info.struct_lock))
 
-#define task_rdlock() pthread_rwlock_rdlock(&(ksurface->proc_info.task_lock))
-#define task_wrlock() pthread_rwlock_wrlock(&(ksurface->proc_info.task_lock))
-#define task_unlock() pthread_rwlock_unlock(&(ksurface->proc_info.task_lock))
+#define tty_table_rdlock() PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(&(ksurface->tty_info.struct_lock))
+#define tty_table_wrlock() PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(ksurface->tty_info.struct_lock))
+#define tty_table_unlock() PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(ksurface->tty_info.struct_lock))
+
+#define host_rdlock() PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(&(ksurface->host_info.struct_lock))
+#define host_wrlock() PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(ksurface->host_info.struct_lock))
+#define host_unlock() PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(ksurface->host_info.struct_lock))
+
+#define task_rdlock() PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(&(ksurface->proc_info.task_lock))
+#define task_wrlock() PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(ksurface->proc_info.task_lock))
+#define task_unlock() PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(ksurface->proc_info.task_lock))
 
 #endif /* PROCENVIRONMENT_LOCK_H */

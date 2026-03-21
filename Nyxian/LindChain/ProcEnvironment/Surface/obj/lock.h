@@ -22,11 +22,12 @@
 #ifndef KVOBJECT_LOCK_H
 #define KVOBJECT_LOCK_H
 
+#import <LindChain/ProcEnvironment/Surface/lock.h>
 #import <LindChain/ProcEnvironment/Surface/obj/defs.h>
 #import <LindChain/ProcEnvironment/panic.h>
 
-#define kvo_rdlock(obj) ({ int _e = pthread_rwlock_rdlock(&(((kvobject_strong_t *)obj)->rwlock)); if (_e) environment_panic(); })
-#define kvo_wrlock(obj) ({ int _e = pthread_rwlock_wrlock(&(((kvobject_strong_t *)obj)->rwlock)); if (_e) environment_panic(); })
-#define kvo_unlock(obj) ({ int _e = pthread_rwlock_unlock(&(((kvobject_strong_t *)obj)->rwlock)); if (_e) environment_panic(); })
+#define kvo_rdlock(obj) PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(&(((kvobject_strong_t *)obj)->rwlock))
+#define kvo_wrlock(obj) PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(&(((kvobject_strong_t *)obj)->rwlock))
+#define kvo_unlock(obj) PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(((kvobject_strong_t *)obj)->rwlock))
 
 #endif /* KVOBJECT_LOCK_H */
