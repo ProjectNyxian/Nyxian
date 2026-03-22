@@ -66,7 +66,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         mutual_init:
             proc->bsd.kp_proc.p_stat = SRUN;
             proc->bsd.kp_proc.p_flag = P_LP64 | P_EXEC;
-            proc->nyx.p_status = W_EXITCODE(0, SIGKILL);;
+            proc->nyx.p_status = W_EXITCODE(0, SIGKILL);
             
             if(gettimeofday(&proc->bsd.kp_proc.p_un.__p_starttime, NULL) != 0)
             {

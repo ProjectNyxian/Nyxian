@@ -24,11 +24,13 @@ import Foundation
 class HeaderIncludationsGatherer {
     let path: String
     var includes: [String]
+    var gathered: Set<String>
     
     init(path: String) {
         self.path = path
         self.includes = []
-
+        self.gathered = []
+        
         do {
             let content = try String(contentsOfFile: path, encoding: .utf8)
             try gatherIncludations(forFile: path, content: content)
@@ -48,6 +50,9 @@ class HeaderIncludationsGatherer {
     }
     
     func gatherIncludations(forFile filePath: String, content: String) throws {
+        guard !gathered.contains(filePath) else { return }
+        gathered.insert(filePath)
+        
         let items = try matchIncludations(content: content)
         
         for item in items {
