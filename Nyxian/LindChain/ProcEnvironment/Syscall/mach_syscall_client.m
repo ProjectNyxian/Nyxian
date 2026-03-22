@@ -26,10 +26,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 
 struct syscall_client {
     mach_port_t server_port;
-    mach_port_t reply_port;
+    pthread_key_t reply_port_key;
 };
 
 typedef struct {
@@ -40,40 +41,29 @@ typedef struct {
     mach_msg_max_trailer_t trailer;
 } syscall_msg_buffer_t;
 
+static void reply_port_destructor(void *port_ptr)
+{
+    mach_port_t port = (mach_port_t)(uintptr_t)port_ptr;
+    
+    if(port != MACH_PORT_NULL)
+    {
+        mach_port_deallocate(mach_task_self(), port);
+    }
+}
+
 syscall_client_t *syscall_client_create(mach_port_t port)
 {
-    /* allocate syscall client */
     syscall_client_t *client = malloc(sizeof(syscall_client_t));
     
-    /* null pointer check */
     if(client == NULL)
     {
         return NULL;
     }
     
-    kern_return_t kr;
-    
-    /* setting server port */
     client->server_port = port;
     
-    mach_port_options_t opts = {
-        .flags = MPO_STRICT | MPO_REPLY_PORT
-    };
-
-    kr = mach_port_construct(mach_task_self(), &opts, 0, &client->reply_port);
-    if(kr != KERN_SUCCESS)
+    if(pthread_key_create(&client->reply_port_key, reply_port_destructor) != 0)
     {
-        printf("Failed to create reply port: %d\n", kr);
-        mach_port_deallocate(mach_task_self(), client->server_port);
-        free(client);
-        return NULL;
-    }
-    
-    /* XNU reply check */
-    if(kr != KERN_SUCCESS)
-    {
-        /* deallocating on failure */
-        mach_port_deallocate(mach_task_self(), client->server_port);
         free(client);
         return NULL;
     }
@@ -81,13 +71,32 @@ syscall_client_t *syscall_client_create(mach_port_t port)
     return client;
 }
 
+static mach_port_t get_thread_reply_port(syscall_client_t *client)
+{
+    mach_port_t port = (mach_port_t)(uintptr_t)pthread_getspecific(client->reply_port_key);
+    
+    if(port == MACH_PORT_NULL)
+    {
+        mach_port_options_t opts = {
+            .flags = MPO_STRICT | MPO_REPLY_PORT
+        };
+        
+        kern_return_t kr = mach_port_construct(mach_task_self(), &opts, 0, &port);
+        
+        if(kr != KERN_SUCCESS)
+        {
+            return MACH_PORT_NULL;
+        }
+        
+        pthread_setspecific(client->reply_port_key, (void*)(uintptr_t)port);
+    }
+    
+    return port;
+}
+
 void syscall_client_destroy(syscall_client_t *client)
 {
-    /* null pointer check */
-    if(client == NULL)
-    {
-        return;
-    }
+    assert(client != NULL);
     
     /* checking if the port is null */
     if(client->server_port != MACH_PORT_NULL)
@@ -96,12 +105,7 @@ void syscall_client_destroy(syscall_client_t *client)
         mach_port_deallocate(mach_task_self(), client->server_port);
     }
     
-    /* checking if the port is null */
-    if (client->reply_port != MACH_PORT_NULL)
-    {
-        /* deallocate port */
-        mach_port_deallocate(mach_task_self(), client->reply_port);
-    }
+    pthread_key_delete(client->reply_port_key);
     
     free(client);
 }
@@ -119,8 +123,10 @@ int64_t syscall_invoke(syscall_client_t *client,
                        mach_port_t **out_ports,
                        uint32_t out_ports_cnt)
 {
-    /* null pointer check */
-    if(client == NULL)
+    assert(client != NULL);
+    
+    mach_port_t reply_port = get_thread_reply_port(client);
+    if(reply_port == MACH_PORT_NULL)
     {
         errno = EAGAIN;
         return -1;
@@ -130,12 +136,12 @@ int64_t syscall_invoke(syscall_client_t *client,
     syscall_msg_buffer_t buffer;
     
     /* nullfying buffer */
-    memset(&buffer, 0, sizeof(buffer));
+    bzero(&buffer, sizeof(buffer));
     
     /* stuffing the request ;3 */
     buffer.req.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND_ONCE);
     buffer.req.header.msgh_remote_port = client->server_port;
-    buffer.req.header.msgh_local_port = client->reply_port;
+    buffer.req.header.msgh_local_port = reply_port;
     buffer.req.header.msgh_size = sizeof(syscall_request_t);
     buffer.req.header.msgh_id = syscall_num;
     
@@ -170,7 +176,7 @@ int64_t syscall_invoke(syscall_client_t *client,
      * uses the same buffer for both operations. The receive buffer size
      * must be large enough to hold the reply plus any trailer.
      */
-    kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(syscall_request_t), sizeof(buffer), client->reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    kern_return_t kr = mach_msg(&buffer.req.header, MACH_SEND_MSG | MACH_RCV_MSG, sizeof(syscall_request_t), sizeof(buffer), reply_port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
     
     /* checking for succession */
     if(kr != KERN_SUCCESS)

@@ -187,7 +187,6 @@ cleanup:
     return result == 0 ? status : -1;
 }
 
-
 int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
 {
     return runCommand(@"/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[], output);
