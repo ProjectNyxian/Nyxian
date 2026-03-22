@@ -102,15 +102,22 @@
         
         kvo_unlock(_proc);
         
-        /* invoking spawn */
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:@{
+        NSMutableDictionary *mutableItems = [[NSMutableDictionary alloc] initWithDictionary:@{
             @"LSServiceMode": @"spawn",
             @"LSExecutablePath": path,
             @"LSArguments": arguments,
             @"LSEnvironment": environment,
-            @"LSMapObject": mapObject,
+            @"LSMapObject": mapObject ? mapObject : [FDMapObject emptyMap],
             @"LSWorkingDirectory": workingDirectory,
-        } withKernelSurfaceProcess:_proc];
+        }];
+        
+        if(mapObject != nil)
+        {
+            [mutableItems setObject:mapObject forKey:@"LSMapObject"];
+        }
+        
+        /* invoking spawn */
+        pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:mutableItems withKernelSurfaceProcess:_proc];
         
 #if KLOG_ENABLED
         if(pid != -1)
