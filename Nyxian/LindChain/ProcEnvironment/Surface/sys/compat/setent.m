@@ -39,14 +39,6 @@ DEFINE_SYSCALL_HANDLER(setent)
         sys_return_failure(EPERM);
     }
     
-    /* deny removing certain entitlements without platformisation  */
-    if(removed & (PEEntitlementProcessSpawnInheriteEntitlements) &&
-       !entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementPlatform))
-    {
-        kvo_unlock(sys_proc_);
-        sys_return_failure(EPERM);
-    }
-    
     proc_setentitlements(sys_proc_, userPassed);
     
     kvo_unlock(sys_proc_);
