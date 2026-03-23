@@ -43,10 +43,6 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
     
     switch(type)
     {
-        case kvObjEventCustom2: /* reap (triggers deinit, which triggers the unregistration) */
-            proc_exit(proc);
-            kvo_unlock(proc);
-            return false;
         case kvObjEventCustom0: /* state change happened */
             
             /* looking if state change already happened */
@@ -65,7 +61,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             {
                 /* process has already exited, reap it */
                 kvo_unlock(proc);
-                proc_exit(proc);
+                proc_reap(proc);
                 goto out_trigger_unregister;
             }
             
@@ -148,7 +144,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     else if(target->bsd.kp_proc.p_stat == SZOMB)
     {
         /* process has already exited, reap it */
-        proc_exit(target);
+        proc_reap(target);
         
     out_report:
         mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);

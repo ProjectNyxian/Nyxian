@@ -190,7 +190,7 @@ force_not_inherite_entitlements:
     return child;
 }
 
-ksurface_return_t proc_exit(ksurface_proc_t *proc)
+ksurface_return_t proc_reap(ksurface_proc_t *proc)
 {
     /* null pointer check */
     if(proc == NULL)
@@ -232,7 +232,7 @@ ksurface_return_t proc_exit(ksurface_proc_t *proc)
         pthread_mutex_unlock(&(proc->children.mutex));
         
         /* calling exit on the child */
-        proc_exit(child);
+        proc_reap(child);
         
         /* releasing reference previously retained */
         kvo_release(child);
@@ -356,17 +356,17 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
          * underneath.
          */
         pthread_mutex_unlock(&(proc->children.mutex));
-        proc_exit(child);
+        proc_reap(child);
         kvo_release(child);
         pthread_mutex_lock(&(proc->children.mutex));
     }
     
-    /* when parent is the kernel dont zombify, kill immediately */
+    /* when parent is the kernel dont zombify, reap immediately */
     if(proc->children.parent == kernel_proc_)
     {
         pthread_mutex_unlock(&(proc->children.mutex));
         kvo_release(proc);
-        proc_exit(proc);
+        proc_reap(proc);
         return SURFACE_SUCCESS;
     }
     
@@ -376,7 +376,7 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     kvo_wrlock(proc);
     proc->bsd.kp_proc.p_stat = SZOMB;
     kvo_unlock(proc);
-    kvo_event_trigger(proc, kvObjEventCustom2, 0);
+    kvo_event_trigger(proc, kvObjEventCustom0, 0);
     kvo_release(proc);
     
     return SURFACE_SUCCESS;
