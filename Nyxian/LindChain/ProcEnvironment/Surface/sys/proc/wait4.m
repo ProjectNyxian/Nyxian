@@ -69,7 +69,7 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             goto out_trigger_unregister;
         }
         case kvObjEventUnregister:
-            mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);
+            mach_port_deallocate(mach_task_self(), payload->task);
             free(payload);
             kvo_unlock(proc);
             return true;
@@ -93,26 +93,49 @@ DEFINE_SYSCALL_HANDLER(wait4)
     pid_t pid = (pid_t)args[0];
     int options = (int)args[2];
     
-    /* get process reference to target */
+    /* need process visibility */
+    proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
+    
+    /* getting target requested for caller */
     ksurface_proc_t *target;
     ksurface_return_t ksr = proc_for_pid(pid, &target);
     
     if(ksr != SURFACE_SUCCESS)
     {
-        sys_return_failure(EINVAL);
+        sys_return_failure(ESRCH);
     }
     
     kvo_wrlock(target);
-    
-    /* checking if process is visible */
-    proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
     /* perms check */
     if(!can_see_process(sys_proc_snapshot_, target, vis))
     {
         kvo_unlock(target);
         kvo_release(target);
-        sys_return_failure(EINVAL);
+        sys_return_failure(ESRCH);  /* doesnt exist for the caller */
+    }
+    
+    /* looking if state is already set */
+    if(target->bsd.kp_proc.p_stat == SSTOP &&
+       target->nyx.p_stop_reported == 0 &&
+       ((options & WSTOPPED) == WSTOPPED))
+    {
+        /* process has already stopped, reporting */
+        int ecode = W_STOPCODE(SIGSTOP);
+        mach_syscall_copy_out(sys_task_, sizeof(int), &ecode, (userspace_pointer_t)args[1]);
+        
+        goto out_release_payload;
+    }
+    else if(target->bsd.kp_proc.p_stat == SZOMB)
+    {
+        /* process has already exited, reporting */
+        mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
+        
+    out_release_payload:
+        target->nyx.p_stop_reported = 1;
+        kvo_unlock(target);
+        kvo_release(target);
+        sys_return;
     }
     
     /* creating payload */
@@ -125,6 +148,12 @@ DEFINE_SYSCALL_HANDLER(wait4)
         sys_return_failure(ENOMEM);
     }
     
+    kern_return_t kr = mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
+    if(kr != KERN_SUCCESS)
+    {
+        goto out_again;
+    }
+    
     /* stuffing payload */
     payload->task = sys_task_;
     payload->status_ptr = (userspace_pointer_t)args[1];
@@ -132,36 +161,12 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->options = options;
     payload->buffer = recv_buffer;
     
-    /* looking if state is already set */
-    if(target->bsd.kp_proc.p_stat == SSTOP &&
-       target->nyx.p_stop_reported == 0 &&
-       ((options & WSTOPPED) == WSTOPPED))
-    {
-        /* process has already stopped, reporting */
-        int ecode = W_STOPCODE(SIGSTOP);
-        mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
-        
-        goto out_release_payload;
-    }
-    else if(target->bsd.kp_proc.p_stat == SZOMB)
-    {
-        /* process has already exited, reporting */
-        mach_syscall_copy_out(payload->task, sizeof(int), &(target->nyx.p_status), payload->status_ptr);
-        
-    out_release_payload:
-        target->nyx.p_stop_reported = 1;
-        free(payload);
-        kvo_unlock(target);
-        kvo_release(target);
-        sys_return;
-    }
-    
-    mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
-    
     /* register event */
     ksr = kvo_event_register(target, kvObjEventCustom0 | kvObjEventCustom1 | kvObjEventCustom2, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
+        mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
+    out_again:
         free(payload);
         kvo_unlock(target);
         kvo_release(target);
