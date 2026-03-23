@@ -60,17 +60,23 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      */
     PEEntitlement entitlement = [[LDETrust shared] entitlementsOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
     PEEntitlement currentEntitlement = proc_getentitlements(child);
+    PEEntitlement currentMaxEntitlement = proc_getmaxentitlements(child);
     
     /*
      * only a platform process, may be able to
      * spawn a other platform process otherwise
-     * this would be exploitable.
+     * this would be exploitable. so we strip away
+     * all entitlements the parent process doesnt
+     * have in case it is non platform and setting
+     * currentEntitlement to entitlement.
      */
-    if(entitlement_got_entitlement(entitlement, PEEntitlementPlatform) &&
-       !entitlement_got_entitlement(currentEntitlement, PEEntitlementPlatform))
+    if(!entitlement_got_entitlement(currentMaxEntitlement, PEEntitlementPlatform))
     {
-        kvo_release(child);
-        return NULL;
+        /*
+         * child gets nothing extra, removing
+         * what parent doesnt have.
+         */
+        entitlement &= currentEntitlement;
     }
     
     /*
@@ -91,7 +97,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     {
         proc_setmobilecred(child);                          /* dropping ucred permitives */
         proc_setsid(child, child_pid);                      /* forcing its own process identifier as session identifier */
-        goto force_not_inherite_entitlements;               /* forcing none, so it gets fresh entitlements from trustcache */
+        goto force_not_inherite_entitlements;               /* forcing none, so it gets fresh entitlements from the executable */
     }
     
     /* process can decide if they want to inherite entitlements or not */
@@ -103,7 +109,7 @@ force_not_inherite_entitlements:
     else
     {
         /* checking for platform status */
-        if(entitlement_got_entitlement(proc_getmaxentitlements(child), PEEntitlementPlatform))
+        if(entitlement_got_entitlement(currentMaxEntitlement, PEEntitlementPlatform))
         {
             /*
              * platform processes, cannot inherite platformisation,

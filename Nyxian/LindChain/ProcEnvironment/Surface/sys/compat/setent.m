@@ -30,7 +30,6 @@ DEFINE_SYSCALL_HANDLER(setent)
     
     /* getting the added mask out of both entitlements */
     PEEntitlement added = (~proc_getentitlements(sys_proc_)) & userPassed;
-    PEEntitlement removed = proc_getentitlements(sys_proc_) & (~userPassed);
     
     /* deny adding entitlements not present in max entitlements */
     if(!entitlement_got_entitlement(proc_getmaxentitlements(sys_proc_), added))
