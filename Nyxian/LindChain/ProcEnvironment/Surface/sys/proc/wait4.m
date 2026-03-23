@@ -113,77 +113,86 @@ DEFINE_SYSCALL_HANDLER(wait4)
     /* need process visibility */
     proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
-    if(pid > 0)
+    pthread_mutex_lock(&(sys_proc_->children.mutex));
+    for(uint64_t i = 0; i < sys_proc_->children.children_cnt; i++)
     {
-        /* getting target requested for caller */
-        ksurface_proc_t *target;
-        ksurface_return_t ksr = proc_for_pid(pid, &target);
-        
-        if(ksr != SURFACE_SUCCESS)
-        {
-            sys_return_failure(ECHILD);
-        }
-        
-        kvo_wrlock(target);
-        
-        /* visibility check */
-        if(!can_see_process(sys_proc_snapshot_, target, vis))
-        {
-            goto out_nochild;
-        }
-        
         /*
-         * parentship check, on UNIX its a standard
-         * semantic, that you cannot wait on processes
-         * that arent your children. so, we have to
-         * check if it is a child process.
+         * getting strongly referenced process from array
+         * it is strongly referenced, because of the mutex
+         * and because of the reference contract done by
+         * proc_fork(3)
          */
-        if(proc_getppid(target) != proc_getpid(proc_snapshot))
-        {
-        out_nochild:
-            kvo_unlock(target);
-            kvo_release(target);
-            sys_return_failure(ECHILD);  /* doesnt exist for the caller */
-        }
+        ksurface_proc_t *proc = sys_proc_->children.children[i];
         
-        /* looking if state change already happened */
-        if((((options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(target->nyx.p_status)) ||
-           (((options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(target->nyx.p_status)))
+        if(pid < 0 || proc_getpid(proc) == pid)
         {
-            /* set to none, so incase it was
-             * stopped it wont fire again without
-             * another state change, cuz the state
-             * change was collected.
-             */
-            goto out_report;
-        }
-        else if(target->bsd.kp_proc.p_stat == SZOMB)
-        {
-            /* process has already exited, reap it */
-            proc_reap(target);
+            kvo_rdlock(proc);
             
-        out_report:
-            mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
-            target->nyx.p_status = 0;
-            kvo_unlock(target);
-            kvo_release(target);
-            return pid;
+            /* visibility check */
+            if(!can_see_process(sys_proc_snapshot_, proc, vis))
+            {
+                kvo_unlock(proc);
+                continue;
+            }
+            
+            /* need a new reference to safely use it */
+            if(!kvo_retain(proc))
+            {
+                kvo_unlock(proc);
+                continue;
+            }
+            
+            /* looking if state change already happened */
+            if((((options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(proc->nyx.p_status)) ||
+               (((options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(proc->nyx.p_status)))
+            {
+                goto out_report;
+            }
+            else if(proc->bsd.kp_proc.p_stat == SZOMB)
+            {
+                /*
+                 * process has already exited, reap it, but
+                 * unlock the mutex, because proc_reap will
+                 * lock it for it self
+                 */
+                pthread_mutex_unlock(&(sys_proc_->children.mutex));
+                proc_reap(proc);
+                pthread_mutex_lock(&(sys_proc_->children.mutex));
+                
+                /* in-case it did stop but is now zombified */
+                if(!WIFEXITED(proc->nyx.p_status))
+                {
+                    proc->nyx.p_status = W_EXITCODE(0, SIGKILL);
+                }
+                
+            out_report:
+                mach_syscall_copy_out(sys_task_, sizeof(int), &(proc->nyx.p_status), (userspace_pointer_t)args[1]);
+                
+                /*
+                 * set to none, so incase it was
+                 * stopped it wont fire again without
+                 * another state change, cuz the state
+                 * change was collected.
+                 */
+                proc->nyx.p_status = 0;
+                
+                pid = proc_getpid(proc);
+                kvo_unlock(proc);   /* unlock first! releasing it will cause entire process and lock to release */
+                kvo_release(proc);
+                pthread_mutex_unlock(&(sys_proc_->children.mutex));
+                return pid;
+            }
+            
+            kvo_unlock(proc);   /* unlock first! releasing it might cause entire process and lock to release */
+            kvo_release(proc);
         }
-        
-        kvo_unlock(target);
-        kvo_release(target);
-        
-        if((options & WNOHANG) == WNOHANG)
-        {
-            sys_return;
-        }
-    } else if((options & WNOHANG) == WNOHANG)
+        kvo_unlock(proc);
+    }
+    
+    if((options & WNOHANG) == WNOHANG)
     {
-        /*
-         * you must specify child when using WNOHANG
-         * TODO: this possibility is valid under UNIX semantics, fuck my life
-         */
-        sys_return_failure(EINVAL);
+        pthread_mutex_unlock(&(sys_proc_->children.mutex));
+        sys_return;
     }
     
     /* creating payload */
@@ -191,6 +200,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     if(payload == NULL)
     {
+        pthread_mutex_unlock(&(sys_proc_->children.mutex));
         sys_return_failure(ENOMEM);
     }
     
@@ -214,11 +224,13 @@ DEFINE_SYSCALL_HANDLER(wait4)
     {
         mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
     out_again:
+        pthread_mutex_unlock(&(sys_proc_->children.mutex));
         free(payload);
         sys_return_failure(EAGAIN);
     }
     
-    *reply = false;
+    pthread_mutex_unlock(&(sys_proc_->children.mutex));
     
+    *reply = false;
     sys_return;
 }
