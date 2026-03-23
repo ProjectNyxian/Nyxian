@@ -178,7 +178,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->buffer = recv_buffer;
     
     /* register event */
-    ksr = kvo_event_register(target, kvObjEventCustom0 | kvObjEventCustom1 | kvObjEventCustom2, wait4_proc_event_handler, payload, NULL);
+    ksr = kvo_event_register(target, kvObjEventCustom0, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */

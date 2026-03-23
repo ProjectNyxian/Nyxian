@@ -36,7 +36,7 @@ bool waittask_proc_event_handler(kvobject_event_type_t type,
     switch(type)
     {
         case kvObjEventDeinit:
-        case kvObjEventCustom3: /* task port available */
+        case kvObjEventCustom1: /* task port available */
             send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
             return true;
         case kvObjEventUnregister:
@@ -55,24 +55,49 @@ DEFINE_SYSCALL_HANDLER(waittask)
     /* prepare arguments */
     pid_t pid = (pid_t)args[0];
     
-    /* checking if process is visible */
+    /* need process visibility */
     proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
-    /* get process reference to target */
+    /* getting target requested for caller */
     ksurface_proc_t *target;
     ksurface_return_t ksr = proc_for_pid(pid, &target);
     
     if(ksr != SURFACE_SUCCESS)
     {
-        sys_return_failure(EINVAL);
+        sys_return_failure(ECHILD);
     }
     
-    /* perms check */
+    /* visibility check */
+    kvo_rdlock(target);
     if(!can_see_process(sys_proc_snapshot_, target, vis))
     {
-        kvo_release(target);
-        sys_return_failure(EINVAL);
+        goto out_nochild;
     }
+    
+    /*
+     * parentship check, on UNIX its a standard
+     * semantic, that you cannot wait on processes
+     * that arent your children. so, we have to
+     * check if it is a child process.
+     */
+    if(proc_getppid(target) != proc_getpid(sys_proc_snapshot_))
+    {
+    out_nochild:
+        kvo_unlock(target);
+        kvo_release(target);
+        sys_return_failure(ECHILD);  /* doesnt exist for the caller */
+    }
+    kvo_unlock(target);
+    
+    /* looking if state is already set */
+    task_rdlock();
+    if(target->task != MACH_PORT_NULL)
+    {
+        task_unlock();
+        kvo_release(target);
+        sys_return;
+    }
+    task_unlock();
     
     /* creating payload */
     waittask_payload_t *payload = malloc(sizeof(waittask_payload_t));
@@ -83,28 +108,22 @@ DEFINE_SYSCALL_HANDLER(waittask)
         sys_return_failure(ENOMEM);
     }
     
+    kern_return_t kr = mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
+    if(kr != KERN_SUCCESS)
+    {
+        goto out_again;
+    }
+    
     /* stuffing payload */
     payload->task = sys_task_;
     payload->buffer = recv_buffer;
     
-    task_rdlock();
-    
-    /* looking if state is already set */
-    if(target->task != MACH_PORT_NULL)
-    {
-        free(payload);
-        kvo_release(target);
-        sys_return;
-    }
-    
-    task_unlock();
-    
-    mach_port_mod_refs(mach_task_self(), sys_task_, MACH_PORT_RIGHT_SEND, 1);
-    
     /* register event */
-    ksr = kvo_event_register(target, kvObjEventCustom3, waittask_proc_event_handler, payload, NULL);
+    ksr = kvo_event_register(target, kvObjEventCustom1, waittask_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
+        mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
+    out_again:
         free(payload);
         kvo_release(target);
         sys_return_failure(EAGAIN);
