@@ -27,5 +27,6 @@
 ksurface_return_t proc_for_pid(pid_t pid, ksurface_proc_t **proc);
 ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc, task_flavor_t flavour, task_t *task);
 ksurface_return_t proc_task_for_pid(pid_t pid, task_flavor_t flavour, task_t *task);
+ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child, ksurface_proc_t **parent);
 
 #endif /* PROC_LOOKUP_H */

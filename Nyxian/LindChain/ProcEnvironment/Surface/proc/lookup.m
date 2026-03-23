@@ -131,6 +131,8 @@ ksurface_return_t proc_task_for_pid(pid_t pid,
                                     task_flavor_t flavour,
                                     task_t *task)
 {
+    assert(task != NULL);
+    
     /* looking up proc (creates reference) */
     ksurface_proc_t *proc = NULL;
     ksurface_return_t ksr = proc_for_pid(pid, &proc);
@@ -147,4 +149,32 @@ ksurface_return_t proc_task_for_pid(pid_t pid,
     kvo_release(proc);
     
     return ksr;
+}
+
+ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child,
+                                       ksurface_proc_t **parent)
+{
+    assert(child != NULL && parent != NULL);
+    
+    /*
+     * as the children structure holds
+     * a reference to a parent already
+     * we can safely retain it within
+     * the mutex dance.
+     */
+    pthread_mutex_lock(&(child->children.mutex));
+    ksurface_proc_t *strong_parent = child->children.parent;
+    
+    if(strong_parent == NULL ||
+       !kvo_retain(strong_parent))
+    {
+        pthread_mutex_unlock(&(child->children.mutex));
+        return SURFACE_UNAVAILABLE;
+        
+    }
+    pthread_mutex_unlock(&(child->children.mutex));
+    
+    *parent = strong_parent;
+    
+    return SURFACE_SUCCESS;
 }
