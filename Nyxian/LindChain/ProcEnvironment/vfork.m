@@ -385,8 +385,7 @@ DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
                              int *ecode,
                              int options))
 {
-    environment_syscall(SYS_wait4, pid, ecode, options);
-    return pid;
+    return (pid_t)environment_syscall(SYS_wait4, pid, ecode, options);
 }
 
 #pragma mark - Initilizer

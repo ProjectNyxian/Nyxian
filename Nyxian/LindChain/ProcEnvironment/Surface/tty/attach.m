@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/tty/attach.h>
 
 bool tty_proc_event_handler(kvobject_event_type_t type,
-                            uint8_t value,
+                            uint64_t value,
                             kvobject_event_t *event)
 {
     switch(type)

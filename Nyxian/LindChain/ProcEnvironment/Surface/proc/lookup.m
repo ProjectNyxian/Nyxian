@@ -170,7 +170,6 @@ ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child,
     {
         pthread_mutex_unlock(&(child->children.mutex));
         return SURFACE_UNAVAILABLE;
-        
     }
     pthread_mutex_unlock(&(child->children.mutex));
     

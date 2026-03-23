@@ -140,8 +140,6 @@ BOOL environment_must_be_role(EnvironmentRole role);
     Item count of argv array.
  @param argv
     Arguments used for the binary.
- @param enableDebugging
-    Enables debugging inside of a process that runs in Nyxian
  @return
     Exit code of the process or environment it self.
  */

@@ -92,7 +92,7 @@ typedef enum kvObjState     kvobject_state_t;
 typedef enum kvObjSnap      kvobject_snapshot_options_t;
 
 typedef int64_t (*kvobject_main_event_handler_t)(kvobject_t**, kvobject_event_type_t);
-typedef bool (*kvobject_event_handler_t)(kvobject_event_type_t, uint8_t, kvobject_event_t*);
+typedef bool (*kvobject_event_handler_t)(kvobject_event_type_t, uint64_t, kvobject_event_t*);
 
 struct kvevent {
     kvobject_event_t *previous;                     /* pointer to previous event */

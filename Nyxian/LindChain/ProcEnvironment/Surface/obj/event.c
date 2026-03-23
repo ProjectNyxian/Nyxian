@@ -88,7 +88,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
 
 void kvobject_event_trigger(kvobject_strong_t *kvo,
                             kvobject_event_type_t type,
-                            uint8_t value)
+                            uint64_t value)
 {
     assert(kvo != NULL && type != kvObjEventCopy && type != kvObjEventUnregister);
     

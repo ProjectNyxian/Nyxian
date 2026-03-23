@@ -28,7 +28,7 @@ typedef struct waittask_payload {
 } waittask_payload_t;
 
 bool waittask_proc_event_handler(kvobject_event_type_t type,
-                                 uint8_t val,
+                                 uint64_t val,
                                  kvobject_event_t *event)
 {
     waittask_payload_t *payload = (waittask_payload_t*)(event->ctx);

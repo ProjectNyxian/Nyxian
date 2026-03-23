@@ -376,7 +376,16 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     kvo_wrlock(proc);
     proc->bsd.kp_proc.p_stat = SZOMB;
     kvo_unlock(proc);
-    kvo_event_trigger(proc, kvObjEventCustom0, 0);
+    
+    ksurface_proc_t *parent = NULL;
+    ksurface_return_t ksr = proc_parent_for_proc(proc, &parent);
+    
+    if(ksr == SURFACE_SUCCESS)
+    {
+        kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)proc);
+        kvo_release(parent);
+    }
+    
     kvo_release(proc);
     
     return SURFACE_SUCCESS;

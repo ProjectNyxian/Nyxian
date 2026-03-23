@@ -30,63 +30,77 @@ typedef struct wait4_payload {
     int options;
     task_t task;
     recv_buffer_t *buffer;
+    pid_t waitonpid;
 } wait4_payload_t;
 
 bool wait4_proc_event_handler(kvobject_event_type_t type,
-                              uint8_t val,
+                              uint64_t val,
                               kvobject_event_t *event)
 {
-    ksurface_proc_t *proc = (ksurface_proc_t*)(event->owner);
-    wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
+    if(val == 0)
+    {
+        return false;
+    }
     
-    kvo_wrlock(proc);
+    wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
+    ksurface_proc_t *child = (ksurface_proc_t*)(uintptr_t)val;
+    
+    kvo_wrlock(child);
+    
+    if(payload->waitonpid > 0 &&
+       payload->waitonpid != proc_getpid(child))
+    {
+        kvo_unlock(child);
+        return false;
+    }
     
     switch(type)
     {
         case kvObjEventCustom0: /* state change happened */
             
             /* looking if state change already happened */
-            if((((payload->options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(proc->nyx.p_status)) ||
-               (((payload->options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(proc->nyx.p_status)))
+            if((((payload->options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(child->nyx.p_status)) ||
+               (((payload->options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(child->nyx.p_status)))
             {
                 /* set to none, so incase it was
                  * stopped it wont fire again without
                  * another state change, cuz the state
                  * change was collected.
                  */
-                kvo_unlock(proc);
                 goto out_trigger_unregister;
             }
-            else if(proc->bsd.kp_proc.p_stat == SZOMB)
+            else if(child->bsd.kp_proc.p_stat == SZOMB)
             {
                 /* process has already exited, reap it */
-                kvo_unlock(proc);
-                proc_reap(proc);
+                proc_reap(child);
+                
+                /* in-case it did stop but is now zombified */
+                if(!WIFEXITED(child->nyx.p_status))
+                {
+                    child->nyx.p_status = W_EXITCODE(0, SIGKILL);
+                }
+                
                 goto out_trigger_unregister;
             }
             
             break;
-        case kvObjEventDeinit:  /* exited */
-        {
-            goto out_trigger_unregister;
-        }
         case kvObjEventUnregister:
             mach_port_deallocate(mach_task_self(), payload->task);
             free(payload);
-            kvo_unlock(proc);
+            kvo_unlock(child);
             return true;
         default:
             break;
     }
     
-    kvo_unlock(proc);
+    kvo_unlock(child);
     return false;
 
 out_trigger_unregister:
-    mach_syscall_copy_out(payload->task, sizeof(int), &(proc->nyx.p_status), payload->status_ptr);
-    proc->nyx.p_status = 0;
-    kvo_unlock(proc);
-    send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
+    mach_syscall_copy_out(payload->task, sizeof(int), &(child->nyx.p_status), payload->status_ptr);
+    child->nyx.p_status = 0;
+    send_reply(&(payload->buffer->header), proc_getpid(child), NULL, 0, 0, true);
+    kvo_unlock(child);
     return true;
 }
 
@@ -99,59 +113,77 @@ DEFINE_SYSCALL_HANDLER(wait4)
     /* need process visibility */
     proc_visibility_t vis = get_proc_visibility(sys_proc_snapshot_);
     
-    /* getting target requested for caller */
-    ksurface_proc_t *target;
-    ksurface_return_t ksr = proc_for_pid(pid, &target);
-    
-    if(ksr != SURFACE_SUCCESS)
+    if(pid > 0)
     {
-        sys_return_failure(ECHILD);
-    }
-    
-    kvo_wrlock(target);
-    
-    /* visibility check */
-    if(!can_see_process(sys_proc_snapshot_, target, vis))
-    {
-        goto out_nochild;
-    }
-    
-    /*
-     * parentship check, on UNIX its a standard
-     * semantic, that you cannot wait on processes
-     * that arent your children. so, we have to
-     * check if it is a child process.
-     */
-    if(proc_getppid(target) != proc_getpid(proc_snapshot))
-    {
-    out_nochild:
-        kvo_unlock(target);
-        kvo_release(target);
-        sys_return_failure(ECHILD);  /* doesnt exist for the caller */
-    }
-    
-    /* looking if state change already happened */
-    if((((options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(target->nyx.p_status)) ||
-       (((options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(target->nyx.p_status)))
-    {
-        /* set to none, so incase it was
-         * stopped it wont fire again without
-         * another state change, cuz the state
-         * change was collected.
-         */
-        goto out_report;
-    }
-    else if(target->bsd.kp_proc.p_stat == SZOMB)
-    {
-        /* process has already exited, reap it */
-        proc_reap(target);
+        /* getting target requested for caller */
+        ksurface_proc_t *target;
+        ksurface_return_t ksr = proc_for_pid(pid, &target);
         
-    out_report:
-        mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
-        target->nyx.p_status = 0;
+        if(ksr != SURFACE_SUCCESS)
+        {
+            sys_return_failure(ECHILD);
+        }
+        
+        kvo_wrlock(target);
+        
+        /* visibility check */
+        if(!can_see_process(sys_proc_snapshot_, target, vis))
+        {
+            goto out_nochild;
+        }
+        
+        /*
+         * parentship check, on UNIX its a standard
+         * semantic, that you cannot wait on processes
+         * that arent your children. so, we have to
+         * check if it is a child process.
+         */
+        if(proc_getppid(target) != proc_getpid(proc_snapshot))
+        {
+        out_nochild:
+            kvo_unlock(target);
+            kvo_release(target);
+            sys_return_failure(ECHILD);  /* doesnt exist for the caller */
+        }
+        
+        /* looking if state change already happened */
+        if((((options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(target->nyx.p_status)) ||
+           (((options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(target->nyx.p_status)))
+        {
+            /* set to none, so incase it was
+             * stopped it wont fire again without
+             * another state change, cuz the state
+             * change was collected.
+             */
+            goto out_report;
+        }
+        else if(target->bsd.kp_proc.p_stat == SZOMB)
+        {
+            /* process has already exited, reap it */
+            proc_reap(target);
+            
+        out_report:
+            mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
+            target->nyx.p_status = 0;
+            kvo_unlock(target);
+            kvo_release(target);
+            return pid;
+        }
+        
         kvo_unlock(target);
         kvo_release(target);
-        sys_return;
+        
+        if((options & WNOHANG) == WNOHANG)
+        {
+            sys_return;
+        }
+    } else if((options & WNOHANG) == WNOHANG)
+    {
+        /*
+         * you must specify child when using WNOHANG
+         * TODO: this possibility is valid under UNIX semantics, fuck my life
+         */
+        sys_return_failure(EINVAL);
     }
     
     /* creating payload */
@@ -159,8 +191,6 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     if(payload == NULL)
     {
-        kvo_unlock(target);
-        kvo_release(target);
         sys_return_failure(ENOMEM);
     }
     
@@ -176,22 +206,19 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->rusage_ptr = (userspace_pointer_t)args[3];
     payload->options = options;
     payload->buffer = recv_buffer;
+    payload->waitonpid = pid;
     
     /* register event */
-    ksr = kvo_event_register(target, kvObjEventCustom0, wait4_proc_event_handler, payload, NULL);
+    ksurface_return_t ksr = kvo_event_register(sys_proc_, kvObjEventCustom0, wait4_proc_event_handler, payload, NULL);
     if(ksr != SURFACE_SUCCESS)
     {
         mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
     out_again:
         free(payload);
-        kvo_unlock(target);
-        kvo_release(target);
         sys_return_failure(EAGAIN);
     }
     
     *reply = false;
     
-    kvo_unlock(target);
-    kvo_release(target);
     sys_return;
 }
