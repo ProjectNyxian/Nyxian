@@ -1,13 +1,13 @@
 {
-  "originHash" : "70249c751b6187a46e26419c1ea9c5c327be709c3b949bfb82f0240adcd3bc17",
+  "originHash" : "9a7d94266a767605460090db90e690f4ea51bce01c2c94f8ec7a500c56838b72",
   "pins" : [
     {
       "identity" : "runestone",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/simonbs/Runestone.git",
+      "location" : "https://github.com/ProjectNyxian/Runestone.git",
       "state" : {
         "branch" : "main",
-        "revision" : "d490289ca660c6e2691e7a3f282d353ac99bded7"
+        "revision" : "f154b63aa26553e55cd322e4acc63efcc9acbc56"
       }
     },
     {

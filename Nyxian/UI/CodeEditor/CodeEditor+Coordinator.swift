@@ -22,7 +22,6 @@
 import Foundation
 import UIKit
 import Runestone
-@testable import Runestone
 
 // MARK: - COORDINATOR
 class Coordinator: NSObject, TextViewDelegate {
@@ -430,57 +429,5 @@ class Coordinator: NSObject, TextViewDelegate {
             }
             super.willMove(toSuperview: newSuperview)
         }
-    }
-}
-
-// MARK: - Test
-extension Runestone.TextView {
-    func rectForLine(_ lineNumber: Int) -> CGRect? {
-        let mirror = Mirror(reflecting: self)
-        guard let lmAny = mirror.descendant("textInputView", "layoutManager"),
-              let layoutManager = lmAny as? LayoutManager
-        else {
-            return nil
-        }
-        
-        let lmMirror = Mirror(reflecting: layoutManager)
-        guard let lineManager = lmMirror.descendant("lineManager") as? LineManager
-        else {
-            return nil
-        }
-        
-        let index = lineNumber - 1
-        guard index >= 0,
-              index < lineManager.lineCount
-        else {
-            return nil
-        }
-        
-        let targetLine = lineManager.line(atRow: lineNumber - 1)
-        let endOffset = targetLine.location + targetLine.data.length
-        layoutManager.layoutLines(toLocation: endOffset)
-        
-        let line = lineManager.line(atRow: index)
-        
-        let minY = line.yPosition
-        let height = line.data.lineHeight
-        let inset = layoutManager.textContainerInset
-        let width = layoutManager.scrollViewWidth
-        
-        return CGRect(x: 0,
-                      y: inset.top + minY,
-                      width: width,
-                      height: height)
-    }
-    
-    func getTextInputView() -> TextInputView? {
-        let mirror = Mirror(reflecting: self)
-        guard let tiview = mirror.descendant("textInputView"),
-              let textInputView = tiview as? TextInputView
-        else {
-            return nil
-        }
-        
-        return textInputView
     }
 }
