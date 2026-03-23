@@ -386,7 +386,40 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
         kvo_release(parent);
     }
     
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
+    if(process != nil)
+    {
+        [process sendSignal:SIGCHLD];
+    }
+    
     kvo_release(proc);
     
+    return SURFACE_SUCCESS;
+}
+
+ksurface_return_t proc_state_change(ksurface_proc_t *proc,
+                                    int64_t status)
+{
+    ksurface_proc_t *parent = NULL;
+    ksurface_return_t ksr = proc_parent_for_proc(proc, &parent);
+    
+    if(ksr != SURFACE_SUCCESS)
+    {
+        return ksr;
+    }
+    
+    pthread_mutex_lock(&(parent->children.mutex));
+    proc->nyx.p_status = status;
+    pthread_mutex_unlock(&(parent->children.mutex));
+    
+    kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)proc);
+    
+    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
+    if(process != nil)
+    {
+        [process sendSignal:SIGCHLD];
+    }
+    
+    kvo_release(parent);
     return SURFACE_SUCCESS;
 }

@@ -20,11 +20,10 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
+#import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 
 DEFINE_SYSCALL_HANDLER(exit)
 {
-    kvo_wrlock(sys_proc_);
-    sys_proc_->nyx.p_status = W_EXITCODE(args[0], 0);
-    kvo_unlock(sys_proc_);
+    proc_state_change(sys_proc_, W_EXITCODE(args[0], 0));
     sys_return;
 }

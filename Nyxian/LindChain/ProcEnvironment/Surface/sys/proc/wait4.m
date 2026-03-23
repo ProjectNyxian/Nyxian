@@ -42,15 +42,18 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
         return false;
     }
     
+    ksurface_proc_t *parent = (ksurface_proc_t*)(event->owner);
     wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
     ksurface_proc_t *child = (ksurface_proc_t*)(uintptr_t)val;
     
+    pthread_mutex_lock(&(parent->children.mutex));
     kvo_wrlock(child);
     
     if(payload->waitonpid > 0 &&
        payload->waitonpid != proc_getpid(child))
     {
         kvo_unlock(child);
+        pthread_mutex_unlock(&(parent->children.mutex));
         return false;
     }
     
@@ -72,7 +75,9 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             else if(child->bsd.kp_proc.p_stat == SZOMB)
             {
                 /* process has already exited, reap it */
+                pthread_mutex_unlock(&(parent->children.mutex));
                 proc_reap(child);
+                pthread_mutex_lock(&(parent->children.mutex));
                 
                 /* in-case it did stop but is now zombified */
                 if(!WIFEXITED(child->nyx.p_status))
@@ -85,15 +90,17 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             
             break;
         case kvObjEventUnregister:
+            kvo_unlock(child);
+            pthread_mutex_unlock(&(parent->children.mutex));
             mach_port_deallocate(mach_task_self(), payload->task);
             free(payload);
-            kvo_unlock(child);
             return true;
         default:
             break;
     }
     
     kvo_unlock(child);
+    pthread_mutex_unlock(&(parent->children.mutex));
     return false;
 
 out_trigger_unregister:
@@ -101,6 +108,7 @@ out_trigger_unregister:
     child->nyx.p_status = 0;
     send_reply(&(payload->buffer->header), proc_getpid(child), NULL, 0, 0, true);
     kvo_unlock(child);
+    pthread_mutex_unlock(&(parent->children.mutex));
     return true;
 }
 

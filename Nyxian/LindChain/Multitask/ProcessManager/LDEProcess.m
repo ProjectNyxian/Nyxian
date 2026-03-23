@@ -345,17 +345,8 @@
         _proc->bsd.kp_proc.p_stat = SRUN;
         
     report_signal:
-        _proc->nyx.p_status = W_STOPCODE(signal);
         kvo_unlock(_proc);
-        
-        ksurface_proc_t *parent = NULL;
-        ksurface_return_t ksr = proc_parent_for_proc(_proc, &parent);
-        
-        if(ksr == SURFACE_SUCCESS)
-        {
-            kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)_proc);
-            kvo_release(parent);
-        }
+        proc_state_change(_proc, W_STOPCODE(signal));
     }
 #else
     shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);
