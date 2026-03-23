@@ -207,6 +207,12 @@
                             {
                                 [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.session.windowIdentifier withCompletion:nil];
                             }
+                            
+                            if(innerSelf.scene != nil)
+                            {
+                                [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.scene withTransitionContext:nil];
+                                self.scene.delegate = nil;
+                            }
                         });
                         [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
                     });

@@ -629,7 +629,7 @@
 @interface FBSceneManager : NSObject
 + (instancetype)sharedInstance;
 - (FBScene *)createSceneWithDefinition:(id)def initialParameters:(id)params;
--(void)destroyScene:(id)arg1 withTransitionContext:(id)arg2 ;
+-(void)destroyScene:(id)arg1 withTransitionContext:(id)arg2;
 @end
 
 @interface FBSSceneSettingsDiff : NSObject
