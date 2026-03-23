@@ -140,8 +140,13 @@ int environment_posix_spawn(pid_t *process_identifier,
      * weird file bugs to happen, this is standard
      * apple validity. I got no idea tbh.
      */
-    char resolved[PATH_MAX];
-    realpath(path, resolved);
+    char *resolved = realpath(path, NULL);
+    
+    if(resolved == NULL)
+    {
+        /* errno comes from realpath */
+        return errno;
+    }
     
     /*
      * checking code signature of resolved binary,
@@ -154,11 +159,8 @@ int environment_posix_spawn(pid_t *process_identifier,
         
         if(ret != 0)
         {
-            /*
-             * errno comes from the syscall in this case
-             * errno = EPERM;
-             */
-            return ret;
+            /* errno comes from the syscall in this case */
+            goto out_free_resolved;
         }
         
         /*
@@ -167,8 +169,8 @@ int environment_posix_spawn(pid_t *process_identifier,
          */
         if(!checkCodeSignature(resolved))
         {
-            errno = EBADEXEC;
-            return -1;
+            errno = ENOEXEC;
+            goto out_free_resolved;
         }
         
         /* for some reason we get a iOS kernel panic otherwise */
@@ -180,7 +182,9 @@ int environment_posix_spawn(pid_t *process_identifier,
              * reassignment could fail and the actual file stays in that stale state then triggering said panic.
              */
             errno = EIO;
-            return -1;
+        out_free_resolved:
+            free(resolved);
+            return errno;
         }
     }
     
@@ -263,8 +267,8 @@ skip_fileactions:
     
     if(nsCwd == nil)
     {
-        errno = EAGAIN;
-        return -1;
+        free(resolved);
+        return EAGAIN;
     }
     
     /*
@@ -277,8 +281,8 @@ skip_fileactions:
     if(pid < 0)
     {
         /* lacking entitlements? */
-        errno = EBADEXEC;
-        return -1;
+        free(resolved);
+        return EPERM;
     }
     
     /* overwriting passed process identifier pointer if applicable */
@@ -289,6 +293,7 @@ skip_fileactions:
     
     environment_syscall(SYS_waittask, pid);
     
+    free(resolved);
     return 0;
 }
 
@@ -308,10 +313,8 @@ int environment_posix_spawnp(pid_t * __restrict pid,
     char *bp;
     char *cur;
     char *p;
-    char **memp;
     int lp;
     int ln;
-    int cnt;
     int err = 0;
     int eacces = 0;
     struct stat sb;
@@ -319,7 +322,7 @@ int environment_posix_spawnp(pid_t * __restrict pid,
     
     if((env_path = getenv("PATH")) == NULL)
     {
-        env_path = _PATH_DEFPATH;
+        return EAGAIN;
     }
     
     /* If it's an absolute or relative path name, it's easy. */
@@ -329,24 +332,35 @@ int environment_posix_spawnp(pid_t * __restrict pid,
         cur = NULL;
         goto retry;
     }
+    
     bp = path_buf;
     
     /* If it's an empty path name, fail in the usual POSIX way. */
-    if (*file == '\0')
-        return (ENOENT);
+    if(*file == '\0')
+    {
+        return ENOENT;
+    }
     
-    if ((cur = alloca(strlen(env_path) + 1)) == NULL)
+    if((cur = alloca(strlen(env_path) + 1)) == NULL)
+    {
         return ENOMEM;
+    }
+    
     strcpy(cur, env_path);
-    while ((p = strsep(&cur, ":")) != NULL) {
+    
+    while((p = strsep(&cur, ":")) != NULL)
+    {
         /*
          * It's a SHELL path -- double, leading and trailing colons
          * mean the current directory.
          */
-        if (*p == '\0') {
+        if(*p == '\0')
+        {
             p = ".";
             lp = 1;
-        } else {
+        }
+        else
+        {
             lp = (int)strlen(p);
         }
         ln = (int)strlen(file);
@@ -356,17 +370,21 @@ int environment_posix_spawnp(pid_t * __restrict pid,
          * security issue; given a way to make the path too long
          * the user may spawn the wrong program.
          */
-        if (lp + ln + 2 > sizeof(path_buf)) {
+        if(lp + ln + 2 > sizeof(path_buf))
+        {
             err = ENAMETOOLONG;
             goto done;
         }
+        
         bcopy(p, path_buf, lp);
         path_buf[lp] = '/';
         bcopy(file, path_buf + lp + 1, ln);
         path_buf[lp + ln + 1] = '\0';
         
-        retry:        err = environment_posix_spawn(pid, bp, file_actions, attrp, argv, envp);
-        switch (err) {
+    retry:
+        err = environment_posix_spawn(pid, bp, file_actions, attrp, argv, envp);
+        switch(err)
+        {
             case E2BIG:
             case ENOMEM:
             case ETXTBSY:
@@ -377,17 +395,6 @@ int environment_posix_spawnp(pid_t * __restrict pid,
             case ENOTDIR:
                 break;
             case ENOEXEC:
-                for (cnt = 0; argv[cnt]; ++cnt)
-                    ;
-                memp = alloca((cnt + 2) * sizeof(char *));
-                if (memp == NULL) {
-                    /* errno = ENOMEM; XXX override ENOEXEC? */
-                    goto done;
-                }
-                memp[0] = "sh";
-                memp[1] = bp;
-                bcopy(argv + 1, memp + 2, cnt * sizeof(char *));
-                err = environment_posix_spawn(pid, _PATH_BSHELL, file_actions, attrp, memp, envp);
                 goto done;
             default:
                 /*
@@ -397,21 +404,25 @@ int environment_posix_spawnp(pid_t * __restrict pid,
                  * and EIO, and undocumented errors like ESTALE.
                  * We hope that the race for a stat() is unimportant.
                  */
-                if (stat(bp, &sb) != 0)
+                if(stat(bp, &sb) != 0)
+                {
                     break;
-                if (err == EACCES) {
+                }
+                
+                if(err == EACCES)
+                {
                     eacces = 1;
                     continue;
                 }
+                
                 goto done;
         }
     }
-    if (eacces)
-        err = EACCES;
-    else
-        err = ENOENT;
+    
+    err = eacces ? EACCES : ENOENT;
+    
 done:
-    return (err);
+    return err;
 }
 
 #pragma mark - Initilizer
