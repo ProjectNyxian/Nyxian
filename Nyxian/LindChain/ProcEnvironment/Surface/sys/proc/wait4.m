@@ -38,7 +38,6 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
 {
     ksurface_proc_t *proc = (ksurface_proc_t*)(event->owner);
     wait4_payload_t *payload = (wait4_payload_t*)(event->ctx);
-    int ecode = 0;
     
     kvo_wrlock(proc);
     
@@ -48,24 +47,31 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
             proc_exit(proc);
             kvo_unlock(proc);
             return false;
-        case kvObjEventCustom0: /* stopped */
-            proc->nyx.p_stop_reported = 1;
-            if((payload->options & WSTOPPED) == WSTOPPED)
+        case kvObjEventCustom0: /* state change happened */
+            
+            /* looking if state change already happened */
+            if((((payload->options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(proc->nyx.p_status)) ||
+               (((payload->options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(proc->nyx.p_status)))
             {
-                ecode = W_STOPCODE(SIGSTOP);
+                /* set to none, so incase it was
+                 * stopped it wont fire again without
+                 * another state change, cuz the state
+                 * change was collected.
+                 */
+                kvo_unlock(proc);
                 goto out_trigger_unregister;
             }
-            break;
-        case kvObjEventCustom1: /* contined */
-            if((payload->options & WCONTINUED) == WCONTINUED)
+            else if(proc->bsd.kp_proc.p_stat == SZOMB)
             {
-                ecode = W_STOPCODE(SIGCONT);
+                /* process has already exited, reap it */
+                kvo_unlock(proc);
+                proc_exit(proc);
                 goto out_trigger_unregister;
             }
+            
             break;
         case kvObjEventDeinit:  /* exited */
         {
-            ecode = proc->nyx.p_status;
             goto out_trigger_unregister;
         }
         case kvObjEventUnregister:
@@ -81,7 +87,8 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
     return false;
 
 out_trigger_unregister:
-    mach_syscall_copy_out(payload->task, sizeof(int), &ecode, payload->status_ptr);
+    mach_syscall_copy_out(payload->task, sizeof(int), &(proc->nyx.p_status), payload->status_ptr);
+    proc->nyx.p_status = 0;
     kvo_unlock(proc);
     send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
     return true;
@@ -102,37 +109,50 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     if(ksr != SURFACE_SUCCESS)
     {
-        sys_return_failure(ESRCH);
+        sys_return_failure(ECHILD);
     }
     
     kvo_wrlock(target);
     
-    /* perms check */
+    /* visibility check */
     if(!can_see_process(sys_proc_snapshot_, target, vis))
     {
-        kvo_unlock(target);
-        kvo_release(target);
-        sys_return_failure(ESRCH);  /* doesnt exist for the caller */
+        goto out_nochild;
     }
     
-    /* looking if state is already set */
-    if(target->bsd.kp_proc.p_stat == SSTOP &&
-       target->nyx.p_stop_reported == 0 &&
-       ((options & WSTOPPED) == WSTOPPED))
+    /*
+     * parentship check, on UNIX its a standard
+     * semantic, that you cannot wait on processes
+     * that arent your children. so, we have to
+     * check if it is a child process.
+     */
+    if(proc_getppid(target) != proc_getpid(proc_snapshot))
     {
-        /* process has already stopped, reporting */
-        int ecode = W_STOPCODE(SIGSTOP);
-        mach_syscall_copy_out(sys_task_, sizeof(int), &ecode, (userspace_pointer_t)args[1]);
-        
-        goto out_release_payload;
+    out_nochild:
+        kvo_unlock(target);
+        kvo_release(target);
+        sys_return_failure(ECHILD);  /* doesnt exist for the caller */
+    }
+    
+    /* looking if state change already happened */
+    if((((options & WSTOPPED) == WSTOPPED) && WIFSTOPPED(target->nyx.p_status)) ||
+       (((options & WCONTINUED) == WCONTINUED) && WIFCONTINUED(target->nyx.p_status)))
+    {
+        /* set to none, so incase it was
+         * stopped it wont fire again without
+         * another state change, cuz the state
+         * change was collected.
+         */
+        goto out_report;
     }
     else if(target->bsd.kp_proc.p_stat == SZOMB)
     {
-        /* process has already exited, reporting */
-        mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
+        /* process has already exited, reap it */
+        proc_exit(target);
         
-    out_release_payload:
-        target->nyx.p_stop_reported = 1;
+    out_report:
+        mach_syscall_copy_out(sys_task_, sizeof(int), &(target->nyx.p_status), (userspace_pointer_t)args[1]);
+        target->nyx.p_status = 0;
         kvo_unlock(target);
         kvo_release(target);
         sys_return;

@@ -127,16 +127,13 @@ struct ksurface_proc {
         pid_t sid;
         
         /* wait4 markers */
-        int p_status;
-        int p_stop_reported;
+        int64_t p_status;
         
         /* executable path at which the macho is located at */
         char executable_path[PATH_MAX];
         
         /* entitlements the process has */
         PEEntitlement entitlements;
-        
-        /* entitlements the process spawned with*/
         PEEntitlement max_entitlements;
     } nyx;
 };

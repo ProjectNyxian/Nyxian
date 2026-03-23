@@ -24,7 +24,7 @@
 DEFINE_SYSCALL_HANDLER(exit)
 {
     kvo_wrlock(sys_proc_);
-    sys_proc_->nyx.p_status = (((uint8_t)args[0]) << 8) & 0xff00;
+    sys_proc_->nyx.p_status = W_EXITCODE(args[0], 0);
     kvo_unlock(sys_proc_);
     sys_return;
 }
