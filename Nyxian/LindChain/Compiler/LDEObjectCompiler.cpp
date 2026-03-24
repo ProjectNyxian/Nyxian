@@ -19,6 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/Compiler/LDEObjectCompiler.h>
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/Basic/SourceManager.h"
@@ -40,6 +41,8 @@
 using namespace clang;
 using namespace clang::driver;
 
+extern "C" {
+
 int CompileObject(int argc,
                   const char **argv,
                   const char *outputFilePath,
@@ -49,7 +52,7 @@ int CompileObject(int argc,
     /* error string setup */
     std::string errorString;
     llvm::raw_string_ostream errorOutputStream(errorString);
-
+    
     /* setting up diagnostic options */
     auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
     DiagOpts->ShowColors = false;
@@ -70,7 +73,7 @@ int CompileObject(int argc,
     
     /* setting up clang driver */
     Driver TheDriver(argv[0], TargetTriple.str(), Diags);
-
+    
     /* setting up argument */
     SmallVector<const char *, 64> Args;
     Args.reserve(argc + 3);             /* reserving arguments */
@@ -78,7 +81,7 @@ int CompileObject(int argc,
     Args.push_back("-c");
     Args.push_back("-o");
     Args.push_back(outputFilePath);
-
+    
     /* building compilation */
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));
     
@@ -89,7 +92,7 @@ int CompileObject(int argc,
         *errorStringSet = strdup(errorString.c_str());
         return 1;
     }
-
+    
     /* getting jobs */
     const auto &Jobs = C->getJobs();
     
@@ -104,7 +107,7 @@ int CompileObject(int argc,
         *errorStringSet = strdup(Msg.c_str());
         return 1;
     }
-
+    
     /* getting command */
     const auto &Cmd = cast<Command>(*Jobs.begin());
     
@@ -116,14 +119,14 @@ int CompileObject(int argc,
         *errorStringSet = strdup(errorString.c_str());
         return 1;
     }
-
+    
     /* getting ccargs */
     const auto &CCArgs = Cmd.getArguments();
     
     /* creating clang invocation */
     auto CI = std::make_unique<CompilerInvocation>();
     CompilerInvocation::CreateFromArgs(*CI, CCArgs, Diags);
-
+    
     /*
      * disabling free
      *
@@ -145,7 +148,7 @@ int CompileObject(int argc,
         *errorStringSet = strdup("Failed to create diagnostics");
         return 1;
     }
-
+    
     /* compiling */
     auto Act = std::make_unique<EmitObjAction>();
     bool success = Clang.ExecuteAction(*Act);
@@ -153,4 +156,6 @@ int CompileObject(int argc,
     /* creating error string */
     *errorStringSet = strdup(errorString.c_str());
     return !success || Clang.getDiagnostics().hasErrorOccurred();
+}
+
 }

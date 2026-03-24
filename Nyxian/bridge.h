@@ -23,7 +23,7 @@
 #import <LindChain/Private/UIKitPrivate.h>
 
 /* LindChain Core Headers */
-#import <LindChain/Compiler/Compiler.h>
+#import <LindChain/Compiler/LDECompiler.h>
 #import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>

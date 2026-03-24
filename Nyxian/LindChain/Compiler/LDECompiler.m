@@ -22,27 +22,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cstdlib>
-#include <cstdio>
-#include <string>
 #include <pthread.h>
-#include "llvm/Support/raw_ostream.h"
-#import <LindChain/Compiler/Compiler.h>
+#import <LindChain/Compiler/LDECompiler.h>
 #import <LindChain/Synpush/Synpush.h>
 
 #if JAILBREAK_ENV
-
-
-extern "C" int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
-
+int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
+#else
+#include <LindChain/Compiler/LDEObjectCompiler.h>
 #endif /* JAILBREAK_ENV */
-
-// TODO: Might want to extract a header
-int CompileObject(int argc,
-                  const char **argv,
-                  const char *outputFilePath,
-                  const char *platformTripple,
-                  char **errorStringSet);
 
 @interface Compiler ()
 

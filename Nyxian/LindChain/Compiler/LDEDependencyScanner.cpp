@@ -19,21 +19,6 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef FCMBridge_H
-#define FCMBridge_H
-
-#import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synpush.h>
-
-/// Class (intended to be single-instanced) to provide LLVM C++ service to Swift front-end
-@interface Compiler : NSObject
-
-- (instancetype)init:(NSArray*)flags;
-
-- (int)compileObject:(NSString*)filePath
-          outputFile:(NSString*)outputFilePath
-              issues:(NSArray<Synitem*>**)issues;
-
-@end
-
-#endif /* FCMBridge_H */
+#import <LindChain/Compiler/LDEDependencyScanner.h>
+#include <clang/Tooling/DependencyScanning/DependencyScanningTool.h>
+#include <clang/Tooling/DependencyScanning/DependencyScanningService.h>

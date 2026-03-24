@@ -148,7 +148,7 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Compiler/ObjectCompiler.cpp,
+				LindChain/Compiler/LDEObjectCompiler.cpp,
 				LindChain/Debugger/MachServer.m,
 				LindChain/Debugger/Utils.m,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,

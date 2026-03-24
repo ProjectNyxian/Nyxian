@@ -30,7 +30,7 @@
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
-#import <LindChain/Compiler/Compiler.h>
+#import <LindChain/Compiler/LDECompiler.h>
 #import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
