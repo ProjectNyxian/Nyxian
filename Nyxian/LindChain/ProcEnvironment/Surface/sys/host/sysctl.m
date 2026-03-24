@@ -48,8 +48,7 @@ typedef struct {
 
 typedef struct {
     const char *name;
-    const int mib[6];
-    size_t mib_len;
+    const sysctl_map_entry_t *entry;
 } sysctl_name_map_entry_t;
 
 /* sysctl apis */
@@ -349,7 +348,7 @@ int sysctl_kernprocargs2(sysctl_req_t *req)
     }
 
     /*
-     * for now we do it viw p_comm, i don't think
+     * for now we do it with p_comm, i don't think
      * I HAVE TO REPEAT THAT PCOMM IS NOT LAST
      * PATH COMPONENT FIXME: (frida fix this)
      */
@@ -358,7 +357,7 @@ int sysctl_kernprocargs2(sysctl_req_t *req)
     free(kpbuf);
     
     /* building minimal fake proc arg buffer */
-    int argc     = 1;
+    int argc = 1;
     size_t comm_len = strlen(comm) + 1;
     size_t bufsize  = sizeof(int) + comm_len + comm_len;
 
@@ -459,19 +458,19 @@ static const sysctl_map_entry_t sysctl_map[] = {
     { { CTL_KERN, KERN_HOSTNAME                 }, 2, sysctl_kernhostname },
     { { CTL_KERN, KERN_MAXPROC                  }, 2, sysctl_kernmaxproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_ALL      }, 3, sysctl_kernproc },
+    { { CTL_KERN, KERN_ARGMAX                   }, 2, sysctl_kernargmax },
     { { CTL_KERN, KERN_PROC, KERN_PROC_SESSION  }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_PID      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_UID      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_RUID     }, 3, sysctl_kernproc },
-    { { CTL_KERN, KERN_PROCARGS2                }, 2, sysctl_kernprocargs2 },
-    { { CTL_KERN, KERN_ARGMAX                   }, 2, sysctl_kernargmax }
+    { { CTL_KERN, KERN_PROCARGS2                }, 2, sysctl_kernprocargs2 }
 };
 
 static const sysctl_name_map_entry_t sysctl_name_map[] = {
-    { "kern.hostname",          { CTL_KERN, KERN_HOSTNAME                }, 2 },
-    { "kern.maxproc",           { CTL_KERN, KERN_MAXPROC                 }, 2 },
-    { "kern.proc.all",          { CTL_KERN, KERN_PROC, KERN_PROC_ALL     }, 3 },
-    { "kern.argmax",            { CTL_KERN, KERN_ARGMAX                  }, 2 },
+    { "kern.hostname",          &sysctl_map[0] },
+    { "kern.maxproc",           &sysctl_map[1] },
+    { "kern.proc.all",          &sysctl_map[2] },
+    { "kern.argmax",            &sysctl_map[3] },
 };
 
 /* lookup symbol */
@@ -574,7 +573,7 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
     
     sysctl_req_t req = {
         .name           = {},
-        .namelen        = (u_int)found->mib_len,
+        .namelen        = (u_int)found->entry->mib_len,
         .oldp           = (userspace_pointer_t)args[1],
         .oldlenp        = (userspace_pointer_t)args[2],
         .newp           = (userspace_pointer_t)args[3],
@@ -584,15 +583,11 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
         .proc_snapshot  = sys_proc_snapshot_,
     };
     
-    memcpy(req.name, found->mib, found->mib_len * sizeof(int));
+    memcpy(req.name, found->entry->mib, found->entry->mib_len * sizeof(int));
     
-    sysctl_fn_t fn = sysctl_lookup(&req);
-    if(fn != NULL)
-    {
-        int ret = fn(&req);
-        *err = req.err;
-        return ret;
-    }
+    int ret = found->entry->fn(&req);
+    *err = req.err;
+    return ret;
     
     sys_return_failure(ENOSYS);
 }
