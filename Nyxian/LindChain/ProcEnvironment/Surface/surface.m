@@ -198,6 +198,7 @@ static inline void ksurface_kinit_kproc(void)
     proc_setppid(kproc, PID_LAUNCHD);
     proc_setsid(kproc, proc_getpid(kproc));
     proc_setentitlements(kproc, PEEntitlementKernel);
+    proc_setmaxentitlements(kproc, PEEntitlementKernel);
     
     /* setting executable path */
     strlcpy(kproc->nyx.executable_path, buf, PATH_MAX);
