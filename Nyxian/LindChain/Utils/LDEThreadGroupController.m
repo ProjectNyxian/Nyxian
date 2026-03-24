@@ -50,12 +50,20 @@
     return self;
 }
 
+- (void)enter
+{
+    dispatch_group_enter(self.group);
+}
+
+- (void)wait
+{
+    /* never timeout */
+    dispatch_group_wait(_group, DISPATCH_TIME_FOREVER);
+}
+
 - (void)dispatchExecution:(void (^)(void))code
            withCompletion:(void (^)(void))completion
 {
-    /* entering group befaure dispatching the passed code */
-    dispatch_group_enter(self.group);
-    
     /* now execute ^^ */
     [super dispatchExecution:code withCompletion:^{
         /* checking and running completion if it exists */
@@ -64,12 +72,6 @@
         /* leaving entered group */
         dispatch_group_leave(self.group);
     }];
-}
-
-- (void)wait
-{
-    /* never timeout */
-    dispatch_group_wait(_group, DISPATCH_TIME_FOREVER);
 }
 
 @end

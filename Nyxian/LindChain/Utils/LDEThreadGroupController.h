@@ -30,8 +30,10 @@
 - (instancetype)init;
 - (instancetype)initWithUsersetThreadCount;
 
-- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
+- (void)enter;
 - (void)wait;
+
+- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
 
 @end
 

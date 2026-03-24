@@ -201,6 +201,10 @@ class Builder {
             }
             
             for filePath in self.dirtySourceFiles {
+                threader.enter();
+            }
+            
+            for filePath in self.dirtySourceFiles {
                 threader.dispatchExecution( {
                     var issues: NSArray?
                     
