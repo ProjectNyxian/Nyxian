@@ -79,11 +79,14 @@ class Builder {
         }
         
         // Checking if the header files included by the source code are newer than the object file
-        for header in HeaderIncludationsGatherer(path: item).includes {
-            guard FileManager.default.fileExists(atPath: header),
-                  let headerDate = try? FileManager.default.attributesOfItem(atPath: header)[.modificationDate] as? Date,
-                  objectDate > headerDate else {
-                return true
+        if let headerIncludationsGatherer = LDEHeaderIncludationsGatherer(path: item) {
+            for header in headerIncludationsGatherer.includes {
+                guard let header: String = header as? String,
+                      FileManager.default.fileExists(atPath: header),
+                      let headerDate = try? FileManager.default.attributesOfItem(atPath: header)[.modificationDate] as? Date,
+                      objectDate > headerDate else {
+                    return true
+                }
             }
         }
         
