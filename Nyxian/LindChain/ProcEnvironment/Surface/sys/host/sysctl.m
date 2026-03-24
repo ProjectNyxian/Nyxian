@@ -318,6 +318,142 @@ int sysctl_kernhostname(sysctl_req_t *req)
     return 0;
 }
 
+int sysctl_kernprocargs2(sysctl_req_t *req)
+{
+    if(req->namelen < 3)
+    {
+        req->err = EINVAL;
+        return -1;
+    }
+
+    pid_t pid = (pid_t)req->name[2];
+
+    size_t user_outlen = 0;
+    if(req->oldlenp != NULL && !mach_syscall_copy_in(req->task, sizeof(size_t), &user_outlen, req->oldlenp))
+    {
+        req->err = EFAULT;
+        return -1;
+    }
+    
+    proc_table_rdlock();
+    kinfo_proc_t *kpbuf = NULL;
+    size_t needed = 0;
+    ksurface_return_t ksr = proc_list(req->proc_snapshot, &kpbuf, &needed, PROC_FLV_PID, pid); /* TODO: efficency using proc lookup api on PROC_FLV_PID, as its one pid and radix lookup gives you proc structure for one pid */
+    proc_table_unlock();
+
+    if (ksr != SURFACE_SUCCESS || needed == 0 || kpbuf == NULL)
+    {
+        req->err = ESRCH;
+        free(kpbuf);
+        return -1;
+    }
+
+    /*
+     * for now we do it viw p_comm, i don't think
+     * I HAVE TO REPEAT THAT PCOMM IS NOT LAST
+     * PATH COMPONENT FIXME: (frida fix this)
+     */
+    char comm[MAXCOMLEN + 1];
+    strlcpy(comm, kpbuf[0].kp_proc.p_comm, sizeof(comm));
+    free(kpbuf);
+    
+    /* building minimal fake proc arg buffer */
+    int argc     = 1;
+    size_t comm_len = strlen(comm) + 1;
+    size_t bufsize  = sizeof(int) + comm_len + comm_len;
+
+    uint8_t *buf = calloc(1, bufsize);
+    if(buf == NULL)
+    {
+        req->err = ENOMEM;
+        return -1;
+    }
+
+    uint8_t *p = buf;
+    memcpy(p, &argc, sizeof(int));
+    p += sizeof(int);
+    memcpy(p, comm, comm_len);
+    p += comm_len;
+    memcpy(p, comm, comm_len);
+
+    /* size-only query */
+    if(req->oldp == NULL)
+    {
+        if(req->oldlenp != NULL && !mach_syscall_copy_out(req->task, sizeof(size_t), &bufsize, req->oldlenp))
+        {
+            req->err = EFAULT;
+            free(buf);
+            return -1;
+        }
+        free(buf);
+        return 0;
+    }
+
+    if(user_outlen < bufsize)
+    {
+        if(req->oldlenp != NULL)
+        {
+            mach_syscall_copy_out(req->task, sizeof(size_t), &bufsize, req->oldlenp);
+        }
+        req->err = ENOMEM;
+        free(buf);
+        return -1;
+    }
+
+    if(!mach_syscall_copy_out(req->task, bufsize, buf, req->oldp))
+    {
+        req->err = EFAULT;
+        free(buf);
+        return -1;
+    }
+
+    if(req->oldlenp != NULL && !mach_syscall_copy_out(req->task, sizeof(size_t), &bufsize, req->oldlenp))
+    {
+        req->err = EFAULT;
+        free(buf);
+        return -1;
+    }
+
+    free(buf);
+    return 0;
+}
+
+int sysctl_kernargmax(sysctl_req_t *req)
+{
+    size_t user_outlen = 0;
+    size_t needed = sizeof(int);
+    int argmax = ARG_MAX;
+
+    if(req->oldlenp != NULL && !mach_syscall_copy_in(req->task, sizeof(size_t), &user_outlen, req->oldlenp))
+    {
+        req->err = EFAULT;
+        return -1;
+    }
+    
+    if(req->oldp)
+    {
+        if(user_outlen < needed)
+        {
+            req->err = ENOMEM;
+            return -1;
+        }
+
+        if(!mach_syscall_copy_out(req->task, sizeof(int), &argmax, req->oldp))
+        {
+            req->err = EFAULT;
+            return -1;
+        }
+    }
+    
+    if(req->oldlenp != NULL && !mach_syscall_copy_out(req->task, sizeof(size_t), &needed, req->oldlenp))
+    {
+        req->err = EFAULT;
+        return -1;
+    }
+
+    return 0;
+}
+
 /* sysctl map entries */
 static const sysctl_map_entry_t sysctl_map[] = {
     { { CTL_KERN, KERN_HOSTNAME                 }, 2, sysctl_kernhostname },
@@ -327,12 +463,15 @@ static const sysctl_map_entry_t sysctl_map[] = {
     { { CTL_KERN, KERN_PROC, KERN_PROC_PID      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_UID      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_RUID     }, 3, sysctl_kernproc },
+    { { CTL_KERN, KERN_PROCARGS2                }, 2, sysctl_kernprocargs2 },
+    { { CTL_KERN, KERN_ARGMAX                   }, 2, sysctl_kernargmax }
 };
 
 static const sysctl_name_map_entry_t sysctl_name_map[] = {
     { "kern.hostname",          { CTL_KERN, KERN_HOSTNAME                }, 2 },
     { "kern.maxproc",           { CTL_KERN, KERN_MAXPROC                 }, 2 },
     { "kern.proc.all",          { CTL_KERN, KERN_PROC, KERN_PROC_ALL     }, 3 },
+    { "kern.argmax",            { CTL_KERN, KERN_ARGMAX                  }, 2 },
 };
 
 /* lookup symbol */
