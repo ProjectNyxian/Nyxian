@@ -25,6 +25,7 @@ import TreeSitter
 import TreeSitterC
 import TreeSitterObjc
 import TreeSitterXML
+import TreeSitterCPP
 import GameController
 
 func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
@@ -218,6 +219,13 @@ class CodeEditorViewController: UIViewController {
             self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_c(), highlightsURL: [
                 "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()
+            ])
+            break
+        case "hpp","cpp":
+            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
+            loadLanguage(language: tree_sitter_cpp(), highlightsURL: [
+                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
+                "\(Bundle.main.bundlePath)/TreeSitterCPP_TreeSitterCPP.bundle/queries/highlights.scm".URLGet()
             ])
             break
         case "xml","plist":
