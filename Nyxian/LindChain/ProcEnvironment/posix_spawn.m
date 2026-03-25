@@ -300,7 +300,7 @@ skip_fileactions:
 /*
  * https://github.com/Apple-FOSS-Mirror/Libc/blob/2ca2ae74647714acfc18674c3114b1a5d3325d7d/sys/posix_spawn.c#L1358
  *
- * skidded from apple it self..
+ * skidded from apple them selves..
  */
 int environment_posix_spawnp(pid_t * __restrict pid,
                              const char * __restrict file,
@@ -322,7 +322,7 @@ int environment_posix_spawnp(pid_t * __restrict pid,
     
     if((env_path = getenv("PATH")) == NULL)
     {
-        return EAGAIN;
+        env_path = "/";
     }
     
     /* If it's an absolute or relative path name, it's easy. */
