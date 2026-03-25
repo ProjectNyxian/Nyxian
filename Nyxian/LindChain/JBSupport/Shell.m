@@ -29,8 +29,7 @@ extern int posix_spawnattr_set_persona_np(posix_spawnattr_t *attr, uid_t persona
 extern int posix_spawnattr_set_persona_uid_np(posix_spawnattr_t *attr, uid_t uid);
 extern int posix_spawnattr_set_persona_gid_np(posix_spawnattr_t *attr, uid_t gid);
 
-void createArgv(NSString *executableName,
-                NSArray<NSString *> *arguments,
+void createArgv(NSArray<NSString *> *arguments,
                 int *argc,
                 char ***argv)
 {
@@ -43,11 +42,10 @@ void createArgv(NSString *executableName,
     NSInteger count = arguments.count + 1;
     *argc = (int)count;
     
-    *argv = malloc(sizeof(char *) * (count + 1));
-    (*argv)[0] = strdup([executableName UTF8String]);
+    *argv = calloc(count, sizeof(char *));
     for(NSInteger i = 0; i < arguments.count; i++)
     {
-        (*argv)[i + 1] = strdup(arguments[i].UTF8String);
+        (*argv)[i] = strdup(arguments[i].UTF8String);
     }
     (*argv)[count] = NULL;
 }
@@ -75,22 +73,17 @@ void createEnvp(NSArray<NSString *> *environment,
 }
 
 
-static int runCommand(NSString *command,
-                      NSArray<NSString *> *args,
+static int runCommand(NSArray<NSString *> *args,
                       uid_t uid,
                       NSArray<NSString *> *extraEnv,
                       NSString **output)
 {
     pid_t pid = 0;
 
-    NSString *execName = command.lastPathComponent;
-    NSMutableArray<NSString *> *argvStrings = [NSMutableArray arrayWithObject:execName];
-    [argvStrings addObjectsFromArray:args];
-
     int argc = 0;
     char **argv = NULL;
     
-    createArgv(command, args, &argc, &argv);
+    createArgv(args, &argc, &argv);
     
     NSString *jbroot = IGottaNeedTheActualJBRootMate();
     
@@ -98,19 +91,8 @@ static int runCommand(NSString *command,
     static dispatch_once_t onceToken;
     static NSArray *baseEnv;
     dispatch_once(&onceToken, ^{
-        if([jbroot isEqualToString:@"/"])
-        {
-            /* rootful */
-            path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games"];
-        }
-        else
-        {
-            /* rootless */
-            path = [NSString stringWithFormat:@"PATH=/usr/local/sbin:%@/usr/local/sbin:/usr/local/bin:%@/usr/local/bin:/usr/sbin:%@/usr/sbin:/usr/bin:%@/usr/bin:/sbin:%@/sbin:/bin:%@/bin:/usr/bin/X11:%@/usr/bin/X11:/usr/games:%@/usr/games", jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot, jbroot];
-        }
-        
         baseEnv = @[
-            path,
+            [NSString stringWithFormat:@"PATH=%@", NSBundle.mainBundle.bundlePath],
             [NSString stringWithFormat:@"HOME=%@", NSHomeDirectory()],
             [NSString stringWithFormat:@"TMPDIR=%@", NSTemporaryDirectory()]
         ];
@@ -142,7 +124,7 @@ static int runCommand(NSString *command,
     posix_spawnattr_set_persona_uid_np(&attr, uid);
     posix_spawnattr_set_persona_gid_np(&attr, uid);
 
-    int result = posix_spawn(&pid, [[jbroot stringByAppendingString:command] UTF8String], &actions, &attr, (char * const *)argv, (char * const *)envp);
+    errno_t result = posix_spawnp(&pid, [args[0] UTF8String], &actions, &attr, (char * const *)argv, (char * const *)envp);
 
     posix_spawnattr_destroy(&attr);
     posix_spawn_file_actions_destroy(&actions);
@@ -151,6 +133,7 @@ static int runCommand(NSString *command,
 
     if(result != 0)
     {
+        dprintf(outPipe[1], "failed to execute \"%s\": %s", [args[0] UTF8String], strerror(result));
         goto cleanup;
     }
 
@@ -189,6 +172,7 @@ cleanup:
 
 int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
 {
-    return runCommand(@"/bin/bash", @[ @"-e", @"-c", command], uid ?: 0, env ?: @[], output);
+    
+    return runCommand([command componentsSeparatedByString:@" "], uid ?: 0, env ?: @[], output);
 }
 

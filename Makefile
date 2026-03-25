@@ -24,6 +24,9 @@ rootful: ARCH := iphoneos-arm
 rootful: JB_PATH := /
 rootful: compile pseudo-sign package-deb clean
 
+trollstore: SCHEME := NyxianForJB
+trollstore: compile pseudo-sign package_tipa clean
+
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
 Nyxian/LindChain/LLVM.xcframework:
@@ -74,6 +77,10 @@ pseudo-sign:
 package:
 	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
 	zip -r Nyxian.ipa ./Payload
+
+package_tipa:
+	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
+	zip -r Nyxian.tipa ./Payload
 
 package-deb:
 	mkdir -p .package$(JB_PATH)

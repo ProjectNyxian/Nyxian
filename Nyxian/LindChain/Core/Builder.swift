@@ -229,7 +229,7 @@ class Builder {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
             }
             
-            for filePath in self.dirtySourceFiles {
+            for _ in self.dirtySourceFiles {
                 threader.enter();
             }
             
@@ -367,14 +367,14 @@ class Builder {
         var output: NSString?
         let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
         
-        if FileManager.default.fileExists(atPath: entitlementsPath),
+        /*if FileManager.default.fileExists(atPath: entitlementsPath),
            buildType == .RunningApp,
            self.project.projectConfig.type == NXProjectType.app.rawValue {
             // pseudo signing executable
             if shell("ldid -S\(entitlementsPath) \(self.project.bundlePath ?? "")", 501, nil, &output) != 0 {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened signing application"])
             }
-        }
+        }*/
         
         try? self.package()
         
