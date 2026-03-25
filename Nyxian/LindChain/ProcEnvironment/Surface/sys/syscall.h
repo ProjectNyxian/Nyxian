@@ -42,7 +42,6 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/enttoken.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
 #include <sys/syscall.h>
@@ -59,11 +58,10 @@
 #define SYS_procbsd     758         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_handoffep   759         /* handoff exception port to kvirt */
 #define SYS_setent      760         /* sets entitlements (sanitized ofc) */
-#define SYS_enttoken    761         /* generation and consumption of token full of authority */
-#define SYS_waittask    762         /* waits till task port of a task is available */
-#define SYS_pectl       763         /* utility for many proc environment operations */
+#define SYS_waittask    761         /* waits till task port of a task is available */
+#define SYS_pectl       762         /* utility for many proc environment operations */
 
-#define SYS_N 30
+#define SYS_N 29
 
 typedef struct {
     const char *name;

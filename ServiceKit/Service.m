@@ -23,7 +23,7 @@
 #include <dlfcn.h>
 #include <mach/mach.h>
 
-#define SYS_pectl       763
+#define SYS_pectl       762
 
 #define PECTL_SET_ENDPOINT 0b00000000
 #define PECTL_GET_ENDPOINT 0b00000001
