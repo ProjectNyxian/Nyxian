@@ -102,13 +102,13 @@ class FileListCell: UITableViewCell {
         if entry.type == .file {
             switch ext {
             case "c":
-                configureTextIcon(text: "c", color: .systemBlue)
+                configureTextIcon(text: "c", color: .systemPurple)
             case "h":
                 configureTextIcon(text: "h", color: .systemGray)
             case "cpp":
                 configureStackedIcon(base: "c", color: .systemBlue)
             case "hpp":
-                configureStackedIcon(base: "h", color: .systemBlue)
+                configureStackedIcon(base: "h", color: .systemGray)
             case "m":
                 configureTextIcon(text: "m", color: .systemPurple)
             case "mm":
@@ -160,10 +160,9 @@ class FileListCell: UITableViewCell {
         
         iconView.addSubview(plusLabel)
         
-        let offset: CGPoint = base == "m" ? CGPoint(x: 9, y: -6) : CGPoint(x: 8, y: -5)
         NSLayoutConstraint.activate([
-            plusLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: offset.x),
-            plusLabel.topAnchor.constraint(equalTo: iconLabel.topAnchor, constant: offset.y)
+            plusLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor),
+            plusLabel.firstBaselineAnchor.constraint(equalTo: iconLabel.firstBaselineAnchor, constant: -9)
         ])
     }
 }
