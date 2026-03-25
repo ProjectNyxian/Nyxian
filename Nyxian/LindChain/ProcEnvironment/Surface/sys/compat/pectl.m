@@ -82,6 +82,8 @@ DEFINE_SYSCALL_HANDLER(pectl)
             
             (*out_ports)[0] = port;
             *out_ports_cnt = 1;
+            
+            sys_return;
         }
         case PECTL_SET_ENDPOINT:
         {
@@ -118,11 +120,8 @@ DEFINE_SYSCALL_HANDLER(pectl)
             sys_in_ports[0] = MACH_PORT_NULL;   /* prevent mach port reference leak */
             
             sys_return;
-            break;
         }
         default:
-            break;
+            sys_return_failure(ENOSYS);
     }
-    
-    sys_return_failure(ENOSYS);
 }
