@@ -60,8 +60,33 @@ class Builder {
             fileArgsString = (try? String(contentsOf: URL(fileURLWithPath: "\(self.project.cachePath!)/args.txt"), encoding: .utf8)) ?? ""
         }
         
-        if(fileArgsString == self.argsString), self.project.projectConfig.increment {
-            self.dirtySourceFiles = self.dirtySourceFiles.filter { self.isFileDirty($0) }
+        if fileArgsString == self.argsString, self.project.projectConfig.increment {
+            guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
+                /* shall not happen */
+               return
+            }
+            
+            let files = self.dirtySourceFiles
+            var result: [String] = []
+            let lock = NSLock()
+            
+            for _ in files {
+                threader.enter()
+            }
+            
+            for file in files {
+                threader.dispatchExecution( {
+                    if self.isFileDirty(file) {
+                        lock.lock()
+                        result.append(file)
+                        lock.unlock()
+                    }
+                }, withCompletion: nil)
+            }
+            
+            threader.wait()
+            
+            self.dirtySourceFiles = result
         }
     }
     
