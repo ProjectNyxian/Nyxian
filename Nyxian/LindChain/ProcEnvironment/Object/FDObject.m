@@ -96,6 +96,11 @@
     _fd = xpc_fd_create(fd);
 }
 
+- (int)dup
+{
+    return xpc_fd_dup(_fd);
+}
+
 - (BOOL)dup2:(int)fd
 {
     if(fd < 0 ||

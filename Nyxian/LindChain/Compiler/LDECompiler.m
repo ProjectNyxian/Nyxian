@@ -30,6 +30,7 @@
 int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
 #else
 #include <LindChain/Compiler/LDEObjectCompiler.h>
+#include <LindChain/Compiler/LDEDependencyScanner.h>
 #endif /* JAILBREAK_ENV */
 
 @interface Compiler ()
@@ -73,22 +74,28 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
               issues:(NSArray<Synitem*> * * _Nonnull)issues
 {
 #if !JAILBREAK_ENV
-    // Allocating a C array by the given _flags array
+    /*
+     * creating C array out of NSArray.
+     * TODO: a lot of this array can be reused.
+     */
     const int argc = (int)[_flags count] + 2;
     char **argv = (char **)malloc(sizeof(char*) * argc);
     argv[0] = strdup("clang");
     argv[1] = strdup([filePath UTF8String]);
     
-    // Unconcurrently access _flags and copy them over to our array
+    /* access flags unconcurrently */
     [self.lock lock];
     for(int i = 2; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i - 2] UTF8String]);
     [self.lock unlock];
-
-    // Compile and get the resulting integer
+    
+    /* compile and get the resulting integer */
     char *errorString = NULL;
     const int result = CompileObject(argc, (const char**)argv, [outputFilePath UTF8String], [_triple UTF8String], &errorString);
     
-    // Check if errorString is allocated, if so...
+    /*
+     * check if errorString is allocated, if so...
+     * TODO: as RFFI information is included in LLVM we can make our own diagnostics engine which we can use to efficiently get the errors them selves, not requiring us to change the diagniostic options forcefully
+     */
     if(errorString)
     {
         NSString *errorObjCString = [NSString stringWithCString:errorString encoding:NSUTF8StringEncoding];
@@ -96,7 +103,7 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
         free(errorString);
     }
     
-    // Deallocating the entire C array
+    /* deallocating the entire C array */
     for(int i = 0; i < argc; i++) free(argv[i]);
     free(argv);
     
@@ -114,6 +121,67 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
     }
     
     return retval;
+#endif /* !JAILBREAK_ENV */
+}
+
+- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error
+{
+#if !JAILBREAK_ENV
+    const int argc = (int)[_flags count] + 2;
+    char **argv = (char **)malloc(sizeof(char*) * argc);
+    argv[0] = strdup("clang");
+    argv[1] = strdup([filePath UTF8String]);
+    
+    [self.lock lock];
+    for(int i = 2; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i - 2] UTF8String]);
+    [self.lock unlock];
+    
+    dependency_scan_result_t result = ScanDependencies(argc, (const char**)argv);
+    
+    for(int i = 0; i < argc; i++) free(argv[i]);
+    free(argv);
+
+    if(result.failed)
+    {
+        if(error)
+        {
+            NSString *errMsg = result.errorMsg ? @(result.errorMsg) : @"unknown error";
+            NSString *badFile = nil;
+
+            NSRange first = [errMsg rangeOfString:@"'"];
+            NSRange last  = [errMsg rangeOfString:@"'" options:NSBackwardsSearch];
+
+            if(first.location != NSNotFound && first.location != last.location)
+            {
+                badFile = [errMsg substringWithRange:NSMakeRange(first.location + 1, last.location - first.location - 1)];
+            }
+
+            NSMutableDictionary *info = [NSMutableDictionary new];
+            info[NSLocalizedDescriptionKey] = errMsg;
+
+            if(badFile)
+            {
+                info[@"LDEBadInclude"] = badFile;
+            }
+
+            *error = [NSError errorWithDomain:@"com.cr4zy.nyxian.ldecompiler" code:1 userInfo:info];
+        }
+
+        FreeScanResult(result);
+        return nil;
+    }
+
+    NSMutableArray<NSString *> *headers = [[NSMutableArray alloc] init];
+    for(int i = 0; i < result.count; i++)
+    {
+        [headers addObject:@(result.headers[i])];
+    }
+    
+    FreeScanResult(result);
+    return [headers copy];
+#else
+    /* nobody cares about chu TODO: add path for jailbroken hosts */
+    return nil;
 #endif /* !JAILBREAK_ENV */
 }
 

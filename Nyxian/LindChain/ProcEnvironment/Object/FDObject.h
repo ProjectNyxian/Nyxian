@@ -101,6 +101,14 @@
 - (void)setFileDescriptor:(int)fd;
 
 /*!
+ @method `dup`
+ @abstract Converts the object back to a file descriptor.
+ @return
+    Returns file descriptor duplication is successful.
+ */
+- (int)dup;
+
+/*!
  @method `dup2:`
  @abstract Converts the object back to a file descriptor.
  @param fd

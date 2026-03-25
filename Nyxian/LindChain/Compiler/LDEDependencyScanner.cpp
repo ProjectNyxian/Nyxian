@@ -22,3 +22,101 @@
 #import <LindChain/Compiler/LDEDependencyScanner.h>
 #include <clang/Tooling/DependencyScanning/DependencyScanningTool.h>
 #include <clang/Tooling/DependencyScanning/DependencyScanningService.h>
+#include <clang/Tooling/CompilationDatabase.h>
+#include <llvm/Support/VirtualFileSystem.h>
+
+using namespace clang;
+using namespace clang::tooling::dependencies;
+
+extern "C" {
+
+dependency_scan_result_t ScanDependencies(int argc, const char **argv)
+{
+    dependency_scan_result_t out = {nullptr, 0, 0, nullptr};
+    
+    DependencyScanningService service(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Make, ScanningOptimizations::None, false);
+    DependencyScanningTool tool(service);
+    
+    std::vector<std::string> args(argv, argv + argc);
+    
+    std::string sysroot;
+    std::string resourceDir;
+    for(size_t i = 0; i < args.size(); i++)
+    {
+        if(args[i] == "-isysroot" && i + 1 < args.size())
+        {
+            sysroot = args[i + 1];
+            i++;
+        }
+        else if(llvm::StringRef(args[i]).starts_with("-isysroot") && args[i].size() > 9)
+        {
+            sysroot = args[i].substr(9);
+        }
+        else if(args[i] == "-resource-dir" && i + 1 < args.size())
+        {
+            resourceDir = args[i + 1];
+            i++;
+        }
+        else if(llvm::StringRef(args[i]).starts_with("-resource-dir="))
+        {
+            resourceDir = args[i].substr(strlen("-resource-dir="));
+        }
+    }
+    
+    llvm::Expected<std::string> depsOrErr = tool.getDependencyFile(args, "/");
+    if(!depsOrErr)
+    {
+        std::string errStr = llvm::toString(depsOrErr.takeError());
+        out.failed   = 1;
+        out.errorMsg = strdup(errStr.c_str());
+        return out;
+    }
+    
+    std::string depStr = *depsOrErr;
+    size_t colonPos = depStr.find(':');
+    if(colonPos == std::string::npos)
+    {
+        out.failed = 1;
+        out.errorMsg = strdup("dependency scan produced no output");
+        return out;
+    }
+    
+    std::vector<std::string> headers;
+    llvm::StringRef remaining(depStr.c_str() + colonPos + 1);
+    llvm::SmallVector<llvm::StringRef, 32> tokens;
+    remaining.split(tokens, ' ', -1, false);
+    
+    bool first = true;
+    for(llvm::StringRef token : tokens)
+    {
+        token = token.trim(" \t\n\r\\");
+        if(token.empty()) continue;
+        if(first) { first = false; continue; }
+        if(!sysroot.empty() && token.starts_with(sysroot)) continue;
+        if(!resourceDir.empty() && token.starts_with(resourceDir)) continue;
+        headers.push_back(token.str());
+    }
+    
+    out.headers = (char **)malloc(sizeof(char *) * headers.size());
+    for(size_t i = 0; i < headers.size(); i++)
+    {
+        out.headers[i] = strdup(headers[i].c_str());
+    }
+    out.count = (int)headers.size();
+    return out;
+}
+
+void FreeScanResult(dependency_scan_result_t result)
+{
+    for(int i = 0; i < result.count; i++)
+    {
+        free(result.headers[i]);
+    }
+    free(result.headers);
+    if(result.errorMsg)
+    {
+        free(result.errorMsg);
+    }
+}
+
+}

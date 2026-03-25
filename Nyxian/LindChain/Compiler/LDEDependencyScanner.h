@@ -22,4 +22,22 @@
 #ifndef LDEDEPENDENCYSCANNER_H
 #define LDEDEPENDENCYSCANNER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+typedef struct {
+    char **headers;
+    int count;
+    bool failed;
+    char *errorMsg;
+} dependency_scan_result_t;
+
+dependency_scan_result_t ScanDependencies(int argc, const char **argv);
+void FreeScanResult(dependency_scan_result_t result);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif /* LDEDEPENDENCYSCANNER_H */
