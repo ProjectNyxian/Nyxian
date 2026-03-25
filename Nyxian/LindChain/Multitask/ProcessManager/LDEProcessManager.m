@@ -177,17 +177,16 @@
     NSMutableDictionary *mutableItems = [items mutableCopy];
     
     [mutableItems setValuesForKeysWithDictionary:@{
-        @"LSServiceMode": @"spawn",
-        @"LSExecutablePath": applicationObject.executablePath,
-        @"LSArguments": @[
+        @"PEExecutablePath": applicationObject.executablePath,
+        @"PEArguments": @[
             applicationObject.executablePath
         ],
-        @"LSEnvironment": @{
+        @"PEEnvironment": @{
             @"HOME": applicationObject.containerPath,
             @"CFFIXED_USER_HOME": applicationObject.containerPath,
             @"TMPDIR": [applicationObject.containerPath stringByAppendingPathComponent:@"/Tmp"]
         },
-        @"LSWorkingDirectory": [applicationObject.containerPath stringByAppendingPathComponent:@"/Documents"]
+        @"PEWorkingDirectory": [applicationObject.containerPath stringByAppendingPathComponent:@"/Documents"]
     }];
     
     LDEProcess *process = [[LDEProcess alloc] initWithItems:mutableItems withKernelSurfaceProcess:proc withSession:session];

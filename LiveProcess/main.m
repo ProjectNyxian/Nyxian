@@ -147,18 +147,16 @@ int LiveProcessMain(int argc, char *argv[])
     CFRunLoopRun();
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
     
-    /* MARK: New API that will overtake the previous one */
-    NSXPCListenerEndpoint* endpoint = appInfo[@"LSEndpoint"];
-    NSString* executablePath = appInfo[@"LSExecutablePath"];
-    NSString *mode = appInfo[@"LSServiceMode"];
-    NSString *service = appInfo[@"LSIntegratedServiceName"];
-    NSDictionary *environmentDictionary = appInfo[@"LSEnvironment"];
-    NSArray *argumentDictionary = appInfo[@"LSArguments"];
-    FDMapObject *mapObject = appInfo[@"LSMapObject"];
-    MachPortObject *syscallPort = appInfo[@"LSSyscallPort"];
-    NSString *workingDirectory = appInfo[@"LSWorkingDirectory"];
+    NSXPCListenerEndpoint* endpoint = appInfo[@"PEEndpoint"];
+    NSString* executablePath = appInfo[@"PEExecutablePath"];
+    NSString *service = appInfo[@"PEIntegratedServiceClass"];
+    NSDictionary *environmentDictionary = appInfo[@"PEEnvironment"];
+    NSArray *argumentDictionary = appInfo[@"PEArguments"];
+    FDMapObject *mapObject = appInfo[@"PEMapObject"];
+    MachPortObject *syscallPort = appInfo[@"PESyscallPort"];
+    NSString *workingDirectory = appInfo[@"PEWorkingDirectory"];
     
-    assert(endpoint != nil && executablePath != nil && mode != nil && syscallPort != nil);
+    assert(endpoint != nil && executablePath != nil && syscallPort != nil);
     
     /* setting working directory correctly */
     if(workingDirectory != nil &&
@@ -182,7 +180,10 @@ int LiveProcessMain(int argc, char *argv[])
         setvbuf(stderr, NULL, _IONBF, 0);
     }
     
-    /* connecting to host */
+    /*
+     * connecting to the host environment which serves
+     * the guest environment.
+     */
     environment_client_connect_to_host(endpoint);
     environment_client_connect_to_syscall_proxy(syscallPort);
     
@@ -190,20 +191,32 @@ int LiveProcessMain(int argc, char *argv[])
     overwriteEnvironmentProperties(environmentDictionary);
     overwriteArguments(argumentDictionary, &argc, &argv);
     
-    if([mode isEqualToString:@"management"])
+    if(service != nil)
     {
-        /* path for internal daemons serving nyxian */
-        assert(service != nil);
-        
+        /*
+         * custom execution, because daemons arent dylibified
+         * executables yet but its a TODO already to dylibify
+         * them and separate them more from Nyxians main
+         * codebase.
+         */
         environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv);
 
-        if(environment_syscall(SYS_setuid, [appInfo[@"LSUserIdentifier"] unsignedIntValue]) != 0 ||
-           environment_syscall(SYS_setgid, [appInfo[@"LSGroupIdentifier"] unsignedIntValue]) != 0)
+        /*
+         * first ever step is to elevate their permitives as
+         * they are usually platformized, but they shall also
+         * gain higher permitives.
+         */
+        if(environment_syscall(SYS_setuid, [appInfo[@"PEUserIdentifier"] unsignedIntValue]) != 0 ||
+           environment_syscall(SYS_setgid, [appInfo[@"PEGroupIdentifier"] unsignedIntValue]) != 0)
         {
             return 1;
         }
         
-        /* get the class it self lol */
+        /*
+         * we get the class of the daemon, internal Nyxian
+         * daemons name their class within their launch
+         * service file.
+         */
         Class ServiceClass = NSClassFromString(service);
         
         if(ServiceClass == nil)
@@ -211,11 +224,16 @@ int LiveProcessMain(int argc, char *argv[])
             return 1;
         }
         
-        return LDEServiceMain(argc, argv, ServiceClass);
+        return PEServiceMain(argc, argv, ServiceClass);
     }
-    else if([mode isEqualToString:@"spawn"])
+    else
     {
-        /* path for normal spawns (they go through LC, thanks to Duy Tran and his research <3) */
+        /*
+         * path for normal spawns (they go through LC, thanks to
+         * Duy Tran and his research <3), anyways this goes through
+         * LC and when the main symbol returns then we get its return
+         * value which we redirect to the env.
+         */
         return environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv);
     }
     
@@ -226,6 +244,7 @@ int LiveProcessMain(int argc, char *argv[])
 __attribute__((visibility("default")))
 int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName)
 {
+    /* executes the target and exits */
     int retval = LiveProcessMain(argc, argv);
     
     /* redirecting exit status to ksurface and XNU */
@@ -255,9 +274,17 @@ int NSExtensionMain(int argc, char * argv[])
     /* resecure decoder, instead of bluntly removing validation entirely */
     ResecureDecoder();
     
-    // hook dlopen UIKit
+    /*
+     * hook dlopen to catch UIKit framework load and trick it
+     * into thinking that our UIApplicationMain is the real
+     * legitimate one
+     */
     performHookDyldApi("dlopen", 2, (void**)&orig_dlopen, hook_dlopen);
-    // call the real one
+    
+    /*
+     * call the real NSExtensionMain, which calls
+     * then our UIApplicationMain.
+     */
     int (*orig_NSExtensionMain)(int argc, char * argv[]) = dlsym(RTLD_NEXT, "NSExtensionMain");
     return orig_NSExtensionMain(argc, argv);
 }

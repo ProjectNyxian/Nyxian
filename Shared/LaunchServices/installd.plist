@@ -2,19 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSServiceIdentifier</key>
+	<key>PEServiceIdentifier</key>
 	<string>com.cr4zy.installd</string>
-	<key>LSShouldAutorestart</key>
+	<key>PEShouldAutorestart</key>
 	<true/>
-	<key>LSExecutablePath</key>
+	<key>PEExecutablePath</key>
 	<string>/usr/libexec/installd</string>
-	<key>LSServiceMode</key>
-	<string>management</string>
-	<key>LSUserIdentifier</key>
+	<key>PEUserIdentifier</key>
 	<integer>1</integer>
-	<key>LSGroupIdentifier</key>
+	<key>PEGroupIdentifier</key>
 	<integer>1</integer>
-	<key>LSIntegratedServiceName</key>
+	<key>PEIntegratedServiceClass</key>
 	<string>LDEApplicationWorkspaceProxy</string>
 </dict>
 </plist>

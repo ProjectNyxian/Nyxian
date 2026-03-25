@@ -53,24 +53,4 @@ void close_all_fd(void);
  */
 bool fd_is_guarded(int fd);
 
-/*!
- @function `fd_queue_create`
- */
-int fd_queue_create(int *q);
-
-/*!
- @function `fd_queue_append_fp`
- */
-int fd_queue_append_fp(int inq, fileport_t fp, int mfd);
-
-/*!
- @function `fd_queue_append_fd`
- */
-int fd_queue_append_fd(int inq, int fd, int mfd);
-
-/*!
- @function `fd_queue_apply`
- */
-int fd_queue_apply(int outq);
-
 #endif /* PROCENVIRONMENT_FD_H */

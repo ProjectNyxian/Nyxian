@@ -45,7 +45,7 @@
 
 @end
 
-@interface LDEApplicationWorkspaceProxy : NSObject <LDEApplicationWorkspaceProxyProtocol,LDEServiceProtocol>
+@interface LDEApplicationWorkspaceProxy : NSObject <LDEApplicationWorkspaceProxyProtocol,PEServiceProtocol>
 @end
 
 #endif /* LDEAPPLICATIONWORKSPACE_H */

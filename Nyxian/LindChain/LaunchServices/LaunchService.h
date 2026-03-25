@@ -39,7 +39,6 @@
 - (BOOL)isServiceWithServiceIdentifier:(NSString*)serviceIdentifier;
 - (BOOL)shouldAutorestart;
 - (NSString*)executablePath;
-- (NSString*)serviceMode;
 
 - (uid_t)userIdentifier;
 - (gid_t)groupIdentifier;

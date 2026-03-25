@@ -40,14 +40,13 @@
 {
     // Spawn process
     NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
-    [mutableDictionary setObject:[Server getTicket] forKey:@"LSEndpoint"];
     
 #if DEBUG
     FDMapObject *mapObject = [FDMapObject emptyMap];
     [mapObject appendFileDescriptor:STDIN_FILENO withMappingToLoc:STDIN_FILENO];
     [mapObject appendFileDescriptor:STDOUT_FILENO withMappingToLoc:STDOUT_FILENO];
     [mapObject appendFileDescriptor:STDERR_FILENO withMappingToLoc:STDERR_FILENO];
-    [mutableDictionary setObject:mapObject forKey:@"LSMapObject"];
+    [mutableDictionary setObject:mapObject forKey:@"PEMapObject"];
 #endif /* DEBUG */
     
     pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:[mutableDictionary copy] withKernelSurfaceProcess:kernel_proc_];
@@ -71,14 +70,14 @@
 
 - (NSString*)serviceIdentifier
 {
-    NSString *serviceIdentifier = [[self dictionary] objectForKey:@"LSServiceIdentifier"];
+    NSString *serviceIdentifier = [[self dictionary] objectForKey:@"PEServiceIdentifier"];
     if(!serviceIdentifier) serviceIdentifier = @"no-service";
     return serviceIdentifier;
 }
 
 - (BOOL)isServiceWithServiceIdentifier:(NSString *)serviceIdentifier
 {
-    NSString *mustMatchServiceIdentifier = [[self dictionary] objectForKey:@"LSServiceIdentifier"];
+    NSString *mustMatchServiceIdentifier = [[self dictionary] objectForKey:@"PEServiceIdentifier"];
     if(!serviceIdentifier || !mustMatchServiceIdentifier || ![mustMatchServiceIdentifier isEqualToString:serviceIdentifier])
         return NO;
     else
@@ -87,39 +86,32 @@
 
 - (BOOL)shouldAutorestart
 {
-    NSNumber *num = [_dictionary valueForKey:@"LSShouldAutorestart"];
+    NSNumber *num = [_dictionary valueForKey:@"PEShouldAutorestart"];
     return (num == nil) ? NO : num.boolValue;
 }
 
 - (NSString*)executablePath
 {
-    NSString *executablePath = [[self dictionary] objectForKey:@"LSExecutablePath"];
+    NSString *executablePath = [[self dictionary] objectForKey:@"PEExecutablePath"];
     if(!executablePath) executablePath = @"no-exec-path";
     return executablePath;
 }
 
-- (NSString*)serviceMode
-{
-    NSString *serviceMode = [[self dictionary] objectForKey:@"LSServiceMode"];
-    if(!serviceMode) serviceMode = @"no-service-mode";
-    return serviceMode;
-}
-
 - (uid_t)userIdentifier
 {
-    NSNumber *userIdentifierObject = [_dictionary objectForKey:@"LSUserIdentifier"];
+    NSNumber *userIdentifierObject = [_dictionary objectForKey:@"PEUserIdentifier"];
     return (userIdentifierObject == nil) ? 501 : userIdentifierObject.unsignedIntValue;
 }
 
 - (gid_t)groupIdentifier
 {
-    NSNumber *groupIdentifierObject = [_dictionary objectForKey:@"LSGroupIdentifier"];
+    NSNumber *groupIdentifierObject = [_dictionary objectForKey:@"PEGroupIdentifier"];
     return (groupIdentifierObject == nil) ? 501 : groupIdentifierObject.unsignedIntValue;
 }
 
 - (NSString*)integratedServiceName
 {
-    NSString *integratedServiceName = [[self dictionary] objectForKey:@"LSIntegratedServiceName"];
+    NSString *integratedServiceName = [[self dictionary] objectForKey:@"PEIntegratedServiceName"];
     if(!integratedServiceName) integratedServiceName = @"no-service-name";
     return integratedServiceName;
 }

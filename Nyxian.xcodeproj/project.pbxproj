@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7938A02B2F7179DD00D8F544 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 7938A02A2F7179DD00D8F544 /* Runestone */; };
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		795227872F45B52000D1C3CC /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -21,6 +20,11 @@
 		79AF511D2F1CBD110055004A /* TreeSitterXML in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51122F1CBD110055004A /* TreeSitterXML */; };
 		79AF511E2F1CBD110055004A /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51142F1CBD110055004A /* SwiftTerm */; };
 		79AF51222F1CBD110055004A /* Shared in Resources */ = {isa = PBXBuildFile; fileRef = AF99171F2DC8EA3C00DDF895 /* Shared */; };
+		79B708BC2F73157F000F38E7 /* TreeSitterCPP in Frameworks */ = {isa = PBXBuildFile; productRef = 79B708BB2F73157F000F38E7 /* TreeSitterCPP */; };
+		79B708BE2F731590000F38E7 /* TreeSitterCPP in Frameworks */ = {isa = PBXBuildFile; productRef = 79B708BD2F731590000F38E7 /* TreeSitterCPP */; };
+		79B70C1C2F73223A000F38E7 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 79B70C1B2F73223A000F38E7 /* Runestone */; };
+		79B70C1F2F732364000F38E7 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 79B70C1E2F732364000F38E7 /* Runestone */; };
+		79B70C222F7323F9000F38E7 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 79B70C212F7323F9000F38E7 /* Runestone */; };
 		79BF9A8F2E62BA8700C60D4C /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
 		AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */ = {isa = PBXBuildFile; productRef = AF99195A2DC9176900DDF895 /* TreeSitterC */; };
@@ -412,6 +416,7 @@
 				79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */,
 				79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */,
 				79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */,
+				79B708BE2F731590000F38E7 /* TreeSitterCPP in Frameworks */,
 				79AF511D2F1CBD110055004A /* TreeSitterXML in Frameworks */,
 				79AF511E2F1CBD110055004A /* SwiftTerm in Frameworks */,
 			);
@@ -429,10 +434,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79B708BC2F73157F000F38E7 /* TreeSitterCPP in Frameworks */,
 				79A3AE382EDDDBB000C0342E /* ServiceKit.framework in Frameworks */,
+				79B70C1C2F73223A000F38E7 /* Runestone in Frameworks */,
+				79B70C1F2F732364000F38E7 /* Runestone in Frameworks */,
 				AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */,
-				7938A02B2F7179DD00D8F544 /* Runestone in Frameworks */,
 				793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */,
+				79B70C222F7323F9000F38E7 /* Runestone in Frameworks */,
 				AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */,
 				AFF4E3492DCCCE0F00B1B5F9 /* TreeSitterXML in Frameworks */,
 				793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */,
@@ -528,6 +536,7 @@
 				79AF51102F1CBD110055004A /* Runestone */,
 				79AF51122F1CBD110055004A /* TreeSitterXML */,
 				79AF51142F1CBD110055004A /* SwiftTerm */,
+				79B708BD2F731590000F38E7 /* TreeSitterCPP */,
 			);
 			productName = LindDE;
 			productReference = 79AF512B2F1CBD110055004A /* NyxianForJB.app */;
@@ -581,7 +590,10 @@
 				AF99195A2DC9176900DDF895 /* TreeSitterC */,
 				AFF4E3482DCCCE0F00B1B5F9 /* TreeSitterXML */,
 				793A7E4F2EB5996A0044418E /* SwiftTerm */,
-				7938A02A2F7179DD00D8F544 /* Runestone */,
+				79B708BB2F73157F000F38E7 /* TreeSitterCPP */,
+				79B70C1B2F73223A000F38E7 /* Runestone */,
+				79B70C1E2F732364000F38E7 /* Runestone */,
+				79B70C212F7323F9000F38E7 /* Runestone */,
 			);
 			productName = LindDE;
 			productReference = 7944B5652DEC74EA00834134 /* Nyxian.app */;
@@ -622,7 +634,8 @@
 				AF9919592DC9176900DDF895 /* XCRemoteSwiftPackageReference "tree-sitter-c" */,
 				AFF4E3472DCCCE0F00B1B5F9 /* XCRemoteSwiftPackageReference "tree-sitter-xml" */,
 				793A7E4E2EB599690044418E /* XCRemoteSwiftPackageReference "SwiftTerm" */,
-				7938A0292F7179DD00D8F544 /* XCRemoteSwiftPackageReference "Runestone" */,
+				79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */,
+				79B70C202F7323F9000F38E7 /* XCRemoteSwiftPackageReference "Runestone" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AF9916D02DC8C42200DDF895;
@@ -1639,14 +1652,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7938A0292F7179DD00D8F544 /* XCRemoteSwiftPackageReference "Runestone" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ProjectNyxian/Runestone.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		793A7E4E2EB599690044418E /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
@@ -1695,6 +1700,22 @@
 				minimumVersion = 1.5.0;
 			};
 		};
+		79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tree-sitter/tree-sitter-cpp.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.23.4;
+			};
+		};
+		79B70C202F7323F9000F38E7 /* XCRemoteSwiftPackageReference "Runestone" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ProjectNyxian/Runestone.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		AF9919562DC9175A00DDF895 /* XCRemoteSwiftPackageReference "tree-sitter-objc" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/tree-sitter-grammars/tree-sitter-objc.git";
@@ -1722,11 +1743,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		7938A02A2F7179DD00D8F544 /* Runestone */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 7938A0292F7179DD00D8F544 /* XCRemoteSwiftPackageReference "Runestone" */;
-			productName = Runestone;
-		};
 		793A7E4F2EB5996A0044418E /* SwiftTerm */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 793A7E4E2EB599690044418E /* XCRemoteSwiftPackageReference "SwiftTerm" */;
@@ -1756,6 +1772,29 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 79AF51152F1CBD110055004A /* XCRemoteSwiftPackageReference "SwiftTerm" */;
 			productName = SwiftTerm;
+		};
+		79B708BB2F73157F000F38E7 /* TreeSitterCPP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */;
+			productName = TreeSitterCPP;
+		};
+		79B708BD2F731590000F38E7 /* TreeSitterCPP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */;
+			productName = TreeSitterCPP;
+		};
+		79B70C1B2F73223A000F38E7 /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Runestone;
+		};
+		79B70C1E2F732364000F38E7 /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Runestone;
+		};
+		79B70C212F7323F9000F38E7 /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79B70C202F7323F9000F38E7 /* XCRemoteSwiftPackageReference "Runestone" */;
+			productName = Runestone;
 		};
 		AF9919572DC9175A00DDF895 /* TreeSitterObjc */ = {
 			isa = XCSwiftPackageProductDependency;

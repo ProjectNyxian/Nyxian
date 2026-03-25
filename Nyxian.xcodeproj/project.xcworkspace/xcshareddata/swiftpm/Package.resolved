@@ -1,5 +1,5 @@
 {
-  "originHash" : "9a7d94266a767605460090db90e690f4ea51bce01c2c94f8ec7a500c56838b72",
+  "originHash" : "064408ce1c0402bfaae9f9d134a02c5dda8deedfda50dade1a91bc201f21b387",
   "pins" : [
     {
       "identity" : "runestone",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "7175a6dd5fc1cee660dce6fe23f6043d75af424a",
         "version" : "0.20.2"
+      }
+    },
+    {
+      "identity" : "tree-sitter-cpp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tree-sitter/tree-sitter-cpp.git",
+      "state" : {
+        "revision" : "f41e1a044c8a84ea9fa8577fdd2eab92ec96de02",
+        "version" : "0.23.4"
       }
     },
     {

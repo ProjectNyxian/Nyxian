@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol LDEServiceProtocol <NSObject>
+@protocol PEServiceProtocol <NSObject>
 
 + (NSString*)servcieIdentifier;
 + (Protocol*)serviceProtocol;

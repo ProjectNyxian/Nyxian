@@ -42,6 +42,6 @@
 
 @end
 
-int LDEServiceMain(int argc, char *argv[], Class<LDEServiceProtocol> serviceClass);
+int PEServiceMain(int argc, char *argv[], Class<PEServiceProtocol> serviceClass);
 
 #endif /* SERVICEKIT_SERVICE_H */

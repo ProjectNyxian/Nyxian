@@ -110,16 +110,15 @@
     
     LDEProcess *process = nil;
     pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:@{
-        @"LSServiceMode": @"spawn",
-        @"LSExecutablePath": _utilityPath,
-        @"LSArguments": @[self.utilityPath],
-        @"LSEnvironment": @{
+        @"PEExecutablePath": _utilityPath,
+        @"PEArguments": @[self.utilityPath],
+        @"PEEnvironment": @{
             @"HOME": homePath,
             @"CFFIXED_USER_HOME": homePath,
             @"TMPDIR": [homePath stringByAppendingPathComponent:@"/Tmp"]
         },
-        @"LSWorkingDirectory": homePath,
-        @"LSMapObject": mapObject
+        @"PEWorkingDirectory": homePath,
+        @"PEMapObject": mapObject
     } withKernelSurfaceProcess:kernel_proc_];
     process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
     

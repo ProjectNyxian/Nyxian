@@ -26,7 +26,7 @@
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
 #import <ServiceKit/ServiceKit.h>
 
-@interface LDETrustProxy: NSObject <LDETrustProtocol,LDEServiceProtocol>
+@interface LDETrustProxy: NSObject <LDETrustProtocol,PEServiceProtocol>
 
 @end
 

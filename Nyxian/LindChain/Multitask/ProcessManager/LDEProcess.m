@@ -52,11 +52,11 @@
     
     /* insert required items */
     NSMutableDictionary *mutableItems = [items mutableCopy];
-    mutableItems[@"LSSyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
-    mutableItems[@"LSEndpoint"] = [Server getTicket];
+    mutableItems[@"PESyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
+    mutableItems[@"PEEndpoint"] = [Server getTicket];
     items = [mutableItems copy];
     
-    self.executablePath = items[@"LSExecutablePath"];
+    self.executablePath = items[@"PEExecutablePath"];
     if(self.executablePath == nil) return nil;
     if(![[LDETrust shared] executableAllowedToLaunchAtPath:self.executablePath]) return nil;
     

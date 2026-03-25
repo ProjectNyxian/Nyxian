@@ -103,17 +103,16 @@
         kvo_unlock(_proc);
         
         NSMutableDictionary *mutableItems = [[NSMutableDictionary alloc] initWithDictionary:@{
-            @"LSServiceMode": @"spawn",
-            @"LSExecutablePath": path,
-            @"LSArguments": arguments,
-            @"LSEnvironment": environment,
-            @"LSMapObject": mapObject ? mapObject : [FDMapObject emptyMap],
-            @"LSWorkingDirectory": workingDirectory,
+            @"PEExecutablePath": path,
+            @"PEArguments": arguments,
+            @"PEEnvironment": environment,
+            @"PEMapObject": mapObject ? mapObject : [FDMapObject emptyMap],
+            @"PEWorkingDirectory": workingDirectory,
         }];
         
         if(mapObject != nil)
         {
-            [mutableItems setObject:mapObject forKey:@"LSMapObject"];
+            [mutableItems setObject:mapObject forKey:@"PEMapObject"];
         }
         
         /* invoking spawn */
