@@ -27,6 +27,9 @@
 #include <mach/mach.h>
 #include <stdbool.h>
 
+#define FD_QUEUE_IN 0
+#define FD_QUEUE_OUT 1
+
 /*!
  @function `get_all_fds`
  @abstract Gets all file descriptors.
@@ -49,5 +52,25 @@ void close_all_fd(void);
  @return Returns boolean value that indicates guardedness.
  */
 bool fd_is_guarded(int fd);
+
+/*!
+ @function `fd_queue_create`
+ */
+int fd_queue_create(int *q);
+
+/*!
+ @function `fd_queue_append_fp`
+ */
+int fd_queue_append_fp(int inq, fileport_t fp, int mfd);
+
+/*!
+ @function `fd_queue_append_fd`
+ */
+int fd_queue_append_fd(int inq, int fd, int mfd);
+
+/*!
+ @function `fd_queue_apply`
+ */
+int fd_queue_apply(int outq);
 
 #endif /* PROCENVIRONMENT_FD_H */
