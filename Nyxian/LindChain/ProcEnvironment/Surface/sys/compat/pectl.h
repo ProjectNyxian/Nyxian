@@ -19,24 +19,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SERVER_SERVER_H
-#define PROCENVIRONMENT_SERVER_SERVER_H
+#ifndef SURFACE_SYS_PECTL_H
+#define SURFACE_SYS_PECTL_H
 
-#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-@interface NSXPCListenerEndpoint ()
+#define PECTL_SET_ENDPOINT 0b00000000
+#define PECTL_GET_ENDPOINT 0b00000001
+/*
+ * more compat will move into process
+ * environment ctl likely soon, like
+ * SYS_enttoken and SYS_handoffep
+ */
 
-@property(nonatomic, setter=_setEndpoint:) xpc_object_t _endpoint;
+DEFINE_SYSCALL_HANDLER(pectl);
 
-@end
-
-@interface Server : NSObject <NSXPCListenerDelegate>
-
-@property (nonatomic,readonly) NSMutableSet<xpc_endpoint_t> *canConnectTable;
-
-+ (NSXPCListenerEndpoint*)getTicket;
-- (BOOL)endpointUnregisterAndValidate:(xpc_endpoint_t)endpoint;
-
-@end
-
-#endif /* PROCENVIRONMENT_SERVER_SERVER_H */
+#endif /* SURFACE_SYS_PECTL_H */

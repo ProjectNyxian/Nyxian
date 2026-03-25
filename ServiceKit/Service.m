@@ -21,6 +21,20 @@
 
 #import <ServiceKit/Service.h>
 #include <dlfcn.h>
+#include <mach/mach.h>
+
+#define SYS_pectl       763
+
+#define PECTL_SET_ENDPOINT 0b00000000
+#define PECTL_GET_ENDPOINT 0b00000001
+
+@interface NSXPCListenerEndpoint ()
+
+@property(nonatomic, setter=_setEndpoint:) xpc_object_t _endpoint;
+
+@end
+
+extern mach_port_t xpc_endpoint_copy_listener_port_4sim(NSObject<OS_xpc_object>*);
 
 static ServiceServer *singletonServiceServer = nil;
 
@@ -84,8 +98,21 @@ int PEServiceMain(int argc,
        serviceProtocol != nil)
     {
         ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:serviceClass withServerProtocol:serviceProtocol withObserverProtocol:clientProtocol];
-        void (*environment_proxy_set_endpoint_for_service_identifier)(NSXPCListenerEndpoint *endpoint, NSString *serviceIdentifier) = dlsym(RTLD_DEFAULT, "environment_proxy_set_endpoint_for_service_identifier");
-        environment_proxy_set_endpoint_for_service_identifier([serviceServer getEndpointForConnection], serviceIdentifier);
+        void (*environment_syscall)(uint32_t syscall_num, ...) = dlsym(RTLD_DEFAULT, "environment_syscall");
+        
+        NSXPCListenerEndpoint *endpoint = [serviceServer getEndpointForConnection];
+        mach_port_t port = xpc_endpoint_copy_listener_port_4sim(endpoint._endpoint);
+        
+        kern_return_t kr = mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, 1);
+        if(kr != KERN_SUCCESS)
+        {
+            return -1;
+        }
+        
+        if(port != MACH_PORT_NULL)
+        {
+            environment_syscall(SYS_pectl, PECTL_SET_ENDPOINT, [serviceIdentifier UTF8String], port);
+        }
         CFRunLoopRun();
     }
     

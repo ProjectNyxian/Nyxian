@@ -41,10 +41,6 @@ extern syscall_client_t *syscallProxy;
 /// Spawns a process using a binary at `path` with `arguments` and `environment` and posix like `file_actions`
 int64_t environment_proxy_spawn_process_at_path(NSString *path, NSArray *arguments, NSDictionary *environment, FDMapObject *mapObject, NSString *workingDirectory);
 
-void environment_proxy_set_endpoint_for_service_identifier(NSXPCListenerEndpoint *endpoint, NSString *serviceIdentifier);
-
-NSXPCListenerEndpoint *environment_proxy_get_endpoint_for_service_identifier(NSString *serviceIdentifier);
-
 void environment_proxy_set_snapshot(UIImage *snapshot);
 
 #endif /* PROCENVIRONMENT_PROXY_H */

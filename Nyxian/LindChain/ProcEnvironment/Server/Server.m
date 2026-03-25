@@ -24,12 +24,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-@interface NSXPCListenerEndpoint ()
-
-- (NSObject<OS_xpc_object>*)_endpoint;
-
-@end
-
 @implementation Server {
     NSLock *_lock;
 }
