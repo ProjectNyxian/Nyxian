@@ -28,7 +28,6 @@
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/Core/LDEFilesFinder.h>
-#import <LindChain/Core/LDEHeaderIncludationsGatherer.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
