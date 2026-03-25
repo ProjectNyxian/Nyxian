@@ -59,6 +59,8 @@ class FileIcon: UIView {
         let url = URL(fileURLWithPath: entry.path)
         let ext = url.pathExtension.lowercased()
         
+        iconView.subviews.filter { $0 is UILabel && $0 != iconLabel }.forEach { $0.removeFromSuperview() }
+        
         iconLabel.isHidden = true
         iconImageView.isHidden = true
         
