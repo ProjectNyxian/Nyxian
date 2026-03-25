@@ -25,13 +25,8 @@
 #include <pthread.h>
 #import <LindChain/Compiler/LDECompiler.h>
 #import <LindChain/Synpush/Synpush.h>
-
-#if JAILBREAK_ENV
-int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
-#else
 #include <LindChain/Compiler/LDEObjectCompiler.h>
 #include <LindChain/Compiler/LDEDependencyScanner.h>
-#endif /* JAILBREAK_ENV */
 
 @interface Compiler ()
 
@@ -73,7 +68,6 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
           outputFile:(NSString*)outputFilePath
               issues:(NSArray<Synitem*> * * _Nonnull)issues
 {
-#if !JAILBREAK_ENV
     /*
      * creating C array out of NSArray.
      * TODO: a lot of this array can be reused.
@@ -108,25 +102,11 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
     free(argv);
     
     return result;
-#else
-    NSString *command = [NSString stringWithFormat:@"clang %@ -fno-caret-diagnostics -c %@ -o %@", [_flags componentsJoinedByString:@" "], filePath, outputFilePath];
-    
-    NSString *output = nil;
-    
-    int retval = shell(command, 501, NULL, &output);
-    
-    if(output)
-    {
-        *issues = [Synitem OfClangErrorWithString:output];
-    }
-    
-    return retval;
-#endif /* !JAILBREAK_ENV */
 }
 
-- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error
+- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath
+                                    error:(NSError**)error
 {
-#if !JAILBREAK_ENV
     const int argc = (int)[_flags count] + 2;
     char **argv = (char **)malloc(sizeof(char*) * argc);
     argv[0] = strdup("clang");
@@ -179,10 +159,6 @@ int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **out
     
     FreeScanResult(result);
     return [headers copy];
-#else
-    /* nobody cares about chu TODO: add path for jailbroken hosts */
-    return nil;
-#endif /* !JAILBREAK_ENV */
 }
 
 @end
