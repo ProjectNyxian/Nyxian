@@ -126,7 +126,9 @@ static void *LDEWorkerThreadMain(void *arg)
 @property (nonatomic, readonly) int threads;
 @property (nonatomic, assign) LDEWorkerThread *workers;
 @property (nonatomic, assign) int workerCount;
-@property (nonatomic, assign) _Atomic(int) nextWorker;
+@property (nonatomic, strong) dispatch_queue_t freeWorkerQueue;
+@property (nonatomic, strong) NSMutableArray *freeWorkers;
+
 
 @end
 
@@ -139,7 +141,12 @@ static void *LDEWorkerThreadMain(void *arg)
     _semaphore = dispatch_semaphore_create(threads);
     _workerCount = threads;
     _workers = calloc(threads, sizeof(LDEWorkerThread));
-    atomic_init(&_nextWorker, 0);
+    _freeWorkerQueue = dispatch_queue_create("com.nyxian.freeworker", DISPATCH_QUEUE_SERIAL);
+    _freeWorkers = [NSMutableArray array];
+    for(int i = 0; i < threads; i++)
+    {
+        [_freeWorkers addObject:@(i)];
+    }
     for(int i = 0; i < threads; i++)
     {
         _workers[i].cpuIndex = i % LDEGetOptimalThreadCount();
@@ -162,30 +169,24 @@ static void *LDEWorkerThreadMain(void *arg)
     return [self initWithThreads:LDEGetUserSetThreadCount()];
 }
 
-- (void)dispatchExecution:(void (^)(void))code
-           withCompletion:(void (^)(void))completion
+- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion
 {
-    if(code == NULL ||
-       _lockdown)
-    {
-        if(completion) completion();
-        return;
-    }
-    
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
-    
-    if(_lockdown)
-    {
-        if(completion) completion();
-        dispatch_semaphore_signal(self.semaphore);
-        return;
-    }
-    
-    int workerIndex = atomic_fetch_add(&_nextWorker, 1) % _workerCount;
+    __block int workerIndex = -1;
+    dispatch_sync(_freeWorkerQueue, ^{
+        workerIndex = [_freeWorkers.lastObject intValue];
+        [_freeWorkers removeLastObject];
+    });
+
     LDEWorkerThread *worker = &_workers[workerIndex];
     pthread_mutex_lock(&worker->mutex);
     worker->currentBlock = code;
-    worker->completionBlock = completion;
+    worker->completionBlock = ^{
+        if (completion) completion();
+        dispatch_sync(self.freeWorkerQueue, ^{
+            [self.freeWorkers addObject:@(workerIndex)];
+        });
+    };
     worker->semaphore = self.semaphore;
     atomic_store(&worker->hasWork, true);
     pthread_cond_signal(&worker->cond);
