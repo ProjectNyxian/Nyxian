@@ -57,6 +57,11 @@ int main(int argc, char * argv[])
             /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
             [LaunchServices shared];                                /* invokes launch services startup*/
         }
+#else
+        if(getsid(getpid()) != getpid())
+        {
+            return 0;
+        }
 #endif // !JAILBREAK_ENV
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
