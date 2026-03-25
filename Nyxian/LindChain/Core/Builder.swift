@@ -329,7 +329,7 @@ class Builder {
                                     mapObject?.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
                                 }
                                 
-                                let pid = LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["LSMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                                let pid = LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["PEMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
                                 
                                 ndb_attach(pid)
                             }
