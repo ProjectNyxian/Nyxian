@@ -461,6 +461,8 @@ class UIButtonTab: UIButton {
     let vc: CodeEditorViewController
     let closeAction: (UIButtonTab) -> Void
     
+    private let fileIcon: FileIcon
+    
     init(frame: CGRect,
          project: NXProject,
          path: String,
@@ -469,13 +471,16 @@ class UIButtonTab: UIButton {
          openAction: @escaping (UIButtonTab) -> Void,
          closeAction: @escaping (UIButtonTab) -> Void,
          isReadOnly: Bool) {
+        
         self.path = path
         self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column, isReadOnly: isReadOnly)
         self.closeAction = closeAction
         
+        self.fileIcon = FileIcon(withFontSize: 15)
+        
         super.init(frame: frame)
         
-        self.translatesAutoresizingMaskIntoConstraints = false;
+        self.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             self.heightAnchor.constraint(equalToConstant: 30)
@@ -490,7 +495,7 @@ class UIButtonTab: UIButton {
         self.titleLabel?.textAlignment = .center
         
         if #available(iOS 26.0, *) {
-            self.layer.cornerRadius = 15
+            self.layer.cornerRadius = 13
             self.layer.cornerCurve = .continuous
         } else {
             self.layer.cornerRadius = 10
@@ -499,75 +504,22 @@ class UIButtonTab: UIButton {
         
         self.layer.masksToBounds = true
         
+        fileIcon.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(fileIcon)
+        NSLayoutConstraint.activate([
+            fileIcon.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            fileIcon.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 5),
+            fileIcon.heightAnchor.constraint(equalTo: self.heightAnchor, constant: -10),
+            fileIcon.widthAnchor.constraint(equalTo: fileIcon.heightAnchor)
+        ])
+        
+        fileIcon.configure(with: FileListEntry(name: path.URLLastPathComponent(), path: path, isLink: false, type: .file))
+        
         self.addAction(UIAction { [weak self] _ in
             guard let s = self else { return }
             openAction(s)
         }, for: .touchUpInside)
         
-        let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
-        
-        let iconImageView: UIImageView = UIImageView()
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
-        iconImageView.contentMode = .center
-        iconImageView.clipsToBounds = true
-        self.addSubview(iconImageView)
-        
-        NSLayoutConstraint.activate([
-            iconImageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            iconImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 5),
-            iconImageView.heightAnchor.constraint(equalTo: self.heightAnchor, constant: -10),
-            iconImageView.widthAnchor.constraint(equalTo: iconImageView.heightAnchor)
-        ])
-        
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .light)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .center
-        
-        switch ext {
-        case "c":
-            label.text = "c"
-            label.textColor = .systemBlue
-            iconImageView.addSubview(label)
-        case "h":
-            label.text = "h"
-            label.textColor = .systemGray
-            iconImageView.addSubview(label)
-        case "cpp":
-            FileListViewController.addStackedLabel(to: iconImageView, base: "c", offset: CGPoint(x: 8, y: -5), color: .systemBlue)
-        case "hpp":
-            FileListViewController.addStackedLabel(to: iconImageView, base: "h", offset: CGPoint(x: 8, y: -5), color: .systemBlue)
-        case "m":
-            label.text = "m"
-            label.textColor = .systemPurple
-            iconImageView.addSubview(label)
-        case "mm":
-            FileListViewController.addStackedLabel(to: iconImageView, base: "m", offset: CGPoint(x: 9, y: -6), color: .systemBlue)
-        case "plist":
-            FileListViewController.addSystemImage(to: iconImageView, name: "tablecells.fill", height: 13)
-        case "png","jpg","jpeg","gif","svg":
-            FileListViewController.addSystemImage(to: iconImageView, name: "photo.fill")
-        default:
-            if #unavailable(iOS 17.0) {
-                FileListViewController.addSystemImage(to: iconImageView, name: "text.alignleft")
-            } else {
-                FileListViewController.addSystemImage(to: iconImageView, name: "text.page.fill")
-            }
-        }
-        
-        if label.superview != nil {
-            NSLayoutConstraint.activate([
-                label.centerXAnchor.constraint(equalTo: iconImageView.centerXAnchor),
-                label.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
-                label.heightAnchor.constraint(equalTo: iconImageView.heightAnchor),
-                label.widthAnchor.constraint(equalTo: iconImageView.heightAnchor)
-            ])
-        }
-        
-        // Open before making the menu
-        openAction(self)
-        
-        // Making menu
         var items: [UIMenuElement] = []
         var buttons: [UIBarButtonItem] = []
         for item in vc.navigationItem.rightBarButtonItems ?? [] {
@@ -594,6 +546,8 @@ class UIButtonTab: UIButton {
         self.storedMenu = contextMenu
         let menuInteraction = UIContextMenuInteraction(delegate: self)
         self.addInteraction(menuInteraction)
+        
+        openAction(self)
     }
     
     private var storedMenu: UIMenu?
@@ -610,19 +564,6 @@ class UIButtonTab: UIButton {
 }
 
 extension UIColor {
-    func darker(by percentage: CGFloat = 30.0) -> UIColor {
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        guard self.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) else {
-            return self
-        }
-
-        let newBrightness = max(brightness - percentage/100, 0)
-        return UIColor(hue: hue, saturation: saturation, brightness: newBrightness, alpha: alpha)
-    }
     func brighter(by percentage: CGFloat = 30.0) -> UIColor {
         var hue: CGFloat = 0
         var saturation: CGFloat = 0

@@ -80,7 +80,7 @@ class FileTabStack: UIStackView {
         }
         
         if tabCount == 0 {
-            super.addArrangedSubview(createSpacer(width: 12))
+            super.addArrangedSubview(createSpacer(width: 8))
         }
         
         if tabCount > 0 {
@@ -90,7 +90,7 @@ class FileTabStack: UIStackView {
         }
         
         super.addArrangedSubview(view)
-        super.addArrangedSubview(createSpacer(width: 12))
+        super.addArrangedSubview(createSpacer(width: 8))
     }
     
     override func removeArrangedSubview(_ view: UIView) {

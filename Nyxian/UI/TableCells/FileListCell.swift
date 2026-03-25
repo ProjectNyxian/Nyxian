@@ -21,27 +21,18 @@
 
 import UIKit
 
-class FileListCell: UITableViewCell {
-    static let reuseIdentifier = "FileListCell"
-    
+class FileIcon: UIView {
     private let iconView = UIView()
     private let iconLabel = UILabel()
     private let iconImageView = UIImageView()
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupViews()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupViews() {
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(iconView)
+    init(withFontSize fontSize: CGFloat) {
+        super.init(frame: CGRect.zero)
         
-        iconLabel.font = .systemFont(ofSize: 20, weight: .light)
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(iconView)
+        
+        iconLabel.font = .systemFont(ofSize: fontSize, weight: .light)
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
         iconView.addSubview(iconLabel)
         
@@ -50,8 +41,8 @@ class FileListCell: UITableViewCell {
         iconView.addSubview(iconImageView)
         
         NSLayoutConstraint.activate([
-            iconView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             iconView.widthAnchor.constraint(equalToConstant: 25),
             iconView.heightAnchor.constraint(equalToConstant: 25),
             
@@ -62,39 +53,11 @@ class FileListCell: UITableViewCell {
             iconImageView.centerYAnchor.constraint(equalTo: iconView.centerYAnchor),
             iconImageView.heightAnchor.constraint(equalToConstant: 20)
         ])
-        
-        textLabel?.translatesAutoresizingMaskIntoConstraints = false
-        if let textLabel = textLabel {
-            NSLayoutConstraint.activate([
-                textLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
-                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-                textLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
-            ])
-        }
-        
-        separatorInset = .zero
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        iconLabel.text = nil
-        iconLabel.textColor = nil
-        iconImageView.image = nil
-        iconImageView.tintColor = nil
-        
-        iconView.subviews.forEach { subview in
-            if subview != iconLabel && subview != iconImageView {
-                subview.removeFromSuperview()
-            }
-        }
     }
     
     func configure(with entry: FileListEntry) {
         let url = URL(fileURLWithPath: entry.path)
         let ext = url.pathExtension.lowercased()
-        
-        accessoryType = (entry.type == .dir) ? .disclosureIndicator : .none
-        textLabel?.text = url.deletingPathExtension().lastPathComponent
         
         iconLabel.isHidden = true
         iconImageView.isHidden = true
@@ -164,5 +127,60 @@ class FileListCell: UITableViewCell {
             plusLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor),
             plusLabel.firstBaselineAnchor.constraint(equalTo: iconLabel.firstBaselineAnchor, constant: -9)
         ])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class FileListCell: UITableViewCell {
+    static let reuseIdentifier = "FileListCell"
+    
+    private let fileIcon = FileIcon(withFontSize: 20)
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupViews()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupViews() {
+        fileIcon.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(fileIcon)
+        
+        NSLayoutConstraint.activate([
+            fileIcon.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            fileIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            fileIcon.widthAnchor.constraint(equalToConstant: 25),
+            fileIcon.heightAnchor.constraint(equalToConstant: 25)
+        ])
+        
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        if let textLabel = textLabel {
+            NSLayoutConstraint.activate([
+                textLabel.leadingAnchor.constraint(equalTo: fileIcon.trailingAnchor, constant: 12),
+                textLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+                textLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            ])
+        }
+        
+        separatorInset = .zero
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        textLabel?.text = nil
+    }
+    
+    func configure(with entry: FileListEntry) {
+        let url = URL(fileURLWithPath: entry.path)
+        textLabel?.text = url.deletingPathExtension().lastPathComponent
+        accessoryType = (entry.type == .dir) ? .disclosureIndicator : .none
+        
+        fileIcon.configure(with: entry)
     }
 }

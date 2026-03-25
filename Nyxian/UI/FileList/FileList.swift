@@ -535,46 +535,6 @@ import UniformTypeIdentifiers
         return cell
     }
     
-    static func addStackedLabel(to view: UIView, base: String, offset: CGPoint, color: UIColor) {
-        let baseLabel = UILabel()
-        baseLabel.text = base
-        baseLabel.font = .systemFont(ofSize: 20, weight: .light)
-        baseLabel.textColor = color
-        baseLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let plusLabel = UILabel()
-        plusLabel.text = "+"
-        plusLabel.font = .systemFont(ofSize: 10, weight: .light)
-        plusLabel.textColor = color
-        plusLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(baseLabel)
-        view.addSubview(plusLabel)
-        
-        NSLayoutConstraint.activate([
-            baseLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            baseLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            plusLabel.leadingAnchor.constraint(equalTo: baseLabel.trailingAnchor, constant: offset.x),
-            plusLabel.topAnchor.constraint(equalTo: baseLabel.topAnchor, constant: offset.y)
-        ])
-    }
-    
-    static func addSystemImage(to view: UIView, name: String, tintColor: UIColor? = nil, height: CGFloat = 20) {
-        let imageView = UIImageView(image: UIImage(systemName: name))
-        imageView.contentMode = .scaleAspectFit
-        if let tintColor = tintColor {
-            imageView.tintColor = tintColor
-        }
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(imageView)
-        
-        NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            imageView.heightAnchor.constraint(equalToConstant: height)
-        ])
-    }
-    
     ///
     /// Private: Function to add or replace a file or files in the array
     ///
