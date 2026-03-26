@@ -94,12 +94,7 @@ int environment_init(EnvironmentRole role,
     /* making sure this is only initilized once */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        /* checking role */
-        if(role > EnvironmentRoleGuest)
-        {
-            fprintf(stderr, "[!] invalid role\n");
-            exit(1);
-        }
+        assert(role <= EnvironmentRoleGuest);
         
         /* setting environment role */
         environmentRole = role;
@@ -113,14 +108,8 @@ int environment_init(EnvironmentRole role,
              * init symbol of the kernel.
              */
             void (*ksurface_kinit_dyn)(void) = dlsym(RTLD_DEFAULT, "ksurface_kinit");
-            if(ksurface_kinit_dyn)
-            {
-                ksurface_kinit_dyn();
-            }
-            else
-            {
-                retval = 1;
-            }
+            assert(ksurface_kinit_dyn != NULL);
+            ksurface_kinit_dyn();
         }
         else
         {

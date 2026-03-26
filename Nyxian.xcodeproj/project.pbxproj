@@ -208,7 +208,7 @@
 				LindChain/ProcEnvironment/proxy.m,
 				LindChain/ProcEnvironment/Server/Server.m,
 				LindChain/ProcEnvironment/Server/ServerSession.m,
-				LindChain/ProcEnvironment/Surface/entitlement.m,
+				LindChain/ProcEnvironment/Surface/entitlement.c,
 				LindChain/ProcEnvironment/Surface/key.m,
 				LindChain/ProcEnvironment/Surface/obj/alloc.c,
 				LindChain/ProcEnvironment/Surface/obj/event.c,
