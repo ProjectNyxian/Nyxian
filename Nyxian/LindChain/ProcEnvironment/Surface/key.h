@@ -23,7 +23,10 @@
 #define SURFACE_KEY_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-const uint8_t *get_static_kernel_key(void);
+#define KEY_LEN 32
+
+bool get_static_kernel_key(uint8_t **priv_bytes, size_t *priv_len, uint8_t **pub_bytes, size_t *pub_len);
 
 #endif /* SURFACE_KEY_H */

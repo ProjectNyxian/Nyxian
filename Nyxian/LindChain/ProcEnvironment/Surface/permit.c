@@ -19,17 +19,17 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <assert.h>
 
-BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
+bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
                                 pid_t targetPid,
-                                BOOL allowSessionBypass,
+                                bool allowSessionBypass,
                                 PEEntitlement entitlementsNeeded,
                                 PEEntitlement targetEntitlementsNeeded)
 {
-    assert(proc != nil);
+    assert(proc != NULL);
     
     /*
      * getting target process, because
@@ -42,7 +42,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
     
     if(ret != SURFACE_SUCCESS)
     {
-        return NO;
+        return false;
     }
     
     /*
@@ -54,7 +54,7 @@ BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
     if((ksurface_proc_t*)(proc->header.orig) == targetProc)
     {
         kvo_release(targetProc);
-        return YES;
+        return true;
     }
     
     proc_visibility_t vis = get_proc_visibility(proc);
@@ -120,11 +120,11 @@ out_euid_check:
     out_no:
         kvo_unlock(targetProc);
         kvo_release(targetProc);
-        return NO;
+        return false;
     }
     
 out_yes:
     kvo_unlock(targetProc);
     kvo_release(targetProc);
-    return YES;
+    return true;
 }

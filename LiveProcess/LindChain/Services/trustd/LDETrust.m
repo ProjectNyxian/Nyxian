@@ -107,11 +107,19 @@
     return allowedToLaunch;
 }
 
-- (NSData*)getTokenOfExecutableAtPath:(NSString *)path
+- (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path
 {
+    // The only current pitfall of Nyxians security is the possibilities of file protections and this stuff
+    // RIGHT HERE
+    if([path isEqualToString:@"/usr/libexec/ksurfaced"] ||
+       [path isEqualToString:@"/usr/libexec/installd"])
+    {
+        return PEEntitlementSystemDaemon;
+    }
+    
     [self connect];
     
-    __block NSData *token = nil;
+    __block PEEntitlement entitlements = PEEntitlementNone;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     
     id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
@@ -126,40 +134,15 @@
     }
     else
     {
-        [proxy getTokenOfExecutablePath:path withReply:^(NSData *replyData){
-            token = replyData;
+        [proxy entitlementsForExecutableAtPath:path withReply:^(PEEntitlement replyEntitlements){
+            entitlements = replyEntitlements;
             dispatch_semaphore_signal(sema);
         }];
     }
     
     dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
     
-    return token;
-}
-
-- (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path
-{
-    if([path isEqualToString:@"/usr/libexec/ksurfaced"] ||
-       [path isEqualToString:@"/usr/libexec/installd"])
-    {
-        return PEEntitlementSystemDaemon;
-    }
-    
-    NSData *data = [self getTokenOfExecutableAtPath:path];
-    if(data == nil)
-    {
-        return PEEntitlementNone;
-    }
-    
-    ksurface_ent_mach_t *mach = (ksurface_ent_mach_t*)data.bytes;
-    
-    ksurface_return_t ksr = entitlement_mach_verify(mach);
-    if(ksr == KERN_SUCCESS)
-    {
-        return mach->token.blob.entitlement;
-    }
-    
-    return PEEntitlementNone;
+    return entitlements;
 }
 
 @end

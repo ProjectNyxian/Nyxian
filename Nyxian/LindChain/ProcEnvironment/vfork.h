@@ -22,10 +22,10 @@
 #ifndef PROCENVIRONMENT_FORK_H
 #define PROCENVIRONMENT_FORK_H
 
-#import <Foundation/Foundation.h>
-#import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+/* ----------------------------------------------------------------------
+ *  Apple API Headers
+ * -------------------------------------------------------------------- */
 #include <stdlib.h>
-#import <LindChain/Debugger/Utils.h>
 #include <spawn.h>
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
 } fork_thread_snapshot_t;
 
 /*!
- @function environment_fork_init
+ @function `environment_fork_init`
  @abstract Initializes fork environment.
  @discussion
     Fixes vfork() and exec*() family symbols using a creative thread snapshotting and conditioning system.

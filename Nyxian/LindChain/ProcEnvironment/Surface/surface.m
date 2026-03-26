@@ -84,6 +84,13 @@ static inline void ksurface_kinit_kalloc(void)
 
 static inline void ksurface_kinit_kinfo(void)
 {
+    klog_log(@"ksurface:kinit:kinfo", @"generating code signature private key");
+    if(!get_static_kernel_key(&(ksurface->priv_key), &(ksurface->priv_key_len), &(ksurface->pub_key), &(ksurface->pub_key_len)))
+    {
+        /* should never happen, panic! */
+        environment_panic();
+    }
+    
     /* setting up locks */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing locks");
     pthread_rwlock_t *wls[4] = { &(ksurface->proc_info.struct_lock), &(ksurface->proc_info.task_lock),  &(ksurface->host_info.struct_lock), &(ksurface->tty_info.struct_lock) };

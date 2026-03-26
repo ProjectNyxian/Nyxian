@@ -44,6 +44,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -60,8 +61,9 @@
 #define SYS_setent      760         /* sets entitlements (sanitized ofc) */
 #define SYS_waittask    761         /* waits till task port of a task is available */
 #define SYS_pectl       762         /* utility for many proc environment operations */
+#define SYS_getpk       763         /* copy out the public signature key */
 
-#define SYS_N 29
+#define SYS_N 30
 
 typedef struct {
     const char *name;

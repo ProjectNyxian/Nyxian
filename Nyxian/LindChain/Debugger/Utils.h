@@ -32,8 +32,10 @@
 #include <mach/exception_types.h>
 #include <mach/thread_act.h>
 #include <mach/thread_state.h>
+#ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #import <LindChain/Decompiler/Decompiler.h>
+#endif /* __OBJC__ */
 
 #define FLAG_N(cpsr) (((cpsr) >> 31) & 1)
 #define FLAG_Z(cpsr) (((cpsr) >> 30) & 1)

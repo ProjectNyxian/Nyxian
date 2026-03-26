@@ -25,13 +25,8 @@
 /* ----------------------------------------------------------------------
  *  Apple API Headers
  * -------------------------------------------------------------------- */
-#import <Foundation/Foundation.h>
 #include <spawn.h>
-
-/* ----------------------------------------------------------------------
- *  Environment API Headers
- * -------------------------------------------------------------------- */
-#import <LindChain/ProcEnvironment/Object/FDMapObject.h>
+#include <limits.h>
 
 /* https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/bsd/sys/spawn_internal.h#L352-L360 */
 typedef enum {

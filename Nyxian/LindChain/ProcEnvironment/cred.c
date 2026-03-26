@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/litehook/litehook.h>
-#import <LindChain/ProcEnvironment/cred.h>
-#import <LindChain/ProcEnvironment/syscall.h>
+#include <LindChain/litehook/litehook.h>
+#include <LindChain/ProcEnvironment/cred.h>
+#include <LindChain/ProcEnvironment/syscall.h>
+#include <unistd.h>
 
 DEFINE_HOOK(getuid, uid_t, (void))
 {
@@ -31,7 +31,7 @@ DEFINE_HOOK(getuid, uid_t, (void))
 
 DEFINE_HOOK(getgid, gid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_getgid);
+    return (gid_t)environment_syscall(SYS_getgid);
 }
 
 DEFINE_HOOK(geteuid, uid_t, (void))
@@ -41,17 +41,17 @@ DEFINE_HOOK(geteuid, uid_t, (void))
 
 DEFINE_HOOK(getegid, gid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_getegid);
+    return (gid_t)environment_syscall(SYS_getegid);
 }
 
 DEFINE_HOOK(getpid, pid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_getpid);
+    return (pid_t)environment_syscall(SYS_getpid);
 }
 
 DEFINE_HOOK(getppid, pid_t, (void))
 {
-    return (uid_t)environment_syscall(SYS_getppid);
+    return (pid_t)environment_syscall(SYS_getppid);
 }
 
 DEFINE_HOOK(setuid, int, (uid_t uid))
@@ -94,9 +94,9 @@ DEFINE_HOOK(setregid, int, (gid_t egid, gid_t rgid))
     return (int)environment_syscall(SYS_setregid, egid, rgid);
 }
 
-DEFINE_HOOK(getsid, pid_t, (pid_t pid))
+DEFINE_HOOK(getsid, pid_t, (pid_t sid))
 {
-    return (pid_t)environment_syscall(SYS_getsid, pid);
+    return (pid_t)environment_syscall(SYS_getsid, sid);
 }
 
 DEFINE_HOOK(setsid, int, (void))
@@ -106,23 +106,20 @@ DEFINE_HOOK(setsid, int, (void))
 
 void environment_cred_init(void)
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        DO_HOOK_GLOBAL(getuid);
-        DO_HOOK_GLOBAL(getgid);
-        DO_HOOK_GLOBAL(geteuid);
-        DO_HOOK_GLOBAL(getegid);
-        DO_HOOK_GLOBAL(getppid);
-        DO_HOOK_GLOBAL(setuid);
-        DO_HOOK_GLOBAL(setgid);
-        DO_HOOK_GLOBAL(setruid);
-        DO_HOOK_GLOBAL(setreuid);
-        DO_HOOK_GLOBAL(setrgid);
-        DO_HOOK_GLOBAL(seteuid);
-        DO_HOOK_GLOBAL(setegid);
-        DO_HOOK_GLOBAL(setregid);
-        DO_HOOK_GLOBAL(getpid);
-        DO_HOOK_GLOBAL(getsid);
-        DO_HOOK_GLOBAL(setsid);
-    });
+    DO_HOOK_GLOBAL(getuid);
+    DO_HOOK_GLOBAL(getgid);
+    DO_HOOK_GLOBAL(geteuid);
+    DO_HOOK_GLOBAL(getegid);
+    DO_HOOK_GLOBAL(getppid);
+    DO_HOOK_GLOBAL(setuid);
+    DO_HOOK_GLOBAL(setgid);
+    DO_HOOK_GLOBAL(setruid);
+    DO_HOOK_GLOBAL(setreuid);
+    DO_HOOK_GLOBAL(setrgid);
+    DO_HOOK_GLOBAL(seteuid);
+    DO_HOOK_GLOBAL(setegid);
+    DO_HOOK_GLOBAL(setregid);
+    DO_HOOK_GLOBAL(getpid);
+    DO_HOOK_GLOBAL(getsid);
+    DO_HOOK_GLOBAL(setsid);
 }

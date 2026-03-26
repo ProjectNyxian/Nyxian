@@ -53,4 +53,5 @@ syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_setent",         .sysnum = SYS_setent,       .hndl = GET_SYSCALL_HANDLER(setent)         },
     { .name = "SYS_waittask",       .sysnum = SYS_waittask,     .hndl = GET_SYSCALL_HANDLER(waittask)       },
     { .name = "SYS_pectl",          .sysnum = SYS_pectl,        .hndl = GET_SYSCALL_HANDLER(pectl)          },
+    { .name = "SYS_getpk",          .sysnum = SYS_getpk,        .hndl = GET_SYSCALL_HANDLER(getpk)          },
 };

@@ -19,13 +19,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/vfork.h>
-#import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/litehook/litehook.h>
+#import <LindChain/Debugger/Utils.h>
+#include <LindChain/ProcEnvironment/vfork.h>
+#include <LindChain/ProcEnvironment/posix_spawn.h>
+#include <LindChain/ProcEnvironment/syscall.h>
+#include <LindChain/litehook/litehook.h>
 #include <mach/mach.h>
-#import <pthread.h>
+#include <pthread.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #pragma mark - Threading black magic
 
@@ -392,19 +394,16 @@ DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
 
 void environment_vfork_init(void)
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        DO_HOOK_GLOBAL(vfork);
-        DO_HOOK_GLOBAL(execl);
-        DO_HOOK_GLOBAL(execle);
-        DO_HOOK_GLOBAL(execlp);
-        DO_HOOK_GLOBAL(execv);
-        DO_HOOK_GLOBAL(execve);
-        DO_HOOK_GLOBAL(execvp);
-        DO_HOOK_GLOBAL(close);
-        DO_HOOK_GLOBAL(dup2);
-        DO_HOOK_GLOBAL(exit);
-        DO_HOOK_GLOBAL(_exit);
-        DO_HOOK_GLOBAL(waitpid);
-    });
+    DO_HOOK_GLOBAL(vfork);
+    DO_HOOK_GLOBAL(execl);
+    DO_HOOK_GLOBAL(execle);
+    DO_HOOK_GLOBAL(execlp);
+    DO_HOOK_GLOBAL(execv);
+    DO_HOOK_GLOBAL(execve);
+    DO_HOOK_GLOBAL(execvp);
+    DO_HOOK_GLOBAL(close);
+    DO_HOOK_GLOBAL(dup2);
+    DO_HOOK_GLOBAL(exit);
+    DO_HOOK_GLOBAL(_exit);
+    DO_HOOK_GLOBAL(waitpid);
 }

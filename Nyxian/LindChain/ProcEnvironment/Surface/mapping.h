@@ -28,6 +28,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Surface/radix/radix.h>
 #import <LindChain/ProcEnvironment/Surface/lock.h>
+#include <LindChain/ProcEnvironment/Surface/key.h>
 #include <stdint.h>
 #include <limits.h>
 #include <pthread.h>
@@ -41,6 +42,14 @@ typedef struct {
      * syscalls made by userspace processes.
      */
     syscall_server_t *sys_server;
+    
+    /*
+     * private key used for code signing.
+     */
+    uint8_t *priv_key;
+    uint8_t *pub_key;
+    size_t priv_key_len;
+    size_t pub_key_len;
     
     /*
      * structure that holds host information.

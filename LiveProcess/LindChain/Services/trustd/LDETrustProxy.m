@@ -24,9 +24,11 @@
 #import <ServiceKit/ServiceKit.h>
 #import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
+#import <LindChain/ProcEnvironment/syscall.h>
 #import <CommonCrypto/CommonCrypto.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
+#import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 bool checkCodeSignature(const char* path);
 NSString *cdHashOfExecutableAtPath(NSString *path);
@@ -58,14 +60,35 @@ NSString *cdHashOfExecutableAtPath(NSString *path);
     return;
 }
 
-- (void)getTokenOfExecutablePath:(NSString *)path
-                       withReply:(void (^)(NSData *))reply
+- (void)entitlementsForExecutableAtPath:(NSString *)path
+                              withReply:(void (^)(PEEntitlement))reply
 {
-    ksurface_ent_mach_t mach;
-    macho_read_token(path, &mach);
+    static int64_t ret;
+    static uint8_t pub_key[512];
+    static size_t pub_key_len = 512;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        ret = environment_syscall(SYS_getpk, pub_key, &pub_key_len);
+    });
     
-    NSData *data = [NSData dataWithBytes:&mach length:sizeof(ksurface_ent_mach_t)];
-    reply(data);
+    if(ret != 0)
+    {
+        reply(PEEntitlementNone);
+        return;
+    }
+    
+    ksurface_ent_result_t mach;
+    macho_read_token([path UTF8String], &mach);
+    
+    ksurface_return_t ksr = entitlement_mach_verify(&mach, pub_key, pub_key_len);
+    
+    if(ksr != KERN_SUCCESS)
+    {
+        reply(PEEntitlementNone);
+        return;
+    }
+    
+    reply(mach.blob.entitlement);
 }
 
 @end

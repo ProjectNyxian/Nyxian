@@ -20,7 +20,7 @@
 */
 
 #include <stdlib.h>
-#import <LindChain/ProcEnvironment/panic.h>
+#include <LindChain/ProcEnvironment/panic.h>
 
 void environment_panic(void)
 {

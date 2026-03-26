@@ -19,14 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_SYSCTL_H
-#define PROCENVIRONMENT_SYSCTL_H
+#ifndef SURFACE_SYS_GETPK_H
+#define SURFACE_SYS_GETPK_H
 
-/* ----------------------------------------------------------------------
- *  Apple API Headers
- * -------------------------------------------------------------------- */
-#include <sys/sysctl.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
 
-void environment_sysctl_init(void);
+DEFINE_SYSCALL_HANDLER(getpk);
 
-#endif /* PROCENVIRONMENT_SYSCTL_H */
+#endif /* SURFACE_SYS_GETPK_H */

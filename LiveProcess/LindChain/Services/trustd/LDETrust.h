@@ -33,7 +33,6 @@
 + (instancetype)shared;
 
 - (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
-- (NSData*)getTokenOfExecutableAtPath:(NSString*)path;
 - (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path;
 
 @end

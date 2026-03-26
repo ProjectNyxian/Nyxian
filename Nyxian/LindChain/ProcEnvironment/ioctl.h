@@ -22,8 +22,6 @@
 #ifndef PROCENVIRONMENT_IOCTL_H
 #define PROCENVIRONMENT_IOCTL_H
 
-#include <sys/sysctl.h>
-
 void environment_ioctl_init(void);
 
 #endif /* PROCENVIRONMENT_IOCTL_H */

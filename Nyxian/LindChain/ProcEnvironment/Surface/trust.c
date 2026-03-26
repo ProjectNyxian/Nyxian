@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
 #include <sys/stat.h>
@@ -288,10 +289,10 @@ long find_append_offset_for_file(int fd)
 
 #if HOST_ENV
 
-int macho_after_sign(NSString *path,
+int macho_after_sign(const char *path,
                      PEEntitlement entitlement)
 {
-    int fd = open([path UTF8String], O_RDWR);
+    int fd = open(path, O_RDWR);
     if(fd < 0)
     {
         perror("open");
@@ -306,7 +307,7 @@ int macho_after_sign(NSString *path,
         return -1;
     }
     
-    ksurface_ent_token_t token;
+    ksurface_ent_blob_t token;
     ksurface_return_t ksr = entitlement_token_mach_gen(&token, cdhash, entitlement);
     if(ksr != SURFACE_SUCCESS)
     {
@@ -315,7 +316,7 @@ int macho_after_sign(NSString *path,
     }
     
     long offset = find_append_offset_for_file(fd);
-    printf("Appending %zu bytes at offset 0x%lx\n", sizeof(ksurface_ent_token_t), offset);
+    printf("Appending %zu bytes at offset 0x%lx\n", sizeof(ksurface_ent_blob_t), offset);
 
     if(lseek(fd, offset, SEEK_SET) < 0)
     {
@@ -324,14 +325,14 @@ int macho_after_sign(NSString *path,
         return -1;
     }
 
-    if(write(fd, &token, sizeof(ksurface_ent_token_t)) != (ssize_t)sizeof(ksurface_ent_token_t))
+    if(write(fd, &token, sizeof(ksurface_ent_blob_t)) != (ssize_t)sizeof(ksurface_ent_blob_t))
     {
         perror("write data");
         close(fd);
         return -1;
     }
 
-    size_t data_len = sizeof(ksurface_ent_token_t);
+    size_t data_len = sizeof(ksurface_ent_blob_t);
     if(write(fd, &data_len, sizeof(uint32_t)) != sizeof(uint32_t))
     {
         perror("write len");
@@ -351,12 +352,12 @@ int macho_after_sign(NSString *path,
 
 #endif /* HOST_ENV */
 
-int macho_read_token(NSString *path,
-                     ksurface_ent_mach_t *mach)
+int macho_read_token(const char *path,
+                     ksurface_ent_result_t *mach)
 {
-    bzero(mach, sizeof(ksurface_ent_mach_t));
+    bzero(mach, sizeof(ksurface_ent_result_t));
     
-    int fd = open([path UTF8String], O_RDONLY);
+    int fd = open(path, O_RDONLY);
     if(fd < 0)
     {
         perror("open"); return -1;
@@ -403,7 +404,7 @@ int macho_read_token(NSString *path,
         return -1;
     }
     
-    if(read(fd, &(mach->token), len) != (ssize_t)len)
+    if(read(fd, &(mach->blob), len) != (ssize_t)len)
     {
         perror("read data");
         close(fd);
@@ -422,7 +423,7 @@ int macho_read_token(NSString *path,
         return -1;
     }
     
-    if(strncmp(hash, mach->token.blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
+    if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
         mach->cdhash_valid = true;
         return 0;

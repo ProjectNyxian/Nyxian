@@ -19,12 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/ProcEnvironment/ioctl.h>
-#import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/litehook/litehook.h>
+#include <LindChain/ProcEnvironment/ioctl.h>
+#include <LindChain/ProcEnvironment/syscall.h>
+#include <LindChain/litehook/litehook.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <errno.h>
 
 DEFINE_HOOK(ioctl, int, (int fd,
                          unsigned long flag,
@@ -107,13 +107,10 @@ DEFINE_HOOK(tcgetpgrp, int, (int fd))
 
 void environment_ioctl_init(void)
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        DO_HOOK_GLOBAL(ioctl);
-        DO_HOOK_GLOBAL(isatty);
-        DO_HOOK_GLOBAL(tcgetattr);
-        DO_HOOK_GLOBAL(tcsetattr);
-        DO_HOOK_GLOBAL(tcsetpgrp);
-        DO_HOOK_GLOBAL(tcgetpgrp);
-    });
+    DO_HOOK_GLOBAL(ioctl);
+    DO_HOOK_GLOBAL(isatty);
+    DO_HOOK_GLOBAL(tcgetattr);
+    DO_HOOK_GLOBAL(tcsetattr);
+    DO_HOOK_GLOBAL(tcsetpgrp);
+    DO_HOOK_GLOBAL(tcgetpgrp);
 }

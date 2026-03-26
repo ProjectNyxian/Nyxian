@@ -22,55 +22,103 @@
 #include <LindChain/ProcEnvironment/Surface/entitlement.h>
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/key.h>
-#include <OpenSSL/hmac.h>
+#include <OpenSSL/evp.h>
+#include <OpenSSL/err.h>
+#include <OpenSSL/ec.h>
+#include <OpenSSL/pem.h>
 #include <assert.h>
 
-ksurface_return_t entitlement_token_mach_gen(ksurface_ent_token_t *token,
+#if HOST_ENV
+
+ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
                                              const char *cdhash,
                                              PEEntitlement entitlement)
 {
     /* copy cdhash and entitlements over */
-    memcpy((void*)(token->blob.cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
-    token->blob.entitlement = entitlement;
-    arc4random_buf(&(token->blob.nonce), sizeof(uint64_t));
+    memcpy((void*)(blob->cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
+    blob->entitlement = entitlement;
     
-    /* generating cryptographic key */
-    unsigned int mac_len = 0;
-    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char*)&(token->blob), sizeof(ksurface_ent_blob_t), token->mac, &mac_len);
-    
-    /* sanity check */
-    if(mac_len != 32)
+    /* generating nonce so it's harder to crack */
+    arc4random_buf(&(blob->nonce), sizeof(uint64_t));
+
+    /* signing blob */
+    const uint8_t *p = ksurface->priv_key;
+    EVP_PKEY *priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p, (long)ksurface->priv_key_len);
+    if(!priv)
     {
         return SURFACE_FAILED;
     }
     
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    if(!mdctx)
+    {
+        EVP_PKEY_free(priv);
+        return SURFACE_FAILED;
+    }
+    
+    if(EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, priv) != 1)
+    {
+        EVP_MD_CTX_free(mdctx);
+        EVP_PKEY_free(priv);
+        return SURFACE_FAILED;
+    }
+
+    size_t mac_len;
+    if(EVP_DigestSign(mdctx, blob->mac, &mac_len, (unsigned char*)blob, offsetof(ksurface_ent_blob_t, mac)) != 1)
+    {
+        EVP_MD_CTX_free(mdctx);
+        EVP_PKEY_free(priv);
+        return SURFACE_FAILED;
+    }
+    blob->mac_len = mac_len;
+    
+    EVP_MD_CTX_free(mdctx);
+    EVP_PKEY_free(priv);
+    
     return SURFACE_SUCCESS;
 }
 
-ksurface_return_t entitlement_mach_verify(ksurface_ent_mach_t *mach)
+#endif /* HOST_ENV */
+
+ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
+                                          uint8_t *pub_key,
+                                          size_t pub_key_len)
 {
     assert(mach != NULL);
     
-    uint8_t expected[32];
-    unsigned int mac_len = 0;
-
-    HMAC(EVP_sha256(), get_static_kernel_key(), 32, (unsigned char *)&(mach->token.blob), sizeof(ksurface_ent_blob_t), expected, &mac_len);
-    
-    /* sanity check */
-    if(mac_len != 32)
+    /* verify signature from blob */
+    const uint8_t *p = pub_key;
+    EVP_PKEY *pub = d2i_PUBKEY(NULL, &p, pub_key_len);
+    if(!pub)
     {
         return SURFACE_DENIED;
     }
     
-    if(CRYPTO_memcmp(expected, mach->token.mac, 32) != 0)
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    if(!mdctx)
+    {
+        EVP_PKEY_free(pub);
+        return SURFACE_DENIED;
+    }
+    
+    if(EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, pub) != 1)
+    {
+        EVP_MD_CTX_free(mdctx);
+        EVP_PKEY_free(pub);
+        return SURFACE_DENIED;
+    }
+    
+    int ret = EVP_DigestVerify(mdctx, mach->blob.mac, mach->blob.mac_len, (unsigned char *)&mach->blob, offsetof(ksurface_ent_blob_t, mac));
+    
+    EVP_MD_CTX_free(mdctx);
+    EVP_PKEY_free(pub);
+    
+    if(ret != 1)
     {
         return SURFACE_DENIED;
     }
     
-    /* blob is valid */
     mach->blob_valid = true;
-
-    /* check if cdhash check by trustd is valid */
     if(!mach->cdhash_valid)
     {
         return SURFACE_DENIED;

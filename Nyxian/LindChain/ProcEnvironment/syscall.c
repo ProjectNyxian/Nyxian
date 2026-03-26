@@ -21,10 +21,11 @@
 
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/ProcEnvironment/proxy.h>
 #import <LindChain/Private/mach/fileport.h>
 #import <errno.h>
 #import <stdarg.h>
+
+extern syscall_client_t *syscallProxy;
 
 enum kESysType {
     kESysTypeNum = 0,

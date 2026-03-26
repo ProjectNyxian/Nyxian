@@ -19,15 +19,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/tfp.h>
-#import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/ProcEnvironment/proxy.h>
-#import <LindChain/litehook/litehook.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/Debugger/MachServer.h>
-#import <LindChain/ProcEnvironment/Utils/ktfp.h>
-#import <mach/mach.h>
+#include <LindChain/ProcEnvironment/tfp.h>
+#include <LindChain/litehook/litehook.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/syscall.h>
+#include <LindChain/Debugger/MachServer.h>
+#include <LindChain/ProcEnvironment/Utils/ktfp.h>
+#include <mach/mach.h>
 
 kern_return_t environment_task_for_pid(mach_port_name_t tp_in,
                                        pid_t pid,
@@ -80,13 +78,10 @@ DEFINE_HOOK(task_name_for_pid, kern_return_t, (mach_port_name_t tp_in,
  */
 void environment_tfp_init(void)
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        /* sending our task port to the task port system */
-        ktfp(KTFP_GUEST);
-        
-        /* hooking tfp api */
-        litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, nil);
-        DO_HOOK_GLOBAL(task_name_for_pid);
-    });
+    /* sending our task port to the task port system */
+    ktfp(KTFP_GUEST);
+    
+    /* hooking tfp api */
+    litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, task_for_pid, environment_task_for_pid, NULL);
+    DO_HOOK_GLOBAL(task_name_for_pid);
 }

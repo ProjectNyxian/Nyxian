@@ -19,12 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/sysctl.h>
-#import <LindChain/ProcEnvironment/environment.h>
-#import <LindChain/ProcEnvironment/syscall.h>
-#import <LindChain/litehook/litehook.h>
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/sysctl.h>
+#include <LindChain/ProcEnvironment/syscall.h>
+#include <LindChain/litehook/litehook.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 #include <sys/sysctl.h>
+#include <errno.h>
 
 DEFINE_HOOK(sysctl, int, (int *name,
                           u_int namelen,
@@ -65,11 +65,8 @@ DEFINE_HOOK(sethostname, int, (char *name,
 
 void environment_sysctl_init(void)
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        DO_HOOK_GLOBAL(sysctl);
-        DO_HOOK_GLOBAL(sysctlbyname);
-        DO_HOOK_GLOBAL(gethostname);
-        DO_HOOK_GLOBAL(sethostname);
-    });
+    DO_HOOK_GLOBAL(sysctl);
+    DO_HOOK_GLOBAL(sysctlbyname);
+    DO_HOOK_GLOBAL(gethostname);
+    DO_HOOK_GLOBAL(sethostname);
 }

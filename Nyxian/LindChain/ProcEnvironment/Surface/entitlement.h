@@ -33,8 +33,7 @@
 
 typedef struct ksurface_proc ksurface_proc_t;
 typedef struct ksurface_ent_blob ksurface_ent_blob_t;
-typedef struct ksurface_ent_token ksurface_ent_token_t;
-typedef struct ksurface_ent_mach ksurface_ent_mach_t;
+typedef struct ksurface_ent_result ksurface_ent_result_t;
 
 /*!
  @enum PEEntitlement
@@ -131,19 +130,15 @@ typedef enum {
 #endif /* __OBJC__ */
     
 struct __attribute__((packed)) ksurface_ent_blob {
-    pid_t issuer_pid;
     PEEntitlement entitlement;
     char cdhash[USER_FSIGNATURES_CDHASH_LEN];
     uint64_t nonce;
+    uint8_t mac[72];
+    size_t mac_len;
 };
 
-struct __attribute__((packed)) ksurface_ent_token {
+struct __attribute__((packed)) ksurface_ent_result {
     struct ksurface_ent_blob blob;
-    uint8_t mac[32];
-};
-
-struct __attribute__((packed)) ksurface_ent_mach {
-    struct ksurface_ent_token token;
     char cdhash[USER_FSIGNATURES_CDHASH_LEN];
     bool cdhash_valid;
     bool blob_valid;
@@ -151,7 +146,7 @@ struct __attribute__((packed)) ksurface_ent_mach {
 
 #define entitlement_got_entitlement(present,needed) ((present & needed) == needed)
 
-ksurface_return_t entitlement_token_mach_gen(ksurface_ent_token_t *token, const char *cdhash, PEEntitlement entitlement);
-ksurface_return_t entitlement_mach_verify(ksurface_ent_mach_t *mach);
+ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob, const char *cdhash, PEEntitlement entitlement);
+ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach, uint8_t *pub_key, size_t pub_key_len);
 
 #endif /* PROC_ENTITLEMENT_H */

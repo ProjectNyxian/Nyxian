@@ -25,6 +25,6 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-BOOL permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc, pid_t targetPid, BOOL allowSessionBypass, PEEntitlement entitlementsNeeded, PEEntitlement targetEntitlementsNeeded);
+bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc, pid_t targetPid, bool allowSessionBypass, PEEntitlement entitlementsNeeded, PEEntitlement targetEntitlementsNeeded);
 
 #endif /* PROCENVIRONMENT_PERMIT_H */

@@ -27,7 +27,7 @@
 @protocol LDETrustProtocol <NSObject>
 
 - (void)executableAllowedToExecutedAtPath:(NSString*)path withReply:(void (^)(BOOL))reply;
-- (void)getTokenOfExecutablePath:(NSString*)path withReply:(void (^)(NSData*))reply;
+- (void)entitlementsForExecutableAtPath:(NSString*)path withReply:(void (^)(PEEntitlement))reply;
 
 @end
 

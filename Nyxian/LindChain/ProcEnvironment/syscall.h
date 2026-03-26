@@ -22,8 +22,15 @@
 #ifndef PROCENVIRONMENT_SYSCALL_H
 #define PROCENVIRONMENT_SYSCALL_H
 
+/* ----------------------------------------------------------------------
+ *  Apple API Headers
+ * -------------------------------------------------------------------- */
+#include <stdint.h>
+
+/* ----------------------------------------------------------------------
+ *  Environment API Headers
+ * -------------------------------------------------------------------- */
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
-#import <stdint.h>
 
 int64_t environment_syscall(uint32_t syscall_num, ...);
 
