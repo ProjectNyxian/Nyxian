@@ -22,6 +22,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
 #import <LindChain/LaunchServices/LDEBootstrapRegistry.h>
+#import <LindChain/LaunchServices/LaunchService.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 extern mach_port_t xpc_endpoint_copy_listener_port_4sim(NSObject<OS_xpc_object>*);
@@ -114,6 +115,16 @@ DEFINE_SYSCALL_HANDLER(pectl)
             if(service_nsname == nil)
             {
                 sys_return_failure(ENOMEM);
+            }
+            
+            LaunchService *service = [[LaunchServices shared] serviceForIdentifier:service_nsname];
+            if(service != nil)
+            {
+                LDEProcess *process = service.process;
+                if(process.pid != proc_getpid(sys_proc_snapshot_))
+                {
+                    sys_return_failure(EPERM);
+                }
             }
             
             [[LDEBootstrapRegistry shared] setEndpoint:endpoint forServiceIdentifier:service_nsname];

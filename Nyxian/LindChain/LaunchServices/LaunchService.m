@@ -164,7 +164,7 @@
                      observerProtocol:(Protocol *)observerProtocol
 {
     NSXPCListenerEndpoint *endpoint = [[LDEBootstrapRegistry shared] getEndpointWithServiceIdentifier:serviceIdentifier];
-    if (!endpoint) return nil;
+    if(!endpoint) return nil;
     
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
     connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:protocol];
@@ -173,6 +173,22 @@
     [connection resume];
     
     return connection;
+}
+
+- (LaunchService *)serviceForIdentifier:(NSString *)serviceIdentifier
+{
+    LaunchService *service = nil;
+    os_unfair_lock_lock(&_lock);
+    for(LaunchService *item in self.launchServices)
+    {
+        if([item.serviceIdentifier isEqualToString:serviceIdentifier])
+        {
+            service = item;
+            break;
+        }
+    }
+    os_unfair_lock_unlock(&_lock);
+    return service;
 }
 
 @end

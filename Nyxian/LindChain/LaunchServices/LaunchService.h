@@ -56,6 +56,7 @@
 + (instancetype)shared;
 
 - (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier protocol:(Protocol *)protocol observer:(id)observer observerProtocol:(Protocol *)observerProtocol;
+- (LaunchService *)serviceForIdentifier:(NSString *)serviceIdentifier;
 
 @end
 
