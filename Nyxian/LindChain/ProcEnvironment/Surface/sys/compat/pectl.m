@@ -121,6 +121,11 @@ DEFINE_SYSCALL_HANDLER(pectl)
             if(service != nil)
             {
                 LDEProcess *process = service.process;
+                if(process == nil)
+                {
+                    sys_return_failure(EPERM);
+                }
+                
                 if(process.pid != proc_getpid(sys_proc_snapshot_))
                 {
                     sys_return_failure(EPERM);
