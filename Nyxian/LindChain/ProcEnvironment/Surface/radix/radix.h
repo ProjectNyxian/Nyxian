@@ -22,8 +22,20 @@
 #ifndef RADIX_H
 #define RADIX_H
 
-#import <LindChain/ProcEnvironment/Surface/radix/type/tree.h>
 #include <stdlib.h>
+
+#define RADIX_BITS   8
+#define RADIX_SIZE   256
+#define RADIX_MASK   0xFF
+#define RADIX_LEVELS 8
+
+typedef struct radix_node {
+    void *slots[RADIX_SIZE];
+} radix_node_t;
+
+typedef struct radix_tree {
+    radix_node_t *root;
+} radix_tree_t;
 
 typedef void (*radix_walk_fn)(uint64_t ident, void *value, void *ctx);
 

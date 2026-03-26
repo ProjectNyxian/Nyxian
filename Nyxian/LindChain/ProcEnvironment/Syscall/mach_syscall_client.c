@@ -19,14 +19,14 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Debugger/Utils.h>
-#import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
-#import <LindChain/ProcEnvironment/Syscall/payload.h>
+#include <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
+#include <LindChain/ProcEnvironment/Syscall/payload.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <assert.h>
 
 struct syscall_client {
     mach_port_t server_port;

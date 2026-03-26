@@ -22,7 +22,9 @@
 #ifndef PROCENVIRONMENT_SURFACE_H
 #define PROCENVIRONMENT_SURFACE_H
 
+#ifdef __OBJC__
 #import <Foundation/Foundation.h>
+#endif /* __OBJC__ */
 
 #import <LindChain/ProcEnvironment/Surface/limits.h>
 #import <LindChain/ProcEnvironment/Surface/return.h>
@@ -30,7 +32,10 @@
 
 extern ksurface_mapping_t *ksurface;
 
+#ifdef __OBJC__
 int ksurface_sethostname(NSString *hostname);
+#endif /* __OBJC__ */
+
 void ksurface_kinit(void);
 
 #endif /* PROCENVIRONMENT_SURFACE_H */

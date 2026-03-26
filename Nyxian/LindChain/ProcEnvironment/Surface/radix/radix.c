@@ -19,10 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/radix/config.h>
-#import <LindChain/ProcEnvironment/Surface/radix/radix.h>
-#import <LindChain/ProcEnvironment/Surface/radix/type/tree.h>
-#import <LindChain/ProcEnvironment/Surface/radix/type/node.h>
+#include <LindChain/ProcEnvironment/Surface/radix/radix.h>
 #include <stdlib.h>
 #include <stdbool.h>
 

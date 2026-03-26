@@ -19,15 +19,14 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Debugger/Utils.h>
-#import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/panic.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/panic.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #define MAX_SYSCALLS 1024
 

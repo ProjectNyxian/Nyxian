@@ -23,6 +23,7 @@
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/key.h>
 #include <OpenSSL/hmac.h>
+#include <assert.h>
 
 ksurface_return_t entitlement_token_mach_gen(ksurface_ent_token_t *token,
                                              const char *cdhash,
