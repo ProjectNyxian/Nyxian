@@ -105,7 +105,12 @@ class FileIcon: UIView {
     }
     
     private func configureImageIcon(name: String, tintColor: UIColor? = nil) {
-        iconImageView.image = UIImage(systemName: name)
+        if(self.iconLabel.font.pointSize == 20) {
+            iconImageView.image = UIImage(systemName: name)
+        } else {
+            let symbolConfig = UIImage.SymbolConfiguration(pointSize: self.iconLabel.font.pointSize - 2, weight: .regular)
+            iconImageView.image = UIImage(systemName: name, withConfiguration: symbolConfig)
+        }
         if let tintColor = tintColor {
             iconImageView.tintColor = tintColor
         }
