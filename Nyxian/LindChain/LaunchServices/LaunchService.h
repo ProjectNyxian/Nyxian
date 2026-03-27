@@ -29,7 +29,7 @@
 
 @interface LaunchService : NSObject
 
-@property (nonatomic,strong) LDEProcess *process;
+@property (atomic,strong) LDEProcess *process;
 @property (nonatomic,strong) NSDictionary *dictionary;
 @property (nonatomic,strong) NSXPCListenerEndpoint *endpoint;
 
