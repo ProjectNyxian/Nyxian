@@ -55,7 +55,7 @@ int main(int argc, char * argv[])
             environment_init(EnvironmentRoleHost, EnvironmentExecCustom, NSBundle.mainBundle.executablePath, argc, argv);
             
             /* entry point is the new setup chain, better than using this lazy __attribute__ 100% control */
-            [LaunchServices shared];                                /* invokes launch services startup*/
+            [PELaunchServiceRegistry shared];   /* invokes launch services startup*/
         }
 #else
         if(getsid(getpid()) != getpid())

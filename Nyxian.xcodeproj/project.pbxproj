@@ -156,7 +156,6 @@
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/Init.mm,
-				LindChain/LaunchServices/LaunchService.m,
 				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,

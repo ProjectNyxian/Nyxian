@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/LaunchServices/LDEBootstrapRegistry.h>
+#import <LindChain/LaunchServices/PEBootstrapRegistry.h>
 #import <os/lock.h>
 
-@implementation LDEBootstrapRegistry {
+@implementation PEBootstrapRegistry {
     os_unfair_lock _lock;
 }
 
@@ -36,10 +36,10 @@
 
 + (instancetype)shared
 {
-    static LDEBootstrapRegistry *registrySingleton = nil;
+    static PEBootstrapRegistry *registrySingleton = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        registrySingleton = [[LDEBootstrapRegistry alloc] init];
+        registrySingleton = [[PEBootstrapRegistry alloc] init];
     });
     return registrySingleton;
 }

@@ -21,8 +21,8 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
-#import <LindChain/LaunchServices/LDEBootstrapRegistry.h>
-#import <LindChain/LaunchServices/LaunchService.h>
+#import <LindChain/LaunchServices/PEBootstrapRegistry.h>
+#import <LindChain/LaunchServices/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 extern mach_port_t xpc_endpoint_copy_listener_port_4sim(NSObject<OS_xpc_object>*);
@@ -56,7 +56,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
                 sys_return_failure(ENOMEM);
             }
             
-            NSXPCListenerEndpoint *endpoint = [[LDEBootstrapRegistry shared] getEndpointWithServiceIdentifier:service_nsname];
+            NSXPCListenerEndpoint *endpoint = [[PEBootstrapRegistry shared] getEndpointWithServiceIdentifier:service_nsname];
             if(endpoint == nil)
             {
                 sys_return_failure(EACCES);
@@ -117,7 +117,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
                 sys_return_failure(ENOMEM);
             }
             
-            LaunchService *service = [[LaunchServices shared] serviceForIdentifier:service_nsname];
+            PELaunchService *service = [[PELaunchServiceRegistry shared] serviceForIdentifier:service_nsname];
             if(service != nil)
             {
                 LDEProcess *process = service.process;
@@ -132,7 +132,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
                 }
             }
             
-            [[LDEBootstrapRegistry shared] setEndpoint:endpoint forServiceIdentifier:service_nsname];
+            [[PEBootstrapRegistry shared] setEndpoint:endpoint forServiceIdentifier:service_nsname];
             sys_in_ports[0] = MACH_PORT_NULL;   /* prevent mach port reference leak */
             
             sys_return;

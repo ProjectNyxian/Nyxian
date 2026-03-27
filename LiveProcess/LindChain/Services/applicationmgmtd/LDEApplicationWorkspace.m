@@ -25,7 +25,7 @@
 #import <LindChain/ProcEnvironment/Object/ArchiveObject.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
-#import <LindChain/LaunchServices/LaunchService.h>
+#import <LindChain/LaunchServices/PELaunchServiceRegistry.h>
 #import <Nyxian-Swift.h>
 
 @interface LDEApplicationWorkspace ()
@@ -65,11 +65,11 @@
     
     __weak typeof(self) weakSelf = self;
     _connection = nil;
-    LaunchServices *launchServices = [LaunchServices shared];
+    PELaunchServiceRegistry *serviceRegistry = [PELaunchServiceRegistry shared];
     
-    if(launchServices != nil)
+    if(serviceRegistry != nil)
     {
-        _connection = [launchServices connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
+        _connection = [serviceRegistry connectToService:@"com.cr4zy.installd" protocol:@protocol(LDEApplicationWorkspaceProxyProtocol) observer:self observerProtocol:@protocol(LDEApplicationWorkspaceProtocol)];
         _connection.invalidationHandler = ^{
             __strong typeof(self) strongSelf = weakSelf;
             if(!strongSelf) return;

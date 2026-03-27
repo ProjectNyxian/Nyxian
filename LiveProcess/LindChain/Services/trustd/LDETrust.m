@@ -21,7 +21,7 @@
 
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
-#import <LindChain/LaunchServices/LaunchService.h>
+#import <LindChain/LaunchServices/PELaunchServiceRegistry.h>
 
 @implementation LDETrust
 
@@ -50,11 +50,11 @@
     
     __weak typeof(self) weakSelf = self;
     _connection = nil;
-    LaunchServices *launchServices = [LaunchServices shared];
+    PELaunchServiceRegistry *serviceRegistry = [PELaunchServiceRegistry shared];
     
-    if(launchServices != nil)
+    if(serviceRegistry != nil)
     {
-        _connection = [launchServices connectToService:@"com.cr4zy.ksurfaced" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
+        _connection = [serviceRegistry connectToService:@"com.cr4zy.ksurfaced" protocol:@protocol(LDETrustProtocol) observer:nil observerProtocol:nil];
         _connection.invalidationHandler = ^{
             __strong typeof(self) strongSelf = weakSelf;
             if(!strongSelf) return;

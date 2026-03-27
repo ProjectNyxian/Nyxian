@@ -19,21 +19,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEBOOTSTRAPREGISTRY_H
-#define LDEBOOTSTRAPREGISTRY_H
+#ifndef PELAUNCHSERVICEREGISTRY_H
+#define PELAUNCHSERVICEREGISTRY_H
 
 #import <Foundation/Foundation.h>
+#import <os/lock.h>
+#import <LindChain/LaunchServices/PELaunchService.h>
 
-@interface LDEBootstrapRegistry : NSObject
-
-@property (nonatomic,strong,readonly) NSMutableDictionary<NSString*,NSXPCListenerEndpoint*> *registry;
+@interface PELaunchServiceRegistry : NSObject {
+    os_unfair_lock _lock;
+    NSMutableArray<PELaunchService*> *_launchServices;
+}
 
 - (instancetype)init;
 + (instancetype)shared;
 
-- (NSXPCListenerEndpoint*)getEndpointWithServiceIdentifier:(NSString*)serviceIdentifier;
-- (void)setEndpoint:(NSXPCListenerEndpoint*)endpoint forServiceIdentifier:(NSString*)serviceIdentifier;
+- (NSXPCConnection *)connectToService:(NSString *)serviceIdentifier protocol:(Protocol *)protocol observer:(id)observer observerProtocol:(Protocol *)observerProtocol;
+- (PELaunchService *)serviceForIdentifier:(NSString *)serviceIdentifier;
 
 @end
 
-#endif /* LDEBOOTSTRAPREGISTRY_H */
+#endif /* PELAUNCHSERVICEREGISTRY_H */
