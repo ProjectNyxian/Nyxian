@@ -487,7 +487,7 @@ class UIButtonTab: UIButton {
         ])
         
         self.contentEdgeInsets = UIEdgeInsets(top: 0, left: 32, bottom: 0, right: 10)
-        self.setTitle(vc.path.URLGet().lastPathComponent, for: .normal)
+        self.setTitle((vc.path as NSString).lastPathComponent, for: .normal)
         self.setTitleColor(currentTheme?.textColor, for: .normal)
         self.titleLabel?.font = .systemFont(ofSize: 13)
         self.contentHorizontalAlignment = .center
@@ -513,7 +513,7 @@ class UIButtonTab: UIButton {
             fileIcon.widthAnchor.constraint(equalTo: fileIcon.heightAnchor)
         ])
         
-        fileIcon.configure(with: FileListEntry(name: path.URLLastPathComponent(), path: path, isLink: false, type: .file))
+        fileIcon.configure(with: FileListEntry(name: (path as NSString).lastPathComponent, path: path, isLink: false, type: .file))
         
         self.addAction(UIAction { [weak self] _ in
             guard let s = self else { return }

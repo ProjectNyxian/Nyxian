@@ -88,14 +88,14 @@ class CodeEditorViewController: UIViewController {
         if !isReadOnly {
             if let project = project {
                 let cachePath = project.cachePath!
-                let suffix = self.path.URLGet().pathExtension
+                let suffix = (self.path as NSString).pathExtension
                 if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                     self.synpushServer = SynpushServer(self.path)
                     self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
                 }
             }
         } else {
-            let suffix = self.path.URLGet().pathExtension
+            let suffix = (self.path as NSString).pathExtension
             if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
                 self.synpushServer = SynpushServer(self.path)
             }
@@ -211,26 +211,26 @@ class CodeEditorViewController: UIViewController {
         case "m","h":
             self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
-                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
-                "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm".URLGet()
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm"),
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm")
             ])
             break
         case "c":
             self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_c(), highlightsURL: [
-                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm")
             ])
             break
         case "hpp","cpp":
             self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_cpp(), highlightsURL: [
-                "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet(),
-                "\(Bundle.main.bundlePath)/TreeSitterCPP_TreeSitterCPP.bundle/queries/highlights.scm".URLGet()
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm"),
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterCPP_TreeSitterCPP.bundle/queries/highlights.scm")
             ])
             break
         case "xml","plist":
             loadLanguage(language: tree_sitter_xml(), highlightsURL: [
-                "\(Bundle.main.bundlePath)/TreeSitterXML_TreeSitterXML.bundle/xml/highlights.scm".URLGet()
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterXML_TreeSitterXML.bundle/xml/highlights.scm")
             ])
             break
         default:

@@ -95,7 +95,7 @@ extension ThemePickerPreviewCell {
     }
 
     func populate(with viewModel: ViewModel) {
-        let languageMode = loadLanguage(language: tree_sitter_c(), highlightsURL: ["\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm".URLGet()])
+        let languageMode = loadLanguage(language: tree_sitter_c(), highlightsURL: [URL(fileURLWithPath:"\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm")])
         textView.setLanguageMode(languageMode)
         textView.theme = viewModel.theme
         textView.text = viewModel.text

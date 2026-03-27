@@ -45,11 +45,11 @@ class Builder {
         self.compiler = Compiler(genericCompilerFlags)
         self.linker = Linker()
         
-        try? syncFolderStructure(from: project.path.URLGet(), to: project.cachePath.URLGet())
+        try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
         
         self.dirtySourceFiles = LDEFilesFinder(self.project.path, ["c","cpp","m","mm"], ["Resources"])
         for item in dirtySourceFiles {
-            objectFiles.append("\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: item.URLGet())))")
+            objectFiles.append("\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: item))))")
         }
         
         // Check if args have changed
@@ -94,7 +94,7 @@ class Builder {
     /// Function to detect if a file is dirty (has to be recompiled)
     ///
     private func isFileDirty(_ item: String) -> Bool {
-        let objectFilePath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: item.URLGet())))"
+        let objectFilePath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: item))))"
         
         // Checking if the source file is newer than the compiled object file
         guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: item)[.modificationDate] as? Date,
@@ -239,7 +239,7 @@ class Builder {
                     
                     if self.compiler.compileObject(
                         filePath,
-                        outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: self.project.path.URLGet(), to: filePath.URLGet())))",
+                        outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: filePath))))",
                         issues: &issues
                     ) != 0 {
                         threader.lockdown = true

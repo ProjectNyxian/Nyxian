@@ -496,7 +496,7 @@ import UniformTypeIdentifiers
                 break
             case .file:
                 if ["zip","ipa"].contains(URL(fileURLWithPath: fileListEntry.path).pathExtension)  {
-                    let folder: URL = PasteBoardServices.resolvedDestinationURL(for: fileListEntry.path.URLLastPathComponent(), inDirectory: self.path)
+                    let folder: URL = PasteBoardServices.resolvedDestinationURL(for: (fileListEntry.path as NSString).lastPathComponent, inDirectory: self.path)
                     if ((try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil) {
                         if(unzipArchiveAtPath(fileListEntry.path, folder.path)) {
                             self.entries.append(FileListEntry.getEntry(ofPath: folder.path))
