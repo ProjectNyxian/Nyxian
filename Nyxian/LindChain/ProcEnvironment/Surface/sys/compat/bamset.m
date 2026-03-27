@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/sys/compat/bamset.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(bamset)
 {    
@@ -28,7 +28,7 @@ DEFINE_SYSCALL_HANDLER(bamset)
     bool active = args[0];
     
     /* getting process */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_snapshot_)];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_snapshot_)];
     if(process)
     {
         process.audioBackgroundModeUsage = active;

@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEPROCESS_H
-#define LDEPROCESS_H
+#ifndef PRPROCESS_H
+#define PRPROCESS_H
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Private/FoundationPrivate.h>
@@ -31,7 +31,7 @@
 
 @class LDEWindowSessionApplication;
 
-@interface LDEProcess : NSObject <FBSceneDelegate>
+@interface PEProcess : NSObject <FBSceneDelegate>
 
 #if !JAILBREAK_ENV
 @property (nonatomic,strong) NSExtension *extension;
@@ -84,4 +84,4 @@
 
 @end
 
-#endif /* LDEPROCESS_H */
+#endif /* PRPROCESS_H */

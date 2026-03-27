@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <Nyxian-Swift.h>
@@ -108,8 +108,7 @@
         return NO;
     }
     
-    LDEProcess *process = nil;
-    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:@{
+    pid_t pid = [[PEProcessManager shared] spawnProcessWithItems:@{
         @"PEExecutablePath": _utilityPath,
         @"PEArguments": @[self.utilityPath],
         @"PEEnvironment": @{
@@ -120,7 +119,7 @@
         @"PEWorkingDirectory": homePath,
         @"PEMapObject": mapObject
     } withKernelSurfaceProcess:kernel_proc_];
-    process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:pid];
     
     if(process == nil)
     {

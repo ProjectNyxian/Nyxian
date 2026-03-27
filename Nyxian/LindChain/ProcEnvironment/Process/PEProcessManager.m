@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 #if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
@@ -33,7 +33,7 @@
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
-@implementation LDEProcessManager {
+@implementation PEProcessManager {
     NSTimeInterval _lastSpawnTime;
     NSTimeInterval _spawnCooldown;
     os_unfair_lock processes_array_lock;
@@ -55,10 +55,10 @@
 
 + (instancetype)shared
 {
-    static LDEProcessManager *processManagerSingletone = nil;
+    static PEProcessManager *processManagerSingletone = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        processManagerSingletone = [[LDEProcessManager alloc] init];
+        processManagerSingletone = [[PEProcessManager alloc] init];
     });
     return processManagerSingletone;
 }
@@ -94,7 +94,7 @@
     [self enforceSpawnCooldown];
     
     /* creating a process */
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc withSession:nil];
+    PEProcess *process = [[PEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc withSession:nil];
     
     /* null pointer check */
     if(process == nil)
@@ -125,13 +125,13 @@
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
     LDEWindowSessionApplication *session = nil;
-    LDEProcess *existingProcess = nil;
+    PEProcess *existingProcess = nil;
     
     os_unfair_lock_lock(&processes_array_lock);
     
     for(NSNumber *key in self.processes)
     {
-        LDEProcess *process = self.processes[key];
+        PEProcess *process = self.processes[key];
         if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
         {
             existingProcess = process;
@@ -189,7 +189,7 @@
         @"PEWorkingDirectory": [applicationObject.containerPath stringByAppendingPathComponent:@"/Documents"]
     }];
     
-    LDEProcess *process = [[LDEProcess alloc] initWithItems:mutableItems withKernelSurfaceProcess:proc withSession:session];
+    PEProcess *process = [[PEProcess alloc] initWithItems:mutableItems withKernelSurfaceProcess:proc withSession:session];
     
     /* null pointer check */
     if(process == nil)
@@ -218,7 +218,7 @@
 - (pid_t)spawnProcessWithBundleID:(NSString*)bundleID
 {
     /* creating a process */
-    LDEProcess *process = [[LDEProcess alloc] initWithBundleIdentifier:bundleID];
+    PEProcess *process = [[PEProcess alloc] initWithBundleIdentifier:bundleID];
     
     /* null pointer check */
     if(process == nil)
@@ -239,7 +239,7 @@
 
 #endif /* !JAILBREAK_ENV */
 
-- (LDEProcess*)processForProcessIdentifier:(pid_t)pid
+- (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {
     return [self.processes objectForKey:@(pid)];
 }
@@ -262,7 +262,7 @@
     
     for(NSNumber *key in self.processes)
     {
-        LDEProcess *process = self.processes[key];
+        PEProcess *process = self.processes[key];
         if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
         else
         {

@@ -23,11 +23,11 @@
 #define LDEPROCESSMANAGER_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcess.h>
+#import <LindChain/ProcEnvironment/Process/PEProcess.h>
 
-@interface LDEProcessManager : NSObject
+@interface PEProcessManager : NSObject
 
-@property (atomic) NSMutableDictionary<NSNumber*,LDEProcess*> *processes;
+@property (atomic) NSMutableDictionary<NSNumber*,PEProcess*> *processes;
 @property (atomic) dispatch_queue_t syncQueue;
 
 - (instancetype)init;
@@ -41,7 +41,7 @@
 #endif /* !JAILBREAK_ENV */
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
-- (LDEProcess*)processForProcessIdentifier:(pid_t)pid;
+- (PEProcess*)processForProcessIdentifier:(pid_t)pid;
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
 
 @end

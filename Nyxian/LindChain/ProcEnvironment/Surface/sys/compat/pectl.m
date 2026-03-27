@@ -120,7 +120,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
             PELaunchService *service = [[PELaunchServiceRegistry shared] serviceForIdentifier:service_nsname];
             if(service != nil)
             {
-                LDEProcess *process = service.process;
+                PEProcess *process = service.process;
                 if(process == nil)
                 {
                     sys_return_failure(EPERM);

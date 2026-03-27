@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/permit.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(kill)
 {    
@@ -47,7 +47,7 @@ DEFINE_SYSCALL_HANDLER(kill)
     }
 
     /* getting the processes high level structure */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:pid];
     if(!process)
     {
         /*

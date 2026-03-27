@@ -329,7 +329,7 @@ class Builder {
                                     mapObject?.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
                                 }
                                 
-                                LDEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["PEMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
+                                PEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["PEMapObject":mapObject!] : [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: true)
                             }
                         } else {
                             nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to install application"])
@@ -398,7 +398,7 @@ class Builder {
                     return
                 }
                 
-                LDEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
+                PEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
             } else {
                 while(!LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)) {
                     relax()

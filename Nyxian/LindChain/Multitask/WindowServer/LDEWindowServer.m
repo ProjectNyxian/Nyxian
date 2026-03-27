@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 #if !JAILBREAK_ENV
 
@@ -710,7 +710,7 @@
 
 - (void)launchpadDidSelectAppWithBundleID:(NSString *)bundleID
 {
-    [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
+    [[PEProcessManager shared] spawnProcessWithBundleIdentifier:bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
 }
 
 #endif /* !JAILBREAK_ENV */

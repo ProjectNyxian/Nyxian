@@ -19,7 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcess.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
@@ -35,7 +36,7 @@
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
-@implementation LDEProcess
+@implementation PEProcess
 
 #if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session
@@ -214,7 +215,7 @@
                                 self.scene.delegate = nil;
                             }
                         });
-                        [[LDEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
+                        [[PEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
                     });
                 }
                 else
@@ -420,5 +421,5 @@
 }
         
 #endif /* !JAILBREAK_ENV */
-        
+
 @end

@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 #import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppCell.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
@@ -367,7 +367,7 @@ NSArray *entitlementsMenuStructure = @[
         }
         //NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:application.executablePath];
         //[[TrustCache shared] setEntitlementsForHash:entHash usingEntitlements:bEntitlement];
-        [[LDEProcessManager shared] closeIfRunningUsingBundleIdentifier:application.bundleIdentifier];
+        [[PEProcessManager shared] closeIfRunningUsingBundleIdentifier:application.bundleIdentifier];
     }];
 }
 
@@ -390,7 +390,7 @@ NSArray *entitlementsMenuStructure = @[
         NSMutableArray<UIMenu *> *entMenus = [NSMutableArray array];
         
         UIAction *openAction = [UIAction actionWithTitle:@"Open" image:[UIImage systemImageNamed:@"arrow.up.right.square.fill"] identifier:nil handler:^(UIAction *action) {
-            [[LDEProcessManager shared] spawnProcessWithBundleIdentifier:app.bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
+            [[PEProcessManager shared] spawnProcessWithBundleIdentifier:app.bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
         }];
         [subMenus addObject:(UIMenu*)openAction];
         

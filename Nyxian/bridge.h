@@ -44,11 +44,11 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 
 /* Multitask Headers */
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
 #import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 /* Kernel Virtualisation Layer Headers */
 #import <LindChain/ProcEnvironment/Utils/klog.h>

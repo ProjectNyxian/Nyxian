@@ -61,7 +61,7 @@ void UIKitFixesInit(void)
     CGFloat keyboardBottomInset;
 }
 
-- (instancetype)initWithProcess:(LDEProcess*)process;
+- (instancetype)initWithProcess:(PEProcess*)process;
 {
     self = [super init];
     _process = process;
@@ -337,7 +337,7 @@ void UIKitFixesInit(void)
     self.process.session = nil;
 }
 
-- (BOOL)injectProcess:(LDEProcess*)process
+- (BOOL)injectProcess:(PEProcess*)process
 {
     os_unfair_lock_lock(&lock);
     

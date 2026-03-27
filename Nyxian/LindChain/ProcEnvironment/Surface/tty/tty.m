@@ -25,7 +25,7 @@
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <sys/socket.h>
 #import <sys/poll.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@ static void tty_kill(ksurface_tty_t *tty, int sig)
         size_t count = len / sizeof(kinfo_proc_t);
         for(size_t i = 0; i < count; i++)
         {
-            LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
+            PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
             if(process)
             {
                 [process sendSignal:sig];

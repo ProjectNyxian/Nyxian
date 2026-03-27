@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 typedef struct wait4_payload {
     userspace_pointer_t status_ptr;

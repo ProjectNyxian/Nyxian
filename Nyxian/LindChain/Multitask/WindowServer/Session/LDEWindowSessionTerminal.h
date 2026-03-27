@@ -23,7 +23,7 @@
 #define LDEWINDOWSESSIONTERMINAL_H
 
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcess.h>
 
 @interface LDEWindowSessionTerminal : LDEWindowSession
 
@@ -32,7 +32,7 @@
 @property (nonatomic,strong) NSLayoutConstraint *heigthConstraint;
 @property (nonatomic,strong) NSLayoutConstraint *widthConstraint;
 
-@property (nonatomic,weak) LDEProcess *process;
+@property (nonatomic,weak) PEProcess *process;
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath;
 

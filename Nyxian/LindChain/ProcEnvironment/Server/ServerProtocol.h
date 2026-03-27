@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/Object/MachPortObject.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/posix_spawn.h>

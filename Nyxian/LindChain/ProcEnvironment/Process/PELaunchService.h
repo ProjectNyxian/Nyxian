@@ -23,12 +23,12 @@
 #define PELAUNCHSERVICE_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcess.h>
+#import <LindChain/ProcEnvironment/Process/PEProcess.h>
 #import <os/lock.h>
 
 @interface PELaunchService : NSObject {
     os_unfair_lock _lock;
-    LDEProcess *_process;
+    PEProcess *_process;
     NSXPCListenerEndpoint *_endpoint;
     NSDictionary *_dictionary;
     
@@ -38,7 +38,7 @@
     BOOL _autoRestart;
 }
 
-@property (nonatomic,readonly,getter=getProcess) LDEProcess *process;
+@property (nonatomic,readonly,getter=getProcess) PEProcess *process;
 @property (nonatomic,readonly,getter=getExecutablePath) NSString *executablePath;
 @property (nonatomic,readonly,getter=getServiceIdentifier) NSString *serviceIdentifier;
 @property (nonatomic,readonly,getter=shouldAutorestart) BOOL autoRestart;

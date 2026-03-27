@@ -22,22 +22,22 @@
 #ifndef LDEWINDOWSESSIONAPPLICATION_H
 #define LDEWINDOWSESSIONAPPLICATION_H
 
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
 @interface LDEWindowSessionApplication : LDEWindowSession <_UISceneSettingsDiffAction>
 
-@property (nonatomic, strong) LDEProcess *process;
+@property (nonatomic, strong) PEProcess *process;
 @property (nonatomic) _UIScenePresenter *presenter;
 @property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
 
-- (instancetype)initWithProcess:(LDEProcess*)process;
+- (instancetype)initWithProcess:(PEProcess*)process;
 
 + (void)bringSessionToFrontWithBundleIdentifier:(NSString*)bundleIdentifier;
 
 - (void)prepareForInject;
-- (BOOL)injectProcess:(LDEProcess*)process;
+- (BOOL)injectProcess:(PEProcess*)process;
 
 @end
 

@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Process/PELaunchService.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 @implementation PELaunchService
 
@@ -59,7 +59,7 @@
     dictionary = [mutableDictionary copy];
 #endif /* DEBUG */
     
-    pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:dictionary withKernelSurfaceProcess:kernel_proc_];
+    pid_t pid = [[PEProcessManager shared] spawnProcessWithItems:dictionary withKernelSurfaceProcess:kernel_proc_];
     if(pid < 0)
     {
         [self ignition];
@@ -67,7 +67,7 @@
     
     /* getting lock */
     os_unfair_lock_lock(&_lock);
-    _process = [[LDEProcessManager shared] processForProcessIdentifier:pid];
+    _process = [[PEProcessManager shared] processForProcessIdentifier:pid];
     if(_process == nil)
     {
         os_unfair_lock_unlock(&_lock);
@@ -93,9 +93,9 @@
     return [_serviceIdentifier isEqualToString:serviceIdentifier];
 }
 
-- (LDEProcess*)getProcess
+- (PEProcess*)getProcess
 {
-    LDEProcess *process = nil;
+    PEProcess *process = nil;
     os_unfair_lock_lock(&_lock);
     process = _process;
     os_unfair_lock_unlock(&_lock);

@@ -115,7 +115,7 @@
         }
         
         /* invoking spawn */
-        pid_t pid = [[LDEProcessManager shared] spawnProcessWithItems:mutableItems withKernelSurfaceProcess:_proc];
+        pid_t pid = [[PEProcessManager shared] spawnProcessWithItems:mutableItems withKernelSurfaceProcess:_proc];
         
 #if KLOG_ENABLED
         if(pid != -1)
@@ -149,7 +149,7 @@
     }
     
     /* finding process */
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:_processIdentifier];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:_processIdentifier];
     if(process != nil)
     {
         /* setting snapshot */

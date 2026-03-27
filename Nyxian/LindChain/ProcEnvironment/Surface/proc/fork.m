@@ -25,7 +25,7 @@
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#import <LindChain/Multitask/ProcessManager/LDEProcessManager.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
@@ -310,7 +310,7 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
     kvo_release(proc);
     
     /* terminate process */
-    LDEProcess *process = [[LDEProcessManager shared].processes objectForKey:@(pid)];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:pid];
     if(process != NULL)
     {
         [process terminate];
@@ -392,7 +392,7 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
         kvo_release(parent);
     }
     
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
     if(process != nil)
     {
         [process sendSignal:SIGCHLD];
@@ -420,7 +420,7 @@ ksurface_return_t proc_state_change(ksurface_proc_t *proc,
     
     kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)proc);
     
-    LDEProcess *process = [[LDEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
+    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
     if(process != nil)
     {
         [process sendSignal:SIGCHLD];
