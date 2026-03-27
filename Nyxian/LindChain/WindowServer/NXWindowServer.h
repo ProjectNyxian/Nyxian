@@ -19,24 +19,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWSERVER_H
-#define LDEWINDOWSERVER_H
+#ifndef NXWINDOWSERVER_H
+#define NXWINDOWSERVER_H
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
+#import <LindChain/WindowServer/Window/NXWindow.h>
 
 #if !JAILBREAK_ENV
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 #endif /* !JAILBREAK_ENV */
 
 #if !JAILBREAK_ENV
-@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate,LDEAppLaunchpadDelegate>
+@interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate,LDEAppLaunchpadDelegate>
 #else
-@interface LDEWindowServer : UIWindow <UIGestureRecognizerDelegate,LDEWindowDelegate>
+@interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate>
 #endif /* !JAILBREAK_ENV */
 
-@property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,LDEWindow*> *windows;
+@property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,NXWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
 
 @property (nonatomic, strong) UIView *appSwitcherView;
@@ -47,13 +47,13 @@
 + (instancetype)sharedWithWindowScene:(UIWindowScene*)windowScene;
 + (instancetype)shared;
 
-- (void)openWindowWithSession:(LDEWindowSession*)session withCompletion:(void (^)(BOOL))completion;
+- (void)openWindowWithSession:(NXWindowSession*)session withCompletion:(void (^)(BOOL))completion;
 - (void)closeWindowWithIdentifier:(id_t)identifier  withCompletion:(void (^)(BOOL))completion;
 
 - (void)activateWindowForIdentifier:(id_t)identifier animated:(BOOL)animated withCompletion:(void (^)(void))completion;
 
 - (void)focusWindowForIdentifier:(id_t)identifier;
-- (LDEWindowSession*)windowSessionForIdentifier:(id_t)identifier;
+- (NXWindowSession*)windowSessionForIdentifier:(id_t)identifier;
 
 - (void)showAppSwitcherExternal;
 
@@ -63,5 +63,5 @@
 
 @end
 
-#endif /* LDEWINDOWSERVER_H */
+#endif /* NXWINDOWSERVER_H */
 

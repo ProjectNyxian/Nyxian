@@ -19,12 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWBAR_H
-#define LDEWINDOWBAR_H
+#ifndef NXWINDOWBAR_H
+#define NXWINDOWBAR_H
 
 #import <UIKit/UIKit.h>
 
-@interface LDEWindowBar : UIView
+@interface NXWindowBar : UIView
 
 @property (nonatomic, strong, readonly) UIVisualEffectView *buttonIsland;
 
@@ -39,4 +39,4 @@
 
 @end
 
-#endif /* LDEWINDOWBAR_H */
+#endif /* NXWINDOWBAR_H */

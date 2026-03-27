@@ -28,8 +28,8 @@
 /* LindChain Core Headers */
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/Compiler/LDECompiler.h>
 #import <LindChain/Linker/linker.h>
 #import <LindChain/Synpush/Synpush.h>

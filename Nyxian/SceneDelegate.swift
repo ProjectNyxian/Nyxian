@@ -28,7 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
-        window = LDEWindowServer.shared(with: windowScene)
+        window = NXWindowServer.shared(with: windowScene)
         
 #if JAILBREAK_ENV
         // jailbroken check
@@ -97,7 +97,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
     func tabBarController(_ tabBarController: UITabBarController,
                           shouldSelect viewController: UIViewController) -> Bool {
         if viewController.tabBarItem.tag == 2 {
-            LDEWindowServer.shared().showAppSwitcherExternal()
+            NXWindowServer.shared().showAppSwitcherExternal()
             return false
         }
         return true

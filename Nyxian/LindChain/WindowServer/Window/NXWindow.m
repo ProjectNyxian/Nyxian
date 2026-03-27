@@ -19,12 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
-#import <LindChain/Multitask/WindowServer/Window/ResizeHandleView.h>
-#import <LindChain/Multitask/WindowServer/Window/LDEWindowBar.h>
+#import <LindChain/WindowServer/Window/NXWindow.h>
+#import <LindChain/WindowServer/Window/ResizeHandleView.h>
+#import <LindChain/WindowServer/Window/NXWindowBar.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
-@interface LDEWindow ()
+@interface NXWindow ()
 
 @property (nonatomic) NSArray* activatedVerticalConstraints;
 @property (nonatomic) UIBarButtonItem *maximizeButton;
@@ -34,7 +34,7 @@
 @property (nonatomic, strong) NSTimer *resizeEndDebounceTimer;
 @property (atomic) int resizeEndDebounceRefCnt;
 @property (nonatomic) UIView *focusView;
-@property (nonatomic) LDEWindowBar *windowBar;
+@property (nonatomic) NXWindowBar *windowBar;
 
 // Intuition Fixup
 @property CGPoint resizeAnchor;
@@ -42,10 +42,10 @@
 
 @end
 
-@implementation LDEWindow
+@implementation NXWindow
 
-- (instancetype)initWithSession:(LDEWindowSession*)session
-                   withDelegate:(id<LDEWindowDelegate>)delegate;
+- (instancetype)initWithSession:(NXWindowSession*)session
+                   withDelegate:(id<NXWindowDelegate>)delegate;
 {
     self = [super initWithNibName:nil bundle:nil];
     _session = session;
@@ -245,7 +245,7 @@
     [self.view addSubview:self.contentStack];
     
     __weak typeof(self) weakSelf = self;
-    LDEWindowBar *windowBar = [[LDEWindowBar alloc] initWithTitle:self.session.windowName withCloseCallback:^{
+    NXWindowBar *windowBar = [[NXWindowBar alloc] initWithTitle:self.session.windowName withCloseCallback:^{
         [weakSelf closeWindowWithCompletion:nil];
     } withMaximizeCallback:^{
         [weakSelf maximizeWindow:YES];

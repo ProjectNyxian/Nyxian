@@ -44,9 +44,9 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 
 /* Multitask Headers */
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionTerminal.h>
 #import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 

@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/Utils/Swizzle.h>
 
 #if !JAILBREAK_ENV
@@ -55,7 +55,7 @@ void UIKitFixesInit(void)
     }
 }
 
-@implementation LDEWindowSessionApplication {
+@implementation NXWindowSessionApplication {
     os_unfair_lock lock;
     BOOL isKeyboardShown;
     CGFloat keyboardBottomInset;
@@ -72,16 +72,16 @@ void UIKitFixesInit(void)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) return;
-        LDEWindowServer *windowServer = [LDEWindowServer shared];
+        NXWindowServer *windowServer = [NXWindowServer shared];
         assert(windowServer != nil);
         
         for(NSNumber *key in windowServer.windows)
         {
-            LDEWindow *window = windowServer.windows[key];
+            NXWindow *window = windowServer.windows[key];
             
             if(window != nil &&
-               [window.session isKindOfClass:[LDEWindowSessionApplication class]] &&
-               [((LDEWindowSessionApplication*)(window.session)).process.bundleIdentifier isEqualToString:bundleIdentifier])
+               [window.session isKindOfClass:[NXWindowSessionApplication class]] &&
+               [((NXWindowSessionApplication*)(window.session)).process.bundleIdentifier isEqualToString:bundleIdentifier])
             {
                 [window.view.superview bringSubviewToFront:window.view];
                 [window focusWindow];
@@ -232,7 +232,7 @@ void UIKitFixesInit(void)
         settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;
         settings.frame = UIInterfaceOrientationIsLandscape(settings.interfaceOrientation) ? CGRectMake(rect.origin.x, rect.origin.y, rect.size.height, rect.size.width) : rect;
         
-        UIEdgeInsets insets = (self.isFullscreen) ? LDEWindowServer.shared.safeAreaInsets : UIEdgeInsetsZero;
+        UIEdgeInsets insets = (self.isFullscreen) ? NXWindowServer.shared.safeAreaInsets : UIEdgeInsetsZero;
         
         /* looks unnatural without */
         insets.top = 10;

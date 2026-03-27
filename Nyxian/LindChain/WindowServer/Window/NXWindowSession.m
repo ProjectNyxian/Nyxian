@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
-#import <LindChain/Multitask/WindowServer/Window/LDEWindow.h>
+#import <LindChain/WindowServer/Window/NXWindowSession.h>
+#import <LindChain/WindowServer/Window/NXWindow.h>
 
-@implementation LDEWindowSession
+@implementation NXWindowSession
 
 - (BOOL)openWindow
 {
@@ -73,13 +73,13 @@
 
 - (NSString*)getWindowName
 {
-    __strong LDEWindow *window = self.window;
+    __strong NXWindow *window = self.window;
     return (window == nil) ? window.windowName : @"Unknown";
 }
 
 - (void)setWindowName:(NSString *)windowName
 {
-    __strong LDEWindow *window = self.window;
+    __strong NXWindow *window = self.window;
     if(window != nil)
     {
         window.windowName = windowName;

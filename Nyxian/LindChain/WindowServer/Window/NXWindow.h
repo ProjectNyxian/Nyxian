@@ -19,27 +19,27 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOW_H
-#define LDEWINDOW_H
+#ifndef NXWINDOW_H
+#define NXWINDOW_H
 
-#import "FoundationPrivate.h"
-#import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
+#import <LindChain/Private/FoundationPrivate.h>
+#import <LindChain/WindowServer/Window/NXWindowSession.h>
 
-@class LDEWindow;
+@class NXWindow;
 
-@protocol LDEWindowDelegate <NSObject>
+@protocol NXWindowDelegate <NSObject>
 
 @property (nonatomic) UIWindowScene *windowScene;
 
-- (void)windowWantsToClose:(LDEWindow*)window;
-- (void)windowWantsToFocus:(LDEWindow*)window;
-- (void)windowWantsToMinimize:(LDEWindow*)window;
+- (void)windowWantsToClose:(NXWindow*)window;
+- (void)windowWantsToFocus:(NXWindow*)window;
+- (void)windowWantsToMinimize:(NXWindow*)window;
 
-- (CGRect)window:(LDEWindow*)window wantsToChangeToRect:(CGRect)rect;
+- (CGRect)window:(NXWindow*)window wantsToChangeToRect:(CGRect)rect;
 
 @end
 
-@interface LDEWindow : UIViewController <UIGestureRecognizerDelegate>
+@interface NXWindow : UIViewController <UIGestureRecognizerDelegate>
 
 @property (nonatomic) id_t identifier;
 @property (nonatomic,getter=getWindowName,setter=setWindowName:) NSString* windowName;
@@ -50,11 +50,11 @@
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGRect originalFrame;
 
-@property (nonatomic) LDEWindowSession *session;
+@property (nonatomic) NXWindowSession *session;
 
-@property (nonatomic, weak) id<LDEWindowDelegate> delegate;
+@property (nonatomic, weak) id<NXWindowDelegate> delegate;
 
-- (instancetype)initWithSession:(LDEWindowSession*)session withDelegate:(id<LDEWindowDelegate>)delegate;
+- (instancetype)initWithSession:(NXWindowSession*)session withDelegate:(id<NXWindowDelegate>)delegate;
 
 - (void)openWindow;
 - (void)closeWindowWithCompletion:(void (^)(BOOL))completion;
@@ -68,4 +68,4 @@
 
 @end
 
-#endif /* LDEWINDOW_H */
+#endif /* NXWINDOW_H */

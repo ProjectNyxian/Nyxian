@@ -30,7 +30,7 @@
 #import <Nyxian-Swift.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <os/lock.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 @implementation PEProcessManager {
@@ -124,7 +124,7 @@
                  withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
-    LDEWindowSessionApplication *session = nil;
+    NXWindowSessionApplication *session = nil;
     PEProcess *existingProcess = nil;
     
     os_unfair_lock_lock(&processes_array_lock);
@@ -147,11 +147,11 @@
         {
             if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
             {
-                LDEWindowSession *windowSession = [[LDEWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
-                if(windowSession != nil && [windowSession isKindOfClass:[LDEWindowSessionApplication class]])
+                NXWindowSession *windowSession = [[NXWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
+                if(windowSession != nil && [windowSession isKindOfClass:[NXWindowSessionApplication class]])
                 {
-                    [((LDEWindowSessionApplication*) windowSession) prepareForInject];
-                    session = (LDEWindowSessionApplication*)windowSession;
+                    [((NXWindowSessionApplication*) windowSession) prepareForInject];
+                    session = (NXWindowSessionApplication*)windowSession;
                 }
             }
             

@@ -19,26 +19,23 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWSESSIONAPPLICATION_H
-#define LDEWINDOWSESSIONAPPLICATION_H
+#ifndef NXWINDOWSESSIONTERMINAL_H
+#define NXWINDOWSESSIONTERMINAL_H
 
-#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/Window/LDEWindowSession.h>
-#import <LindChain/Private/UIKitPrivate.h>
+#import <LindChain/WindowServer/Window/NXWindowSession.h>
+#import <LindChain/ProcEnvironment/Process/PEProcess.h>
 
-@interface LDEWindowSessionApplication : LDEWindowSession <_UISceneSettingsDiffAction>
+@interface NXWindowSessionTerminal : NXWindowSession
 
-@property (nonatomic, strong) PEProcess *process;
-@property (nonatomic) _UIScenePresenter *presenter;
-@property (nonatomic, strong) NSTimer *backgroundEnforcementTimer;
+@property (nonatomic,strong) NSString *utilityPath;
 
-- (instancetype)initWithProcess:(PEProcess*)process;
+@property (nonatomic,strong) NSLayoutConstraint *heigthConstraint;
+@property (nonatomic,strong) NSLayoutConstraint *widthConstraint;
 
-+ (void)bringSessionToFrontWithBundleIdentifier:(NSString*)bundleIdentifier;
+@property (nonatomic,weak) PEProcess *process;
 
-- (void)prepareForInject;
-- (BOOL)injectProcess:(PEProcess*)process;
+- (instancetype)initWithUtilityPath:(NSString*)utilityPath;
 
 @end
 
-#endif /* LDEWINDOWSESSIONAPPLICATION_H */
+#endif /* NXWINDOWSESSIONTERMINAL_H */

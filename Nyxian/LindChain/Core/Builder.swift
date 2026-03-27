@@ -350,8 +350,8 @@ class Builder {
                 
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
-                        let TerminalSession: LDEWindowSessionTerminal = LDEWindowSessionTerminal(utilityPath: path)
-                        LDEWindowServer.shared().openWindow(with: TerminalSession, withCompletion: nil)
+                        let TerminalSession: NXWindowSessionTerminal = NXWindowSessionTerminal(utilityPath: path)
+                        NXWindowServer.shared().openWindow(with: TerminalSession, withCompletion: nil)
                     }
                 } else {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to fastpath install utility"])

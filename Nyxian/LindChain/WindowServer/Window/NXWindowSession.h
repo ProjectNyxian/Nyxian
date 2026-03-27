@@ -19,18 +19,18 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEWINDOWSESSION_H
-#define LDEWINDOWSESSION_H
+#ifndef NXWINDOWSESSION_H
+#define NXWINDOWSESSION_H
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@class LDEWindow;
+@class NXWindow;
 
-@interface LDEWindowSession : UIViewController
+@interface NXWindowSession : UIViewController
 
 @property (nonatomic,weak) UIWindowScene *windowScene;
-@property (nonatomic,weak) LDEWindow *window;
+@property (nonatomic,weak) NXWindow *window;
 @property (nonatomic) id_t windowIdentifier;
 
 @property (nonatomic) CGRect windowRect;
@@ -57,5 +57,5 @@
 
 @end
 
-#endif /* LDEWINDOWSESSION_H */
+#endif /* NXWINDOWSESSION_H */
 

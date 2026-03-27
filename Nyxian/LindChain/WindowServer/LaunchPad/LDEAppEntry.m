@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppEntry.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppEntry.h>
 
 @implementation LDEAppEntry
 @end

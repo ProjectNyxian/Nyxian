@@ -19,13 +19,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionTerminal.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/tty/tty.h>
 #import <Nyxian-Swift.h>
 
-@interface LDEWindowSessionTerminal () <TerminalViewDelegateObjC>
+@interface NXWindowSessionTerminal () <TerminalViewDelegateObjC>
 
 @property (nonatomic,strong) TerminalViewObjC *terminal;
 @property (nonatomic) bool focused;
@@ -35,7 +35,7 @@
 
 @end
 
-@implementation LDEWindowSessionTerminal
+@implementation NXWindowSessionTerminal
 
 - (instancetype)initWithUtilityPath:(NSString*)utilityPath
 {
@@ -171,7 +171,7 @@
         else
         {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [[LDEWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
+                [[NXWindowServer shared] closeWindowWithIdentifier:strongSelf.windowIdentifier withCompletion:nil];
             });
         }
     };
@@ -221,7 +221,7 @@
     
     if(self.atExit)
     {
-        [[LDEWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
+        [[NXWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
         return YES;
     }
     
@@ -250,7 +250,7 @@
 {
     if(self.atExit)
     {
-        [[LDEWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
+        [[NXWindowServer shared] closeWindowWithIdentifier:self.windowIdentifier withCompletion:nil];
     }
     
     write(self.terminal.ttyHandle.fileDescriptor, data.bytes, data.length);

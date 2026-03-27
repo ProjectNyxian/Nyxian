@@ -21,10 +21,9 @@
 
 #import <LindChain/ProcEnvironment/Process/PEProcess.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 
 #if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
@@ -39,7 +38,7 @@
 @implementation PEProcess
 
 #if !JAILBREAK_ENV
-- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session
 #else
 - (instancetype)initWithBundleIdentifier:(NSString*)bundleID
 #endif /* !JAILBREAK_ENV */
@@ -202,11 +201,11 @@
                         dispatch_async(dispatch_get_main_queue(), ^{
                             if(innerSelf.wid != -1)
                             {
-                                [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.wid withCompletion:nil];
+                                [[NXWindowServer shared] closeWindowWithIdentifier:innerSelf.wid withCompletion:nil];
                             }
                             else if(innerSelf.session && innerSelf.session.windowIdentifier != -1)
                             {
-                                [[LDEWindowServer shared] closeWindowWithIdentifier:innerSelf.session.windowIdentifier withCompletion:nil];
+                                [[NXWindowServer shared] closeWindowWithIdentifier:innerSelf.session.windowIdentifier withCompletion:nil];
                             }
                             
                             if(innerSelf.scene != nil)
@@ -390,8 +389,8 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             if(self.session == nil)
             {
-                __block LDEWindowSessionApplication *session = [[LDEWindowSessionApplication alloc] initWithProcess:self];
-                [[LDEWindowServer shared] openWindowWithSession:session withCompletion:^(BOOL windowOpened){
+                __block NXWindowSessionApplication *session = [[NXWindowSessionApplication alloc] initWithProcess:self];
+                [[NXWindowServer shared] openWindowWithSession:session withCompletion:^(BOOL windowOpened){
                     if(windowOpened)
                     {
                         self.wid = session.windowIdentifier;

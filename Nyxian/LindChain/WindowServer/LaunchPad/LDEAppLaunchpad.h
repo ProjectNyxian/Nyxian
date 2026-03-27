@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppEntry.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppEntry.h>
 
 @protocol LDEAppLaunchpadDelegate <NSObject>
 

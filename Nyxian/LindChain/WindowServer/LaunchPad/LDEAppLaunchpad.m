@@ -20,8 +20,8 @@
 */
 
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppCell.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppCell.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/Services/trustd/LDETrust.h>

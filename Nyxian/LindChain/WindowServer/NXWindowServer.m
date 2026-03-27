@@ -19,12 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 #if !JAILBREAK_ENV
 
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
 #import <Nyxian-Swift.h>
 
 #endif /* !JAILBREAK_ENV */
@@ -35,10 +35,10 @@
 #define kTagTitle 8888
 #define kTagShineView 7777
 
-@implementation LDEWindowServer {
+@implementation NXWindowServer {
     UIStackView *_stackView;
     UIStackView *_placeholderStack;
-    LDEWindow *_activeWindow;
+    NXWindow *_activeWindow;
     id_t _activeWindowIdentifier;
     UIScrollView *_runningAppsScrollView;
 #if !JAILBREAK_ENV
@@ -83,10 +83,10 @@
 
 + (instancetype)sharedWithWindowScene:(UIWindowScene*)windowScene
 {
-    static LDEWindowServer *multitaskManagerSingleton = nil;
+    static NXWindowServer *multitaskManagerSingleton = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        multitaskManagerSingleton = [[LDEWindowServer alloc] initWithWindowScene:windowScene];
+        multitaskManagerSingleton = [[NXWindowServer alloc] initWithWindowScene:windowScene];
     });
     return multitaskManagerSingleton;
 }
@@ -110,7 +110,7 @@
 {
     assert([NSThread isMainThread]);
     
-    LDEWindow *window = self.windows[@(identifier)];
+    NXWindow *window = self.windows[@(identifier)];
     if(!window) return;
     
     if(window.view.superview != self)
@@ -140,7 +140,7 @@
 {
     assert([NSThread isMainThread]);
     
-    LDEWindow *window = self.windows[@(identifier)];
+    NXWindow *window = self.windows[@(identifier)];
     if(!window || window.view.hidden)
     {
         if(completion)
@@ -165,14 +165,14 @@
 
 - (void)focusWindowForIdentifier:(id_t)identifier
 {
-    LDEWindow *window = self.windows[@(identifier)];
+    NXWindow *window = self.windows[@(identifier)];
     if (!window) return;
     [window focusWindow];
 }
 
-- (LDEWindowSession*)windowSessionForIdentifier:(id_t)identifier
+- (NXWindowSession*)windowSessionForIdentifier:(id_t)identifier
 {
-    LDEWindow *window = self.windows[@(identifier)];
+    NXWindow *window = self.windows[@(identifier)];
     if(window != nil)
     {
         return window.session;
@@ -180,7 +180,7 @@
     return nil;
 }
 
-- (void)openWindowWithSession:(LDEWindowSession*)session
+- (void)openWindowWithSession:(NXWindowSession*)session
                withCompletion:(void (^)(BOOL))completion
 {
     assert([NSThread isMainThread]);
@@ -201,7 +201,7 @@
             return;
         }
         
-        LDEWindow *window = [[LDEWindow alloc] initWithSession:session withDelegate:self];
+        NXWindow *window = [[NXWindow alloc] initWithSession:session withDelegate:self];
         window.identifier = windowIdentifier;
         if(window)
         {
@@ -216,7 +216,7 @@
         }
     };
     
-    LDEWindow *window = self.windows[@(_activeWindowIdentifier)];
+    NXWindow *window = self.windows[@(_activeWindowIdentifier)];
     if(window != nil &&
        _activeWindowIdentifier != window.identifier &&
        [[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPad)
@@ -244,7 +244,7 @@
         _activeWindowIdentifier = (id_t)-1;
     }
     
-    LDEWindow *window = self.windows[@(identifier)];
+    NXWindow *window = self.windows[@(identifier)];
     if(window != nil)
     {
         [window closeWindowWithCompletion:^(BOOL closedWindow){
@@ -502,13 +502,13 @@
     
     for(NSNumber *pidKey in self.windowOrder)
     {
-        LDEWindow *window = self.windows[pidKey];
+        NXWindow *window = self.windows[pidKey];
         UIView *tileContainer = [self createTileContainerForWindow:window withKey:pidKey];
         [_stackView addArrangedSubview:tileContainer];
     }
 }
 
-- (UIView *)createTileContainerForWindow:(LDEWindow *)window withKey:(NSNumber *)pidKey
+- (UIView *)createTileContainerForWindow:(NXWindow *)window withKey:(NSNumber *)pidKey
 {
     UIView *tileContainer = [[UIView alloc] init];
     tileContainer.translatesAutoresizingMaskIntoConstraints = NO;
@@ -924,7 +924,7 @@
         reflection.alpha = 0;
     } completion:^(BOOL finished) {
         id_t identifier = (id_t)tileWrapper.tag;
-        LDEWindow *window = self.windows[@(identifier)];
+        NXWindow *window = self.windows[@(identifier)];
         
         if(window)
         {
@@ -1096,7 +1096,7 @@
     return YES;
 }
 
-- (void)windowWantsToFocus:(LDEWindow *)window
+- (void)windowWantsToFocus:(NXWindow *)window
 {
     if(_activeWindow != nil &&
        _activeWindow != window)
@@ -1106,7 +1106,7 @@
     _activeWindow = window;
 }
 
-- (void)windowWantsToClose:(LDEWindow *)window
+- (void)windowWantsToClose:(NXWindow *)window
 {
     if(_activeWindow == window)
     {
@@ -1117,12 +1117,12 @@
     [self.windowOrder removeObject:@(window.identifier)];
 }
 
-- (void)windowWantsToMinimize:(LDEWindow *)window
+- (void)windowWantsToMinimize:(NXWindow *)window
 {
     _activeWindowIdentifier = (id_t)-1;
 }
 
-- (CGRect)window:(LDEWindow*)window wantsToChangeToRect:(CGRect)rect
+- (CGRect)window:(NXWindow*)window wantsToChangeToRect:(CGRect)rect
 {
     /* getting parameters */
     UIEdgeInsets insets = self.safeAreaInsets;
@@ -1187,7 +1187,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         for(NSNumber *key in self.windows)
         {
-            LDEWindow *window = self.windows[key];
+            NXWindow *window = self.windows[key];
             if(window != nil)
             {
                 [window changeWindowToRect:[self window:window wantsToChangeToRect:window.view.frame] completion:nil];

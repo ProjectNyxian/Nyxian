@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Multitask/WindowServer/LaunchPad/LDEAppCell.h>
+#import <LindChain/WindowServer/LaunchPad/LDEAppCell.h>
 
 @implementation LDEAppCell
 

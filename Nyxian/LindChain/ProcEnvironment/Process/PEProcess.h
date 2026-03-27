@@ -25,11 +25,11 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/Private/FoundationPrivate.h>
 #import <LindChain/Private/UIKitPrivate.h>
-#import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
+#import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
-@class LDEWindowSessionApplication;
+@class NXWindowSessionApplication;
 
 @interface PEProcess : NSObject <FBSceneDelegate>
 
@@ -38,7 +38,7 @@
 @property (nonatomic) ksurface_proc_t *proc;
 #endif /* !JAILBREAK_ENV */
 
-@property (nonatomic,weak) LDEWindowSessionApplication *session;
+@property (nonatomic,weak) NXWindowSessionApplication *session;
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
 @property (nonatomic,strong) RBSProcessMonitor *processMonitor;
 @property (nonatomic,strong) FBScene *scene;
@@ -70,7 +70,7 @@
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
 #if !JAILBREAK_ENV
-- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(LDEWindowSessionApplication*)session;
+- (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session;
 #else
 - (instancetype)initWithBundleIdentifier:(NSString*)bundleID;
 #endif /* !JAILBREAK_ENV */
