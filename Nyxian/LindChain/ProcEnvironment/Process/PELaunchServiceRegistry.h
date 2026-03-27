@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 #import <os/lock.h>
-#import <LindChain/LaunchServices/PELaunchService.h>
+#import <LindChain/ProcEnvironment/Process/PELaunchService.h>
 
 @interface PELaunchServiceRegistry : NSObject {
     os_unfair_lock _lock;

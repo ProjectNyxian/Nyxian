@@ -21,7 +21,7 @@
 
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/Services/trustd/LDETrustProtocol.h>
-#import <LindChain/LaunchServices/PELaunchServiceRegistry.h>
+#import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 
 @implementation LDETrust
 

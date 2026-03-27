@@ -21,8 +21,8 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
-#import <LindChain/LaunchServices/PEBootstrapRegistry.h>
-#import <LindChain/LaunchServices/PELaunchServiceRegistry.h>
+#import <LindChain/ProcEnvironment/Process/PEBootstrapRegistry.h>
+#import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 extern mach_port_t xpc_endpoint_copy_listener_port_4sim(NSObject<OS_xpc_object>*);
