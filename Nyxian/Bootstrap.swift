@@ -71,6 +71,16 @@ import Foundation
         return URL(fileURLWithPath: path, relativeTo: URL(fileURLWithPath: rootPath)).path
     }
     
+    @objc func relativeToBootstrapSafe(_ absolutePath: String) -> String? {
+        let rootURL = URL(fileURLWithPath: rootPath)
+        let absoluteURL = URL(fileURLWithPath: absolutePath)
+        guard absoluteURL.path.hasPrefix(rootURL.path + "/") || absoluteURL.path == rootURL.path else {
+            return nil
+        }
+        let relativePath = absoluteURL.path.replacingOccurrences(of: rootURL.path + "/", with: "")
+        return relativePath
+    }
+    
     func clearPath(path: String) {
         let fileManager = FileManager.default
         let target = bootstrapPath(path)

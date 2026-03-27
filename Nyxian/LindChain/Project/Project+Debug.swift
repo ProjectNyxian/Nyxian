@@ -128,37 +128,34 @@ class DebugDatabase: Codable {
     }
     
     func setFileDebug(ofPath path: String, synItems: [Synitem]) {
-        self.lock.lock()
-        // TODO: Last path component is pretty ineffective if the user has files with the same name at a other location in the project
-        // FIXME: Every DebugDatabase shall initilize with a project and not with some path!!!
-#if JAILBREAK_ENV
-        let fixedPath: String = path.trimmingPathToFirstUUID()
-#else
-        let fixedPath: String = path.trimmingPathToFirstUUID().trimmingPathToFirstUUID()
-#endif // JAILBREAK_ENV
+        guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
+            return
+        }
         
-        let fileObject: DebugObject = DebugObject(title: fixedPath, type: .DebugFile)
+        self.lock.lock()
+        let fileObject: DebugObject = DebugObject(title: relPath, type: .DebugFile)
         
         for item in synItems {
             let debugItem: DebugItem = DebugItem(severity: DebugItem.DebugServerity(rawValue: item.type) ?? .Note, message: item.message, line: item.line, column: item.column)
             fileObject.debugItems.append(debugItem)
         }
         
-        self.debugObjects[fixedPath] = (synItems.count > 0) ? fileObject : nil
+        self.debugObjects[relPath] = (synItems.count > 0) ? fileObject : nil
         self.lock.unlock()
     }
     
     func getFileDebug(ofPath path: String) -> [Synitem] {
         var synItems: [Synitem] = []
         
-        // Get object
-#if JAILBREAK_ENV
-        let fixedPath: String = path.trimmingPathToFirstUUID()
-#else
-        let fixedPath: String = path.trimmingPathToFirstUUID().trimmingPathToFirstUUID()
-#endif // JAILBREAK_ENV
+        guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
+            return synItems
+        }
         
-        let fileObject: DebugObject = DebugObject(title: fixedPath, type: .DebugFile)
+        self.lock.lock()
+        guard let fileObject: DebugObject = self.debugObjects[relPath] else {
+            self.lock.unlock()
+            return []
+        }
         
         for item in fileObject.debugItems {
             let synItem: Synitem = Synitem()
@@ -168,6 +165,7 @@ class DebugDatabase: Codable {
             synItem.column = item.column
             synItems.append(synItem)
         }
+        self.lock.unlock()
         
         return synItems
     }
@@ -187,31 +185,6 @@ class DebugDatabase: Codable {
     }
 }
 
-extension String {
-    func removingUUIDs() -> String {
-        let pattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-        return self.replacingOccurrences(of: pattern, with: "UUID", options: .regularExpression)
-    }
-    
-    func trimmingPathToFirstUUID() -> String {
-        let components = self.components(separatedBy: "/")
-        let uuidPattern = #"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"#
-        
-        var foundUUID = false
-        var trimmedComponents: [String] = []
-        
-        for component in components {
-            if foundUUID {
-                trimmedComponents.append(component)
-            } else if component.range(of: uuidPattern, options: .regularExpression) != nil {
-                foundUUID = true // Start including from next component
-            }
-        }
-        
-        return foundUUID ? trimmedComponents.joined(separator: "/") : nil ?? "UNKNOWN"
-    }
-}
-
 /*
  * Debug UI: Issue Navigator and Database at the same time that will be shared over the entire project :3
  *
@@ -221,27 +194,14 @@ class UIDebugViewController: UITableViewController {
     var project: NXProject
     var debugDatabase: DebugDatabase
     
-    var sortedDebugObjects: [DebugObject] {
-        var items: [DebugObject]
-        debugDatabase.lock.lock()
-        items = debugDatabase.debugObjects.values.sorted {
-            if $0.title == "Internal" {
-                return true
-            } else if $1.title == "Internal" {
-                return false
-            } else {
-                return $0.title < $1.title
-            }
-        }
-        debugDatabase.lock.unlock()
-        return items
-    }
+    var sortedDebugObjects: [DebugObject] = []
     
     init(project: NXProject) {
         self.project = project
         self.file = "\(project.cachePath!)/debug.json"
         self.debugDatabase = DebugDatabase.getDatabase(ofPath: self.file)
         super.init(style: .insetGrouped)
+        self.reloadTableData()
         NotificationCenter.default.addObserver(self, selector: #selector(refreshDebugDatabase), name: Notification.Name("CodeEditorDismissed"), object: nil)
     }
     
@@ -267,17 +227,18 @@ class UIDebugViewController: UITableViewController {
         return (count > 0) ? count : 1
     }
     
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return "\(sortedDebugObjects[section].title) • \(sortedDebugObjects[section].debugItems.count)"
-    }
-    
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        var title: String = sortedDebugObjects[section].title
+        if section > 0 {
+            title = (sortedDebugObjects[section].title as NSString).lastPathComponent
+        }
+        
         let headerView = UIView()
         headerView.backgroundColor = .clear
 
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "\(sortedDebugObjects[section].title) • \(sortedDebugObjects[section].debugItems.count)"
+        label.text = "\(title) • \(sortedDebugObjects[section].debugItems.count)"
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
         label.textColor = .label
         label.numberOfLines = 1
@@ -384,7 +345,7 @@ class UIDebugViewController: UITableViewController {
         let item: DebugItem = object.debugItems[indexPath.row]
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open","\(self.project.path!)/\(object.title)","\(item.line)","\(item.column)"])
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",Bootstrap.shared.bootstrapPath(object.title),"\(item.line)","\(item.column)"])
             self.dismiss(animated: true)
         } else {
             let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
@@ -398,14 +359,29 @@ class UIDebugViewController: UITableViewController {
         }
     }
     
+    @objc func reloadTableData() {
+        debugDatabase.lock.lock()
+        self.sortedDebugObjects = debugDatabase.debugObjects.values.sorted {
+            if $0.title == "Internal" {
+                return true
+            } else if $1.title == "Internal" {
+                return false
+            } else {
+                return $0.title < $1.title
+            }
+        }
+        debugDatabase.lock.unlock()
+        tableView.reloadData()
+    }
+    
     @objc func clearDatabase() {
         debugDatabase.clearDatabase()
         debugDatabase.saveDatabase(toPath: self.file)
-        tableView.reloadData()
+        self.reloadTableData()
     }
     
     @objc func refreshDebugDatabase() {
         self.debugDatabase = DebugDatabase.getDatabase(ofPath: self.file)
-        self.tableView.reloadData()
+        self.reloadTableData()
     }
 }
