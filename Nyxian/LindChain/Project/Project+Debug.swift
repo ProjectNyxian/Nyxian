@@ -72,6 +72,11 @@ class DebugObject: Codable {
  */
 class DebugDatabase: Codable {
     var debugObjects: [String:DebugObject] = [:]
+    let lock = NSLock()
+    
+    enum CodingKeys: String, CodingKey {
+        case debugObjects
+    }
     
     /*
      * Function that gets the database of a filepath
@@ -113,11 +118,17 @@ class DebugDatabase: Codable {
      * Functions to manage object entries
      */
     func addInternalMessage(message: String, severity: DebugItem.DebugServerity) {
-        guard let internalObject = self.debugObjects["Internal"] else { return }
+        self.lock.lock()
+        guard let internalObject = self.debugObjects["Internal"] else {
+            self.lock.unlock()
+            return
+        }
+        self.lock.unlock()
         internalObject.debugItems.append(DebugItem(severity: severity, message: message, line: 0, column: 0))
     }
     
     func setFileDebug(ofPath path: String, synItems: [Synitem]) {
+        self.lock.lock()
         // TODO: Last path component is pretty ineffective if the user has files with the same name at a other location in the project
         // FIXME: Every DebugDatabase shall initilize with a project and not with some path!!!
 #if JAILBREAK_ENV
@@ -134,6 +145,7 @@ class DebugDatabase: Codable {
         }
         
         self.debugObjects[fixedPath] = (synItems.count > 0) ? fileObject : nil
+        self.lock.unlock()
     }
     
     func getFileDebug(ofPath path: String) -> [Synitem] {
@@ -210,7 +222,9 @@ class UIDebugViewController: UITableViewController {
     var debugDatabase: DebugDatabase
     
     var sortedDebugObjects: [DebugObject] {
-        return debugDatabase.debugObjects.values.sorted {
+        var items: [DebugObject]
+        debugDatabase.lock.lock()
+        items = debugDatabase.debugObjects.values.sorted {
             if $0.title == "Internal" {
                 return true
             } else if $1.title == "Internal" {
@@ -219,6 +233,8 @@ class UIDebugViewController: UITableViewController {
                 return $0.title < $1.title
             }
         }
+        debugDatabase.lock.unlock()
+        return items
     }
     
     init(project: NXProject) {
