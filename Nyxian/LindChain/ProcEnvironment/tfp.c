@@ -23,7 +23,6 @@
 #include <LindChain/litehook/litehook.h>
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #include <LindChain/ProcEnvironment/syscall.h>
-#include <LindChain/Debugger/MachServer.h>
 #include <LindChain/ProcEnvironment/Utils/ktfp.h>
 #include <mach/mach.h>
 

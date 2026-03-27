@@ -48,7 +48,6 @@
 #import <LindChain/Multitask/WindowServer/LDEWindowServer.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionApplication.h>
 #import <LindChain/Multitask/WindowServer/Session/LDEWindowSessionTerminal.h>
-#import <LindChain/Debugger/MachServer.h>
 #import <LindChain/LaunchServices/LaunchService.h>
 
 /* Kernel Virtualisation Layer Headers */
