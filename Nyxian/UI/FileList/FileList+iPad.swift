@@ -520,6 +520,8 @@ class UIButtonTab: UIButton {
             openAction(s)
         }, for: .touchUpInside)
         
+        openAction(self)
+        
         var items: [UIMenuElement] = []
         var buttons: [UIBarButtonItem] = []
         for item in vc.navigationItem.rightBarButtonItems ?? [] {
@@ -546,8 +548,6 @@ class UIButtonTab: UIButton {
         self.storedMenu = contextMenu
         let menuInteraction = UIContextMenuInteraction(delegate: self)
         self.addInteraction(menuInteraction)
-        
-        openAction(self)
     }
     
     private var storedMenu: UIMenu?
