@@ -348,16 +348,6 @@
 				LindChain/Clang.xcframework,
 			);
 		};
-		797593602F7583DB0003D908 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
-			};
-			buildPhase = 79BF9AC92E62BC2200C60D4C /* Embed Frameworks */;
-			membershipExceptions = (
-				LindChain/OpenSSL.xcframework,
-			);
-		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
@@ -398,7 +388,6 @@
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
 				7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
-				797593602F7583DB0003D908 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "LiveProcess" target */,
 			);
 			path = Nyxian;
 			sourceTree = "<group>";
