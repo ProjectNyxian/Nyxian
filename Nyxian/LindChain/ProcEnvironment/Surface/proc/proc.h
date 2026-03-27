@@ -30,8 +30,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
-ksurface_proc_t *kernel_proc(void);
-
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc);
 
 #endif /* PROC_PROC_H */

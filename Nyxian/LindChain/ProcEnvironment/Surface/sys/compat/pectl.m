@@ -90,7 +90,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
         {
             sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_SEND);
             
-            if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_snapshot_), PEEntitlementPlatform))
+            if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_snapshot_), PEEntitlementLaunchServicesSetEndpoint))
             {
                 sys_return_failure(EPERM);
             }
@@ -117,15 +117,35 @@ DEFINE_SYSCALL_HANDLER(pectl)
                 sys_return_failure(ENOMEM);
             }
             
+            /*
+             * getting existing launch service, because we
+             * have ti make sure that its not a attacker
+             * attempting to overwrite a launchservice
+             * endpoint to control it, as Nyxian it self
+             * requires such launch service to be able to
+             * read data from the other container, which
+             * is the reason for this extra layer of trust.
+             */
             PELaunchService *service = [[PELaunchServiceRegistry shared] serviceForIdentifier:service_nsname];
             if(service != nil)
             {
                 PEProcess *process = service.process;
+                
+                /*
+                 * in-case there is no process it is
+                 * reserved for the service and cannot
+                 * be overriden by a attacker.
+                 */
                 if(process == nil)
                 {
                     sys_return_failure(EPERM);
                 }
                 
+                /*
+                 * making sure that the right process
+                 * registers the endpoint for the
+                 * service domain.
+                 */
                 if(process.pid != proc_getpid(sys_proc_snapshot_))
                 {
                     sys_return_failure(EPERM);

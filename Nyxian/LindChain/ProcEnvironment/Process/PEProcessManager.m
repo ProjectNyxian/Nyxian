@@ -124,6 +124,11 @@
                  withKernelSurfaceProcess:(ksurface_proc_t*)proc
                        doRestartIfRunning:(BOOL)doRestartIfRunning
 {
+    if(proc == NULL)
+    {
+        proc = kernel_proc_;
+    }
+    
     NXWindowSessionApplication *session = nil;
     PEProcess *existingProcess = nil;
     

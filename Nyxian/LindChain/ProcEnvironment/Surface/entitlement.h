@@ -92,25 +92,20 @@ typedef enum {
     /*! Grants process to get endpoint of launch services. */
     PEEntitlementLaunchServicesGetEndpoint          = 1ull << 14,
     
+    /*! Grants process to set endpoint of launch services. */
+    PEEntitlementLaunchServicesSetEndpoint          = 1ull << 15,
+    
     /*! Grants process to manage launch services. */
-    PEEntitlementLaunchServicesManager              = PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint,
+    PEEntitlementLaunchServicesManager              = PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesSetEndpoint | PEEntitlementLaunchServicesGetEndpoint,
     
     /*
-     * MARK: there is no trustcache anymore
-     *
-     * PEEntitlementTrustCacheRead                     = 1ull << 15,
-     * PEEntitlementTrustCacheWrite                    = 1ull << 16,
-     * PEEntitlementTrustCacheManager                  = PEEntitlementTrustCacheRead | PEEntitlementTrustCacheWrite,
-     */
-    
-    /*
-     * MARK: there is no device spoofing currently
+     * MARK: there is no device spoofing currently, but preserving for the future 
      *
      * PEEntitlementEnforceDeviceSpoof                 = 1ull << 17,
      */
     
     /*! Hides LiveProcess in DYLD Api. (recommended) */
-    PEEntitlementDyldHideLiveProcess                = 1ull << 18,
+    PEEntitlementDyldHideLiveProcess                = 1ull << 18,   /* TODO: this is the opposite of a capability, better rename to PEEntitlementDyldDontHideEnvironment */
     
     /*! Makes a process retain entitlements across processes, made for sandboxed applications and such. Its a security feature. */
     PEEntitlementProcessSpawnInheriteEntitlements   = 1ull << 19,
@@ -118,7 +113,7 @@ typedef enum {
     /*! Security feature for daemons and such */
     PEEntitlementPlatform                           = 1ull << 20,
     
-    PEEntitlementSandboxedApplication               = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementDyldHideLiveProcess,
+    PEEntitlementSandboxedApplication               = PEEntitlementNone,
     PEEntitlementUserApplication                    = PEEntitlementGetTaskAllowed | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawnSignedOnly | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemApplication                  = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementDyldHideLiveProcess,
     PEEntitlementSystemDaemon                       = PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessElevate | PEEntitlementLaunchServicesManager | PEEntitlementDyldHideLiveProcess | PEEntitlementPlatform,

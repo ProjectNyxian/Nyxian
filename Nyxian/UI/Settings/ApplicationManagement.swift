@@ -103,7 +103,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             // MARK: Open Menu
             let openMenu: UIMenuElement = UIAction(title: "Open", image: UIImage(systemName: "arrow.up.right.square.fill")) { _ in
                 guard let application = application else { return }
-                PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+                PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: false)
             }
             
             var menu: [UIMenuElement] = [openMenu]
@@ -156,7 +156,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let application = self.applications[indexPath.row]
-        PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+        PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: false)
     }
     
     @objc func plusButtonPressed() {
@@ -199,7 +199,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     if result,
                        LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
                         DispatchQueue.main.async {
-                            PEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: kernel_proc(), doRestartIfRunning: false)
+                            PEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: false)
                         }
                     } else {
                         NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")

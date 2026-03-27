@@ -77,6 +77,7 @@ static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 @property (nonatomic,readonly) BOOL launchServiceStop;
 @property (nonatomic,readonly) BOOL launchServiceToggle;
 @property (nonatomic,readonly) BOOL launchServiceGetEndpoint;
+@property (nonatomic,readonly) BOOL launchServiceSetEndpoint;
 @property (nonatomic,readonly) BOOL launchServiceManager;
 @property (nonatomic,readonly) BOOL dyldHideLiveProcess;
 @property (nonatomic,readonly) BOOL processSpawnInheriteEntitlements;

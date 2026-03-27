@@ -187,9 +187,10 @@
 - (BOOL)launchServiceStop { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]; }
 - (BOOL)launchServiceToggle { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]; }
 - (BOOL)launchServiceGetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]; }
+- (BOOL)launchServiceSetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_set_endpoint" withDefaultValue:NO]; }
 - (BOOL)launchServiceManager { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]; }
 - (BOOL)dyldHideLiveProcess { return [self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:YES]; }
-- (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:YES]; }
+- (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]; }
 - (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
 
 - (PEEntitlement)generateEntitlements
@@ -209,6 +210,7 @@
     if([self launchServiceStop]) entitlements |= PEEntitlementLaunchServicesStop;
     if([self launchServiceToggle]) entitlements |= PEEntitlementLaunchServicesToggle;
     if([self launchServiceGetEndpoint]) entitlements |= PEEntitlementLaunchServicesGetEndpoint;
+    if([self launchServiceSetEndpoint]) entitlements |= PEEntitlementLaunchServicesSetEndpoint;
     if([self launchServiceManager]) entitlements |= PEEntitlementLaunchServicesManager;
     if([self dyldHideLiveProcess]) entitlements |= PEEntitlementDyldHideLiveProcess;
     if([self processSpawnInheriteEntitlements]) entitlements |= PEEntitlementProcessSpawnInheriteEntitlements;
@@ -330,6 +332,7 @@
                     @"com.nyxian.pe.process_elevate": @(NO),
                     @"com.nyxian.pe.host_manager": @(NO),
                     @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
+                    @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
                     @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
                     @"com.nyxian.pe.platform": @(NO)
 #else
@@ -385,6 +388,7 @@
                     @"com.nyxian.pe.process_elevate": @(NO),
                     @"com.nyxian.pe.host_manager": @(NO),
                     @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
+                    @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
                     @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
                     @"com.nyxian.pe.platform": @(NO)
 #else

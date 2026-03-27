@@ -22,11 +22,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
-ksurface_proc_t *kernel_proc(void)
-{
-    return kernel_proc_;
-}
-
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
 {
     /* handle size request */

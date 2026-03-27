@@ -390,7 +390,7 @@ NSArray *entitlementsMenuStructure = @[
         NSMutableArray<UIMenu *> *entMenus = [NSMutableArray array];
         
         UIAction *openAction = [UIAction actionWithTitle:@"Open" image:[UIImage systemImageNamed:@"arrow.up.right.square.fill"] identifier:nil handler:^(UIAction *action) {
-            [[PEProcessManager shared] spawnProcessWithBundleIdentifier:app.bundleID withItems:@{} withKernelSurfaceProcess:kernel_proc() doRestartIfRunning:false];
+            [[PEProcessManager shared] spawnProcessWithBundleIdentifier:app.bundleID withItems:@{} withKernelSurfaceProcess:nil doRestartIfRunning:false];
         }];
         [subMenus addObject:(UIMenu*)openAction];
         
