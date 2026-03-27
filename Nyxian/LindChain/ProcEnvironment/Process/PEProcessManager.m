@@ -143,23 +143,35 @@
 
     if(existingProcess != nil)
     {
-        if(doRestartIfRunning)
+        NXWindowSession *windowSession = [[NXWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
+        if(windowSession != nil)
         {
-            if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+            if(doRestartIfRunning)
             {
-                NXWindowSession *windowSession = [[NXWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
-                if(windowSession != nil && [windowSession isKindOfClass:[NXWindowSessionApplication class]])
+                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
                 {
-                    [((NXWindowSessionApplication*) windowSession) prepareForInject];
-                    session = (NXWindowSessionApplication*)windowSession;
+                    if([windowSession isKindOfClass:[NXWindowSessionApplication class]])
+                    {
+                        [((NXWindowSessionApplication*) windowSession) prepareForInject];
+                        session = (NXWindowSessionApplication*)windowSession;
+                    }
                 }
+                
+                [existingProcess terminate];
             }
-            
-            [existingProcess terminate];
+            else if(windowSession.window != nil)
+            {
+                [windowSession.window focusWindow];
+                return existingProcess.pid;
+            }
+            else
+            {
+                [existingProcess terminate];
+            }
         }
         else
         {
-            return existingProcess.pid;
+            [existingProcess terminate];
         }
     }
     
