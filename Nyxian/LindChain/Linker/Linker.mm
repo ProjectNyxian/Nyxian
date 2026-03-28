@@ -56,7 +56,6 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
 
 - (int)ld64:(NSMutableArray*)flags
 {
-#if !JAILBREAK_ENV
     // Allocating a C array by the given _flags array
     const int argc = (int)[flags count] + 1;
     char **argv = (char **)malloc(sizeof(char*) * argc);
@@ -89,26 +88,6 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
     free(argv);
     
     return result.retCode;
-#else
-    NSString *command = NULL;
-    if(@available(iOS 15.0, *))
-    {
-        command = [NSString stringWithFormat:@"ld64.lld %@", [flags componentsJoinedByString:@" "]];
-    }
-    else
-    {
-        /*
-         * on rootful jailbreaks its usually ld64 and not ld64.lld
-         * needs to be improved anyways.
-         */
-        command = [NSString stringWithFormat:@"ld64 %@", [flags componentsJoinedByString:@" "]];
-    }
-    
-    NSString *error = NULL;
-    int ret = shell(command, 501, NULL, &error);
-    self.error = error;
-    return ret;
-#endif /* !JAILBREAK_ENV*/
 }
 
 @end

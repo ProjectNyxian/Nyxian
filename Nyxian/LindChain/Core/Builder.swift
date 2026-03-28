@@ -359,30 +359,21 @@ class Builder {
             }
         } else {
             macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
-            try? self.package()
+            try self.package()
         }
 #else
-        var output: NSString?
-        let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
         
-        /*if FileManager.default.fileExists(atPath: entitlementsPath),
-           buildType == .RunningApp,
-           self.project.projectConfig.type == NXProjectType.app.rawValue {
-            // pseudo signing executable
-            if shell("ldid -S\(entitlementsPath) \(self.project.bundlePath ?? "")", 501, nil, &output) != 0 {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened signing application"])
-            }
-        }*/
-        
-        try? self.package()
+        try self.package()
         
         if buildType == .RunningApp,
           self.project.projectConfig.type == NXProjectType.app.rawValue {
             // uninstalling potentially installed app
-            shell("\(Bundle.main.bundlePath)/tshelper uninstall \(self.project.projectConfig.bundleid ?? "")", 0, nil, nil)
+            shell(["\(Bundle.main.bundlePath)/tshelper","uninstall",self.project.projectConfig.bundleid ?? ""], 0, nil, nil)
             
             // installing app
-            if shell("\(Bundle.main.bundlePath)/tshelper install '\(self.project.packagePath ?? "")'", 0, nil, &output) != 0 {
+            var output: NSString?
+            if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packagePath ?? ""], 0, nil, &output) != 0 {
+                exit(0);
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
             
@@ -409,6 +400,18 @@ class Builder {
     }
     
     func package() throws {
+#if JAILBREAK_ENV
+        let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
+        if FileManager.default.fileExists(atPath: entitlementsPath),
+           self.project.projectConfig.type == NXProjectType.app.rawValue {
+            // pseudo signing executable
+            var output: NSString?
+            if shell(["\(Bundle.main.bundlePath)/ldid","-S\(entitlementsPath)",self.project.bundlePath ?? ""], 501, nil, &output) != 0 {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened signing application"])
+            }
+        }
+#endif // JAILBREAK_ENV
+        
         zipDirectoryAtPath(project.payloadPath, project.packagePath, true)
     }
     

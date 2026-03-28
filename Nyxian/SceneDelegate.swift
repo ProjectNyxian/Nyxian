@@ -32,7 +32,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         
 #if JAILBREAK_ENV
         // jailbroken check
-        let ret = shell(Bundle.main.executablePath, 0, nil, nil)
+        let ret = shell([Bundle.main.executablePath!], 0, nil, nil)
         if(ret != 0) {
             // creating exception view, instead of silently crashing
             let label: UILabel = UILabel()

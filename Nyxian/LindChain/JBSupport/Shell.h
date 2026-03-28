@@ -24,6 +24,6 @@
 
 #import <Foundation/Foundation.h>
 
-int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
+int shell(NSArray *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
 
 #endif /* LINDCHAIN_SHELL_H */

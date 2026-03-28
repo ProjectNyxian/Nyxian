@@ -126,8 +126,7 @@ class CodeEditorViewController: UIViewController {
             }
         }
         
-        let fileURL = URL(fileURLWithPath: self.path)
-        self.title = fileURL.lastPathComponent
+        self.title = (self.path as NSString).lastPathComponent
         
         if !self.isReadOnly {
             let saveButton: UIBarButtonItem = UIBarButtonItem()
@@ -207,7 +206,7 @@ class CodeEditorViewController: UIViewController {
             self.textView.setLanguageMode(languageMode)
         }
         
-        switch fileURL.pathExtension {
+        switch (self.path as NSString).pathExtension {
         case "m","h":
             self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [

@@ -39,10 +39,10 @@ void createArgv(NSArray<NSString *> *arguments,
         return;
     }
     
-    NSInteger count = arguments.count + 1;
+    NSInteger count = arguments.count;
     *argc = (int)count;
     
-    *argv = calloc(count, sizeof(char *));
+    *argv = calloc(count + 1, sizeof(char *));
     for(NSInteger i = 0; i < arguments.count; i++)
     {
         (*argv)[i] = strdup(arguments[i].UTF8String);
@@ -170,9 +170,9 @@ cleanup:
     return result == 0 ? status : -1;
 }
 
-int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
+int shell(NSArray *command, uid_t uid, NSArray<NSString *> *env, NSString **output)
 {
     
-    return runCommand([command componentsSeparatedByString:@" "], uid ?: 0, env ?: @[], output);
+    return runCommand(command, uid ?: 0, env ?: @[], output);
 }
 
