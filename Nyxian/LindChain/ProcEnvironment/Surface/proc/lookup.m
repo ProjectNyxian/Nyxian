@@ -60,7 +60,18 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
 {
     assert(proc != NULL && task != NULL);
     
-    /* view note in SYS_gettask */
+    /*
+     * claiming read onto task so no other process can
+     * at the same time add their task port which could
+     * lead to task port confusion, because of a tiny
+     * window where a process could die while its
+     * task port is requested and another process spawns
+     * at the same time adding their task port which then
+     * leads to this, permissions could be leaked by this
+     * race by for example a root process handing off its
+     * task port and it has the same port number as a port
+     * that was unpriveleged before but not removed before.
+     */
     task_rdlock();
     
     if(proc->task == MACH_PORT_NULL)
