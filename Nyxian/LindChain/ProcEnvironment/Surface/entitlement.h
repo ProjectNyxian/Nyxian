@@ -42,7 +42,7 @@ typedef struct ksurface_ent_result ksurface_ent_result_t;
 #ifdef __OBJC__
 typedef NS_OPTIONS(uint64_t, PEEntitlement) {
 #else
-typedef enum {
+typedef enum : uint64_t {
 #endif /* __OBJC__ */
     /*! No entitlements at all */
     PEEntitlementNone                               = 0,
