@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <assert.h>
 
 extern int LDEGetOptimalThreadCount(void);
 
@@ -36,7 +37,6 @@ struct syscall_server {
     mach_port_t port;
     pthread_t *threads;
     int threads_cnt;
-    volatile bool running;
     syscall_handler_t handlers[MAX_SYSCALLS];
 };
 
@@ -73,8 +73,7 @@ static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg
     ksurface_return_t ret = proc_for_pid(xnu_pid, &proc);
     
     /* null pointer check */
-    if(ret != SURFACE_SUCCESS ||
-       proc == NULL)
+    if(ret != SURFACE_SUCCESS)
     {
         return NULL;
     }
@@ -170,7 +169,7 @@ static void* syscall_worker_thread(void *ctx)
     mach_msg_option_t options = MACH_RCV_MSG | MACH_RCV_LARGE | MACH_RCV_TRAILER_TYPE(MACH_MSG_TRAILER_FORMAT_0) | MACH_RCV_TRAILER_ELEMENTS(MACH_RCV_TRAILER_AUDIT);
     
     /* worker thread request loop */
-    while(server->running)
+    for(;;)
     {
         /* allocating new buffer if applicable */
         if(buffer == NULL)
@@ -196,7 +195,12 @@ static void* syscall_worker_thread(void *ctx)
         mach_msg_return_t mr = mach_msg(&(buffer->header), options, 0, sizeof(recv_buffer_t), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         
         /* evaluating if the request received from the kernel was geniune */
-        if(mr != MACH_MSG_SUCCESS)
+        if(mr == MACH_RCV_PORT_DIED || mr == MACH_RCV_INVALID_NAME)
+        {
+            vm_deallocate(mach_task_self(), (vm_address_t)buffer, sizeof(recv_buffer_t));
+            break;
+        }
+        else if(mr != MACH_MSG_SUCCESS)
         {
             continue;
         }
@@ -278,6 +282,11 @@ syscall_server_t* syscall_server_create(void)
 {
     /* allocating server */
     syscall_server_t *server = malloc(sizeof(syscall_server_t));
+    if(server == NULL)
+    {
+        return NULL;
+    }
+    
     memset(server, 0, sizeof(syscall_server_t));
     return server;
 }
@@ -285,10 +294,7 @@ syscall_server_t* syscall_server_create(void)
 void syscall_server_destroy(syscall_server_t *server)
 {
     /* null pointer check */
-    if(!server)
-    {
-        return;
-    }
+    assert(server != NULL);
     
     /* stopping the server */
     syscall_server_stop(server);
@@ -301,14 +307,7 @@ void syscall_server_register(syscall_server_t *server,
                              uint32_t syscall_num,
                              syscall_handler_t handler)
 {
-    /* null pointer check */
-    if(server == NULL ||
-       syscall_num >= MAX_SYSCALLS ||
-       server->running)
-    {
-        /* shall never ever happen */
-        environment_panic();
-    }
+    assert(server->port == MACH_PORT_NULL && server != NULL && syscall_num < MAX_SYSCALLS);
     
     /* trying to get syscall handler */
     syscall_handler_t phandler = server->handlers[syscall_num];
@@ -358,7 +357,6 @@ int syscall_server_start(syscall_server_t *server)
     }
     server->threads = calloc(server->threads_cnt, sizeof(pthread_t));
     
-    server->running = true;
     for(int i = 0; i < server->threads_cnt; i++)
     {
         pthread_create(&server->threads[i], NULL, syscall_worker_thread, server);
@@ -374,9 +372,6 @@ void syscall_server_stop(syscall_server_t *server)
     {
         return;
     }
-    
-    /* stopping the server */
-    server->running = false;
     
     /* checking if port is null */
     if(server->port != MACH_PORT_NULL)
@@ -396,6 +391,8 @@ void syscall_server_stop(syscall_server_t *server)
             pthread_join(server->threads[i], NULL);
         }
     }
+    
+    server->port = MACH_PORT_NULL;
 }
 
 mach_port_t syscall_server_get_port(syscall_server_t *server)
