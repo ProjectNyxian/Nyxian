@@ -30,7 +30,6 @@
 #include <unistd.h>
 
 #define SYSCALL_MAX_PAYLOAD     16384
-#define SYSCALL_SERVER_THREADS  4
 #define SYSCALL_QUEUE_LIMIT     32
 
 typedef struct ksurface_proc ksurface_proc_t;

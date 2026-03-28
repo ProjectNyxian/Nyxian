@@ -28,11 +28,14 @@
 #include <stdio.h>
 #include <errno.h>
 
+extern int LDEGetOptimalThreadCount(void);
+
 #define MAX_SYSCALLS 1024
 
 struct syscall_server {
     mach_port_t port;
-    pthread_t threads[SYSCALL_SERVER_THREADS];
+    pthread_t *threads;
+    int threads_cnt;
     volatile bool running;
     syscall_handler_t handlers[MAX_SYSCALLS];
 };
@@ -347,8 +350,16 @@ int syscall_server_start(syscall_server_t *server)
     }
     
     /* starting syscall server */
+    server->threads_cnt = LDEGetOptimalThreadCount();
+    if(server->threads_cnt == 0)
+    {
+        /* shall never happen */
+        environment_panic();
+    }
+    server->threads = calloc(server->threads_cnt, sizeof(pthread_t));
+    
     server->running = true;
-    for(int i = 0; i < SYSCALL_SERVER_THREADS; i++)
+    for(int i = 0; i < server->threads_cnt; i++)
     {
         pthread_create(&server->threads[i], NULL, syscall_worker_thread, server);
     }
@@ -378,7 +389,7 @@ void syscall_server_stop(syscall_server_t *server)
     }
     
     /* stopping each thread of the server */
-    for(int i = 0; i < SYSCALL_SERVER_THREADS; i++)
+    for(int i = 0; i < server->threads_cnt; i++)
     {
         if(server->threads[i])
         {
