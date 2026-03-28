@@ -122,6 +122,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             {
                 goto out_fault;
             }
+            break;
         case TIOCGWINSZ:
             kvo_rdlock(tty);
             if(!mach_syscall_copy_out(sys_task_, sizeof(struct winsize), &(tty->ws), user_ptr))
