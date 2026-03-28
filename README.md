@@ -11,7 +11,7 @@
 </p>
 
 ## What is it?
-Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports C, ObjC, C++ and ObjC++ with Swift support announced for 0.9.x. It’s a powerful Xcode alternative that made the impossible possible, a fully On-device iOS IDE that doesn’t even need a cloud. It supports officially iOS 18 all the way up to the latest iOS version. You can compile and run iOS apps on the go without any problems, using the entire iOS 26.1 SDK.
+Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports C, ObjC, C++ and ObjC++ with Swift support announced(unlikely for now in 0.9.x, contribute please). It’s a powerful Xcode alternative that made the impossible possible, a fully On-device iOS IDE that doesn’t even need a cloud. It supports officially iOS 18 all the way up to the latest iOS version. You can compile and run iOS apps on the go without any problems, using the entire iOS 26.1 SDK.
 
 ## Installation
 
