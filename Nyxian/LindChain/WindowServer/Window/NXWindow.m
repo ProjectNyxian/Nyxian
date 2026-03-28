@@ -20,39 +20,124 @@
 */
 
 #import <LindChain/WindowServer/Window/NXWindow.h>
-#import <LindChain/WindowServer/Window/ResizeHandleView.h>
+#import <LindChain/WindowServer/Window/NXResizeHandle.h>
 #import <LindChain/WindowServer/Window/NXWindowBar.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
-@interface NXWindow ()
-
-@property (nonatomic) NSArray* activatedVerticalConstraints;
-@property (nonatomic) UIBarButtonItem *maximizeButton;
-@property (nonatomic) dispatch_once_t appearOnceAction;
-
-@property (nonatomic, strong) CADisplayLink *resizeDisplayLink;
-@property (nonatomic, strong) NSTimer *resizeEndDebounceTimer;
-@property (atomic) int resizeEndDebounceRefCnt;
-@property (nonatomic) UIView *focusView;
-@property (nonatomic) NXWindowBar *windowBar;
-
-// Intuition Fixup
-@property CGPoint resizeAnchor;
-@property CGPoint grabOffset;
-
-@end
-
-@implementation NXWindow
+@implementation NXWindow {
+    UIStackView *_contentStack;
+    NXResizeHandle *_resizeHandle;
+    NXWindowBar *_windowBar;
+    UIView *_focusHitView;
+    dispatch_once_t _viewDidAppearOnceDispatch;
+    CADisplayLink *_resizeDisplayLink;
+    NSTimer *_resizeEndDebounceTimer;
+    int _resizeEndDebounceRefCnt;
+    CGPoint _resizeAnchor;
+    CGPoint _grabOffset;
+}
 
 - (instancetype)initWithSession:(NXWindowSession*)session
                    withDelegate:(id<NXWindowDelegate>)delegate;
 {
     self = [super initWithNibName:nil bundle:nil];
+    /* TODO: sanitize all nil classes in all objc apis of Nyxian please */
+    
     _session = session;
     _session.isFullscreen = NO;
     _delegate = delegate;
     
-    [self setupDecoratedView:[_delegate window:self wantsToChangeToRect:[_session windowRect]]];
+    self.view = [[UIStackView alloc] initWithFrame:[_session windowRect]];
+    self.view.backgroundColor = UIColor.clearColor;
+    self.view.autoresizingMask = UIViewAutoresizingNone;
+    
+    self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+    self.view.layer.shadowOpacity = 1.0;
+    self.view.layer.shadowRadius = 12;
+    self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    
+    _contentStack = [UIStackView new];
+    _contentStack.frame = self.view.bounds;
+    _contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
+    _contentStack.axis = UILayoutConstraintAxisVertical;
+    _contentStack.backgroundColor = UIColor.systemBackgroundColor;
+    
+    _contentStack.layer.cornerRadius = 20;
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+    {
+        _contentStack.layer.maskedCorners = kCALayerMinXMinYCorner | kCALayerMaxXMinYCorner;
+    }
+    _contentStack.layer.masksToBounds = YES;
+    [self.view addSubview:_contentStack];
+    
+    __weak typeof(self) weakSelf = self;
+    _windowBar = [[NXWindowBar alloc] initWithTitle:self.session.windowName withCloseCallback:^{
+        [weakSelf closeWindowWithCompletion:nil];
+    } withMaximizeCallback:^{
+        [weakSelf maximizeWindow:YES];
+    }];
+    self.session.window = self;
+    
+    _windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
+    [_contentStack addArrangedSubview:_windowBar];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [_windowBar.topAnchor constraintEqualToAnchor:_contentStack.topAnchor],
+        [_windowBar.leadingAnchor constraintEqualToAnchor:_contentStack.leadingAnchor],
+        [_windowBar.trailingAnchor constraintEqualToAnchor:_contentStack.trailingAnchor],
+    ]];
+    
+    [self addChildViewController:_session];
+    _session.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [_contentStack addArrangedSubview:_session.view];
+    [_contentStack sendSubviewToBack:_session.view];
+    [_session didMoveToParentViewController:self];
+    
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        /* this is to move the window obviously */
+        UIPanGestureRecognizer *moveGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
+        moveGesture.minimumNumberOfTouches = 1;
+        moveGesture.maximumNumberOfTouches = 1;
+        [_windowBar addGestureRecognizer:moveGesture];
+        
+        /* this is to full screen the window by double tap */
+        UITapGestureRecognizer *fullScreenGesture =
+        [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(maximizeButtonPressed)];
+        fullScreenGesture.numberOfTapsRequired = 2;
+        fullScreenGesture.numberOfTouchesRequired = 1;
+        fullScreenGesture.delaysTouchesBegan = NO;
+        fullScreenGesture.delaysTouchesEnded = NO;
+        fullScreenGesture.cancelsTouchesInView = NO;
+        [_windowBar addGestureRecognizer:fullScreenGesture];
+        
+        moveGesture.delegate = self;
+        fullScreenGesture.delegate = self;
+        
+        /* and this is to resize a window lol */
+        UIPanGestureRecognizer *resizeGesture =
+        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
+        resizeGesture.minimumNumberOfTouches = 1;
+        resizeGesture.maximumNumberOfTouches = 1;
+        
+        _resizeHandle = [[NXResizeHandle alloc] initWithFrame:CGRectMake(_contentStack.frame.size.width - 44, _contentStack.frame.size.height - 44, 44, 44)];
+        [_resizeHandle addGestureRecognizer:resizeGesture];
+        [_contentStack addSubview:_resizeHandle];
+    }
+    else
+    {
+        /* this is to close the app on iPhone lol */
+        UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(minimizeWindow:)];
+        [_windowBar addGestureRecognizer:pullDownGesture];
+    }
+    
+    _contentStack.layer.borderWidth = 0.5;
+    _contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+    
+    [self updateOriginalFrame];
+    self.view.alpha = 0.0;
     
     return self;
 }
@@ -98,7 +183,234 @@
     } completion:nil];
 }
 
-- (void)handlePullDown:(UIPanGestureRecognizer *)gesture
+- (void)focusWindow
+{
+    assert([NSThread isMainThread]);
+    
+    if (!_focusHitView) return;
+    self.session.isFocused = YES;
+    
+    [self.view.superview bringSubviewToFront:self.view];
+    
+    [_windowBar changeFocus:true];
+    
+    [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self->_focusHitView.alpha = 0.0;
+        self->_focusHitView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+    } completion:^(BOOL finished) {
+        [self->_focusHitView removeFromSuperview];
+        self->_focusHitView = nil;
+        [self.delegate windowWantsToFocus:self];
+    }];
+}
+
+- (void)unfocusWindow
+{
+    assert([NSThread isMainThread]);
+    
+    if (_focusHitView != nil) return;
+    self.session.isFocused = NO;
+    
+    [_windowBar changeFocus:false];
+    
+    _focusHitView = [[UIView alloc] init];
+    _focusHitView.backgroundColor = UIColor.secondarySystemFillColor;
+    _focusHitView.alpha = 0.0;
+    _focusHitView.translatesAutoresizingMaskIntoConstraints = NO;
+    [_contentStack insertSubview:_focusHitView aboveSubview:self.session.view];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [_focusHitView.topAnchor constraintEqualToAnchor:_windowBar.bottomAnchor],
+        [_focusHitView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [_focusHitView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [_focusHitView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
+    ]];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->_focusHitView.transform = CGAffineTransformMakeScale(1.02, 1.02);
+        
+        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self->_focusHitView.alpha = 0.12;
+            self->_focusHitView.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    });
+}
+
+- (void)maximizeWindow:(BOOL)animated
+{
+    [self focusWindow];
+    
+    void (^changes)(void);
+    void (^completion)(void);
+    
+    if(self.isMaximized)
+    {
+        [_windowBar setFullscreen:NO animated:YES];
+        
+        self.isMaximized = NO;
+        self.session.isFullscreen = NO;
+        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
+        
+        changes = ^{
+            self.view.frame = newFrame;
+            [self.view layoutIfNeeded];
+            
+            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+            {
+                self->_contentStack.layer.cornerRadius = 20;
+            }
+            self->_contentStack.layer.borderWidth = 0.5;
+            self.view.layer.shadowOpacity = 1.0;
+            self->_resizeHandle.hidden = NO;
+        };
+        
+        completion = ^{
+            [self resizeActionEnd];
+            self->_windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
+        };
+    }
+    else
+    {
+        [_windowBar setFullscreen:YES animated:YES];
+        
+        self.isMaximized = YES;
+        self.session.isFullscreen = YES;
+        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
+        
+        changes = ^{
+            self.view.frame = newFrame;
+            [self.view layoutIfNeeded];
+            
+            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
+            {
+                self->_contentStack.layer.cornerRadius = 0;
+            }
+            self->_contentStack.layer.borderWidth = 0;
+            self.view.layer.shadowOpacity = 0;
+            self->_resizeHandle.hidden = YES;
+        };
+        
+        completion = ^{
+            [self resizeActionEnd];
+            self->_windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
+        };
+    }
+    
+    [self resizeActionStart];
+    if(animated)
+    {
+        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:changes completion:^(BOOL finished) {
+            if(finished)
+            {
+                completion();
+            }
+        }];
+    }
+    else
+    {
+        changes();
+        completion();
+    }
+}
+
+- (void)maximizeButtonPressed
+{
+    [self maximizeWindow:YES];
+}
+
+- (void)moveWindow:(UIPanGestureRecognizer*)gesture
+{
+    if(_isMaximized) return;
+
+    CGPoint finger = [gesture locationInView:self.view.superview];
+
+    switch(gesture.state)
+    {
+
+        case UIGestureRecognizerStateBegan:
+        {
+            [self focusWindow];
+            CGPoint pointInWindow = [gesture locationInView:self.view];
+            _grabOffset = pointInWindow;
+            break;
+        }
+        case UIGestureRecognizerStateChanged:
+        {
+            CGRect frame = self.view.frame;
+            frame.origin.x = finger.x - _grabOffset.x;
+            frame.origin.y = finger.y - _grabOffset.y;
+            frame = [self.delegate window:self wantsToChangeToRect:frame];
+            self.view.frame = frame;
+            break;
+        }
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            [self updateOriginalFrame];
+        default:
+            break;
+    }
+}
+
+- (void)resizeWindow:(UIPanGestureRecognizer*)gesture
+{
+    if(_isMaximized) return;
+
+    CGPoint finger = [gesture locationInView:self.view.superview];
+
+    switch(gesture.state)
+    {
+        case UIGestureRecognizerStateBegan:
+        {
+            [self focusWindow];
+            [self resizeActionStart];
+            _resizeAnchor = CGPointMake(
+                CGRectGetMinX(self.view.frame),
+                CGRectGetMinY(self.view.frame)
+            );
+            break;
+        }
+        case UIGestureRecognizerStateChanged:
+        {
+            CGFloat newWidth  = finger.x - _resizeAnchor.x;
+            CGFloat newHeight = finger.y - _resizeAnchor.y;
+            
+            CGRect oldFrame = self.view.frame;
+            CGRect proposed = oldFrame;
+            proposed.size.width = MAX(300, newWidth);
+            proposed.size.height = MAX(200, newHeight);
+            
+            CGRect corrected = [self.delegate window:self wantsToChangeToRect:proposed];
+            BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
+            BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
+            
+            if(widthBlocked)
+            {
+                corrected.size.width = oldFrame.size.width;
+                corrected.origin.x   = oldFrame.origin.x;
+            }
+            
+            if(heightBlocked)
+            {
+                corrected.size.height = oldFrame.size.height;
+                corrected.origin.y    = oldFrame.origin.y;
+            }
+            
+            self.view.frame = corrected;
+            break;
+        }
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            [self resizeActionEnd];
+            [self updateOriginalFrame];
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)minimizeWindow:(UIPanGestureRecognizer *)gesture
 {
     UIView *windowView = self.view;
     
@@ -151,7 +463,7 @@
 {
     [super viewDidAppear:animated];
     
-    dispatch_once(&_appearOnceAction, ^{
+    dispatch_once(&_viewDidAppearOnceDispatch, ^{
         // MARK: Suppose to only run on phones
         [self startLiveResizeWithSettingsBlock];
         if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
@@ -165,328 +477,6 @@
             [self resizeActionEnd];
         }
     });
-}
-
-- (void)unfocusWindow
-{
-    if (_focusView != nil) return;
-    self.session.isFocused = NO;
-    
-    [self.windowBar changeFocus:false];
-    
-    _focusView = [[UIView alloc] init];
-    _focusView.backgroundColor = UIColor.secondarySystemFillColor;
-    _focusView.alpha = 0.0;
-    _focusView.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.contentStack insertSubview:_focusView aboveSubview:self.session.view];
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [_focusView.topAnchor constraintEqualToAnchor:self.windowBar.bottomAnchor],
-        [_focusView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-        [_focusView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-        [_focusView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
-    ]];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
-        
-        [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self->_focusView.alpha = 0.12;
-            self->_focusView.transform = CGAffineTransformIdentity;
-        } completion:nil];
-    });
-}
-
-- (void)focusWindow
-{
-    assert([NSThread isMainThread]);
-    
-    if (!self.focusView) return;
-    self.session.isFocused = YES;
-    
-    [self.view.superview bringSubviewToFront:self.view];
-    
-    [self.windowBar changeFocus:true];
-    
-    [UIView animateWithDuration:0.11 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        self->_focusView.alpha = 0.0;
-        self->_focusView.transform = CGAffineTransformMakeScale(1.02, 1.02);
-    } completion:^(BOOL finished) {
-        [self->_focusView removeFromSuperview];
-        self->_focusView = nil;
-        [self.delegate windowWantsToFocus:self];
-    }];
-}
-
-- (void)setupDecoratedView:(CGRect)dimensions
-{
-    self.view = [[UIStackView alloc] initWithFrame:dimensions];
-    self.view.backgroundColor = UIColor.clearColor;
-    self.view.autoresizingMask = UIViewAutoresizingNone;
-    
-    self.view.layer.shadowColor = UIColor.blackColor.CGColor;
-    self.view.layer.shadowOpacity = 1.0;
-    self.view.layer.shadowRadius = 12;
-    self.view.layer.shadowOffset = CGSizeMake(0, 0);
-    
-    self.contentStack = [UIStackView new];
-    self.contentStack.frame = self.view.bounds;
-    self.contentStack.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
-    self.contentStack.axis = UILayoutConstraintAxisVertical;
-    self.contentStack.backgroundColor = UIColor.systemBackgroundColor;
-    
-    self.contentStack.layer.cornerRadius = 20;
-    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
-    {
-        self.contentStack.layer.maskedCorners = kCALayerMinXMinYCorner | kCALayerMaxXMinYCorner;
-    }
-    self.contentStack.layer.masksToBounds = YES;
-    [self.view addSubview:self.contentStack];
-    
-    __weak typeof(self) weakSelf = self;
-    NXWindowBar *windowBar = [[NXWindowBar alloc] initWithTitle:self.session.windowName withCloseCallback:^{
-        [weakSelf closeWindowWithCompletion:nil];
-    } withMaximizeCallback:^{
-        [weakSelf maximizeWindow:YES];
-    }];
-    self.session.window = self;
-    
-    windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
-    [self.contentStack addArrangedSubview:windowBar];
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [windowBar.topAnchor constraintEqualToAnchor:self.contentStack.topAnchor],
-        [windowBar.leadingAnchor constraintEqualToAnchor:self.contentStack.leadingAnchor],
-        [windowBar.trailingAnchor constraintEqualToAnchor:self.contentStack.trailingAnchor],
-    ]];
-    
-    self.windowBar = windowBar;
-    
-    [self addChildViewController:_session];
-    _session.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.contentStack addArrangedSubview:_session.view];
-    [self.contentStack sendSubviewToBack:_session.view];
-    [_session didMoveToParentViewController:self];
-    
-    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
-    {
-        /* this is to move the window obviously */
-        UIPanGestureRecognizer *moveGesture =
-        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
-        moveGesture.minimumNumberOfTouches = 1;
-        moveGesture.maximumNumberOfTouches = 1;
-        [self.windowBar addGestureRecognizer:moveGesture];
-        
-        /* this is to full screen the window by double tap */
-        UITapGestureRecognizer *fullScreenGesture =
-        [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(maximizeButtonPressed)];
-        fullScreenGesture.numberOfTapsRequired = 2;
-        fullScreenGesture.numberOfTouchesRequired = 1;
-        fullScreenGesture.delaysTouchesBegan = NO;
-        fullScreenGesture.delaysTouchesEnded = NO;
-        fullScreenGesture.cancelsTouchesInView = NO;
-        [self.windowBar addGestureRecognizer:fullScreenGesture];
-        
-        moveGesture.delegate = self;
-        fullScreenGesture.delegate = self;
-        
-        /* and this is to resize a window lol */
-        UIPanGestureRecognizer *resizeGesture =
-        [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
-        resizeGesture.minimumNumberOfTouches = 1;
-        resizeGesture.maximumNumberOfTouches = 1;
-        
-        self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.contentStack.frame.size.width - 44, self.contentStack.frame.size.height - 44, 44, 44)];
-        [self.resizeHandle addGestureRecognizer:resizeGesture];
-        [self.contentStack addSubview:self.resizeHandle];
-    }
-    else
-    {
-        /* this is to close the app on iPhone lol */
-        UIPanGestureRecognizer *pullDownGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePullDown:)];
-        [self.windowBar addGestureRecognizer:pullDownGesture];
-    }
-    
-    self.contentStack.layer.borderWidth = 0.5;
-    self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
-    
-    [self updateOriginalFrame];
-    self.view.alpha = 0.0;
-}
-
-- (void)maximizeWindow:(BOOL)animated
-{
-    [self focusWindow];
-    
-    void (^changes)(void);
-    void (^completion)(void);
-    
-    if(self.isMaximized)
-    {
-        [self.windowBar setFullscreen:NO animated:YES];
-        
-        self.isMaximized = NO;
-        self.session.isFullscreen = NO;
-        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:self.originalFrame];
-        
-        changes = ^{
-            self.view.frame = newFrame;
-            [self.view layoutIfNeeded];
-            
-            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
-            {
-                self.contentStack.layer.cornerRadius = 20;
-            }
-            self.contentStack.layer.borderWidth = 0.5;
-            self.view.layer.shadowOpacity = 1.0;
-            self.resizeHandle.hidden = NO;
-        };
-        
-        completion = ^{
-            [self resizeActionEnd];
-            self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle.fill"];
-        };
-    }
-    else
-    {
-        [self.windowBar setFullscreen:YES animated:YES];
-        
-        self.isMaximized = YES;
-        self.session.isFullscreen = YES;
-        CGRect newFrame = [self.delegate window:self wantsToChangeToRect:CGRectZero];
-        
-        changes = ^{
-            self.view.frame = newFrame;
-            [self.view layoutIfNeeded];
-            
-            if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPhone)
-            {
-                self.contentStack.layer.cornerRadius = 0;
-            }
-            self.contentStack.layer.borderWidth = 0;
-            self.view.layer.shadowOpacity = 0;
-            self.resizeHandle.hidden = YES;
-        };
-        
-        completion = ^{
-            [self resizeActionEnd];
-            self.windowBar.maximizeButton.imageView.image = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle.fill"];
-        };
-    }
-    
-    [self resizeActionStart];
-    if(animated)
-    {
-        [UIView animateWithDuration:0.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:changes completion:^(BOOL finished) {
-            if(finished)
-            {
-                completion();
-            }
-        }];
-    }
-    else
-    {
-        changes();
-        completion();
-    }
-}
-
-- (void)maximizeButtonPressed
-{
-    [self maximizeWindow:YES];
-}
-
-- (void)moveWindow:(UIPanGestureRecognizer*)gesture
-{
-    if(_isMaximized) return;
-
-    CGPoint finger = [gesture locationInView:self.view.superview];
-
-    switch(gesture.state)
-    {
-
-        case UIGestureRecognizerStateBegan:
-        {
-            [self focusWindow];
-            CGPoint pointInWindow = [gesture locationInView:self.view];
-            self.grabOffset = pointInWindow;
-            break;
-        }
-        case UIGestureRecognizerStateChanged:
-        {
-            CGRect frame = self.view.frame;
-            frame.origin.x = finger.x - self.grabOffset.x;
-            frame.origin.y = finger.y - self.grabOffset.y;
-            frame = [self.delegate window:self wantsToChangeToRect:frame];
-            self.view.frame = frame;
-            break;
-        }
-        case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled:
-        case UIGestureRecognizerStateFailed:
-            [self updateOriginalFrame];
-        default:
-            break;
-    }
-}
-
-- (void)resizeWindow:(UIPanGestureRecognizer*)gesture
-{
-    if(_isMaximized) return;
-
-    CGPoint finger = [gesture locationInView:self.view.superview];
-
-    switch(gesture.state)
-    {
-        case UIGestureRecognizerStateBegan:
-        {
-            [self focusWindow];
-            [self resizeActionStart];
-            self.resizeAnchor = CGPointMake(
-                CGRectGetMinX(self.view.frame),
-                CGRectGetMinY(self.view.frame)
-            );
-            break;
-        }
-        case UIGestureRecognizerStateChanged:
-        {
-            CGFloat newWidth  = finger.x - self.resizeAnchor.x;
-            CGFloat newHeight = finger.y - self.resizeAnchor.y;
-            
-            CGRect oldFrame = self.view.frame;
-            CGRect proposed = oldFrame;
-            proposed.size.width = MAX(300, newWidth);
-            proposed.size.height = MAX(200, newHeight);
-            
-            CGRect corrected = [self.delegate window:self wantsToChangeToRect:proposed];
-            BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
-            BOOL heightBlocked = (corrected.origin.y != proposed.origin.y);
-            
-            if(widthBlocked)
-            {
-                corrected.size.width = oldFrame.size.width;
-                corrected.origin.x   = oldFrame.origin.x;
-            }
-            
-            if(heightBlocked)
-            {
-                corrected.size.height = oldFrame.size.height;
-                corrected.origin.y    = oldFrame.origin.y;
-            }
-            
-            self.view.frame = corrected;
-            break;
-        }
-        case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled:
-        case UIGestureRecognizerStateFailed:
-            [self resizeActionEnd];
-            [self updateOriginalFrame];
-            break;
-        default:
-            break;
-    }
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
@@ -518,61 +508,32 @@
     }];
 }
 
-/*
- * Resize Handling
- *
- */
 - (void)startLiveResizeWithSettingsBlock
 {
-    if(!self.resizeDisplayLink)
+    if(!_resizeDisplayLink)
     {
-        self.resizeDisplayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateSceneFrame)];
-        [self.resizeDisplayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-        self.resizeDisplayLink.paused = YES;
+        _resizeDisplayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateSceneFrame)];
+        [_resizeDisplayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+        _resizeDisplayLink.paused = YES;
     }
 }
 
 - (void)updateSceneFrame
 {
     CGRect frame = self.view.frame;
-    frame.origin.y += self.windowBar.frame.size.height;
-    frame.size.height -= self.windowBar.frame.size.height;
+    frame.origin.y += _windowBar.frame.size.height;
+    frame.size.height -= _windowBar.frame.size.height;
     
     [self.session windowChangesToRect:frame];
-}
-
-- (void)deinit
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        /* ending live resizing */
-        if(self.resizeEndDebounceTimer != nil)
-        {
-            [self.resizeEndDebounceTimer invalidate];
-            self.resizeEndDebounceTimer = nil;
-        }
-        
-        if(self.resizeDisplayLink != nil)
-        {
-            [self.resizeDisplayLink invalidate];
-            self.resizeDisplayLink = nil;
-        }
-        
-        /* destroying focus view */
-        if(self.focusView != nil)
-        {
-            [self->_focusView removeFromSuperview];
-            self->_focusView = nil;
-        }
-    });
 }
 
 - (void)resizeActionStart
 {
     if(_resizeEndDebounceRefCnt == 0)
     {
-        [self.resizeEndDebounceTimer invalidate];
-        self.resizeEndDebounceTimer = nil;
-        self.resizeDisplayLink.paused = NO;
+        [self->_resizeEndDebounceTimer invalidate];
+        self->_resizeEndDebounceTimer = nil;
+        self->_resizeDisplayLink.paused = NO;
     }
     
     _resizeEndDebounceRefCnt += 1;
@@ -587,11 +548,17 @@
     
     if(_resizeEndDebounceRefCnt == 0)
     {
-        [self.resizeEndDebounceTimer invalidate];
+        [self->_resizeEndDebounceTimer invalidate];
         __weak typeof(self) weakSelf = self;
-        self.resizeEndDebounceTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:NO block:^(NSTimer * _Nonnull timer) {
-            weakSelf.resizeDisplayLink.paused = YES;
-            weakSelf.resizeEndDebounceTimer = nil;
+        self->_resizeEndDebounceTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:NO block:^(NSTimer * _Nonnull timer) {
+            __strong typeof(self) innerSelf = weakSelf;
+            if(innerSelf == nil)
+            {
+                return;
+            }
+            
+            innerSelf->_resizeDisplayLink.paused = YES;
+            innerSelf->_resizeEndDebounceTimer = nil;
         }];
     }
 }
@@ -604,7 +571,7 @@
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
     [super traitCollectionDidChange:previousTraitCollection];
-    self.contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+    _contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
 }
 
 - (NSString*)getWindowName
@@ -615,6 +582,31 @@
 - (void)setWindowName:(NSString *)windowName
 {
     _windowBar.title = windowName;
+}
+
+- (void)deinit
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        /* ending live resizing */
+        if(self->_resizeEndDebounceTimer != nil)
+        {
+            [self->_resizeEndDebounceTimer invalidate];
+            self->_resizeEndDebounceTimer = nil;
+        }
+        
+        if(self->_resizeDisplayLink != nil)
+        {
+            [self->_resizeDisplayLink invalidate];
+            self->_resizeDisplayLink = nil;
+        }
+        
+        /* destroying focus view */
+        if(self->_focusHitView != nil)
+        {
+            [self->_focusHitView removeFromSuperview];
+            self->_focusHitView = nil;
+        }
+    });
 }
 
 - (void)dealloc

@@ -20,17 +20,26 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-// Duy, please don't forget to use header gates, then you also dont have to use any @import's anymore :)
+#import <LindChain/WindowServer/Window/NXResizeHandle.h>
 
-#ifndef LCRESIZEHANDLEVIEW_H
-#define LCRESIZEHANDLEVIEW_H
+@implementation NXResizeHandle
 
-#import <UIKit/UIKit.h>
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    self.layer.masksToBounds = YES;
+    self.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+    UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width*sqrt(2), frame.size.height*sqrt(2))];
+    backgroundView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.2];
+    backgroundView.center = CGPointMake(frame.size.width, frame.size.height);
+    backgroundView.transform = CGAffineTransformMakeRotation(M_PI_4);
+    [self addSubview:backgroundView];
+    return self;
+}
 
-@interface ResizeHandleView : UIView
-
-- (instancetype)initWithFrame:(CGRect)frame;
+- (void)dealloc
+{
+    NSLog(@"deallocated %@", self);
+}
 
 @end
-
-#endif /* LCRESIZEHANDLEVIEW_H */

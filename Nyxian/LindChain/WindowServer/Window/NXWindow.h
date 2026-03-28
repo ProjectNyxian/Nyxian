@@ -43,15 +43,9 @@
 
 @property (nonatomic) id_t identifier;
 @property (nonatomic,getter=getWindowName,setter=setWindowName:) NSString* windowName;
-@property (nonatomic) UINavigationBar *navigationBar;
-@property (nonatomic) UINavigationItem *navigationItem;
-@property (nonatomic) UIView *resizeHandle;
-@property (nonatomic) UIStackView *contentStack;
 @property (nonatomic) BOOL isMaximized;
 @property (nonatomic) CGRect originalFrame;
-
 @property (nonatomic) NXWindowSession *session;
-
 @property (nonatomic, weak) id<NXWindowDelegate> delegate;
 
 - (instancetype)initWithSession:(NXWindowSession*)session withDelegate:(id<NXWindowDelegate>)delegate;
