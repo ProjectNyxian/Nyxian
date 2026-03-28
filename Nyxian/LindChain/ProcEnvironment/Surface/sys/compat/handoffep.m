@@ -91,6 +91,11 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     
     /* preparing ktfp */
     khandoffep_t *hep = malloc(sizeof(mach_port_t));
+    if(hep == NULL)
+    {
+        sys_return_failure(ENOMEM);
+    }
+    
     hep->ep = sys_in_ports[0];
     hep->proc = sys_proc_;
     
