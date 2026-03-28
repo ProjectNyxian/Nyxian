@@ -23,10 +23,9 @@
 #include <dlfcn.h>
 #include <mach/mach.h>
 
-#define SYS_pectl       762
+#define SYS_pectl       761
 
 #define PECTL_SET_ENDPOINT 0b00000000
-#define PECTL_GET_ENDPOINT 0b00000001
 
 @interface NSXPCListenerEndpoint ()
 

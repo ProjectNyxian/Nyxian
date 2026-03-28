@@ -24,8 +24,12 @@
 
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 
-#define PECTL_SET_ENDPOINT 0b00000000
-#define PECTL_GET_ENDPOINT 0b00000001
+/* launch services */
+#define PECTL_SET_ENDPOINT  0b00000000
+#define PECTL_GET_ENDPOINT  0b00000001
+
+/* environment */
+#define PECTL_SET_BAMSET    0b00000010
 /*
  * more compat will move into process
  * environment ctl likely soon, like

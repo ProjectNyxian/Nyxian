@@ -24,7 +24,6 @@
 
 /* headers to syscall handlers*/
 #import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/bamset.h>
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setuid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
@@ -48,22 +47,21 @@
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
-#define SYS_bamset      750         /* setting audio background mode */
-#define SYS_proctb      751         /* MARK: deprecated.. use SYS_sysctl instead */
-#define SYS_getent      752         /* getting processes entitlements */
-#define SYS_gethostname 753         /* MARK: deprecated.. use SYS_sysctl instead */
-#define SYS_sethostname 754         /* MARK: deprecated.. use SYS_sysctl instead */
-#define SYS_gettask     755         /* gets task port */
-#define SYS_signexec    756         /* uses file descriptor passed by guest to sign executable */
-#define SYS_procpath    757         /* gets process path of a pid */
-#define SYS_procbsd     758         /* MARK: deprecated.. use SYS_sysctl instead */
-#define SYS_handoffep   759         /* handoff exception port to kvirt */
-#define SYS_setent      760         /* sets entitlements (sanitized ofc) */
-#define SYS_waittask    761         /* waits till task port of a task is available */
-#define SYS_pectl       762         /* utility for many proc environment operations */
-#define SYS_getpk       763         /* copy out the public signature key */
+#define SYS_proctb      750         /* MARK: deprecated.. use SYS_sysctl instead */
+#define SYS_getent      751         /* getting processes entitlements */
+#define SYS_gethostname 752         /* MARK: deprecated.. use SYS_sysctl instead */
+#define SYS_sethostname 753         /* MARK: deprecated.. use SYS_sysctl instead */
+#define SYS_gettask     754         /* gets task port */
+#define SYS_signexec    755         /* uses file descriptor passed by guest to sign executable */
+#define SYS_procpath    756         /* gets process path of a pid */
+#define SYS_procbsd     757         /* MARK: deprecated.. use SYS_sysctl instead */
+#define SYS_handoffep   758         /* handoff exception port to kvirt */
+#define SYS_setent      759         /* sets entitlements (sanitized ofc) */
+#define SYS_waittask    760         /* waits till task port of a task is available */
+#define SYS_pectl       761         /* utility for many proc environment operations */
+#define SYS_getpk       762         /* copy out the public signature key */
 
-#define SYS_N 30
+#define SYS_N 29
 
 typedef struct {
     const char *name;

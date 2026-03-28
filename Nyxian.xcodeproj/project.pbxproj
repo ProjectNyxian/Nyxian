@@ -219,7 +219,6 @@
 				LindChain/ProcEnvironment/Surface/proc/remove.m,
 				LindChain/ProcEnvironment/Surface/radix/radix.c,
 				LindChain/ProcEnvironment/Surface/surface.m,
-				LindChain/ProcEnvironment/Surface/sys/compat/bamset.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/getent.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/getpk.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/gettask.m,

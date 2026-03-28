@@ -25,7 +25,6 @@
 /* list of syscalls for the kernel virtualization layer lol */
 syscall_list_item_t sys_list[SYS_N] = {
     { .name = "SYS_kill",           .sysnum = SYS_kill,         .hndl = GET_SYSCALL_HANDLER(kill)           },
-    { .name = "SYS_bamset",         .sysnum = SYS_bamset,       .hndl = GET_SYSCALL_HANDLER(bamset)         },
     { .name = "SYS_setuid",         .sysnum = SYS_setuid,       .hndl = GET_SYSCALL_HANDLER(setuid)         },
     { .name = "SYS_seteuid",        .sysnum = SYS_seteuid,      .hndl = GET_SYSCALL_HANDLER(seteuid)        },
     { .name = "SYS_setgid",         .sysnum = SYS_setgid,       .hndl = GET_SYSCALL_HANDLER(setgid)         },

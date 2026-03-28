@@ -21,6 +21,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
+#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/Process/PEBootstrapRegistry.h>
 #import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
@@ -154,6 +155,24 @@ DEFINE_SYSCALL_HANDLER(pectl)
             
             [[PEBootstrapRegistry shared] setEndpoint:endpoint forServiceIdentifier:service_nsname];
             sys_in_ports[0] = MACH_PORT_NULL;   /* prevent mach port reference leak */
+            
+            sys_return;
+        }
+        case PECTL_SET_BAMSET:
+        {
+            /* getting boolean */
+            bool active = args[0];
+            
+            /* getting process */
+            PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(sys_proc_snapshot_)];
+            if(process)
+            {
+                process.audioBackgroundModeUsage = active;
+            }
+            else
+            {
+                sys_return_failure(EACCES);
+            }
             
             sys_return;
         }
