@@ -28,7 +28,7 @@ DEFINE_SYSCALL_HANDLER(setent)
     /* MARK: THIS IS USER SUPPLIED */
     PEEntitlement userPassed = (PEEntitlement)args[0];
     
-    /* getting the added mask out of both entitlements */
+    /* getting the added mask out of entitlements */
     PEEntitlement added = (~proc_getentitlements(sys_proc_)) & userPassed;
     
     /* deny adding entitlements not present in max entitlements */

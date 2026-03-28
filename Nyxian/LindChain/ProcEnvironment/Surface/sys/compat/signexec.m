@@ -43,43 +43,21 @@ DEFINE_SYSCALL_HANDLER(signexec)
         sys_return_failure(EPERM);
     }
     
-    /* validating mach port before use */
-    mach_port_type_t type;
-    if(mach_port_type(mach_task_self(), sys_in_ports[0], &type) != KERN_SUCCESS)
-    {
-        sys_return_failure(EINVAL);
-    }
-    
-    /* creating file descriptor out of mach fileport */
-    int fd = fileport_makefd(sys_in_ports[0]);
-    
-    /* checking file descriptor */
-    if(fd == -1)
-    {
-        sys_return_failure(EBADF);
-    }
-    
     /*
      * create mach object object out of the file descriptor
      * on return the file descriptor is destroyed by default
      * by ARC on the PEObject
      */
-    MachOObject *machOObject = [MachOObject objectForFileDescriptor:fd];
-    
-    /* null pointer check */
+    MachOObject *machOObject = [MachOObject objectForFilePort:sys_in_ports[0]];
     if(machOObject == NULL)
     {
-        close(fd);
-        sys_return_failure(ENOEXEC);
+        sys_return_failure(EBADF);
     }
     
     /* signing that shit */
-    BOOL success = [machOObject signAndWriteBack];
-    
-    /* checking if successful */
-    if(!success)
+    if(![machOObject signAndWriteBack])
     {
-        sys_return_failure(EIO);
+        sys_return_failure(ENOEXEC);
     }
     
     /* now it was successful */

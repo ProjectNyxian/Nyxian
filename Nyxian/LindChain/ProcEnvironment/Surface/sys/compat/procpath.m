@@ -48,26 +48,25 @@ DEFINE_SYSCALL_HANDLER(procpath)
     if(!can_see_process(sys_proc_snapshot_, target, vis))
     {
         kvo_release(target);
-        sys_return_failure(EINVAL);
+        sys_return_failure(ESRCH);
     }
     
     size_t size = 0;
     if(!mach_syscall_copy_in(sys_task_, sizeof(size_t), &size, size_ptr))
     {
         kvo_release(target);
-        sys_return_failure(EINVAL);
+        sys_return_failure(EFAULT);
     }
     
     /* locking process read */
     kvo_rdlock(target);
     
     size_t buflen = strnlen(target->nyx.executable_path, PATH_MAX - 1) + 1;
-    
     if(buflen > PATH_MAX)
     {
         kvo_unlock(target);
         kvo_release(target);
-        sys_return_failure(EFAULT);
+        sys_return_failure(E2BIG);
     }
     
     /*

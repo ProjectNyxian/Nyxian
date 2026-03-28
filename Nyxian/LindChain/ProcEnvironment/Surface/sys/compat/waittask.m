@@ -61,7 +61,6 @@ DEFINE_SYSCALL_HANDLER(waittask)
     /* getting target requested for caller */
     ksurface_proc_t *target;
     ksurface_return_t ksr = proc_for_pid(pid, &target);
-    
     if(ksr != SURFACE_SUCCESS)
     {
         sys_return_failure(ECHILD);
