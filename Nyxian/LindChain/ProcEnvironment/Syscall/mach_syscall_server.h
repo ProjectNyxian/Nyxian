@@ -37,7 +37,7 @@ typedef struct ksurface_proc ksurface_proc_snapshot_t;
 
 /* safe snapshot */
 #define sys_proc_snapshot_ proc_snapshot
-#define sys_task_ sys_proc_snapshot_->task
+#define sys_task_ task
 
 /* reference for modification */
 #define sys_proc_ ((ksurface_proc_t*)(sys_proc_snapshot_->header.orig))
@@ -88,6 +88,12 @@ typedef struct {
 
 typedef int64_t (*syscall_handler_t)(
     /*
+     * normal(absoloutely normal) IKOT_TASK port
+     * of some process on iOS, yeah *smiles*
+     */
+    task_t                          task,
+    
+    /*
      * holds information about the process identity
      * that made the syscall
      * which is very important, because this is our security
@@ -119,6 +125,7 @@ typedef int64_t (*syscall_handler_t)(
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
+    task_t                          task, \
     ksurface_proc_snapshot_t        *proc_snapshot, \
     recv_buffer_t                   *recv_buffer, \
     int64_t                         *args, \

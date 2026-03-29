@@ -250,7 +250,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(proc_snapshot, buffer, req->args, req->oolp, &out_ports, &out_ports_cnt, &err, &reply);
+        result = handler(task, proc_snapshot, buffer, req->args, req->oolp, &out_ports, &out_ports_cnt, &err, &reply);
         
     cleanup:
         /* destroying snapshot of process */
