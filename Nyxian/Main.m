@@ -22,10 +22,9 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <Nyxian-Swift.h>
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
-#import "bridge.h"
-#import <fcntl.h>
+#import <NXAppDelegate.h>
+#import <bridge.h>
 
 #if !JAILBREAK_ENV
 
@@ -64,6 +63,6 @@ int main(int argc, char * argv[])
         }
 #endif // !JAILBREAK_ENV
         
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([NXAppDelegate class]));
     }
 }
