@@ -92,7 +92,6 @@
             @"PEExecutablePath": path,
             @"PEArguments": arguments,
             @"PEEnvironment": environment,
-            @"PEMapObject": mapObject ? mapObject : [FDMapObject emptyMap],
             @"PEWorkingDirectory": workingDirectory,
         }];
         
