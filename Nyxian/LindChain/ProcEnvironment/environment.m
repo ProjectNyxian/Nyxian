@@ -25,8 +25,6 @@
 #import <LindChain/LiveContainer/LCBootstrap.h>
 #include <dlfcn.h>
 
-static EnvironmentRole environmentRole = EnvironmentRoleNone;
-
 #pragma mark - Special client extra symbols
 
 void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint)
@@ -63,25 +61,9 @@ void environment_client_connect_to_syscall_proxy(MachPortObject *mpo)
     syscallProxy = client;
 }
 
-#pragma mark - Role/Restriction checkers and enforcers
-
-BOOL environment_is_role(EnvironmentRole role)
-{
-    return (environmentRole == role);
-}
-
-BOOL environment_must_be_role(EnvironmentRole role)
-{
-    if(!environment_is_role(role))
-        abort();
-    else
-        return YES;
-}
-
 #pragma mark - Initilizer
 
-int environment_init(EnvironmentRole role,
-                     EnvironmentExec exec,
+int environment_init(EnvironmentExec exec,
                      NSString *executablePath,
                      int argc,
                      char *argv[])
@@ -93,53 +75,57 @@ int environment_init(EnvironmentRole role,
     /* making sure this is only initilized once */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        assert(role <= EnvironmentRoleGuest);
+#if HOST_ENV
+        /*
+         * initilizes the kernel virtualisation
+         * layer that serves resources and permitives
+         * to other guests.
+         */
+        ksurface_kinit();
+#else
+        /*
+         * since this is not XNU spawning the process
+         * directly for us using fork() + exec() the
+         * executable path will be off, so we'll have
+         * to overwrite it our selves, basically its
+         * a puppet theater show where we present what
+         * the executable it self and other executables
+         * expect of the values to be.
+         */
+        LCOverwriteExecutablePath(executablePath);
         
-        /* setting environment role */
-        environmentRole = role;
+        /*
+         * initilizing subsystems of the guest, basically
+         * fixes apple API's that usually wouldn't work in
+         * jailed iOS, constructing a new reality in which
+         * processes have capabilities on other processes
+         * that exist within the same reality.
+         */
+        environment_cred_init();
+        environment_posix_spawn_init();
+        environment_vfork_init();
+        environment_sysctl_init();
+        environment_libproc_init();
+        environment_ioctl_init();
+        environment_application_init();
         
-        /* kernel start vs handshake */
-        if(role == EnvironmentRoleHost)
+        /*
+         * since PEProcess needs to register this process
+         * first, we gonna have to wait.
+         * TODO: create something like a process placeholder to confirm that spawning processes is allowed otherwise a forkbomb would cause continious killing and spawning of NXExtension child
+         */
+        while(environment_syscall(SYS_getpid) < 0)
         {
-            /*
-             * since guest processes usually dont have
-             * this, we have to dynamically find the
-             * init symbol of the kernel.
-             */
-            void (*ksurface_kinit_dyn)(void) = dlsym(RTLD_DEFAULT, "ksurface_kinit");
-            assert(ksurface_kinit_dyn != NULL);
-            ksurface_kinit_dyn();
+            relax();
         }
-        else
-        {
-            /* initilizing subsystems of environment */
-            environment_cred_init();
-            environment_posix_spawn_init();
-            environment_vfork_init();
-            environment_sysctl_init();
-            environment_libproc_init();
-            environment_ioctl_init();
-            environment_application_init();
-            
-            /*
-             * waiting till syscalling starts to work
-             * for this process before handing off
-             * control to some executable.
-             */
-            while(environment_syscall(SYS_getpid) < 0)
-            {
-                relax();
-            }
-            
-            LCOverwriteExecutablePath(executablePath);
-            
-            /*
-             * task_for_pid(3) is fixed last, because otherwise
-             * a other process could compromise this process
-             * easily which we ofc shall not let happen.
-             */
-            environment_tfp_init();
-        }
+        
+        /*
+         * task_for_pid(3) is fixed last, because otherwise
+         * we cannot handoff the exception port, because
+         * syscalling has to work first for SYS_handoffep.
+         */
+        environment_tfp_init();
+#endif /* HOST_ENV */
         
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)

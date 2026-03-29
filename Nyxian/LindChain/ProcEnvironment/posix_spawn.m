@@ -134,9 +134,7 @@ int environment_posix_spawn(pid_t *process_identifier,
                             const posix_spawnattr_t *spawn_attr,
                             char *const argv[],
                             char *const envp[])
-{
-    environment_must_be_role(EnvironmentRoleGuest);
-    
+{    
     /*
      * resolving realpath of the executable, to prevent
      * weird file bugs to happen, this is standard

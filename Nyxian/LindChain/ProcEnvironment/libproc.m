@@ -38,8 +38,6 @@ DEFINE_HOOK(proc_listallpids, int, (void *buffer,
         return -1;
     }
     
-    environment_must_be_role(EnvironmentRoleGuest);
-    
     kinfo_proc_t kp[PROC_MAX];
     uint32_t len = sizeof(kp);
     

@@ -33,8 +33,6 @@
 
 + (BOOL)signBinaryAtPath:(NSString*)path
 {
-    environment_must_be_role(EnvironmentRoleHost);
-    
     __block NSError *error = nil;
     
     NSFileManager *fm = [NSFileManager defaultManager];
@@ -83,8 +81,6 @@
 
 - (BOOL)signAndWriteBack
 {
-    environment_must_be_role(EnvironmentRoleHost);
-    
     __block NSError *error = nil;
     
     NSFileManager *fm = [NSFileManager defaultManager];

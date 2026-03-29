@@ -47,21 +47,6 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 /*!
- @enum `EnvironmentRole`
- @abstract Defines the role of the current environment.
- */
-typedef NS_ENUM(NSInteger, EnvironmentRole) {
-    /*! No environment role is set. */
-    EnvironmentRoleNone  = 0,
-    
-    /*! The environment is running as the host. */
-    EnvironmentRoleHost  = 1,
-    
-    /*! The environment is running as a guest. */
-    EnvironmentRoleGuest = 2
-};
-
-/*!
  @enum `EnvironmentExec`
  @abstract Defines how the environment shall be executed.
  */
@@ -103,35 +88,11 @@ void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attri
 void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
 
 /*!
- @function `environment_is_role`
- @abstract Returns a boolean value representing if it is the given role
- @discussion
-    This function is used by the modular environment API subsystems to check if certain implementations are applied to the correct role.
- 
- @param role
-    An `EnvironmentRole` enum value that is the value that must match the internal `EnvironmentRole` enum value for it to succeed
- */
-BOOL environment_is_role(EnvironmentRole role);
-
-/*!
- @function `environment_must_be_role`
- @abstract Returns a boolean value representing if it is the given role and crashes the process if its not.
- @discussion
-    This function is used by the modular environment API subsystems to check if certain implementations are applied to the correct role, and exit from irreversible issues due to that.
- 
- @param role
-    An `EnvironmentRole` enum value that is the value that must match the internal `EnvironmentRole` enum value for it to succeed
- */
-BOOL environment_must_be_role(EnvironmentRole role);
-
-/*!
  @function `environment_init`
  @abstract Initializes the environment with a given role.
  @discussion
     This function initializes the environment with the given role. It can and shall only be called once.
  
- @param role
-    Represents the environment role wished to be init as.
  @param exec
     Represents how the environment shall act after init.
  @param executablePath
@@ -143,6 +104,6 @@ BOOL environment_must_be_role(EnvironmentRole role);
  @return
     Exit code of the process or environment it self.
  */
-int environment_init(EnvironmentRole role, EnvironmentExec exec, NSString *executablePath, int argc, char *argv[]);
+int environment_init(EnvironmentExec exec, NSString *executablePath, int argc, char *argv[]);
 
 #endif /* PROCENVIRONMENT_ENVIRONMENT_H */

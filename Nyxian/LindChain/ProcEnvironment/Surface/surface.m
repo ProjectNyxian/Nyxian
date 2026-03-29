@@ -235,27 +235,24 @@ void ksurface_kinit(void)
      */
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(environment_must_be_role(EnvironmentRoleHost))
-        {
-            /* starting huh :3 */
-            klog_log(@"ksurface:kinit", @"hello from kinit");
-            klog_log(@"ksurface:kinit", @"kernel commits magic spells to the iOS kernel now");
-            
-            /*
-             * allocates the surface where everything nyxian kernel
-             * related exists, structures that are made to store
-             * sensitive information.
-             */
-            ksurface_kinit_kalloc();
-            
-            /* sets up the surface to make it ready for everything else */
-            ksurface_kinit_kinfo();
-            
-            /* creates syscall server */
-            ksurface_kinit_kserver();
-            
-            /* creates the kernel process kproc */
-            ksurface_kinit_kproc();
-        }
+        /* starting huh :3 */
+        klog_log(@"ksurface:kinit", @"hello from kinit");
+        klog_log(@"ksurface:kinit", @"kernel commits magic spells to the iOS kernel now");
+        
+        /*
+         * allocates the surface where everything nyxian kernel
+         * related exists, structures that are made to store
+         * sensitive information.
+         */
+        ksurface_kinit_kalloc();
+        
+        /* sets up the surface to make it ready for everything else */
+        ksurface_kinit_kinfo();
+        
+        /* creates syscall server */
+        ksurface_kinit_kserver();
+        
+        /* creates the kernel process kproc */
+        ksurface_kinit_kproc();
     });
 }

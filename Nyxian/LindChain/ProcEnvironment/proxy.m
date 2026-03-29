@@ -55,7 +55,6 @@ int64_t environment_proxy_spawn_process_at_path(NSString *path,
                                                 FDMapObject *mapObject,
                                                 NSString *workingDirectory)
 {
-    environment_must_be_role(EnvironmentRoleGuest);
     return sync_call_with_timeout_int64(PROXY_TYPE_REPLY(int64_t){
         [hostProcessProxy spawnProcessWithPath:path withArguments:arguments withEnvironmentVariables:environment withMapObject:mapObject withWorkingDirectory:workingDirectory withReply:reply];
     });
@@ -63,6 +62,5 @@ int64_t environment_proxy_spawn_process_at_path(NSString *path,
 
 void environment_proxy_set_snapshot(UIImage *snapshot)
 {
-    environment_must_be_role(EnvironmentRoleGuest);
     [hostProcessProxy setSnapshot:snapshot];
 }

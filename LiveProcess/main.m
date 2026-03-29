@@ -199,7 +199,7 @@ int LiveProcessMain(int argc, char *argv[])
          * them and separate them more from Nyxians main
          * codebase.
          */
-        environment_init(EnvironmentRoleGuest, EnvironmentExecCustom, executablePath, argc, argv);
+        environment_init(EnvironmentExecCustom, executablePath, argc, argv);
 
         /*
          * first ever step is to elevate their permitives as
@@ -234,7 +234,7 @@ int LiveProcessMain(int argc, char *argv[])
          * LC and when the main symbol returns then we get its return
          * value which we redirect to the env.
          */
-        return environment_init(EnvironmentRoleGuest, EnvironmentExecLiveContainer, executablePath, argc, argv);
+        return environment_init(EnvironmentExecLiveContainer, executablePath, argc, argv);
     }
     
     return 1;
