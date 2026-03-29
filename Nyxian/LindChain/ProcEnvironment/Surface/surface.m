@@ -32,28 +32,24 @@ ksurface_mapping_t *ksurface = NULL;
 
 int ksurface_sethostname(NSString *hostname)
 {
-    if(hostname == nil ||
-       [hostname length] > MAXHOSTNAMELEN)
+    if(hostname == nil)
     {
         return -1;
     }
     
-    /* checking regex pattern */
+    /*
+     * validates hostname in lenght
+     * and formatting making sure it
+     * meets networking standards.
+     */
     if(!is_valid_hostname_regex([hostname UTF8String]))
     {
         return -1;
     }
     
-    /* locking host info so hostname can be set */
     host_wrlock();
-    
-    /* setting hostname */
     klog_log(@"surface", @"setting hostname to \"%@\"", hostname);
-    
-    /* copying hostname over to hostinfo */
     strlcpy(ksurface->host_info.hostname, [hostname UTF8String], MAXHOSTNAMELEN);
-    
-    /* unlocking again */
     host_unlock();
     
     return 0;
@@ -63,30 +59,37 @@ static inline void ksurface_kinit_kalloc(void)
 {
     assert(ksurface == NULL);
     
-    /* allocate surface */
     ksurface = malloc(sizeof(ksurface_mapping_t));
-    
-    /* null pointer check */
     if(ksurface == NULL)
     {
-        /* in case allocation failed we go */
+        /* shall never happen */
         environment_panic("allocating ksurface failed got NULL pointer from malloc");
     }
     
-    /* logging allocation */
     klog_log(@"ksurface:kinit:kalloc", @"allocated ksurface @ %p", ksurface);
 }
 
 static inline void ksurface_kinit_kinfo(void)
 {
+    /*
+     * this is the install time generated CS blob
+     * key used to sign executables with nyxians
+     * own virtualised entitlements, which are only
+     * valid within the environment.
+     */
     klog_log(@"ksurface:kinit:kinfo", @"generating code signature private key");
     if(!get_static_kernel_key(&(ksurface->priv_key), &(ksurface->priv_key_len), &(ksurface->pub_key), &(ksurface->pub_key_len)))
     {
-        /* should never happen, panic! */
+        /* shall never happen */
         environment_panic("failed to generate static kernel crypto key");
     }
     
-    /* setting up locks */
+    /*
+     * do you have to make a comment on this one -.-
+     * isint it obvious~~
+     * well this is for the softies which can only take
+     * one at a time.
+     */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing locks");
     pthread_rwlock_t *wls[4] = { &(ksurface->proc_info.struct_lock), &(ksurface->proc_info.task_lock),  &(ksurface->host_info.struct_lock), &(ksurface->tty_info.struct_lock) };
     for(unsigned char i = 0; i < 4; i++)
@@ -95,45 +98,47 @@ static inline void ksurface_kinit_kinfo(void)
         pthread_rwlock_init(wls[i], NULL);
     }
     
-    /* setting up process radix tree */
+    /*
+     * setting up process radix trees, a radix tree
+     * is a very efficient data struc..., bruh
+     * just use google.. im not your CS teacher.
+     */
     klog_log(@"ksurface:kinit:kinfo", @"initilizing radix trees");
     ksurface->proc_info.tree.root = NULL;
     ksurface->proc_info.proc_count = 0;
     ksurface->tty_info.tty.root = NULL;
     
-    /* loading hostname from standard user defaults */
-    NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"];
-    
-    /* checking if hostname is even set */
-    if(hostname == nil)
-    {
-        /* setting hostname automatically to localhost */
-        hostname = @"localhost";
-    }
-    
-    /* logging to what it will be set */
+    /* restoring hostname */
+    NSString *hostname = [[NSUserDefaults standardUserDefaults] stringForKey:@"LDEHostname"] ?: @"localhost";
     klog_log(@"ksurface:kinit:kinfo", @"setting up hostname with \"%@\"", hostname);
-    
-    /* copying hostname over */
     strlcpy(ksurface->host_info.hostname, hostname.UTF8String, MAXHOSTNAMELEN);
 }
 
 static inline void ksurface_kinit_kserver(void)
 {
-    /* allocating syscall server */
+    /*
+     * allocating syscall server, which is used
+     * to process syscalls for our "userspace"
+     * for example if the guest wants to have a
+     * list of all proceses it needs to invoke
+     * SYS_sysctl, on normal iOS this gets blocked
+     * because of sandbox, here in this case
+     * we handle the syscall and write into the
+     * userspace passed buffer pointer a buffer
+     * with kinfo_proc data structures.
+     */
     ksurface->sys_server = syscall_server_create();
-    
-    /* null pointer check */
     if(ksurface->sys_server == NULL)
     {
-        /* should never happen, panic! */
+        /* shall never happen */
         environment_panic("got NULL syscall server");
     }
-    
-    /* printing log */
     klog_log(@"ksurface:kinit:kserver", @"allocated syscall server @ %p", ksurface->sys_server);
     
-    /* registration loop */
+    /*
+     * registers all virtualized syscalls with
+     * their appropriate handlers.
+     */
     for(uint32_t sys_i = 0; sys_i < SYS_N; sys_i++)
     {
         /*
@@ -141,55 +146,53 @@ static inline void ksurface_kinit_kserver(void)
          * with the syscall list entries then this shall be patched and not stay hidden
          */
         syscall_list_item_t *item = &(sys_list[sys_i]);
-        
-        /* registering syscall */
         syscall_server_register(ksurface->sys_server, item->sysnum, item->hndl);
-        
-        /* logging */
-        klog_log(@"ksurface:kinit:kserver", @"registered syscall %d(%s)", item->sysnum, item->name);
+        klog_log(@"ksurface:kinit:kserver", @"registered syscall %d (%s)", item->sysnum, item->name);
     }
     
-    /* starting server */
+    /* kickstarting server~~ */
     syscall_server_start(ksurface->sys_server);
     klog_log(@"ksurface:kinit:kserver", @"started syscall server");
 }
 
 static inline void ksurface_kinit_kproc(void)
 {
-    /* creating kproc */
+    /*
+     * creating brand new kernel process
+     * which is there so proc_fork works
+     * which needs a parent process data
+     * object passed and we also do it
+     * so processes can know that Nyxian
+     * exists and can aquire for example
+     * a task name right to Nyxian.
+     */
     ksurface_proc_t *kproc = kvo_alloc_fastpath(proc);
-    
-    /* null pointer check */
     if(kproc == NULL)
     {
-        /* should never happen, panic! */
+        /* shall never happen */
         environment_panic("got NULL kernel process");
     }
-    
-    /* logging allocation */
     klog_log(@"ksurface:kinit:kproc", @"allocated kernel process @ %p", kproc);
     
-    /* finding executable path */
-    char *buf = malloc(PATH_MAX);
-    
-    /* null pointer check */
-    if(buf == NULL)
-    {
-        /* shall not happen */
-        environment_panic("got NULL buffer for executable path");
-    }
-    
+    /* writing executable path */
     uint32_t bufsize = PATH_MAX;
-    
-    if(_NSGetExecutablePath(buf, &bufsize) > 0)
+    if(_NSGetExecutablePath(kproc->nyx.executable_path, &bufsize) > 0)
     {
-        /* shall not happen */
+        /* shall never happen */
         environment_panic("failed to aquire executable path from dyld");
     }
+    const char *name = strrchr(kproc->nyx.executable_path, '/');
+    name = name ? name + 1 : kproc->nyx.executable_path;
+    strlcpy(kproc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
     
     /* kernel shall only expose its task name */
     task_t task;
     kern_return_t kr = task_get_special_port(mach_task_self(), TASK_NAME_PORT, &task);
+    if(kr != KERN_SUCCESS)
+    {
+        /* shall never happen */
+        environment_panic("failed to aquire task name of kernel it self");
+    }
     kproc->task = task;
     
     /* setting up properties */
@@ -199,27 +202,17 @@ static inline void ksurface_kinit_kproc(void)
     proc_setentitlements(kproc, PEEntitlementKernel);
     proc_setmaxentitlements(kproc, PEEntitlementKernel);
     
-    /* setting executable path */
-    strlcpy(kproc->nyx.executable_path, buf, PATH_MAX);
-    const char *name = strrchr(buf, '/');
-    name = name ? name + 1 : buf;
-    strlcpy(kproc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
-    
-    /* storing kproc */
+    /* storing kernel proc */
     ksurface->proc_info.kern_proc = kproc;
-    
-    /* inserting kproc */
     klog_log(@"ksurface:kinit:kproc", @"inserting kernel process");
     ksurface_return_t error = proc_insert(kproc);
-    
-    /* checking if inserting kernel process was successful */
     if(error != SURFACE_SUCCESS)
     {
-        /* should never happen, panic! */
+        /* shall never happen */
         environment_panic("failed to insert kernel process");
     }
     
-    /* releaing our reference to kproc, because we return now and kproc is now held by the radix tree */
+    /* releaing our reference to kernrl proc, because we return now and kproc is now held by the radix tree */
     kvo_release(kproc);
 }
 
