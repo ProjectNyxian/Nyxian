@@ -21,6 +21,8 @@
 
 import UIKit
 
+#if DEBUG
+
 class KernelLogViewController: UIViewController {
 
     private let scrollView: UIScrollView = {
@@ -105,3 +107,5 @@ class KernelLogViewController: UIViewController {
         present(alert, animated: true)
     }
 }
+
+#endif // DEBUG

@@ -29,8 +29,11 @@ class SettingsViewController: UIThemedTableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 #if !JAILBREAK_ENV
-        // To enable kernel logging entirely, change return value to 6!
+#if DEBUG
         return 6
+#else
+        return 5
+#endif // DEBUG
 #else
         return 3
 #endif /* !JAILBREAK_ENV */
@@ -122,10 +125,15 @@ class SettingsViewController: UIThemedTableViewController {
                 return CustomizationViewController(style: .insetGrouped)
             case 3:
                 return CertificateController(style: .insetGrouped)
+#if DEBUG
             case 4:
                 return KernelLogViewController()
             case 5:
                 return CreditsViewController(style: .insetGrouped)
+#else
+            case 4:
+                return CreditsViewController(style: .insetGrouped)
+#endif // DEBUG
 #else
             case 0:
                 return ToolChainController(style: .insetGrouped)

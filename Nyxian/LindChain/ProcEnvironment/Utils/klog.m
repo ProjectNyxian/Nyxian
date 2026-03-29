@@ -21,16 +21,16 @@
 
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
-#if KLOG_ENABLED
+#if DEBUG
 #ifdef HOST_ENV
 
 /* not the kfd exploit dummy >:3 */
 static int kfd = -1;
 
 #endif /* HOST_ENV */
-#endif /* KLOG_ENABLED */
+#endif /* DEBUG */
 
-#if KLOG_ENABLED
+#if DEBUG
 #ifdef HOST_ENV
 
 /* maximum lines klog can take */
@@ -121,12 +121,12 @@ static void klog_truncate_if_needed(void)
 }
 
 #endif /* HOST_ENV */
-#endif /* KLOG_ENABLED */
+#endif /* DEBUG */
 
 
 void klog_log_internal(NSString *system, NSString *format, ...)
 {
-#if KLOG_ENABLED
+#if DEBUG
 #ifdef HOST_ENV
     @autoreleasepool {
         /* only open klog once */
@@ -183,14 +183,14 @@ void klog_log_internal(NSString *system, NSString *format, ...)
         }
     }
 #endif /* HOST_ENV */
-#endif /* KLOG_ENABLED */
+#endif /* DEBUG */
 }
 
 
 
 NSString *klog_dump(void)
 {
-#if KLOG_ENABLED
+#if DEBUG
 #ifdef HOST_ENV
     
     /* checking kfd */
@@ -248,5 +248,5 @@ NSString *klog_dump(void)
 #endif /* HOST_ENV */
 #else
     return nil;
-#endif /* KLOG_ENABLED */
+#endif /* DEBUG */
 }
