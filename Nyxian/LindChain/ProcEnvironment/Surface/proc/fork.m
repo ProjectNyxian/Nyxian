@@ -101,28 +101,21 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
     }
     
     /* process can decide if they want to inherite entitlements or not */
-    if(!entitlement_got_entitlement(currentEntitlement, PEEntitlementProcessSpawnInheriteEntitlements))
+    if(entitlement_got_entitlement(currentEntitlement, PEEntitlementProcessSpawnInheriteEntitlements))
+    {
+        /*
+         * entitlements which shall be stripped regardless
+         * of who spawns the process as these entitlements
+         * are way too powerful.. if a process spawns and
+         * wants to debug they need to spawn the child process
+         * or debug a process in the same session.
+         */
+        currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate);
+    }
+    else
 force_not_inherite_entitlements:
     {
         currentEntitlement = PEEntitlementNone;
-    }
-    else
-    {
-        /* checking for platform status */
-        if(entitlement_got_entitlement(currentMaxEntitlement, PEEntitlementPlatform))
-        {
-            /*
-             * platform processes, cannot inherite platformisation,
-             * for obvious reasons, but other special entitlements
-             * like in the else branch forbidden.
-             */
-            currentEntitlement &= ~PEEntitlementPlatform;
-        }
-        else
-        {
-            /* none platform processes, cannot inherite those */
-            currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate);
-        }
     }
     
     /*
