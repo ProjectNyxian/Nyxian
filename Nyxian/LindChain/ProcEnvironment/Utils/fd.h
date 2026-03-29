@@ -27,9 +27,6 @@
 #include <mach/mach.h>
 #include <stdbool.h>
 
-#define FD_QUEUE_IN 0
-#define FD_QUEUE_OUT 1
-
 /*!
  @function `get_all_fds`
  @abstract Gets all file descriptors.

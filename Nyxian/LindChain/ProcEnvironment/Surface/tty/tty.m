@@ -256,9 +256,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             return -1;
         case kvObjEventInit:
         {
-            /* zero object out! */
-            kv_content_zero(tty);
-            
             /* creating pipe */
             int masterpair[2];
             if(socketpair(AF_UNIX, SOCK_STREAM, 0, masterpair) != 0)
@@ -291,6 +288,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             }
             
             /* the 2nd fd is always the fd the tty object manages */
+            kv_content_zero(tty);
             tty->userspacekcid[MASTERFD] = master_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
             tty->userspacekcid[SLAVEFD] = slave_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
             tty->userspacefd[MASTERFD] = masterpair[0];
@@ -298,7 +296,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             tty->kernelfds[MASTERFD] = masterpair[1];
             tty->kernelfds[SLAVEFD] = slavepair[1];
             
-            /* inserting own tty object */
+            /* inserting own tty file descriptors */
             tty_table_wrlock();
             if(radix_insert(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD], tty) != 0)
             {
