@@ -132,7 +132,14 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
         return SURFACE_FAILED;
     }
     
-    /* exporting task port */
+    /*
+     * exporting task port, you never export the
+     * task port if the return value is not
+     * SURFACE_SUCCESS, if you do it and try to
+     * pull request that junk to Nyxians codebase
+     * this will be your last pull request to Nyxians
+     * codebase.
+     */
     *task = tmp_task;
     
     return SURFACE_SUCCESS;

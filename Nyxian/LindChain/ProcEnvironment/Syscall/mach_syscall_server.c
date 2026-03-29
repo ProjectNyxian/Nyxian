@@ -195,13 +195,14 @@ static void* syscall_worker_thread(void *ctx)
         mach_msg_return_t mr = mach_msg(&(buffer->header), options, 0, sizeof(recv_buffer_t), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         
         /* evaluating if the request received from the kernel was geniune */
-        if(mr == MACH_RCV_PORT_DIED || mr == MACH_RCV_INVALID_NAME)
+        if(mr != MACH_MSG_SUCCESS)
         {
-            vm_deallocate(mach_task_self(), (vm_address_t)buffer, sizeof(recv_buffer_t));
-            break;
-        }
-        else if(mr != MACH_MSG_SUCCESS)
-        {
+            /* receive right is dead when the server stops */
+            if(mr == MACH_RCV_PORT_DIED || mr == MACH_RCV_INVALID_NAME)
+            {
+                vm_deallocate(mach_task_self(), (vm_address_t)buffer, sizeof(recv_buffer_t));
+                break;
+            }
             continue;
         }
         
@@ -220,14 +221,15 @@ static void* syscall_worker_thread(void *ctx)
             goto cleanup;
         }
         
-        /* getting task port */
-        ksurface_return_t ksr = proc_task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
-        
-        /* checking return */
-        if(ksr != SURFACE_SUCCESS)
-        {
-            task = MACH_PORT_NULL;
-        }
+        /*
+         * getting task port, its not needed to
+         * check for succession as task is still
+         * MACH_PORT_NULL if this fails as
+         * proc_task_for_proc(3) was engineered
+         * to not overwrite the task port pointer
+         * on failure paths.
+         */
+        proc_task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */
         syscall_handler_t handler = NULL;
@@ -254,23 +256,35 @@ static void* syscall_worker_thread(void *ctx)
         /* destroying snapshot of process */
         if(proc_snapshot != NULL)
         {
+            /*
+             * proc snapshot must be non-null
+             * in order for the task port to be
+             * non-null.
+             */
+            if(task != MACH_PORT_NULL)
+            {
+                mach_port_deallocate(mach_task_self(), task);
+            }
             kvo_release(proc_snapshot);
-        }
-        
-        /* checking task and thread */
-        if(task != MACH_PORT_NULL)
-        {
-            mach_port_deallocate(mach_task_self(), task);
         }
         
         if(reply)
         {
-            /* reply !!!AFTER!!! deallocation */
             send_reply(&(req->header), result, out_ports, out_ports_cnt, err, false);
         }
         else
         {
-            /* syscall aquired buffer */
+            /*
+             * syscall aquired buffer, we need
+             * a new buffer now, syscalls may
+             * aquired the buffer to reply
+             * them selves, which is done for
+             * none blocking later replies
+             * like in SYS_wait4, otherwise
+             * 8 waiting processes using SYS_wait4
+             * would freeze up the syscalling on
+             * a 8 core SoC.
+             */
             buffer = NULL;
         }
     }
