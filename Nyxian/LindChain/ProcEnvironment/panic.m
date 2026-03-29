@@ -20,10 +20,30 @@
 */
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <LindChain/ProcEnvironment/panic.h>
+#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Utils/klog.h>
 
-void environment_panic(void)
+void environment_panic_internal(const char *reason,
+                                const char *file,
+                                int line,
+                                ...)
 {
+#if DEBUG
+    /* starting variadic parse */
+    va_list args;
+    va_start(args, line);
+    
+    /* handing all the parsing work to apple */
+    NSString *msg = [[NSString alloc] initWithFormat:[NSString stringWithCString:reason encoding:NSUTF8StringEncoding] arguments:args];
+    
+    /* ending parse */
+    va_end(args);
+    
+    klog_log(@"ksurface:panic", @"\npanic string: %@\nfile: %s\nline: %d", msg, file, line);
+#endif /* DEBUG */
+    
     /* trap the system */
     __builtin_trap();
 }

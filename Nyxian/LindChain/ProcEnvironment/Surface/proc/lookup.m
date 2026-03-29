@@ -121,8 +121,8 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
             kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
             break;
         default:
-            /* shall never happen, invalid type */
-            environment_panic();
+            /* shall never happen, illegal type */
+            environment_panic("got illegal ipc port type %d for port %lu", ipc_port_type, tmp_task);
     }
     
     task_unlock();

@@ -24,6 +24,7 @@
 #import <LindChain/ProcEnvironment/panic.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <dlfcn.h>
 
 bool kvobject_retain(kvobject_t *kvo)
 {
@@ -90,10 +91,17 @@ void kvobject_release(kvobject_strong_t *kvo)
     }
     else if(old <= 0)
     {
+#if DEBUG
+        Dl_info info;
+        dladdr(kvo->main_handler, &info);
+        
         /*
          * happens on reference underflow, by design a
          * panic cuz this never happens legitimately
          */
-        environment_panic();
+        environment_panic("reference underflow on kvobject @ %p with main event handler @ %p (%s)", kvo, info.dli_fbase, info.dli_fname);
+#else
+        environment_panic("reference underflow on kvobject @ %p", kvo);
+#endif /* DEBUG */
     }
 }

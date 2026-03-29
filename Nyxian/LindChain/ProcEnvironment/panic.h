@@ -22,6 +22,9 @@
 #ifndef PROCENVIRONMENT_PANIC_H
 #define PROCENVIRONMENT_PANIC_H
 
-void environment_panic(void);
+#define environment_panic(reason, ...) \
+    environment_panic_internal((reason), __FILE__, __LINE__,  ##__VA_ARGS__)
+
+void environment_panic_internal(const char *reason, const char *file, int line, ...);
 
 #endif /* PROCENVIRONMENT_PANIC_H */

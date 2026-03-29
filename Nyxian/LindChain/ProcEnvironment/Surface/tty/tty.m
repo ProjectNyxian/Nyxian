@@ -309,7 +309,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             {
                 if(radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]) == NULL)
                 {
-                    environment_panic();
+                    environment_panic("got NULL value on tty radix remove, although was added before");
                 }
                 tty_table_unlock();
                 goto out_fail;

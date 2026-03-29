@@ -22,12 +22,13 @@
 #ifndef PROCENVIRONMENT_LOCK_H
 #define PROCENVIRONMENT_LOCK_H
 
-#import <LindChain/ProcEnvironment/panic.h>
+#include <LindChain/ProcEnvironment/panic.h>
+#include <string.h>
 
 #if DEBUG
-#define PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(ptr) ({ int _e = pthread_rwlock_rdlock(ptr); if (_e) environment_panic(); })
-#define PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(ptr) ({ int _e = pthread_rwlock_wrlock(ptr); if (_e) environment_panic(); })
-#define PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(ptr) ({ int _e = pthread_rwlock_unlock(ptr); if (_e) environment_panic(); })
+#define PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(ptr) ({ int _e = pthread_rwlock_rdlock(ptr); if (_e) environment_panic("lock @ %p failed to rdlock with: %s", ptr, strerror(_e)); })
+#define PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(ptr) ({ int _e = pthread_rwlock_wrlock(ptr); if (_e) environment_panic("lock @ %p failed to wrlock with: %s", ptr, strerror(_e)); })
+#define PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(ptr) ({ int _e = pthread_rwlock_unlock(ptr); if (_e) environment_panic("lock @ %p failed to unlock with: %s", ptr, strerror(_e)); })
 #else
 #define PTHREAD_RWLOCK_DEBUG_IMP_RDLOCK(ptr) pthread_rwlock_rdlock(ptr);
 #define PTHREAD_RWLOCK_DEBUG_IMP_WRLOCK(ptr) pthread_rwlock_wrlock(ptr);

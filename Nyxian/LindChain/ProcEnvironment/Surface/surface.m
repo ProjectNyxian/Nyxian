@@ -61,12 +61,7 @@ int ksurface_sethostname(NSString *hostname)
 
 static inline void ksurface_kinit_kalloc(void)
 {
-    /* checking if already initilized */
-    if(ksurface != NULL)
-    {
-        /* shall only be initilized once */
-        environment_panic();
-    }
+    assert(ksurface == NULL);
     
     /* allocate surface */
     ksurface = malloc(sizeof(ksurface_mapping_t));
@@ -75,7 +70,7 @@ static inline void ksurface_kinit_kalloc(void)
     if(ksurface == NULL)
     {
         /* in case allocation failed we go */
-        environment_panic();
+        environment_panic("allocating ksurface failed got NULL pointer from malloc");
     }
     
     /* logging allocation */
@@ -88,7 +83,7 @@ static inline void ksurface_kinit_kinfo(void)
     if(!get_static_kernel_key(&(ksurface->priv_key), &(ksurface->priv_key_len), &(ksurface->pub_key), &(ksurface->pub_key_len)))
     {
         /* should never happen, panic! */
-        environment_panic();
+        environment_panic("failed to generate static kernel crypto key");
     }
     
     /* setting up locks */
@@ -132,7 +127,7 @@ static inline void ksurface_kinit_kserver(void)
     if(ksurface->sys_server == NULL)
     {
         /* should never happen, panic! */
-        environment_panic();
+        environment_panic("got NULL syscall server");
     }
     
     /* printing log */
@@ -168,7 +163,7 @@ static inline void ksurface_kinit_kproc(void)
     if(kproc == NULL)
     {
         /* should never happen, panic! */
-        environment_panic();
+        environment_panic("got NULL kernel process");
     }
     
     /* logging allocation */
@@ -181,7 +176,7 @@ static inline void ksurface_kinit_kproc(void)
     if(buf == NULL)
     {
         /* shall not happen */
-        environment_panic();
+        environment_panic("got NULL buffer for executable path");
     }
     
     uint32_t bufsize = PATH_MAX;
@@ -189,7 +184,7 @@ static inline void ksurface_kinit_kproc(void)
     if(_NSGetExecutablePath(buf, &bufsize) > 0)
     {
         /* shall not happen */
-        environment_panic();
+        environment_panic("failed to aquire executable path from dyld");
     }
     
     /* kernel shall only expose its task name */
@@ -221,7 +216,7 @@ static inline void ksurface_kinit_kproc(void)
     if(error != SURFACE_SUCCESS)
     {
         /* should never happen, panic! */
-        environment_panic();
+        environment_panic("failed to insert kernel process");
     }
     
     /* releaing our reference to kproc, because we return now and kproc is now held by the radix tree */

@@ -316,7 +316,7 @@ void syscall_server_register(syscall_server_t *server,
     if(phandler != NULL)
     {
         /* shall never ever happen */
-        environment_panic();
+        environment_panic("syscall handler for %lu is already registered", syscall_num);
     }
     
     /* setting syscall handler */
@@ -353,7 +353,7 @@ int syscall_server_start(syscall_server_t *server)
     if(server->threads_cnt == 0)
     {
         /* shall never happen */
-        environment_panic();
+        environment_panic("got 0 return from LDEGetOptimalThreadCount()");
     }
     server->threads = calloc(server->threads_cnt, sizeof(pthread_t));
     
