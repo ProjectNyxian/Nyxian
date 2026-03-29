@@ -81,20 +81,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
             memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
             
-            if(src->task != MACH_PORT_NULL)
-            {
-                kern_return_t kr = mach_port_mod_refs(mach_task_self(), src->task, MACH_PORT_RIGHT_SEND, 1);
-                
-                /* dont allow us to loose the send right to the task port */
-                if(kr != KERN_SUCCESS)
-                {
-                    return -1;
-                }
-                
-                proc->task = src->task;
-            }
-            
-            /* done */
             return 0;
         }
         case kvObjEventDeinit:
@@ -102,11 +88,11 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             {
                 klog_log(@"proc:deinit", @"deinitilizing process @ %p", proc);
                 pthread_mutex_destroy(&(proc->children.mutex));
-            }
-            
-            if(proc->task != MACH_PORT_NULL)
-            {
-                mach_port_deallocate(mach_task_self(), proc->task);
+                
+                if(proc->task != MACH_PORT_NULL)
+                {
+                    mach_port_deallocate(mach_task_self(), proc->task);
+                }
             }
             
             /* fallthrough */
