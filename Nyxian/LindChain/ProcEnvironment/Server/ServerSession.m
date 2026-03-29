@@ -88,19 +88,6 @@
        (entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawn) ||
         entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementProcessSpawnSignedOnly)))
     {
-        kvo_rdlock(_proc);
-        
-        if([environment objectForKey:@"DYLD_INSERT_LIBRARIES"] &&
-           !entitlement_got_entitlement(proc_getentitlements(_proc), PEEntitlementPlatform) &&
-           proc_geteuid(_proc) != 0)
-        {
-            kvo_unlock(_proc);
-            reply(-1);
-            return;
-        }
-        
-        kvo_unlock(_proc);
-        
         NSMutableDictionary *mutableItems = [[NSMutableDictionary alloc] initWithDictionary:@{
             @"PEExecutablePath": path,
             @"PEArguments": arguments,
