@@ -101,46 +101,61 @@ void send_reply(mach_msg_header_t *request,
                 errno_t err,
                 bool release_req)
 {
-    /* allocating a reply */
+    /* stack allocating  */
     syscall_reply_t reply;
     memset(&reply, 0, sizeof(reply));
     
-    /* setting reply data */
+    /*
+     * writing basic syscall reply message for the
+     * client.
+     */
     reply.header.msgh_bits = MACH_MSGH_BITS_REMOTE(MACH_MSG_TYPE_MOVE_SEND_ONCE);
     reply.header.msgh_remote_port = request->msgh_remote_port;
     reply.header.msgh_size = sizeof(reply);
     reply.header.msgh_id = request->msgh_id + 100;
-    
-    /* storing syscall result */
     reply.result = result;
     reply.err = err;
     
-    /* validating ports */
-    reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
-    
+    /*
+     * this is the ports descriptor used to hand
+     * mach ports to the client, such as task ports
+     * file ports and more.
+     */
     if(out_ports &&
        out_ports_cnt > 0)
     {
         reply.header.msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+        reply.body.msgh_descriptor_count = 1;
+        reply.oolp.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
         reply.oolp.disposition = MACH_MSG_TYPE_MOVE_SEND;
         reply.oolp.address = out_ports;
         reply.oolp.count = out_ports_cnt;
         reply.oolp.copy = MACH_MSG_PHYSICAL_COPY;
         reply.oolp.deallocate = TRUE;
-        reply.body.msgh_descriptor_count = 1;
     }
     
-    /* sending reply to child */
+    /*
+     * attempt to send reply to the child process
+     * as we dont receive anything no timeout needed.
+     * unless you prove me otherwise obviously.
+     */
     mach_msg_return_t mr = mach_msg(&reply.header, MACH_SEND_MSG, sizeof(reply), 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
-    
     if(mr != MACH_MSG_SUCCESS)
     {
         mach_msg_destroy(&(reply.header));
     }
     
-    /* releasing mach message resources */
+    /*
+     * releasing request resources of the client, so
+     * the stuff the client did send to us.
+     */
     mach_msg_destroy(request);
     
+    /*
+     * if the request was taken by the syscall, then
+     * the syscall will want it to be released, memory
+     * wise.
+     */
     if(release_req)
     {
         vm_deallocate(mach_task_self(), (vm_address_t)request, sizeof(recv_buffer_t));
@@ -189,7 +204,6 @@ static void* syscall_worker_thread(void *ctx)
         mach_port_t *out_ports = NULL;      /* the outports the syscall exports to the caller */
         uint32_t out_ports_cnt = 0;         /* the amount of outports the syscall exports to the caller */
         task_t task = MACH_PORT_NULL;       /* the mach task of the caller */
-        bool reply = true;                  /* weither the syscall wants the syscall worker thread to immediately return to the caller */
         
         /* waiting for the syscall client to invoke its syscall */
         mach_msg_return_t mr = mach_msg(&(buffer->header), options, 0, sizeof(recv_buffer_t), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
@@ -209,10 +223,13 @@ static void* syscall_worker_thread(void *ctx)
         /* getting request from receive buffer */
         syscall_request_t *req = (syscall_request_t *)&(buffer->header);
         
-        /* getting the callers identity from the payload */
+        /*
+         * getting the callers identity from the payload,
+         * since we cannot just trust the process identity
+         * by just letting it send some pid, that would be
+         * fragile and unsecure.
+         */
         ksurface_proc_snapshot_t *proc_snapshot = get_caller_proc_snapshot(&(buffer->header));
-        
-        /* null pointer check */
         if(proc_snapshot == NULL)
         {
             /* checking if proc copy is null */
@@ -237,7 +254,6 @@ static void* syscall_worker_thread(void *ctx)
         /* checking syscall bounds */
         if(req->syscall_num < MAX_SYSCALLS)
         {
-            /* getting handler if bounds are valid */
             handler = server->handlers[req->syscall_num];
         }
         
@@ -250,7 +266,7 @@ static void* syscall_worker_thread(void *ctx)
         }
         
         /* calling syscall handler */
-        result = handler(task, proc_snapshot, buffer, req->args, req->oolp, &out_ports, &out_ports_cnt, &err, &reply);
+        result = handler(task, proc_snapshot, &buffer, req->args, req->oolp, &out_ports, &out_ports_cnt, &err);
         
     cleanup:
         /* destroying snapshot of process */
@@ -268,24 +284,20 @@ static void* syscall_worker_thread(void *ctx)
             kvo_release(proc_snapshot);
         }
         
-        if(reply)
+        /*
+         * syscall can aquired buffer, we need
+         * a new buffer now, syscalls may
+         * aquired the buffer to reply
+         * them selves, which is done for
+         * none blocking later replies
+         * like in SYS_wait4, otherwise
+         * 8 waiting processes using SYS_wait4
+         * would freeze up the syscalling on
+         * a 8 core SoC.
+         */
+        if(buffer != NULL)
         {
             send_reply(&(req->header), result, out_ports, out_ports_cnt, err, false);
-        }
-        else
-        {
-            /*
-             * syscall aquired buffer, we need
-             * a new buffer now, syscalls may
-             * aquired the buffer to reply
-             * them selves, which is done for
-             * none blocking later replies
-             * like in SYS_wait4, otherwise
-             * 8 waiting processes using SYS_wait4
-             * would freeze up the syscalling on
-             * a 8 core SoC.
-             */
-            buffer = NULL;
         }
     }
     

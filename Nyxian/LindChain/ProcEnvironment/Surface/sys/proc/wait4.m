@@ -223,7 +223,7 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->status_ptr = (userspace_pointer_t)args[1];
     payload->rusage_ptr = (userspace_pointer_t)args[3];
     payload->options = options;
-    payload->buffer = recv_buffer;
+    payload->buffer = *recv_buffer;
     payload->waitonpid = pid;
     
     /* register event */
@@ -239,6 +239,6 @@ DEFINE_SYSCALL_HANDLER(wait4)
     
     pthread_mutex_unlock(&(sys_proc_->children.mutex));
     
-    *reply = false;
+    *recv_buffer = NULL;
     sys_return;
 }

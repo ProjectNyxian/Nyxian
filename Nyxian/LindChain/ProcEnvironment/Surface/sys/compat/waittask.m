@@ -115,7 +115,7 @@ DEFINE_SYSCALL_HANDLER(waittask)
     
     /* stuffing payload */
     payload->task = sys_task_;
-    payload->buffer = recv_buffer;
+    payload->buffer = *recv_buffer;
     
     /* register event */
     ksr = kvo_event_register(target, kvObjEventCustom1, waittask_proc_event_handler, payload, NULL);
@@ -128,7 +128,7 @@ DEFINE_SYSCALL_HANDLER(waittask)
         sys_return_failure(EAGAIN);
     }
     
-    *reply = false;
+    *recv_buffer = NULL;
     
     kvo_release(target);
     sys_return;

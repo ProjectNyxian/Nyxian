@@ -102,7 +102,7 @@ typedef int64_t (*syscall_handler_t)(
     ksurface_proc_snapshot_t        *proc_snapshot,
                                      
     /* request header */
-    recv_buffer_t                   *recv_buffer,
+    recv_buffer_t                   **recv_buffer,
 
     /*
      * normal syscall arguments
@@ -118,22 +118,18 @@ typedef int64_t (*syscall_handler_t)(
      * sets errno in the guest process by the client receiving it
      * and setting errno from the reply
      */
-    errno_t                         *err,
-                                     
-    /* syscall can decide if it wants to respond or not */
-    bool                            *reply
+    errno_t                         *err
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
     task_t                          task, \
     ksurface_proc_snapshot_t        *proc_snapshot, \
-    recv_buffer_t                   *recv_buffer, \
+    recv_buffer_t                   **recv_buffer, \
     int64_t                         *args, \
     mach_msg_ool_ports_descriptor_t in_ports, \
     mach_port_t                     **out_ports, \
     uint32_t                        *out_ports_cnt, \
-    errno_t                         *err, \
-    bool                            *reply \
+    errno_t                         *err \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
