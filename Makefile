@@ -62,7 +62,7 @@ compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/JBSupport/libroot.
 	xcodebuild \
 		-project Nyxian.xcodeproj \
 		-scheme $(SCHEME) \
-		-configuration Debug \
+		-configuration Release \
 		-destination 'generic/platform=iOS' \
 		-archivePath build/Nyxian.xcarchive \
 		archive \
