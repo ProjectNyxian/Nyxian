@@ -55,10 +55,25 @@ ksurface_return_t proc_for_pid(pid_t pid,
 }
 
 ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
-                                     task_flavor_t flavour,
+                                     task_special_port_t flavour,
                                      task_t *task)
 {
     assert(proc != NULL && task != NULL);
+    
+    /*
+     * whitelisting aquirable task special ports by proc,
+     * making sure we hand in a expected type.
+     */
+    switch(flavour)
+    {
+        case TASK_KERNEL_PORT:
+        case TASK_NAME_PORT:
+        case TASK_INSPECT_PORT:
+        case TASK_READ_PORT:
+            break;
+        default:
+            return SURFACE_INVALID;
+    }
     
     /*
      * claiming read onto task so no other process can
@@ -77,30 +92,29 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
     if(proc->task == MACH_PORT_NULL)
     {
         task_unlock();
-        return SURFACE_FAILED;
+        return SURFACE_UNAVAILABLE;
     }
     
     /* temporary task port to not leak port value on failure */
     task_t tmp_task = proc->task;
     
     /*
-     * validating ipc port type making sure the type
+     * validating ipc port type, making sure the type
      * matches supported types and handling them appropriate
      * to their type.
      */
     ipc_info_object_type_t ipc_port_type;
     mach_vm_address_t placeholder_address;
     kern_return_t kr = mach_port_kobject(mach_task_self(), tmp_task, &ipc_port_type, &placeholder_address);
-    
     if(kr != KERN_SUCCESS)
     {
         task_unlock();
-        return SURFACE_FAILED;
+        return SURFACE_LOOKUP_FAILED;
     }
     
     switch(ipc_port_type)
     {
-        case IPC_OTYPE_TASK_CONTROL:
+        case IPC_OTYPE_TASK_CONTROL:    /* IKOT_TASK */
             /*
              * its control task port, so we can
              * export a task port of the flavour in
@@ -111,25 +125,26 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
              */
             kr = task_get_special_port(tmp_task, flavour, &tmp_task);
             break;
-        case IPC_OTYPE_TASK_NAME:
+        case IPC_OTYPE_TASK_NAME:       /* IKOT_TASK_NAME */
             /*
              * its name task port, so we can
              * just create a new reference of the name.
-             * its a task name, because the kernel decided
+             * its a task name, because the ksurface decided
              * that only a task name shall be exported, prior.
              */
             kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
             break;
         default:
-            /* shall never happen, illegal type */
-            environment_panic("got illegal ipc port type %d for port %lu", ipc_port_type, tmp_task);
+            /* illegal port type */
+            task_unlock();
+            return SURFACE_LOOKUP_FAILED;
     }
     
     task_unlock();
     
     if(kr != KERN_SUCCESS)
     {
-        return SURFACE_FAILED;
+        return SURFACE_AQUIRE_FAILED;
     }
     
     /*
@@ -146,7 +161,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
 }
 
 ksurface_return_t proc_task_for_pid(pid_t pid,
-                                    task_flavor_t flavour,
+                                    task_special_port_t flavour,
                                     task_t *task)
 {
     assert(task != NULL);
