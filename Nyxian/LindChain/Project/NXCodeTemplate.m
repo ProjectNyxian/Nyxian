@@ -22,52 +22,135 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
 
-@implementation NXCodeTemplate
-
-- (void)createAuthoredCodeFileFromSourceFileAtPath:(NSString*)srcPath
-                                            toPath:(NSString*)dstPath
-{
-    if(![[NSFileManager defaultManager] fileExistsAtPath:srcPath])
-        return;
-    
-    NSError *error = NULL;
-    NSString *codeFileContent = [NSString stringWithContentsOfFile:srcPath encoding:NSUTF8StringEncoding error:&error];
-    if(error)
-        return;
-    NSString *authoredCodeFileContent = [[[NXUser shared] generateHeaderForFileName: [[NSURL URLWithString:dstPath] lastPathComponent]] stringByAppendingString:codeFileContent];
-    [authoredCodeFileContent writeToFile:dstPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
-}
-
-- (void)generateCodeStructureFromTemplateScheme:(NXCodeTemplateScheme)scheme
-                                   withLanguage:(NXCodeTemplateLanguage)language
-                                withProjectName:(NSString*)projectName
-                                       intoPath:(NSString*)path
+BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
+                                        NXCodeTemplateLanguage language,
+                                        NSString *projectName,
+                                        NSString *projectPath)
 {
     NSFileManager *defaultManager = [NSFileManager defaultManager];
-    if(![defaultManager fileExistsAtPath:path])
-        return;
+    if(![defaultManager fileExistsAtPath:projectPath])
+    {
+        return NO;
+    }
     [NXUser shared].projectName = projectName;
     NSString *templatePath = [[[NSString stringWithFormat:@"%@/Shared/Templates", [[NSBundle mainBundle] bundlePath]] stringByAppendingPathComponent:scheme] stringByAppendingPathComponent:language];
     
     NSError *error = NULL;
     NSArray *folderEntries = [defaultManager contentsOfDirectoryAtPath:templatePath error:&error];
     if(error)
-        return;
+    {
+        return NO;
+    }
     
     for(NSString *folderEntry in folderEntries)
     {
-        [self createAuthoredCodeFileFromSourceFileAtPath:[templatePath stringByAppendingFormat:@"/%@", folderEntry] toPath:[path stringByAppendingFormat:@"/%@", folderEntry]];
+        NSString *srcPath = [templatePath stringByAppendingFormat:@"/%@", folderEntry];
+        NSString *dstPath = [projectPath stringByAppendingFormat:@"/%@", folderEntry];
+        
+        NSError *error = NULL;
+        NSString *codeFileContent = [NSString stringWithContentsOfFile:srcPath encoding:NSUTF8StringEncoding error:&error];
+        if(error)
+        {
+            return NO;
+        }
+        NSString *authoredCodeFileContent = [[[NXUser shared] generateHeaderForFileName: [[NSURL URLWithString:dstPath] lastPathComponent]] stringByAppendingString:codeFileContent];
+        [authoredCodeFileContent writeToFile:dstPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
     }
+    
+    return YES;
 }
 
-+ (NXCodeTemplate*)shared
+NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
 {
-    static NXCodeTemplate *nxCodeTemplateSingleton = NULL;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        nxCodeTemplateSingleton = [[NXCodeTemplate alloc] init];
-    });
-    return nxCodeTemplateSingleton;
+    if([language isEqualToString:NXCodeTemplateLanguageC] ||
+       [language isEqualToString:NXCodeTemplateLanguageCpp])
+    {
+        return @[
+            @"-target",
+            @"arm64-apple-ios$(LDEMinimumVersion)",
+            @"-isysroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-resource-dir",
+            @"$(BSROOT)/Include",
+        ];
+    }
+    else if([language isEqualToString:NXCodeTemplateLanguageObjC])
+    {
+        return @[
+            @"-target",
+            @"arm64-apple-ios$(LDEMinimumVersion)",
+            @"-isysroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-resource-dir",
+            @"$(BSROOT)/Include",
+            @"-fobjc-arc"
+        ];
+    }
+    return nil;
 }
 
-@end
+NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+{
+    if([language isEqualToString:NXCodeTemplateLanguageC])
+    {
+        return @[
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-L$(BSROOT)/lib",
+            @"-lc",
+            @"-lclang_rt.ios"
+        ];
+    }
+    else if([language isEqualToString:NXCodeTemplateLanguageCpp])
+    {
+        return @[
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-L$(BSROOT)/lib",
+            @"-lc",
+            @"-lc++",
+            @"-lclang_rt.ios"
+        ];
+    }
+    else if([language isEqualToString:NXCodeTemplateLanguageObjC])
+    {
+        return @[
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-L$(BSROOT)/lib",
+            @"-lc",
+            @"-lclang_rt.ios",
+            @"-framework",
+            @"Foundation",
+        ];
+    }
+    return nil;
+}

@@ -19,14 +19,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef NXCODETEMPLATE_H
-#define NXCODETEMPLATE_H
-
 #import <Foundation/Foundation.h>
 #import <LindChain/Project/NXType.h>
 
-BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme, NXCodeTemplateLanguage language, NSString *projectName, NSString *projectPath);
-NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
-NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
-
-#endif /* NXCODETEMPLATE_H */
+NXCodeTemplateScheme NXCodeTemplateSchemeFromProjectType(NXProjectType type)
+{
+    switch(type)
+    {
+        case NXProjectTypeApp: return NXCodeTemplateSchemeApp;
+        case NXProjectTypeUtility: return NXCodeTemplateSchemeUtility;
+        default: return NXCodeTemplateSchemeInvalid;
+    }
+}

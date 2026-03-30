@@ -221,9 +221,6 @@
 
 @end
 
-/*
- Project
- */
 @implementation NXProject
 
 - (instancetype)initWithPath:(NSString*)path
@@ -241,13 +238,18 @@
     return self;
 }
 
-+ (NXProject*)createProjectAtPath:(NSString*)path
-                         withName:(NSString*)name
-             withBundleIdentifier:(NSString*)bundleid
-                         withType:(NXProjectType)type
++ (instancetype)projectWithPath:(NSString*)path
+{
+    return [[NXProject alloc] initWithPath:path];
+}
+
++ (instancetype)createProjectAtPath:(NSString*)path
+                           withName:(NSString*)name
+               withBundleIdentifier:(NSString*)bundleid
+                           withType:(NXProjectType)type
+                       withLanguage:(NXCodeTemplateLanguage)language
 {
     NSString *projectPath = [NSString stringWithFormat:@"%@/%@", path, [[NSUUID UUID] UUIDString]];
-    
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
     
     NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
@@ -256,177 +258,151 @@
         [directoryList addObject:@"/Resources"];
     }
     for(NSString *directory in directoryList)
-        [defaultFileManager createDirectoryAtPath:[NSString stringWithFormat:@"%@%@", projectPath, directory] withIntermediateDirectories:NO attributes:NULL error:nil];
+    {
+        NSError *error = nil;
+        [defaultFileManager createDirectoryAtPath:[NSString stringWithFormat:@"%@%@", projectPath, directory] withIntermediateDirectories:NO attributes:NULL error:&error];
+        if(error)
+        {
+            [defaultFileManager removeItemAtPath:projectPath error:nil];
+            return nil;
+        }
+    }
     
-    NSDictionary *plistList = nil;
+    NSDictionary *entitlementsPlist = @{
+#if !JAILBREAK_ENV
+        @"com.nyxian.pe.get_task_allowed": @(YES),
+        @"com.nyxian.pe.task_for_pid": @(NO),
+        @"com.nyxian.pe.process_enumeration": @(NO),
+        @"com.nyxian.pe.process_kill": @(NO),
+        @"com.nyxian.pe.process_spawn": @(NO),
+        @"com.nyxian.pe.process_spawn_signed_only": @(NO),
+        @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
+        @"com.nyxian.pe.process_elevate": @(NO),
+        @"com.nyxian.pe.host_manager": @(NO),
+        @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
+        @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
+        @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
+        @"com.nyxian.pe.platform": @(NO)
+#else
+        @"platform-application": @(YES)
+#endif // !JAILBREAK_ENV
+    };
     
+    NSDictionary *projConfigPlist = nil;
     switch(type)
     {
         case NXProjectTypeApp:
-            plistList = @{
-                @"/Config/Project.plist": @{
-                    @"NXProjectFormat": @"NXFalcon",
-                    @"LDEExecutable": name,
-                    @"LDEDisplayName": name,
-                    @"LDEBundleIdentifier": bundleid,
-                    @"LDEBundleInfo": @{
-                        @"UIApplicationSceneManifest": @{
-                            @"UIApplicationSupportsMultipleScenes": @(NO),
-                            @"UISceneConfigurations": @{
-                                @"UIWindowSceneSessionRoleApplication": @[
-                                    @{
-                                        @"UISceneConfigurationName": @"Default Configuration",
-                                        @"UISceneDelegateClassName": @"SceneDelegate"
-                                    }
-                                ]
-                            }
+            projConfigPlist = @{
+                @"NXProjectFormat": @"NXFalcon",
+                @"LDEExecutable": name,
+                @"LDEDisplayName": name,
+                @"LDEBundleIdentifier": bundleid,
+                @"LDEBundleInfo": @{
+                    @"UIApplicationSceneManifest": @{
+                        @"UIApplicationSupportsMultipleScenes": @(NO),
+                        @"UISceneConfigurations": @{
+                            @"UIWindowSceneSessionRoleApplication": @[
+                                @{
+                                    @"UISceneConfigurationName": @"Default Configuration",
+                                    @"UISceneDelegateClassName": @"SceneDelegate"
+                                }
+                            ]
                         }
-                    },
-                    @"LDEBundleVersion": @"1.0",
-                    @"LDEBundleShortVersion": @"1.0",
-                    @"LDEProjectType": @(type),
-                    @"LDEVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDECompilerFlags": @[
-                        @"-target",
-                        @"arm64-apple-ios$(LDEMinimumVersion)",
-                        @"-isysroot",
-                        @"$(SDKROOT)",
-                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
-                        @"-resource-dir",
-                        @"$(BSROOT)/Include",
-                        @"-fobjc-arc"
-                    ],
-                    @"LDELinkerFlags": @[
-                        @"-platform_version",
-                        @"ios",
-                        @"$(LDEMinimumVersion)",
-                        @"$(LDEVersion)",
-                        @"-arch",
-                        @"arm64",
-                        @"-syslibroot",
-                        @"$(SDKROOT)",
-                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
-                        @"-L$(BSROOT)/lib",
-                        @"-ObjC",
-                        @"-lc",
-                        @"-framework",
-                        @"Foundation",
-                        @"-framework",
-                        @"UIKit",
-                        @"-lclang_rt.ios"
-                    ],
-                    @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
+                    }
                 },
-                @"/Config/Entitlements.plist": @{
-#if !JAILBREAK_ENV
-                    @"com.nyxian.pe.get_task_allowed": @(YES),
-                    @"com.nyxian.pe.task_for_pid": @(NO),
-                    @"com.nyxian.pe.process_enumeration": @(NO),
-                    @"com.nyxian.pe.process_kill": @(NO),
-                    @"com.nyxian.pe.process_spawn": @(NO),
-                    @"com.nyxian.pe.process_spawn_signed_only": @(NO),
-                    @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
-                    @"com.nyxian.pe.process_elevate": @(NO),
-                    @"com.nyxian.pe.host_manager": @(NO),
-                    @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
-                    @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
-                    @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
-                    @"com.nyxian.pe.platform": @(NO)
-#else
-                    @"platform-application": @(YES)
-#endif // !JAILBREAK_ENV
-                }
+                @"LDEBundleVersion": @"1.0",
+                @"LDEBundleShortVersion": @"1.0",
+                @"LDEProjectType": @(type),
+                @"LDEVersion": [[UIDevice currentDevice] systemVersion],
+                @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
+                @"LDECompilerFlags": @[
+                    @"-target",
+                    @"arm64-apple-ios$(LDEMinimumVersion)",
+                    @"-isysroot",
+                    @"$(SDKROOT)",
+                    @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                    @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                    @"-resource-dir",
+                    @"$(BSROOT)/Include",
+                    @"-fobjc-arc"
+                ],
+                @"LDELinkerFlags": @[
+                    @"-platform_version",
+                    @"ios",
+                    @"$(LDEMinimumVersion)",
+                    @"$(LDEVersion)",
+                    @"-arch",
+                    @"arm64",
+                    @"-syslibroot",
+                    @"$(SDKROOT)",
+                    @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                    @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+                    @"-L$(BSROOT)/lib",
+                    @"-ObjC",
+                    @"-lc",
+                    @"-lclang_rt.ios",
+                    @"-framework",
+                    @"Foundation",
+                    @"-framework",
+                    @"UIKit"
+                ],
+                @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
             };
             break;
         case NXProjectTypeUtility:
-            plistList = @{
-                @"/Config/Project.plist": @{
-                    @"NXProjectFormat": @"NXFalcon",
-                    @"LDEExecutable": name,
-                    @"LDEDisplayName": name,
-                    @"LDEProjectType": @(type),
-                    @"LDEVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
-                    @"LDECompilerFlags": @[
-                        @"-target",
-                        @"arm64-apple-ios$(LDEMinimumVersion)",
-                        @"-isysroot",
-                        @"$(SDKROOT)",
-                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
-                        @"-resource-dir",
-                        @"$(BSROOT)/Include",
-                    ],
-                    @"LDELinkerFlags": @[
-                        @"-platform_version",
-                        @"ios",
-                        @"$(LDEMinimumVersion)",
-                        @"$(LDEVersion)",
-                        @"-arch",
-                        @"arm64",
-                        @"-syslibroot",
-                        @"$(SDKROOT)",
-                        @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                        @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
-                        @"-L$(BSROOT)/lib",
-                        @"-lc"
-                    ],
-                    @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
-                },
-                @"/Config/Entitlements.plist": @{
-#if !JAILBREAK_ENV
-                    @"com.nyxian.pe.get_task_allowed": @(YES),
-                    @"com.nyxian.pe.task_for_pid": @(NO),
-                    @"com.nyxian.pe.process_enumeration": @(NO),
-                    @"com.nyxian.pe.process_kill": @(NO),
-                    @"com.nyxian.pe.process_spawn": @(NO),
-                    @"com.nyxian.pe.process_spawn_signed_only": @(NO),
-                    @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
-                    @"com.nyxian.pe.process_elevate": @(NO),
-                    @"com.nyxian.pe.host_manager": @(NO),
-                    @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
-                    @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
-                    @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
-                    @"com.nyxian.pe.platform": @(NO)
-#else
-                    @"platform-application": @(YES)
-#endif // !JAILBREAK_ENV
-                }
+            projConfigPlist = @{
+                @"NXProjectFormat": @"NXFalcon",
+                @"LDEExecutable": name,
+                @"LDEDisplayName": name,
+                @"LDEProjectType": @(type),
+                @"LDEVersion": [[UIDevice currentDevice] systemVersion],
+                @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
+                @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
+                @"LDELinkerFlags": NXLinkerFlagsForCodeTemplateLanguage(language),
+                @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;
         default:
-            plistList = @{
-                @"/Config/Project.plist": @{
-                    @"LDEDisplayName": name,
-                    @"LDEProjectType": @(type)
-                }
+            projConfigPlist = @{
+                @"LDEDisplayName": name,
+                @"LDEProjectType": @(type)
             };
             break;
     }
+    
+    NSDictionary *plistList = @{
+        @"/Config/Project.plist": projConfigPlist,
+        @"/Config/Entitlements.plist": entitlementsPlist
+    };
     
     for(NSString *key in plistList)
     {
+        NSError *error;
         NSDictionary *plistItem = plistList[key];
-        NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistItem format:NSPropertyListXMLFormat_v1_0 options:0 error:NULL];
+        NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistItem format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
         [plistData writeToFile:[NSString stringWithFormat:@"%@%@", projectPath, key] atomically:YES];
+        
+        if(error)
+        {
+            [defaultFileManager removeItemAtPath:projectPath error:nil];
+            return nil;
+        }
     }
     
-    switch(type)
+    NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
+    if(scheme == NXCodeTemplateSchemeInvalid)
     {
-        case NXProjectTypeApp:
-            [[NXCodeTemplate shared] generateCodeStructureFromTemplateScheme:NXCodeTemplateSchemeApp withLanguage:NXCodeTemplateLanguageObjC withProjectName:name intoPath:projectPath];
-            break;
-        case NXProjectTypeUtility:
-            [[NXCodeTemplate shared] generateCodeStructureFromTemplateScheme:NXCodeTemplateSchemeUtility withLanguage:NXCodeTemplateLanguageC withProjectName:name intoPath:projectPath];
-            break;
-        default:
-            break;
+        [[NSFileManager defaultManager] removeItemAtPath:projectPath error:nil];
+        return nil;
     }
     
-    return [[NXProject alloc] initWithPath:projectPath];
+    if(!NXCodeTemplateMakeProjectStructure(scheme, language, name, projectPath))
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:projectPath error:nil];
+        return nil;
+    }
+    
+    return [NXProject projectWithPath:projectPath];
 }
 
 + (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtPath:(NSString*)path
@@ -465,11 +441,11 @@
     return projectList;
 }
 
-+ (void)removeProject:(NXProject*)project
+- (void)removeProject
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    [fileManager removeItemAtPath:project.cachePath error:nil];
-    [fileManager removeItemAtPath:project.path error:nil];
+    [fileManager removeItemAtPath:self.cachePath error:nil];
+    [fileManager removeItemAtPath:self.path error:nil];
 }
 
 - (NSString*)resourcesPath { return [NSString stringWithFormat:@"%@/Resources", self.path]; }

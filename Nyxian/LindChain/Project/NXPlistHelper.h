@@ -19,6 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef NXPLISTHELPER_H
+#define NXPLISTHELPER_H
+
 #import <Foundation/Foundation.h>
 
 @interface NXPlistHelper : NSObject
@@ -48,3 +51,5 @@
 - (double)readDoubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
 
 @end
+
+#endif /* NXPLISTHELPER_H */

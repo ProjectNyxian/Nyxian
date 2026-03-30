@@ -21,13 +21,9 @@
 
 #import <LindChain/Project/NXUser.h>
 
-@interface NXUser ()
-
-@property (nonatomic,strong,readonly) NSDateFormatter *formatter;
-
-@end
-
-@implementation NXUser
+@implementation NXUser {
+    NSDateFormatter *_formatter;
+}
 
 @synthesize username = _username;
 @synthesize datestring = _datestring;

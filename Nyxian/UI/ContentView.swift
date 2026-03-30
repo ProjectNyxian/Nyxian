@@ -44,17 +44,33 @@ import UIKit
         
         self.title = "Projects"
         
-        let createApp: UIAction = UIAction(title: "App", image: UIImage(systemName: "app.gift.fill")) { [weak self] _ in
+        /* application menu */
+        let ObjCApp: UIAction = UIAction(title: "Objc") { [weak self] _ in
             guard let self = self else { return }
-            self.createProject(mode: .app)
+            self.createProject(mode: .app, withLanguage: .objC)
         }
         
-        let createUtility: UIAction = UIAction(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill")) { [weak self] _ in
+        let applicationMenu: UIMenu = UIMenu(title: "App", image: UIImage(systemName: "app.gift.fill"), children: [ObjCApp])
+        
+        /* utility menu */
+        let CUtility: UIAction = UIAction(title: "C") { [weak self] _ in
             guard let self = self else { return }
-            self.createProject(mode: .utility)
+            self.createProject(mode: .utility, withLanguage: .C)
         }
         
-        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [createApp, createUtility])
+        let CPPCUtility: UIAction = UIAction(title: "C++") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .utility, withLanguage: .cpp)
+        }
+        
+        let ObjCCUtility: UIAction = UIAction(title: "ObjC") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .utility, withLanguage: .C)
+        }
+        
+        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [CUtility, CPPCUtility, ObjCCUtility])
+        
+        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [applicationMenu, utilityMenu])
         
         let importItem: UIAction = UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
             guard let self = self else { return }
@@ -131,6 +147,7 @@ import UIKit
     }
 
     func removeProject(_ project: NXProject) {
+        project.remove()
         let type = NXProjectType(rawValue: project.projectConfig.type)
         let key = {
             switch type {
@@ -192,7 +209,7 @@ import UIKit
         return keyA < keyB
     }
     
-    func createProject(mode: NXProjectType) {
+    func createProject(mode: NXProjectType, withLanguage language: NXCodeTemplateLanguage) {
         let projectString: String
         
         switch(mode)
@@ -237,7 +254,8 @@ import UIKit
                 atPath: self.path,
                 withName: name,
                 withBundleIdentifier: bundleid,
-                withType: mode
+                withType: mode,
+                withLanguage: language
             ) {
                 addProject(project)
             }
@@ -341,7 +359,6 @@ import UIKit
                     confirmStyle: .destructive)
                 { [weak self] in
                     guard let self = self else { return }
-                    NXProject.remove(project)
                     removeProject(project)
                 }
             }

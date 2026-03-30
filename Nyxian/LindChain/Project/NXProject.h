@@ -24,21 +24,8 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Project/NXPlistHelper.h>
+#import <LindChain/Project/NXType.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-
-typedef int NXProjectType NS_TYPED_ENUM;
-static NXProjectType const NXProjectTypeAny = 0;
-static NXProjectType const NXProjectTypeApp = 1;
-static NXProjectType const NXProjectTypeUtility = 2;
-static NXProjectType const NXProjectTypeLibrary = 3;
-static NXProjectType const NXProjectTypeLua = 4;        /* Not implemented yet */
-static NXProjectType const NXProjectTypePython = 5;     /* Not implemented yet */
-static NXProjectType const NXProjectTypeWeb = 6;        /* Not implemented yet */
-
-typedef int NXProjectFormat NS_TYPED_ENUM;
-static NXProjectFormat const NXProjectFormatKate = 0;
-static NXProjectFormat const NXProjectFormatFalcon = 1;
-static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 
 @interface NXProjectConfig : NXPlistHelper
 
@@ -105,13 +92,11 @@ static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 
 - (instancetype)initWithPath:(NSString*)path;
 
-+ (NXProject*)createProjectAtPath:(NSString*)path
-                         withName:(NSString*)name
-             withBundleIdentifier:(NSString*)bundleid
-                         withType:(NXProjectType)type;
++ (instancetype)projectWithPath:(NSString*)path;
++ (instancetype)createProjectAtPath:(NSString*)path withName:(NSString*)name withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language;
 + (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtPath:(NSString*)path;
-+ (void)removeProject:(NXProject*)project;
 
+- (void)removeProject;
 - (BOOL)reload;
 
 @end

@@ -19,6 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef NXUSER_H
+#define NXUSER_H
+
 #import <Foundation/Foundation.h>
 
 @interface NXUser : NSObject
@@ -33,3 +36,5 @@
 - (NSString*)generateFileCreationContentForName:(NSString*)fileName;
 
 @end
+
+#endif /* NXUSER_H */
