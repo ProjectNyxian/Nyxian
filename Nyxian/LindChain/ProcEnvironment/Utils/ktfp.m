@@ -25,6 +25,7 @@
 
 #if !JAILBREAK_ENV
 
+__attribute__((optnone))
 task_t ktfp(obtain_token_t token)
 {
     kern_return_t kr;

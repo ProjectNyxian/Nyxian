@@ -73,6 +73,7 @@ class SettingsViewController: UIThemedTableViewController {
             }())
             cell.textLabel?.text = "Certificate"
             break
+#if DEBUG
         case 4:
             cell.imageView?.image = UIImage(systemName: "ant.fill")
             cell.textLabel?.text = "Kernel Log"
@@ -81,6 +82,12 @@ class SettingsViewController: UIThemedTableViewController {
             cell.imageView?.image = UIImage(systemName: "person.3.fill")
             cell.textLabel?.text = "Credits"
             break
+#else
+        case 4:
+            cell.imageView?.image = UIImage(systemName: "person.3.fill")
+            cell.textLabel?.text = "Credits"
+            break
+#endif // DEBUG
 #else
         case 0:
             cell.imageView?.image = UIImage(systemName: {
