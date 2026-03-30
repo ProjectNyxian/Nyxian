@@ -35,6 +35,7 @@ extern char **environ;
 
 __thread fork_thread_snapshot_t *local_fork_thread_snapshot = NULL;
 
+__attribute__((optnone))
 void *fork_helper_thread(void *args)
 {
     /*
@@ -103,6 +104,7 @@ void *fork_helper_thread(void *args)
 
 #pragma mark - helper thread helper
 
+__attribute__((optnone))
 bool fork_helper_thread_trap(void)
 {
     /* trapping into fork helper thread */
@@ -124,7 +126,7 @@ bool fork_helper_thread_trap(void)
 #pragma mark - fork() fix
 
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
-DEFINE_HOOK(vfork, pid_t, (void))
+DEFINE_HOOK(vfork, pid_t, (void)) __attribute__((optnone))
 {
     /*
      * allocating local thread snapshot, which
@@ -188,6 +190,7 @@ DEFINE_HOOK(vfork, pid_t, (void))
 #pragma mark - exec*() symbol family helpers
 
 // MARK: Helper for all use cases
+__attribute__((optnone))
 int environment_execvpa(const char * __path,
                         char *_LIBC_CSTR const *_LIBC_NULL_TERMINATED __argv,
                         char *_LIBC_CSTR const *_LIBC_NULL_TERMINATED __envp,
