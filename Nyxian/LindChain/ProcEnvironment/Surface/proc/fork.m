@@ -191,7 +191,7 @@ force_not_inherite_entitlements:
 
 ksurface_return_t proc_reap(ksurface_proc_t *proc)
 {
-    assert(proc != NULL || proc != kernel_proc_);
+    assert(proc != NULL && proc != kernel_proc_);
     
     /* retain process that wants to exit */
     if(!kvo_retain(proc))
@@ -303,7 +303,7 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
 
 ksurface_return_t proc_zombify(ksurface_proc_t *proc)
 {
-    assert(proc != NULL || proc != kernel_proc_);
+    assert(proc != NULL && proc != kernel_proc_);
     
     /* retain process that wants to be zombified */
     if(!kvo_retain(proc))
