@@ -152,7 +152,7 @@
 
 - (NSString*)outputPath
 {
-    return [self readSecureFromKey:@"LDEOutputPath" withDefaultValue:@"Unknown"];
+    return [self readKey:@"LDEOutputPath"];
 }
 
 + (NSArray*)sdkCompilerFlags
@@ -478,6 +478,7 @@
 - (NSString*)machoPath {
     if(self.projectConfig.projectFormat == NXProjectFormatKate)
     {
+    kate_handling:
         if(self.projectConfig.type == NXProjectTypeApp)
         {
             return [NSString stringWithFormat:@"%@/%@", [self bundlePath], [[self projectConfig] executable]];
@@ -489,7 +490,12 @@
     }
     else
     {
-        return [[self projectConfig] outputPath];
+        NSString *outputPath = [[self projectConfig] outputPath];
+        if(outputPath == nil || ![outputPath isKindOfClass:[NSString class]])
+        {
+            goto kate_handling;
+        }
+        return outputPath;
     }
 }
 - (NSString*)packagePath { return [NSString stringWithFormat:@"%@/%@.ipa", self.cachePath, [[self projectConfig] executable]]; }
