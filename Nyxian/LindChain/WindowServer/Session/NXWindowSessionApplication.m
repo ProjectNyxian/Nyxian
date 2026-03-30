@@ -56,15 +56,14 @@ void UIKitFixesInit(void)
 }
 
 @implementation NXWindowSessionApplication {
-    os_unfair_lock lock;
-    BOOL isKeyboardShown;
-    CGFloat keyboardBottomInset;
+    os_unfair_lock _lock;
 }
 
 - (instancetype)initWithProcess:(PEProcess*)process;
 {
     self = [super init];
     _process = process;
+    _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
 
@@ -116,9 +115,6 @@ void UIKitFixesInit(void)
     /* registering to window */
     [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
     
-    /* initilize lock */
-    lock = OS_UNFAIR_LOCK_INIT;
-    
     return YES;
 }
 
@@ -146,7 +142,7 @@ void UIKitFixesInit(void)
 
 - (BOOL)activateWindow
 {
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     /* set presenter to foreground */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -166,14 +162,14 @@ void UIKitFixesInit(void)
     /* resume process */
     [self.process resume];
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
     
     return YES;
 }
 
 - (BOOL)deactivateWindow
 {
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     /* set presenter to background */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -201,7 +197,7 @@ void UIKitFixesInit(void)
         [innerSelf.process suspend];
     }];
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
     
     return YES;
 }
@@ -215,11 +211,11 @@ void UIKitFixesInit(void)
         rect = CGRectMake(0, 0, rect.size.width, rect.size.height);
     }
     
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     if(self.process.isSuspended)
     {
-        os_unfair_lock_unlock(&lock);
+        os_unfair_lock_unlock(&_lock);
         return;
     }
     
@@ -236,12 +232,6 @@ void UIKitFixesInit(void)
         
         /* looks unnatural without */
         insets.top = 10;
-        
-        __strong typeof(self) innerSelf = weakSelf;
-        if(innerSelf->isKeyboardShown)
-        {
-            insets.bottom = innerSelf->keyboardBottomInset - rect.origin.y;
-        }
         
         switch(settings.interfaceOrientation)
         {
@@ -261,7 +251,7 @@ void UIKitFixesInit(void)
         }
     }];
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (void)sessionIdentifierAssigned:(int)identifier
@@ -276,11 +266,11 @@ void UIKitFixesInit(void)
                 transitionContext:(id)context
               lifecycleActionType:(uint32_t)actionType
 {
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     if(![self.process.processHandle isValid] || self.process.isSuspended || !diff)
     {
-        os_unfair_lock_unlock(&lock);
+        os_unfair_lock_unlock(&_lock);
         return;
     }
     
@@ -293,7 +283,7 @@ void UIKitFixesInit(void)
     
     [self.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
     
     [self windowChangesToRect:self.windowRect];
 }
@@ -307,11 +297,11 @@ void UIKitFixesInit(void)
 {
     [super traitCollectionDidChange:previousTraitCollection];
  
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     if(![self.process.processHandle isValid] || self.process.isSuspended)
     {
-        os_unfair_lock_unlock(&lock);
+        os_unfair_lock_unlock(&_lock);
         return;
     }
     
@@ -322,7 +312,7 @@ void UIKitFixesInit(void)
         }];
     }
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (NSString*)windowName
@@ -339,7 +329,7 @@ void UIKitFixesInit(void)
 
 - (BOOL)injectProcess:(PEProcess*)process
 {
-    os_unfair_lock_lock(&lock);
+    os_unfair_lock_lock(&_lock);
     
     /* keep reference to old presenter for animation */
     UIView *oldPresentationView = self.presenter.presentationView;
@@ -359,7 +349,7 @@ void UIKitFixesInit(void)
 #if !JAILBREAK_ENV
         klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
 #endif /* !JAILBREAK_ENV */
-        os_unfair_lock_unlock(&lock);
+        os_unfair_lock_unlock(&_lock);
         return NO;
     }
     
@@ -380,7 +370,7 @@ void UIKitFixesInit(void)
     /* register new window */
     [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:process.sceneID];
     
-    os_unfair_lock_unlock(&lock);
+    os_unfair_lock_unlock(&_lock);
     
     [self windowChangesToRect:self.windowRect];
     
