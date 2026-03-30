@@ -33,6 +33,7 @@
     backgroundView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.2];
     backgroundView.center = CGPointMake(frame.size.width, frame.size.height);
     backgroundView.transform = CGAffineTransformMakeRotation(M_PI_4);
+    backgroundView.layer.cornerRadius = 8;
     [self addSubview:backgroundView];
     return self;
 }
