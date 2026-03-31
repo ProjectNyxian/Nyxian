@@ -31,9 +31,12 @@ trollstore: compile pseudo-sign package_tipa clean
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
 Nyxian/LindChain/LLVM.xcframework:
 	cd LLVM-On-iOS; $(MAKE)
+	rm -rf Nyxian/LindChain/LLVM.xcframework
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 
 Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
+	cd LLVM-On-iOS; $(MAKE)
+	rm -rf Nyxian/LindChain/Clang.xcframework
 	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
 
 # Needed for jailbroken version for permasigned apps
@@ -83,7 +86,7 @@ package-deb:
 	find . -type f -name ".DS_Store" -delete
 	mkdir -p .package/DEBIAN
 	echo "Package: $(NXBUNDLE)\nName: $(NXNAME)\nVersion: $(NXVERSION)\nArchitecture: $(ARCH)\nDescription: Full fledged Xcode-like IDE for iOS\nIcon: https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/preview.png\nMaintainer: cr4zyengineer\nAuthor: cr4zyengineer\nSection: Utilities\nTag: role::hacker" > .package/DEBIAN/control
-	dpkg-deb -b .package nyxian_$(NXVERSION)_$(ARCH).deb
+	dpkg-deb -b --root-owner-group .package nyxian_$(NXVERSION)_$(ARCH).deb
 
 clean:
 	rm -rf Payload
