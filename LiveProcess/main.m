@@ -31,7 +31,6 @@
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
 #import <ServiceKit/ServiceKit.h>
-#import <LindChain/Services/trustd/LDETrustProxy.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
 
 #import <ResecureDecoder.h>

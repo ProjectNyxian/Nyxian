@@ -3,16 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>PEServiceIdentifier</key>
-	<string>com.cr4zy.ksurfaced</string>
+	<string>com.cr4zy.containerd</string>
 	<key>PEShouldAutorestart</key>
 	<true/>
 	<key>PEExecutablePath</key>
-	<string>/usr/libexec/ksurfaced</string>
+	<string>/usr/libexec/containerd</string>
 	<key>PEUserIdentifier</key>
 	<integer>0</integer>
 	<key>PEGroupIdentifier</key>
 	<integer>0</integer>
 	<key>PEIntegratedServiceClass</key>
-	<string>LDETrustProxy</string>
+	<string>PEContainerService</string>
 </dict>
 </plist>

@@ -24,7 +24,7 @@
 #import <LindChain/WindowServer/LaunchPad/LDEAppCell.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/Services/containerd/PEContainer.h>
 
 NSArray *entitlementsMenuStructure = @[
     @{

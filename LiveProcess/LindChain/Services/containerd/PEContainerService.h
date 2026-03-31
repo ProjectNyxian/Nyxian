@@ -19,22 +19,14 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETRUST_H
-#define LDETRUST_H
+#ifndef PECONTAINERSERVICE_H
+#define PECONTAINERSERVICE_H
 
-#import <Foundation/Foundation.h>
-#import <LindChain/ProcEnvironment/Surface/entitlement.h>
+#import <LindChain/Services/containerd/PEContainerProtocol.h>
+#import <ServiceKit/ServiceKit.h>
 
-@interface LDETrust : NSObject
-
-@property (nonatomic,strong) NSXPCConnection *connection;
-
-- (instancetype)init;
-+ (instancetype)shared;
-
-- (BOOL)executableAllowedToLaunchAtPath:(NSString*)path;
-- (PEEntitlement)entitlementsOfExecutableAtPath:(NSString*)path;
+@interface PEContainerService : NSObject<PEContainerProtocol,PEServiceProtocol>
 
 @end
 
-#endif /* LDETRUST_H */
+#endif /* PECONTAINERSERVICE_H */

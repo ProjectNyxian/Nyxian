@@ -28,6 +28,6 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 int macho_after_sign(const char *path, PEEntitlement entitlement);    /* MARK: unavailable on guest environment, but doesnt really matter runtime tokens arent signed with a valid cdhash associated with such binary */
-int macho_read_token(const char *path, ksurface_ent_result_t *mach);
+int macho_read_token(int fd, ksurface_ent_result_t *mach);
 
 #endif /* SIGNING_TRUST_H */

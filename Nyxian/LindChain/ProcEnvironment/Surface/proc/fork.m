@@ -22,10 +22,10 @@
 #import <LindChain/ProcEnvironment/Surface/proc/fork.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
+#import <LindChain/Services/containerd/PEContainer.h>
 
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
@@ -57,7 +57,12 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
      * will return the entitlements of
      * sayed executable.
      */
-    PEEntitlement entitlement = [[LDETrust shared] entitlementsOfExecutableAtPath:[NSString stringWithCString:path encoding:NSUTF8StringEncoding]];
+    PEEntitlement entitlement = PEEntitlementNone;
+    NSString *nsPath = [NSString stringWithCString:path encoding:NSUTF8StringEncoding];
+    if(nsPath != nil)
+    {
+        entitlement = [[PEContainer shared] entitlementForExecutableAtPath:nsPath];
+    }
     PEEntitlement currentEntitlement = proc_getentitlements(child);
     PEEntitlement currentMaxEntitlement = proc_getmaxentitlements(child);
     

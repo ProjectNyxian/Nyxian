@@ -273,7 +273,7 @@
 			membershipExceptions = (
 				LindChain/Services/applicationmgmtd/LDEApplicationObject.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
-				LindChain/Services/trustd/LDETrustProxy.m,
+				LindChain/Services/containerd/PEContainerService.m,
 				main.m,
 				ResecureDecoder.m,
 			);
@@ -285,7 +285,7 @@
 				LindChain/Services/applicationmgmtd/LDEApplicationObject.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.m,
 				LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.m,
-				LindChain/Services/trustd/LDETrust.m,
+				LindChain/Services/containerd/PEContainer.m,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};
@@ -304,7 +304,6 @@
 				LindChain/LiveContainer/Tweaks/SecItem.m,
 				"LindChain/LiveContainer/Tweaks/UIKit+GuestHooksInit.m",
 				LindChain/LiveContainer/utils.m,
-				LindChain/OpenSSL.xcframework,
 				LindChain/Private/mach/fileport.m,
 				LindChain/ProcEnvironment/application.m,
 				LindChain/ProcEnvironment/cred.c,
@@ -319,9 +318,7 @@
 				LindChain/ProcEnvironment/panic.m,
 				LindChain/ProcEnvironment/posix_spawn.m,
 				LindChain/ProcEnvironment/proxy.m,
-				LindChain/ProcEnvironment/Surface/entitlement.c,
 				LindChain/ProcEnvironment/Surface/extra/relax.c,
-				LindChain/ProcEnvironment/Surface/trust.c,
 				LindChain/ProcEnvironment/syscall.c,
 				LindChain/ProcEnvironment/Syscall/mach_syscall_client.c,
 				LindChain/ProcEnvironment/sysctl.c,

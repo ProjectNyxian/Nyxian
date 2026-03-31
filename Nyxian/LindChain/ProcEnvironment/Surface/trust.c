@@ -352,16 +352,10 @@ int macho_after_sign(const char *path,
 
 #endif /* HOST_ENV */
 
-int macho_read_token(const char *path,
+int macho_read_token(int fd,
                      ksurface_ent_result_t *mach)
 {
     bzero(mach, sizeof(ksurface_ent_result_t));
-    
-    int fd = open(path, O_RDONLY);
-    if(fd < 0)
-    {
-        perror("open"); return -1;
-    }
 
     char tag[4];
     uint32_t len;

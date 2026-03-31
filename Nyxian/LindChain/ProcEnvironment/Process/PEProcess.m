@@ -27,7 +27,7 @@
 
 #if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
-#import <LindChain/Services/trustd/LDETrust.h>
+#import <LindChain/Services/containerd/PEContainer.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
@@ -58,7 +58,8 @@
     
     self.executablePath = items[@"PEExecutablePath"];
     if(self.executablePath == nil) return nil;
-    if(![[LDETrust shared] executableAllowedToLaunchAtPath:self.executablePath]) return nil;
+    /* FIXME: before it was a isExecutableFileAtPath check, but since installd broke the permissions at install time we can forget that lol */
+    if(![[PEContainer shared] isReadableFileAtPath:self.executablePath]) return nil;
     
     self.wid = (id_t)-1;
     
