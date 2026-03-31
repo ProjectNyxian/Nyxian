@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <ServiceKit/Service.h>
+#import <LindChain/ServiceKit/Service.h>
 #include <dlfcn.h>
 #include <mach/mach.h>
 

@@ -23,7 +23,7 @@
 #define LDEAPPLICATIONWORKSPACE_H
 
 #import <Foundation/Foundation.h>
-#import <ServiceKit/ServiceKit.h>
+#import <LindChain/ServiceKit/Service.h>
 #import "LDEApplicationObject.h"
 #import "LDEApplicationWorkspaceProxyProtocol.h"
 //#import "MIBundle.h"

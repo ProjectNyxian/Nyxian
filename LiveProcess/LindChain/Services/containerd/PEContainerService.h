@@ -23,7 +23,7 @@
 #define PECONTAINERSERVICE_H
 
 #import <LindChain/Services/containerd/PEContainerProtocol.h>
-#import <ServiceKit/ServiceKit.h>
+#import <LindChain/ServiceKit/Service.h>
 
 @interface PEContainerService : NSObject<PEContainerProtocol,PEServiceProtocol>
 

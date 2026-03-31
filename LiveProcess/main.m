@@ -30,7 +30,7 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 
-#import <ServiceKit/ServiceKit.h>
+#import <LindChain/ServiceKit/Service.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
 
 #import <ResecureDecoder.h>

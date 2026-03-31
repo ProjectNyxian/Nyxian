@@ -30,6 +30,9 @@
 
 - (instancetype)initWithNSBundle:(NSBundle*)bundle
 {
+#if HOST_ENV
+    return nil;
+#else
     self = [super init];
     
     self.bundleIdentifier = bundle.bundleIdentifier;
@@ -68,6 +71,7 @@
     }
 
     return self;
+#endif /* HOST_ENV */
 }
 
 + (BOOL)supportsSecureCoding {
