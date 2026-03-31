@@ -38,6 +38,7 @@
 
 - (NSString * _Nonnull)reloadHash;
 - (BOOL)reloadIfNeededWithHash:(NSString * _Nonnull)reloadHash;
+- (BOOL)save;
 
 - (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth;
 - (id _Nonnull)expandObject:(id _Nonnull)obj;

@@ -114,6 +114,14 @@
     return _savedHash;
 }
 
+- (BOOL)save
+{
+    os_unfair_lock_lock(&_lock);
+    [self.dictionary writeToFile:self.plistPath atomically:YES];
+    os_unfair_lock_unlock(&_lock);
+    return [self reloadIfNeeded];
+}
+
 - (BOOL)reloadIfNeededWithHash:(NSString*)reloadHash
 {
     if([[self currentHash] isEqualToString:reloadHash])
