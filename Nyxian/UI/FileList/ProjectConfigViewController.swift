@@ -208,14 +208,26 @@ class FlagsEditViewController: UIThemedTableViewController {
 class ProjectConfigViewController: UIThemedTableViewController {
     let project: NXProject
     
+    private var pendingDisplayName: String
+    private var pendingExecutable: String
+    private var pendingBundleIdentifier: String
+    private var pendingMinVersion: String
+    private var pendingMaxVersion: String
     private var pendingCompilerFlags: [String]
-    private var pendingLinkerFlags:   [String]
+    private var pendingLinkerFlags: [String]
     private var isDirty = false {
         didSet { navigationItem.rightBarButtonItem?.isEnabled = isDirty }
     }
 
     init(project: NXProject) {
         self.project = project
+        self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
+        self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
+        self.pendingDisplayName = project.projectConfig.dictionary["LDEDisplayName"] as? String ?? project.projectConfig.displayName
+        self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+        self.pendingExecutable = project.projectConfig.dictionary["LDEExecutable"] as? String ?? ""
+        self.pendingMinVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? iOSVersions.first ?? "13.0"
+        self.pendingMaxVersion = project.projectConfig.dictionary["LDEVersion"] as? String ?? iOSVersions.last  ?? "18.4"
         self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         super.init(style: .insetGrouped)
@@ -239,7 +251,43 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
     
     private enum Section: Int, CaseIterable {
+        case general
+        case deplyment
         case buildFlags
+
+        var header: String {
+            switch self {
+                case .general: return "General"
+                case .deplyment: return "Deployment"
+                case .buildFlags: return "Build Flags"
+            }
+        }
+    }
+
+    private enum GeneralRow: Int, CaseIterable {
+        case displayName
+        case executable
+        case bundleIdentifier
+
+        var title: String {
+            switch self {
+                case .displayName: return "Display Name"
+                case .executable: return "Executable"
+                case .bundleIdentifier: return "Bundle Identifier"
+            }
+        }
+    }
+    
+    private enum DeploymentRow: Int, CaseIterable {
+        case minimumVersion
+        case maximumVersion
+
+        var title: String {
+            switch self {
+                case .minimumVersion: return "Deployment Target"
+                case .maximumVersion: return "Maximum Version"
+            }
+        }
     }
 
     private enum BuildFlagRow: Int, CaseIterable {
@@ -255,75 +303,154 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        Section.allCases.count
-    }
+            Section.allCases.count
+        }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
+            case .general:
+                if project.projectConfig.type == NXProjectType.app.rawValue {
+                    return GeneralRow.allCases.count
+                } else {
+                    return GeneralRow.allCases.count - 1
+                }
+            case .deplyment: return DeploymentRow.allCases.count
             case .buildFlags: return BuildFlagRow.allCases.count
         }
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") ?? UITableViewCell(style: .value1, reuseIdentifier: "Cell")
+
+        cell.accessoryType = .disclosureIndicator
+        cell.detailTextLabel?.textColor = .secondaryLabel
+
         switch Section(rawValue: indexPath.section)! {
+            case .general:
+                let row = GeneralRow(rawValue: indexPath.row)!
+                cell.textLabel?.text = row.title
+                switch row {
+                    case .displayName: cell.detailTextLabel?.text = pendingDisplayName.isEmpty ? "Not Set" : pendingDisplayName
+                    case .executable: cell.detailTextLabel?.text = pendingExecutable.isEmpty ? "Not Set" : pendingExecutable
+                    case .bundleIdentifier: cell.detailTextLabel?.text = pendingBundleIdentifier.isEmpty ? "Not Set" : pendingBundleIdentifier
+                }
+            case .deplyment:
+                let row = DeploymentRow(rawValue: indexPath.row)!
+                cell.textLabel?.text = row.title
+                switch row {
+                    case .minimumVersion: cell.detailTextLabel?.text = "iOS \(pendingMinVersion)"
+                    case .maximumVersion: cell.detailTextLabel?.text = "iOS \(pendingMaxVersion)"
+                }
             case .buildFlags:
                 let row = BuildFlagRow(rawValue: indexPath.row)!
-                cell.textLabel?.text = row.title
-                cell.accessoryType = .disclosureIndicator
-
+                cell.textLabel?.text        = row.title
                 switch row {
-                    case .compilerFlags:
-                        cell.detailTextLabel?.text = subtitle(for: pendingCompilerFlags)
-                    case .linkerFlags:
-                        cell.detailTextLabel?.text = subtitle(for: pendingLinkerFlags)
+                    case .compilerFlags: cell.detailTextLabel?.text = subtitle(for: pendingCompilerFlags)
+                    case .linkerFlags: cell.detailTextLabel?.text = subtitle(for: pendingLinkerFlags)
                 }
         }
-
+        
         return cell
     }
 
-    override func tableView(_ tableView: UITableView,
-                            titleForHeaderInSection section: Int) -> String? {
-        switch Section(rawValue: section)! {
-            case .buildFlags: return "Build Flags"
-        }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        Section(rawValue: section)!.header
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
         switch Section(rawValue: indexPath.section)! {
+            case .general:
+                switch GeneralRow(rawValue: indexPath.row)! {
+                    case .displayName:
+                        presentTextAlert(title: "Display Name", current: pendingDisplayName, placeholder: "Hello") {
+                            self.pendingDisplayName = $0
+                            self.markDirty()
+                        }
+                    case .executable:
+                        presentTextAlert(title: "Executable", current: pendingExecutable, placeholder: "hello") {
+                            self.pendingExecutable = $0;
+                            self.markDirty()
+                        }
+                    case .bundleIdentifier:
+                        presentTextAlert(title: "Bundle Identifier", current: pendingBundleIdentifier, placeholder: "com.nyxian.example") {
+                            self.pendingBundleIdentifier = $0;
+                            self.markDirty()
+                        }
+                }
+            case .deplyment:
+                switch DeploymentRow(rawValue: indexPath.row)! {
+                    case .minimumVersion: pushVersionPicker(title: "Deployment Target",  current: pendingMinVersion) { self.pendingMinVersion = $0; self.markDirty() }
+                    case .maximumVersion: pushVersionPicker(title: "Maximum Version",    current: pendingMaxVersion) { self.pendingMaxVersion = $0; self.markDirty() }
+                }
             case .buildFlags:
                 switch BuildFlagRow(rawValue: indexPath.row)! {
                     case .compilerFlags: pushFlagsEditor(type: .compiler)
-                    case .linkerFlags: pushFlagsEditor(type: .linker)
+                    case .linkerFlags:   pushFlagsEditor(type: .linker)
                 }
         }
     }
 
+    private func pushVersionPicker(title: String, current: String, onPicked: @escaping (String) -> Void) {
+        let vc = IOSVersionPickerViewController(title: title, selectedVersion: current)
+        vc.onVersionSelected = { [weak self] version in
+            onPicked(version)
+            self?.tableView.reloadData()
+        }
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
     private func pushFlagsEditor(type: FlagType) {
         let flags = type == .compiler ? pendingCompilerFlags : pendingLinkerFlags
-
-        let vc = FlagsEditViewController(flagType: type, flags: flags)
+        let vc    = FlagsEditViewController(flagType: type, flags: flags)
         vc.onFlagsChanged = { [weak self] updated in
             guard let self else { return }
             switch type {
                 case .compiler: self.pendingCompilerFlags = updated
                 case .linker:   self.pendingLinkerFlags   = updated
             }
-            self.isDirty = true
+            self.markDirty()
+        }
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    private func presentTextAlert(title: String, current: String, placeholder: String, completion: @escaping (String) -> Void) {
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+        alert.addTextField { field in
+            field.text = current
+            field.placeholder = placeholder
+            field.autocorrectionType = .no
+            field.autocapitalizationType = .none
+            field.clearButtonMode = .whileEditing
+        }
+        let save = UIAlertAction(title: "Save", style: .default) { _ in
+            let value = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespaces) ?? ""
+            guard !value.isEmpty else { return }
+            completion(value)
             self.tableView.reloadData()
         }
-
-        navigationController?.pushViewController(vc, animated: true)
+        alert.addAction(save)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.preferredAction = save
+        present(alert, animated: true)
     }
 
     @objc private func saveTapped() {
+        project.projectConfig.dictionary["LDEDisplayName"] = pendingDisplayName
+        project.projectConfig.dictionary["LDEExecutable"] = pendingExecutable
+        project.projectConfig.dictionary["LDEBundleIdentifier"] = pendingBundleIdentifier
+        project.projectConfig.dictionary["LDEMinimumVersion"] = pendingMinVersion
+        project.projectConfig.dictionary["LDEVersion"] = pendingMaxVersion
         project.projectConfig.dictionary["LDECompilerFlags"] = pendingCompilerFlags
         project.projectConfig.dictionary["LDELinkerFlags"] = pendingLinkerFlags
         project.projectConfig.save()
         isDirty = false
+    }
+    
+    private func markDirty() {
+        isDirty = true
+        tableView.reloadData()
     }
 
     private func subtitle(for flags: [String]) -> String {
