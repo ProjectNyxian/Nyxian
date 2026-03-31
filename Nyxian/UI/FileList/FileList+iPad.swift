@@ -453,6 +453,7 @@ class SplitScreenDetailViewController: UIViewController {
         if let vc = childVCMaster {
             vc.view.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
         }
+        logView?.layer.borderColor = currentTheme?.backgroundColor.cgColor ?? UIColor.white.withAlphaComponent(0.2).cgColor
     }
 }
 

@@ -106,6 +106,9 @@ import Foundation
     }
     
     @objc func bootstrap() {
+        // Cmon one UIInit once part can be here^^^^
+        UIBarButtonItem.swizzleBarButtonitem
+        
         print("[*] checking upon nyxian bootstrap")
         
         LDEPthreadDispatch {

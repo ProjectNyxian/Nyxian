@@ -185,3 +185,27 @@ extension UIViewController {
         self.present(alert, animated: true)
     }
 }
+
+extension UIBarButtonItem {
+    static let swizzleBarButtonitem: Void = {
+        let originalSel  = Selector(("init"))
+        let swizzledSel  = #selector(UIBarButtonItem.themed_init)
+
+        guard
+            let original  = class_getInstanceMethod(UIBarButtonItem.self, originalSel),
+            let swizzled  = class_getInstanceMethod(UIBarButtonItem.self, swizzledSel)
+        else { return }
+
+        method_exchangeImplementations(original, swizzled)
+    }()
+
+    @objc func themed_init() -> UIBarButtonItem {
+        let item = self.themed_init()
+
+        if #available(iOS 26.0, *) {
+            item.tintColor = currentTheme?.textColor
+            // FIXME: notif changes dont work as exptected
+        }
+        return item
+    }
+}
