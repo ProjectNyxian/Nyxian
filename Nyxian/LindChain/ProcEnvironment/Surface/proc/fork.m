@@ -27,7 +27,6 @@
 #import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
-
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
                            pid_t child_pid,
                            const char *path)
@@ -137,7 +136,7 @@ force_not_inherite_entitlements:
     /* insert will retain the child process */
     if(proc_insert(child) != SURFACE_SUCCESS)
     {
-        klog_log(@"proc:fork", @"[%d] fork failed process %p failed to be inserted", proc_getpid(child), child);
+        klog_log("proc:fork", "[%d] fork failed process %p failed to be inserted", proc_getpid(child), child);
         
         /* releasing child process because of failed insert */
         kvo_release(child);

@@ -332,7 +332,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             return -1;
         }
         case kvObjEventDeinit:
-            klog_log(@"tty:deinit", @"deinitilizing tty @ %p", tty);
+            klog_log("tty:deinit", "deinitilizing tty @ %p", tty);
             
             /* making sure deinit happens, with the threads consent */
             tty->alive = 0;

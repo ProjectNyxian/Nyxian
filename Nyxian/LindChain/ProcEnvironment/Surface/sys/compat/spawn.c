@@ -19,15 +19,22 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/spawn.h>
 
-DEFINE_SYSCALL_HANDLER(getpid)
-{
-    return proc_getpid(sys_proc_snapshot_);
-}
+/* MARK: unfinished syscall */
 
-DEFINE_SYSCALL_HANDLER(getppid)
+DEFINE_SYSCALL_HANDLER(spawn)
 {
-    return proc_getppid(sys_proc_snapshot_);
+    userspace_pointer_t pidPtr = (userspace_pointer_t)args[0];
+    userspace_pointer_t pathPtr = (userspace_pointer_t)args[1];
+    userspace_pointer_t argPtr = (userspace_pointer_t)args[2];
+    userspace_pointer_t envPtr = (userspace_pointer_t)args[3];
+    userspace_pointer_t fdNumPtr = (userspace_pointer_t)args[4];
+    
+    char *executablePath = mach_syscall_copy_str_in(sys_task_, pathPtr, PATH_MAX);
+    
+    /* TODO: just do the fucking rest lol, am a eepyhead rn */
+    
+    free(executablePath);
+    sys_return;
 }

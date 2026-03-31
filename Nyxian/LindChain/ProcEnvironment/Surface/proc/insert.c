@@ -19,8 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/insert.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/proc/insert.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <assert.h>
 
 ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {

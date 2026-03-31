@@ -19,15 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
+#include <LindChain/ProcEnvironment/Surface/proc/fork.h>
 
-DEFINE_SYSCALL_HANDLER(getuid)
+DEFINE_SYSCALL_HANDLER(exit)
 {
-    return proc_getruid(sys_proc_snapshot_);
-}
-
-DEFINE_SYSCALL_HANDLER(geteuid)
-{
-    return proc_geteuid(sys_proc_snapshot_);
+    proc_state_change(sys_proc_, W_EXITCODE(args[0], 0));
+    sys_return;
 }

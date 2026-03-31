@@ -22,7 +22,7 @@
 #ifndef SURFACE_SYS_PROCPATH
 #define SURFACE_SYS_PROCPATH
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 DEFINE_SYSCALL_HANDLER(procpath);
 

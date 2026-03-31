@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <errno.h>
 
 typedef struct wait4_payload {
     userspace_pointer_t status_ptr;

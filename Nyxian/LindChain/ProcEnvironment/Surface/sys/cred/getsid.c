@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
-#import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Surface/permit.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
+#include <LindChain/ProcEnvironment/Surface/proc/lookup.h>
+#include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <LindChain/ProcEnvironment/Surface/permit.h>
 
 DEFINE_SYSCALL_HANDLER(getsid)
 {

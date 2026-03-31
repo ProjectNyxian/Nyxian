@@ -22,13 +22,13 @@
 #ifndef PROC_PROC_H
 #define PROC_PROC_H
 
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fork.h>
-#import <LindChain/ProcEnvironment/Surface/proc/insert.h>
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
+#include <LindChain/ProcEnvironment/Surface/proc/fork.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/proc/insert.h>
+#include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <LindChain/ProcEnvironment/Surface/proc/lookup.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc);
 

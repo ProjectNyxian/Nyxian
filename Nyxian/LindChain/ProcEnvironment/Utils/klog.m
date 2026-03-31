@@ -19,6 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
 #if DEBUG
@@ -124,7 +125,7 @@ static void klog_truncate_if_needed(void)
 #endif /* DEBUG */
 
 
-void klog_log_internal(NSString *system, NSString *format, ...)
+void klog_log_internal(const char *system, const char *format, ...)
 {
 #if DEBUG
 #ifdef HOST_ENV
@@ -154,7 +155,7 @@ void klog_log_internal(NSString *system, NSString *format, ...)
         va_start(args, format);
         
         /* handing all the parsing work to apple */
-        NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
+        NSString *msg = [[NSString alloc] initWithFormat:[NSString stringWithCString:format encoding:NSUTF8StringEncoding] arguments:args];
         
         /* ending parse */
         va_end(args);
@@ -163,7 +164,7 @@ void klog_log_internal(NSString *system, NSString *format, ...)
         NSString *ts = [df stringFromDate:[NSDate date]];
         
         /* final log string */
-        NSString *final = [NSString stringWithFormat:@"[%@] [%@] %@\n", ts, system ?: @"(null)", msg ?: @"(null)"];
+        NSString *final = [NSString stringWithFormat:@"[%@] [%@] %@\n", ts, [NSString stringWithCString:system encoding:NSUTF8StringEncoding] ?: @"(null)", msg ?: @"(null)"];
         
         /* getting constent c version of that string */
         const char *utf8 = [final UTF8String];

@@ -22,7 +22,7 @@
 #ifndef PROC_LOOKUP_H
 #define PROC_LOOKUP_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_return_t proc_for_pid(pid_t pid, ksurface_proc_t **proc);
 ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc, task_special_port_t flavour, task_t *task);

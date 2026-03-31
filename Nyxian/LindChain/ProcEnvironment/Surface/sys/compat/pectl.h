@@ -22,7 +22,7 @@
 #ifndef SURFACE_SYS_PECTL_H
 #define SURFACE_SYS_PECTL_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 /* launch services */
 #define PECTL_SET_ENDPOINT  0b00000000

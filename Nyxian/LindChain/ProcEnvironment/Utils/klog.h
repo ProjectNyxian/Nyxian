@@ -22,7 +22,9 @@
 #ifndef KLOG_H
 #define KLOG_H
 
+#if __OBJC__
 #import <Foundation/Foundation.h>
+#endif /* __OBJC__ */
 
 #if DEBUG && !JAILBREAK_ENV && HOST_ENV
 
@@ -36,7 +38,11 @@
 
 #endif
 
-void klog_log_internal(NSString *system, NSString *format, ...);
+
+void klog_log_internal(const char *system, const char *format, ...);
+
+#if __OBJC__
 NSString *klog_dump(void);
+#endif /* __OBJC__ */
 
 #endif /* KLOG_H */

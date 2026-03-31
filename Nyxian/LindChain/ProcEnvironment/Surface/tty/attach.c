@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/tty/attach.h>
+#include <LindChain/ProcEnvironment/Surface/tty/attach.h>
 
 bool tty_proc_event_handler(kvobject_event_type_t type,
                             uint64_t value,

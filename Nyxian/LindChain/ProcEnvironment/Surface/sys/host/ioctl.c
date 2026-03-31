@@ -19,10 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
-#import <LindChain/ProcEnvironment/Surface/tty/tty.h>
-#import <LindChain/ProcEnvironment/Surface/tty/utils.h>
+#include <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
+#include <LindChain/ProcEnvironment/Surface/tty/tty.h>
+#include <LindChain/ProcEnvironment/Surface/tty/utils.h>
 #include <termios.h>
+#include <errno.h>
 
 DEFINE_SYSCALL_HANDLER(ioctl)
 {

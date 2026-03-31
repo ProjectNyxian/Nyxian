@@ -190,7 +190,7 @@
                             ksurface_return_t error = proc_zombify(innerSelf.proc);
                             if(error != SURFACE_SUCCESS)
                             {
-                                klog_log(@"LDEProcess", @"failed to remove pid %d", innerSelf.pid);
+                                klog_log("LDEProcess", "failed to remove pid %d", innerSelf.pid);
                             }
                         }
 #endif /* !JAILBREAK_ENV */
@@ -241,7 +241,7 @@
                                 }
                                 definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
                             } @catch (NSException *exception) {
-                                klog_log(@"LDEProcess", @"failed to create client identity for pid %d: %@", innerSelf.pid, exception.reason);
+                                klog_log("LDEProcess", "failed to create client identity for pid %d: %s", innerSelf.pid, [exception.reason UTF8String]);
                                 [innerSelf terminate];
                                 return;
                             }

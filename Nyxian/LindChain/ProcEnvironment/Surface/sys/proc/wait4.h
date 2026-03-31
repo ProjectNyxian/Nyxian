@@ -22,7 +22,7 @@
 #ifndef SURFACE_SYS_WAIT4_H
 #define SURFACE_SYS_WAIT4_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 DEFINE_SYSCALL_HANDLER(wait4);
 

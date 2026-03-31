@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/Private/mach/fileport.h>
 #import <LindChain/ProcEnvironment/Object/MachOObject.h>
-#import <LindChain/Private/mach/fileport.h>
 
 DEFINE_SYSCALL_HANDLER(signexec)
 {    

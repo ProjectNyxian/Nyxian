@@ -22,9 +22,9 @@
 #ifndef TTY_DEF_H
 #define TTY_DEF_H
 
-#import <LindChain/ProcEnvironment/Surface/obj/kvobject.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <limits.h>
+#include <LindChain/ProcEnvironment/Surface/obj/kvobject.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <limits.h>
 #include <unistd.h>
 #include <termios.h>
 

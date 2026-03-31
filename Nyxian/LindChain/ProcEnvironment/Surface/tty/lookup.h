@@ -22,8 +22,8 @@
 #ifndef TTY_LOOKUP_H
 #define TTY_LOOKUP_H
 
-#import <LindChain/ProcEnvironment/Surface/tty/def.h>
-#import <LindChain/Private/mach/fileport.h>
+#include <LindChain/ProcEnvironment/Surface/tty/def.h>
+#include <LindChain/Private/mach/fileport.h>
 
 ksurface_return_t tty_for_port(fileport_t port, ksurface_tty_t **tty);
 

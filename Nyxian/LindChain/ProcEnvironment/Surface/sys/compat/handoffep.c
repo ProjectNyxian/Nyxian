@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Utils/ktfp.h>
-#import <pthread.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Utils/ktfp.h>
+#include <pthread.h>
 
 typedef struct {
     mach_port_t ep;         /* exception port */

@@ -41,7 +41,7 @@ void environment_panic_internal(const char *reason,
     /* ending parse */
     va_end(args);
     
-    klog_log(@"ksurface:panic", @"\npanic string: %@\nfile: %s\nline: %d", msg, file, line);
+    klog_log("ksurface:panic", "\npanic string: %s\nfile: %s\nline: %d", [msg UTF8String], file, line);
 #endif /* DEBUG */
     
     /* trap the system */

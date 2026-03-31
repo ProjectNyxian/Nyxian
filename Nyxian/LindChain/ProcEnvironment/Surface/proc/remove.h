@@ -22,7 +22,7 @@
 #ifndef PROC_REMOVE_H
 #define PROC_REMOVE_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_return_t proc_remove_by_pid(pid_t pid);
 

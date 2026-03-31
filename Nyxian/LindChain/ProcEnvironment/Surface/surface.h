@@ -29,6 +29,8 @@
 #import <LindChain/ProcEnvironment/Surface/limits.h>
 #import <LindChain/ProcEnvironment/Surface/return.h>
 #import <LindChain/ProcEnvironment/Surface/mapping.h>
+#include <assert.h>
+#include <errno.h>
 
 extern ksurface_mapping_t *ksurface;
 

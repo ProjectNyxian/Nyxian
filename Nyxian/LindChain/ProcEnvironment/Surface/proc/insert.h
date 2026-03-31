@@ -22,7 +22,7 @@
 #ifndef PROC_INSERT_H
 #define PROC_INSERT_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_return_t proc_insert(ksurface_proc_t *proc);
 

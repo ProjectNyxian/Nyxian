@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Utils/klog.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
 {
@@ -86,7 +86,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         case kvObjEventDeinit:
             if(proc->header.base_type != kvObjBaseTypeObjectSnapshot)
             {
-                klog_log(@"proc:deinit", @"deinitilizing process @ %p", proc);
+                klog_log("proc:deinit", "deinitilizing process @ %p", proc);
                 pthread_mutex_destroy(&(proc->children.mutex));
                 
                 if(proc->task != MACH_PORT_NULL)

@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
 
 DEFINE_SYSCALL_HANDLER(getpk)
 {

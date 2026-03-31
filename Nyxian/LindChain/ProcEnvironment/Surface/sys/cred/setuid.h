@@ -22,7 +22,7 @@
 #ifndef SURFACE_SYS_SETUID_H
 #define SURFACE_SYS_SETUID_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 DEFINE_SYSCALL_HANDLER(setuid);
 DEFINE_SYSCALL_HANDLER(seteuid);

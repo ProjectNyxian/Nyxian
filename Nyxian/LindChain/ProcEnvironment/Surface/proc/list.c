@@ -19,8 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Surface/lock.h>
+#include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <LindChain/ProcEnvironment/Surface/lock.h>
+#include <assert.h>
 
 proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
 {

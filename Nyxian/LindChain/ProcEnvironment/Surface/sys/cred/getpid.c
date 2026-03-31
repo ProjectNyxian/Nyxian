@@ -19,12 +19,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-DEFINE_SYSCALL_HANDLER(setsid)
+DEFINE_SYSCALL_HANDLER(getpid)
 {
-    kvo_wrlock(sys_proc_);
-    proc_setsid(sys_proc_, proc_getpid(sys_proc_));
-    kvo_unlock(sys_proc_);
-    sys_return;
+    return proc_getpid(sys_proc_snapshot_);
+}
+
+DEFINE_SYSCALL_HANDLER(getppid)
+{
+    return proc_getppid(sys_proc_snapshot_);
 }

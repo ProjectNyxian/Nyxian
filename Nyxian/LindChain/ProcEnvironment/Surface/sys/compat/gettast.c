@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/permit.h>
-#import <LindChain/ProcEnvironment/tfp.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/permit.h>
+#include <LindChain/ProcEnvironment/tfp.h>
 
 DEFINE_SYSCALL_HANDLER(gettask)
 {    
@@ -43,7 +43,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * in the first place and if the process allows for it except if the
      * caller is a special process.
      */
-    if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, YES, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
+    if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, true, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
     {
         kvo_release(target);
         sys_return_failure(EPERM);

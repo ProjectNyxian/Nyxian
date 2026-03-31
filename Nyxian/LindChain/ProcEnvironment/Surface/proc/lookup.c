@@ -19,10 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/lookup.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
-#import <LindChain/ProcEnvironment/tfp.h>
-#import <LindChain/ProcEnvironment/panic.h>
+#include <LindChain/ProcEnvironment/Surface/proc/lookup.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/tfp.h>
+#include <LindChain/ProcEnvironment/panic.h>
+#include <assert.h>
 
 ksurface_return_t proc_for_pid(pid_t pid,
                                ksurface_proc_t **proc)

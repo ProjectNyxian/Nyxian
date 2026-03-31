@@ -23,27 +23,27 @@
 #define SURFACE_SYS_SYSCALL_H
 
 /* headers to syscall handlers*/
-#import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/setuid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
-#import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
-#import <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
-#import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
-#import <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
-#import <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/setuid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
+#include <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
+#include <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */

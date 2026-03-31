@@ -103,16 +103,16 @@
         /* invoking spawn */
         pid_t pid = [[PEProcessManager shared] spawnProcessWithItems:mutableItems withKernelSurfaceProcess:_proc];
         
-#if KLOG_ENABLED
+#if DEBUG
         if(pid != -1)
         {
-            klog_log(@"syscall:spawn", @"pid %d spawned pid %d", _processIdentifier, pid);
+            klog_log("syscall:spawn", "pid %d spawned pid %d", _processIdentifier, pid);
         }
         else
         {
-            klog_log(@"syscall:spawn", @"pid %d failed to spawn process", _processIdentifier);
+            klog_log("syscall:spawn", "pid %d failed to spawn process", _processIdentifier);
         }
-#endif /* KLOG_ENABLED */
+#endif /* DEBUG */
         
         /* replying with pid of spawn */
         reply(pid);

@@ -22,7 +22,7 @@
 #ifndef PROC_FORK_H
 #define PROC_FORK_H
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent, pid_t child_pid, const char *path);
 

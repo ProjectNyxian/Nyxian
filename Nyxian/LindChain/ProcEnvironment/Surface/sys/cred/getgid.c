@@ -19,10 +19,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
-#import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-DEFINE_SYSCALL_HANDLER(getent)
+DEFINE_SYSCALL_HANDLER(getgid)
 {
-    return proc_getentitlements(sys_proc_snapshot_);
+    return proc_getrgid(sys_proc_snapshot_);
+}
+
+DEFINE_SYSCALL_HANDLER(getegid)
+{
+    return proc_getegid(sys_proc_snapshot_);
 }

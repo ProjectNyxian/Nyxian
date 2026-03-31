@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #include <sys/sysctl.h>
 #include <regex.h>
-#import <Foundation/Foundation.h>
 
 /* sysctl defs */
 typedef struct {

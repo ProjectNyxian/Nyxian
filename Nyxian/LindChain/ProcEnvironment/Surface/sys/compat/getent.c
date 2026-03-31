@@ -19,11 +19,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
-#import <LindChain/ProcEnvironment/Surface/proc/fork.h>
+#include <LindChain/ProcEnvironment/Surface/sys/compat/getent.h>
+#include <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-DEFINE_SYSCALL_HANDLER(exit)
+DEFINE_SYSCALL_HANDLER(getent)
 {
-    proc_state_change(sys_proc_, W_EXITCODE(args[0], 0));
-    sys_return;
+    kvo_rdlock(sys_proc_);
+    PEEntitlement entitlement = proc_getentitlements(sys_proc_snapshot_);
+    kvo_unlock(sys_proc_);
+    return entitlement;
 }

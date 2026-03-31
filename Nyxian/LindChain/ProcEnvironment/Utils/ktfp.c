@@ -107,7 +107,7 @@ task_t ktfp(obtain_token_t token)
     /* handling timeout and other errors */
     if(mr != MACH_MSG_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed receiving task port");
+        klog_log("ktfp", "failed receiving task port");
         goto out_destroy_request;
     }
     
@@ -118,14 +118,14 @@ task_t ktfp(obtain_token_t token)
     
     if(kr != KERN_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed getting the kobject type");
+        klog_log("ktfp", "failed getting the kobject type");
         goto out_destroy_request;
     }
     
     /* checking for ipc object type */
     if(type != IPC_OTYPE_TASK_CONTROL)  /* also known as IKOT_TASK.. aka kernel task port */
     {
-        klog_log(@"ktfp", @"port %d holding ipc object with type %d is not a IKOT_TASK", request.task.name, type);
+        klog_log("ktfp", "port %d holding ipc object with type %d is not a IKOT_TASK", request.task.name, type);
         goto out_destroy_request;
     }
     
@@ -142,7 +142,7 @@ task_t ktfp(obtain_token_t token)
     
     if(kr != KERN_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed to get thread state");
+        klog_log("ktfp", "failed to get thread state");
         goto out_destroy_request;
     }
     
@@ -154,7 +154,7 @@ task_t ktfp(obtain_token_t token)
     
     if(kr != KERN_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed to restore thread state");
+        klog_log("ktfp", "failed to restore thread state");
         goto out_destroy_request;
     }
     
@@ -162,7 +162,7 @@ task_t ktfp(obtain_token_t token)
     
     if(kr != KERN_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed to increment tsdk port send right");
+        klog_log("ktfp", "failed to increment tsdk port send right");
         goto out_destroy_request;
     }
     
@@ -182,7 +182,7 @@ task_t ktfp(obtain_token_t token)
     
     if(mr != KERN_SUCCESS)
     {
-        klog_log(@"ktfp", @"failed to reply back to guest");
+        klog_log("ktfp", "failed to reply back to guest");
     }
     
 out_destroy_request:

@@ -22,7 +22,7 @@
 #ifndef PROC_COPYLIST_H
 #define PROC_COPYLIST_H
 
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 typedef enum {
     PROC_VIS_NONE = 0,      /* allows a process to see nothing, usually used as error */

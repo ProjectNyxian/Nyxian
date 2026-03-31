@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
-#import <LindChain/ProcEnvironment/Surface/entitlement.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/sys/cred/setgid.h>
+#include <LindChain/ProcEnvironment/Surface/entitlement.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 extern bool proc_is_privileged(ksurface_proc_t *proc);
 

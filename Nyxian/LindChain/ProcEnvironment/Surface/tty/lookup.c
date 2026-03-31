@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/Surface/tty/lookup.h>
-#import <LindChain/LiveContainer/Tweaks/libproc.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
+#include <LindChain/ProcEnvironment/Surface/tty/lookup.h>
+#include <LindChain/LiveContainer/Tweaks/libproc.h>
 
 ksurface_return_t tty_for_port(fileport_t port,
                                ksurface_tty_t **tty)

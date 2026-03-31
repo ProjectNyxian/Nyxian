@@ -19,22 +19,22 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/compat/spawn.h>
+#include <LindChain/ProcEnvironment/Surface/tty/utils.h>
+#include <mach/mach.h>
+#include <assert.h>
 
-/* MARK: unfinished syscall */
-
-DEFINE_SYSCALL_HANDLER(spawn)
+ksurface_return_t tty_suspend(ksurface_tty_t *tty)
 {
-    userspace_pointer_t pidPtr = (userspace_pointer_t)args[0];
-    userspace_pointer_t pathPtr = (userspace_pointer_t)args[1];
-    userspace_pointer_t argPtr = (userspace_pointer_t)args[2];
-    userspace_pointer_t envPtr = (userspace_pointer_t)args[3];
-    userspace_pointer_t fdNumPtr = (userspace_pointer_t)args[4];
+    assert(tty != NULL);
     
-    char *executablePath = mach_syscall_copy_str_in(sys_task_, pathPtr, PATH_MAX);
+    thread_t thread = pthread_mach_thread_np(tty->pump_thread);
+    return (thread_suspend(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILED;
+}
+
+ksurface_return_t tty_resume(ksurface_tty_t *tty)
+{
+    assert(tty != NULL);
     
-    /* TODO: just do the fucking rest lol, am a eepyhead rn */
-    
-    free(executablePath);
-    sys_return;
+    thread_t thread = pthread_mach_thread_np(tty->pump_thread);
+    return (thread_resume(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILED;
 }

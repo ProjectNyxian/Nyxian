@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
-#import <unistd.h>
+#include <LindChain/ProcEnvironment/Surface/sys/syscall.h>
+#include <unistd.h>
 
 /* list of syscalls for the kernel virtualization layer lol */
 syscall_list_item_t sys_list[SYS_N] = {

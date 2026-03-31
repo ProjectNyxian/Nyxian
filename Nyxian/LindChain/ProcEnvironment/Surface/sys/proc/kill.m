@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
-#import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Surface/permit.h>
+#include <LindChain/ProcEnvironment/Surface/sys/proc/kill.h>
+#include <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#include <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
 DEFINE_SYSCALL_HANDLER(kill)

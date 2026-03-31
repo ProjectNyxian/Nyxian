@@ -19,8 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
-#include <stdatomic.h>
+#include <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
 ksurface_return_t proc_remove_by_pid(pid_t pid)
 {

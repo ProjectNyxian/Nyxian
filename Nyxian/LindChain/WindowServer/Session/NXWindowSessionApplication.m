@@ -104,7 +104,7 @@ void UIKitFixesInit(void)
         }];
     } @catch (NSException *exception) {
 #if !JAILBREAK_ENV
-        klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
+        klog_log("LDEWindowSessionApplication", "presenter creation failed: %s", [exception.reason UTF8String]);
 #endif /* !JAILBREAK_ENV */
         return NO;
     }
@@ -218,8 +218,6 @@ void UIKitFixesInit(void)
         os_unfair_lock_unlock(&_lock);
         return;
     }
-    
-    __weak typeof(self) weakSelf = self;
     
     /* update window dimensions */
     [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -347,7 +345,7 @@ void UIKitFixesInit(void)
         }];
     } @catch (NSException *exception) {
 #if !JAILBREAK_ENV
-        klog_log(@"LDEWindowSessionApplication", @"presenter creation failed: %@", exception.reason);
+        klog_log("NXWindowSessionApplication", "presenter creation failed: %s", [exception.reason UTF8String]);
 #endif /* !JAILBREAK_ENV */
         os_unfair_lock_unlock(&_lock);
         return NO;

@@ -276,7 +276,7 @@
         @"com.nyxian.pe.process_kill": @(NO),
         @"com.nyxian.pe.process_spawn": @(NO),
         @"com.nyxian.pe.process_spawn_signed_only": @(NO),
-        @"com.nyxian.pe.process_spawn_inherite_entitlements": @(YES),
+        @"com.nyxian.pe.process_spawn_inherite_entitlements": @(NO),
         @"com.nyxian.pe.process_elevate": @(NO),
         @"com.nyxian.pe.host_manager": @(NO),
         @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
