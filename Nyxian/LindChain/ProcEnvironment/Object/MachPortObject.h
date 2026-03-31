@@ -37,7 +37,7 @@
  *  Class Declarations
  * -------------------------------------------------------------------- */
 
-@interface MachPortObject : PEObject <NSSecureCoding>
+@interface MachPortObject : PEObject
 
 @property (nonatomic, readonly) mach_port_t port;
 
