@@ -427,9 +427,9 @@ class SplitScreenDetailViewController: UIViewController {
         let selectedColor: UIColor
         
         if #available(iOS 26.0, *) {
-            selectedColor = currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4
+            selectedColor = currentTheme?.appTableCell ?? UIColor.systemGray2
         } else {
-            selectedColor = (currentTheme?.gutterBackgroundColor ?? UIColor.systemGray4).brighter(by: 10)
+            selectedColor = currentTheme?.appTableCell ?? UIColor.systemGray2
         }
         
         let unselectedColor: UIColor = .clear

@@ -61,11 +61,11 @@
 				<key>light</key>
 				<dict>
 					<key>red</key>
-					<integer>255</integer>
+					<integer>245</integer>
 					<key>green</key>
-					<integer>255</integer>
+					<integer>245</integer>
 					<key>blue</key>
-					<integer>255</integer>
+					<integer>245</integer>
 					<key>alpha</key>
 					<integer>10</integer>
 				</dict>
