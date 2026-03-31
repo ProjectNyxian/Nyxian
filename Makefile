@@ -36,12 +36,7 @@ Nyxian/LindChain/LLVM.xcframework:
 Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
 	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
 
-# Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Totally forgot to address libroot.a)
-Nyxian/LindChain/JBSupport/libroot.a:
-	cd libroot; $(MAKE)
-	mv libroot/libroot_dyn_iphoneos-arm64.a Nyxian/LindChain/JBSupport/libroot.a
-	mv libroot/src/libroot.h Nyxian/LindChain/JBSupport/libroot.h
-
+# Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:
 	$(MAKE) -C TrollStore pre_build
 	$(MAKE) -C TrollStore make_fastPathSign MAKECMDGOALS=
@@ -56,7 +51,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/JBSupport/libroot.a Nyxian/LindChain/LLVM.xcframework Nyxian/LindChain/Clang.xcframework
+compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/LLVM.xcframework Nyxian/LindChain/Clang.xcframework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \

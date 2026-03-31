@@ -38,7 +38,6 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
-#import <LindChain/JBSupport/jbroot.h>
 #import <LindChain/JBSupport/Shell.h>
 
 /* Project Headers */

@@ -26,7 +26,6 @@
 
 #if JAILBREAK_ENV
 #import <LindChain/JBSupport/Shell.h>
-#import <LindChain/JBSupport/jbroot.h>
 #else
 #import <bridge.h>
 #endif /* JAILBREAK_ENV */
@@ -54,7 +53,7 @@
     if(ret != 0)
     {
         UILabel *label = [[UILabel alloc] init];
-        label.text = [NSString stringWithFormat:@"Either incorrectly entitled or not supported bootstrap\n\njbroot: %@\ntest exec ret: %d", IGottaNeedTheActualJBRootMate(), ret];
+        label.text = [NSString stringWithFormat:@"NyxianForJB is incorrectly entitled\n\n\ntest exec ret: %d", ret];
         label.frame = UIScreen.mainScreen.bounds;
         label.numberOfLines = 0;
         label.textAlignment = NSTextAlignmentCenter;

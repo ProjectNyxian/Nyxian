@@ -20,7 +20,6 @@
 */
 
 #import <LindChain/JBSupport/Shell.h>
-#import <LindChain/JBSupport/jbroot.h>
 #import <Foundation/Foundation.h>
 #import <Nyxian-Swift.h>
 #include <spawn.h>
@@ -84,8 +83,6 @@ static int runCommand(NSArray<NSString *> *args,
     char **argv = NULL;
     
     createArgv(args, &argc, &argv);
-    
-    NSString *jbroot = IGottaNeedTheActualJBRootMate();
     
     static NSString *path;
     static dispatch_once_t onceToken;

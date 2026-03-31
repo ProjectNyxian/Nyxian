@@ -25,7 +25,6 @@
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <NXAppDelegate.h>
 #import <bridge.h>
-#import <LindChain/Services/containerd/PEContainer.h>
 
 #if !JAILBREAK_ENV
 
@@ -63,12 +62,6 @@ int main(int argc, char * argv[])
             return 0;
         }
 #endif // !JAILBREAK_ENV
-        
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            PEContainer *container = [PEContainer shared];
-            NSURL *rootURL = container.containerRoot;
-            NSLog(@"%@", rootURL);
-        });
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([NXAppDelegate class]));
     }
