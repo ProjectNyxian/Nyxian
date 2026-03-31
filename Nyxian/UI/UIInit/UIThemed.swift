@@ -24,15 +24,19 @@ import UIKit
 @objc class UIThemedTableViewController: UITableViewController {
     
     override func viewDidLoad() {
-        
         if #unavailable(iOS 15.0) {
             self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
             self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
         }
         
         super.viewDidLoad()
-        
+        self.view.backgroundColor = currentTheme?.appTableView
         self.tableView.separatorColor = currentTheme?.gutterHairlineColor
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.view.backgroundColor = currentTheme?.appTableView
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -69,7 +73,50 @@ import UIKit
             cell.backgroundColor = currentTheme?.appTableCell
         }
     }
+}
 
+@objc class UIThemedViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
+        super.viewDidLoad()
+        self.view.backgroundColor = currentTheme?.appTableView
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.view.backgroundColor = currentTheme?.appTableView
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.view.backgroundColor = currentTheme?.appTableView
+        
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func handleMyNotification(_ notification: Notification) {
+        self.view.backgroundColor = currentTheme?.appTableView
+        
+        if #unavailable(iOS 15.0) {
+            self.navigationController?.navigationBar.standardAppearance = currentNavigationBarAppearance
+            self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
+        }
+    }
 }
 
 @objc class UIThemedTabViewController: UITabBarController {

@@ -31,7 +31,7 @@ let iOSVersions: [String] = [
     "26.0", "26.1", "26.2", "26.3", "26.4", "26.5"
 ]
 
-class IOSVersionPickerViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
+class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelegate, UIPickerViewDataSource {
 
     var selectedVersion: String
     var onVersionSelected: ((String) -> Void)?
@@ -42,7 +42,7 @@ class IOSVersionPickerViewController: UIViewController, UIPickerViewDelegate, UI
     private let pickerTitle: String
 
     init(title: String, selectedVersion: String) {
-        self.pickerTitle     = title
+        self.pickerTitle = title
         self.selectedVersion = selectedVersion
         super.init(nibName: nil, bundle: nil)
     }
