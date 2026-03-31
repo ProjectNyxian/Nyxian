@@ -329,6 +329,17 @@ import UniformTypeIdentifiers
                         isReadOnly: true
                     )
                     self.navigationController?.pushViewController(fileVC, animated: true)
+                },
+                UIAction(
+                    title: "Configure",
+                    image: UIImage(systemName: "folder.fill.badge.gearshape")
+                ) { [weak self] _ in
+                    guard let self = self else { return }
+                    guard let project = self.project else { return }
+                    let vc: ProjectConfigViewController = ProjectConfigViewController(project: project)
+                    let nvc: UINavigationController = UINavigationController(rootViewController: vc)
+                    nvc.modalPresentationStyle = .formSheet
+                    self.present(nvc, animated: true)
                 }
             ]))
         }
