@@ -211,6 +211,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
     private var pendingDisplayName: String
     private var pendingExecutable: String
     private var pendingBundleIdentifier: String
+    private var pendingBundleVersion: String
+    private var pendingBundleShortVersion: String
     private var pendingMinVersion: String
     private var pendingMaxVersion: String
     private var pendingCompilerFlags: [String]
@@ -224,6 +226,9 @@ class ProjectConfigViewController: UIThemedTableViewController {
         self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         self.pendingDisplayName = project.projectConfig.dictionary["LDEDisplayName"] as? String ?? project.projectConfig.displayName
+        self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+        self.pendingBundleVersion = project.projectConfig.dictionary["LDEBundleVersion"] as? String ?? project.projectConfig.version
+        self.pendingBundleShortVersion = project.projectConfig.dictionary["LDEBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
         self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
         self.pendingExecutable = project.projectConfig.dictionary["LDEExecutable"] as? String ?? ""
         self.pendingMinVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? iOSVersions.first ?? "13.0"
@@ -268,12 +273,16 @@ class ProjectConfigViewController: UIThemedTableViewController {
         case displayName
         case executable
         case bundleIdentifier
+        case bundleVersion
+        case bundleShortVersion
 
         var title: String {
             switch self {
                 case .displayName: return "Display Name"
                 case .executable: return "Executable"
                 case .bundleIdentifier: return "Bundle Identifier"
+                case .bundleVersion: return "Bundle Version"
+                case .bundleShortVersion: return "Bundle Short Version"
             }
         }
     }
@@ -312,7 +321,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 if project.projectConfig.type == NXProjectType.app.rawValue {
                     return GeneralRow.allCases.count
                 } else {
-                    return GeneralRow.allCases.count - 1
+                    return GeneralRow.allCases.count - 3
                 }
             case .deplyment: return DeploymentRow.allCases.count
             case .buildFlags: return BuildFlagRow.allCases.count
@@ -333,6 +342,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
                     case .displayName: cell.detailTextLabel?.text = pendingDisplayName.isEmpty ? "Not Set" : pendingDisplayName
                     case .executable: cell.detailTextLabel?.text = pendingExecutable.isEmpty ? "Not Set" : pendingExecutable
                     case .bundleIdentifier: cell.detailTextLabel?.text = pendingBundleIdentifier.isEmpty ? "Not Set" : pendingBundleIdentifier
+                    case .bundleVersion: cell.detailTextLabel?.text = pendingBundleVersion.isEmpty ? "Not Set" : pendingBundleVersion
+                    case .bundleShortVersion: cell.detailTextLabel?.text = pendingBundleShortVersion.isEmpty ? "Not Set" : pendingBundleShortVersion
                 }
             case .deplyment:
                 let row = DeploymentRow(rawValue: indexPath.row)!
@@ -376,6 +387,16 @@ class ProjectConfigViewController: UIThemedTableViewController {
                     case .bundleIdentifier:
                         presentTextAlert(title: "Bundle Identifier", current: pendingBundleIdentifier, placeholder: "com.nyxian.example") {
                             self.pendingBundleIdentifier = $0;
+                            self.markDirty()
+                        }
+                    case .bundleVersion:
+                        presentTextAlert(title: "Bundle Version", current: pendingBundleVersion, placeholder: "1.0") {
+                            self.pendingBundleVersion = $0;
+                            self.markDirty()
+                        }
+                    case .bundleShortVersion:
+                        presentTextAlert(title: "Bundle Short Version", current: pendingBundleShortVersion, placeholder: "1.0") {
+                            self.pendingBundleShortVersion = $0;
                             self.markDirty()
                         }
                 }
@@ -444,6 +465,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
         project.projectConfig.dictionary["LDEVersion"] = pendingMaxVersion
         project.projectConfig.dictionary["LDECompilerFlags"] = pendingCompilerFlags
         project.projectConfig.dictionary["LDELinkerFlags"] = pendingLinkerFlags
+        project.projectConfig.dictionary["LDEBundleVersion"] = pendingBundleVersion
+        project.projectConfig.dictionary["LDEBundleShortVersion"] = pendingBundleShortVersion
         project.projectConfig.save()
         isDirty = false
     }
