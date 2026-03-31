@@ -321,7 +321,7 @@ import UniformTypeIdentifiers
                     image: UIImage(systemName: "books.vertical.fill")
                 ) { [weak self] _ in
                     guard let self = self else { return }
-                    let sdkPath = Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.2.sdk")
+                    let sdkPath = Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.4.sdk")
                     let fileVC = FileListViewController(
                         isSublink: true,
                         project: project,

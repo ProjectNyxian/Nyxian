@@ -79,9 +79,9 @@
             @"-target",
             [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
             @"-isysroot",
-            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk"],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/SubFrameworks"]],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/PrivateFrameworks"]],
             @"-resource-dir",
             [[Bootstrap shared] bootstrapPath:@"/Include"]
         ]];
@@ -112,9 +112,9 @@
             @"-arch",
             @"arm64",
             @"-syslibroot",
-            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+            [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk"],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/SubFrameworks"]],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/PrivateFrameworks"]],
             [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
         ]];
         
@@ -161,9 +161,9 @@
         @"-target",
         @"apple-arm64-ios26.2",
         @"-isysroot",
-        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk"],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.2.sdk/System/Library/PrivateFrameworks"]],
+        [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk"],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/SubFrameworks"]],
+        [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/PrivateFrameworks"]],
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"]
     ];
@@ -230,7 +230,7 @@
     _cachePath = [[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path] withVariables:@{
         @"SRCROOT": path,
-        @"SDKROOT": [[Bootstrap shared] bootstrapPath:@"SDK/iPhoneOS26.2.sdk"],
+        @"SDKROOT": [[Bootstrap shared] bootstrapPath:@"SDK/iPhoneOS26.4.sdk"],
         @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"],
         @"CACHEROOT": _cachePath
     }];

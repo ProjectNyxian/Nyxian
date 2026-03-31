@@ -28,7 +28,7 @@ import Foundation
 #else
     let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
-    let newestBootstrapVersion: Int = 11
+    let newestBootstrapVersion: Int = 12
     
     // Paths that we for sure do not need
     let bootstrapDeletionIfFoundPaths: [String] = [
@@ -183,7 +183,7 @@ import Foundation
                         self.bootstrapVersion = 10
                     }
                     
-                    if self.bootstrapVersion < 11 {
+                    if self.bootstrapVersion < 12 {
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
                             print("[*] removing deprecated sdk")
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
@@ -191,7 +191,7 @@ import Foundation
                         
                         print("[*] downloading sdk")
                         
-                        if !fdownload("https://nyxian.app/bootstrap/iPhoneOS26.2.sdk.zip", "sdk.zip") {
+                        if !fdownload("https://nyxian.app/bootstrap/iPhoneOS26.4.sdk.zip", "sdk.zip") {
                             print("[*] sdk download failed")
                             throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Download failed!"])
                         }
@@ -199,7 +199,18 @@ import Foundation
                         print("[*] extracting sdk.zip")
                         unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
 
-                        self.bootstrapVersion = 11
+                        // create compatibility symlink for projects still using the iPhoneOS26.2.sdk SDK
+                        let realSDK = self.bootstrapPath("/SDK/iPhoneOS26.4.sdk")
+                        let symlinkSDK = self.bootstrapPath("/SDK/iPhoneOS26.2.sdk")
+                        
+                        if !FileManager.default.fileExists(atPath: symlinkSDK) {
+                            try FileManager.default.createSymbolicLink(
+                                atPath: symlinkSDK,
+                                withDestinationPath: realSDK
+                            )
+                        }
+                        
+                        self.bootstrapVersion = 12
                     }
                 }
                 
