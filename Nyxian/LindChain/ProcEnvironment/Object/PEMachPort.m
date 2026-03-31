@@ -19,14 +19,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <xpc/xpc.h>
 
-@implementation MachPortObject
+@implementation PEMachPort
 
-- (instancetype)initWithPort:(mach_port_t)port
++ (instancetype)portWithPortName:(mach_port_name_t)port
+{
+    return [[self alloc] initWithPortName:port];
+}
+
+- (instancetype)initWithPortName:(mach_port_name_t)port
 {
     self = [super init];
+    kern_return_t kr = mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, 1);
+    if(kr != KERN_SUCCESS)
+    {
+        return nil;
+    }
     _port = port;
     return self;
 }
@@ -78,7 +88,7 @@
         {
             xpc_object_t dict = obj;
             mach_port_t port = xpc_dictionary_copy_mach_send(dict, "port");
-            return [self initWithPort:port];
+            return [self initWithPortName:port];
         }
     }
     return nil;
@@ -92,6 +102,44 @@
         mach_port_deallocate(mach_task_self(), _port);
         _port = MACH_PORT_NULL;
     }
+}
+
+- (nonnull id)copyWithZone:(nullable NSZone *)zone
+{
+    PEMachPort *copy = [[[self class] allocWithZone:zone] init];
+    
+    kern_return_t kr = mach_port_mod_refs(mach_task_self(), self.port, MACH_PORT_RIGHT_SEND, 1);
+    if(kr != KERN_SUCCESS)
+    {
+        return nil;
+    }
+    
+    copy->_port = self.port;
+    
+    return copy;
+}
+
+- (ipc_info_object_type_t)getIPCType
+{
+    ipc_info_object_type_t type;
+    mach_vm_address_t placeholder;
+    kern_return_t kr = mach_port_kobject(mach_task_self(), self.port, &type, &placeholder);
+    if(kr != KERN_SUCCESS)
+    {
+        return IPC_OTYPE_NONE;
+    }
+    return type;
+}
+
+- (mach_port_urefs_t)getRefCnt
+{
+    mach_port_urefs_t ref;
+    kern_return_t kr = mach_port_get_refs(mach_task_self(), self.port, MACH_PORT_RIGHT_SEND, &ref);
+    if(kr != KERN_SUCCESS)
+    {
+        return 0;
+    }
+    return ref;
 }
 
 @end

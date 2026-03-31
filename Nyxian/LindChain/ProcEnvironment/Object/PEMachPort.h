@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_MACHPORTOBJECT
-#define PROCENVIRONMENT_MACHPORTOBJECT
+#ifndef PEMACHPORT_H
+#define PEMACHPORT_H
 
 /* ----------------------------------------------------------------------
  *  Apple API Headers
@@ -37,14 +37,16 @@
  *  Class Declarations
  * -------------------------------------------------------------------- */
 
-@interface MachPortObject : PEObject
+@interface PEMachPort : PEObject <NSCopying>
 
 @property (nonatomic, readonly) mach_port_t port;
+@property (nonatomic, readonly, getter=isUsable) BOOL usable;
+@property (nonatomic, readonly, getter=getIPCType) ipc_info_object_type_t ipc_type;
+@property (nonatomic, readonly, getter=getRefCnt) mach_port_urefs_t ref;
 
-- (instancetype)initWithPort:(mach_port_t)port;
-
-- (BOOL)isUsable;
++ (instancetype)portWithPortName:(mach_port_name_t)port;
+- (instancetype)initWithPortName:(mach_port_name_t)port;
 
 @end
 
-#endif /* PROCENVIRONMENT_MACHPORTOBJECT */
+#endif /* PEMACHPORT_H */

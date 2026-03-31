@@ -46,10 +46,10 @@ void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint)
     hostProcessProxy = connection.remoteObjectProxy;
 }
 
-void environment_client_connect_to_syscall_proxy(MachPortObject *mpo)
+void environment_client_connect_to_syscall_proxy(PEMachPort *port)
 {
     /* creating client*/
-    syscall_client_t *client = syscall_client_create([mpo port]);
+    syscall_client_t *client = syscall_client_create([port port]);
     
     /* null pointer check */
     if(client == NULL)

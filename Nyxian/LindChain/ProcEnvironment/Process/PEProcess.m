@@ -29,7 +29,7 @@
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/trustd/LDETrust.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
-#import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #else
 #import <LindChain/JBSupport/Shell.h>
@@ -52,7 +52,7 @@
     
     /* insert required items */
     NSMutableDictionary *mutableItems = [items mutableCopy];
-    mutableItems[@"PESyscallPort"] = [[MachPortObject alloc] initWithPort:syscall_server_get_port(ksurface->sys_server)];
+    mutableItems[@"PESyscallPort"] = [PEMachPort portWithPortName:syscall_server_get_port(ksurface->sys_server)];
     mutableItems[@"PEEndpoint"] = [Server getTicket];
     items = [mutableItems copy];
     

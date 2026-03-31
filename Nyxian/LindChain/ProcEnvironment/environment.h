@@ -39,7 +39,7 @@
 #import <LindChain/ProcEnvironment/ioctl.h>
 #import <LindChain/ProcEnvironment/vfork.h>
 #import <LindChain/ProcEnvironment/cred.h>
-#import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
@@ -82,10 +82,10 @@ void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint) __attri
     its host environments syscall proxy. The provided endpoint must have been exported
     by the host.
 
- @param mpo
+ @param port
     Mach port send by the host environment to the guest to connect to.
  */
-void environment_client_connect_to_syscall_proxy(MachPortObject *mpo);
+void environment_client_connect_to_syscall_proxy(PEMachPort *port);
 
 /*!
  @function `environment_init`

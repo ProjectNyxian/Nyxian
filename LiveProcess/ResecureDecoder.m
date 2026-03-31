@@ -24,7 +24,7 @@
 #import <ResecureDecoder.h>
 #import <LindChain/ProcEnvironment/Object/ArchiveObject.h>
 #import <LindChain/ProcEnvironment/Object/FDMapObject.h>
-#import <LindChain/ProcEnvironment/Object/MachPortObject.h>
+#import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 
 void ResecureDecoder(void)
 {
@@ -52,7 +52,7 @@ void ResecureDecoder(void)
                               [NSXPCListenerEndpoint class],
                               [ArchiveObject class],
                               [FDMapObject class],
-                              [MachPortObject class],
+                              [PEMachPort class],
                               [FDObject class],
                               nil];
         });

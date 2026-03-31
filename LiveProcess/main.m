@@ -153,7 +153,7 @@ int LiveProcessMain(int argc, char *argv[])
     NSDictionary *environmentDictionary = appInfo[@"PEEnvironment"];
     NSArray *argumentDictionary = appInfo[@"PEArguments"];
     FDMapObject *mapObject = appInfo[@"PEMapObject"];
-    MachPortObject *syscallPort = appInfo[@"PESyscallPort"];
+    PEMachPort *syscallPort = appInfo[@"PESyscallPort"];
     NSString *workingDirectory = appInfo[@"PEWorkingDirectory"];
     
     assert(endpoint != nil && executablePath != nil && syscallPort != nil);
