@@ -52,8 +52,8 @@
     self.view.autoresizingMask = UIViewAutoresizingNone;
     
     self.view.layer.shadowColor = UIColor.blackColor.CGColor;
-    self.view.layer.shadowOpacity = 1.0;
-    self.view.layer.shadowRadius = 12;
+    self.view.layer.shadowOpacity = 0.8;
+    self.view.layer.shadowRadius = 20;
     self.view.layer.shadowOffset = CGSizeMake(0, 0);
     
     _contentStack = [UIStackView new];
@@ -79,7 +79,6 @@
     }];
     self.session.window = self;
     
-    _windowBar.backgroundColor = UIColor.quaternarySystemFillColor;
     [_contentStack addArrangedSubview:_windowBar];
     
     [NSLayoutConstraint activateConstraints:@[

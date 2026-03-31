@@ -208,6 +208,12 @@
         bgTap.cancelsTouchesInView = NO;
         [self addGestureRecognizer:bgTap];
     }
+    
+    UIBlurEffect *barBlur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterial];
+    UIVisualEffectView *barBackground = [[UIVisualEffectView alloc] initWithEffect:barBlur];
+    barBackground.frame = self.bounds;
+    barBackground.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self insertSubview:barBackground atIndex:0];
 
     return self;
 }
