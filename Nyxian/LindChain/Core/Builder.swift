@@ -22,6 +22,13 @@
 import Foundation
 import Combine
 
+#if JAILBREAK_ENV
+
+// https://github.com/davidmurray/ios-reversed-headers/blob/b8fd3093e0e72107034792ed65272880820fecd5/BackBoardServices/BackBoardServices.h#L64
+@_silgen_name("BKSTerminateApplicationForReasonAndReportWithDescription") func BKSTerminateApplicationForReasonAndReportWithDescription(_ bundleID: CFString,_ unknown: Int, _ unknown1: Int, _ desc: CFString)
+
+#endif // JAILBREAK_ENV
+
 class Builder {
     private let project: NXProject
     private let compiler: Compiler
@@ -367,14 +374,13 @@ class Builder {
         
         if buildType == .RunningApp,
           self.project.projectConfig.type == NXProjectType.app.rawValue {
-            // uninstalling potentially installed app
-            shell(["\(Bundle.main.bundlePath)/tshelper","uninstall",self.project.projectConfig.bundleid ?? ""], 0, nil, nil)
-            
             // installing app
             var output: NSString?
             if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packagePath ?? ""], 0, nil, &output) != 0 {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
+            
+            BKSTerminateApplicationForReasonAndReportWithDescription(self.project.projectConfig.bundleid! as CFString, 0, 0, "reinstalled application" as CFString)
             
             // opening app on iOS 16.x and above in our app it self in case user wants it so
             if #available(iOS 16.0, *) {
@@ -382,9 +388,24 @@ class Builder {
                 // avoid lsapplication workspace if user wants it so
                 if let avoidLSAWObj: NSNumber = UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber,
                    !avoidLSAWObj.boolValue {
-                    while(!LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)) {
-                        relax()
+                    
+                    var success = false
+                    let maxAttempts = 10
+                    let delay: TimeInterval = 0.5
+                    
+                    for attempt in 1...maxAttempts {
+                        if LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid) {
+                            success = true
+                            break
+                        }
+                        
+                        Thread.sleep(forTimeInterval: delay)
                     }
+                    
+                    if !success {
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to open application"])
+                    }
+                    
                     return
                 }
                 
@@ -404,9 +425,8 @@ class Builder {
         if FileManager.default.fileExists(atPath: entitlementsPath),
            self.project.projectConfig.type == NXProjectType.app.rawValue {
             // pseudo signing executable
-            var output: NSString?
-            if shell(["\(Bundle.main.bundlePath)/ldid","-S",entitlementsPath,self.project.bundlePath ?? ""], 501, nil, &output) != 0 {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened signing application"])
+            if !ZSigner.adhocSignMachO(atPath: self.project.machoPath!, bundleId: self.project.projectConfig.bundleid!, entitlementData: try Data(contentsOf: URL(fileURLWithPath: entitlementsPath))) {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Unknown error happened pseudo signing application with entitlements"])
             }
         }
 #endif // JAILBREAK_ENV

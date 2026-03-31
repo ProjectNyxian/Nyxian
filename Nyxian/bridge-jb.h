@@ -39,6 +39,7 @@
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
 #import <LindChain/JBSupport/Shell.h>
+#import <LindChain/LiveContainer/ZSign/zsigner.h>
 
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>

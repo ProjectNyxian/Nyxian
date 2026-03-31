@@ -96,7 +96,6 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/JBSupport/ldid,
 				LindChain/JBSupport/Shell.m,
 				LindChain/JBSupport/tshelper,
 			);
@@ -120,22 +119,6 @@
 				LindChain/LiveContainer/Tweaks/SecItem.m,
 				"LindChain/LiveContainer/Tweaks/UIKit+GuestHooksInit.m",
 				LindChain/LiveContainer/utils.m,
-				LindChain/LiveContainer/ZSign/archo.cpp,
-				LindChain/LiveContainer/ZSign/bundle.cpp,
-				LindChain/LiveContainer/ZSign/common/base64.cpp,
-				LindChain/LiveContainer/ZSign/common/fs.cpp,
-				LindChain/LiveContainer/ZSign/common/json.cpp,
-				LindChain/LiveContainer/ZSign/common/log.cpp,
-				LindChain/LiveContainer/ZSign/common/sha.cpp,
-				LindChain/LiveContainer/ZSign/common/timer.cpp,
-				LindChain/LiveContainer/ZSign/common/util.cpp,
-				LindChain/LiveContainer/ZSign/macho.cpp,
-				LindChain/LiveContainer/ZSign/openssl.cpp,
-				LindChain/LiveContainer/ZSign/signing.cpp,
-				LindChain/LiveContainer/ZSign/Utils.mm,
-				LindChain/LiveContainer/ZSign/zsign.mm,
-				LindChain/LiveContainer/ZSign/zsigner.m,
-				LindChain/OpenSSL.xcframework,
 				LindChain/Private/mach/fileport.m,
 				LindChain/ProcEnvironment/application.m,
 				LindChain/ProcEnvironment/cred.c,
@@ -291,10 +274,12 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
+				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
 				LindChain/Clang.xcframework,
+				LindChain/OpenSSL.xcframework,
 			);
 		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
@@ -700,6 +685,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
+					"-Wl,-U,_BKSTerminateApplicationForReasonAndReportWithDescription",
 				);
 				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
@@ -820,6 +806,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
+					"-Wl,-U,_BKSTerminateApplicationForReasonAndReportWithDescription",
 				);
 				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;

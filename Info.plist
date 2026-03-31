@@ -71,10 +71,9 @@
 	<true/>
 	<key>SBAppUsesLocalNotifications</key>
 	<integer>1</integer>
-	<key>TSRootBinary</key>
+	<key>TSRootBinaries</key>
 	<array>
 		<string>tshelper</string>
-		<string>ldid</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
