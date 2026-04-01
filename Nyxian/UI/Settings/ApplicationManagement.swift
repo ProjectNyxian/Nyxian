@@ -184,9 +184,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     return
                 }
                 
-                LCUtils.signAppBundle(withZSign: bundle.bundleURL) { [weak self] result, error in
-                    guard let self = self else { return }
-                    
+                LCUtils.signAppBundle(withZSign: bundle.bundleURL) { result, error in
                     if result,
                        LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
                         DispatchQueue.main.async {

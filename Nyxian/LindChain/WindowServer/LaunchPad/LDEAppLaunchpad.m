@@ -327,7 +327,6 @@
                                                     actionProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions) {
         
         NSMutableArray<UIMenu *> *subMenus = [NSMutableArray array];
-        NSMutableArray<UIMenu *> *entMenus = [NSMutableArray array];
         
         UIAction *openAction = [UIAction actionWithTitle:@"Open" image:[UIImage systemImageNamed:@"arrow.up.right.square.fill"] identifier:nil handler:^(UIAction *action) {
             [[PEProcessManager shared] spawnProcessWithBundleIdentifier:app.bundleID withItems:@{} withKernelSurfaceProcess:nil doRestartIfRunning:false];
