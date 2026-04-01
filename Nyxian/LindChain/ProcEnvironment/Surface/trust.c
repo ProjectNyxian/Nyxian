@@ -287,8 +287,6 @@ long find_append_offset_for_file(int fd)
     return find_append_offset(fd, magic, 0);
 }
 
-#if HOST_ENV
-
 int macho_after_sign(const char *path,
                      PEEntitlement entitlement)
 {
@@ -349,8 +347,6 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
     return 0;
 }
 
-#endif /* HOST_ENV */
-
 int macho_read_token(int fd,
                      ksurface_ent_result_t *mach)
 {
@@ -393,13 +389,12 @@ int macho_read_token(int fd,
     }
     
     char *hash = cd_hash_of_executable_at_fd(fd);
-    
-    strncpy(mach->cdhash, hash, USER_FSIGNATURES_CDHASH_LEN);
-    
     if(hash == NULL)
     {
         return -1;
     }
+    
+    strncpy(mach->cdhash, hash, USER_FSIGNATURES_CDHASH_LEN);
     
     if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
