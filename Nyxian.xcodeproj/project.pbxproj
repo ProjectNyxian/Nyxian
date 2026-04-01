@@ -199,6 +199,7 @@
 				UI/Settings/CertificateManagement.swift,
 				UI/Settings/CertificateViewController.swift,
 				UI/Settings/KernelLogViewController.swift,
+				UI/Settings/MachOPatcherViewController.swift,
 			);
 			target = 79AF51072F1CBD110055004A /* NyxianForJB */;
 		};

@@ -31,7 +31,6 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/LDEThreadGroupController.h>
-#import <LindChain/Services/containerd/PEContainer.h>
 
 #if !JAILBREAK_ENV
 
@@ -43,6 +42,7 @@
 
 /* Daemon Interfaces Headers */
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
+#import <LindChain/Services/containerd/PEContainer.h>
 
 /* Multitask Headers */
 #import <LindChain/WindowServer/NXWindowServer.h>
