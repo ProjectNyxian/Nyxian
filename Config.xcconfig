@@ -8,5 +8,5 @@
 // Configuration settings file format documentation can be found at:
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
-VERSION = 0.9.0
-BUILD_NUMBER = 20260401.50.US.seanistethered
+VERSION = 0.9.1
+BUILD_NUMBER = 20260401.51.US.seanistethered
