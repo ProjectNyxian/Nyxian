@@ -142,7 +142,7 @@ class MachOPatcherViewController: UIThemedTableViewController {
     }
 
     private func makeToggle(for row: EntitlementRow, indexPath: IndexPath) -> UISwitch {
-        let toggle = UISwitch()
+        let toggle = UIThemedSwitch()
         toggle.isOn = entitlements.contains(row.flag)
         toggle.tag = indexPath.section * 1000 + indexPath.row   // encode position
         toggle.addTarget(self, action: #selector(toggleChanged(_:)), for: .valueChanged)

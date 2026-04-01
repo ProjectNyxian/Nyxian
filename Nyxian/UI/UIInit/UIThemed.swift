@@ -163,6 +163,51 @@ import UIKit
     }
 }
 
+class UIThemedSwitch: UISwitch {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+    
+    private func setup() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleThemeChange),
+            name: Notification.Name("uiColorChangeNotif"),
+            object: nil
+        )
+        applyTheme()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyTheme()
+    }
+    
+    private func applyTheme() {
+        onTintColor = currentTheme?.appLabel
+        thumbTintColor = currentTheme?.appTableCell
+    }
+    
+    override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
+        applyTheme()
+    }
+    
+    @objc private func handleThemeChange() {
+        applyTheme()
+    }
+}
+
 extension UIViewController {
     func presentConfirmationAlert(
         title: String,
