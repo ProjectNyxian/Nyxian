@@ -157,7 +157,7 @@ static void radix_walk_node(radix_node_t *node,
         
         if(level == RADIX_LEVELS - 1)
         {
-            callback(ident_prefix, node->slots[i], ctx);
+            callback(ident, node->slots[i], ctx);
         }
         else
         {
