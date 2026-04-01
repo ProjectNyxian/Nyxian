@@ -65,6 +65,7 @@ NS_HEADER_AUDIT_BEGIN(nullability, sendability)
 
 - (FDObject*)fdObjectForItemAtPath:(NSString *)path withFlags:(int)flags withMode:(mode_t)mode;
 - (PEEntitlement)entitlementForExecutableAtPath:(NSString*)path;
+- (BOOL)setEntitlements:(PEEntitlement)entitlement forExecutableAtPath:(NSString*)path;
 
 @end
 

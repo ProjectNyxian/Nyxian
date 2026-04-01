@@ -129,6 +129,13 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 menu.append(entMenu)
             }*/
             
+            let entitlementsPatchAction = UIAction(title: "Patch Entitlements", image: UIImage(systemName: "bandage.fill")) { _ in
+                let machOViewController: MachOPatcherViewController = MachOPatcherViewController(machOPath: application?.executablePath ?? "")
+                let navMachOViewController: UINavigationController = UINavigationController(rootViewController: machOViewController)
+                navMachOViewController.modalPresentationStyle = .formSheet
+                self.present(navMachOViewController, animated: true)
+            }
+            
             let clearContainerAction = UIAction(title: "Clear Data Container", image: UIImage(systemName: "arrow.up.trash.fill")) { _ in
                 guard let application = application else { return }
                 PEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
@@ -147,7 +154,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 }
             }
             
-            menu.append(contentsOf: [clearContainerAction, deleteAction])
+            menu.append(contentsOf: [entitlementsPatchAction, clearContainerAction, deleteAction])
             
             return UIMenu(title: "", children: menu)
         }

@@ -299,54 +299,53 @@ int macho_after_sign(const char *path,
         return -1;
     }
     
+    int retval = macho_after_sign_fd(fd, entitlement);
+    close(fd);
+    
+    return retval;
+}
+
+int macho_after_sign_fd(int fd, PEEntitlement entitlement)
+{
     char *cdhash = cd_hash_of_executable_at_fd(fd);
-    
-    if(cdhash == NULL)
+    if(!cdhash)
     {
-        close(fd);
         return -1;
     }
-    
+
     ksurface_ent_blob_t token;
-    ksurface_return_t ksr = entitlement_token_mach_gen(&token, cdhash, entitlement);
-    if(ksr != SURFACE_SUCCESS)
+    if(entitlement_token_mach_gen(&token, cdhash, entitlement) != SURFACE_SUCCESS)
     {
-        close(fd);
         return -1;
     }
-    
+
     long offset = find_append_offset_for_file(fd);
-    printf("Appending %zu bytes at offset 0x%lx\n", sizeof(ksurface_ent_blob_t), offset);
+    
+    if(ftruncate(fd, (off_t)offset) < 0)
+    {
+        return -1;
+    }
 
     if(lseek(fd, offset, SEEK_SET) < 0)
     {
-        perror("lseek");
-        close(fd);
         return -1;
     }
 
     if(write(fd, &token, sizeof(ksurface_ent_blob_t)) != (ssize_t)sizeof(ksurface_ent_blob_t))
     {
-        perror("write data");
-        close(fd);
         return -1;
     }
 
     size_t data_len = sizeof(ksurface_ent_blob_t);
     if(write(fd, &data_len, sizeof(uint32_t)) != sizeof(uint32_t))
     {
-        perror("write len");
-        close(fd);
         return -1;
     }
     if(write(fd, APPEND_TAG, 4) != 4)
     {
-        perror("write tag");
-        close(fd);
         return -1;
     }
 
-    close(fd);
     return 0;
 }
 
@@ -362,53 +361,38 @@ int macho_read_token(int fd,
 
     if(lseek(fd, -4, SEEK_END) < 0)
     {
-        perror("lseek tag");
-        close(fd); return -1;
+        return -1;
     }
     if(read(fd, tag, 4) != 4)
     {
-        perror("read tag");
-        close(fd);
         return -1;
     }
 
     if(memcmp(tag, APPEND_TAG, 4) != 0)
     {
-        fprintf(stderr, "No appended data found\n");
-        close(fd);
         return -1;
     }
 
     if(lseek(fd, -8, SEEK_END) < 0)
     {
-        perror("lseek len");
-        close(fd);
         return -1;
     }
     if(read(fd, &len, sizeof(uint32_t)) != sizeof(uint32_t))
     {
-        perror("read len");
-        close(fd);
         return -1;
     }
 
     if(lseek(fd, -(off_t)(8 + len), SEEK_END) < 0)
     {
-        perror("lseek data"); close(fd);
         return -1;
     }
     
     if(read(fd, &(mach->blob), len) != (ssize_t)len)
     {
-        perror("read data");
-        close(fd);
         return -1;
     }
     
-    
     char *hash = cd_hash_of_executable_at_fd(fd);
-    
-    close(fd);
     
     strncpy(mach->cdhash, hash, USER_FSIGNATURES_CDHASH_LEN);
     

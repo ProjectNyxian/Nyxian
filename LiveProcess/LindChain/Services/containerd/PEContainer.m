@@ -661,4 +661,26 @@
     return mach.blob.entitlement;
 }
 
+- (BOOL)setEntitlements:(PEEntitlement)entitlement
+    forExecutableAtPath:(NSString*)path
+{
+    FDObject *object = [self fdObjectForItemAtPath:path withFlags:O_RDWR withMode:0];
+    if(object == nil)
+    {
+        return PEEntitlementNone;
+    }
+    
+    int fd = [object dup];
+    if(fd < 0)
+    {
+        return PEEntitlementNone;
+    }
+    
+    int retval = macho_after_sign_fd(fd, entitlement);
+    fsync(fd);
+    close(fd);
+    
+    return (retval == 0);
+}
+
 @end
