@@ -20,8 +20,8 @@
 */
 
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
-#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
-#import <LindChain/WindowServer/LaunchPad/LDEAppCell.h>
+#import <LindChain/WindowServer/LaunchPad/NXAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/NXAppCell.h>
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/Services/containerd/PEContainer.h>
@@ -29,9 +29,9 @@
 @interface LDEAppLaunchpad ()
 
 @property (nonatomic, strong) UICollectionView *collectionView;
-@property (nonatomic, strong) NSMutableArray<LDEAppEntry *> *apps;
+@property (nonatomic, strong) NSMutableArray<NXAppEntry *> *apps;
 @property (nonatomic, strong) UISearchBar *searchBar;
-@property (nonatomic, strong) NSArray<LDEAppEntry *> *filteredApps;
+@property (nonatomic, strong) NSArray<NXAppEntry *> *filteredApps;
 @property (nonatomic, strong) UIStackView *emptyStack;
 
 @end
@@ -76,7 +76,7 @@
     _collectionView.showsHorizontalScrollIndicator = NO;
     _collectionView.alwaysBounceVertical = YES;
     _collectionView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-    [_collectionView registerClass:[LDEAppCell class] forCellWithReuseIdentifier:@"AppCell"];
+    [_collectionView registerClass:[NXAppCell class] forCellWithReuseIdentifier:@"AppCell"];
     [self addSubview:_collectionView];
     
     [self setupEmptyState];
@@ -120,7 +120,7 @@
     [self addSubview:_emptyStack];
 }
 
-- (NSArray<LDEAppEntry *> *)installedApps
+- (NSArray<NXAppEntry *> *)installedApps
 {
     return [_apps copy];
 }
@@ -136,7 +136,7 @@
         return;
     }
 
-    for(LDEAppEntry *entry in _apps)
+    for(NXAppEntry *entry in _apps)
     {
         if([entry.bundleID isEqualToString:bundleID])
         {
@@ -147,7 +147,7 @@
         }
     }
     
-    LDEAppEntry *entry = [[LDEAppEntry alloc] init];
+    NXAppEntry *entry = [[NXAppEntry alloc] init];
     entry.bundleID = bundleID;
     entry.displayName = name ?: bundleID;
     entry.icon = icon ?: [UIImage imageNamed:@"DefaultIcon"];
@@ -164,7 +164,7 @@
         return;
     }
     
-    NSUInteger index = [_apps indexOfObjectPassingTest:^BOOL(LDEAppEntry *entry, NSUInteger idx, BOOL *stop) {
+    NSUInteger index = [_apps indexOfObjectPassingTest:^BOOL(NXAppEntry *entry, NSUInteger idx, BOOL *stop) {
         return [entry.bundleID isEqualToString:bundleID];
     }];
     
@@ -177,7 +177,7 @@
 
 - (void)reloadApps
 {
-    [_apps sortUsingComparator:^NSComparisonResult(LDEAppEntry *a, LDEAppEntry *b){
+    [_apps sortUsingComparator:^NSComparisonResult(NXAppEntry *a, NXAppEntry *b){
         return [a.displayName localizedCaseInsensitiveCompare:b.displayName];
     }];
     
@@ -213,11 +213,11 @@
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView
                   cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    LDEAppCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"AppCell" forIndexPath:indexPath];
+    NXAppCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"AppCell" forIndexPath:indexPath];
     
     if(indexPath.item < _filteredApps.count)
     {
-        LDEAppEntry *app = _filteredApps[indexPath.item];
+        NXAppEntry *app = _filteredApps[indexPath.item];
         cell.iconView.image = app.icon;
         cell.nameLabel.text = app.displayName;
     }
@@ -234,9 +234,9 @@
         return;
     }
     
-    LDEAppEntry *app = _filteredApps[indexPath.item];
+    NXAppEntry *app = _filteredApps[indexPath.item];
     
-    LDEAppCell *cell = (LDEAppCell *)[collectionView cellForItemAtIndexPath:indexPath];
+    NXAppCell *cell = (NXAppCell *)[collectionView cellForItemAtIndexPath:indexPath];
     
     [UIView animateWithDuration:0.1 animations:^{
         cell.iconView.transform = CGAffineTransformMakeScale(1.15, 1.15);
@@ -320,7 +320,7 @@
         return nil;
     }
     
-    LDEAppEntry *app = _filteredApps[indexPath.item];
+    NXAppEntry *app = _filteredApps[indexPath.item];
     
     return [UIContextMenuConfiguration configurationWithIdentifier:nil
                                                    previewProvider:nil

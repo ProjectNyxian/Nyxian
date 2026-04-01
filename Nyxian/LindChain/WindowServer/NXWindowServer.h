@@ -27,11 +27,11 @@
 #import <LindChain/WindowServer/Window/NXWindow.h>
 
 #if !JAILBREAK_ENV
-#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/NXAppLaunchpad.h>
 #endif /* !JAILBREAK_ENV */
 
 #if !JAILBREAK_ENV
-@interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate,LDEAppLaunchpadDelegate>
+@interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate,NXAppLaunchpadDelegate>
 #else
 @interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate>
 #endif /* !JAILBREAK_ENV */

@@ -24,7 +24,7 @@
 
 #if !JAILBREAK_ENV
 
-#import <LindChain/WindowServer/LaunchPad/LDEAppLaunchpad.h>
+#import <LindChain/WindowServer/LaunchPad/NXAppLaunchpad.h>
 #import <Nyxian-Swift.h>
 
 #endif /* !JAILBREAK_ENV */

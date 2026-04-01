@@ -19,19 +19,29 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEAPPCELL_H
-#define LDEAPPCELL_H
+#ifndef NXAPPLAUNCHPAD_H
+#define NXAPPLAUNCHPAD_H
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface LDEAppCell : UICollectionViewCell
+#import <LindChain/WindowServer/LaunchPad/NXAppEntry.h>
 
-@property (nonatomic, strong) UIImageView *iconView;
-@property (nonatomic, strong) UILabel *nameLabel;
-@property (nonatomic, strong) UIView *glowView;
-@property (nonatomic, strong) UIVisualEffectView *iconContainer;
+@protocol NXAppLaunchpadDelegate <NSObject>
+
+- (void)launchpadDidSelectAppWithBundleID:(NSString *)bundleID;
 
 @end
 
-#endif /* LDEAPPCELL_H */
+@interface LDEAppLaunchpad : UIView <UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate>
+
+@property (nonatomic, weak) id<NXAppLaunchpadDelegate> delegate;
+@property (nonatomic, strong, readonly) NSArray<NXAppEntry *> *installedApps;
+
+- (void)reloadApps;
+- (void)registerAppWithBundleID:(NSString*)bundleID displayName:(NSString*)name icon:(UIImage*)icon appPath:(NSString*)path;
+- (void)unregisterAppWithBundleID:(NSString*)bundleID;
+
+@end
+
+#endif /* NXAPPLAUNCHPAD_H */

@@ -19,18 +19,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDEAPPENTRY_H
-#define LDEAPPENTRY_H
+#ifndef NXAPPCELL_H
+#define NXAPPCELL_H
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface LDEAppEntry : NSObject
+@interface NXAppCell : UICollectionViewCell
 
-@property (nonatomic, copy) NSString *bundleID;
-@property (nonatomic, copy) NSString *displayName;
-@property (nonatomic, strong) UIImage *icon;
+@property (nonatomic, strong) UIImageView *iconView;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, strong) UIView *glowView;
+@property (nonatomic, strong) UIVisualEffectView *iconContainer;
 
 @end
 
-#endif /* LDEAPPENTRY_H */
+#endif /* NXAPPCELL_H */

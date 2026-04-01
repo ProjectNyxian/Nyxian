@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/WindowServer/LaunchPad/LDEAppCell.h>
+#import <LindChain/WindowServer/LaunchPad/NXAppCell.h>
 
-@implementation LDEAppCell
+@implementation NXAppCell
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
