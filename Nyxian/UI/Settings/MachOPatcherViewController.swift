@@ -24,6 +24,7 @@ import UIKit
 class MachOPatcherViewController: UIThemedTableViewController {
     var path: String
     var entitlements: PEEntitlement
+    let applyHandler: () -> Void
     
     struct EntitlementRow {
         let title: String
@@ -66,9 +67,10 @@ class MachOPatcherViewController: UIThemedTableViewController {
         ]),
     ]
 
-    init(machOPath path: String) {
+    init(machOPath path: String, applyHandler: @escaping () -> Void) {
         self.path = path
         self.entitlements = PEContainer.shared().entitlementForExecutable(atPath: path)
+        self.applyHandler = applyHandler
         super.init(style: .insetGrouped)
     }
 
@@ -161,6 +163,7 @@ class MachOPatcherViewController: UIThemedTableViewController {
     
     @objc private func applyTapped() {
         PEContainer.shared().setEntitlements(entitlements, forExecutableAtPath: path)
+        self.applyHandler()
         self.dismiss(animated: true)
     }
 }

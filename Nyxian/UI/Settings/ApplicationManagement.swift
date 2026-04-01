@@ -108,29 +108,11 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             
             var menu: [UIMenuElement] = [openMenu]
             
-            // MARK: Entitlement Menu
-            /*if let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application?.executablePath) {
-                let entitlement: PEEntitlement = TrustCache.shared().getEntitlementsForHash(entHash)
-                var entMenuItems: [UIMenu] = []
-                
-                for entry in self.entitlementsContextMenuMappings {
-                    let keyComponents: [String] = entry.key.components(separatedBy: ":")
-                    let subMenuTitle: String = keyComponents[0]
-                    let subMenuImageName: String = keyComponents[1]
-                    let subMenuItems: [(String,PEEntitlement)] = entry.value
-                    var children: [UIMenuElement] = []
-                    for subMenuItem in subMenuItems {
-                        children.append(self.createEntitlementButton(title: subMenuItem.0, entitlement: entitlement, targetEntitlement: subMenuItem.1, application: application))
-                    }
-                    entMenuItems.append(UIMenu(title: subMenuTitle, image: UIImage(systemName: subMenuImageName), children: children))
-                }
-                
-                let entMenu: UIMenu = UIMenu(title: "Entitlements", image: UIImage(systemName: "checkmark.seal.text.page.fill"), children: entMenuItems)
-                menu.append(entMenu)
-            }*/
-            
             let entitlementsPatchAction = UIAction(title: "Patch Entitlements", image: UIImage(systemName: "bandage.fill")) { _ in
-                let machOViewController: MachOPatcherViewController = MachOPatcherViewController(machOPath: application?.executablePath ?? "")
+                guard let application = application else { return }
+                let machOViewController: MachOPatcherViewController = MachOPatcherViewController(machOPath: application.executablePath) {
+                    PEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
+                }
                 let navMachOViewController: UINavigationController = UINavigationController(rootViewController: machOViewController)
                 navMachOViewController.modalPresentationStyle = .formSheet
                 self.present(navMachOViewController, animated: true)
