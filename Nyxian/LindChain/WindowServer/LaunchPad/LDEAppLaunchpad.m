@@ -26,66 +26,6 @@
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 #import <LindChain/Services/containerd/PEContainer.h>
 
-NSArray *entitlementsMenuStructure = @[
-    @{
-        @"title": @"Task Port (iOS 26.0 Only)",
-        @"icon": @"powerplug.portrait.fill",
-        @"items": @[
-            @{@"name": @"Get Task Allowed", @"value": @(PEEntitlementGetTaskAllowed)},
-            @{@"name": @"Task for Pid", @"value": @(PEEntitlementTaskForPid)}
-        ]
-    },
-    @{
-        @"title": @"Process",
-        @"icon": @"cable.coaxial",
-        @"items": @[
-            @{@"name": @"Enumeration", @"value": @(PEEntitlementProcessEnumeration)},
-            @{@"name": @"Kill", @"value": @(PEEntitlementProcessKill)},
-            @{@"name": @"Spawn (Unsigned)", @"value": @(PEEntitlementProcessSpawn)},
-            @{@"name": @"Spawn (Signed Only)", @"value": @(PEEntitlementProcessSpawnSignedOnly)},
-            @{@"name": @"Spawn (Inherite Entitlements)", @"value": @(PEEntitlementProcessSpawnInheriteEntitlements)},
-            @{@"name": @"Elevate", @"value": @(PEEntitlementProcessElevate)}
-        ]
-    },
-    @{
-        @"title": @"Host",
-        @"icon": @"pc",
-        @"items": @[
-            @{@"name": @"Host Manager", @"value": @(PEEntitlementHostManager)},
-            //@{@"name": @"Credentials Manager", @"value": @(PEEntitlementCredentialsManager)}
-        ]
-    },
-    @{
-        @"title": @"LaunchServices",
-        @"icon": @"bolt.fill",
-        @"items": @[
-            /*@{@"name": @"Start", @"value": @(PEEntitlementLaunchServicesStart)},
-            @{@"name": @"Stop", @"value": @(PEEntitlementLaunchServicesStop)},
-            @{@"name": @"Toggle", @"value": @(PEEntitlementLaunchServicesToggle)},*/
-            @{@"name": @"Get Endpoint", @"value": @(PEEntitlementLaunchServicesGetEndpoint)},
-            //@{@"name": @"Manager", @"value": @(PEEntitlementLaunchServicesManager)}
-        ]
-    },
-    /*@{
-        @"title": @"TrustCache",
-        @"icon": @"tray.full.fill",
-        @"items": @[
-            @{@"name": @"Read", @"value": @(PEEntitlementTrustCacheRead)},
-            @{@"name": @"Write", @"value": @(PEEntitlementTrustCacheWrite)},
-            @{@"name": @"Manager", @"value": @(PEEntitlementTrustCacheManager)}
-        ]
-    },*/
-    @{
-        @"title": @"Misc",
-        @"icon": @"ellipsis",
-        @"items": @[
-            @{@"name": @"Platform", @"value": @(PEEntitlementPlatform)},
-            //@{@"name": @"Enforce Device Spoof", @"value": @(PEEntitlementEnforceDeviceSpoof)},
-            @{@"name": @"DYLD Hide LiveProcess", @"value": @(PEEntitlementDyldHideLiveProcess)}
-        ]
-    }
-];
-
 @interface LDEAppLaunchpad ()
 
 @property (nonatomic, strong) UICollectionView *collectionView;
@@ -398,31 +338,6 @@ NSArray *entitlementsMenuStructure = @[
             [[LDEApplicationWorkspace shared] clearContainerForBundleID:app.bundleID];
         }];
         [subMenus addObject:(UIMenu*)clearContainer];
-        
-        LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForBundleID:app.bundleID];
-        //NSString *entHash = [[LDETrust shared] entHashOfExecutableAtPath:applicationObject.executablePath];
-        //PEEntitlement entitlement = [[TrustCache shared] getEntitlementsForHash:entHash];
-        
-        for(NSDictionary *category in entitlementsMenuStructure)
-        {
-            NSString *title = category[@"title"];
-            NSString *iconName = category[@"icon"];
-            NSArray *items = category[@"items"];
-            
-            NSMutableArray<UIAction *> *actions = [NSMutableArray array];
-            
-            for(NSDictionary *item in items)
-            {
-                NSString *name = item[@"name"];
-                NSNumber *value = item[@"value"];
-                //[actions addObject:[self createEntitlementActionWithTitle:name withCurrentEntitlement:entitlement withTargetEntitlement:value.unsignedLongLongValue withApplication:applicationObject]];
-            }
-            
-            UIImage *menuIcon = [UIImage systemImageNamed:iconName];
-            UIMenu *submenu = [UIMenu menuWithTitle:title image:menuIcon identifier:nil options:0 children:actions];
-            [entMenus addObject:submenu];
-        }
-        [subMenus addObject:[UIMenu menuWithTitle:@"Entitlements" image:[UIImage systemImageNamed:@"checkmark.seal.text.page.fill"] identifier:nil options:UIMenuOptionsSingleSelection children:entMenus]];
         
         UIAction *deleteAction = [UIAction actionWithTitle:@"Uninstall" image:[UIImage systemImageNamed:@"trash.fill"] identifier:nil handler:^(UIAction *action) {
             [[LDEApplicationWorkspace shared] deleteApplicationWithBundleID:app.bundleID];
