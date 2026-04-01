@@ -47,6 +47,22 @@ let iOSVersions: [String] = [
     "26.0", "26.1", "26.2", "26.3", "26.4", "26.5"
 ]
 
+func closestIOSVersion(to input: String) -> String? {
+    func numericValue(_ version: String) -> Double {
+        let parts = version.split(separator: ".").compactMap { Double($0) }
+        let major = parts.count > 0 ? parts[0] : 0
+        let minor = parts.count > 1 ? parts[1] : 0
+        let patch = parts.count > 2 ? parts[2] : 0
+        return major * 1_000_000 + minor * 1_000 + patch
+    }
+
+    let target = numericValue(input)
+
+    return iOSVersions.min(by: {
+        abs(numericValue($0) - target) < abs(numericValue($1) - target)
+    })
+}
+
 class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelegate, UIPickerViewDataSource {
 
     var selectedVersion: String
@@ -58,6 +74,7 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
     private let pickerTitle: String
 
     init(title: String, selectedVersion: String) {
+        let selectedVersion = closestIOSVersion(to: selectedVersion) ?? selectedVersion // very smart math to get the closest valid iOS version
         self.pickerTitle = title
         self.selectedVersion = selectedVersion
         super.init(nibName: nil, bundle: nil)
