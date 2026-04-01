@@ -165,6 +165,7 @@
 
 - (void)focusWindowForIdentifier:(id_t)identifier
 {
+    assert([NSThread isMainThread]);
     NXWindow *window = self.windows[@(identifier)];
     if (!window) return;
     [window focusWindow];
@@ -172,12 +173,22 @@
 
 - (NXWindowSession*)windowSessionForIdentifier:(id_t)identifier
 {
+    assert([NSThread isMainThread]);
     NXWindow *window = self.windows[@(identifier)];
     if(window != nil)
     {
         return window.session;
     }
     return nil;
+}
+
+- (void)unfocusFocusedWindow
+{
+    assert([NSThread isMainThread]);
+    if(_activeWindow != nil)
+    {
+        [_activeWindow unfocusWindow];
+    }
 }
 
 - (void)openWindowWithSession:(NXWindowSession*)session

@@ -254,3 +254,40 @@ extension UIBarButtonItem {
         return item
     }
 }
+
+extension UIViewController {
+    static let swizzlePresentOnce: Void = {
+        let originalSelector = #selector(UIViewController.present(_:animated:completion:))
+        let swizzledSelector = #selector(UIViewController.swizzled_present(_:animated:completion:))
+
+        guard
+            let originalMethod = class_getInstanceMethod(UIViewController.self, originalSelector),
+            let swizzledMethod = class_getInstanceMethod(UIViewController.self, swizzledSelector)
+        else { return }
+        
+        let didAdd = class_addMethod(UIViewController.self, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
+
+        if didAdd {
+            class_replaceMethod(UIViewController.self, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
+        } else {
+            method_exchangeImplementations(originalMethod, swizzledMethod)
+        }
+    }()
+
+    @objc func swizzled_present(
+        _ viewControllerToPresent: UIViewController,
+        animated: Bool,
+        completion: (() -> Void)? = nil
+    ) {
+        let isPicker = String(describing: type(of: viewControllerToPresent)).lowercased().contains("picker")
+        
+        if viewControllerToPresent is UIThemedViewController ||
+            viewControllerToPresent is UIThemedTableViewController ||
+            viewControllerToPresent is UINavigationController ||
+            isPicker {
+            NXWindowServer.shared().unfocusFocusedWindow()
+        }
+        
+        swizzled_present(viewControllerToPresent, animated: animated, completion: completion)
+    }
+}

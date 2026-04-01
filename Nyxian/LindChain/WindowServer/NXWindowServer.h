@@ -54,6 +54,7 @@
 
 - (void)focusWindowForIdentifier:(id_t)identifier;
 - (NXWindowSession*)windowSessionForIdentifier:(id_t)identifier;
+- (void)unfocusFocusedWindow;
 
 - (void)showAppSwitcherExternal;
 
