@@ -126,7 +126,10 @@ bool fork_helper_thread_trap(void)
 #pragma mark - fork() fix
 
 // MARK: The first pass returns 0, call to execl() or similar will result in the callers thread being restored
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 DEFINE_HOOK(vfork, pid_t, (void)) __attribute__((optnone))
+#pragma GCC diagnostic pop
 {
     /*
      * allocating local thread snapshot, which
@@ -397,7 +400,10 @@ DEFINE_HOOK(waitpid, pid_t, (pid_t pid,
 
 void environment_vfork_init(void)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     DO_HOOK_GLOBAL(vfork);
+#pragma GCC diagnostic pop
     DO_HOOK_GLOBAL(execl);
     DO_HOOK_GLOBAL(execle);
     DO_HOOK_GLOBAL(execlp);
