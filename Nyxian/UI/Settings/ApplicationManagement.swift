@@ -111,7 +111,9 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
             let entitlementsPatchAction = UIAction(title: "Patch Entitlements", image: UIImage(systemName: "bandage.fill")) { _ in
                 guard let application = application else { return }
                 let machOViewController: MachOPatcherViewController = MachOPatcherViewController(machOPath: application.executablePath) {
-                    PEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
+                    if PEProcessManager.shared().process(forBundleIdentifier: application.bundleIdentifier) != nil {
+                        PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: true)
+                    }
                 }
                 let navMachOViewController: UINavigationController = UINavigationController(rootViewController: machOViewController)
                 navMachOViewController.modalPresentationStyle = .formSheet

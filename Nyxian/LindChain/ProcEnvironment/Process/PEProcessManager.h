@@ -42,6 +42,9 @@
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid;
+#if !JAILBREAK_ENV
+- (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier;
+#endif /* !JAILBREAK_ENV */
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
 
 @end

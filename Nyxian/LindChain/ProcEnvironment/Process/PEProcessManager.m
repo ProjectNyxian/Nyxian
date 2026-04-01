@@ -261,6 +261,29 @@
     return [self.processes objectForKey:@(pid)];
 }
 
+#if !JAILBREAK_ENV
+- (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier
+{
+    PEProcess *existingProcess = nil;
+    
+    os_unfair_lock_lock(&processes_array_lock);
+    
+    for(NSNumber *key in self.processes)
+    {
+        PEProcess *process = self.processes[key];
+        if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
+        {
+            existingProcess = process;
+            break;
+        }
+    }
+    
+    os_unfair_lock_unlock(&processes_array_lock);
+    
+    return existingProcess;
+}
+#endif /* !JAILBREAK_ENV */
+
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
     /* locking */
