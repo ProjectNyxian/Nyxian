@@ -306,11 +306,6 @@ int macho_after_sign(const char *path,
 int macho_after_sign_fd(int fd, PEEntitlement entitlement)
 {
     char *cdhash = cd_hash_of_executable_at_fd(fd);
-    if(!cdhash)
-    {
-        return -1;
-    }
-
     ksurface_ent_blob_t token;
     if(entitlement_token_mach_gen(&token, cdhash, entitlement) != SURFACE_SUCCESS)
     {
@@ -353,10 +348,10 @@ int macho_read_token(int fd,
                      ksurface_ent_result_t *mach)
 {
     bzero(mach, sizeof(ksurface_ent_result_t));
-
+    
     char tag[4];
     uint32_t len;
-
+    
     if(lseek(fd, -4, SEEK_END) < 0)
     {
         return -1;
@@ -365,12 +360,12 @@ int macho_read_token(int fd,
     {
         return -1;
     }
-
+    
     if(memcmp(tag, APPEND_TAG, 4) != 0)
     {
         return -1;
     }
-
+    
     if(lseek(fd, -8, SEEK_END) < 0)
     {
         return -1;
@@ -379,7 +374,7 @@ int macho_read_token(int fd,
     {
         return -1;
     }
-
+    
     if(lseek(fd, -(off_t)(8 + len), SEEK_END) < 0)
     {
         return -1;
@@ -393,13 +388,14 @@ int macho_read_token(int fd,
     char *hash = cd_hash_of_executable_at_fd(fd);
     if(hash == NULL)
     {
-        return -1;
+        mach->cdhash_valid = false;
+        goto out_no_cdhas;
     }
-    
-    if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
+    else if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
         free(hash);
         mach->cdhash_valid = true;
+    out_no_cdhas:
         return 0;
     }
     

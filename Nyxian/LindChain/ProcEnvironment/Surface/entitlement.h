@@ -145,5 +145,7 @@ struct ksurface_ent_result {
 
 ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob, const char *cdhash, PEEntitlement entitlement);
 ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach, uint8_t *pub_key, size_t pub_key_len);
+PEEntitlement entitlement_get_path(const char *path, bool *wasLocallySigned);
+bool entitlement_set_path(const char *path, PEEntitlement entitlement);
 
 #endif /* PROC_ENTITLEMENT_H */

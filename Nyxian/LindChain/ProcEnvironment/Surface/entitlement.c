@@ -35,7 +35,10 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
                                              PEEntitlement entitlement)
 {
     /* copy cdhash and entitlements over */
-    memcpy((void*)(blob->cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
+    if(cdhash != NULL)
+    {
+        memcpy((void*)(blob->cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
+    }
     blob->entitlement = entitlement;
     
     /* generating nonce so it's harder to crack */
@@ -125,4 +128,39 @@ ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
     }
     
     return SURFACE_SUCCESS;
+}
+
+PEEntitlement entitlement_get_path(const char *path,
+                                   bool *wasLocallySigned)
+{
+    int fd = open(path, O_RDONLY);
+    if(fd < 0)
+    {
+        return PEEntitlementNone;
+    }
+    
+    ksurface_ent_result_t mach;
+    macho_read_token(fd, &mach);
+    close(fd);
+    
+    ksurface_return_t ksr = entitlement_mach_verify(&mach, ksurface->pub_key, ksurface->pub_key_len);
+    *wasLocallySigned = (ksr == SURFACE_SUCCESS);
+    
+    return mach.blob.entitlement;
+}
+
+bool entitlement_set_path(const char *path,
+                          PEEntitlement entitlement)
+{
+    int fd = open(path, O_RDWR);
+    if(fd < 0)
+    {
+        return false;
+    }
+    
+    int retval = macho_after_sign_fd(fd, entitlement);
+    fsync(fd);
+    close(fd);
+    
+    return (retval == 0);
 }
