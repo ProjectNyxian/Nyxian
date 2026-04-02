@@ -24,6 +24,39 @@ import UniformTypeIdentifiers
 
 #if !JAILBREAK_ENV
 
+extension PEEntitlement {
+    var displayString: String {
+        guard self.rawValue != 0 else { return "None" }
+        
+        let flags: [(PEEntitlement, String)] = [
+            (.getTaskAllowed, "Get Task Allowed"),
+            (.taskForPid, "Task For Pid"),
+            (.processEnumeration, "Process Enumeration"),
+            (.processKill, "Process Kill"),
+            (.processSpawn, "Process Spawn"),
+            (.processSpawnSignedOnly, "Process Spawn (Signed Only)"),
+            (.processElevate, "Process Elevate"),
+            (.hostManager, "Host Manager"),
+            (.credentialsManager, "Credentials Manager"),
+            (.launchServicesStart, "Launch Services: Start"),
+            (.launchServicesStop, "Launch Services: Stop"),
+            (.launchServicesToggle, "Launch Services: Toggle"),
+            (.launchServicesGetEndpoint, "Launch Services: Get Endpoint"),
+            (.launchServicesSetEndpoint, "Launch Services: Set Endpoint"),
+            (.dyldHideLiveProcess, "DYLD Hide Live Process"),
+            (.processSpawnInheriteEntitlements, "Spawn Inherits Entitlements"),
+            (.platform, "Platform"),
+            (.platformRoot, "Platform Root"),
+        ]
+        
+        let matched = flags.filter { self.contains($0.0) }.map { "  • \($0.1)" }
+        
+        let hex = String(self.rawValue, radix: 16, uppercase: true)
+        let lines = ["0x\(hex):"] + matched
+        return lines.joined(separator: "\n")
+    }
+}
+
 class ApplicationManagementViewController: UIThemedTableViewController, UITextFieldDelegate, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
     @objc static var shared: ApplicationManagementViewController = ApplicationManagementViewController(style: .insetGrouped)
     var applications: [LDEApplicationObject] = []
@@ -148,34 +181,97 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     return
                 }
                 
-                LCUtils.signAppBundle(withZSign: bundle.bundleURL) { result, error in
-                    if result,
-                       LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
-                        DispatchQueue.main.async {
-                            PEProcessManager.shared().spawnProcess(withBundleIdentifier: bundle.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: false)
+                guard let executablePath = bundle.executablePath else {
+                    NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid executable path")
+                    return
+                }
+                
+                var wasSignedLocally: Bool = false
+                let ent: PEEntitlement = entitlement_get_path((executablePath as NSString).utf8String, &wasSignedLocally)
+                
+                // Gated :3
+                let proceedWithInstall = {
+                    DispatchQueue.main.async {
+                        let alert = UIAlertController(title: nil, message: "Installing", preferredStyle: .alert)
+
+                        let activityIndicator = UIActivityIndicatorView(style: .medium)
+                        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+                        activityIndicator.startAnimating()
+
+                        alert.view.addSubview(activityIndicator)
+
+                        NSLayoutConstraint.activate([
+                            activityIndicator.centerYAnchor.constraint(equalTo: alert.view.centerYAnchor),
+                            activityIndicator.trailingAnchor.constraint(equalTo: alert.view.trailingAnchor, constant: -20)
+                        ])
+
+                        self.present(alert, animated: true)
+
+                        DispatchQueue.global().async {
+                            LCUtils.signAppBundle(withZSign: bundle.bundleURL) { result, error in
+                                if result {
+                                    if !wasSignedLocally {
+                                        entitlement_set_path((executablePath as NSString).utf8String, ent)
+                                    }
+
+                                    if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
+                                        DispatchQueue.main.async {
+                                            alert.dismiss(animated: true) {
+                                                PEProcessManager.shared().spawnProcess(
+                                                    withBundleIdentifier: bundle.bundleIdentifier,
+                                                    withItems: [:],
+                                                    withKernelSurfaceProcess: nil,
+                                                    doRestartIfRunning: true
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        DispatchQueue.main.async {
+                                            alert.dismiss(animated: true) {
+                                                NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    DispatchQueue.main.async {
+                                        alert.dismiss(animated: true) {
+                                            NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    } else {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
                     }
                 }
+                
+                guard ent.rawValue != 0 else {
+                    // If the app does not want anything special then it shall be granted
+                    _ = proceedWithInstall()
+                    return
+                }
+                
+                // The app indeed wants something bruh
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(
+                        title: "App Requests Entitlements",
+                        message: "This app requests the following entitlements:\n\n\(ent.displayString)\n\nDo you want to proceed with installation?",
+                        preferredStyle: .alert
+                    )
+                    
+                    alert.addAction(UIAlertAction(title: "Install", style: .default) { _ in
+                        DispatchQueue.global().async {
+                            _ = proceedWithInstall()
+                        }
+                    })
+                    
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    
+                    self.present(alert, animated: true)
+                }
+                
             } catch {
                 NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
             }
-        }
-    }
-    
-    private func createEntitlementButton(title: String, entitlement: PEEntitlement, targetEntitlement: PEEntitlement, application: LDEApplicationObject?) -> UIAction {
-        var entitlement: PEEntitlement = entitlement
-        return UIAction(title: title, image: UIImage(systemName: entitlement.contains(targetEntitlement) ? "checkmark.circle.fill" : "circle")) { [weak application] _ in
-            guard let application = application else { return }
-            if entitlement.contains(targetEntitlement) {
-                entitlement.remove(targetEntitlement)
-            } else {
-                entitlement.insert(targetEntitlement)
-            }
-            //let entHash: String = LDETrust.shared().entHashOfExecutable(atPath: application.executablePath)
-            //TrustCache.shared().setEntitlementsForHash(entHash, usingEntitlements: entitlement)
-            PEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
         }
     }
     
