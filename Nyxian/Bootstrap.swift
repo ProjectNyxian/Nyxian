@@ -28,7 +28,7 @@ import Foundation
 #else
     let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
-    let newestBootstrapVersion: Int = 12
+    let newestBootstrapVersion: Int = 15
     
     // Paths that we for sure do not need
     let bootstrapDeletionIfFoundPaths: [String] = [
@@ -215,6 +215,24 @@ import Foundation
                         }
                         
                         self.bootstrapVersion = 12
+                    }
+                    
+                    if self.bootstrapVersion < 15 {
+                        // Permission fixup for the DOS zip vulnerability
+                        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+                        let fm = FileManager.default
+                        guard let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: nil) else { return }
+                        
+                        try? fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+                        
+                        for case let fileURL as URL in enumerator {
+                            var isDir: ObjCBool = false
+                            fm.fileExists(atPath: fileURL.path, isDirectory: &isDir)
+                            let perms: Int = isDir.boolValue ? 0o755 : 0o644
+                            try? fm.setAttributes([.posixPermissions: perms], ofItemAtPath: fileURL.path)
+                        }
+                        
+                        self.bootstrapVersion = 15
                     }
                 }
                 

@@ -97,8 +97,7 @@ BOOL unzipArchiveAtPath(NSString *zipPath, NSString *destinationPath) {
     archive_read_support_filter_all(a);
 
     ext = archive_write_disk_new();
-    archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM |
-                                        ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS);
+    archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS);
 
     if ((r = archive_read_open_filename(a, [zipPath fileSystemRepresentation], 10240))) {
         NSLog(@"archive_read_open_filename() failed: %s", archive_error_string(a));
@@ -111,6 +110,7 @@ BOOL unzipArchiveAtPath(NSString *zipPath, NSString *destinationPath) {
         NSString *fullPath = [destinationPath stringByAppendingPathComponent:
                               [NSString stringWithUTF8String:archive_entry_pathname(entry)]];
         archive_entry_set_pathname(entry, [fullPath fileSystemRepresentation]);
+        archive_entry_set_perm(entry, 0777);
         r = archive_write_header(ext, entry);
         if (r == ARCHIVE_OK) {
             const void *buff;
@@ -140,8 +140,7 @@ BOOL unzipArchiveFromFileDescriptor(int fd, NSString *destinationPath) {
     archive_read_support_filter_all(a);
 
     ext = archive_write_disk_new();
-    archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM |
-                                        ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS);
+    archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS);
 
     // Open archive from file descriptor
     if ((r = archive_read_open_fd(a, fd, 10240))) { // block size = 10240
@@ -155,6 +154,7 @@ BOOL unzipArchiveFromFileDescriptor(int fd, NSString *destinationPath) {
         NSString *fullPath = [destinationPath stringByAppendingPathComponent:
                               [NSString stringWithUTF8String:archive_entry_pathname(entry)]];
         archive_entry_set_pathname(entry, [fullPath fileSystemRepresentation]);
+        archive_entry_set_perm(entry, 0777);
         r = archive_write_header(ext, entry);
         if (r == ARCHIVE_OK) {
             const void *buff;
