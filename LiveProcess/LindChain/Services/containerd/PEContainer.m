@@ -667,13 +667,13 @@
     FDObject *object = [self fdObjectForItemAtPath:path withFlags:O_RDWR withMode:0];
     if(object == nil)
     {
-        return PEEntitlementNone;
+        return false;
     }
     
     int fd = [object dup];
     if(fd < 0)
     {
-        return PEEntitlementNone;
+        return false;
     }
     
     int retval = macho_after_sign_fd(fd, entitlement);
