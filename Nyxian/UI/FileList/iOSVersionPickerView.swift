@@ -69,7 +69,6 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
     var onVersionSelected: ((String) -> Void)?
 
     private let pickerView = UIPickerView()
-    private let titleLabel = UILabel()
 
     private let pickerTitle: String
 
@@ -87,19 +86,6 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
         
         self.title = pickerTitle
         
-        if #available(iOS 13.0, *) {
-            view.backgroundColor = .systemGroupedBackground
-        } else {
-            view.backgroundColor = .groupTableViewBackground
-        }
-        
-        titleLabel.text = pickerTitle
-        titleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        titleLabel.textColor = .secondaryLabel
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
-        
         pickerView.delegate = self
         pickerView.dataSource = self
         pickerView.translatesAutoresizingMaskIntoConstraints = false
@@ -109,11 +95,7 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
         pickerView.selectRow(idx, inComponent: 0, animated: false)
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
-            pickerView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            pickerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             pickerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             pickerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
