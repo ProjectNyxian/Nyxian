@@ -166,7 +166,14 @@
             }
             else if(windowSession.window != nil)
             {
-                [windowSession.window focusWindow];
+                if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+                {
+                    [[NXWindowServer shared] activateWindowForIdentifier:windowSession.windowIdentifier animated:true withCompletion:nil];
+                }
+                else
+                {
+                    [windowSession.window focusWindow];
+                }
                 return existingProcess.pid;
             }
             else
