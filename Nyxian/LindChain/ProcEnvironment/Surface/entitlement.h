@@ -135,9 +135,8 @@ struct __attribute__((packed)) ksurface_ent_blob {
     size_t mac_len;
 };
 
-struct __attribute__((packed)) ksurface_ent_result {
+struct ksurface_ent_result {
     struct ksurface_ent_blob blob;
-    char cdhash[USER_FSIGNATURES_CDHASH_LEN];
     bool cdhash_valid;
     bool blob_valid;
 };

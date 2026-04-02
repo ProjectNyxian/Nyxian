@@ -396,8 +396,6 @@ int macho_read_token(int fd,
         return -1;
     }
     
-    strncpy(mach->cdhash, hash, USER_FSIGNATURES_CDHASH_LEN);
-    
     if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
         free(hash);
