@@ -479,8 +479,13 @@ import UniformTypeIdentifiers
                 }
             }
             
-            return UIMenu(children: [UIMenu(options: .displayInline, children: [copyAction, moveAction, renameAction]),
-                                     UIMenu(options: .displayInline, children: [shareAction, deleteAction])])
+            if self.isReadOnly {
+                return UIMenu(children: [UIMenu(options: .displayInline, children: [copyAction]),
+                                         UIMenu(options: .displayInline, children: [shareAction])])
+            } else {
+                return UIMenu(children: [UIMenu(options: .displayInline, children: [copyAction, moveAction, renameAction]),
+                                         UIMenu(options: .displayInline, children: [shareAction, deleteAction])])
+            }
         }
     }
     
