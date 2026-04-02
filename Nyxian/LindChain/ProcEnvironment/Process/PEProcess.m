@@ -91,12 +91,7 @@
     if(applicationObject != nil)
     {
         self.bundleIdentifier = applicationObject.bundleIdentifier;
-        
-#if !JAILBREAK_ENV
-        self.displayName = applicationObject.displayName;
-#else
         self.displayName = applicationObject.localizedName;
-#endif
     }
     else
     {

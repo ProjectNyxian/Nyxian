@@ -363,7 +363,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [[ApplicationManagementViewController shared] applicationWasInstalled:app];
         LDEAppLaunchpad *launchPad = [[NXWindowServer shared] getOrCreateLaunchpad];
-        [launchPad registerAppWithBundleID:app.bundleIdentifier displayName:app.displayName icon:app.icon appPath:app.executablePath];
+        [launchPad registerAppWithBundleID:app.bundleIdentifier displayName:app.localizedName icon:app.icon appPath:app.executablePath];
     });
 }
 

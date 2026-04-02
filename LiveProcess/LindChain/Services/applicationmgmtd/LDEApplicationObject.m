@@ -42,7 +42,7 @@
     {
         localizedDisplayName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
     }
-    self.displayName = NSLocalizedStringFromTableInBundle(localizedDisplayName, @"InfoPlist", bundle, localizedDisplayName);
+    self.localizedName = NSLocalizedStringFromTableInBundle(localizedDisplayName, @"InfoPlist", bundle, localizedDisplayName);
     self.isLaunchAllowed = [[LDEApplicationWorkspaceInternal shared] doWeTrustThatBundle:bundle];
     if(self.isLaunchAllowed)
     {
@@ -83,7 +83,7 @@
     [coder encodeObject:self.bundleIdentifier forKey:@"bundleIdentifier"];
     [coder encodeObject:self.bundlePath forKey:@"bundlePath"];
     [coder encodeObject:self.executablePath forKey:@"executablePath"];
-    [coder encodeObject:self.displayName forKey:@"displayName"];
+    [coder encodeObject:self.localizedName forKey:@"localizedName"];
     [coder encodeObject:self.containerPath forKey:@"containerPath"];
     [coder encodeObject:self.icon forKey:@"icon"];
     [coder encodeObject:@(self.isLaunchAllowed) forKey:@"isLaunchAllowed"];
@@ -96,7 +96,7 @@
         _bundleIdentifier = [coder decodeObjectOfClass:[NSString class] forKey:@"bundleIdentifier"];
         _bundlePath = [coder decodeObjectOfClass:[NSString class] forKey:@"bundlePath"];
         _executablePath = [coder decodeObjectOfClass:[NSString class] forKey:@"executablePath"];
-        _displayName = [coder decodeObjectOfClass:[NSString class] forKey:@"displayName"];
+        _localizedName = [coder decodeObjectOfClass:[NSString class] forKey:@"localizedName"];
         _containerPath = [coder decodeObjectOfClass:[NSString class] forKey:@"containerPath"];
         _icon = [coder decodeObjectOfClass:[UIImage class] forKey:@"icon"];
         _isLaunchAllowed = [[coder decodeObjectOfClass:[NSNumber class] forKey:@"isLaunchAllowed"] boolValue];
