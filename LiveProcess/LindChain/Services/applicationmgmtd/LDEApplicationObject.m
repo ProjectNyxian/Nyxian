@@ -118,32 +118,3 @@
 }
 
 @end
-
-@implementation LDEApplicationObjectArray
-
-- (instancetype)initWithApplicationObjects:(NSArray<LDEApplicationObject *> *)applicationObjects
-{
-    self = [super init];
-    _applicationObjects = applicationObjects;
-    return self;
-}
-
-+ (BOOL)supportsSecureCoding {
-    return YES;
-}
-
-- (void)encodeWithCoder:(nonnull NSCoder *)coder {
-    [coder encodeObject:self.applicationObjects forKey:@"appObjs"];
-}
-
-- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder {
-    if(self = [super init])
-    {
-        _applicationObjects = [coder decodeObjectOfClasses:[NSSet setWithObjects:
-                    [NSArray class], [LDEApplicationObject class], nil]
-                                                            forKey:@"appObjs"];
-    }
-    return self;
-}
-
-@end

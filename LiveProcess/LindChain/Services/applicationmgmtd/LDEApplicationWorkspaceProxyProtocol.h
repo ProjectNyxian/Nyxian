@@ -33,7 +33,6 @@
 - (void)applicationInstalledWithBundleID:(NSString*)bundleID withReply:(void (^)(BOOL))reply;
 - (void)applicationObjectForBundleID:(NSString*)bundleID withReply:(void (^)(LDEApplicationObject*))reply;
 - (void)applicationContainerForBundleID:(NSString*)bundleID withReply:(void (^)(NSURL*))reply;
-- (void)allApplicationObjectsWithReply:(void (^)(LDEApplicationObjectArray *))reply;
 - (void)clearContainerForBundleID:(NSString*)bundleID withReply:(void (^)(BOOL))reply;
 - (void)fastpathUtility:(FDObject*)object withName:(NSString*)name withReply:(void (^)(NSString*,BOOL))reply;
 - (void)applicationObjectForExecutablePath:(NSString*)executablePath withReply:(void (^)(LDEApplicationObject*))reply;

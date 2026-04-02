@@ -42,12 +42,4 @@
 
 @end
 
-@interface LDEApplicationObjectArray : NSObject <NSSecureCoding>
-
-@property (nonatomic) NSArray<LDEApplicationObject*> *applicationObjects;
-
-- (instancetype)initWithApplicationObjects:(NSArray<LDEApplicationObject*>*)applicationObjects;
-
-@end
-
 #endif /* LDEAPPLICATIONOBJECT_H */

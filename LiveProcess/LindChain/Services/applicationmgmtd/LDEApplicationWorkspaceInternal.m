@@ -520,19 +520,6 @@ create_home:
     reply([[LDEApplicationWorkspaceInternal shared] applicationContainerForBundleID:bundleID]);
 }
 
-- (void)allApplicationObjectsWithReply:(void (^)(LDEApplicationObjectArray *))reply {
-    LDEApplicationWorkspaceInternal *workspace = [LDEApplicationWorkspaceInternal shared];
-    NSMutableArray<LDEApplicationObject*> *objects = [NSMutableArray array];
-    for (NSString *bundleID in workspace.bundles) {
-        NSBundle *bundle = workspace.bundles[bundleID];
-        if (bundle) {
-            [objects addObject:[[LDEApplicationObject alloc] initWithNSBundle:bundle]];
-        }
-    }
-    
-    reply([[LDEApplicationObjectArray alloc] initWithApplicationObjects:[objects copy]]);
-}
-
 - (void)clearContainerForBundleID:(NSString *)bundleID
                         withReply:(void (^)(BOOL))reply
 {
