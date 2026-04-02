@@ -36,10 +36,6 @@ import Foundation
         "/Certificates"
     ]
     
-    let bundleFixupExecutablePaths: [String] = [
-        "/tshelper"
-    ]
-    
     var bootstrapPlistPath: String {
         bootstrapPath("/bootstrap.plist")
     }
