@@ -314,8 +314,10 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
     ksurface_ent_blob_t token;
     if(entitlement_token_mach_gen(&token, cdhash, entitlement) != SURFACE_SUCCESS)
     {
+        free(cdhash);
         return -1;
     }
+    free(cdhash);
 
     long offset = find_append_offset_for_file(fd);
     
@@ -398,9 +400,11 @@ int macho_read_token(int fd,
     
     if(strncmp(hash, mach->blob.cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
     {
+        free(hash);
         mach->cdhash_valid = true;
         return 0;
     }
-
+    
+    free(hash);
     return -1;
 }
