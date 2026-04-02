@@ -122,6 +122,18 @@ force_not_inherite_entitlements:
         currentEntitlement = PEEntitlementNone;
     }
     
+    /* checking for special platform root */
+    if(entitlement_got_entitlement(entitlement, PEEntitlementPlatformRoot) &&
+       entitlement_got_entitlement(entitlement, PEEntitlementPlatform))
+    {
+        /*
+         * process exeuctable is platform binary and has
+         * the special platform root entitlement, meaning
+         * elevating ucred to root user.
+         */
+        proc_setrootcred(child);
+    }
+    
     /*
      * now combining the current eneitlements
      * and the entitlements of the executable.
