@@ -29,42 +29,6 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     var applications: [LDEApplicationObject] = []
     static let lock: NSLock = NSLock()
     
-    let entitlementsContextMenuMappings: [(key: String, value: [(String, PEEntitlement)])] = [
-        ("Task Port (iOS 26.0 Only):powerplug.portrait.fill", [
-            ("Get Task Allowed", .getTaskAllowed),
-            ("Task For Pid", .taskForPid)
-        ]),
-        ("Process:cable.coaxial", [
-            ("Enumeration", .processEnumeration),
-            ("Kill", .processKill),
-            ("Spawn", .processSpawn),
-            ("Spawn (Signed Only)", .processSpawnSignedOnly),
-            ("Spawn (Inherite Entitlements)", .processSpawnInheriteEntitlements),
-            ("Elevate", .processElevate)
-        ]),
-        ("Host:pc", [
-            ("Host Manager", .hostManager),
-            //("Credentials Manager", .credentialsManager)
-        ]),
-        ("LaunchServices:bolt.fill", [
-            /*("Start", .launchServicesStart),
-            ("Stop", .launchServicesStop),
-            ("Toggle", .launchServicesToggle),*/
-            ("Get Endpoint", .launchServicesGetEndpoint),
-            //("Manager", .launchServicesManager),
-        ]),
-        /*("TrustCache:tray.full.fill", [
-            ("Read", .trustCacheRead),
-            ("Write", .trustCacheWrite),
-            ("Manager", .trustCacheManager)
-        ]),*/
-        ("Misc:ellipsis", [
-            ("Platform", .platform),
-            //("Enforce Device Spoof", .enforceDeviceSpoof),
-            ("DYLD Hide LiveProcess", .dyldHideLiveProcess)
-        ])
-    ]
-    
     override init(style: UITableView.Style) {
         super.init(style: style)
     }
