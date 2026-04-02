@@ -27,7 +27,7 @@ class CreditsViewController: UIThemedTableViewController {
     
 #if !JAILBREAK_ENV
     private var credits: [Credit] = [
-        Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
+        Credit(name: "Nyxia", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "LucaVmu", role: "Manager", githubURL: "https://github.com/LucaVmu"),
         Credit(name: "Duy Tran", role: "LiveContainer", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Huge_Black", role: "LiveContainer", githubURL: "https://github.com/hugeBlack"),
@@ -40,7 +40,7 @@ class CreditsViewController: UIThemedTableViewController {
     ]
 #else
     private var credits: [Credit] = [
-        Credit(name: "Frida", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
+        Credit(name: "Nyxia", role: "Maintainer", githubURL: "https://github.com/cr4zyengineer"),
         Credit(name: "LucaVmu", role: "Manager", githubURL: "https://github.com/LucaVmu"),
         Credit(name: "Duy Tran", role: "FrontBoardAppLauncher", githubURL: "https://github.com/khanhduytran0"),
         Credit(name: "Vinogradov Daniil", role: "Massive help on LLVM-On-iOS", githubURL: "https://github.com/XITRIX"),
