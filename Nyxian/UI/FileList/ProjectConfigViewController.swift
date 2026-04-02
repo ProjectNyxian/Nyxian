@@ -294,7 +294,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         var title: String {
             switch self {
                 case .minimumVersion: return "Deployment Target"
-                case .maximumVersion: return "Maximum Version"
+                case .maximumVersion: return "API Target"
             }
         }
     }
@@ -403,7 +403,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
             case .deplyment:
                 switch DeploymentRow(rawValue: indexPath.row)! {
                     case .minimumVersion: pushVersionPicker(title: "Deployment Target",  current: pendingMinVersion) { self.pendingMinVersion = $0; self.markDirty() }
-                    case .maximumVersion: pushVersionPicker(title: "Maximum Version",    current: pendingMaxVersion) { self.pendingMaxVersion = $0; self.markDirty() }
+                    case .maximumVersion: pushVersionPicker(title: "API Target",    current: pendingMaxVersion) { self.pendingMaxVersion = $0; self.markDirty() }
                 }
             case .buildFlags:
                 switch BuildFlagRow(rawValue: indexPath.row)! {
