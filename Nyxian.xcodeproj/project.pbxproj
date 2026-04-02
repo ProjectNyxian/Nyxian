@@ -134,6 +134,7 @@
 				LindChain/ProcEnvironment/panic.m,
 				LindChain/ProcEnvironment/posix_spawn.m,
 				LindChain/ProcEnvironment/Process/PEBootstrapRegistry.m,
+				LindChain/ProcEnvironment/Process/PEExtension.m,
 				LindChain/ProcEnvironment/Process/PELaunchService.m,
 				LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.m,
 				LindChain/ProcEnvironment/proxy.m,

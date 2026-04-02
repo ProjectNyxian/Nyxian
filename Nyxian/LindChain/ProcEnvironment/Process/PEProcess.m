@@ -28,6 +28,7 @@
 #if !JAILBREAK_ENV
 #import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspace.h>
 #import <LindChain/Services/containerd/PEContainer.h>
+#import <LindChain/ProcEnvironment/Process/PEExtension.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
@@ -63,18 +64,11 @@
     
     self.wid = (id_t)-1;
     
-    NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
-    if(!liveProcessBundle)
+    _extension = PEGetNSExtensionLiveProcess();
+    if(_extension == nil)
     {
         return nil;
     }
-    
-    NSError* error = nil;
-    _extension = [NSExtension extensionWithIdentifier:liveProcessBundle.bundleIdentifier error:&error];
-    if(error) {
-        return nil;
-    }
-    _extension.preferredLanguages = @[];
     
     NSExtensionItem *item = [NSExtensionItem new];
     item.userInfo = items;
