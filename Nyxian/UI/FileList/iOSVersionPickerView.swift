@@ -95,7 +95,7 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
         pickerView.selectRow(idx, inComponent: 0, animated: false)
         
         NSLayoutConstraint.activate([
-            pickerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            pickerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             pickerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             pickerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
