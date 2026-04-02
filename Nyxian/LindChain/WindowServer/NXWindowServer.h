@@ -26,15 +26,7 @@
 #import <UIKit/UIKit.h>
 #import <LindChain/WindowServer/Window/NXWindow.h>
 
-#if !JAILBREAK_ENV
-#import <LindChain/WindowServer/LaunchPad/NXAppLaunchpad.h>
-#endif /* !JAILBREAK_ENV */
-
-#if !JAILBREAK_ENV
-@interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate,NXAppLaunchpadDelegate>
-#else
 @interface NXWindowServer : UIWindow <UIGestureRecognizerDelegate,NXWindowDelegate>
-#endif /* !JAILBREAK_ENV */
 
 @property (nonatomic,strong,readonly) NSMutableDictionary<NSNumber*,NXWindow*> *windows;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *windowOrder;
@@ -57,10 +49,6 @@
 - (void)unfocusFocusedWindow;
 
 - (void)showAppSwitcherExternal;
-
-#if !JAILBREAK_ENV
-- (LDEAppLaunchpad *)getOrCreateLaunchpad;
-#endif /* !JAILBREAK_ENV */
 
 @end
 

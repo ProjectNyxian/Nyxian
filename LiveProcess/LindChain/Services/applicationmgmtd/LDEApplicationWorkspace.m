@@ -362,8 +362,6 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         [[ApplicationManagementViewController shared] applicationWasInstalled:app];
-        LDEAppLaunchpad *launchPad = [[NXWindowServer shared] getOrCreateLaunchpad];
-        [launchPad registerAppWithBundleID:app.bundleIdentifier displayName:app.localizedName icon:app.icon appPath:app.executablePath];
     });
 }
 
@@ -371,8 +369,6 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         [[ApplicationManagementViewController shared] applicationWithBundleIdentifierWasUninstalled:bundleIdentifier];
-        LDEAppLaunchpad *launchPad = [[NXWindowServer shared] getOrCreateLaunchpad];
-        [launchPad unregisterAppWithBundleID:bundleIdentifier];
     });
 }
 
