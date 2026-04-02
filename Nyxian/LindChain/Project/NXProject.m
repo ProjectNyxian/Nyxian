@@ -159,7 +159,7 @@
 {
     return @[
         @"-target",
-        @"apple-arm64-ios26.2",
+        @"apple-arm64-ios26.4",
         @"-isysroot",
         [[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk"],
         [@"-F" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/SDK/iPhoneOS26.4.sdk/System/Library/SubFrameworks"]],
@@ -313,7 +313,7 @@
                 @"LDEBundleVersion": @"1.0",
                 @"LDEBundleShortVersion": @"1.0",
                 @"LDEProjectType": @(type),
-                @"LDEVersion": [[UIDevice currentDevice] systemVersion],
+                @"LDEVersion": @"26.4",
                 @"LDEMinimumVersion": [[UIDevice currentDevice] systemVersion],
                 @"LDECompilerFlags": @[
                     @"-target",
