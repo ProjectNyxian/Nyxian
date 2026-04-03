@@ -114,7 +114,7 @@ ksurface_proc_t *proc_fork(ksurface_proc_t *parent,
          * wants to debug they need to spawn the child process
          * or debug a process in the same session.
          */
-        currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementTaskForPid | PEEntitlementProcessElevate);
+        currentEntitlement &= ~(PEEntitlementPlatform | PEEntitlementPlatformRoot | PEEntitlementTaskForPid | PEEntitlementProcessElevate);
     }
     else
 force_not_inherite_entitlements:
