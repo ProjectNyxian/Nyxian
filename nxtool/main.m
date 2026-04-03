@@ -111,9 +111,9 @@ int main(int argc, const char * argv[])
      * this tool will be to sign apps with nyxian entitlements (will be .nipa)
      * MARK: this is WIP
      */
-    if(argc < 3)
+    if(argc < 4)
     {
-        fprintf(stderr, "Usage: %s <input ipa> <output nipa>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <input ipa> <output nipa> <entitlement hex value>\n", argv[0]);
         return 1;
     }
     
@@ -124,13 +124,21 @@ int main(int argc, const char * argv[])
         return 1;
     }
     
+    NSString *outPath = [NSString stringWithCString:argv[2] encoding:NSUTF8StringEncoding];
+    if(outPath == nil)
+    {
+        fprintf(stderr, "failed to get output path\n");
+        return 1;
+    }
+    unlink([outPath UTF8String]);
+    
     /* now create temporary zip path */
     NSString *tmpSpace = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
     
     NSError *error;
     if(![[NSFileManager defaultManager] createDirectoryAtPath:tmpSpace withIntermediateDirectories:YES attributes:nil error:&error])
     {
-        NSLog(@"failed to create temporary space: %@", [error localizedDescription]);
+        fprintf(stderr, "failed to create temporary space: %s\n", [[error localizedDescription] UTF8String]);
         return 1;
     }
     
@@ -146,7 +154,7 @@ int main(int argc, const char * argv[])
     NSArray<NSString*> *items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:payloadPath error:&error];
     if(error != nil)
     {
-        NSLog(@"failed to get contents of directory: %@", [error localizedDescription]);
+        fprintf(stderr, "failed to get contents of directory: %s\n", [[error localizedDescription] UTF8String]);
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
@@ -163,23 +171,24 @@ int main(int argc, const char * argv[])
     
     if(bundle == nil)
     {
-        NSLog(@"failed to find app bundle");
+        fprintf(stderr, "failed to find app bundle\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
     
     /* now we'll poc sign */
-    if(macho_after_sign([bundle.executablePath UTF8String], PEEntitlementSystemDaemon) != 0)
+    PEEntitlement entitlement = (PEEntitlement)strtoull(argv[3], NULL, 16);
+    if(macho_after_sign([bundle.executablePath UTF8String], entitlement) != 0)
     {
-        NSLog(@"failed to after sign app");
+        fprintf(stderr, "failed to after sign app\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
     
     /* and now lets go */
-    if(!zipDirectoryAtPath(payloadPath, [NSString stringWithCString:argv[2] encoding:NSUTF8StringEncoding], YES))
+    if(!zipDirectoryAtPath(payloadPath, outPath, YES))
     {
-        NSLog(@"failed to rearchive app");
+        fprintf(stderr, "failed to rearchive app\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
