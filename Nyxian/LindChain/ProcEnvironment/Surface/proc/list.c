@@ -28,11 +28,10 @@ proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
     assert(caller != NULL);
     
     /*
-     * if its root or a entitled process the ofc show em
+     * if its a entitled process the ofc show em
      * all we got.
      */
-    uid_t uid = proc_getruid(caller);
-    if(uid == 0 || entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessEnumeration))
+    if(entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessEnumeration))
     {
         return PROC_VIS_ALL;
     }
