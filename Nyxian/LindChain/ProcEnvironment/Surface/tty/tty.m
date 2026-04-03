@@ -339,6 +339,12 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
         case kvObjEventDeinit:
             klog_log("tty:deinit", "deinitilizing tty @ %p", tty);
             
+            /* removing own tty object */
+            tty_table_wrlock();
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]);
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD]);
+            tty_table_unlock();
+            
             /* making sure deinit happens, with the threads consent */
             tty->alive = 0;
             
@@ -351,12 +357,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             close(tty->userspacefd[SLAVEFD]);
             close(tty->kernelfds[MASTERFD]);
             close(tty->kernelfds[SLAVEFD]);
-            
-            /* removing own tty object */
-            tty_table_wrlock();
-            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]);
-            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD]);
-            tty_table_unlock();
             
             /* fallthrough */
         default:
