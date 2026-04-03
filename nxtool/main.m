@@ -43,97 +43,28 @@ ssize_t read_at(int fd, off_t offset, void *buf, size_t len)
     return read(fd, buf, len);
 }
 
-long find_append_offset(int fd, uint32_t magic, off_t base)
-{
-    int swap = (magic == MH_CIGAM || magic == MH_CIGAM_64);
-    uint32_t ncmds;
-    off_t lc_offset;
-
-    if(magic == MH_MAGIC_64 || magic == MH_CIGAM_64)
-    {
-        struct mach_header_64 hdr;
-        read_at(fd, base, &hdr, sizeof(hdr));
-        ncmds = swap ? __builtin_bswap32(hdr.ncmds) : hdr.ncmds;
-        lc_offset = base + sizeof(hdr);
-    }
-    else
-    {
-        struct mach_header hdr;
-        read_at(fd, base, &hdr, sizeof(hdr));
-        ncmds = swap ? __builtin_bswap32(hdr.ncmds) : hdr.ncmds;
-        lc_offset = base + sizeof(hdr);
-    }
-
-    for(uint32_t i = 0; i < ncmds; i++)
-    {
-        struct load_command lc;
-        read_at(fd, lc_offset, &lc, sizeof(lc));
-
-        uint32_t cmd     = swap ? __builtin_bswap32(lc.cmd)     : lc.cmd;
-        uint32_t cmdsize = swap ? __builtin_bswap32(lc.cmdsize) : lc.cmdsize;
-
-        if(cmd == LC_CODE_SIGNATURE)
-        {
-            struct linkedit_data_command sigcmd;
-            read_at(fd, lc_offset, &sigcmd, sizeof(sigcmd));
-            uint32_t dataoff  = swap ? __builtin_bswap32(sigcmd.dataoff)  : sigcmd.dataoff;
-            uint32_t datasize = swap ? __builtin_bswap32(sigcmd.datasize) : sigcmd.datasize;
-            return (long)(base + dataoff + datasize);
-        }
-
-        lc_offset += cmdsize;
-    }
-
-    return (long)lseek(fd, 0, SEEK_END);
-}
-
-long find_append_offset_for_file(int fd)
-{
-    uint32_t magic;
-    read_at(fd, 0, &magic, sizeof(magic));
-
-    if(magic == FAT_MAGIC || magic == FAT_CIGAM)
-    {
-        struct fat_header fhdr;
-        read_at(fd, 0, &fhdr, sizeof(fhdr));
-        uint32_t nfat = __builtin_bswap32(fhdr.nfat_arch);
-
-        long max_end = 0;
-        for(uint32_t i = 0; i < nfat; i++)
-        {
-            struct fat_arch arch;
-            off_t arch_offset = sizeof(fhdr) + i * sizeof(arch);
-            read_at(fd, arch_offset, &arch, sizeof(arch));
-            uint32_t slice_off = __builtin_bswap32(arch.offset);
-
-            uint32_t slice_magic;
-            read_at(fd, slice_off, &slice_magic, sizeof(slice_magic));
-
-            long end = find_append_offset(fd, slice_magic, slice_off);
-            if(end > max_end)
-            {
-                max_end = end;
-            }
-        }
-        return max_end;
-    }
-
-    return find_append_offset(fd, magic, 0);
-}
-
 int macho_after_sign_fd(int fd, PEEntitlement entitlement)
 {
     ksurface_ent_blob_t token;
     bzero(&token, sizeof(ksurface_ent_blob_t));
-
-    long offset = find_append_offset_for_file(fd);
+    token.entitlement = entitlement;
     
-    if(ftruncate(fd, (off_t)offset) < 0)
+    char tag[4];
+    off_t eof = lseek(fd, 0, SEEK_END);
+    
+    if(eof >= (off_t)(sizeof(ksurface_ent_blob_t) + sizeof(uint32_t) + 4))
     {
-        return -1;
+        read_at(fd, eof - 4, tag, 4);
+        if(memcmp(tag, APPEND_TAG, 4) == 0)
+        {
+            uint32_t data_len;
+            read_at(fd, eof - 4 - sizeof(uint32_t), &data_len, sizeof(uint32_t));
+            eof -= (off_t)(data_len + sizeof(uint32_t) + 4);
+            ftruncate(fd, eof);
+        }
     }
 
-    if(lseek(fd, offset, SEEK_SET) < 0)
+    if(lseek(fd, eof, SEEK_SET) < 0)
     {
         return -1;
     }
@@ -189,15 +120,9 @@ int main(int argc, const char * argv[])
     NSString *ipaPath = [NSString stringWithCString:argv[1] encoding:NSUTF8StringEncoding];
     if(ipaPath == nil)
     {
-        fprintf(stderr, "failed\n");
+        fprintf(stderr, "failed to get ipa path\n");
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] ipa archive located at \"%s\"\n", [ipaPath UTF8String]);
-    }
-#endif /* DEBUG */
     
     /* now create temporary zip path */
     NSString *tmpSpace = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
@@ -208,12 +133,6 @@ int main(int argc, const char * argv[])
         NSLog(@"failed to create temporary space: %@", [error localizedDescription]);
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] created temporary space at \"%s\"\n", [tmpSpace UTF8String]);
-    }
-#endif /* DEBUG */
     
     /* now extract ipa file into it */
     if(!unzipArchiveAtPath(ipaPath, tmpSpace))
@@ -222,12 +141,6 @@ int main(int argc, const char * argv[])
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] extracted ipa file successfully\n");
-    }
-#endif /* DEBUG */
     
     NSString *payloadPath = [tmpSpace stringByAppendingPathComponent:@"Payload"];
     NSArray<NSString*> *items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:payloadPath error:&error];
@@ -237,12 +150,6 @@ int main(int argc, const char * argv[])
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] got content of directory: %s\n", [items.debugDescription UTF8String]);
-    }
-#endif /* DEBUG */
     
     NSBundle *bundle;
     for(NSString *item in items)
@@ -260,26 +167,14 @@ int main(int argc, const char * argv[])
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] found app bundle: %s\n", [bundle.debugDescription UTF8String]);
-    }
-#endif /* DEBUG */
     
     /* now we'll poc sign */
-    if(macho_after_sign([bundle.executablePath UTF8String], PEEntitlementSystemApplication) != 0)
+    if(macho_after_sign([bundle.executablePath UTF8String], PEEntitlementSystemDaemon) != 0)
     {
         NSLog(@"failed to after sign app");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] signed app\n");
-    }
-#endif /* DEBUG */
     
     /* and now lets go */
     if(!zipDirectoryAtPath(payloadPath, [NSString stringWithCString:argv[2] encoding:NSUTF8StringEncoding], YES))
@@ -288,12 +183,6 @@ int main(int argc, const char * argv[])
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
-#if DEBUG
-    else
-    {
-        printf("[*] rearchived app\n");
-    }
-#endif /* DEBUG */
     
     [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
     return 0;
