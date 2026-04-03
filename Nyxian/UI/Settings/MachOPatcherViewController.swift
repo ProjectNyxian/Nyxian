@@ -81,7 +81,7 @@ class MachOPatcherViewController: UIThemedTableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = (path as NSString).lastPathComponent
+        title = "\((path as NSString).lastPathComponent)'s Entitlements"
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "EntitlementCell")
         let barButton = UIBarButtonItem()
         barButton.title = "Apply"

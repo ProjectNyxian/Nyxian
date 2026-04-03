@@ -30,6 +30,8 @@ import UniformTypeIdentifiers
     let isReadOnly: Bool
     var isSelecting: Bool = false
     var selectedPaths: Set<String> = []
+    
+    var observation: NSKeyValueObservation?
 
     init(
         isSublink: Bool = false,
@@ -111,7 +113,14 @@ import UniformTypeIdentifiers
         self.tableView.register(FileListCell.self, forCellReuseIdentifier: FileListCell.reuseIdentifier)
         
         if let project = self.project {
-            self.title = self.isSublink ? URL(fileURLWithPath: self.path).lastPathComponent : project.projectConfig.displayName
+            if !self.isSublink {
+                observation = project.observe(\.projectConfig.dictionary, options: [.new, .old]) { project, change in
+                    self.title = project.projectConfig.displayName
+                }
+                self.title = project.projectConfig.displayName
+            } else {
+                self.title = URL(fileURLWithPath: self.path).lastPathComponent
+            }
         } else {
             self.title = URL(fileURLWithPath: self.path).lastPathComponent
         }

@@ -245,7 +245,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = project.projectConfig.displayName
+        title = "Project Configuration"
         
         let saveButton: UIBarButtonItem = UIBarButtonItem()
         saveButton.title = "Save"

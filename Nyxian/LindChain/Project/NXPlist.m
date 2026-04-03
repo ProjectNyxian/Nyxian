@@ -67,8 +67,9 @@
 {
     NSString *hash = [self currentHash];
     
-    os_unfair_lock_lock(&_lock);
+    [self willChangeValueForKey:@"dictionary"];
     
+    os_unfair_lock_lock(&_lock);
     BOOL needsReload = ![hash isEqualToString:_savedHash];
     if(needsReload)
     {
@@ -97,8 +98,9 @@
             _finalVariables = _variables;
         }
     }
-    
     os_unfair_lock_unlock(&_lock);
+    
+    [self didChangeValueForKey:@"dictionary"];
     
     return needsReload;
 }
@@ -196,9 +198,12 @@
 - (void)writeKey:(NSString*)key
        withValue:(id)value
 {
+    os_unfair_lock_lock(&_lock);
     [_dictionary setObject:value forKey:key];
     [_dictionary writeToFile:_plistPath atomically:YES];
     _savedHash = [self currentHash];
+    os_unfair_lock_unlock(&_lock);
+    [self didChangeValueForKey:@"dictionary"];
 }
 
 - (id)readKey:(NSString*)key
