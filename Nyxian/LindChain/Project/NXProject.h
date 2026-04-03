@@ -69,6 +69,7 @@
 @property (nonatomic,readonly) BOOL dyldHideLiveProcess;
 @property (nonatomic,readonly) BOOL processSpawnInheriteEntitlements;
 @property (nonatomic,readonly) BOOL platform;
+@property (nonatomic,readonly) BOOL platformRoot;
 
 - (PEEntitlement)generateEntitlements;
 

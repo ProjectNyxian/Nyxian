@@ -25,9 +25,6 @@
     NSDateFormatter *_formatter;
 }
 
-@synthesize username = _username;
-@synthesize datestring = _datestring;
-
 - (instancetype)init
 {
     self = [super init];

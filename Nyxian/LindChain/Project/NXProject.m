@@ -192,6 +192,7 @@
 - (BOOL)dyldHideLiveProcess { return [self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:YES]; }
 - (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]; }
 - (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
+- (BOOL)platformRoot { return [self readBooleanForKey:@"com.nyxian.pe.platform_root" withDefaultValue:NO]; }
 
 - (PEEntitlement)generateEntitlements
 {
@@ -215,6 +216,7 @@
     if([self dyldHideLiveProcess]) entitlements |= PEEntitlementDyldHideLiveProcess;
     if([self processSpawnInheriteEntitlements]) entitlements |= PEEntitlementProcessSpawnInheriteEntitlements;
     if([self platform]) entitlements |= PEEntitlementPlatform;
+    if([self platformRoot]) entitlements |= PEEntitlementPlatformRoot;
     
     return entitlements;
 }
@@ -282,7 +284,8 @@
         @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
         @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
         @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
-        @"com.nyxian.pe.platform": @(NO)
+        @"com.nyxian.pe.platform": @(NO),
+        @"com.nyxian.pe.platform_root": @(NO)
 #else
         @"platform-application": @(YES)
 #endif // !JAILBREAK_ENV
