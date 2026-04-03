@@ -199,7 +199,10 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 }
                 
                 var wasSignedLocally: Bool = false
-                let ent: PEEntitlement = entitlement_get_path((executablePath as NSString).utf8String, &wasSignedLocally)
+                var ent: PEEntitlement = entitlement_get_path((executablePath as NSString).utf8String, &wasSignedLocally)
+                
+                // We have to make sure the app is only signed with entitlements known at that time, otherwise a app could contain way more entitlements currently reserved and used by nothing
+                ent = PEEntitlement(rawValue: ent.rawValue & PEEntitlement.all.rawValue)
                 
                 // Gated :3
                 let proceedWithInstall = {
