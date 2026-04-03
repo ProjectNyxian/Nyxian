@@ -10,6 +10,7 @@
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		795227872F45B52000D1C3CC /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		79AA11C72F7FFF46002FEAF2 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79AA11C32F7FFEE4002FEAF2 /* libarchive.tbd */; };
 		79AF51182F1CBD110055004A /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF51102F1CBD110055004A /* Runestone */; settings = {ATTRIBUTES = (Required, ); }; };
 		79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = 79AF510C2F1CBD110055004A /* TreeSitterObjc */; };
 		79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
@@ -96,6 +97,8 @@
 		7944B5652DEC74EA00834134 /* Nyxian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nyxian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		79AA11BC2F7FFE24002FEAF2 /* nxtool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nxtool; sourceTree = BUILT_PRODUCTS_DIR; };
+		79AA11C32F7FFEE4002FEAF2 /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk/usr/lib/libarchive.tbd; sourceTree = DEVELOPER_DIR; };
+		79AA11C42F7FFEFF002FEAF2 /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/libarchive.tbd; sourceTree = DEVELOPER_DIR; };
 		79AF512B2F1CBD110055004A /* NyxianForJB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NyxianForJB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF97F72E6291EE00C60D4C /* LiveProcess.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveProcess.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = usr/lib/libarchive.tbd; sourceTree = SDKROOT; };
@@ -110,6 +113,13 @@
 				LindChain/JBSupport/tshelper,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
+		};
+		79AA11C62F7FFF12002FEAF2 /* Exceptions for "Nyxian" folder in "nxtool" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LindChain/Utils/Zip.m,
+			);
+			target = 79AA11BB2F7FFE24002FEAF2 /* nxtool */;
 		};
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -327,6 +337,7 @@
 				79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */,
 				7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
 				79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */,
+				79AA11C62F7FFF12002FEAF2 /* Exceptions for "Nyxian" folder in "nxtool" target */,
 			);
 			path = Nyxian;
 			sourceTree = "<group>";
@@ -338,6 +349,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79AA11C72F7FFF46002FEAF2 /* libarchive.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,6 +398,8 @@
 			isa = PBXGroup;
 			children = (
 				79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */,
+				79AA11C32F7FFEE4002FEAF2 /* libarchive.tbd */,
+				79AA11C42F7FFEFF002FEAF2 /* libarchive.tbd */,
 				7944B5672DEC74FC00834134 /* MobileCoreServices.framework */,
 				79281CBF2E3A44CA00E983C9 /* UniformTypeIdentifiers.framework */,
 			);
@@ -644,6 +658,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = Nyxian/;
 				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -656,6 +671,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = Nyxian/;
 				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
