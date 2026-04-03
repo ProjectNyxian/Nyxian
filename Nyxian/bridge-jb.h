@@ -44,7 +44,7 @@
 /* Project Headers */
 #import <LindChain/Project/NXUser.h>
 #import <LindChain/Project/NXCodeTemplate.h>
-#import <LindChain/Project/NXPlistHelper.h>
+#import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXProject.h>
 
 /* UI Headers */

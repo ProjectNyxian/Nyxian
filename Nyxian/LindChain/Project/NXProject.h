@@ -23,11 +23,11 @@
 #define NXPROJECT_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Project/NXPlistHelper.h>
+#import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXType.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
-@interface NXProjectConfig : NXPlistHelper
+@interface NXProjectConfig : NXPlist
 
 @property (nonatomic,readonly) NXProjectFormat projectFormat;
 @property (nonatomic,strong,readonly) NSString *executable;
@@ -48,7 +48,7 @@
 
 @end
 
-@interface NXEntitlementsConfig : NXPlistHelper
+@interface NXEntitlementsConfig : NXPlist
 
 @property (nonatomic,readonly) BOOL getTaskAllowed;
 @property (nonatomic,readonly) BOOL taskForPid;

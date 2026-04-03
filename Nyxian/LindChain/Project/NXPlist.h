@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NXPlistHelper : NSObject
+@interface NXPlist : NSObject
 
 @property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull variables;
 @property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull finalVariables;

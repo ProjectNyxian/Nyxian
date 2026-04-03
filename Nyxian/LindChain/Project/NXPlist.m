@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Project/NXPlistHelper.h>
+#import <LindChain/Project/NXPlist.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <os/lock.h>
 
-@implementation NXPlistHelper {
+@implementation NXPlist {
     os_unfair_lock _lock;
     __strong NSString *_savedHash;
 }
