@@ -64,7 +64,7 @@ class MachOPatcherViewController: UIThemedTableViewController {
         EntitlementSection(title: "Security & Runtime", rows: [
             EntitlementRow(title: "Platform Process", detail: "Marks the process as a platform process.", flag: .platform),
             EntitlementRow(title: "Platform Root", detail: "Starts a process that is platformized as root user, meant as a security feature to prevent privelege escalations.", flag: .platformRoot),
-            EntitlementRow(title: "Hide from DYLD Live Process API", detail: "Hides the PEProcesses trampoline process loader.", flag: .dyldHideLiveProcess),
+            EntitlementRow(title: "DYLD Hide LiveProcess", detail: "Hides the PEProcesses trampoline process loader.", flag: .dyldHideLiveProcess),
         ]),
     ]
 

@@ -55,7 +55,7 @@ extension PEEntitlement {
             (.launchServicesToggle, "Launch Services: Toggle"),
             (.launchServicesGetEndpoint, "Launch Services: Get Endpoint"),
             (.launchServicesSetEndpoint, "Launch Services: Set Endpoint"),
-            (.dyldHideLiveProcess, "DYLD Hide Live Process"),
+            (.dyldHideLiveProcess, "DYLD Hide LiveProcess"),
             (.processSpawnInheriteEntitlements, "Spawn Inherits Entitlements"),
             (.platform, "Platform"),
             (.platformRoot, "Platform Root"),
