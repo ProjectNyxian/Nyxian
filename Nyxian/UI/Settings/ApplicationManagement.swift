@@ -24,6 +24,18 @@ import UniformTypeIdentifiers
 
 #if !JAILBREAK_ENV
 
+extension UTType {
+    static var ipa: UTType {
+        UTType(importedAs: "com.apple.itunes.ipa", conformingTo: .zip)
+    }
+    static var tipa: UTType {
+        UTType(importedAs: "com.cr4zy.nyxian.tipa", conformingTo: .zip)
+    }
+    static var nipa: UTType {
+        UTType(importedAs: "com.cr4zy.nyxian.nipa", conformingTo: .data)
+    }
+}
+
 extension PEEntitlement {
     var displayString: String {
         guard self.rawValue != 0 else { return "None" }
@@ -148,7 +160,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     }
     
     @objc func plusButtonPressed() {
-        let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
+        let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(forOpeningContentTypes: [.ipa,.tipa,.nipa], asCopy: true)
         documentPicker.delegate = self
         documentPicker.modalPresentationStyle = .formSheet
         self.present(documentPicker, animated: true)
