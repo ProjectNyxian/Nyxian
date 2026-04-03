@@ -25,9 +25,9 @@
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
 
 typedef enum {
-    PROC_VIS_NONE = 0,      /* allows a process to see nothing, usually used as error */
-    PROC_VIS_SAME_SID = 1,  /* allows a process to see processes with the same sid */
-    PROC_VIS_SAME_UID = 2,  /* allows a process to see processes with the same uid */
+    PROC_VIS_NONE = 0,      /* allows a process to see nothing */
+    PROC_VIS_SELF = 1,      /* allows a process to see them self */
+    PROC_VIS_SAME_SID = 2,  /* allows a process to see processes with the same sid */
     PROC_VIS_ALL = 3,       /* allows a process to see all processes */
 } proc_visibility_t;
 

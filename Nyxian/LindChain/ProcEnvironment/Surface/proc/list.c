@@ -37,10 +37,20 @@ proc_visibility_t get_proc_visibility(ksurface_proc_snapshot_t *caller)
     }
     
     /*
+     * only show them other SID processes
+     * in case it can spawn processes.
+     */
+    if(entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessSpawn) ||
+       entitlement_got_entitlement(proc_getentitlements(caller), PEEntitlementProcessSpawnSignedOnly))
+    {
+        return PROC_VIS_SAME_SID;
+    }
+    
+    /*
      * nope, only them, them selves, and processes in their
      * session.
      */
-    return PROC_VIS_SAME_SID;
+    return PROC_VIS_SELF;
 }
 
 bool can_see_process(ksurface_proc_snapshot_t *caller,
@@ -57,10 +67,10 @@ bool can_see_process(ksurface_proc_snapshot_t *caller,
     {
         case PROC_VIS_ALL:
             return true;
-        case PROC_VIS_SAME_UID:
-            return proc_getruid(caller) == proc_getruid(target) || proc_getsid(caller) == proc_getsid(target);
         case PROC_VIS_SAME_SID:
-            return proc_getpid(caller) == proc_getpid(target) || proc_getsid(caller) == proc_getsid(target);
+            return proc_getsid(caller) == proc_getsid(target);
+        case PROC_VIS_SELF:
+            return proc_getpid(caller) == proc_getpid(target);
         default:
             /* none is none */
             return false;
