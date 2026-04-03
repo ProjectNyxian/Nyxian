@@ -165,7 +165,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
         
         /* now we'll have to package it nicely for the process >.< */
         *kp = malloc(sizeof(kinfo_proc_t));
-        kvo_wrlock(proc);
+        kvo_rdlock(proc);
         memcpy(*kp, &(proc->bsd), sizeof(kinfo_proc_t));
         kvo_unlock(proc);
         
