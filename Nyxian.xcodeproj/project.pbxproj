@@ -58,6 +58,15 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		79AA11BA2F7FFE24002FEAF2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		79FDA8862F3F257900692496 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -86,6 +95,7 @@
 		79281CBF2E3A44CA00E983C9 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		7944B5652DEC74EA00834134 /* Nyxian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nyxian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7944B5672DEC74FC00834134 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		79AA11BC2F7FFE24002FEAF2 /* nxtool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nxtool; sourceTree = BUILT_PRODUCTS_DIR; };
 		79AF512B2F1CBD110055004A /* NyxianForJB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NyxianForJB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF97F72E6291EE00C60D4C /* LiveProcess.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveProcess.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = usr/lib/libarchive.tbd; sourceTree = SDKROOT; };
@@ -304,6 +314,11 @@
 			path = LiveProcess;
 			sourceTree = "<group>";
 		};
+		79AA11BD2F7FFE24002FEAF2 /* nxtool */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = nxtool;
+			sourceTree = "<group>";
+		};
 		AF9916DB2DC8C42200DDF895 /* Nyxian */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -319,6 +334,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		79AA11B92F7FFE24002FEAF2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		79AF51172F1CBD110055004A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -378,16 +400,40 @@
 				AF99171F2DC8EA3C00DDF895 /* Shared */,
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
 				798692F02E627A3B00390D7E /* LiveProcess */,
+				79AA11BD2F7FFE24002FEAF2 /* nxtool */,
 				7944B5662DEC74FC00834134 /* Frameworks */,
 				79BF97F72E6291EE00C60D4C /* LiveProcess.appex */,
 				7944B5652DEC74EA00834134 /* Nyxian.app */,
 				79AF512B2F1CBD110055004A /* NyxianForJB.app */,
+				79AA11BC2F7FFE24002FEAF2 /* nxtool */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		79AA11BB2F7FFE24002FEAF2 /* nxtool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 79AA11C02F7FFE24002FEAF2 /* Build configuration list for PBXNativeTarget "nxtool" */;
+			buildPhases = (
+				79AA11B82F7FFE24002FEAF2 /* Sources */,
+				79AA11B92F7FFE24002FEAF2 /* Frameworks */,
+				79AA11BA2F7FFE24002FEAF2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				79AA11BD2F7FFE24002FEAF2 /* nxtool */,
+			);
+			name = nxtool;
+			packageProductDependencies = (
+			);
+			productName = nxtool;
+			productReference = 79AA11BC2F7FFE24002FEAF2 /* nxtool */;
+			productType = "com.apple.product-type.tool";
+		};
 		79AF51072F1CBD110055004A /* NyxianForJB */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 79AF51282F1CBD110055004A /* Build configuration list for PBXNativeTarget "NyxianForJB" */;
@@ -480,6 +526,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					79AA11BB2F7FFE24002FEAF2 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					79BF97F62E6291EE00C60D4C = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -513,6 +562,7 @@
 				AF9916D82DC8C42200DDF895 /* Nyxian */,
 				79AF51072F1CBD110055004A /* NyxianForJB */,
 				79BF97F62E6291EE00C60D4C /* LiveProcess */,
+				79AA11BB2F7FFE24002FEAF2 /* nxtool */,
 			);
 		};
 /* End PBXProject section */
@@ -544,6 +594,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		79AA11B82F7FFE24002FEAF2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		79AF51162F1CBD110055004A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -581,6 +638,30 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		79AA11C12F7FFE24002FEAF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		79AA11C22F7FFE24002FEAF2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 		79AF51292F1CBD110055004A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 79277DC02EE8752800F18B30 /* Config.xcconfig */;
@@ -1381,6 +1462,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		79AA11C02F7FFE24002FEAF2 /* Build configuration list for PBXNativeTarget "nxtool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				79AA11C12F7FFE24002FEAF2 /* Debug */,
+				79AA11C22F7FFE24002FEAF2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		79AF51282F1CBD110055004A /* Build configuration list for PBXNativeTarget "NyxianForJB" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
