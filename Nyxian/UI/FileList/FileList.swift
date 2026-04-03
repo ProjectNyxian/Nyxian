@@ -74,6 +74,12 @@ import UniformTypeIdentifiers
     }
     
     @objc func performRefresh() {
+        if !self.isSublink, let project = self.project {
+            if project.reload() {
+                self.title = project.projectConfig.displayName
+            }
+        }
+        
         self.entries = FileListEntry.getEntries(ofPath: self.path)
         self.refreshControl?.endRefreshing()
         
@@ -138,16 +144,6 @@ import UniformTypeIdentifiers
                 self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle.fill"), primaryAction: nil, menu: generateMenu()), animated: false)
             } else {
                 self.navigationItem.setRightBarButton(UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), primaryAction: nil, menu: generateMenu()), animated: false)
-            }
-        }
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        if !self.isSublink, let project = self.project {
-            if project.reload() {
-                self.title = project.projectConfig.displayName
             }
         }
     }

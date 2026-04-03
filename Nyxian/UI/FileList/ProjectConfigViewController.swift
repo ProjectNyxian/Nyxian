@@ -223,6 +223,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
 
     init(project: NXProject) {
         self.project = project
+        self.project.reload()
         self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         self.pendingDisplayName = project.projectConfig.dictionary["LDEDisplayName"] as? String ?? project.projectConfig.displayName
