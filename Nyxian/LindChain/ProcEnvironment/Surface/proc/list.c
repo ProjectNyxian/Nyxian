@@ -141,6 +141,16 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
 {
     assert(proc_copy != NULL && kp != NULL && len != NULL);
     
+    proc_visibility_t vis = get_proc_visibility(proc_copy);
+    
+    /* in case its none we dont even have to iterrate */
+    if(vis == PROC_VIS_NONE)
+    {
+        *len = 0;
+        *kp = NULL;
+        return SURFACE_SUCCESS;
+    }
+    
     /*
      * allocating exactly the amount of processes structures
      * we need.
@@ -155,7 +165,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     
     /* setting up radix walker */
     w->caller = proc_copy;
-    w->vis = get_proc_visibility(proc_copy);
+    w->vis = vis;
     
     /*
      * aquire read onto proc table so we can reach a
