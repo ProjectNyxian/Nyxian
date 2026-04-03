@@ -151,6 +151,27 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
         return SURFACE_SUCCESS;
     }
     
+    /* optimized path for pid query */
+    if(flavour == PROC_FLV_PID && vis >= PROC_VIS_SELF)
+    {
+        ksurface_proc_t *proc;
+        ksurface_return_t ksr = proc_for_pid(dsid, &proc);
+        if(ksr != KERN_SUCCESS)
+        {
+            *len = 0;
+            *kp = NULL;
+            return SURFACE_SUCCESS; /* returning success so that sysctl does give a empty buffer */
+        }
+        
+        /* now we'll have to package it nicely for the process >.< */
+        *kp = malloc(sizeof(kinfo_proc_t));
+        kvo_wrlock(proc);
+        memcpy(*kp, &(proc->bsd), sizeof(kinfo_proc_t));
+        kvo_unlock(proc);
+        
+        kvo_release(proc);
+    }
+    
     /*
      * allocating exactly the amount of processes structures
      * we need.
