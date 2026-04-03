@@ -31,7 +31,7 @@
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
 
-#define APPEND_TAG "NXTRUST"
+#define APPEND_TAG "NXTR"
 
 ssize_t read_at(int fd, off_t offset, void *buf, size_t len)
 {

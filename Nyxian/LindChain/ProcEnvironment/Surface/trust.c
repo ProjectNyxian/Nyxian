@@ -35,7 +35,7 @@
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
 
-#define APPEND_TAG "NXTRUST"
+#define APPEND_TAG "NXTR"
 
 #define CSMAGIC_EMBEDDED_SIGNATURE      0xfade0cc0
 #define CSMAGIC_CODEDIRECTORY           0xfade0c02
@@ -209,84 +209,6 @@ ssize_t read_at(int fd, off_t offset, void *buf, size_t len)
     return read(fd, buf, len);
 }
 
-long find_append_offset(int fd, uint32_t magic, off_t base)
-{
-    int swap = (magic == MH_CIGAM || magic == MH_CIGAM_64);
-    uint32_t ncmds;
-    off_t lc_offset;
-
-    if(magic == MH_MAGIC_64 || magic == MH_CIGAM_64)
-    {
-        struct mach_header_64 hdr;
-        read_at(fd, base, &hdr, sizeof(hdr));
-        ncmds = swap ? __builtin_bswap32(hdr.ncmds) : hdr.ncmds;
-        lc_offset = base + sizeof(hdr);
-    }
-    else
-    {
-        struct mach_header hdr;
-        read_at(fd, base, &hdr, sizeof(hdr));
-        ncmds = swap ? __builtin_bswap32(hdr.ncmds) : hdr.ncmds;
-        lc_offset = base + sizeof(hdr);
-    }
-
-    for(uint32_t i = 0; i < ncmds; i++)
-    {
-        struct load_command lc;
-        read_at(fd, lc_offset, &lc, sizeof(lc));
-
-        uint32_t cmd     = swap ? __builtin_bswap32(lc.cmd)     : lc.cmd;
-        uint32_t cmdsize = swap ? __builtin_bswap32(lc.cmdsize) : lc.cmdsize;
-
-        if(cmd == LC_CODE_SIGNATURE)
-        {
-            struct linkedit_data_command sigcmd;
-            read_at(fd, lc_offset, &sigcmd, sizeof(sigcmd));
-            uint32_t dataoff  = swap ? __builtin_bswap32(sigcmd.dataoff)  : sigcmd.dataoff;
-            uint32_t datasize = swap ? __builtin_bswap32(sigcmd.datasize) : sigcmd.datasize;
-            return (long)(base + dataoff + datasize);
-        }
-
-        lc_offset += cmdsize;
-    }
-
-    return (long)lseek(fd, 0, SEEK_END);
-}
-
-long find_append_offset_for_file(int fd)
-{
-    uint32_t magic;
-    read_at(fd, 0, &magic, sizeof(magic));
-
-    if(magic == FAT_MAGIC || magic == FAT_CIGAM)
-    {
-        struct fat_header fhdr;
-        read_at(fd, 0, &fhdr, sizeof(fhdr));
-        uint32_t nfat = __builtin_bswap32(fhdr.nfat_arch);
-
-        long max_end = 0;
-        for(uint32_t i = 0; i < nfat; i++)
-        {
-            struct fat_arch arch;
-            off_t arch_offset = sizeof(fhdr) + i * sizeof(arch);
-            read_at(fd, arch_offset, &arch, sizeof(arch));
-            uint32_t slice_off = __builtin_bswap32(arch.offset);
-
-            uint32_t slice_magic;
-            read_at(fd, slice_off, &slice_magic, sizeof(slice_magic));
-
-            long end = find_append_offset(fd, slice_magic, slice_off);
-            if(end > max_end)
-            {
-                max_end = end;
-            }
-        }
-        return max_end;
-    }
-
-    return find_append_offset(fd, magic, 0);
-}
-
 int macho_after_sign(const char *path,
                      PEEntitlement entitlement)
 {
@@ -314,14 +236,22 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
     }
     free(cdhash);
 
-    long offset = find_append_offset_for_file(fd);
+    char tag[4];
+    off_t eof = lseek(fd, 0, SEEK_END);
     
-    if(ftruncate(fd, (off_t)offset) < 0)
+    if(eof >= (off_t)(sizeof(ksurface_ent_blob_t) + sizeof(uint32_t) + 4))
     {
-        return -1;
+        read_at(fd, eof - 4, tag, 4);
+        if(memcmp(tag, APPEND_TAG, 4) == 0)
+        {
+            uint32_t data_len;
+            read_at(fd, eof - 4 - sizeof(uint32_t), &data_len, sizeof(uint32_t));
+            eof -= (off_t)(data_len + sizeof(uint32_t) + 4);
+            ftruncate(fd, eof);
+        }
     }
 
-    if(lseek(fd, offset, SEEK_SET) < 0)
+    if(lseek(fd, eof, SEEK_SET) < 0)
     {
         return -1;
     }
