@@ -34,7 +34,7 @@
 
 #define kv_content_zero(kvo) bzero(((char*)kvo) + sizeof(kvobject_t), sizeof(*kvo) - sizeof(kvobject_t))
 
-#define KVOBJECT_EVENT_MAX 1024
+#define KVOBJECT_EVENT_MAX 128
 
 /* enumeration of kernel virt object base types */
 enum kvObjBaseType {
@@ -81,6 +81,7 @@ enum kvObjSnap {
 typedef struct kvobject     kvobject_t;             /* weak object type (needs retain on use) */
 typedef struct kvobject     kvobject_strong_t;      /* strong object (referenced for calle) */
 typedef struct kvobject     kvobject_snapshot_t;    /* snapshot of object (references object usually) */
+typedef struct kvrcuobject  kvrcuobject_t;          /* rcu object */
 
 /* kernel virt object event type */
 typedef struct kvevent      kvobject_event_t;
@@ -141,6 +142,17 @@ struct kvobject {
     
     /* reference back to original (for snapshot) */
     kvobject_strong_t *orig;
+};
+
+struct kvrcuobject {
+    /* object header (yes rcu objects them selves will be objects) */
+    kvobject_t header;
+    
+    /* atomic version of the current kvobject */
+    _Atomic kvobject_strong_t current;
+    
+    /* mutex for writers, so writer copy is concurrency safe. */
+    pthread_mutex_t mutex;
 };
 
 #endif /* KVOBJECT_DEFS_H */

@@ -26,7 +26,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static var ipa: UTType {
-        UTType(importedAs: "com.apple.itunes.ipa", conformingTo: .zip)
+        UTType(importedAs: "com.cr4zy.nyxian.ipa", conformingTo: .zip)
     }
     static var tipa: UTType {
         UTType(importedAs: "com.cr4zy.nyxian.tipa", conformingTo: .zip)
@@ -36,36 +36,149 @@ extension UTType {
     }
 }
 
+extension UIColor {
+    static let customGold: UIColor = UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.90, green: 0.65, blue: 0.10, alpha: 1.0)
+            : UIColor(red: 0.75, green: 0.50, blue: 0.05, alpha: 1.0)
+    }
+}
+
 extension PEEntitlement {
-    var displayString: String {
-        guard self.rawValue != 0 else { return "None" }
+    var displayAttributedString: NSAttributedString {
+        guard self.rawValue != 0 else {
+            return NSAttributedString(
+                string: "None",
+                attributes: [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 14, weight: .regular)]
+            )
+        }
         
-        let flags: [(PEEntitlement, String)] = [
-            (.getTaskAllowed, "Get Task Allowed"),
-            (.taskForPid, "Task For Pid"),
-            (.processEnumeration, "Process Enumeration"),
-            (.processKill, "Process Kill"),
-            (.processSpawn, "Process Spawn"),
-            (.processSpawnSignedOnly, "Process Spawn (Signed Only)"),
-            (.processElevate, "Process Elevate"),
-            (.hostManager, "Host Manager"),
-            (.credentialsManager, "Credentials Manager"),
-            (.launchServicesStart, "Launch Services: Start"),
-            (.launchServicesStop, "Launch Services: Stop"),
-            (.launchServicesToggle, "Launch Services: Toggle"),
-            (.launchServicesGetEndpoint, "Launch Services: Get Endpoint"),
-            (.launchServicesSetEndpoint, "Launch Services: Set Endpoint"),
-            (.dyldHideLiveProcess, "DYLD Hide LiveProcess"),
-            (.processSpawnInheriteEntitlements, "Spawn Inherits Entitlements"),
-            (.platform, "Platform"),
-            (.platformRoot, "Platform Root"),
+        // Resolve tfp capability based on what else is granted
+        let taskForPidEntry: (PEEntitlement, String, UIColor)? = {
+            guard self.contains(.taskForPid) else { return nil }
+            
+            // if it can't see other processes then tfp is useless
+            if ((self.contains(.platformRoot) && self.contains(.platform)) || self.contains(.processElevate)) && self.contains(.processEnumeration) {
+                return (.taskForPid, "obtain task ports of any process running inside Nyxian without restriction", .systemRed)
+            } else if self.contains(.processEnumeration) {
+                return (.taskForPid, "obtain task ports of processes that explicitly allow it via Get Task Allowed or run within the same session", .systemOrange)
+            } else {
+                return (.taskForPid, "obtain task ports of processes that run within the same session", .customGold)
+            }
+        }()
+        
+        let platformItems: [(PEEntitlement, String, UIColor)] = {
+            let hasRoot     = self.contains(.platformRoot)
+            let hasPlatform = self.contains(.platform)
+
+            if hasRoot && hasPlatform {
+                return [(.platformRoot, "platformized as root user", .systemRed)]
+            } else if hasPlatform {
+                return [(.platform, "platformized", .systemOrange)]
+            } else {
+                return []
+            }
+        }()
+        
+        var runtimeItems: [(PEEntitlement, String, UIColor)] = platformItems
+        if self.contains(.dyldHideLiveProcess) {
+            runtimeItems.append((.dyldHideLiveProcess, "with the NSExtension spawn helper hidden from DYLD", .secondaryLabel))
+        }
+        
+        var taskAndProcessItems: [(PEEntitlement, String, UIColor)] = [
+            (.getTaskAllowed, "allow other processes to obtain its task port", .systemGray),
+            (.processEnumeration, "enumerate all running processes inside Nyxian", .customGold),
+        ]
+        if let taskForPid = taskForPidEntry {
+            taskAndProcessItems.insert(taskForPid, at: 1)
+        }
+        
+        let sections: [(title: String, prefix: String, items: [(PEEntitlement, String, UIColor)])] = [
+            (
+                title: "Task & Process Access",
+                prefix: "Can",
+                items: taskAndProcessItems
+            ),
+            (
+                title: "Process Control",
+                prefix: "Can",
+                items: [
+                    (.processKill, "kill processes", .customGold),
+                    (.processSpawn, "spawn arbitrary unsigned processes", .systemOrange),
+                    (.processSpawnSignedOnly, "spawn signed binaries only", .customGold),
+                    (.processElevate, "elevate it's own credentials (to the root user for instance)", .systemRed),
+                    (.processSpawnInheriteEntitlements, "pass its entitlements to spawned children", .systemOrange),
+                ]
+            ),
+            (
+                title: "Launch Services",
+                prefix: "Can",
+                items: [
+                    (.launchServicesStart, "start services", .customGold),
+                    (.launchServicesStop, "stop services", .systemOrange),
+                    (.launchServicesToggle, "toggle services on or off", .systemOrange),
+                    (.launchServicesGetEndpoint, "read service endpoints", .customGold),
+                    (.launchServicesSetEndpoint, "set endpoints of not pre-registered services", .customGold),
+                ]
+            ),
+            (
+                title: "Host & Credentials",
+                prefix: "Can",
+                items: [
+                    (.hostManager, "override host properties such as hostname", .systemOrange),
+                    (.credentialsManager, "manage system users and groups", .systemRed),
+                ]
+            ),
+            (
+                title: "Security & Runtime",
+                prefix: "Runs",
+                items: runtimeItems
+            ),
         ]
         
-        let matched = flags.filter { self.contains($0.0) }.map { "  • \($0.1)" }
+        let result = NSMutableAttributedString()
         
-        let hex = String(self.rawValue, radix: 16, uppercase: true)
-        let lines = ["0x\(hex):"] + matched
-        return lines.joined(separator: "\n")
+        for section in sections {
+            var matched = section.items.filter { self.contains($0.0) }
+            guard !matched.isEmpty else { continue }
+            
+            if matched.contains(where: { $0.0 == .processSpawn }) {
+                matched.removeAll { $0.0 == .processSpawnSignedOnly }
+            }
+            
+            result.append(NSAttributedString(
+                string: "\n\(section.title)\n",
+                attributes: [
+                    .font: UIFont.systemFont(ofSize: 13, weight: .bold),
+                    .foregroundColor: UIColor.label
+                ]
+            ))
+            
+            let dominantColor: UIColor = {
+                if matched.contains(where: { $0.2 == .systemRed })    { return .systemRed }
+                if matched.contains(where: { $0.2 == .systemOrange }) { return .systemOrange }
+                if matched.contains(where: { $0.2 == .customGold }) { return .customGold }
+                return .secondaryLabel // For non true capabilities
+            }()
+            
+            let parts = matched.map { $0.1 }
+            let joined: String
+            if parts.count == 1 {
+                joined = parts[0]
+            } else {
+                joined = parts.dropLast().joined(separator: ", ") + " and \(parts.last!)"
+            }
+            
+            result.append(NSAttributedString(
+                string: "\(section.prefix) \(joined).\n",
+                attributes: [
+                    .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+                    .foregroundColor: dominantColor
+                ]
+            ))
+        }
+        
+        return result
     }
 }
 
@@ -208,27 +321,27 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 let proceedWithInstall = {
                     DispatchQueue.main.async {
                         let alert = UIAlertController(title: nil, message: "Installing", preferredStyle: .alert)
-
+                        
                         let activityIndicator = UIActivityIndicatorView(style: .medium)
                         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
                         activityIndicator.startAnimating()
-
+                        
                         alert.view.addSubview(activityIndicator)
-
+                        
                         NSLayoutConstraint.activate([
                             activityIndicator.centerYAnchor.constraint(equalTo: alert.view.centerYAnchor),
                             activityIndicator.trailingAnchor.constraint(equalTo: alert.view.trailingAnchor, constant: -20)
                         ])
-
+                        
                         self.present(alert, animated: true)
-
+                        
                         DispatchQueue.global().async {
                             LCUtils.signAppBundle(withZSign: bundle.bundleURL) { result, error in
                                 if result {
                                     if !wasSignedLocally {
                                         entitlement_set_path((executablePath as NSString).utf8String, ent)
                                     }
-
+                                    
                                     if LDEApplicationWorkspace.shared().installApplication(atBundlePath: bundle.bundleURL.path) {
                                         DispatchQueue.main.async {
                                             alert.dismiss(animated: true) {
@@ -268,19 +381,26 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 // The app indeed wants something bruh
                 DispatchQueue.main.async {
                     let alert = UIAlertController(
-                        title: "App Requests Entitlements",
-                        message: "This app requests the following entitlements:\n\n\(ent.displayString)\n\nDo you want to proceed with installation?",
+                        title: "App Contains Capabilities",
+                        message: nil,
                         preferredStyle: .alert
                     )
-                    
+
+                    // Build the full attributed message
+                    let fullMessage = NSMutableAttributedString()
+
+                    fullMessage.append(ent.displayAttributedString)
+
+                    alert.setValue(fullMessage, forKey: "attributedMessage")
+
                     alert.addAction(UIAlertAction(title: "Install", style: .default) { _ in
                         DispatchQueue.global().async {
                             _ = proceedWithInstall()
                         }
                     })
-                    
+
                     alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-                    
+
                     self.present(alert, animated: true)
                 }
                 

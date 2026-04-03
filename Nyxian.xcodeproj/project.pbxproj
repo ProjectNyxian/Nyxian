@@ -164,6 +164,7 @@
 				LindChain/ProcEnvironment/Surface/key.c,
 				LindChain/ProcEnvironment/Surface/obj/alloc.c,
 				LindChain/ProcEnvironment/Surface/obj/event.c,
+				LindChain/ProcEnvironment/Surface/obj/rcu.c,
 				LindChain/ProcEnvironment/Surface/obj/reference.c,
 				LindChain/ProcEnvironment/Surface/permit.c,
 				LindChain/ProcEnvironment/Surface/proc/fork.m,

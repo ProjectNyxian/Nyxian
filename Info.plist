@@ -113,6 +113,21 @@
 				<string>public.zip-archive</string>
 			</array>
 			<key>UTTypeIdentifier</key>
+			<string>com.cr4zy.nyxian.ipa</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>ipa</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeIdentifier</key>
 			<string>com.cr4zy.nyxian.tipa</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
