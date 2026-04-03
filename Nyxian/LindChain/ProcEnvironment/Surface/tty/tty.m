@@ -267,6 +267,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             int slavepair[2];
             if(socketpair(AF_UNIX, SOCK_STREAM, 0, slavepair) != 0)
             {
+                shutdown(masterpair[1],  SHUT_RDWR);
                 close(masterpair[0]);
                 close(masterpair[1]);
                 return -1;
@@ -305,26 +306,30 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             }
             if(radix_insert(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD], tty) != 0)
             {
-                if(radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]) == NULL)
-                {
-                    environment_panic("got NULL value on tty radix remove, although was added before");
-                }
+                radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]);
                 tty_table_unlock();
                 goto out_fail;
             }
             tty_table_unlock();
             
             /* lets start da factory */
-            tty->alive = 1;
-            
             if(pthread_create(&tty->pump_thread, NULL, tty_pump_thread, tty) != 0)
             {
-                goto out_fail;
+                goto out_fail_radix;
             }
+            
+            tty->alive = 1;
             
             return 0;
         
+        out_fail_radix:
+            tty_table_wrlock();
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[MASTERFD]);
+            radix_remove(&(ksurface->tty_info.tty), tty->userspacekcid[SLAVEFD]);
+            tty_table_unlock();
         out_fail:
+            shutdown(tty->kernelfds[SLAVEFD],  SHUT_RDWR);
+            shutdown(tty->kernelfds[MASTERFD], SHUT_RDWR);
             close(tty->userspacefd[MASTERFD]);
             close(tty->userspacefd[SLAVEFD]);
             close(tty->kernelfds[MASTERFD]);
