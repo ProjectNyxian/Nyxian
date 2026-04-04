@@ -26,7 +26,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static var ipa: UTType {
-        UTType(importedAs: "com.cr4zy.nyxian.ipa", conformingTo: .zip)
+        UTType(filenameExtension: "ipa") ?? .zip
     }
     static var tipa: UTType {
         UTType(importedAs: "com.cr4zy.nyxian.tipa", conformingTo: .zip)
