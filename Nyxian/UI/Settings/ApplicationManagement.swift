@@ -50,16 +50,14 @@ extension PEEntitlement {
     var displayAttributedString: NSAttributedString {
         // Resolve tfp capability based on what else is granted
         let taskForPidEntry: EntitlementItem? = {
-            // if it can't see other processes then tfp is useless
-            if ((self.contains(.platformRoot) && self.contains(.platform)) || self.contains(.processElevate)) && self.contains(.processEnumeration) {
-                return (.taskForPid, "obtain task ports of any process running inside Nyxian without restriction", .systemRed)
-            } else if self.contains(.platform) && self.contains(.processEnumeration) {
-                return (.taskForPid, "obtain task ports of any process running as the same user inside Nyxian without restriction", .systemOrange)
+            if self.contains(.processElevate) || (self.contains(.platformRoot) && self.contains(.platform)) {
+                if self.contains(.processEnumeration) {
+                    return (.taskForPid, "obtain task ports of any process running inside Nyxian without restriction", .systemRed)
+                }
             } else if self.contains(.processEnumeration) {
-                return (.taskForPid, "obtain task ports of processes that explicitly allow it via Get Task Allowed or run within the same session", .customGold)
-            } else {
-                return (nil, "obtain task ports of processes that run within the same session", .systemGray)
+                return (.taskForPid, "obtain task ports of processes running as the same user that explicitly allow it via Get Task Allowed or run within the same session", .customGold)
             }
+            return (nil, "obtain task ports of processes that run within the same session", .systemGray)
         }()
         
         let platformItems: [EntitlementItem] = {

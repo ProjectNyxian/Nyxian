@@ -26,7 +26,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* TODO: make the scan result reusable memory wise */
 typedef struct {
     char **headers;
     int count;
