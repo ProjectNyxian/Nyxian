@@ -49,7 +49,7 @@ func getTopViewController(base: UIViewController? = UIApplication.shared.connect
         case error = 2
     }
     
-    static func getTitleForNotif(level: NotifLevel) -> String {
+    private static func getTitleForNotif(level: NotifLevel) -> String {
         switch level {
         case .note: return "Note"
         case .warning: return "Warning"

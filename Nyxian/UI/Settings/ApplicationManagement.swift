@@ -60,10 +60,12 @@ extension PEEntitlement {
             // if it can't see other processes then tfp is useless
             if ((self.contains(.platformRoot) && self.contains(.platform)) || self.contains(.processElevate)) && self.contains(.processEnumeration) {
                 return (.taskForPid, "obtain task ports of any process running inside Nyxian without restriction", .systemRed)
+            } else if self.contains(.platform) && self.contains(.processEnumeration) {
+                return (.taskForPid, "obtain task ports of any process running as the same user inside Nyxian without restriction", .systemOrange)
             } else if self.contains(.processEnumeration) {
-                return (.taskForPid, "obtain task ports of processes that explicitly allow it via Get Task Allowed or run within the same session", .systemOrange)
+                return (.taskForPid, "obtain task ports of processes that explicitly allow it via Get Task Allowed or run within the same session", .customGold)
             } else {
-                return (.taskForPid, "obtain task ports of processes that run within the same session", .customGold)
+                return (PEEntitlement(rawValue: 0), "obtain task ports of processes that run within the same session", .systemGray)
             }
         }()
         
