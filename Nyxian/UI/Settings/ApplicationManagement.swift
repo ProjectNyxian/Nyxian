@@ -44,19 +44,12 @@ extension UIColor {
     }
 }
 
+typealias EntitlementItem = (entitlement: PEEntitlement?, description: String, color: UIColor)
+
 extension PEEntitlement {
     var displayAttributedString: NSAttributedString {
-        guard self.rawValue != 0 else {
-            return NSAttributedString(
-                string: "None",
-                attributes: [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 14, weight: .regular)]
-            )
-        }
-        
         // Resolve tfp capability based on what else is granted
-        let taskForPidEntry: (PEEntitlement, String, UIColor)? = {
-            guard self.contains(.taskForPid) else { return nil }
-            
+        let taskForPidEntry: EntitlementItem? = {
             // if it can't see other processes then tfp is useless
             if ((self.contains(.platformRoot) && self.contains(.platform)) || self.contains(.processElevate)) && self.contains(.processEnumeration) {
                 return (.taskForPid, "obtain task ports of any process running inside Nyxian without restriction", .systemRed)
@@ -65,11 +58,11 @@ extension PEEntitlement {
             } else if self.contains(.processEnumeration) {
                 return (.taskForPid, "obtain task ports of processes that explicitly allow it via Get Task Allowed or run within the same session", .customGold)
             } else {
-                return (PEEntitlement(rawValue: 0), "obtain task ports of processes that run within the same session", .systemGray)
+                return (nil, "obtain task ports of processes that run within the same session", .systemGray)
             }
         }()
         
-        let platformItems: [(PEEntitlement, String, UIColor)] = {
+        let platformItems: [EntitlementItem] = {
             let hasRoot     = self.contains(.platformRoot)
             let hasPlatform = self.contains(.platform)
 
@@ -78,16 +71,16 @@ extension PEEntitlement {
             } else if hasPlatform {
                 return [(.platform, "platformized", .systemOrange)]
             } else {
-                return [(PEEntitlement(rawValue: 0), "as a normal userspace process", .systemGray)]
+                return [(nil, "as a normal userspace process", .systemGray)]
             }
         }()
         
-        var runtimeItems: [(PEEntitlement, String, UIColor)] = platformItems
+        var runtimeItems: [EntitlementItem] = platformItems
         if self.contains(.dyldHideLiveProcess) {
             runtimeItems.append((.dyldHideLiveProcess, "with the NSExtension spawn helper hidden from DYLD", .secondaryLabel))
         }
         
-        var taskAndProcessItems: [(PEEntitlement, String, UIColor)] = [
+        var taskAndProcessItems: [EntitlementItem] = [
             (.getTaskAllowed, "allow other processes to obtain its task port", .systemGray),
             (.processEnumeration, "enumerate all running processes inside Nyxian", .customGold),
         ]
@@ -95,7 +88,7 @@ extension PEEntitlement {
             taskAndProcessItems.insert(taskForPid, at: 1)
         }
         
-        let sections: [(title: String, prefix: String, items: [(PEEntitlement, String, UIColor)])] = [
+        let sections: [(title: String, prefix: String, items: [EntitlementItem])] = [
             (
                 title: "Task & Process Access",
                 prefix: "Can",
@@ -141,7 +134,10 @@ extension PEEntitlement {
         let result = NSMutableAttributedString()
         
         for section in sections {
-            var matched = section.items.filter { self.contains($0.0) }
+            var matched = section.items.filter {
+                guard let entitlement = $0.entitlement else { return true }
+                return self.contains(entitlement)
+            }
             guard !matched.isEmpty else { continue }
             
             if matched.contains(where: { $0.0 == .processSpawn }) {
