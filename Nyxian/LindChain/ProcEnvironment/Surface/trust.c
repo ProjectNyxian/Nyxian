@@ -220,6 +220,7 @@ int macho_after_sign(const char *path,
     }
     
     int retval = macho_after_sign_fd(fd, entitlement);
+    fsync(fd);
     close(fd);
     
     return retval;

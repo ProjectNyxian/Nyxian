@@ -35,12 +35,19 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
                                              const char *cdhash,
                                              PEEntitlement entitlement)
 {
+    blob->entitlement = entitlement;
+    
     /* copy cdhash and entitlements over */
     if(cdhash != NULL)
     {
         memcpy((void*)(blob->cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
     }
-    blob->entitlement = entitlement;
+    else
+    {
+        /* dont sign at all (just containing entitlements) */
+        bzero((void*)(blob->cdhash), USER_FSIGNATURES_CDHASH_LEN);
+        return SURFACE_SUCCESS;
+    }
     
     /* generating nonce so it's harder to crack */
     arc4random_buf(&(blob->nonce), sizeof(uint64_t));
