@@ -27,13 +27,18 @@
 #include <LindChain/LiveContainer/Tweaks/Tweaks.h>
 #import <LindChain/Utils/Swizzle.h>
 
-NSURL* appContainerURL = 0;
-NSString* appContainerPath = 0;
+NSString* appContainerPath = nil;
 
 void NUDGuestHooksInit(void)
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        const char *home = getenv("HOME");
+        if(home != nil)
+        {
+            appContainerPath = [NSString stringWithCString:home encoding:NSUTF8StringEncoding];
+        }
+        
         swizzle_objc_method(@selector(initWithDomain:user:byHost:containerPath:containingPreferences:),
                             NSClassFromString(@"CFPrefsPlistSource"),
                             @selector(hook_initWithDomain:user:byHost:containerPath:containingPreferences:),
