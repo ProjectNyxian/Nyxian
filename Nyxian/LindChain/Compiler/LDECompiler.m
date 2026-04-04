@@ -36,7 +36,9 @@
 
 @end
 
-@implementation Compiler
+@implementation Compiler {
+    dependency_scan_service_t _svc;
+}
 
 ///
 /// Method that initilizes the more-use Compiler
@@ -57,6 +59,8 @@
     }
     
     self.lock = [[NSLock alloc] init];
+    
+    _svc = CreateScanService();
     
     return self;
 }
@@ -116,7 +120,7 @@
     for(int i = 2; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i - 2] UTF8String]);
     [self.lock unlock];
     
-    dependency_scan_result_t result = ScanDependencies(argc, (const char**)argv);
+    dependency_scan_result_t result = ScanDependencies(_svc, argc, (const char**)argv);
     
     for(int i = 0; i < argc; i++) free(argv[i]);
     free(argv);
@@ -159,6 +163,11 @@
     
     FreeScanResult(result);
     return [headers copy];
+}
+
+- (void)dealloc
+{
+    FreeScanService(_svc);
 }
 
 @end

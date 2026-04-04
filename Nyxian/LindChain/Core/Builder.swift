@@ -68,6 +68,8 @@ class Builder {
         }
         
         if fileArgsString == self.argsString, self.project.projectConfig.increment {
+            let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
+            XCButton.switchImage(withSystemName: "magnifyingglass", animated: true)
             guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
                 /* shall not happen */
                return
@@ -88,10 +90,15 @@ class Builder {
                         result.append(file)
                         lock.unlock()
                     }
+                    
+                    XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)
             }
             
             threader.wait()
+            
+            XCButton.resetProgress()
+            XCButton.switchImage(withSystemName: "hammer.fill", animated: true)
             
             self.dirtySourceFiles = result
         }

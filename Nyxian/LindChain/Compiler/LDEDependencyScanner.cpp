@@ -28,14 +28,27 @@
 using namespace clang;
 using namespace clang::tooling::dependencies;
 
+struct opaque_scan_service {
+    DependencyScanningService service;
+    opaque_scan_service() : service(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Make, ScanningOptimizations::None, false) {}
+};
+
 extern "C" {
 
-dependency_scan_result_t ScanDependencies(int argc, const char **argv)
+dependency_scan_service_t CreateScanService(void)
+{
+    return new opaque_scan_service();
+}
+
+void FreeScanService(dependency_scan_service_t svc)
+{
+    delete static_cast<opaque_scan_service *>(svc);
+}
+
+dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, int argc, const char **argv)
 {
     dependency_scan_result_t out = {nullptr, 0, 0, nullptr};
-    
-    DependencyScanningService service(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Make, ScanningOptimizations::None, false);
-    DependencyScanningTool tool(service);
+    DependencyScanningTool tool(static_cast<opaque_scan_service *>(svc)->service);
     
     std::vector<std::string> args(argv, argv + argc);
     
