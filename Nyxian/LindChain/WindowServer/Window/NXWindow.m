@@ -30,6 +30,7 @@
     NXWindowBar *_windowBar;
     UIView *_focusHitView;
     dispatch_once_t _viewDidAppearOnceDispatch;
+    dispatch_once_t _closeOnce;
     CADisplayLink *_resizeDisplayLink;
     NSTimer *_resizeEndDebounceTimer;
     int _resizeEndDebounceRefCnt;
@@ -143,28 +144,30 @@
 
 - (void)closeWindowWithCompletion:(void (^)(BOOL))completion
 {
-    [UIView animateKeyframesWithDuration:0.25 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeCubic animations:^{
-        [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.25 animations:^{
-            self.view.alpha = 0.8;
-            self.view.transform = CGAffineTransformMakeScale(1.05, 1.05);
+    dispatch_once(&_closeOnce, ^{
+        [UIView animateKeyframesWithDuration:0.25 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeCubic animations:^{
+            [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.25 animations:^{
+                self.view.alpha = 0.8;
+                self.view.transform = CGAffineTransformMakeScale(1.05, 1.05);
+            }];
+            [UIView addKeyframeWithRelativeStartTime:0.25 relativeDuration:0.75 animations:^{
+                self.view.alpha = 0.0;
+                self.view.transform = CGAffineTransformMakeScale(0.6, 0.6);
+            }];
+        } completion:^(BOOL finished) {
+            self.view.transform = CGAffineTransformIdentity;
+            BOOL closeWindow = [self.session closeWindow];
+            
+            if(closeWindow)
+            {
+                [self.delegate windowWantsToClose:self];
+            }
+            else
+            {
+                if(completion) completion(closeWindow);
+            }
         }];
-        [UIView addKeyframeWithRelativeStartTime:0.25 relativeDuration:0.75 animations:^{
-            self.view.alpha = 0.0;
-            self.view.transform = CGAffineTransformMakeScale(0.6, 0.6);
-        }];
-    } completion:^(BOOL finished) {
-        self.view.transform = CGAffineTransformIdentity;
-        BOOL closeWindow = [self.session closeWindow];
-        
-        if(closeWindow)
-        {
-            [self.delegate windowWantsToClose:self];
-        }
-        else
-        {
-            if(completion) completion(closeWindow);
-        }
-    }];
+    });
 }
 
 - (void)openWindow
