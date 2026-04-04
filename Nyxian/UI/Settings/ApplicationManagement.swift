@@ -104,7 +104,7 @@ extension PEEntitlement {
                 prefix: "Can",
                 items: [
                     (.processKill, "kill processes", .customGold),
-                    (.processSpawn, "spawn arbitrary unsigned processes", .systemOrange),
+                    (.processSpawn, "spawn arbitrary unsigned binaries", .systemOrange),
                     (.processSpawnSignedOnly, "spawn signed binaries only", .customGold),
                     (.processElevate, "elevate it's own credentials (to the root user for instance)", .systemRed),
                     (.processSpawnInheriteEntitlements, "pass its entitlements to spawned children", .systemOrange),
