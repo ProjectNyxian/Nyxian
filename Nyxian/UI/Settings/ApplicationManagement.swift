@@ -278,6 +278,21 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
     }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        let alert = UIAlertController(title: nil, message: "Validating", preferredStyle: .alert)
+        
+        let activityIndicator = UIActivityIndicatorView(style: .medium)
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.startAnimating()
+        
+        alert.view.addSubview(activityIndicator)
+        
+        NSLayoutConstraint.activate([
+            activityIndicator.centerYAnchor.constraint(equalTo: alert.view.centerYAnchor),
+            activityIndicator.trailingAnchor.constraint(equalTo: alert.view.trailingAnchor, constant: -20)
+        ])
+        
+        self.present(alert, animated: true)
+        
         DispatchQueue.global().async {
             do {
                 guard let selectedURL = urls.first else { return }
@@ -372,29 +387,31 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 
                 // The app indeed wants something bruh
                 DispatchQueue.main.async {
-                    let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Unknown"
-                    let alert = UIAlertController(
-                        title: "Install \"\(displayName)\"?",
-                        message: nil,
-                        preferredStyle: .alert
-                    )
-
-                    // Build the full attributed message
-                    let fullMessage = NSMutableAttributedString()
-
-                    fullMessage.append(ent.displayAttributedString)
-
-                    alert.setValue(fullMessage, forKey: "attributedMessage")
-
-                    alert.addAction(UIAlertAction(title: "Install", style: .default) { _ in
-                        DispatchQueue.global().async {
-                            _ = proceedWithInstall()
-                        }
-                    })
-
-                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-                    self.present(alert, animated: true)
+                    alert.dismiss(animated: true) {
+                        let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Unknown"
+                        let alert = UIAlertController(
+                            title: "Install \"\(displayName)\"?",
+                            message: nil,
+                            preferredStyle: .alert
+                        )
+                        
+                        // Build the full attributed message
+                        let fullMessage = NSMutableAttributedString()
+                        
+                        fullMessage.append(ent.displayAttributedString)
+                        
+                        alert.setValue(fullMessage, forKey: "attributedMessage")
+                        
+                        alert.addAction(UIAlertAction(title: "Install", style: .default) { _ in
+                            DispatchQueue.global().async {
+                                _ = proceedWithInstall()
+                            }
+                        })
+                        
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        
+                        self.present(alert, animated: true)
+                    }
                 }
                 
             } catch {
