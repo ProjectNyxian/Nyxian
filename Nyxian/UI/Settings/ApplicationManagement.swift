@@ -78,7 +78,7 @@ extension PEEntitlement {
             } else if hasPlatform {
                 return [(.platform, "platformized", .systemOrange)]
             } else {
-                return []
+                return [(PEEntitlement(rawValue: 0), "as a normal userspace process", .systemGray)]
             }
         }()
         
@@ -374,16 +374,11 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                     }
                 }
                 
-                guard ent.rawValue != 0 else {
-                    // If the app does not want anything special then it shall be granted
-                    _ = proceedWithInstall()
-                    return
-                }
-                
                 // The app indeed wants something bruh
                 DispatchQueue.main.async {
+                    let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Unknown"
                     let alert = UIAlertController(
-                        title: "App Contains Capabilities",
+                        title: "Install \"\(displayName)\"?",
                         message: nil,
                         preferredStyle: .alert
                     )

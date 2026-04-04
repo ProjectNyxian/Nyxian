@@ -63,17 +63,17 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
             ftruncate(fd, eof);
         }
     }
-
+    
     if(lseek(fd, eof, SEEK_SET) < 0)
     {
         return -1;
     }
-
+    
     if(write(fd, &token, sizeof(ksurface_ent_blob_t)) != (ssize_t)sizeof(ksurface_ent_blob_t))
     {
         return -1;
     }
-
+    
     size_t data_len = sizeof(ksurface_ent_blob_t);
     if(write(fd, &data_len, sizeof(uint32_t)) != sizeof(uint32_t))
     {
@@ -83,7 +83,7 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
     {
         return -1;
     }
-
+    
     return 0;
 }
 
@@ -104,6 +104,99 @@ int macho_after_sign(const char *path,
     return retval;
 }
 
+static void printUsage(const char *prog)
+{
+    fprintf(stderr, "Usage: %s <input ipa> <output nipa> [flags...]\n\n", prog);
+    fprintf(stderr, "Entitlement flags:\n");
+    fprintf(stderr, "  --raw <hex>\n");
+    fprintf(stderr, "  --get-task-allowed\n");
+    fprintf(stderr, "  --task-for-pid\n");
+    fprintf(stderr, "  --proc-enum\n");
+    fprintf(stderr, "  --proc-kill\n");
+    fprintf(stderr, "  --proc-spawn\n");
+    fprintf(stderr, "  --proc-spawn-signed\n");
+    fprintf(stderr, "  --proc-elevate\n");
+    fprintf(stderr, "  --proc-inherit\n");
+    fprintf(stderr, "  --host-manager\n");
+    fprintf(stderr, "  --credentials-manager\n");
+    fprintf(stderr, "  --ls-start\n");
+    fprintf(stderr, "  --ls-stop\n");
+    fprintf(stderr, "  --ls-toggle\n");
+    fprintf(stderr, "  --ls-get-endpoint\n");
+    fprintf(stderr, "  --ls-set-endpoint\n");
+    fprintf(stderr, "  --ls-manager\n");
+    fprintf(stderr, "  --dyld-hide\n");
+    fprintf(stderr, "  --platform\n");
+    fprintf(stderr, "  --platform-root\n");
+    fprintf(stderr, "\nPreset's:\n");
+    fprintf(stderr, "  --preset-user\n");
+    fprintf(stderr, "  --preset-system-app\n");
+    fprintf(stderr, "  --preset-system-daemon\n");
+}
+
+static PEEntitlement parseEntitlementFlags(int argc, const char *argv[], int startIdx)
+{
+    PEEntitlement result = PEEntitlementNone;
+    BOOL gotAny = NO;
+
+    for(int i = startIdx; i < argc; i++)
+    {
+        const char *arg = argv[i];
+        
+        if(strcmp(arg, "--raw") == 0)
+        {
+            if(i + 1 >= argc)
+            {
+                fprintf(stderr, "error: %s requires a hex value argument\n", arg);
+                return (PEEntitlement)-1;
+            }
+            char *end = NULL;
+            uint64_t val = strtoull(argv[++i], &end, 16);
+            if(*end != '\0')
+            {
+                fprintf(stderr, "error: invalid hex value '%s'\n", argv[i]);
+                return (PEEntitlement)-1;
+            }
+            result |= (PEEntitlement)val;
+            gotAny = YES;
+        }
+        else if(strcmp(arg, "--get-task-allowed")       == 0) { result |= PEEntitlementGetTaskAllowed;                   gotAny = YES; }
+        else if(strcmp(arg, "--task-for-pid")           == 0) { result |= PEEntitlementTaskForPid;                       gotAny = YES; }
+        else if(strcmp(arg, "--proc-enum")              == 0) { result |= PEEntitlementProcessEnumeration;               gotAny = YES; }
+        else if(strcmp(arg, "--proc-kill")              == 0) { result |= PEEntitlementProcessKill;                      gotAny = YES; }
+        else if(strcmp(arg, "--proc-spawn")             == 0) { result |= PEEntitlementProcessSpawn;                     gotAny = YES; }
+        else if(strcmp(arg, "--proc-spawn-signed")      == 0) { result |= PEEntitlementProcessSpawnSignedOnly;           gotAny = YES; }
+        else if(strcmp(arg, "--proc-elevate")           == 0) { result |= PEEntitlementProcessElevate;                   gotAny = YES; }
+        else if(strcmp(arg, "--proc-inherit")           == 0) { result |= PEEntitlementProcessSpawnInheriteEntitlements; gotAny = YES; }
+        else if(strcmp(arg, "--host-manager")           == 0) { result |= PEEntitlementHostManager;                      gotAny = YES; }
+        else if(strcmp(arg, "--credentials-manager")    == 0) { result |= PEEntitlementCredentialsManager;               gotAny = YES; }
+        else if(strcmp(arg, "--ls-start")               == 0) { result |= PEEntitlementLaunchServicesStart;              gotAny = YES; }
+        else if(strcmp(arg, "--ls-stop")                == 0) { result |= PEEntitlementLaunchServicesStop;               gotAny = YES; }
+        else if(strcmp(arg, "--ls-toggle")              == 0) { result |= PEEntitlementLaunchServicesToggle;             gotAny = YES; }
+        else if(strcmp(arg, "--ls-get-endpoint")        == 0) { result |= PEEntitlementLaunchServicesGetEndpoint;        gotAny = YES; }
+        else if(strcmp(arg, "--ls-set-endpoint")        == 0) { result |= PEEntitlementLaunchServicesSetEndpoint;        gotAny = YES; }
+        else if(strcmp(arg, "--ls-manager")             == 0) { result |= PEEntitlementLaunchServicesManager;            gotAny = YES; }
+        else if(strcmp(arg, "--dyld-hide")              == 0) { result |= PEEntitlementDyldHideLiveProcess;              gotAny = YES; }
+        else if(strcmp(arg, "--platform")               == 0) { result |= PEEntitlementPlatform;                         gotAny = YES; }
+        else if(strcmp(arg, "--platform-root")          == 0) { result |= PEEntitlementPlatformRoot;                     gotAny = YES; }
+        else if(strcmp(arg, "--preset-user")            == 0) { result |= PEEntitlementUserApplication;      gotAny = YES; }
+        else if(strcmp(arg, "--preset-system-app")      == 0) { result |= PEEntitlementSystemApplication;    gotAny = YES; }
+        else if(strcmp(arg, "--preset-system-daemon")   == 0) { result |= PEEntitlementSystemDaemon;         gotAny = YES; }
+        else
+        {
+            fprintf(stderr, "error: unknown flag '%s'\n", arg);
+            return (PEEntitlement)-1;
+        }
+    }
+    
+    if(!gotAny)
+    {
+        fprintf(stderr, "error: no entitlement flags provided\n");
+        return (PEEntitlement)-1;
+    }
+    
+    return result;
+}
 
 int main(int argc, const char * argv[])
 {
@@ -113,23 +206,31 @@ int main(int argc, const char * argv[])
      */
     if(argc < 4)
     {
-        fprintf(stderr, "Usage: %s <input ipa> <output nipa> <entitlement hex value>\n", argv[0]);
+        printUsage(argv[0]);
         return 1;
     }
     
     NSString *ipaPath = [NSString stringWithCString:argv[1] encoding:NSUTF8StringEncoding];
     if(ipaPath == nil)
     {
-        fprintf(stderr, "failed to get ipa path\n");
+        fprintf(stderr, "error: failed to get ipa path\n");
         return 1;
     }
     
     NSString *outPath = [NSString stringWithCString:argv[2] encoding:NSUTF8StringEncoding];
     if(outPath == nil)
     {
-        fprintf(stderr, "failed to get output path\n");
+        fprintf(stderr, "error: failed to get output path\n");
         return 1;
     }
+    
+    PEEntitlement entitlement = parseEntitlementFlags(argc, argv, 3);
+    if(entitlement == (PEEntitlement)-1)
+    {
+        printUsage(argv[0]);
+        return 1;
+    }
+    
     unlink([outPath UTF8String]);
     
     /* now create temporary zip path */
@@ -138,14 +239,14 @@ int main(int argc, const char * argv[])
     NSError *error;
     if(![[NSFileManager defaultManager] createDirectoryAtPath:tmpSpace withIntermediateDirectories:YES attributes:nil error:&error])
     {
-        fprintf(stderr, "failed to create temporary space: %s\n", [[error localizedDescription] UTF8String]);
+        fprintf(stderr, "error: failed to create temporary space: %s\n", [[error localizedDescription] UTF8String]);
         return 1;
     }
     
     /* now extract ipa file into it */
     if(!unzipArchiveAtPath(ipaPath, tmpSpace))
     {
-        fprintf(stderr, "failed to extract zip file\n");
+        fprintf(stderr, "error: failed to extract zip file\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
@@ -154,7 +255,7 @@ int main(int argc, const char * argv[])
     NSArray<NSString*> *items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:payloadPath error:&error];
     if(error != nil)
     {
-        fprintf(stderr, "failed to get contents of directory: %s\n", [[error localizedDescription] UTF8String]);
+        fprintf(stderr, "error: failed to get contents of directory: %s\n", [[error localizedDescription] UTF8String]);
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
@@ -171,16 +272,15 @@ int main(int argc, const char * argv[])
     
     if(bundle == nil)
     {
-        fprintf(stderr, "failed to find app bundle\n");
+        fprintf(stderr, "error: failed to find app bundle\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
     
     /* now we'll poc sign */
-    PEEntitlement entitlement = (PEEntitlement)strtoull(argv[3], NULL, 16);
     if(macho_after_sign([bundle.executablePath UTF8String], entitlement) != 0)
     {
-        fprintf(stderr, "failed to after sign app\n");
+        fprintf(stderr, "error: failed to after sign app\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
@@ -188,7 +288,7 @@ int main(int argc, const char * argv[])
     /* and now lets go */
     if(!zipDirectoryAtPath(payloadPath, outPath, YES))
     {
-        fprintf(stderr, "failed to rearchive app\n");
+        fprintf(stderr, "error: failed to rearchive app\n");
         [[NSFileManager defaultManager] removeItemAtPath:tmpSpace error:nil];
         return 1;
     }
