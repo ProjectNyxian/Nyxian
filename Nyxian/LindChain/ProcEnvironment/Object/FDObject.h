@@ -128,16 +128,6 @@
  */
 - (BOOL)writeIn:(NSString*)path;
 
-/*!
- @method `forceVnodeReassignment`
- @abstract Forces a vnode reassignment by temporarily moving the file.
- @param path
-    The path of the target file.
- @return
-    YES on success, NO on failure.
- */
-+ (BOOL)forceVnodeReassignment:(NSString*)path;
-
 @end
 
 #endif /* PROCENVIRONMENT_FDOBJECT_H */

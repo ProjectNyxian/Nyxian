@@ -153,6 +153,7 @@
         return NO;
     }
     
+    /* clone doesnt work hmmm, something breaks for some reason when cloning */
     int ret = fcopyfile(tmpfd, dstFd, NULL, COPYFILE_DATA);
     
     close(tmpfd);
@@ -179,6 +180,7 @@
     ftruncate(tmpfd, 0);
     lseek(tmpfd, 0, SEEK_SET);
     
+    /* clone doesnt work hmmm, something breaks for some reason when cloning */
     int ret = fcopyfile(srcFd, tmpfd, NULL, COPYFILE_DATA);
     
     close(srcFd);
@@ -217,47 +219,6 @@
     FDObject *copy = [[[self class] allocWithZone:zone] init];
     copy.fd = [self.fd copy];
     return copy;
-}
-
-+ (BOOL)forceVnodeReassignment:(NSString*)path
-{
-    if(path == nil)
-    {
-        return NO;
-    }
-    
-    NSFileManager *fm = [NSFileManager defaultManager];
-
-    NSString *uuid = [[NSUUID UUID] UUIDString];
-    NSString *tmpPath = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:uuid];
-    
-    if(tmpPath == nil)
-    {
-        return NO;
-    }
-
-    /* ->copy<- to temporary directory */
-    NSError *error = nil;
-    if(![fm copyItemAtPath:path toPath:tmpPath error:&error])
-    {
-        return NO;
-    }
-    
-    /* unlinking original */
-    if(unlink(path.fileSystemRepresentation) != 0)
-    {
-        [fm removeItemAtPath:tmpPath error:nil];
-        return NO;
-    }
-
-    /* move copy back to original location */
-    if(![fm moveItemAtPath:tmpPath toPath:path error:&error])
-    {
-        [fm removeItemAtPath:tmpPath error:nil];
-        return NO;
-    }
-
-    return YES;
 }
 
 @end
