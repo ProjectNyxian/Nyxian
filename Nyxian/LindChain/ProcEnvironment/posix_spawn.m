@@ -163,6 +163,9 @@ int environment_posix_spawn(pid_t *process_identifier,
             goto out_free_resolved;
         }
         
+        /* for some reason we get a iOS kernel panic otherwise */
+        refreshFile([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
+        
         /*
          * checking if kernel virt actually signed
          * executable.
@@ -174,9 +177,6 @@ int environment_posix_spawn(pid_t *process_identifier,
             free(resolved);
             return errno;
         }
-        
-        /* for some reason we get a iOS kernel panic otherwise */
-        refreshFile([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
     }
     
     /*

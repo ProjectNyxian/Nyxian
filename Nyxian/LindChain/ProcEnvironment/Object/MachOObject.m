@@ -40,34 +40,53 @@
 
 - (BOOL)signAndWriteBack
 {
+    __block NSError *error = nil;
+    
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSString *binPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
+    
+    NSString *bundlePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[[NSUUID UUID] UUIDString] stringByAppendingPathExtension:@"app"]];
+    NSString *binPath = [bundlePath stringByAppendingPathComponent:@"main"];
+    NSString *infoPath = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
+    
+    /* create bundle structure */
+    [fm createDirectoryAtPath:bundlePath withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    /* create pseudo info.plist TODO: actual make a single macho signer */
+    [[NSPropertyListSerialization dataWithPropertyList:@{
+        @"CFBundleIdentifier" : [[NSBundle mainBundle] bundleIdentifier],
+        @"CFBundleExecutable" : @"main"
+    } format:NSPropertyListXMLFormat_v1_0 options:0 error:&error] writeToFile:infoPath atomically:YES];
+    
+    if(error != nil)
+    {
+        return NO;
+    }
     
     /* write binary from file descriptor to our selves */
-    if(![self writeOut:binPath])
-    {
-        return NO;
-    }
+    if(![self writeOut:binPath]) return NO;
     
     /* run signer~~ UwU */
-    BOOL retval = [MachOObject signBinaryAtPath:binPath];
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
+        error = error;
+        dispatch_semaphore_signal(sema);
+    }];
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
-    if(!checkCodeSignature(binPath.UTF8String))
+    if(error != nil)
     {
-        [fm removeItemAtPath:binPath error:nil];
         return NO;
     }
     
-    if(![self writeIn:binPath])
+    if([self.class isBinarySignedAtPath:binPath] &&
+       [self writeIn:binPath])
     {
-        [fm removeItemAtPath:binPath error:nil];
-        return NO;
+        [fm removeItemAtPath:bundlePath error:nil];
+        return YES;
     }
     
-    [fm removeItemAtPath:binPath error:nil];
-    
-    /* FIXME: invalid page in child executable, but when we sideload a utility and sign it via the same symbol its not invalid page?? */
-    return retval;
+    [fm removeItemAtPath:bundlePath error:nil];
+    return NO;
 }
 
 @end
