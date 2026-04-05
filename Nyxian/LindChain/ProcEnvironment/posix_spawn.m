@@ -34,6 +34,21 @@
 
 #pragma mark - posix_spawn helper
 
+// copy, remove and rename back the file to prevent crash due to kernel signature cache
+// see https://developer.apple.com/documentation/security/updating-mac-software
+void refreshFile(const char* path)
+{
+    NSString* objcPath = @(path);
+    if(![NSFileManager.defaultManager fileExistsAtPath:objcPath]) {
+        return;
+    }
+    NSString* newPath = [NSString stringWithFormat:@"%s.tmp", path];
+    NSError* error;
+    [NSFileManager.defaultManager copyItemAtPath:objcPath toPath:newPath error:&error];
+    [NSFileManager.defaultManager removeItemAtPath:objcPath error:&error];
+    [NSFileManager.defaultManager moveItemAtPath:newPath toPath:objcPath error:&error];
+}
+
 NSArray<NSString*> *NSArrayFromCArray(char *const argv[])
 {
     /* sanity check */
@@ -164,7 +179,7 @@ int environment_posix_spawn(pid_t *process_identifier,
         }
         
         /* for some reason we get a iOS kernel panic otherwise */
-        refreshFile([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
+        refreshFile([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding].fileSystemRepresentation);
         
         /*
          * checking if kernel virt actually signed

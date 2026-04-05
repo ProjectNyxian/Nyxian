@@ -102,7 +102,6 @@ bool ZMachO::CloseFile()
 		ZLog::ErrorV(">>> CodeSign write(munmap) failed! Error: %p, %lu, %s\n", m_pBase, m_sSize, strerror(errno));
 		return false;
 	}
-    refreshFile(m_strFile.c_str());
 	return true;
 }
 

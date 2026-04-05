@@ -26,7 +26,6 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/LiveContainer/LCMachOUtils.h>
 
-void refreshFile(NSString* execPath);
 int dyld_get_program_sdk_version(void);
 
 @interface LCUtils : NSObject

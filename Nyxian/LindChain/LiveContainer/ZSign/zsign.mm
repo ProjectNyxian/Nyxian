@@ -154,8 +154,6 @@ bool zsignMachO(NSString *machoPath,
         return NO;
     }
     
-    /* bool ZMachO::Sign(ZSignAsset* pSignAsset, bool bForce, string strBundleId, string strInfoSHA1, string strInfoSHA256, const string& strCodeResourcesData) */
-    
     string strInfoSHA1;
     string strInfoSHA256;
     string strCodeResourcesData;

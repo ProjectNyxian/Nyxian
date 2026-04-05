@@ -533,7 +533,9 @@ create_home:
     // Write out
     NSString *fastPath = [[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:name];
     [object writeOut:[[[[LDEApplicationWorkspaceInternal shared] binaryURL] path] stringByAppendingPathComponent:name]];
-    bool isSigned = checkCodeSignature([fastPath UTF8String]);
+    void refreshFile(const char* path);
+    refreshFile(fastPath.fileSystemRepresentation);
+    bool isSigned = checkCodeSignature(fastPath.fileSystemRepresentation);
     if(!isSigned)
     {
         [[NSFileManager defaultManager] removeItemAtPath:fastPath error:nil];

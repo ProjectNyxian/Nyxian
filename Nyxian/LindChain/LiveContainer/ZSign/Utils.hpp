@@ -17,7 +17,6 @@ extern "C" {
 
 const char* getDocumentsDirectory();
 void writeToNSLog(const char* msg);
-void refreshFile(const char* path);
 
 #ifdef __cplusplus
 }
