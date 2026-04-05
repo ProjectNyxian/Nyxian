@@ -42,47 +42,62 @@ kvrcuobject_strong_t *kvrcuobject_alloc(kvobject_main_event_handler_t handler)
     kvrcuo->header.state = kvObjStateNormal;
     kvrcuo->header.orig = NULL;
     
-    if(pthread_mutex_init(&(kvrcuo->mutex), NULL) != 0)
-    {
-        free(kvrcuo);
-        return NULL;
-    }
+    kvrcuo->cur_lock = OS_UNFAIR_LOCK_INIT;
+    kvrcuo->wrt_lock = OS_UNFAIR_LOCK_INIT;
     
     /* create the normal object */
-    kvobject_strong_t *kvo = kvo_alloc(handler);
-    if(kvo == NULL)
+    kvrcuo->current = kvo_alloc(handler);
+    if(kvrcuo->current == NULL)
     {
-        pthread_mutex_destroy(&(kvrcuo->mutex));
         free(kvrcuo);
         return NULL;
     }
-    
-    atomic_store(&(kvrcuo->current), kvo);
     
     return kvrcuo;
 }
 
 kvobject_strong_t *kvrcuobject_writer_get_ref(kvrcuobject_strong_t *kvrcuo)
 {
-    //pthread_mutex_lock(&(kvrcuo->mutex));
+    os_unfair_lock_lock(&(kvrcuo->wrt_lock));
+    /* TODO: perform rcu-copy and return or unlock */
     return NULL;
 }
 
 kvobject_strong_t *kvrcuobject_reader_get_ref(kvrcuobject_strong_t *kvrcuo)
 {
-    kvobject_strong_t *kvo = atomic_load_explicit(&(kvrcuo->current), memory_order_acquire);
-    /* FIXME: can lead to a UAF, because kvo can become stale */
+    os_unfair_lock_lock(&(kvrcuo->cur_lock));
+    
+    kvobject_strong_t *kvo = kvrcuo->current;
     if(!kvo_retain(kvo))
     {
+        os_unfair_lock_unlock(&(kvrcuo->cur_lock));
         return NULL;
     }
+    
+    os_unfair_lock_unlock(&(kvrcuo->cur_lock));
+    
     return kvo;
 }
 
 void kvrcuobject_update(kvrcuobject_strong_t *kvrcuo,
                         kvobject_strong_t *kvo)
 {
-    kvobject_strong_t *current_kvo = atomic_load_explicit(&(kvrcuo->current), memory_order_acquire);
-    kvo_release(kvo);
-    atomic_store_explicit(&(kvrcuo->current), kvo, memory_order_release);
+    /* MARK: update consumes reference of kvo */
+    
+    os_unfair_lock_lock(&(kvrcuo->cur_lock));
+    
+    /*
+     * releasing current and setting new current
+     * object.
+     */
+    kvo_release(kvrcuo->current);
+    kvrcuo->current = kvo;
+    
+    os_unfair_lock_unlock(&(kvrcuo->cur_lock));
+    
+    /*
+     * unlock after update is acomplished so a waiting
+     * writer gets the updated copy.
+     */
+    os_unfair_lock_unlock(&(kvrcuo->wrt_lock));
 }

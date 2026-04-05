@@ -28,6 +28,7 @@
 #include <stdatomic.h>
 #include <pthread.h>
 #include <mach/mach.h>
+#include <os/lock.h>
 
 #define DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(name) int64_t kvobject_event_handler_##name##_main(kvobject_t **kvarr, kvobject_event_type_t type)
 #define GET_KVOBJECT_MAIN_EVENT_HANDLER(name) kvobject_event_handler_##name##_main
@@ -150,11 +151,12 @@ struct kvrcuobject {
     /* object header (yes rcu objects them selves will be objects) */
     kvobject_t header;
     
-    /* atomic version of the current kvobject */
-    _Atomic (kvobject_strong_t *) current;
+    /* current kvobject */
+    kvobject_strong_t * current;
     
-    /* mutex for writers, so writer copy is concurrency safe. */
-    pthread_mutex_t mutex;
+    /* locks for concurrence safety */
+    os_unfair_lock cur_lock;
+    os_unfair_lock wrt_lock;
 };
 
 #endif /* KVOBJECT_DEFS_H */
