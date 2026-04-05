@@ -77,14 +77,25 @@ void kvobject_release(kvobject_strong_t *kvo)
         kvobject_event_trigger(kvo, kvObjEventDeinit, 0);
         
         /* only a normal object has these locks */
-        if(kvo->base_type == kvObjBaseTypeObject)
+        switch(kvo->base_type)
         {
-            pthread_rwlock_destroy(&(kvo->rwlock));
-            pthread_rwlock_destroy(&(kvo->event_rwlock));
-        }
-        else if(kvo->base_type == kvObjBaseTypeObjectSnapshot && kvo->orig != NULL)
-        {
-            kvo_release(kvo->orig);
+            case kvObjBaseTypeObject:
+                pthread_rwlock_destroy(&(kvo->rwlock));
+                pthread_rwlock_destroy(&(kvo->event_rwlock));
+                break;
+            case kvObjBaseTypeObjectSnapshot:
+                kvo_release(kvo->orig);
+                break;
+            case kvObjBaseTypeObjectRCU:
+                kvo_invalidate(kvo);
+                kvrcuobject_strong_t *kvrcuo = (kvrcuobject_strong_t*)kvo;
+                /* TODO: cleanup is missing for now */
+                (void)kvrcuo->current;
+                (void)kvrcuo->mutex;
+                (void)kvrcuo->header;
+                /* fallthrough */
+            default:
+                break;
         }
         
         free(kvo);

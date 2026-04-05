@@ -40,6 +40,7 @@
 enum kvObjBaseType {
     kvObjBaseTypeObject = 0,                        /* normal allocated object with referencing */
     kvObjBaseTypeObjectSnapshot = 1,                /* snapshot of object also with referencing, but with seperate memory */
+    kvObjBaseTypeObjectRCU = 2,                     /* rcu allocated object with referencing  */
 };
 
 /* enumeration of kernel virt object events */
@@ -81,7 +82,8 @@ enum kvObjSnap {
 typedef struct kvobject     kvobject_t;             /* weak object type (needs retain on use) */
 typedef struct kvobject     kvobject_strong_t;      /* strong object (referenced for calle) */
 typedef struct kvobject     kvobject_snapshot_t;    /* snapshot of object (references object usually) */
-typedef struct kvrcuobject  kvrcuobject_t;          /* rcu object */
+typedef struct kvrcuobject  kvrcuobject_t;          /* weak rcu object */
+typedef struct kvrcuobject  kvrcuobject_strong_t;   /* strong rcu object */
 
 /* kernel virt object event type */
 typedef struct kvevent      kvobject_event_t;
@@ -149,7 +151,7 @@ struct kvrcuobject {
     kvobject_t header;
     
     /* atomic version of the current kvobject */
-    _Atomic kvobject_strong_t current;
+    _Atomic (kvobject_strong_t *) current;
     
     /* mutex for writers, so writer copy is concurrency safe. */
     pthread_mutex_t mutex;

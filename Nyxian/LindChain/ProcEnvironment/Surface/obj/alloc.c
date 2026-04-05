@@ -38,10 +38,7 @@ kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
      * first we gotta check if the size
      * is atleast the size of an kvobject
      */
-    if(size < sizeof(kvobject_t))
-    {
-        return NULL;
-    }
+    assert(size >= sizeof(kvobject_t));
     
     /* allocating brand new kvobject */
     kvobject_t *kvo = calloc(1, size);
