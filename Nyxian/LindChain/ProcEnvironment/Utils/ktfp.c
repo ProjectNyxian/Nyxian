@@ -26,70 +26,57 @@
 #if !JAILBREAK_ENV
 
 __attribute__((optnone))
-task_t ktfp(obtain_token_t token)
+task_t ktfp(mach_port_t exceptionPort)
 {
     kern_return_t kr;
     
-    /* the port either for listening or handoff */
-    mach_port_t exceptionPort = MACH_PORT_NULL;
+#if !HOST_ENV
+    /*
+     * constructing the exception port and
+     * setting it to our task for the host,
+     * to receive the IKOT_TASK of the guest
+     * through it, therefore receiving full
+     * power over the guest.
+     */
+    mach_port_options_t opt = {
+        .flags =  MPO_PORT | MPO_INSERT_SEND_RIGHT
+    };
     
-    if(token == KTFP_GUEST)
+    kr = mach_port_construct(mach_task_self(), &opt, 0, &exceptionPort);
+    if(kr != KERN_SUCCESS)
     {
-        /*
-         * constructing the exception port and
-         * setting it to our task for the host,
-         * to receive the IKOT_TASK of the guest
-         * through it, therefore receiving full
-         * power over the guest.
-         */
-        mach_port_options_t opt = {
-            .flags =  MPO_PORT | MPO_INSERT_SEND_RIGHT
-        };
-        
-        kr = mach_port_construct(mach_task_self(), &opt, 0, &exceptionPort);
-        if(kr != KERN_SUCCESS)
-        {
-            return MACH_PORT_NULL;
-        }
-        
-        kr = task_set_exception_ports(mach_task_self(), EXC_MASK_BREAKPOINT, exceptionPort, EXCEPTION_DEFAULT, ARM_THREAD_STATE64);
-        if(kr != KERN_SUCCESS)
-        {
-            goto out_dealloc;
-        }
-        
-        /* handing off receive right to host environment */
-        environment_syscall(SYS_handoffep, exceptionPort);
-        
-        /*
-         * this causes EXC_BREAKPOINT, which causes
-         * a mach exception which will be sent to the
-         * exception port which the host now holds the
-         * receive right of meaning the host will
-         * handle this pseudo exception.
-         */
-        __builtin_trap();
-        
-    out_dealloc:
-        /*
-         * task kernel port has been handoffed
-         * since the exception port was moved to
-         * the host process we just need one dealloc.
-         */
-        task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
-        mach_port_deallocate(mach_task_self(), exceptionPort);
         return MACH_PORT_NULL;
     }
-    else
+    
+    kr = task_set_exception_ports(mach_task_self(), EXC_MASK_BREAKPOINT, exceptionPort, EXCEPTION_DEFAULT, ARM_THREAD_STATE64);
+    if(kr != KERN_SUCCESS)
     {
-        /*
-         * we are the host environment, we swallow the token
-         * like ice cream ^^.
-         */
-        exceptionPort = token;
+        goto out_dealloc;
     }
     
-    /* host handling of guest exception port */
+    /* handing off receive right to host environment */
+    environment_syscall(SYS_handoffep, exceptionPort);
+    
+    /*
+     * this causes EXC_BREAKPOINT, which causes
+     * a mach exception which will be sent to the
+     * exception port which the host now holds the
+     * receive right of meaning the host will
+     * handle this pseudo exception.
+     */
+    __builtin_trap();
+    
+out_dealloc:
+    /*
+     * task kernel port has been handoffed
+     * since the exception port was moved to
+     * the host process we just need one dealloc.
+     */
+    task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
+    mach_port_deallocate(mach_task_self(), exceptionPort);
+    return MACH_PORT_NULL;
+    
+#else
     
     /* will carry request buffer */
     __Request__exception_raise_t request;
@@ -189,6 +176,7 @@ out_destroy_request:
     mach_msg_destroy(&(request.Head));
     mach_port_mod_refs(mach_task_self(), exceptionPort, MACH_PORT_RIGHT_RECEIVE, -1);
     return exportedTask;
+#endif /* HOST_ENV */
 }
 
 #endif /* !JAILBREAK_ENV */

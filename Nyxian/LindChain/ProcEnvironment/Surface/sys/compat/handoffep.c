@@ -34,7 +34,7 @@ void *dothework(void *work)
 {
     khandoffep_t *hep = (khandoffep_t*)work;
     
-    task_t task = ktfp(KTFP_AQUIRE_FROM_RECV(hep->ep));
+    task_t task = ktfp(hep->ep);
     
     if(task == MACH_PORT_NULL)
     {

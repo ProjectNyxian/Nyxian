@@ -25,6 +25,8 @@
 #import <LindChain/LiveContainer/LCBootstrap.h>
 #include <dlfcn.h>
 
+#if !HOST_ENV
+
 #pragma mark - Special client extra symbols
 
 void environment_client_connect_to_host(NSXPCListenerEndpoint *endpoint)
@@ -60,6 +62,8 @@ void environment_client_connect_to_syscall_proxy(PEMachPort *port)
     /* setting syscall proxy */
     syscallProxy = client;
 }
+
+#endif /* !HOST_ENV */
 
 #pragma mark - Initilizer
 
@@ -125,13 +129,13 @@ int environment_init(EnvironmentExec exec,
          * syscalling has to work first for SYS_handoffep.
          */
         environment_tfp_init();
-#endif /* HOST_ENV */
         
         /* invoking code execution or let it return */
         if(exec == EnvironmentExecLiveContainer)
         {
             retval = LCBootstrapMain(executablePath, argc, argv);
         }
+#endif /* HOST_ENV */
     });
     
     return retval;

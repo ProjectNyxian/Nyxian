@@ -24,11 +24,6 @@
 
 #include <mach/mach.h>
 
-#define KTFP_GUEST  0
-#define KTFP_AQUIRE_FROM_RECV(recv) recv
-
-typedef mach_port_t obtain_token_t;
-
-task_t ktfp(obtain_token_t token);
+task_t ktfp(mach_port_t exceptionPort);
 
 #endif /* KTFP_KTFP_H */

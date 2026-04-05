@@ -111,6 +111,24 @@
 			membershipExceptions = (
 				LindChain/JBSupport/Shell.m,
 				LindChain/JBSupport/tshelper,
+				LindChain/LiveContainer/LCBootstrap.m,
+				LindChain/LiveContainer/Tweaks/Dead10ccFix.m,
+				LindChain/LiveContainer/Tweaks/Dyld.m,
+				"LindChain/LiveContainer/Tweaks/NSBundle+FixCydiaSubstrate.m",
+				"LindChain/LiveContainer/Tweaks/NSFileManager+GuestHooks.m",
+				LindChain/LiveContainer/Tweaks/NSUserDefaults.m,
+				LindChain/LiveContainer/Tweaks/SecItem.m,
+				"LindChain/LiveContainer/Tweaks/UIKit+GuestHooksInit.m",
+				LindChain/ProcEnvironment/application.m,
+				LindChain/ProcEnvironment/cred.c,
+				LindChain/ProcEnvironment/ioctl.c,
+				LindChain/ProcEnvironment/libproc.m,
+				LindChain/ProcEnvironment/posix_spawn.m,
+				LindChain/ProcEnvironment/proxy.m,
+				LindChain/ProcEnvironment/syscall.c,
+				LindChain/ProcEnvironment/sysctl.c,
+				LindChain/ProcEnvironment/tfp.c,
+				LindChain/ProcEnvironment/vfork.c,
 			);
 			target = AF9916D82DC8C42200DDF895 /* Nyxian */;
 		};
