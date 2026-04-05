@@ -40,55 +40,31 @@
 
 - (BOOL)signAndWriteBack
 {
-    __block NSError *error = nil;
-    
-    NSFileManager *fm = [NSFileManager defaultManager];
-    
-    NSString *bundlePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[[NSUUID UUID] UUIDString] stringByAppendingPathExtension:@"app"]];
-    NSString *binPath = [bundlePath stringByAppendingPathComponent:@"main"];
-    NSString *infoPath = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
-    
-    /* create bundle structure */
-    [fm createDirectoryAtPath:bundlePath withIntermediateDirectories:YES attributes:nil error:nil];
-    
-    /* create pseudo info.plist TODO: actual make a single macho signer */
-    [[NSPropertyListSerialization dataWithPropertyList:@{
-        @"CFBundleIdentifier" : [[NSBundle mainBundle] bundleIdentifier],
-        @"CFBundleExecutable" : @"main"
-    } format:NSPropertyListXMLFormat_v1_0 options:0 error:&error] writeToFile:infoPath atomically:YES];
-    
-    if(error != nil)
-    {
-        [fm removeItemAtPath:bundlePath error:nil];
-        return NO;
-    }
+    NSString *binPath = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
     
     /* write binary from file descriptor to our selves */
-    if(![self writeOut:binPath]) return NO;
-    
-    /* run signer~~ UwU */
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:bundlePath] completionHandler:^(BOOL succeeded, NSError *error){
-        error = error;
-        dispatch_semaphore_signal(sema);
-    }];
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
-    
-    if(error != nil)
+    if(![self writeOut:binPath])
     {
-        [fm removeItemAtPath:bundlePath error:nil];
         return NO;
     }
     
-    if([self.class isBinarySignedAtPath:binPath] &&
-       [self writeIn:binPath])
+    BOOL success = [MachOObject signBinaryAtPath:binPath];
+    
+    /* run signer~~ UwU */
+    if(!success)
     {
-        [fm removeItemAtPath:bundlePath error:nil];
-        return YES;
+        [[NSFileManager defaultManager] removeItemAtPath:binPath error:nil];
+        return NO;
     }
     
-    [fm removeItemAtPath:bundlePath error:nil];
-    return NO;
+    if(![self writeIn:binPath])
+    {
+        [[NSFileManager defaultManager] removeItemAtPath:binPath error:nil];
+        return NO;
+    }
+    
+    [[NSFileManager defaultManager] removeItemAtPath:binPath error:nil];
+    return success;
 }
 
 @end

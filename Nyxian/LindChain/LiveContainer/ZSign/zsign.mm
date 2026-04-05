@@ -159,7 +159,7 @@ bool zsignMachO(NSString *machoPath,
     string strInfoSHA1;
     string strInfoSHA256;
     string strCodeResourcesData;
-    bool bRet = macho->Sign(&zSignAsset, false,
+    bool bRet = macho->Sign(&zSignAsset, true,
                             [[[NSBundle mainBundle] bundleIdentifier] UTF8String],
                             strInfoSHA1, strInfoSHA256, strCodeResourcesData);
 
@@ -177,7 +177,7 @@ bool zsignMachO(NSString *machoPath,
     }
 
     ZLog::logs.clear();
-    return YES;
+    return bRet;
 }
 
 bool adhocSignMachO(NSString *machoPath, NSString *bundleId, NSData* entitlementData) {

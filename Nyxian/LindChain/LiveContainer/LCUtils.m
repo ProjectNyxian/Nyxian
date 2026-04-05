@@ -117,6 +117,11 @@
         error = [NSError errorWithDomain:@"com.nyxian.lcutils" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"unsupported executable format" } ];
     }
     
+    if(error)
+    {
+        return NO;
+    }
+    
     /* use zsign as our signer~ (yeah daddy tim, were using zsigner as our signer, am i a bad girl now ;3) */
     NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
     NSData *profileData = [NSData dataWithContentsOfURL:profilePath];

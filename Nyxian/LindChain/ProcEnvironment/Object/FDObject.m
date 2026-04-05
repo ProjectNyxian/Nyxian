@@ -177,6 +177,7 @@
     }
     
     /* closing and resetting tmp because we dont need it anymore anyways */
+    fsync(tmpfd);
     close(tmpfd);
     close(dstFd);
     
@@ -246,6 +247,7 @@
         }
     }
     
+    fsync(tmpfd);
     close(tmpfd);
     close(srcFd);
 
