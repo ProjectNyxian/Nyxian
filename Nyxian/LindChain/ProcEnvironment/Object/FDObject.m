@@ -22,6 +22,7 @@
 #import <LindChain/ProcEnvironment/Object/FDObject.h>
 #include <LindChain/ProcEnvironment/Utils/fd.h>
 #include <fcntl.h>
+#include <copyfile.h>
 
 @implementation FDObject
 
@@ -131,9 +132,7 @@
 
 - (BOOL)writeOut:(NSString*)path
 {
-    /* open temporary file descriptor */
     int tmpfd = xpc_fd_dup(_fd);
-    
     if(tmpfd < 0)
     {
         return NO;
@@ -148,115 +147,44 @@
     
     /* create or truncate the destination file */
     int dstFd = open([path UTF8String], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-    if(dstFd == -1)
+    if(dstFd < 0)
     {
         close(tmpfd);
         return NO;
     }
     
-    char buffer[16384];
-    ssize_t bytesRead;
-    off_t offset = 0;
+    int ret = fcopyfile(tmpfd, dstFd, NULL, COPYFILE_DATA);
     
-    /* writing file out to dstfd */
-    while((bytesRead = read(tmpfd, buffer, sizeof(buffer))) > 0)
-    {
-        ssize_t bytesWritten = 0;
-        while(bytesWritten < bytesRead)
-        {
-            ssize_t w = write(dstFd, buffer + bytesWritten, bytesRead - bytesWritten);
-            if(w == -1)
-            {
-                close(tmpfd);
-                close(dstFd);
-                return NO;
-            }
-            bytesWritten += w;
-        }
-        offset += bytesRead;
-    }
-    
-    /* closing and resetting tmp because we dont need it anymore anyways */
-    fsync(tmpfd);
     close(tmpfd);
     close(dstFd);
     
-    if(bytesRead == -1)
-    {
-        return NO;
-    }
-    
-    return YES;
+    return ret == 0;
 }
 
 - (BOOL)writeIn:(NSString*)path
 {
-    /* open temporary file descriptor */
     int tmpfd = xpc_fd_dup(_fd);
-    
     if(tmpfd < 0)
     {
         return NO;
     }
     
-    /* reset temporary file descriptor to the beginning of the file */
-    if(lseek(tmpfd, 0, SEEK_SET) == -1)
-    {
-        close(tmpfd);
-        return NO;
-    }
-    
-    /* open source file */
     int srcFd = open([path UTF8String], O_RDONLY);
-    if(srcFd == -1)
+    if(srcFd < 0)
     {
         close(tmpfd);
         return NO;
-    }
-
-    char buffer[16384];
-    ssize_t bytesRead;
-
-    if(lseek(tmpfd, 0, SEEK_SET) == -1)
-    {
-        close(srcFd);
-        close(tmpfd);
-        return NO;
-    }
-
-    if(ftruncate(tmpfd, 0) == -1)
-    {
-        close(srcFd);
-        close(tmpfd);
-        return NO;
-    }
-
-    while((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
-    {
-        ssize_t bytesWritten = 0;
-        while(bytesWritten < bytesRead)
-        {
-            ssize_t w = write(tmpfd, buffer + bytesWritten, bytesRead - bytesWritten);
-            if(w == -1)
-            {
-                close(tmpfd);
-                close(srcFd);
-                return NO;
-            }
-            bytesWritten += w;
-        }
     }
     
-    fsync(tmpfd);
-    close(tmpfd);
+    ftruncate(tmpfd, 0);
+    lseek(tmpfd, 0, SEEK_SET);
+    
+    int ret = fcopyfile(srcFd, tmpfd, NULL, COPYFILE_DATA);
+    
     close(srcFd);
-
-    if(bytesRead == -1)
-    {
-        return NO;
-    }
+    close(tmpfd);
     
-    return YES;
+    return ret == 0;
 }
 
 + (BOOL)supportsSecureCoding
