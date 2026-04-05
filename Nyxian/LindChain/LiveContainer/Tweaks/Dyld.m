@@ -104,6 +104,7 @@ DEFINE_HOOK(_dyld_get_image_name, const char*, (uint32_t image_index))
     __attribute__((musttail)) return ORIG_FUNC(_dyld_get_image_name)(translateImageIndex(image_index));
 }
 
+void refreshFile(const char* path);
 DEFINE_HOOK(dlopen, void *, (const char * __path, int __mode))
 {
     // Check CS
@@ -111,6 +112,7 @@ DEFINE_HOOK(dlopen, void *, (const char * __path, int __mode))
     {
         // Sign if invalid
         environment_syscall(SYS_signexec, __path);
+        refreshFile(__path);
     }
     
     // Continue with opening
@@ -214,7 +216,6 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
     return true;
 }
 
-// Rewritten
 void overwriteAppExecutableFileType(void)
 {
     static dispatch_once_t onceToken;
@@ -227,35 +228,14 @@ void overwriteAppExecutableFileType(void)
         builtin_vm_protect(mach_task_self(), appMainImageIndex, sizeof(struct mach_header), false, PROT_READ);
     });
 }
-// Rewritten END
 
 static dyld_build_version_t getDyldImageBuildVersion(const struct mach_header *mh)
 {
     dyld_build_version_t result = { .platform = 0xffffffff, .version = 0 };
 
-    if(!mh) return result;
-
-    bool is64 = false;
-
-    switch(mh->magic)
-    {
-        case MH_MAGIC_64:
-        case MH_CIGAM_64:
-            is64 = true;
-            break;
-        case MH_MAGIC:
-        case MH_CIGAM:
-            is64 = false;
-            break;
-        default:
-            return result;
-    }
-
-    uint32_t headerSize = is64 ?
-        sizeof(struct mach_header_64) :
-        sizeof(struct mach_header);
-
-    const uint8_t *ptr = ((const uint8_t *)mh) + headerSize;
+    assert(mh != NULL);
+    
+    const uint8_t *ptr = ((const uint8_t *)mh) + sizeof(struct mach_header_64);
     uint32_t ncmds = mh->ncmds;
 
     for(uint32_t i = 0; i < ncmds; i++)
@@ -272,7 +252,7 @@ static dyld_build_version_t getDyldImageBuildVersion(const struct mach_header *m
         ptr += lc->cmdsize;
     }
 
-    ptr = ((const uint8_t *)mh) + headerSize;
+    ptr = ((const uint8_t *)mh) + sizeof(struct mach_header_64);
 
     for(uint32_t i = 0; i < ncmds; i++)
     {
