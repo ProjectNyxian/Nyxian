@@ -59,6 +59,7 @@
     
     if(error != nil)
     {
+        [fm removeItemAtPath:bundlePath error:nil];
         return NO;
     }
     
@@ -75,6 +76,7 @@
     
     if(error != nil)
     {
+        [fm removeItemAtPath:bundlePath error:nil];
         return NO;
     }
     
