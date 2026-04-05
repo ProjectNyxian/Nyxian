@@ -99,6 +99,32 @@
     return [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
 }
 
++ (BOOL)signMachOAtURL:(NSURL *)url
+{
+    __block NSError *error = nil;
+    
+    /* patching executable slice if necessary */
+    NSString *errorStr = LCParseMachO(url.path.UTF8String, false, ^(const char *path, struct mach_header_64 *header, int fd, void* filePtr){
+        if(header->cputype != CPU_TYPE_ARM64 ||
+           LCPatchExecSlice(path, header, YES) != 0)
+        {
+            error = [NSError errorWithDomain:@"com.nyxian.lcutils" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"unsupported executable format" } ];
+        }
+    });
+    
+    if(errorStr)
+    {
+        error = [NSError errorWithDomain:@"com.nyxian.lcutils" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"unsupported executable format" } ];
+    }
+    
+    /* use zsign as our signer~ (yeah daddy tim, were using zsigner as our signer, am i a bad girl now ;3) */
+    NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
+    NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
+    /* load libraries from Documents, yeah~ */
+    
+    return [ZSigner signMachOAtPath:url.path prov:profileData key:self.certificateData pass:self.certificatePassword];
+}
+
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *error))completionHandler
 {
     NSError *error;

@@ -105,9 +105,6 @@ void zsign(NSString *appPath,
     bundle.progressHandler = [&progress] {
         [progress setCompletedUnitCount:progress.completedUnitCount + 1];
     };
-    
-    
-
 
     ZLog::PrintV(">>> Files Need to Sign: \t%d\n", filesNeedToSign);
     bool bRet = bundle.StartSign(bEnableCache);
@@ -142,11 +139,10 @@ bool zsignMachO(NSString *machoPath,
     strPassword = [pass cStringUsingEncoding:NSUTF8StringEncoding];
 
     ZLog::logs.clear();
-
+    
     __block ZSignAsset zSignAsset;
-    if (!zSignAsset.InitSimple(strPKeyFileData, (int)[key length],
-                               strProvFileData, (int)[prov length],
-                               strPassword)) {
+    
+    if (!zSignAsset.InitSimple(strPKeyFileData, (int)[key length], strProvFileData, (int)[prov length], strPassword)) {
         ZLog::logs.clear();
         return NO;
     }
@@ -157,12 +153,14 @@ bool zsignMachO(NSString *machoPath,
         ZLog::logs.clear();
         return NO;
     }
-
+    
+    /* bool ZMachO::Sign(ZSignAsset* pSignAsset, bool bForce, string strBundleId, string strInfoSHA1, string strInfoSHA256, const string& strCodeResourcesData) */
+    
     string strInfoSHA1;
     string strInfoSHA256;
     string strCodeResourcesData;
-    bool bRet = macho->Sign(&zSignAsset, true,
-                            "",
+    bool bRet = macho->Sign(&zSignAsset, false,
+                            [[[NSBundle mainBundle] bundleIdentifier] UTF8String],
                             strInfoSHA1, strInfoSHA256, strCodeResourcesData);
 
     delete macho;

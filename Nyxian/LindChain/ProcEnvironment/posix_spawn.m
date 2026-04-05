@@ -170,22 +170,13 @@ int environment_posix_spawn(pid_t *process_identifier,
         if(!checkCodeSignature(resolved))
         {
             errno = ENOEXEC;
-            goto out_free_resolved;
-        }
-        
-        /* for some reason we get a iOS kernel panic otherwise */
-        if(![FDObject forceVnodeReassignment:[NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]])
-        {
-            /*
-             * TODO: first copy, sign the copy and then copy the copy to the original path and delete the original copy
-             * sounds complex, but thats safety, to prevemt a iOS panic on all fronts. otherwise just the vnode
-             * reassignment could fail and the actual file stays in that stale state then triggering said panic.
-             */
-            errno = EIO;
         out_free_resolved:
             free(resolved);
             return errno;
         }
+        
+        /* for some reason we get a iOS kernel panic otherwise */
+        refreshFile([NSString stringWithCString:resolved encoding:NSUTF8StringEncoding]);
     }
     
     /*

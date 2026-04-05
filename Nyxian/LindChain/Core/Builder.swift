@@ -359,7 +359,7 @@ class Builder {
                     throw nsError
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
-                MachOObject(forFileAtPath: self.project.machoPath).signAndWriteBack()
+                MachOObject.signBinary(atPath: self.project.machoPath)
                 macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
                 
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {

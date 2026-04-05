@@ -10,7 +10,7 @@
 @interface ZSigner : NSObject
 + (NSProgress*)signWithAppPath:(NSString *)appPath prov:(NSData *)prov key:(NSData *)key pass:(NSString *)pass completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
 + (BOOL)adhocSignMachOAtPath:(NSString *)path bundleId:(NSString*)bundleId entitlementData:(NSData *)entitlementData;
-+ (BOOL)signMachOAtPath:(NSString *)path bundleId:(NSString*)bundleId prov:(NSData *)prov key:(NSData *)key pass:(NSString *)pass;
++ (BOOL)signMachOAtPath:(NSString *)path prov:(NSData *)prov key:(NSData *)key pass:(NSString *)pass;
 // this method is used to get teamId for ADP/Enterprise certs ,don't use it in normal jitless
 + (NSString*)getTeamIdWithProv:(NSData *)prov key:(NSData *)key pass:(NSString *)pass;
 + (int)checkCertWithProv:(NSData *)prov key:(NSData *)key pass:(NSString *)pass completionHandler:(void(^)(int status, NSDate* expirationDate, NSString *error))completionHandler;

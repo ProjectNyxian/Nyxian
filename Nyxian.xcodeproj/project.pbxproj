@@ -258,6 +258,7 @@
 				LindChain/LiveContainer/Tweaks/SecItem.m,
 				"LindChain/LiveContainer/Tweaks/UIKit+GuestHooksInit.m",
 				LindChain/LiveContainer/utils.m,
+				LindChain/LiveContainer/ZSign/Utils.mm,
 				LindChain/Private/mach/fileport.m,
 				LindChain/ProcEnvironment/application.m,
 				LindChain/ProcEnvironment/cred.c,

@@ -24,7 +24,7 @@ NSProgress* currentZSignProgress;
     return adhocSignMachO(path, bundleId, entitlementData);
 }
 
-+ (BOOL)signMachOAtPath:(NSString *)path bundleId:(NSString*)bundleId prov:(NSData *)prov key:(NSData *)key pass:(NSString *)pass
++ (BOOL)signMachOAtPath:(NSString *)path prov:(NSData *)prov key:(NSData *)key pass:(NSString *)pass
 {
     return zsignMachO(path, prov, key, pass);
 }
