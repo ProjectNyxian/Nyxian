@@ -536,12 +536,7 @@ create_home:
     bool isSigned = checkCodeSignature([fastPath UTF8String]);
     if(!isSigned)
     {
-        environment_syscall(SYS_signexec, [fastPath UTF8String]);
-        isSigned = checkCodeSignature([fastPath UTF8String]);
-        if(!isSigned)
-        {
-            [[NSFileManager defaultManager] removeItemAtPath:fastPath error:nil];
-        }
+        [[NSFileManager defaultManager] removeItemAtPath:fastPath error:nil];
     }
     reply(fastPath, isSigned);
 }
