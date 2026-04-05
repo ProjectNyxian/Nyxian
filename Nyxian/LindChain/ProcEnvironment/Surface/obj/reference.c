@@ -88,10 +88,9 @@ void kvobject_release(kvobject_strong_t *kvo)
                 break;
             case kvObjBaseTypeObjectRCU:
                 kvo_invalidate(kvo);
-                kvrcuobject_strong_t *kvrcuo = (kvrcuobject_strong_t*)kvo;
+                rcu_kvobject_strong_t *kvrcuo = (rcu_kvobject_strong_t*)kvo;
                 /* TODO: cleanup is missing for now */
                 (void)kvrcuo->current;
-                (void)kvrcuo->mutex;
                 (void)kvrcuo->header;
                 /* fallthrough */
             default:
