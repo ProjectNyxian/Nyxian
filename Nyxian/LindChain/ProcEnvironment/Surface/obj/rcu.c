@@ -25,10 +25,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
-kvrcuobject_strong_t *kvrcuobject_alloc(kvobject_main_event_handler_t handler)
+rcu_kvobject_strong_t *rcu_kvobject_alloc(kvobject_main_event_handler_t handler)
 {
     /* allocating brand new kvobject */
-    kvrcuobject_t *kvrcuo = calloc(1, sizeof(kvrcuobject_t));
+    rcu_kvobject_strong_t *kvrcuo = calloc(1, sizeof(rcu_kvobject_strong_t));
     
     /* checking if allocation suceeded */
     if(kvrcuo == NULL)
@@ -56,14 +56,14 @@ kvrcuobject_strong_t *kvrcuobject_alloc(kvobject_main_event_handler_t handler)
     return kvrcuo;
 }
 
-kvobject_strong_t *kvrcuobject_writer_get_ref(kvrcuobject_strong_t *kvrcuo)
+kvobject_strong_t *rcu_kvobject_writer_get_ref(rcu_kvobject_strong_t *kvrcuo)
 {
     os_unfair_lock_lock(&(kvrcuo->wrt_lock));
     /* TODO: perform rcu-copy and return or unlock */
     return NULL;
 }
 
-kvobject_strong_t *kvrcuobject_reader_get_ref(kvrcuobject_strong_t *kvrcuo)
+kvobject_strong_t *rcu_kvobject_reader_get_ref(rcu_kvobject_strong_t *kvrcuo)
 {
     os_unfair_lock_lock(&(kvrcuo->cur_lock));
     
@@ -79,8 +79,8 @@ kvobject_strong_t *kvrcuobject_reader_get_ref(kvrcuobject_strong_t *kvrcuo)
     return kvo;
 }
 
-void kvrcuobject_update(kvrcuobject_strong_t *kvrcuo,
-                        kvobject_strong_t *kvo)
+void rcu_kvobject_update(rcu_kvobject_strong_t *kvrcuo,
+                         kvobject_strong_t *kvo)
 {
     /* MARK: update consumes reference of kvo */
     

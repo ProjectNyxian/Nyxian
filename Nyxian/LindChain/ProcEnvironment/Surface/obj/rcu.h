@@ -26,11 +26,11 @@
 
 /* MARK: DO NOT USE THIS NOW, THIS IS WIP */
 
-kvrcuobject_strong_t *kvrcuobject_alloc(kvobject_main_event_handler_t handler);
+rcu_kvobject_strong_t *rcu_kvobject_alloc(kvobject_main_event_handler_t handler);
 
-kvobject_strong_t *kvrcuobject_writer_get_ref(kvrcuobject_strong_t *kvrcuo);
-kvobject_strong_t *kvrcuobject_reader_get_ref(kvrcuobject_strong_t *kvrcuo);
+kvobject_strong_t *rcu_kvobject_writer_get_ref(rcu_kvobject_strong_t *kvrcuo);
+kvobject_strong_t *rcu_kvobject_reader_get_ref(rcu_kvobject_strong_t *kvrcuo);
 
-void kvrcuobject_update(kvrcuobject_strong_t *kvrcuo, kvobject_strong_t *kvo);
+void rcu_kvobject_update(rcu_kvobject_strong_t *kvrcuo, kvobject_strong_t *kvo);
 
 #endif /* KVOBJECT_RCU_H */

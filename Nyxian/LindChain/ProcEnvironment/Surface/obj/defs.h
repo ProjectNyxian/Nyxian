@@ -83,8 +83,8 @@ enum kvObjSnap {
 typedef struct kvobject     kvobject_t;             /* weak object type (needs retain on use) */
 typedef struct kvobject     kvobject_strong_t;      /* strong object (referenced for calle) */
 typedef struct kvobject     kvobject_snapshot_t;    /* snapshot of object (references object usually) */
-typedef struct kvrcuobject  kvrcuobject_t;          /* weak rcu object */
-typedef struct kvrcuobject  kvrcuobject_strong_t;   /* strong rcu object */
+typedef struct rcu_kvobject rcu_kvobject_t;         /* weak rcu object */
+typedef struct rcu_kvobject rcu_kvobject_strong_t;  /* strong rcu object */
 
 /* kernel virt object event type */
 typedef struct kvevent      kvobject_event_t;
@@ -147,7 +147,7 @@ struct kvobject {
     kvobject_strong_t *orig;
 };
 
-struct kvrcuobject {
+struct rcu_kvobject {
     /* object header (yes rcu objects them selves will be objects) */
     kvobject_t header;
     
