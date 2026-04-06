@@ -145,7 +145,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
     
     if(kr != KERN_SUCCESS)
     {
-        return SURFACE_AQUIRE_FAILED;
+        return SURFACE_ACQUIRE_FAILED;
     }
     
     /*
