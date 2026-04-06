@@ -21,18 +21,16 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
+#include <os/lock.h>
 
 #if DEBUG
-#ifdef HOST_ENV
 
 /* not the kfd exploit dummy >:3 */
 static int kfd = -1;
 
-#endif /* HOST_ENV */
 #endif /* DEBUG */
 
 #if DEBUG
-#ifdef HOST_ENV
 
 /* maximum lines klog can take */
 static const NSUInteger KLOG_MAX_LINES = 500;
@@ -121,23 +119,71 @@ static void klog_truncate_if_needed(void)
     lseek(kfd, 0, SEEK_END);
 }
 
-#endif /* HOST_ENV */
 #endif /* DEBUG */
 
 
 void klog_log_internal(const char *system, const char *format, ...)
 {
 #if DEBUG
-#ifdef HOST_ENV
     @autoreleasepool {
         /* only open klog once */
         static NSDateFormatter *df = nil;
+        static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+        os_unfair_lock_lock(&(lock));
+        
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            /* opening ^^ */
             NSString *kfd_path = [NSString stringWithFormat:@"%@/Documents/klog.txt", NSHomeDirectory()];
-            kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_APPEND, 0777);
-            write(kfd, "\n", 1);
+            
+            int rfd = open([kfd_path UTF8String], O_RDONLY);
+            
+            /* we need the tail in-case of a panic when debugging */
+            NSString *tail = @"";
+            if(rfd != -1)
+            {
+                off_t size = lseek(rfd, 0, SEEK_END);
+                if(size > 0)
+                {
+                    char *buf = malloc(size + 1);
+                    if(buf)
+                    {
+                        lseek(rfd, 0, SEEK_SET);
+                        ssize_t n = read(rfd, buf, size);
+                        if(n > 0)
+                        {
+                            buf[n] = '\0';
+                            NSString *prev = [[NSString alloc] initWithUTF8String:buf];
+                            NSArray<NSString *> *lines = [prev componentsSeparatedByString:@"\n"];
+                            
+                            NSUInteger count = lines.count;
+                            if(count > 0 && [lines.lastObject isEqualToString:@""])
+                            {
+                                count--;
+                            }
+                            
+                            NSUInteger take = MIN(count, 20);
+                            NSRange range = NSMakeRange(count - take, take);
+                            NSArray *last20 = [lines subarrayWithRange:range];
+                            tail = [[last20 componentsJoinedByString:@"\n"] stringByAppendingString:@"\n"];
+                        }
+                        free(buf);
+                    }
+                }
+                close(rfd);
+            }
+            
+            kfd = open([kfd_path UTF8String], O_RDWR | O_CREAT | O_TRUNC, 0644);
+            if(kfd == -1)
+            {
+                return;
+            }
+            
+            if(tail.length > 0)
+            {
+                dprintf(kfd, "(last 20 lines from previous debugging session)\n");
+                dprintf(kfd, "%s", [tail UTF8String]);
+                dprintf(kfd, "\n(new debugging session)\n");
+            }
             
             df = [[NSDateFormatter alloc] init];
             df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
@@ -147,6 +193,7 @@ void klog_log_internal(const char *system, const char *format, ...)
         /* checking kfd */
         if(kfd == -1)
         {
+            os_unfair_lock_unlock(&(lock));
             return;
         }
         
@@ -182,8 +229,9 @@ void klog_log_internal(const char *system, const char *format, ...)
         {
             fsync(kfd);
         }
+        
+        os_unfair_lock_unlock(&(lock));
     }
-#endif /* HOST_ENV */
 #endif /* DEBUG */
 }
 
@@ -192,7 +240,6 @@ void klog_log_internal(const char *system, const char *format, ...)
 NSString *klog_dump(void)
 {
 #if DEBUG
-#ifdef HOST_ENV
     
     /* checking kfd */
     if(kfd == -1)
@@ -244,9 +291,6 @@ NSString *klog_dump(void)
     /* releasing buffer and return */
     free(buffer);
     return result;
-#else
-    return nil;
-#endif /* HOST_ENV */
 #else
     return nil;
 #endif /* DEBUG */
