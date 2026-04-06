@@ -51,6 +51,10 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
      * checking for duplicated process presence,
      * because that would be illegal and would
      * cause a reference leak.
+     *
+     * note: expects a referenced process object
+     *       otherwise this proc_getpid() macro
+     *       would be unsafe to use here.
      */
     if(radix_lookup(&(ksurface->proc_info.tree), proc_getpid(proc)) != NULL)
     {
