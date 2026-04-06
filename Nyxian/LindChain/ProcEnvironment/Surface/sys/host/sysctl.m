@@ -543,7 +543,7 @@ DEFINE_SYSCALL_HANDLER(sysctl)
     if(fn != NULL)
     {
         int ret = fn(&req);
-        *err = req.err;
+        errno = req.err;
         return ret;
     }
     
@@ -591,7 +591,7 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
     memcpy(req.name, found->entry->mib, found->entry->mib_len * sizeof(int));
     
     int ret = found->entry->fn(&req);
-    *err = req.err;
+    errno = req.err;
     return ret;
     
     sys_return_failure(ENOSYS);

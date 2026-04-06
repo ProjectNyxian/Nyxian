@@ -44,7 +44,7 @@ typedef struct ksurface_proc ksurface_proc_snapshot_t;
 
 /* helping macros for returns and checks */
 #define sys_return_failure(errval) \
-    *err = errval; \
+    errno = errval; \
     return -1
 
 #define sys_return \
@@ -112,13 +112,7 @@ typedef int64_t (*syscall_handler_t)(
     /* input and output ports */
     mach_msg_ool_ports_descriptor_t in_ports,
     mach_port_t                     **out_ports,
-    uint32_t                        *out_ports_cnt,
-
-    /*
-     * sets errno in the guest process by the client receiving it
-     * and setting errno from the reply
-     */
-    errno_t                         *err
+    uint32_t                        *out_ports_cnt
 );
 
 #define DEFINE_SYSCALL_HANDLER(sysname) int64_t syscall_server_handler_##sysname( \
@@ -128,8 +122,7 @@ typedef int64_t (*syscall_handler_t)(
     int64_t                         *args, \
     mach_msg_ool_ports_descriptor_t in_ports, \
     mach_port_t                     **out_ports, \
-    uint32_t                        *out_ports_cnt, \
-    errno_t                         *err \
+    uint32_t                        *out_ports_cnt \
 )
 
 #define GET_SYSCALL_HANDLER(sysname) syscall_server_handler_##sysname
