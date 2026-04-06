@@ -28,7 +28,12 @@
 
 @interface NXAppTile : UIView
 
-@property (nonatomic,weak) NXWindow *window;
+@property (nonatomic,weak) NXWindow *nxWindow;
+
+@property (nonatomic, weak) UIView *tileWrapper;
+@property (nonatomic, weak) UIVisualEffectView *tileMaterial;
+@property (nonatomic, weak) UILabel *titleLabel;
+@property (nonatomic, weak) UIImageView *reflection;
 
 - (instancetype)initWithWindow:(NXWindow*)window;
 - (void)update;
