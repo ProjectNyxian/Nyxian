@@ -67,7 +67,8 @@ DEFINE_HOOK(_dyld_get_image_header, const struct mach_header*, (uint32_t image_i
     __attribute__((musttail)) return ORIG_FUNC(_dyld_get_image_header)(translateImageIndex(image_index));
 }
 
-DEFINE_HOOK(dlsym, void*, (void * __handle, const char * __symbol))
+DEFINE_HOOK(dlsym, void*, (void * __handle,
+                           const char * __symbol))
 {
     if(__handle == (void*)RTLD_MAIN_ONLY)
     {
@@ -77,16 +78,21 @@ DEFINE_HOOK(dlsym, void*, (void * __handle, const char * __symbol))
             return (void*)ORIG_FUNC(_dyld_get_image_header)(appMainImageIndex);
         }
         __handle = appExecutableHandle;
-    } else if (__handle != (void*)RTLD_SELF && __handle != (void*)RTLD_NEXT)
+    }
+    else if (__handle != (void*)RTLD_SELF && __handle != (void*)RTLD_NEXT)
     {
         void* ans = ORIG_FUNC(dlsym)(__handle, __symbol);
         if(!ans)
+        {
             return 0;
+        }
         for(int i = 0; i < gRebindCount; i++)
         {
             global_rebind rebind = gRebinds[i];
             if(ans == rebind.replacee)
+            {
                 return rebind.replacement;
+            }
         }
         return ans;
     }
@@ -105,23 +111,25 @@ DEFINE_HOOK(_dyld_get_image_name, const char*, (uint32_t image_index))
 }
 
 void refreshFile(const char* path);
-DEFINE_HOOK(dlopen, void *, (const char * __path, int __mode))
+DEFINE_HOOK(dlopen, void *, (const char * __path,
+                             int __mode))
 {
-    // Check CS
+    /* check CS */
     if(!checkCodeSignature(__path))
     {
-        // Sign if invalid
+        /* sign if invalid */
         environment_syscall(SYS_signexec, __path);
         refreshFile(__path);
     }
     
-    // Continue with opening
+    /* continue with opening */
     return ORIG_FUNC(dlopen)(__path, __mode);
 }
 
-bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr, dyld_build_version_t version)
+bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr,
+                                    dyld_build_version_t version)
 {
-    // we are targeting ios, so we hard code 2
+    /* we are targeting ios, so we hard code 2 */
     switch(version.platform)
     {
         case 0xffffffff:
@@ -137,8 +145,6 @@ uint32_t hook_dyld_get_program_sdk_version(void* dyldApiInstancePtr)
 {
     return guestAppSdkVersion;
 }
-
-// Rewrite End
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction) {
     
@@ -171,7 +177,8 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
      00000001ac934c94         br         x2
      */
     uint32_t* adrpInstPtr = baseAddr + adrpOffset;
-    if ((*adrpInstPtr & 0x9f000000) != 0x90000000) {
+    if((*adrpInstPtr & 0x9f000000) != 0x90000000)
+    {
         adrpOffset += 20;
         adrpInstPtr = baseAddr + adrpOffset;
     }
@@ -185,16 +192,21 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
     void* vtableFunctionPtr = 0;
     uint32_t* movInstPtr = baseAddr + adrpOffset + 6;
 
-    if((*movInstPtr & 0x7F800000) == 0x52800000) {
-        // arm64e, mov imm + add + ldr
+    if((*movInstPtr & 0x7F800000) == 0x52800000)
+    {
+        /* arm64e, mov imm + add + ldr */
         uint32_t imm16 = (*movInstPtr & 0x1FFFE0) >> 5;
         vtableFunctionPtr = vtablePtr + imm16;
-    } else if ((*movInstPtr & 0xFFE00C00) == 0xF8400C00) {
-        // arm64e, ldr immediate Pre-index 64bit
+    }
+    else if((*movInstPtr & 0xFFE00C00) == 0xF8400C00)
+    {
+        /* arm64e, ldr immediate Pre-index 64bit */
         uint32_t imm9 = (*movInstPtr & 0x1FF000) >> 12;
         vtableFunctionPtr = vtablePtr + imm9;
-    } else {
-        // arm64
+    }
+    else
+    {
+        /* arm64 */
         uint32_t* ldrInstPtr2 = baseAddr + adrpOffset + 3;
         assert((*ldrInstPtr2 & 0xBFC00000) == 0xB9400000);
         uint32_t size2 = (*ldrInstPtr2 & 0xC0000000) >> 30;
@@ -223,7 +235,9 @@ void overwriteAppExecutableFileType(void)
         struct mach_header_64 *header = (struct mach_header_64*) orig__dyld_get_image_header(appMainImageIndex);
         kern_return_t kr = builtin_vm_protect(mach_task_self(), (vm_address_t)header, sizeof(header), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
         if(kr != KERN_SUCCESS)
+        {
             return;
+        }
         header->filetype = MH_EXECUTE;
         builtin_vm_protect(mach_task_self(), appMainImageIndex, sizeof(struct mach_header), false, PROT_READ);
     });
@@ -282,22 +296,27 @@ void* getGuestAppHeader(void)
 bool initGuestSDKVersionInfo(void)
 {
     void* dyldBase = getDyldBase();
-    // it seems Apple is constantly changing findVersionSetEquivalent's signature so we directly search sVersionMap instead
+    /*
+     * it seems Apple is constantly changing findVersionSetEquivalent's
+     * signature so we directly search sVersionMap instead.
+     */
     const char* dyldPath = "/usr/lib/dyld";
     uint64_t offset = LCFindSymbolOffset(dyldPath, "__ZN5dyld3L11sVersionMapE");
     uint32_t *versionMapPtr = dyldBase + offset;
     
     assert(versionMapPtr);
-    // however sVersionMap's struct size is also unknown, but we can figure it out
-    // we assume the size is 10K so we won't need to change this line until maybe iOS 40
+    /*
+     * however sVersionMap's struct size is also unknown, but we can figure it out
+     * we assume the size is 10K so we won't need to change this line until maybe iOS 40
+     */
     uint32_t* versionMapEnd = versionMapPtr + 2560;
-    // ensure the first is versionSet and the third is iOS version (5.0.0)
+    /* ensure the first is versionSet and the third is iOS version (5.0.0) */
     assert(versionMapPtr[0] == 0x07db0901 && versionMapPtr[2] == 0x00050000);
-    // get struct size. we assume size is smaller then 128. appearently Apple won't have so many platforms
+    /* get struct size. we assume size is smaller then 128. appearently Apple won't have so many platforms */
     uint32_t size = 0;
     for(int i = 1; i < 128; ++i)
     {
-        // find the next versionSet (for 6.0.0)
+        /* find the next versionSet (for 6.0.0) */
         if(versionMapPtr[i] == 0x07dc0901) {
             size = i;
             break;
@@ -313,10 +332,16 @@ bool initGuestSDKVersionInfo(void)
     for(uint32_t* nowVersionMapItem = versionMapPtr; nowVersionMapItem < versionMapEnd; nowVersionMapItem += size)
     {
         newVersionSetVersion = nowVersionMapItem[2];
-        if (newVersionSetVersion > guestAppSdkVersion) { break; }
+        if(newVersionSetVersion > guestAppSdkVersion)
+        {
+            break;
+        }
         candidateVersion = newVersionSetVersion;
         candidateVersionEquivalent = nowVersionMapItem[0];
-        if(newVersionSetVersion >= maxVersion) { break; }
+        if(newVersionSetVersion >= maxVersion)
+        {
+            break;
+        }
     }
     
     if(newVersionSetVersion == 0xffffffff && candidateVersion == 0)
