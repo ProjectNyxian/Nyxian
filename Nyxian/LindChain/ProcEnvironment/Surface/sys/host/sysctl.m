@@ -259,18 +259,23 @@ int sysctl_kernhostname(sysctl_req_t *req)
         size_t oldlenp = 0;
         if(!mach_syscall_copy_in(req->task, sizeof(size_t), &oldlenp, req->oldlenp))
         {
-            req->err = EFAULT;
             host_unlock();
+            req->err = EFAULT;
             return -1;
         }
         
-        if(oldlenp < hlen) { req->err = ENOMEM; return -1; }
+        if(oldlenp < hlen)
+        {
+            host_unlock();
+            req->err = ENOMEM;
+            return -1;
+        }
         
         if(!mach_syscall_copy_out(req->task, hlen, ksurface->host_info.hostname, req->oldp) ||
            !mach_syscall_copy_out(req->task, sizeof(size_t), &hlen, req->oldlenp))
         {
-            req->err = EFAULT;
             host_unlock();
+            req->err = EFAULT;
             return -1;
         }
         host_unlock();
