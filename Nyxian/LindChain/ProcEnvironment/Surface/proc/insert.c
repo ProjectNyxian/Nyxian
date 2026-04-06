@@ -27,6 +27,11 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {
     assert(proc != NULL);
     
+    /*
+     * creating reference for the radix tree so
+     * that the kvobject is safe for it's entire
+     * lifetime in the radix tree.
+     */
     if(!kvo_retain(proc))
     {
         return SURFACE_RETAIN_FAILED;
@@ -34,35 +39,51 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     
     proc_table_wrlock();
     
-    ksurface_return_t err = SURFACE_SUCCESS;
-    
+    /*
+     * checking if maximum amount of processes
+     * has been reached already, because first of
+     * all launchd has a limitation and second
+     * of all we also should.
+     *
+     * fixme: the limitation is ignored and
+     *        ksurface can crash due to the
+     *        limitation of launchd, as
+     *        the PEProcess API is independent
+     *        from the proc API in ksurface.
+     */
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
-        err = SURFACE_LIMIT;
-        goto out_unlock;
+        proc_table_unlock();
+        kvo_release(proc);
+        return SURFACE_LIMIT;
     }
     
+    /*
+     * checking for duplicated process presence,
+     * because that would be illegal and would
+     * cause a reference leak.
+     */
     if(radix_lookup(&(ksurface->proc_info.tree), proc_getpid(proc)) != NULL)
     {
-        err = SURFACE_DUPLICATE;
-        goto out_unlock;
+        proc_table_unlock();
+        kvo_release(proc);
+        return SURFACE_DUPLICATE;
     }
     
+    /* inserting process into radix tree */
     if(radix_insert(&(ksurface->proc_info.tree), proc_getpid(proc), proc) != 0)
     {
-        err = SURFACE_FAILED;
-        goto out_unlock;
+        proc_table_unlock();
+        kvo_release(proc);
+        return SURFACE_FAILED;
     }
     
+    /*
+     * before heading away, noting new process
+     * count down.
+     */
     ksurface->proc_info.proc_count++;
     
-out_unlock:
     proc_table_unlock();
-    
-    if(err != SURFACE_SUCCESS)
-    {
-        kvo_release(proc);
-    }
-    
-    return err;
+    return SURFACE_SUCCESS;
 }
