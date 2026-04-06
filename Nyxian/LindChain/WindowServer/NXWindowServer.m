@@ -22,12 +22,6 @@
 #import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 
-#if !JAILBREAK_ENV
-
-#import <Nyxian-Swift.h>
-
-#endif /* !JAILBREAK_ENV */
-
 #define kTagRunningAppsScrollView 5001
 #define kTagReflection 9999
 #define kTagTitle 8888
@@ -39,7 +33,6 @@
     NXWindow *_activeWindow;
     id_t _activeWindowIdentifier;
     UIScrollView *_runningAppsScrollView;
-    BOOL _isKeyboardVisible;
 }
 
 - (instancetype)initWithWindowScene:(UIWindowScene *)windowScene
@@ -57,7 +50,6 @@
         _windowOrder = [[NSMutableArray alloc] init];
         _activeWindowIdentifier = (id_t)-1;
         _appSwitcherView = nil;
-        _isKeyboardVisible = NO;
         
         if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
         {
@@ -376,47 +368,6 @@
     
     self.impactGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
     [self.impactGenerator prepare];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShowForSwitcher:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHideForSwitcher:) name:UIKeyboardWillHideNotification object:nil];
-}
-
-- (void)keyboardWillShowForSwitcher:(NSNotification *)notification
-{
-    if(!self.appSwitcherView)
-    {
-        return;
-    }
-    
-    _isKeyboardVisible = YES;
-    
-    NSDictionary *userInfo = notification.userInfo;
-    CGRect keyboardFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    CGRect keyboardFrameInWindow = [self.rootViewController.view convertRect:keyboardFrame fromView:nil];
-    CGFloat keyboardHeight = CGRectGetHeight(keyboardFrameInWindow);
-    
-    [UIView animateWithDuration:duration animations:^{
-        self.appSwitcherTopConstraint.constant = -keyboardHeight;
-        [self layoutIfNeeded];
-    }];
-}
-
-- (void)keyboardWillHideForSwitcher:(NSNotification *)notification
-{
-    _isKeyboardVisible = NO;
-    
-    if(!self.appSwitcherView)
-    {
-        return;
-    }
-    
-    NSDictionary *userInfo = notification.userInfo;
-    NSTimeInterval duration = [userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    [UIView animateWithDuration:duration animations:^{
-        self.appSwitcherTopConstraint.constant = 0;
-        [self layoutIfNeeded];
-    }];
 }
 
 - (UIVisualEffectView *)createBlurEffectView
@@ -719,8 +670,6 @@
     CGFloat maxLift = 250.0;
     CGFloat progress = MIN(1.0, lift / maxLift);
     
-    CGFloat segmentProgress = MIN(1.0, progress / 0.15);
-    
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / 800.0;
     transform = CATransform3DTranslate(transform, 0, translation.y, 0);
@@ -953,13 +902,6 @@
     switch(pan.state)
     {
         case UIGestureRecognizerStateBegan:
-            if(_isKeyboardVisible)
-            {
-                [self.appSwitcherView endEditing:YES];
-                pan.enabled = NO;
-                pan.enabled = YES;
-            }
-            break;
         case UIGestureRecognizerStateChanged:
         {
             CGFloat offset = MAX(0, translation.y);
