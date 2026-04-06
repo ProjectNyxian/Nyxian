@@ -40,29 +40,17 @@
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
+static NSExtensionContext *lcExtensionContext;
+
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
 
 @end
 
 @implementation LiveProcessHandler
 
-static NSExtensionContext *extensionContext;
-static NSDictionary *retrievedAppInfo;
-
-+ (NSExtensionContext *)extensionContext
-{
-    return extensionContext;
-}
-
-+ (NSDictionary *)retrievedAppInfo
-{
-    return retrievedAppInfo;
-}
-
 - (void)beginRequestWithExtensionContext:(NSExtensionContext *)context
 {
-    extensionContext = context;
-    retrievedAppInfo = [context.inputItems.firstObject userInfo];
+    lcExtensionContext = context;
     /* returns control back to LiveContainerMain */
     CFRunLoopStop(CFRunLoopGetMain());
 }
@@ -144,7 +132,7 @@ int LiveProcessMain(int argc, char *argv[])
 {
     /* let NSExtensionContext initialize, once it's done it will call CFRunLoopStop */
     CFRunLoopRun();
-    NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
+    NSDictionary *appInfo = [lcExtensionContext.inputItems.firstObject userInfo];;
     
     NSXPCListenerEndpoint* endpoint = appInfo[@"PEEndpoint"];
     NSString* executablePath = appInfo[@"PEExecutablePath"];
