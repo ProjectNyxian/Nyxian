@@ -383,6 +383,7 @@ void hook_libdyld_os_unfair_recursive_lock_unlock(void *ptr, void* lock)
 
 void *dlopenBypassingLock(const char *path, int mode)
 {
+    /* this shit made by Duy Tran costs 20~30 ms, making this faster would save those */
     const char *libdyldPath = "/usr/lib/system/libdyld.dylib";
     mach_header_u *libdyldHeader = LCGetLoadedImageHeader(0, libdyldPath);
     assert(libdyldHeader != NULL);

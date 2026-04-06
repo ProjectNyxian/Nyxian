@@ -2,6 +2,7 @@
  MIT License
 
  Copyright (c) 2022-2024 Lars Fröder
+ Copyright (c) 2026 cr4zyengineer
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -108,34 +109,6 @@ size_t _lth_fstrlen(FILE *f)
     return sz;
 }
 
-uint32_t _lth_arm64_gen_movk(uint8_t x, uint16_t val, uint16_t lsl)
-{
-    uint32_t base = 0b11110010100000000000000000000000;
-
-    uint32_t hw = 0;
-    if (lsl == 16) {
-        hw = 0b01 << 21;
-    }
-    else if (lsl == 32) {
-        hw = 0b10 << 21;
-    }
-    else if (lsl == 48) {
-        hw = 0b11 << 21;
-    }
-
-    uint32_t imm16 = (uint32_t)val << 5;
-    uint32_t rd = x & 0x1F;
-
-    return base | hw | imm16 | rd;
-}
-
-uint32_t _lth_arm64_gen_br(uint8_t x)
-{
-    uint32_t base = 0b11010110000111110000000000000000;
-    uint32_t rn = ((uint32_t)x & 0x1F) << 5;
-    return base | rn;
-}
-
 __attribute__((noinline, naked)) volatile kern_return_t litehook_vm_protect(mach_port_name_t target, mach_vm_address_t address, mach_vm_size_t size, boolean_t set_maximum, vm_prot_t new_protection)
 {
 #ifdef __arm64__
@@ -150,39 +123,14 @@ __attribute__((noinline, naked)) volatile kern_return_t litehook_vm_protect(mach
 #endif
 }
 
-kern_return_t litehook_unprotect(vm_address_t addr, vm_size_t size)
+static inline kern_return_t litehook_unprotect(vm_address_t addr, vm_size_t size)
 {
     return litehook_vm_protect(mach_task_self(), addr, size, false, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
 }
 
-kern_return_t litehook_protect(vm_address_t addr, vm_size_t size)
+static inline kern_return_t litehook_protect(vm_address_t addr, vm_size_t size)
 {
     return litehook_vm_protect(mach_task_self(), addr, size, false, VM_PROT_READ | VM_PROT_EXECUTE);
-}
-
-kern_return_t litehook_hook_function(void *source, void *target)
-{
-    kern_return_t kr = KERN_SUCCESS;
-
-    uint32_t *toHook = (uint32_t*)ptrauth_strip(source, ptrauth_key_function_pointer);
-    uint64_t targetAddr = (uint64_t)ptrauth_strip(target, ptrauth_key_function_pointer);
-
-    kr = litehook_unprotect((vm_address_t)toHook, 5*4);
-    if (kr != KERN_SUCCESS) return kr;
-
-    toHook[0] = _lth_arm64_gen_movk(16, targetAddr >>  0,  0);
-    toHook[1] = _lth_arm64_gen_movk(16, targetAddr >> 16, 16);
-    toHook[2] = _lth_arm64_gen_movk(16, targetAddr >> 32, 32);
-    toHook[3] = _lth_arm64_gen_movk(16, targetAddr >> 48, 48);
-    toHook[4] = _lth_arm64_gen_br(16);
-    uint32_t hookSize = 5 * sizeof(uint32_t);
-
-    kr = litehook_protect((vm_address_t)toHook, hookSize);
-    if (kr != KERN_SUCCESS) return kr;
-
-    sys_icache_invalidate(toHook, hookSize);
-
-    return KERN_SUCCESS;
 }
 
 const char *litehook_locate_dsc(void)

@@ -46,7 +46,6 @@ const char *litehook_locate_dsc(void);
 void *litehook_find_symbol(const mach_header_u *header, const char *symbolName);
 void *litehook_find_symbol_file(const mach_header_u *header, const char *symbolName);
 void *litehook_find_dsc_symbol(const char *imagePath, const char *symbolName);
-kern_return_t litehook_hook_function(void *source, void *target);
 
 #define LITEHOOK_REBIND_GLOBAL NULL
 void litehook_rebind_symbol(const mach_header_u *targetHeader, void *replacee, void *replacement, bool (*exceptionFilter)(const mach_header_u *header));
@@ -75,8 +74,6 @@ extern global_rebind *gRebinds;
 
 #define DO_HOOK_GLOBAL(func) \
     DO_HOOK(func,LITEHOOK_REBIND_GLOBAL)
-/*    orig_##func = func; \
-    litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, func, hook_##func, nil);*/
 
 #define ORIG_FUNC(func) \
     orig_##func

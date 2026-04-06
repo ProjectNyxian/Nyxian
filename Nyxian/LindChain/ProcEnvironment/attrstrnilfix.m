@@ -28,11 +28,7 @@
 
 - (instancetype)hook_initWithString:(NSString *)str
 {
-    if(str == nil)
-    {
-        str = @"";
-    }
-    return [self hook_initWithString:str];
+    return [self hook_initWithString:str ? str : @""];
 }
 
 @end
