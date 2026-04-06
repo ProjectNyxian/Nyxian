@@ -90,12 +90,6 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
      */
     task_rdlock();
     
-    if(proc->task == MACH_PORT_NULL)
-    {
-        task_unlock();
-        return SURFACE_UNAVAILABLE;
-    }
-    
     /* temporary task port to not leak port value on failure */
     task_t tmp_task = proc->task;
     
