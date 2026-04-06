@@ -76,8 +76,10 @@ int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char
 
 void LCOverwriteExecutablePath(NSString *executablePath)
 {
-    /* first overwriting bundle */
-    CFBundleRef guestMainCFBundle = CFBundleCreate(NULL, (__bridge CFURLRef)([[NSURL fileURLWithPath:executablePath] URLByDeletingLastPathComponent]));
+    /* first overwriting bundle MARK: i think both can fail on runtime, so we need to use something else than asserts */
+    CFURLRef urlRef = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)executablePath, kCFURLPOSIXPathStyle, false);
+    assert(urlRef != nil);
+    CFBundleRef guestMainCFBundle = CFBundleCreate(kCFAllocatorDefault, urlRef);
     assert(guestMainCFBundle != nil);
     
     /*
@@ -90,6 +92,7 @@ void LCOverwriteExecutablePath(NSString *executablePath)
      */
     CFOverwrite((__bridge CFBundleRef)NSBundle.mainBundle._cfBundle, guestMainCFBundle);
     CFRelease(guestMainCFBundle);
+    CFRelease(urlRef);
     
     /*
      * dyld4 stores executable path in a different place (iOS 15.0 +)

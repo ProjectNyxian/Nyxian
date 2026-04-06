@@ -58,9 +58,6 @@ void initDead10ccFix(void)
     });
 }
 
-
-
-
 @implementation Dead10ccFix
 
 - (void)handleAppDidEnterBackgroundReal {
