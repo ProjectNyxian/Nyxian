@@ -28,7 +28,6 @@
 @interface PEProcessManager : NSObject
 
 @property (atomic) NSMutableDictionary<NSNumber*,PEProcess*> *processes;
-@property (atomic) dispatch_queue_t syncQueue;
 
 - (instancetype)init;
 + (instancetype)shared;

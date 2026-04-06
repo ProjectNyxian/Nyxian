@@ -46,9 +46,8 @@
     
     mach_timebase_info_data_t timebase;
     mach_timebase_info(&timebase);
-    _spawnCooldown = (100ull * timebase.denom) / timebase.numer;
+    _spawnCooldown = (25ull * timebase.denom) / timebase.numer;
     _lastSpawnTime = 0;
-    _syncQueue = dispatch_queue_create("com.ldeprocessmanager.sync", DISPATCH_QUEUE_SERIAL);
     
     return self;
 }
@@ -265,7 +264,10 @@
 
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {
-    return [self.processes objectForKey:@(pid)];
+    os_unfair_lock_lock(&processes_array_lock);
+    PEProcess *process = [self.processes objectForKey:@(pid)];
+    os_unfair_lock_unlock(&processes_array_lock);
+    return process;
 }
 
 #if !JAILBREAK_ENV
