@@ -516,7 +516,7 @@
     tileMaterial.layer.shadowRadius = 12 + (progress * 6);
     tileMaterial.layer.shadowOffset = CGSizeMake(horizontalDrift * 0.2, 6 + (progress * 15));
     
-    title.alpha = 1.0 - progress;
+    title.alpha = 1.0 - (progress * 20);
     CATransform3D titleTransform = CATransform3DIdentity;
     titleTransform.m34 = -1.0 / 800.0;
     titleTransform = CATransform3DTranslate(titleTransform, horizontalDrift * 0.3, translation.y * 0.25, 0);
