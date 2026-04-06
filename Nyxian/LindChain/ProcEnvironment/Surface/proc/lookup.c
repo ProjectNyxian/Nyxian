@@ -62,8 +62,9 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
     assert(proc != NULL && task != NULL);
     
     /*
-     * whitelisting aquirable task special ports by proc,
-     * making sure we hand in a expected type.
+     * whitelisting acquirable task special ports
+     * by type, making sure we hand in a expected
+     * type.
      */
     switch(flavour)
     {
@@ -71,22 +72,20 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
         case TASK_NAME_PORT:
         case TASK_INSPECT_PORT:
         case TASK_READ_PORT:
+            /* valid type */
             break;
         default:
             return SURFACE_INVALID;
     }
     
     /*
-     * claiming read onto task so no other process can
-     * at the same time add their task port which could
-     * lead to task port confusion, because of a tiny
-     * window where a process could die while its
-     * task port is requested and another process spawns
-     * at the same time adding their task port which then
-     * leads to this, permissions could be leaked by this
-     * race by for example a root process handing off its
-     * task port and it has the same port number as a port
-     * that was unpriveleged before but not removed before.
+     * this is to protect against a task port
+     * confusion race window where a task may
+     * be received while a task port is being
+     * destroyed in deinitilization of a process
+     * which would lead to a privelege escalation
+     * if the task port added is the task port
+     * of a ksurface root process.
      */
     task_rdlock();
     
@@ -103,6 +102,10 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
     kern_return_t kr = mach_port_kobject(mach_task_self(), tmp_task, &ipc_port_type, &placeholder_address);
     if(kr != KERN_SUCCESS)
     {
+        /*
+         * failed to lookup mach ipc port type
+         * cannot validate type.
+         */
         task_unlock();
         return SURFACE_LOOKUP_FAILED;
     }
@@ -111,26 +114,45 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
     {
         case IPC_OTYPE_TASK_CONTROL:    /* IKOT_TASK */
             /*
-             * its control task port, so we can
+             * it's a task control port, so we can
              * export a task port of the flavour in
              * question.
              *
              * task_get_special_port() does create a
              * new mach port reference.
+             *
+             * this port type means the task behind
+             * the port is a normal task ksurface
+             * serves for.
              */
             kr = task_get_special_port(tmp_task, flavour, &tmp_task);
             break;
         case IPC_OTYPE_TASK_NAME:       /* IKOT_TASK_NAME */
             /*
-             * its name task port, so we can
-             * just create a new reference of the name.
-             * its a task name, because the ksurface decided
-             * that only a task name shall be exported, prior.
+             * it's a task name port, so we can only
+             * create a new reference of the port in
+             * question.
+             *
+             * mach_port_mod_refs() increments the
+             * reference count of the port.
+             *
+             * this port type means the task behind
+             * the port is sensitive and shall be
+             * protected, for example ksurface's
+             * task port it self is usually a task
+             * name port to protect ksurface from
+             * attacks.
              */
             kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
             break;
         default:
-            /* illegal port type */
+            /*
+             * illegal port type, this shall not
+             * happen, but in-case it does we
+             * just return a error, otherwise this
+             * becomes a attack vector for
+             * system(ksurface) termination.
+             */
             task_unlock();
             return SURFACE_LOOKUP_FAILED;
     }
@@ -148,7 +170,8 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
      * SURFACE_SUCCESS, if you do it and try to
      * pull request that junk to Nyxians codebase
      * this will be your last pull request to Nyxians
-     * codebase.
+     * codebase, because this is part of a important
+     * contract with the syscall server for example.
      */
     *task = tmp_task;
     
