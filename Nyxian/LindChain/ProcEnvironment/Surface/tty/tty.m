@@ -252,10 +252,11 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
     {
         case kvObjEventSnapshot:
         case kvObjEventCopy:
-            /* copy not supported */
-            return -1;
+            environment_panic("attempted to copy or snapshot tty, which is illegal");
         case kvObjEventInit:
         {
+            klog_log("tty:init", "initilizing tty @ %p", tty);
+            
             /* creating pipe */
             int masterpair[2];
             if(socketpair(AF_UNIX, SOCK_STREAM, 0, masterpair) != 0)

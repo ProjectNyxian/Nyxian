@@ -36,7 +36,9 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
     switch(type)
     {
         case kvObjEventInit:
-        {            
+        {
+            klog_log("proc:init", "initilizing process @ %p", proc);
+            
             /* nullify */
             kv_content_zero(proc);
             
@@ -52,6 +54,8 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         case kvObjEventCopy:
         {
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
+            
+            klog_log("proc:copy", "copying process @ %p from process @ %p", proc, src);
             
             /* copy the object into the other object */
             kv_content_zero(proc);
