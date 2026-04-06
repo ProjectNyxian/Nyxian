@@ -187,16 +187,14 @@ ksurface_return_t proc_task_for_pid(pid_t pid,
     /* looking up proc (creates reference) */
     ksurface_proc_t *proc = NULL;
     ksurface_return_t ksr = proc_for_pid(pid, &proc);
-    
     if(ksr != SURFACE_SUCCESS)
     {
+        /* lookup failed */
         return ksr;
     }
     
-    /* looking up task port */
+    /* attempt to look up task port */
     ksr = proc_task_for_proc(proc, flavour, task);
-    
-    /* we dont need proc anymore */
     kvo_release(proc);
     
     return ksr;
@@ -216,12 +214,12 @@ ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child,
     pthread_mutex_lock(&(child->children.mutex));
     ksurface_proc_t *strong_parent = child->children.parent;
     
-    if(strong_parent == NULL ||
-       !kvo_retain(strong_parent))
+    if(strong_parent == NULL || !kvo_retain(strong_parent))
     {
         pthread_mutex_unlock(&(child->children.mutex));
         return SURFACE_UNAVAILABLE;
     }
+    
     pthread_mutex_unlock(&(child->children.mutex));
     
     *parent = strong_parent;
