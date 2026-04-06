@@ -634,23 +634,12 @@
     
     if(pan.state == UIGestureRecognizerStateChanged)
     {
-        [self handleTileSwipeChanged:translation
-                            velocity:velocity
-                         tileWrapper:tileWrapper
-                        tileMaterial:tileMaterial
-                               title:title
-                          reflection:reflection];
+        [self handleTileSwipeChanged:translation velocity:velocity tileWrapper:tileWrapper tileMaterial:tileMaterial title:title reflection:reflection];
     }
     else if (pan.state == UIGestureRecognizerStateEnded ||
              pan.state == UIGestureRecognizerStateCancelled)
     {
-        [self handleTileSwipeEnded:translation
-                          velocity:velocity
-                       tileWrapper:tileWrapper
-                      tileMaterial:tileMaterial
-                             title:title
-                        reflection:reflection
-                     tileContainer:tileContainer];
+        [self handleTileSwipeEnded:translation velocity:velocity tileWrapper:tileWrapper tileMaterial:tileMaterial title:title reflection:reflection tileContainer:tileContainer];
     }
 }
 
@@ -730,20 +719,11 @@
     
     if(shouldDismiss)
     {
-        [self dismissTile:tileWrapper
-             tileMaterial:tileMaterial
-                    title:title
-               reflection:reflection
-            tileContainer:tileContainer
-                velocityX:velocityX
-                  offsetY:offsetY];
+        [self dismissTile:tileWrapper tileMaterial:tileMaterial title:title reflection:reflection tileContainer:tileContainer velocityX:velocityX offsetY:offsetY];
     }
     else
     {
-        [self resetTile:tileWrapper
-           tileMaterial:tileMaterial
-                  title:title
-             reflection:reflection];
+        [self resetTile:tileWrapper tileMaterial:tileMaterial title:title reflection:reflection];
     }
 }
 
@@ -766,10 +746,7 @@
     
     UIStackView *stack = _stackView;
     
-    [UIView animateWithDuration:0.25
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseIn
-                     animations:^{
+    [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         CATransform3D exitTransform = CATransform3DIdentity;
         exitTransform.m34 = -1.0 / 600.0;
         exitTransform = CATransform3DTranslate(exitTransform, exitDriftX, -tileContainer.bounds.size.height * 0.8, -200);
@@ -827,12 +804,7 @@
             title:(UILabel*)title
        reflection:(UIImageView*)reflection
 {
-    [UIView animateWithDuration:0.7
-                          delay:0
-         usingSpringWithDamping:0.55
-          initialSpringVelocity:0.9
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
+    [UIView animateWithDuration:0.7 delay:0 usingSpringWithDamping:0.55 initialSpringVelocity:0.9 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         tileWrapper.layer.transform = CATransform3DIdentity;
         tileWrapper.alpha = 1.0;
         tileMaterial.layer.shadowOpacity = 0.25;
@@ -853,12 +825,7 @@
     self.appSwitcherTopConstraint = [self.appSwitcherView.topAnchor constraintEqualToAnchor:self.centerYAnchor];
     self.appSwitcherTopConstraint.active = YES;
 
-    [UIView animateWithDuration:0.6
-                          delay:0
-         usingSpringWithDamping:0.85
-          initialSpringVelocity:0.6
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^{
+    [UIView animateWithDuration:0.6 delay:0 usingSpringWithDamping:0.85 initialSpringVelocity:0.6 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self layoutIfNeeded];
     } completion:nil];
 
@@ -922,12 +889,7 @@
             else
             {
                 self.appSwitcherTopConstraint.constant = 0;
-                [UIView animateWithDuration:0.5
-                                      delay:0
-                     usingSpringWithDamping:0.8
-                      initialSpringVelocity:0.7
-                                    options:UIViewAnimationOptionCurveEaseInOut
-                                 animations:^{
+                [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     [self layoutIfNeeded];
                 } completion:nil];
             }
