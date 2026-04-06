@@ -132,7 +132,10 @@ int LiveProcessMain(int argc, char *argv[])
 {
     /* let NSExtensionContext initialize, once it's done it will call CFRunLoopStop */
     CFRunLoopRun();
-    NSDictionary *appInfo = [lcExtensionContext.inputItems.firstObject userInfo];;
+    NSDictionary *appInfo = [lcExtensionContext.inputItems.firstObject userInfo];
+    
+    /* destroying payload once */
+    lcExtensionContext = nil;
     
     NSXPCListenerEndpoint* endpoint = appInfo[@"PEEndpoint"];
     NSString* executablePath = appInfo[@"PEExecutablePath"];
@@ -142,6 +145,9 @@ int LiveProcessMain(int argc, char *argv[])
     FDMapObject *mapObject = appInfo[@"PEMapObject"];
     PEMachPort *syscallPort = appInfo[@"PESyscallPort"];
     NSString *workingDirectory = appInfo[@"PEWorkingDirectory"];
+    
+    /* destroy the payload once in for all */
+    appInfo = nil;
     
     assert(endpoint != nil && executablePath != nil && syscallPort != nil);
     
