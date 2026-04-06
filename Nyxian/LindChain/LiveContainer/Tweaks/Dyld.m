@@ -31,9 +31,6 @@
 #import <LindChain/ProcEnvironment/environment.h>
 #import <LindChain/ProcEnvironment/syscall.h>
 
-NSString* signMachOAtPath(NSString *path);
-extern NSBundle *lcMainBundle;
-
 typedef struct {
     uint32_t platform;
     uint32_t version;
