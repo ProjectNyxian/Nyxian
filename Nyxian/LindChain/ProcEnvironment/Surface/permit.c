@@ -22,6 +22,7 @@
 #import <LindChain/ProcEnvironment/Surface/permit.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
 #include <assert.h>
+#include <errno.h>
 
 bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
                                 pid_t targetPid,
@@ -42,6 +43,7 @@ bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
     
     if(ret != SURFACE_SUCCESS)
     {
+        errno = ESRCH;
         return false;
     }
     
@@ -70,6 +72,7 @@ bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
      */
     if(!can_see_process(proc, targetProc, vis))
     {
+        errno = ESRCH;
         goto out_no;
     }
     
@@ -81,6 +84,7 @@ bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
     if(entitlement_got_entitlement(proc_getmaxentitlements(targetProc), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getmaxentitlements(proc), PEEntitlementPlatform))
     {
+        errno = EPERM;
         goto out_no;
     }
     
@@ -99,12 +103,14 @@ bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
        !entitlement_got_entitlement(proc_getmaxentitlements(proc), PEEntitlementPlatform) &&
        !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded))
     {
+        errno = EPERM;
         goto out_no;
     }
     
     if(entitlementsNeeded != PEEntitlementNone &&
        !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
     {
+        errno = EPERM;
         goto out_no;
     }
     
@@ -117,6 +123,7 @@ out_euid_check:
     if(proc_geteuid(proc) != 0 &&
        proc_geteuid(proc) != proc_geteuid(targetProc))
     {
+        errno = EPERM;
     out_no:
         kvo_unlock(targetProc);
         kvo_release(targetProc);

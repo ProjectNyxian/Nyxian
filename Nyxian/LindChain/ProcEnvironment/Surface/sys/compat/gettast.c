@@ -46,7 +46,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
     if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, true, name_only ? PEEntitlementNone : PEEntitlementTaskForPid, name_only ? PEEntitlementNone : PEEntitlementGetTaskAllowed))
     {
         kvo_release(target);
-        sys_return_failure(EPERM);
+        sys_return_failure(errno);
     }
     
     /* getting task port of flavour */

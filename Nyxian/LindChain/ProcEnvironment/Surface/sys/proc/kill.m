@@ -43,7 +43,7 @@ DEFINE_SYSCALL_HANDLER(kill)
      */
     if(!permitive_over_pid_allowed(sys_proc_snapshot_, pid, YES, PEEntitlementProcessKill, PEEntitlementNone))
     {
-        sys_return_failure(EPERM);
+        sys_return_failure(errno);
     }
 
     /* getting the processes high level structure */
