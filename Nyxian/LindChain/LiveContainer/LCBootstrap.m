@@ -77,7 +77,7 @@ int hook__NSGetExecutablePath_overwriteExecPath(char*** dyldApiInstancePtr, char
 void LCOverwriteExecutablePath(NSString *executablePath)
 {
     /* first overwriting bundle MARK: i think both can fail on runtime, so we need to use something else than asserts */
-    CFURLRef urlRef = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)executablePath, kCFURLPOSIXPathStyle, false);
+    CFURLRef urlRef = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)[executablePath stringByDeletingLastPathComponent], kCFURLPOSIXPathStyle, true);
     assert(urlRef != nil);
     CFBundleRef guestMainCFBundle = CFBundleCreate(kCFAllocatorDefault, urlRef);
     assert(guestMainCFBundle != nil);
