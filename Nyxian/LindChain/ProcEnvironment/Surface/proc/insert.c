@@ -27,16 +27,6 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
 {
     assert(proc != NULL);
     
-    /*
-     * creating reference for the radix tree so
-     * that the kvobject is safe for it's entire
-     * lifetime in the radix tree.
-     */
-    if(!kvo_retain(proc))
-    {
-        return SURFACE_RETAIN_FAILED;
-    }
-    
     proc_table_wrlock();
     
     /*
@@ -54,7 +44,6 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
         proc_table_unlock();
-        kvo_release(proc);
         return SURFACE_LIMIT;
     }
     
@@ -66,15 +55,25 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(radix_lookup(&(ksurface->proc_info.tree), proc_getpid(proc)) != NULL)
     {
         proc_table_unlock();
-        kvo_release(proc);
         return SURFACE_DUPLICATE;
+    }
+    
+    /*
+     * creating reference for the radix tree so
+     * that the kvobject is safe for it's entire
+     * lifetime in the radix tree.
+     */
+    if(!kvo_retain(proc))
+    {
+        proc_table_unlock();
+        return SURFACE_RETAIN_FAILED;
     }
     
     /* inserting process into radix tree */
     if(radix_insert(&(ksurface->proc_info.tree), proc_getpid(proc), proc) != 0)
     {
-        proc_table_unlock();
         kvo_release(proc);
+        proc_table_unlock();
         return SURFACE_FAILED;
     }
     
