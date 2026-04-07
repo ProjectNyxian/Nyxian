@@ -288,6 +288,8 @@
 - (FBProcessExecutionContext *)launchProcessWithContext:(FBMutableProcessExecutionContext *)context;
 - (id)registerProcessForAuditToken:(audit_token_t)token;
 - (id)registerProcessForHandle:(id)arg1;
+- (id)processForPID:(int)arg1;
+- (void)_removeProcess:(id)arg1;
 @end
 
 @interface FBSSceneSpecification : NSObject

@@ -203,7 +203,15 @@
                                 [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.scene withTransitionContext:nil];
                                 self.scene.delegate = nil;
                             }
+                            
+                            FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+                            FBProcess *fbProcess = [manager processForPID:innerSelf.pid];
+                            if(fbProcess)
+                            {
+                                [manager _removeProcess:fbProcess];
+                            }
                         });
+                        
                         [[PEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
                     });
                 }
