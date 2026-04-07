@@ -54,21 +54,12 @@
     
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.executablePath];
     
-    
-    if(applicationObject != nil)
-    {
-        self.bundleIdentifier = applicationObject.bundleIdentifier;
-        self.displayName = applicationObject.localizedName;
-    }
-    else
-    {
-        self.bundleIdentifier = nil;
-        self.displayName = [self.executablePath lastPathComponent];
-    }
+    self.bundleIdentifier = applicationObject ? applicationObject.bundleIdentifier : nil;
+    self.displayName = applicationObject ? applicationObject.localizedName : [self.executablePath lastPathComponent];
     
     __weak typeof(self) weakSelf = self;
     
-    /* spawning process*/
+    /* spawning process */
     NSUUID *identifier;
     NSExtension *extension;
     if(!PESpawnNSExtensionLiveProcess(items, &(self->_pid), &identifier, &extension))

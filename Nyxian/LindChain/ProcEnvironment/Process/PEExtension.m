@@ -63,17 +63,9 @@ bool PESpawnNSExtensionLiveProcess(NSDictionary *items,
     NSMutableDictionary *mutableItems = [items mutableCopy];
     mutableItems[@"PESyscallPort"] = [PEMachPort portWithPortName:syscall_server_get_port(ksurface->sys_server)];
     mutableItems[@"PEEndpoint"] = [Server getTicket];   /* MARK: deprecated and soon replaced with the syscall server entirely */
-    items = [mutableItems copy];
-    
-    /* validating presence of executable path */
-    NSString *executablePath = items[@"PEExecutablePath"];
-    if(executablePath == nil)
-    {
-        false;
-    }
     
     NSExtensionItem *item = [NSExtensionItem new];
-    item.userInfo = items;
+    item.userInfo = mutableItems;
     
     /* invoke execution */
     __block NSUUID *extractedIdentifier = nil;
