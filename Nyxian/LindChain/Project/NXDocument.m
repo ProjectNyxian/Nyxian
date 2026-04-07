@@ -24,18 +24,47 @@
 
 @implementation NXDocument
 
+- (void)setText:(NSString *)text
+{
+    _text = [text copy];
+    [self updateChangeCount:UIDocumentChangeDone];
+}
+
 - (BOOL)loadFromContents:(id)contents
                   ofType:(NSString *)typeName
                    error:(NSError **)outError
 {
     NSData *data = contents;
     self.text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+    /* fallback encodings so my japanese and chinese users are happy */
+    if (!self.text)
+    {
+        NSStringEncoding detected;
+        self.text = [NSString stringWithContentsOfURL:self.fileURL usedEncoding:&detected error:outError];
+    }
+    
+    if(!self.text)
+    {
+        self.text = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+    }
+    
     return YES;
 }
 
 - (id)contentsForType:(NSString *)typeName error:(NSError **)outError
 {
-    NSData *data = [self.text dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *data = [self.text dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
+    
+    if(!data)
+    {
+        if(outError)
+        {
+            *outError = [NSError errorWithDomain:NSCocoaErrorDomain code:NSFileWriteInapplicableStringEncodingError userInfo:nil];
+        }
+        return nil;
+    }
+    
     return data ?: [NSData data];
 }
 

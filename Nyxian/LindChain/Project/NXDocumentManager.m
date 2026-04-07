@@ -117,6 +117,7 @@ out_complete:
         for(NXDocument *document in documents)
         {
             [threadGroupController dispatchExecution:^{
+                if(!document.hasUnsavedChanges) return;
                 dispatch_semaphore_t sema = dispatch_semaphore_create(0);
                 [document saveToURL:document.fileURL forSaveOperation:UIDocumentSaveForOverwriting completionHandler:^(BOOL success) {
                     dispatch_semaphore_signal(sema);
