@@ -35,20 +35,6 @@ func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
     return UserDefaults.standard.bool(forKey: key)
 }
 
-struct BasicCharacterPair: CharacterPair {
-    let leading: String
-    let trailing: String
-}
-
-extension CharacterPair where Self == BasicCharacterPair {
-    static var curlyBraces: Self  { .init(leading: "{", trailing: "}") }
-    static var squareBrackets: Self { .init(leading: "[", trailing: "]") }
-    static var parentheses: Self  { .init(leading: "(", trailing: ")") }
-    static var doubleQuotes: Self  { .init(leading: "\"", trailing: "\"") }
-    static var singleQuotes: Self  { .init(leading: "'", trailing: "'") }
-    static var angleBrackets: Self { .init(leading: "<", trailing: ">") }
-}
-
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController {
     private(set) var document: NXDocument?
@@ -211,20 +197,17 @@ class CodeEditorViewController: UIViewController {
         
         switch (self.path as NSString).pathExtension {
         case "m","h":
-            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm"),
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/Shared/ObjCFix/highlights.scm")
             ])
             break
         case "c":
-            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_c(), highlightsURL: [
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm")
             ])
             break
         case "hpp","cpp":
-            self.textView.characterPairs = [.squareBrackets, .curlyBraces, .parentheses, .doubleQuotes, .singleQuotes, .angleBrackets]
             loadLanguage(language: tree_sitter_cpp(), highlightsURL: [
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm"),
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterCPP_TreeSitterCPP.bundle/queries/highlights.scm")
@@ -567,7 +550,7 @@ class CodeEditorViewController: UIViewController {
     @objc func saveText() {
         if !self.isReadOnly {
             defer {
-                try? self.textView.text.write(to: URL(fileURLWithPath: self.path), atomically: true, encoding: .utf8)
+                self.document?.save(to: URL(fileURLWithPath: self.path), for: .forOverwriting)
             }
             
             showSaveAnimation()
