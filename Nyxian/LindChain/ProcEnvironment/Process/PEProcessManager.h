@@ -35,9 +35,9 @@
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc doRestartIfRunning:(BOOL)doRestartIfRunning;
 
+- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid;
 - (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier;
-- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
 
 @end
