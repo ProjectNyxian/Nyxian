@@ -98,22 +98,8 @@
     }
     
     NXWindowSessionApplication *session = nil;
-    PEProcess *existingProcess = nil;
+    PEProcess *existingProcess = [self processForBundleIdentifier:bundleIdentifier];
     
-    os_unfair_lock_lock(&processes_array_lock);
-    
-    for(NSNumber *key in self.processes)
-    {
-        PEProcess *process = self.processes[key];
-        if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
-        {
-            existingProcess = process;
-            break;
-        }
-    }
-    
-    os_unfair_lock_unlock(&processes_array_lock);
-
     if(existingProcess != nil)
     {
         NXWindowSession *windowSession = [[NXWindowServer shared] windowSessionForIdentifier:existingProcess.wid];
@@ -215,7 +201,7 @@
         PEProcess *process = self.processes[key];
         if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
         {
-            os_unfair_lock_lock(&processes_array_lock);
+            os_unfair_lock_unlock(&processes_array_lock);
             return process;
         }
     }

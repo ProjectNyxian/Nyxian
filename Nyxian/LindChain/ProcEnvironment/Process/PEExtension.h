@@ -23,6 +23,7 @@
 #define PEEXTENSION_H
 
 #import <LindChain/Private/FoundationPrivate.h>
+#import <LindChain/Private/UIKitPrivate.h>
 
 /*
  * anti fork bomb timeout, I think
