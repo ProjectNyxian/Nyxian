@@ -32,18 +32,12 @@
 - (instancetype)init;
 + (instancetype)shared;
 
-#if !JAILBREAK_ENV
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc;
 - (pid_t)spawnProcessWithBundleIdentifier:(NSString *)bundleIdentifier withItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc doRestartIfRunning:(BOOL)doRestartIfRunning;
-#else
-- (pid_t)spawnProcessWithBundleID:(NSString*)bundleID;
-#endif /* !JAILBREAK_ENV */
 
-- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid;
-#if !JAILBREAK_ENV
 - (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier;
-#endif /* !JAILBREAK_ENV */
+- (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier;
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid;
 
 @end

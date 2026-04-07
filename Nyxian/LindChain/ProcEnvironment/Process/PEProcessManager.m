@@ -179,8 +179,6 @@
     }];
     
     PEProcess *process = [[PEProcess alloc] initWithItems:mutableItems withKernelSurfaceProcess:proc withSession:session];
-    
-    /* null pointer check */
     if(process == nil)
     {
         return -1;
@@ -188,7 +186,6 @@
     
     /* getting pid of process */
     pid_t pid = process.pid;
-    
     if(pid == -1)
     {
         return -1;
@@ -215,7 +212,6 @@
     PEProcess *existingProcess = nil;
     
     os_unfair_lock_lock(&processes_array_lock);
-    
     for(NSNumber *key in self.processes)
     {
         PEProcess *process = self.processes[key];
@@ -225,7 +221,6 @@
             break;
         }
     }
-    
     os_unfair_lock_unlock(&processes_array_lock);
     
     return existingProcess;
@@ -233,32 +228,18 @@
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
-    /* locking */
     os_unfair_lock_lock(&processes_array_lock);
-    
     [self.processes removeObjectForKey:@(pid)];
-    
-    /* unlocking */
     os_unfair_lock_unlock(&processes_array_lock);
 }
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier
 {
-    /* locking */
-    os_unfair_lock_lock(&processes_array_lock);
-    
-    for(NSNumber *key in self.processes)
+    PEProcess *process = [self processForBundleIdentifier:bundleIdentifier];
+    if(process)
     {
-        PEProcess *process = self.processes[key];
-        if(!process || ![process.bundleIdentifier isEqualToString:bundleIdentifier]) continue;
-        else
-        {
-            [process terminate];
-        }
+        [process terminate];
     }
-    
-    /* unlocking */
-    os_unfair_lock_unlock(&processes_array_lock);
 }
 
 @end
