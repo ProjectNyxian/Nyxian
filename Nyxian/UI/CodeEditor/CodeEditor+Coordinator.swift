@@ -68,7 +68,9 @@ class Coordinator: NSObject, TextViewDelegate {
     
     func textViewDidChange(_ textView: TextView) {
         guard self.parent?.synpushServer != nil else { return }
-        self.parent?.document?.text = textView.text
+        if((textView.text as NSString).length != 0) {
+            self.parent?.document?.text = textView.text
+        }
         if !self.isInvalidated {
             self.isInvalidated = true
             for item in self.entries {

@@ -24,6 +24,20 @@
 
 @implementation NXDocument
 
+- (void)autosaveWithCompletionHandler:(void (^)(BOOL))completionHandler
+{
+    /* REQUIRED, OTHERWISE YOUR CODE IS GONE AFTER CLOSING PROJECT */
+    if(!self.hasUnsavedChanges)
+    {
+        if(completionHandler)
+        {
+            completionHandler(YES);
+        }
+        return;
+    }
+    [self saveToURL:self.fileURL forSaveOperation:UIDocumentSaveForOverwriting completionHandler:completionHandler];
+}
+
 - (void)setText:(NSString *)text
 {
     _text = [text copy];
@@ -65,7 +79,14 @@
         return nil;
     }
     
-    return data ?: [NSData data];
+    data = data ?: [NSData data];
+    return data;
+}
+
+- (void)closeWithCompletionHandler:(void (^)(BOOL))completionHandler
+{
+    [self autosaveWithCompletionHandler:completionHandler];
+    return;
 }
 
 @end

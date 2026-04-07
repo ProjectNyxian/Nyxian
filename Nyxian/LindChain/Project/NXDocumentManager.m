@@ -86,6 +86,7 @@
 {
     os_unfair_lock_lock(&_lock);
     NXDocument *document = _documents[url];
+    [_documents removeObjectForKey:url];
     os_unfair_lock_unlock(&_lock);
     if(!document)
     {

@@ -176,7 +176,14 @@ class CodeEditorViewController: UIViewController {
         self.textView.smartInsertDeleteType = .no
         self.textView.autocorrectionType = .no
         self.textView.autocapitalizationType = .none
-        self.textView.textContainerInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 0)
+        
+        if #available(iOS 26.0, *),
+           UIDevice.current.userInterfaceIdiom == .pad {
+            self.textView.textContainerInset = UIEdgeInsets(top: 20, left: 2, bottom: 2, right: 0)
+            self.textView.gutterLeadingPadding = 10
+        } else {
+            self.textView.textContainerInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 0)
+        }
         self.textView.isEditable = !self.isReadOnly
         
         func loadLanguage(language: UnsafePointer<TSLanguage>, highlightsURL: [URL]) {
@@ -550,6 +557,7 @@ class CodeEditorViewController: UIViewController {
     @objc func saveText() {
         if !self.isReadOnly {
             defer {
+                self.document?.text = self.textView.text
                 self.document?.save(to: URL(fileURLWithPath: self.path), for: .forOverwriting)
             }
             
