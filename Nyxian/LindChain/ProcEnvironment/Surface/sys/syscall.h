@@ -38,7 +38,6 @@
 #include <LindChain/ProcEnvironment/Surface/sys/cred/setsid.h>
 #include <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
 #include <LindChain/ProcEnvironment/Surface/sys/proc/wait4.h>
-#include <LindChain/ProcEnvironment/Surface/sys/proc/exit.h>
 #include <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
@@ -61,7 +60,7 @@
 #define SYS_pectl       761         /* utility for many proc environment operations */
 #define SYS_getpk       762         /* copy out the public signature key */
 
-#define SYS_N 29
+#define SYS_N 28
 
 typedef struct {
     const char *name;

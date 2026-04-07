@@ -25,5 +25,6 @@
 #import <LindChain/Private/FoundationPrivate.h>
 
 NSExtension *PEGetNSExtensionLiveProcess(void);
+bool PESpawnNSExtensionLiveProcess(NSDictionary *items, pid_t *pid, NSUUID **identifier, NSExtension **extension);
 
 #endif /* PEEXTENSION_H */

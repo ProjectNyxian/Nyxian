@@ -237,12 +237,7 @@ int LiveProcessMain(int argc, char *argv[])
 __attribute__((visibility("default")))
 int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName)
 {
-    /* executes the target and exits */
-    int retval = LiveProcessMain(argc, argv);
-    
-    /* redirecting exit status to ksurface and XNU */
-    environment_syscall(SYS_exit, retval);
-    exit(retval);   /* fatal */
+    exit(LiveProcessMain(argc, argv));
 }
 
 /* NSExtensionMain will load UIKit and call UIApplicationMain, so we need to redirect it to our fake one */

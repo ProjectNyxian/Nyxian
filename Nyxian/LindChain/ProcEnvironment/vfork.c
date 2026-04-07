@@ -379,14 +379,13 @@ DEFINE_HOOK(_exit, void, (int code))
     }
     else
     {
-        environment_syscall(SYS_exit, code);
         return ORIG_FUNC(_exit)(code);
     }
 }
 
 DEFINE_HOOK(exit, void, (int code))
 {
-    return hook__exit(code);
+    return HOOK_FUNC(_exit)(code);
 }
 
 DEFINE_HOOK(waitpid, pid_t, (pid_t pid,

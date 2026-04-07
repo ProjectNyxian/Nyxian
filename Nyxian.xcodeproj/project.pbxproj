@@ -209,7 +209,6 @@
 				LindChain/ProcEnvironment/Surface/sys/cred/setuid.c,
 				LindChain/ProcEnvironment/Surface/sys/host/ioctl.c,
 				LindChain/ProcEnvironment/Surface/sys/host/sysctl.m,
-				LindChain/ProcEnvironment/Surface/sys/proc/exit.c,
 				LindChain/ProcEnvironment/Surface/sys/proc/kill.m,
 				LindChain/ProcEnvironment/Surface/sys/proc/wait4.c,
 				LindChain/ProcEnvironment/Surface/sys/syscall.c,

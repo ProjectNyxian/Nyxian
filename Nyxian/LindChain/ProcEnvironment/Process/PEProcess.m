@@ -38,24 +38,12 @@
 
 @implementation PEProcess
 
-#if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session
-#else
-- (instancetype)initWithBundleIdentifier:(NSString*)bundleID
-#endif /* !JAILBREAK_ENV */
 {
     self = [super init];
- 
-#if !JAILBREAK_ENV
     
     self.pid = -1;
     self.session = session;
-    
-    /* insert required items */
-    NSMutableDictionary *mutableItems = [items mutableCopy];
-    mutableItems[@"PESyscallPort"] = [PEMachPort portWithPortName:syscall_server_get_port(ksurface->sys_server)];
-    mutableItems[@"PEEndpoint"] = [Server getTicket];
-    items = [mutableItems copy];
     
     self.executablePath = items[@"PEExecutablePath"];
     if(self.executablePath == nil) return nil;
@@ -64,28 +52,7 @@
     
     self.wid = (id_t)-1;
     
-    _extension = PEGetNSExtensionLiveProcess();
-    if(_extension == nil)
-    {
-        return nil;
-    }
-    
-    NSExtensionItem *item = [NSExtensionItem new];
-    item.userInfo = items;
-
     LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:self.executablePath];
-#else
-    LSApplicationProxy *applicationObject = nil;
-    NSArray<LSApplicationProxy*> *array = LSApplicationWorkspace.defaultWorkspace.allInstalledApplications;
-    for(LSApplicationProxy *proxy in array)
-    {
-        if([proxy.bundleIdentifier isEqualToString:bundleID])
-        {
-            applicationObject = proxy;
-            break;
-        }
-    }
-#endif /* !JAILBREAK_ENV */
     
     
     if(applicationObject != nil)
@@ -95,205 +62,98 @@
     }
     else
     {
-#if !JAILBREAK_ENV
         self.bundleIdentifier = nil;
         self.displayName = [self.executablePath lastPathComponent];
-#else
-        return nil;
-#endif
     }
     
     __weak typeof(self) weakSelf = self;
     
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    /* spawning process*/
+    NSUUID *identifier;
+    NSExtension *extension;
+    if(!PESpawnNSExtensionLiveProcess(items, &(self->_pid), &identifier, &extension))
+    {
+        return nil;
+    }
+    self.identifier = identifier;
+    self.extension = extension;
     
-#if !JAILBREAK_ENV
+    ksurface_proc_t *child = proc_fork(proc, self.pid, [self.executablePath UTF8String]);
+    if(child == NULL)
+    {
+        [self terminate];
+    }
+    else
+    {
+        self.proc = child;
+    }
     
-    [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
-        /*
-         * FIXME: forkbomb is half way fixed... there is one problem tho, for what ever reason the identifier is nil after a forkbomb
-         * idk why, maybe its cuz one thread is already here, i dont know...
-         */
-        if(identifier)
-        {
-            if(weakSelf == nil) return;
-            __strong typeof(weakSelf) innerSelf = weakSelf;
-            
-            innerSelf.identifier = identifier;
-            innerSelf.pid = [innerSelf.extension pidForRequestIdentifier:innerSelf.identifier];
-            
-            ksurface_proc_t *child = proc_fork(proc, innerSelf.pid, [innerSelf.executablePath UTF8String]);
-            if(child == NULL)
-            {
-                [innerSelf terminate];
-            }
-            else
-            {
-                innerSelf.proc = child;
-            }
-            
-            dispatch_semaphore_signal(sema);
-            
-            RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(innerSelf.pid)];
-            
-#else
-            
-    RBSProcessIdentity* identity = [PrivClass(RBSProcessIdentity) identityForEmbeddedApplicationIdentifier:applicationObject.bundleIdentifier];
-    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentity:identity];
+    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(self.pid)];
+    
+    /* TODO: handle rbs process handler creation failure */
+    NSError *error;
+    self.processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:&error];
+    
+    // Setting process handle directly from process monitor
     FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-            
-    FBApplicationProcessLaunchTransaction *transaction = [[PrivClass(FBApplicationProcessLaunchTransaction) alloc] initWithProcessIdentity:identity executionContextProvider:^id(void){
-        FBMutableProcessExecutionContext *context = [PrivClass(FBMutableProcessExecutionContext) new];
-        context.identity = identity;
-        context.environment = @{};
-        context.launchIntent = 4;
-        return [manager launchProcessWithContext:context];
-    }];
-            
-    [transaction setCompletionBlock:^{
-        if(weakSelf != nil)
-        {
-            __strong typeof(weakSelf) innerSelf = weakSelf;
-        
-            self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", bundleID, @"default"];
-            RBSProcessHandle* processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:nil];
-            self.pid = processHandle.pid;
-            
-            dispatch_semaphore_signal(sema);
-            
-#endif /* !JAILBREAK_ENV */
-            
-            innerSelf.processMonitor = [PrivClass(RBSProcessMonitor) monitorWithPredicate:predicate updateHandler:^(RBSProcessMonitor *monitor, RBSProcessHandle *handle, RBSProcessStateUpdate *update) {
-                __strong typeof(weakSelf) innerSelf = weakSelf;
-                if(innerSelf == nil) return;
-                
-                // Interestingly, when a process exits, the process monitor says that there is no state, so we can use that as a logic check
-                NSArray<RBSProcessState *> *states = [monitor states];
-                if([states count] == 0)
-                {
-                    // Remove Once
-                    dispatch_once(&innerSelf->_removeOnce, ^{
-                        
-#if !JAILBREAK_ENV
-                        if(innerSelf.proc != NULL)
-                        {
-                            ksurface_return_t error = proc_zombify(innerSelf.proc);
-                            if(error != SURFACE_SUCCESS)
-                            {
-                                klog_log("LDEProcess", "failed to remove pid %d", innerSelf.pid);
-                            }
-                        }
-#endif /* !JAILBREAK_ENV */
-                        
-                        [innerSelf.processMonitor invalidate];
-                        if(innerSelf.exitingCallback) innerSelf.exitingCallback();
-                        
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if(innerSelf.wid != -1)
-                            {
-                                [[NXWindowServer shared] closeWindowWithIdentifier:innerSelf.wid withCompletion:nil];
-                            }
-                            else if(innerSelf.session && innerSelf.session.windowIdentifier != -1)
-                            {
-                                [[NXWindowServer shared] closeWindowWithIdentifier:innerSelf.session.windowIdentifier withCompletion:nil];
-                            }
-                            
-                            if(innerSelf.scene != nil)
-                            {
-                                [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.scene withTransitionContext:nil];
-                                self.scene.delegate = nil;
-                            }
-                            
-                            FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-                            FBProcess *fbProcess = [manager processForPID:innerSelf.pid];
-                            if(fbProcess)
-                            {
-                                [manager _removeProcess:fbProcess];
-                            }
-                        });
-                        
-                        [[PEProcessManager shared] unregisterProcessWithProcessIdentifier:innerSelf.pid];
-                    });
-                }
-                else
-                {
-                    // Initilize once
-                    dispatch_once(&innerSelf->_addOnce, ^{
-                        dispatch_sync(dispatch_get_main_queue(), ^{
-                            __strong typeof(weakSelf) innerSelf = weakSelf;
-                            if(innerSelf == nil) return;
-                            
-                            // Setting process handle directly from process monitor
-                            innerSelf.processHandle = handle;
-                            FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-                            // At this point, the process is spawned and we're ready to create a scene to render in our app
-                            [manager registerProcessForAuditToken:innerSelf.processHandle.auditToken];
-                            innerSelf.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
-                            
-                            FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-                            definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:innerSelf.sceneID];
-                            
-                            @try {
-                                if (!innerSelf.processHandle || !innerSelf.processHandle.identity) {
-                                    @throw [NSException exceptionWithName:@"InvalidProcessIdentity" reason:@"Process handle or identity is nil" userInfo:nil];
-                                }
-                                definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
-                            } @catch (NSException *exception) {
-                                klog_log("LDEProcess", "failed to create client identity for pid %d: %s", innerSelf.pid, [exception.reason UTF8String]);
-                                [innerSelf terminate];
-                                return;
-                            }
-                            
-                            definition.specification = [UIApplicationSceneSpecification specification];
-                            FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
-                            
-                            UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
-                            settings.canShowAlerts = YES;
-                            settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
-                            settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
-                            settings.foreground = NO;
-                            
-                            settings.deviceOrientation = UIDevice.currentDevice.orientation;
-                            settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-                            
-                            settings.frame = (innerSelf.session == nil) ? CGRectMake(50, 94, 300, 400) : innerSelf.session.windowRect;
-                            
-                            //settings.interruptionPolicy = 2; // reconnect
-                            settings.level = 1;
-                            settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
-                            
-                            // it seems some apps don't honor these settings so we don't cover the top of the app
-                            settings.peripheryInsets = UIEdgeInsetsZero;
-                            settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
-                            
-                            settings.statusBarDisabled = YES;
-                            parameters.settings = settings;
-                            
-                            UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
-                            clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
-                            clientSettings.statusBarStyle = 0;
-                            parameters.clientSettings = clientSettings;
-                            
-                            innerSelf.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
-                            innerSelf.scene.delegate = innerSelf;
-                        });
-                    });
-                }
-            }];
-        }
-        else
-        {
-            dispatch_semaphore_signal(sema);
-        }
-    }];
-            
-#if JAILBREAK_ENV
+    // At this point, the process is spawned and we're ready to create a scene to render in our app
+    [manager registerProcessForAuditToken:self.processHandle.auditToken];
+    FBProcess *process = [manager processForPID:self.pid];
+    [process addObserver:self];
+    
+    self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
+    
+    FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
+    definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
+    
     dispatch_async(dispatch_get_main_queue(), ^{
-        [transaction begin];
+        __strong typeof(weakSelf) innerSelf = weakSelf;
+        if(innerSelf == nil) return;
+        
+        @try {
+            if (!innerSelf.processHandle || !innerSelf.processHandle.identity) {
+                @throw [NSException exceptionWithName:@"InvalidProcessIdentity" reason:@"Process handle or identity is nil" userInfo:nil];
+            }
+            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
+        } @catch (NSException *exception) {
+            klog_log("LDEProcess", "failed to create client identity for pid %d: %s", innerSelf.pid, [exception.reason UTF8String]);
+            [innerSelf terminate];
+            return;
+        }
+        
+        definition.specification = [UIApplicationSceneSpecification specification];
+        FBSMutableSceneParameters *parameters = [PrivClass(FBSMutableSceneParameters) parametersForSpecification:definition.specification];
+        
+        UIMutableApplicationSceneSettings *settings = [UIMutableApplicationSceneSettings new];
+        settings.canShowAlerts = YES;
+        settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:0 bottomLeft:0 bottomRight:0 topRight:0];
+        settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
+        settings.foreground = NO;
+        
+        settings.deviceOrientation = UIDevice.currentDevice.orientation;
+        settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+        
+        settings.frame = (innerSelf.session == nil) ? CGRectMake(50, 94, 300, 400) : innerSelf.session.windowRect;
+        
+        //settings.interruptionPolicy = 2; // reconnect
+        settings.level = 1;
+        settings.persistenceIdentifier = NSUUID.UUID.UUIDString;
+        
+        // it seems some apps don't honor these settings so we don't cover the top of the app
+        settings.peripheryInsets = UIEdgeInsetsZero;
+        settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
+        
+        settings.statusBarDisabled = YES;
+        parameters.settings = settings;
+        
+        UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
+        clientSettings.interfaceOrientation = UIInterfaceOrientationPortrait;
+        clientSettings.statusBarStyle = 0;
+        parameters.clientSettings = clientSettings;
+        
+        innerSelf.scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
+        innerSelf.scene.delegate = innerSelf;
     });
-#endif /* JAILBREAK_ENV*/
-
-    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     
     return self;
 }
@@ -303,20 +163,24 @@
  */
 - (void)sendSignal:(int)signal
 {
-#if !JAILBREAK_ENV
-    /* signals not supported at all (for now atleast) */
+    /*
+     * those signals are not supported at all
+     * (for now atleast).
+     */
     if(signal == SIGTTIN ||
        signal == SIGTTOU)
     {
         return;
     }
     
-    /* for some reason apple doesnt support SIGTSTP on iOS */
+    /*
+     * for some reason apple doesnt support SIGTSTP on iOS
+     * (maybe we just use it wrong lol)
+     */
     if(signal == SIGTSTP)
     {
         signal = SIGSTOP;
     }
-#endif /* !JAILBREAK_ENV */
     
     if(signal == SIGSTOP)
     {
@@ -327,7 +191,6 @@
         _isSuspended = NO;
     }
     
-#if !JAILBREAK_ENV
     [self.extension _kill:signal];
     
     if(signal == SIGSTOP)
@@ -346,9 +209,6 @@
         kvo_unlock(_proc);
         proc_state_change(_proc, W_STOPCODE(signal));
     }
-#else
-    shell([NSString stringWithFormat:@"kill -%d %d", signal, self.pid], 0, nil, nil);
-#endif /* !JAILBREAK_ENV */
 }
 
 - (BOOL)suspend
@@ -406,8 +266,69 @@
         });
     });
 }
+        
+- (void)processDidExit:(FBProcess *)arg1
+{
+    if(self.proc != NULL)
+    {
+        /* yep writing official wait4 code~~ */
+        proc_state_change(self.proc, arg1.exitContext.underlyingContext.legacyCode);
+        ksurface_return_t error = proc_zombify(self.proc);
+        if(error != SURFACE_SUCCESS)
+        {
+            klog_log("LDEProcess", "failed to remove pid %d", self.pid);
+        }
+    }
+    
+    if(self.exitingCallback) self.exitingCallback();
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if(self.wid != -1)
+        {
+            [[NXWindowServer shared] closeWindowWithIdentifier:self.wid withCompletion:nil];
+        }
+        else if(self.session && self.session.windowIdentifier != -1)
+        {
+            [[NXWindowServer shared] closeWindowWithIdentifier:self.session.windowIdentifier withCompletion:nil];
+        }
+        
+        if(self.scene != nil)
+        {
+            [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.scene withTransitionContext:nil];
+            self.scene.delegate = nil;
+        }
+        
+        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+        FBProcess *fbProcess = [manager processForPID:self.pid];
+        if(fbProcess)
+        {
+            [manager _removeProcess:fbProcess];
+        }
+    });
+    
+    [[PEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
+}
 
-#if !JAILBREAK_ENV
+- (void)processWillExit:(FBProcess *)arg1
+{
+    /* stub for when ever */
+}
+
+- (void)process:(FBProcess *)arg1 stateDidChangeFromState:(FBProcessState *)arg2 toState:(FBProcessState *)arg3
+{
+    /* stub for when ever */
+}
+
+- (void)processManager:(FBProcessManager *)arg1 didAddProcess:(FBProcess *)arg2
+{
+    [arg2 addObserver:self];
+}
+
+- (void)processManager:(FBProcessManager *)arg1 didRemoveProcess:(FBProcess *)arg2
+{
+    [arg2 removeObserver:self];
+    [arg1 removeObserver:self];
+}
 
 - (void)dealloc
 {
@@ -416,7 +337,5 @@
         kvo_release(_proc);
     }
 }
-        
-#endif /* !JAILBREAK_ENV */
 
 @end

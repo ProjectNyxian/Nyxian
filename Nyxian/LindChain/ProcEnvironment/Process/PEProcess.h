@@ -31,7 +31,7 @@
 
 @class NXWindowSessionApplication;
 
-@interface PEProcess : NSObject <FBSceneDelegate>
+@interface PEProcess : NSObject <FBProcessObserver,FBProcessManagerObserver,FBSceneDelegate>
 
 #if !JAILBREAK_ENV
 @property (nonatomic,strong) NSExtension *extension;
@@ -40,7 +40,6 @@
 
 @property (nonatomic,weak) NXWindowSessionApplication *session;
 @property (nonatomic,strong) RBSProcessHandle *processHandle;
-@property (nonatomic,strong) RBSProcessMonitor *processMonitor;
 @property (nonatomic,strong) FBScene *scene;
 @property (nonatomic,strong) NSString *sceneID;
 @property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
@@ -63,17 +62,10 @@
 // Other boolean flags
 @property (nonatomic) BOOL isSuspended;
 
-@property (nonatomic) dispatch_once_t removeOnce;
-@property (nonatomic) dispatch_once_t addOnce;
-
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
-#if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session;
-#else
-- (instancetype)initWithBundleIdentifier:(NSString*)bundleID;
-#endif /* !JAILBREAK_ENV */
 
 - (void)sendSignal:(int)signal;
 - (BOOL)suspend;

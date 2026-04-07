@@ -20,6 +20,10 @@
 */
 
 #import <LindChain/ProcEnvironment/Process/PEExtension.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <LindChain/ProcEnvironment/Object/PEMachPort.h>
+#import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
+#import <LindChain/ProcEnvironment/Server/Server.h>
 
 NSExtension *PEGetNSExtensionLiveProcess(void)
 {
@@ -43,4 +47,75 @@ NSExtension *PEGetNSExtensionLiveProcess(void)
     }
     extension.preferredLanguages = @[];
     return extension;
+}
+
+bool PESpawnNSExtensionLiveProcess(NSDictionary *items,
+                                   pid_t *pid,
+                                   NSUUID **identifier,
+                                   NSExtension **extension)
+{
+    assert(items != nil && pid != NULL && identifier != nil && extension != nil);
+    
+    __block NSExtension *extractedExtension = PEGetNSExtensionLiveProcess();
+    *extension = extractedExtension;
+    
+    /* insert required items */
+    NSMutableDictionary *mutableItems = [items mutableCopy];
+    mutableItems[@"PESyscallPort"] = [PEMachPort portWithPortName:syscall_server_get_port(ksurface->sys_server)];
+    mutableItems[@"PEEndpoint"] = [Server getTicket];   /* MARK: deprecated and soon replaced with the syscall server entirely */
+    items = [mutableItems copy];
+    
+    /* validating presence of executable path */
+    NSString *executablePath = items[@"PEExecutablePath"];
+    if(executablePath == nil)
+    {
+        false;
+    }
+    
+    NSExtensionItem *item = [NSExtensionItem new];
+    item.userInfo = items;
+    
+    /* invoke execution */
+    __block NSUUID *extractedIdentifier = nil;
+    __block BOOL timedOut = NO;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    [extractedExtension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *extensionIdentifier) {
+        if(!timedOut)
+        {
+            extractedIdentifier = extensionIdentifier;
+        }
+        else
+        {
+            /* timed out, killing, cuz got no purpose */
+            [extractedExtension _kill:SIGKILL];
+        }
+        dispatch_semaphore_signal(sema);
+    }];
+    long result = dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)));
+    
+    if(result != 0)
+    {
+        timedOut = YES;
+        return false;
+    }
+    
+    /* checking if execution it self suceeded */
+    if(extractedIdentifier == nil)
+    {
+        return false;
+    }
+    *identifier = extractedIdentifier;
+    
+    *pid = [extractedExtension pidForRequestIdentifier:*identifier];
+    
+    /*
+     * checking if process is still valid
+     * we need its BSD process identifier.
+     */
+    if(*pid < 0)
+    {
+        return false;
+    }
+    
+    return true;
 }
