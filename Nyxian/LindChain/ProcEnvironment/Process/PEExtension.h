@@ -24,7 +24,15 @@
 
 #import <LindChain/Private/FoundationPrivate.h>
 
+/*
+ * anti fork bomb timeout, I think
+ * it would be a lot better to implement
+ * RCU ASAP cuz that would fix most of this issue.
+ */
+#define SPAWN_TIMEOUT 30000000ull
+
 NSExtension *PEGetNSExtensionLiveProcess(void);
+void PESpawnNSExtensionTimeout(void);
 bool PESpawnNSExtensionLiveProcess(NSDictionary *items, pid_t *pid, NSUUID **identifier, NSExtension **extension);
 
 #endif /* PEEXTENSION_H */

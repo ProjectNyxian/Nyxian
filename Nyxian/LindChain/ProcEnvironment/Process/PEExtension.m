@@ -49,12 +49,45 @@ NSExtension *PEGetNSExtensionLiveProcess(void)
     return extension;
 }
 
+void PESpawnNSExtensionTimeout(void)
+{
+    static mach_timebase_info_data_t timebase;
+    static uint64_t lastSpawnTick = 0;
+
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        mach_timebase_info(&timebase);
+    });
+
+    uint64_t timeoutTicks = (SPAWN_TIMEOUT * timebase.denom) / timebase.numer;
+
+    uint64_t now = mach_absolute_time();
+    uint64_t elapsed = now - lastSpawnTick;
+
+    if(lastSpawnTick != 0 && elapsed < timeoutTicks)
+    {
+        uint64_t waitTicks = timeoutTicks - elapsed;
+        uint64_t nsToWait = waitTicks * timebase.numer / timebase.denom;
+
+        struct timespec ts = {
+            .tv_sec  = (time_t)(nsToWait / 1000000000ull),
+            .tv_nsec = (long)  (nsToWait % 1000000000ull),
+        };
+        nanosleep(&ts, NULL);
+    }
+
+    lastSpawnTick = mach_absolute_time();
+}
+
 bool PESpawnNSExtensionLiveProcess(NSDictionary *items,
                                    pid_t *pid,
                                    NSUUID **identifier,
                                    NSExtension **extension)
 {
     assert(items != nil && pid != NULL && identifier != nil && extension != nil);
+    
+    /* enforce timeout */
+    PESpawnNSExtensionTimeout();
     
     __block NSExtension *extractedExtension = PEGetNSExtensionLiveProcess();
     *extension = extractedExtension;

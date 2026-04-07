@@ -34,8 +34,6 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 @implementation PEProcessManager {
-    NSTimeInterval _lastSpawnTime;
-    NSTimeInterval _spawnCooldown;
     os_unfair_lock processes_array_lock;
 }
 
@@ -46,8 +44,6 @@
     
     mach_timebase_info_data_t timebase;
     mach_timebase_info(&timebase);
-    _spawnCooldown = (25ull * timebase.denom) / timebase.numer;
-    _lastSpawnTime = 0;
     
     return self;
 }
@@ -62,36 +58,9 @@
     return processManagerSingletone;
 }
 
-#if !JAILBREAK_ENV
-
-- (void)enforceSpawnCooldown
-{
-    uint64_t now = mach_absolute_time();
-    uint64_t elapsed = now - _lastSpawnTime;
-
-    if(elapsed < _spawnCooldown)
-    {
-        uint64_t waitTicks = _spawnCooldown - elapsed;
-        
-        mach_timebase_info_data_t timebase;
-        mach_timebase_info(&timebase);
-        uint64_t nsToWait = waitTicks * timebase.numer / timebase.denom;
-
-        struct timespec ts;
-        ts.tv_sec = (time_t)(nsToWait / 1000000000ull);
-        ts.tv_nsec = (long)(nsToWait % 1000000000ull);
-        nanosleep(&ts, NULL);
-    }
-
-    _lastSpawnTime = mach_absolute_time();
-}
-
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
       withKernelSurfaceProcess:(ksurface_proc_t*)proc
-{
-    /* enforcing spawn cooldown */
-    [self enforceSpawnCooldown];
-    
+{    
     /* creating a process */
     PEProcess *process = [[PEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc withSession:nil];
     
@@ -193,9 +162,6 @@
         return -1;
     }
     
-    /* enforce cooldown */
-    [self enforceSpawnCooldown];
-    
     /* creating process */
     NSMutableDictionary *mutableItems = [items mutableCopy];
     
@@ -236,32 +202,6 @@
     return pid;
 }
 
-#else
-
-- (pid_t)spawnProcessWithBundleID:(NSString*)bundleID
-{
-    /* creating a process */
-    PEProcess *process = [[PEProcess alloc] initWithBundleIdentifier:bundleID];
-    
-    /* null pointer check */
-    if(process == nil)
-    {
-        return -1;
-    }
-    
-    /* getting process identifier */
-    pid_t pid = process.pid;
-    
-    os_unfair_lock_lock(&processes_array_lock);
-    [self.processes setObject:process forKey:@(pid)];
-    os_unfair_lock_unlock(&processes_array_lock);
-    
-    /* returning pid */
-    return pid;
-}
-
-#endif /* !JAILBREAK_ENV */
-
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {
     os_unfair_lock_lock(&processes_array_lock);
@@ -270,7 +210,6 @@
     return process;
 }
 
-#if !JAILBREAK_ENV
 - (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier
 {
     PEProcess *existingProcess = nil;
@@ -291,7 +230,6 @@
     
     return existingProcess;
 }
-#endif /* !JAILBREAK_ENV */
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
