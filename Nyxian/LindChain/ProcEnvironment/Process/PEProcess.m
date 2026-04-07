@@ -62,7 +62,7 @@
     /* spawning process */
     NSUUID *identifier;
     NSExtension *extension;
-    if(!PESpawnNSExtensionLiveProcess(items, &(self->_pid), &identifier, &extension))
+    if(!PESpawnNSExtension(items, &(self->_pid), &identifier, &extension))
     {
         return nil;
     }
@@ -73,6 +73,7 @@
     if(child == NULL)
     {
         [self terminate];
+        return nil;
     }
     else
     {
@@ -149,9 +150,6 @@
     return self;
 }
 
-/*
- Action
- */
 - (void)sendSignal:(int)signal
 {
     /*

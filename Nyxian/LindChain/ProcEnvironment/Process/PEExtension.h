@@ -32,8 +32,8 @@
  */
 #define SPAWN_TIMEOUT 30000000ull
 
-NSExtension *PEGetNSExtensionLiveProcess(void);
+NSExtension *PEGetNSExtension(void);
 void PESpawnNSExtensionTimeout(void);
-bool PESpawnNSExtensionLiveProcess(NSDictionary *items, pid_t *pid, NSUUID **identifier, NSExtension **extension);
+bool PESpawnNSExtension(NSDictionary *items, pid_t *pid, NSUUID **identifier, NSExtension **extension);
 
 #endif /* PEEXTENSION_H */

@@ -25,7 +25,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
-NSExtension *PEGetNSExtensionLiveProcess(void)
+NSExtension *PEGetNSExtension(void)
 {
     static NSBundle *liveProcessBundle = nil;
     static dispatch_once_t onceToken;
@@ -79,17 +79,17 @@ void PESpawnNSExtensionTimeout(void)
     lastSpawnTick = mach_absolute_time();
 }
 
-bool PESpawnNSExtensionLiveProcess(NSDictionary *items,
-                                   pid_t *pid,
-                                   NSUUID **identifier,
-                                   NSExtension **extension)
+bool PESpawnNSExtension(NSDictionary *items,
+                        pid_t *pid,
+                        NSUUID **identifier,
+                        NSExtension **extension)
 {
     assert(items != nil && pid != NULL && identifier != nil && extension != nil);
     
     /* enforce timeout */
     PESpawnNSExtensionTimeout();
     
-    __block NSExtension *extractedExtension = PEGetNSExtensionLiveProcess();
+    __block NSExtension *extractedExtension = PEGetNSExtension();
     *extension = extractedExtension;
     
     /* insert required items */
