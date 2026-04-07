@@ -85,17 +85,20 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     }
     
     @objc func invokeBuild() {
-        if let masterVC = masterVC,
-           let detailVC = detailVC,
-           lock.try() {
-            
-            masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
-            self.detailVC?.logView?.clearConsole()
-            
-            buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.logView?.pipe, inPipe: self.detailVC?.logView?.stdinPipe) { [weak self] in
-                guard let self = self else { return }
-                masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
-                self.lock.unlock()
+        NXDocumentManager.shared().saveAll { [weak self] in
+            if let self = self,
+               let masterVC = masterVC,
+               let detailVC = detailVC,
+               lock.try() {
+                
+                masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
+                self.detailVC?.logView?.clearConsole()
+                
+                buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.logView?.pipe, inPipe: self.detailVC?.logView?.stdinPipe) { [weak self] in
+                    guard let self = self else { return }
+                    masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
+                    self.lock.unlock()
+                }
             }
         }
     }

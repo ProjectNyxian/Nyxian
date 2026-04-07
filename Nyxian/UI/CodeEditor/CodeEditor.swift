@@ -51,6 +51,7 @@ extension CharacterPair where Self == BasicCharacterPair {
 
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController {
+    private(set) var document: NXDocument?
     private(set) var path: String
     private(set) var textView: TextView
     private(set) var project: NXProject?
@@ -77,7 +78,6 @@ class CodeEditorViewController: UIViewController {
         isReadOnly: Bool = false
     ) {
         self.path = path
-        
         self.textView = TextView()
         
         self.project = project
@@ -116,13 +116,15 @@ class CodeEditorViewController: UIViewController {
             self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
         }
         
-        do {
-            self.textView.text = try String(contentsOf: URL(fileURLWithPath: self.path), encoding: .utf8)
-        } catch {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                // FIXME: Handle file closes
-            } else {
-                self.dismiss(animated: true)
+        NXDocumentManager.shared().open(URL(fileURLWithPath: path)) { [weak self] doc in
+            guard let doc = doc else {
+                self?.dismiss(animated: true)
+                return
+            }
+            self?.document = doc
+            
+            DispatchQueue.main.async {
+                self?.textView.text = doc.text
             }
         }
         
@@ -166,6 +168,7 @@ class CodeEditorViewController: UIViewController {
         self.textView.showSpaces = booleanDefaults(key: "LDEShowSpaces", defaultValue: true)
         self.textView.isLineWrappingEnabled = booleanDefaults(key: "LDEWrapLines", defaultValue: true)
         self.textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
+        self.textView.indentStrategy = .tab(length: 4)
         
         if synpushServer != nil {
             self.autoindent = booleanDefaults(key: "LDEAutoindent", defaultValue: true)
@@ -758,5 +761,9 @@ class CodeEditorViewController: UIViewController {
         }
 
         builder.insertChild(UIMenu(options: .displayInline, children: [myAction]), atEndOfMenu: .standardEdit)
+    }
+    
+    deinit {
+        NXDocumentManager.shared().close(URL(fileURLWithPath: self.path), completion: nil)
     }
 }

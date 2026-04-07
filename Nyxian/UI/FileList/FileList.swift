@@ -121,7 +121,9 @@ import UniformTypeIdentifiers
         if let project = self.project {
             if !self.isSublink {
                 observation = project.observe(\.projectConfig.dictionary, options: [.new, .old]) { [weak self] project, change in
-                    self?.title = project.projectConfig.displayName
+                    DispatchQueue.main.async {
+                        self?.title = project.projectConfig.displayName
+                    }
                 }
                 self.title = project.projectConfig.displayName
             } else {
