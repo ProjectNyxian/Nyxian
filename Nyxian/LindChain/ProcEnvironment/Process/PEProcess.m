@@ -89,8 +89,8 @@
     // Setting process handle directly from process monitor
     FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
     // At this point, the process is spawned and we're ready to create a scene to render in our app
-    [manager registerProcessForAuditToken:self.processHandle.auditToken];
-    FBProcess *process = [manager processForPID:self.pid];
+    /* FIXME: cleanup if return is nil */
+    FBProcess *process = [manager registerProcessForAuditToken:self.processHandle.auditToken];
     [process addObserver:self];
     
     self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
