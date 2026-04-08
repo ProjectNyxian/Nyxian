@@ -23,13 +23,6 @@ import UIKit
 
 let iOSVersions: [String] = [
     // Legacy (generally not recommended to use these)
-    "4.0", "4.1", "4.2",
-    "5.0", "5.1",
-    "6.0", "6.1",
-    
-    // Tho unstable with the latest iOS there are posibilities of using those so I add them
-    "7.0", "7.1",
-    "8.0", "8.1", "8.2", "8.3", "8.4",
     "9.0", "9.1", "9.2", "9.3",
     "10.0", "10.1", "10.2", "10.3",
     
@@ -44,23 +37,82 @@ let iOSVersions: [String] = [
     "16.0", "16.1", "16.2", "16.3", "16.4", "16.5", "16.6", "16.7",
     "17.0", "17.1", "17.2", "17.3", "17.4", "17.5", "17.6", "17.7",
     "18.0", "18.1", "18.2", "18.3", "18.4", "18.5", "18.6",
-    "26.0", "26.1", "26.2", "26.3", "26.4", "26.5"
+    "26.0", "26.1", "26.2", "26.3", "26.4"
 ]
 
-func closestIOSVersion(to input: String) -> String? {
-    func numericValue(_ version: String) -> Double {
-        let parts = version.split(separator: ".").compactMap { Double($0) }
-        let major = parts.count > 0 ? parts[0] : 0
-        let minor = parts.count > 1 ? parts[1] : 0
-        let patch = parts.count > 2 ? parts[2] : 0
-        return major * 1_000_000 + minor * 1_000 + patch
-    }
+fileprivate func numericValue(_ version: String) -> Double {
+    let parts = version.split(separator: ".").compactMap { Double($0) }
+    let major = parts.count > 0 ? parts[0] : 0
+    let minor = parts.count > 1 ? parts[1] : 0
+    let patch = parts.count > 2 ? parts[2] : 0
+    return major * 1_000_000 + minor * 1_000 + patch
+}
 
+func closestIOSVersion(to input: String) -> String? {
     let target = numericValue(input)
 
     return iOSVersions.min(by: {
         abs(numericValue($0) - target) < abs(numericValue($1) - target)
     })
+}
+
+struct NXOSVersion {
+    private let closestNumeric: Double
+    
+    let rawVersionString: String
+    
+    var versionString: String? {
+        return iOSVersions.min(by: {
+            abs(numericValue($0) - self.closestNumeric) < abs(numericValue($1) - self.closestNumeric)
+        })
+    }
+    
+    static let hostVersion: NXOSVersion = NXOSVersion()
+    static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.first)!
+    static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.last)!
+    
+    init?(versionString: String?) {
+        guard let versionString = versionString,
+              NXOSVersion.isValidVersionString(versionString) else {
+            return nil
+        }
+        rawVersionString = versionString
+        closestNumeric = numericValue(rawVersionString)
+    }
+    
+    init() {
+        rawVersionString = UIDevice.current.systemVersion
+        closestNumeric = numericValue(rawVersionString)
+    }
+    
+    static private func isValidVersionString(_ version: String) -> Bool {
+        let parts = version.split(separator: ".", omittingEmptySubsequences: false)
+        guard (1...3).contains(parts.count) else { return false }
+        return parts.allSatisfy { part in
+            guard !part.isEmpty, let value = Int(part) else { return false }
+            return value >= 0
+        }
+    }
+    
+    func isEqualToVersion(version: NXOSVersion) -> Bool {
+        return self.closestNumeric == version.closestNumeric
+    }
+    
+    func isNewerThanVersion(version: NXOSVersion) -> Bool {
+        return self.closestNumeric > version.closestNumeric
+    }
+    
+    func isOlderThanVersion(version: NXOSVersion) -> Bool {
+        return self.closestNumeric < version.closestNumeric
+    }
+    
+    func isNewerOrEqualToVersion(version: NXOSVersion) -> Bool {
+        return self.closestNumeric >= version.closestNumeric
+    }
+    
+    func isOlderOrEqualToVersion(version: NXOSVersion) -> Bool {
+        return self.closestNumeric <= version.closestNumeric
+    }
 }
 
 class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelegate, UIPickerViewDataSource {
@@ -73,7 +125,7 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
     private let pickerTitle: String
 
     init(title: String, selectedVersion: String) {
-        let selectedVersion = closestIOSVersion(to: selectedVersion) ?? selectedVersion // very smart math to get the closest valid iOS version
+        let selectedVersion = closestIOSVersion(to: selectedVersion) ?? selectedVersion
         self.pickerTitle = title
         self.selectedVersion = selectedVersion
         super.init(nibName: nil, bundle: nil)

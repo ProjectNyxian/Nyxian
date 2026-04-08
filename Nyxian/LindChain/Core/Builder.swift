@@ -134,41 +134,27 @@ class Builder {
     }
     
     func headsup() throws {
-        func osBuildVersion() -> String? {
-            var size = 0
-            // First call to get the required size
-            sysctlbyname("kern.osversion", nil, &size, nil, 0)
-            var buffer = [CChar](repeating: 0, count: size)
-            // Second call to actually get the value
-            sysctlbyname("kern.osversion", &buffer, &size, nil, 0)
-            return String(cString: buffer)
-        }
-        
         let type = project.projectConfig.type
         if(type != 1 && type != 2) {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown"])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
         }
         
-        func operatingSystemVersion(from string: String) -> OperatingSystemVersion? {
-            let components = string.split(separator: ".").map { Int($0) ?? 0 }
-            guard components.count >= 2 else { return nil }
-            
-            let major = components[0]
-            let minor = components[1]
-            let patch = components.count > 2 ? components[2] : 0
-            
-            return OperatingSystemVersion(majorVersion: major, minorVersion: minor, patchVersion: patch)
+        guard let osVersionNeeded: NXOSVersion = NXOSVersion(versionString: project.projectConfig.platformMinimumVersion) else {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"App cannot be build, host version cannot be compared. Version \(project.projectConfig.platformMinimumVersion!) is not valid."])
         }
-
-        guard let neededMinimumOSVersion = operatingSystemVersion(from: project.projectConfig.platformMinimumVersion) else {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"App cannot be build, host version cannot be compared. Version \(project.projectConfig.platformMinimumVersion!) is not valid"])
+        
+        // Nyxian requirement checks
+        if osVersionNeeded.isOlderThanVersion(version: NXOSVersion.minimumBuildVersion) {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion.rawVersionString) at a minimum."])
         }
-        if !ProcessInfo.processInfo.isOperatingSystemAtLeast(neededMinimumOSVersion) {
-            let version = ProcessInfo.processInfo.operatingSystemVersion
-            let versionString = "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
-            let neededVersionString = "\(neededMinimumOSVersion.majorVersion).\(neededMinimumOSVersion.minorVersion).\(neededMinimumOSVersion.patchVersion)"
-            
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(neededVersionString) is needed to build the app, but version \(versionString) (\(osBuildVersion() ?? "Custom")) is present"])
+        
+        if osVersionNeeded.isNewerThanVersion(version: NXOSVersion.maximumBuildVersion) {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion.rawVersionString) at a maximum."])
+        }
+        
+        // Project requirement check
+        if osVersionNeeded.isNewerThanVersion(version: NXOSVersion.hostVersion) {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is needed to build the app, but host version \(NXOSVersion.hostVersion.rawVersionString) is present."])
         }
     }
     
