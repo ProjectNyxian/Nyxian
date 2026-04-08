@@ -289,13 +289,14 @@ class Builder {
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
 #if !JAILBREAK_ENV
+        if LCUtils.certificateData() == nil {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Miscellanous > Import Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
+        }
+        
         if(buildType == .RunningApp) {
             if self.project.projectConfig.type == NXProjectType.app.rawValue {
                 let semaphore = DispatchSemaphore(value: 0)
                 var nsError: NSError? = nil
-                if LCUtils.certificateData() == nil {
-                    throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Miscellanous > Import Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
-                }
                 
                 LCUtils.signAppBundle(withZSign: URL(fileURLWithPath: project.bundlePath)) { [weak self] result, error in
                     guard let self = self else { return }
