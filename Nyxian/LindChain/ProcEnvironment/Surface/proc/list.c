@@ -170,6 +170,9 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
         kvo_unlock(proc);
         
         kvo_release(proc);
+        
+        *len = sizeof(kinfo_proc_t);
+        return SURFACE_SUCCESS;
     }
     
     /*

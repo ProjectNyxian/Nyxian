@@ -593,6 +593,4 @@ DEFINE_SYSCALL_HANDLER(sysctlbyname)
     int ret = found->entry->fn(&req);
     errno = req.err;
     return ret;
-    
-    sys_return_failure(ENOSYS);
 }
