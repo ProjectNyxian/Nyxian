@@ -25,7 +25,7 @@ import Runestone
 
 // MARK: - COORDINATOR
 class Coordinator: NSObject, TextViewDelegate {
-    private weak var parent: CodeEditorViewController?
+    private(set) weak var parent: CodeEditorViewController?
     private var entries: [UInt64:(NeoButton?,UIView?)] = [:]
     
     private(set) var isProcessing: Bool = false
@@ -99,72 +99,6 @@ class Coordinator: NSObject, TextViewDelegate {
     }
     
     var isAutoIndenting = false
-    
-    func textView(_ textView: TextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if !isAutoIndenting,
-           self.parent?.autoindent ?? false {
-            guard text == "\n" else { return true }
-            
-            let nsText = textView.text as NSString
-            
-            let precedingText = nsText.substring(to: range.location)
-            let unescapedQuotes = precedingText.reduce(0) { count, char in
-                char == "\"" ? count + 1 : count
-            }
-            guard unescapedQuotes % 2 == 0 else { return true }
-
-            let lineStart = precedingText.lastIndex(of: "\n").map {
-                precedingText.distance(from: precedingText.startIndex, to: $0) + 1
-            } ?? 0
-            
-            let previousLine = nsText.substring(with: NSRange(location: lineStart, length: range.location - lineStart))
-            let leadingTabs = previousLine.prefix(while: { $0 == "\t" })
-            var indent = String(leadingTabs)
-
-            let previousLineContent = previousLine.trimmingCharacters(in: .whitespaces)
-            let isOpeningBlock = previousLineContent.hasSuffix("{")
-
-            if isOpeningBlock {
-                indent += "\t"
-            }
-            
-            let charAfterCursor: Character? = range.location < nsText.length
-            ? Character(UnicodeScalar(nsText.character(at: range.location))!)
-            : nil
-            
-            let insertion: String
-            let cursorOffset: Int
-            if charAfterCursor == "}" && isOpeningBlock {
-                let deindent = indent.isEmpty ? "" : String(indent.dropLast())
-                insertion = "\n" + indent + "\n" + deindent
-                cursorOffset = 1 + indent.count
-            } else if charAfterCursor == "}" && !indent.isEmpty {
-                indent.removeLast()
-                insertion = "\n" + indent
-                cursorOffset = insertion.count
-            } else {
-                insertion = "\n" + indent
-                cursorOffset = insertion.count
-            }
-            
-            guard let textRange = textView.textRange(
-                from: textView.position(from: textView.beginningOfDocument, offset: range.location)!,
-                to: textView.position(from: textView.beginningOfDocument, offset: range.location + range.length)!
-            ) else { return true }
-            
-            isAutoIndenting = true
-            textView.replace(textRange, withText: insertion)
-            isAutoIndenting = false
-            
-            let newCursorPos = range.location + cursorOffset
-            if let pos = textView.position(from: textView.beginningOfDocument, offset: newCursorPos) {
-                textView.selectedTextRange = textView.textRange(from: pos, to: pos)
-            }
-            
-            return false
-        }
-        return true
-    }
     
     func textViewDidChangeSelection(_ textView: TextView) {
         if self.isInvalidated {
@@ -242,7 +176,7 @@ class Coordinator: NSObject, TextViewDelegate {
                 let configuration: UIImage.SymbolConfiguration = UIImage.SymbolConfiguration(pointSize: parent.textView.theme.lineNumberFont.pointSize)
                 let image = UIImage(systemName: properties.0, withConfiguration: configuration)
                 button.setImage(image, for: .normal)
-                button.imageView?.tintColor = UIColor.systemBackground
+                button.imageView?.tintColor = UIColor.label
                 
                 var widthConstraint: NSLayoutConstraint?
                 
