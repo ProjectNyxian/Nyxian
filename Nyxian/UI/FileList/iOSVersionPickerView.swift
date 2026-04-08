@@ -48,31 +48,32 @@ fileprivate func numericValue(_ version: String) -> Double {
     return major * 1_000_000 + minor * 1_000 + patch
 }
 
-struct NXOSVersion: Comparable, CustomStringConvertible {
-    let versionString: String
-    let versionNumeric: Double
+@objc class NXOSVersion: NSObject, Comparable {
+    @objc let versionString: String
+    @objc let versionNumeric: Double
     
-    private(set) var pickerVersionString: String
+    @objc private(set) var pickerVersionString: String
     
-    static let hostVersion: NXOSVersion = NXOSVersion()!
-    static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.first)!
-    static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
+    @objc static let hostVersion: NXOSVersion = NXOSVersion()
+    @objc static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.first)!
+    @objc static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
     
-    init?(versionString inputString: String?) {
-        guard let inputString = inputString,
-              NXOSVersion.isValidVersionString(inputString) else {
-            return nil
+    @objc init?(versionString inputString: String?) {
+        var inputString = inputString ?? "9.0"
+        if !NXOSVersion.isValidVersionString(inputString) {
+            inputString = "9.0"
         }
         versionString = inputString
         versionNumeric = numericValue(versionString)
         pickerVersionString = versionString
+        let numeric = versionNumeric
         pickerVersionString = NXOSVersionSupportedBuildVersions.min(by: {
-            abs(numericValue($0) - self.versionNumeric) < abs(numericValue($1) - self.versionNumeric)
+            abs(numericValue($0) - numeric) < abs(numericValue($1) - numeric)
         }) ?? pickerVersionString
     }
     
-    init?() {
-        self.init(versionString: UIDevice.current.systemVersion)
+    @objc override convenience init() {
+        self.init(versionString: UIDevice.current.systemVersion)!
     }
     
     static private func isValidVersionString(_ version: String) -> Bool {
@@ -92,8 +93,17 @@ struct NXOSVersion: Comparable, CustomStringConvertible {
         lhs.versionNumeric < rhs.versionNumeric
     }
     
-    var description: String {
+    @objc override var description: String {
         return versionString
+    }
+    
+    @objc override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NXOSVersion else { return false }
+        return versionNumeric == other.versionNumeric
+    }
+
+    @objc override var hash: Int {
+        versionNumeric.hashValue
     }
 }
 
