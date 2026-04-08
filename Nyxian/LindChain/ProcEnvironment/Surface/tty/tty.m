@@ -290,7 +290,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
             }
             
             /* the 2nd fd is always the fd the tty object manages */
-            kv_content_zero(tty);
             tty->userspacekcid[MASTERFD] = master_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
             tty->userspacekcid[SLAVEFD] = slave_si.psi.soi_proto.pri_kern_ctl.kcsi_id;
             tty->userspacefd[MASTERFD] = masterpair[0];

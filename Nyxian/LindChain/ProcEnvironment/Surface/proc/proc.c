@@ -39,9 +39,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
         {
             klog_log("proc:init", "initilizing process @ %p", proc);
             
-            /* nullify */
-            kv_content_zero(proc);
-            
             /* setting fresh properties */
             proc->bsd.kp_eproc.e_ucred.cr_ngroups = 1;
             proc->bsd.kp_proc.p_priority = PUSER;
@@ -58,7 +55,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             klog_log("proc:copy", "copying process @ %p from process @ %p", proc, src);
             
             /* copy the object into the other object */
-            kv_content_zero(proc);
             memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
             memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
             
@@ -81,7 +77,6 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)
             ksurface_proc_t *src = (ksurface_proc_t*)kvarr[1];
             
             /* copy the object into the other object */
-            kv_content_zero(proc);
             memcpy(&(proc->bsd), &(src->bsd), sizeof(kinfo_proc_t));
             memcpy(&(proc->nyx), &(src->nyx), sizeof(knyx_proc_t));
             
