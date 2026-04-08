@@ -24,7 +24,6 @@
 
 #include <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_SYSCALL_HANDLER(getpid);
 DEFINE_SYSCALL_HANDLER(getppid);
 
 #endif /* SURFACE_SYS_GETPID_H */

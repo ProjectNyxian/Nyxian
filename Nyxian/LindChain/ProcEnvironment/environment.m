@@ -118,7 +118,7 @@ int environment_init(EnvironmentExec exec,
          * first, we gonna have to wait.
          * TODO: create something like a process placeholder to confirm that spawning processes is allowed otherwise a forkbomb would cause continious killing and spawning of NXExtension child
          */
-        while(environment_syscall(SYS_getpid) < 0)
+        while(environment_syscall(SYS_getppid) < 0)
         {
             relax();
         }

@@ -22,12 +22,6 @@
 #include <LindChain/ProcEnvironment/Surface/sys/cred/getpid.h>
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
 
-/* FIXME: it deamons stop responding if removed */
-DEFINE_SYSCALL_HANDLER(getpid)
-{
-    return proc_getpid(sys_proc_snapshot_);
-}
-
 DEFINE_SYSCALL_HANDLER(getppid)
 {
     return proc_getppid(sys_proc_snapshot_);

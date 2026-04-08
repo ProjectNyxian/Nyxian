@@ -60,7 +60,7 @@
 #define SYS_pectl       761         /* utility for many proc environment operations */
 #define SYS_getpk       762         /* copy out the public signature key */
 
-#define SYS_N 28
+#define SYS_N 27
 
 typedef struct {
     const char *name;

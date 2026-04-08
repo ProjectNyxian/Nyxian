@@ -201,7 +201,6 @@
 				LindChain/ProcEnvironment/Surface/sys/compat/signexec.m,
 				LindChain/ProcEnvironment/Surface/sys/compat/waittask.c,
 				LindChain/ProcEnvironment/Surface/sys/cred/getgid.c,
-				LindChain/ProcEnvironment/Surface/sys/cred/getpid.c,
 				LindChain/ProcEnvironment/Surface/sys/cred/getsid.c,
 				LindChain/ProcEnvironment/Surface/sys/cred/getuid.c,
 				LindChain/ProcEnvironment/Surface/sys/cred/setgid.c,
