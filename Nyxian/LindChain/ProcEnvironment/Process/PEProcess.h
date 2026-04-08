@@ -40,7 +40,6 @@
 @property (nonatomic,weak) NXWindowSessionApplication *session;
 @property (nonatomic,strong) FBProcess *process;
 @property (nonatomic,strong) FBScene *scene;
-@property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
 @property (nonatomic,strong) UIImage *snapshot;
 
 // Process properties

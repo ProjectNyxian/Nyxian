@@ -36,7 +36,9 @@
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
 
-@implementation PEProcess
+@implementation PEProcess {
+    dispatch_once_t _notifyWindowManagerOnce;
+}
 
 @dynamic pid;
 
@@ -280,13 +282,6 @@
             [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.scene withTransitionContext:nil];
             self.scene.delegate = nil;
         }
-        
-        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-        FBProcess *fbProcess = [manager processForPID:self.pid];
-        if(fbProcess)
-        {
-            [manager _removeProcess:fbProcess];
-        }
     });
     
     [[PEProcessManager shared] unregisterProcessWithProcessIdentifier:self.pid];
@@ -315,6 +310,7 @@
 
 - (id)forwardingTargetForSelector:(SEL)sel
 {
+    /* redirecting for pid */
     if([self.process respondsToSelector:sel])
     {
         return self.process;
