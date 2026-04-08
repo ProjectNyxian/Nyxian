@@ -20,6 +20,7 @@
 @property (nonatomic, strong, readwrite) NSArray *preferredLanguages;
 + (instancetype)extensionWithIdentifier:(NSString *)identifier error:(NSError **)error;
 - (void)beginExtensionRequestWithInputItems:(NSArray *)items completion:(void(^)(NSUUID *))callback;
+- (NSUUID*)beginExtensionRequestWithInputItems:(NSArray*)arg1 error:(NSError**)arg2;
 - (int)pidForRequestIdentifier:(NSUUID *)identifier;
 - (void)_kill:(int)arg1;
 - (void)setRequestCancellationBlock:(void(^)(NSUUID *uuid, NSError *error))callback;

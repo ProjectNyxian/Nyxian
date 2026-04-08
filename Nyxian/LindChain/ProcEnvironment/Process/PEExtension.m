@@ -100,36 +100,21 @@ bool PESpawnNSExtension(NSDictionary *items,
     NSExtensionItem *item = [NSExtensionItem new];
     item.userInfo = mutableItems;
     
-    /* invoke execution */
-    __block NSUUID *extractedIdentifier = nil;
-    __block BOOL timedOut = NO;
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    [extractedExtension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *extensionIdentifier) {
-        if(!timedOut)
-        {
-            extractedIdentifier = extensionIdentifier;
-        }
-        else
-        {
-            /* timed out, killing, cuz got no purpose */
-            [extractedExtension _kill:SIGKILL];
-        }
-        dispatch_semaphore_signal(sema);
-    }];
-    long result = dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)));
-    
-    if(result != 0)
-    {
-        timedOut = YES;
-        return false;
-    }
+    /*
+     * invoke execution (if apple wrote this then
+     * it wont hang most likely, apple please handle
+     * the case where extension invoke takes too long).
+     * isint that the moment in movies where exactly
+     * something unexpected like that is the case.. ugh
+     */
+    NSError *error;
+    *identifier = [extractedExtension beginExtensionRequestWithInputItems:@[item] error:&error];
     
     /* checking if execution it self suceeded */
-    if(extractedIdentifier == nil)
+    if(error != nil || *identifier == nil)
     {
         return false;
     }
-    *identifier = extractedIdentifier;
     
     *pid = [extractedExtension pidForRequestIdentifier:*identifier];
     
