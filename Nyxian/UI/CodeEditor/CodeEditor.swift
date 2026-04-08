@@ -517,18 +517,22 @@ class CodeEditorViewController: UIViewController {
         guard let userInfo = notification.userInfo,
               let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+        
+        let keyboardInView = view.convert(keyboardFrame, from: nil)
+        let overlap = max(0, view.bounds.maxY - keyboardInView.minY)
 
         let bottomInset: CGFloat
 
-        if #available(iOS 26.0, *), let floatingToolbar = self.floatingToolbar {
-            bottomInset = (keyboardFrame.height - view.safeAreaInsets.bottom) + (floatingToolbar.frame.height + 10)
+        if #available(iOS 26.0, *),
+           let floatingToolbar = self.floatingToolbar {
+            bottomInset = overlap + floatingToolbar.frame.height + 10
             floatingToolbar.isHidden = false
             floatingToolbarBottomConstraint?.constant = -(keyboardFrame.height + 8)
             UIView.animate(withDuration: duration) { self.view.layoutIfNeeded() }
         } else {
-            bottomInset = keyboardFrame.height
+            bottomInset = overlap
         }
-
+        
         textView.contentInset.bottom = bottomInset
         textView.verticalScrollIndicatorInsets.bottom = bottomInset
     }
