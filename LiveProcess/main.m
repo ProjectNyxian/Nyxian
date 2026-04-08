@@ -145,6 +145,8 @@ int LiveProcessMain(int argc, char *argv[])
     FDMapObject *mapObject = appInfo[@"PEMapObject"];
     PEMachPort *syscallPort = appInfo[@"PESyscallPort"];
     NSString *workingDirectory = appInfo[@"PEWorkingDirectory"];
+    uid_t serviceUserIdentifier = [appInfo[@"PEUserIdentifier"] unsignedIntValue];
+    gid_t serviceGroupIdentifier = [appInfo[@"PEGroupIdentifier"] unsignedIntValue];
     
     /* destroy the payload once in for all */
     appInfo = nil;
@@ -199,8 +201,8 @@ int LiveProcessMain(int argc, char *argv[])
          * they are usually platformized, but they shall also
          * gain higher permitives.
          */
-        if(environment_syscall(SYS_setuid, [appInfo[@"PEUserIdentifier"] unsignedIntValue]) != 0 ||
-           environment_syscall(SYS_setgid, [appInfo[@"PEGroupIdentifier"] unsignedIntValue]) != 0)
+        if(environment_syscall(SYS_setgid, serviceGroupIdentifier) != 0 ||
+           environment_syscall(SYS_setuid, serviceUserIdentifier) != 0)
         {
             return 1;
         }

@@ -93,7 +93,7 @@
     FBProcess *process = [manager registerProcessForAuditToken:self.processHandle.auditToken];
     [process addObserver:self];
     
-    self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", NSUUID.UUID.UUIDString];
+    self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", identifier];
     
     FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
     definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
