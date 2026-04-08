@@ -56,7 +56,7 @@ func closestIOSVersion(to input: String) -> String? {
     })
 }
 
-struct NXOSVersion {
+struct NXOSVersion: Comparable {
     private let closestNumeric: Double
     
     let rawVersionString: String
@@ -94,24 +94,12 @@ struct NXOSVersion {
         }
     }
     
-    func isEqualToVersion(version: NXOSVersion) -> Bool {
-        return self.closestNumeric == version.closestNumeric
+    static func == (lhs: NXOSVersion, rhs: NXOSVersion) -> Bool {
+        lhs.closestNumeric == rhs.closestNumeric
     }
     
-    func isNewerThanVersion(version: NXOSVersion) -> Bool {
-        return self.closestNumeric > version.closestNumeric
-    }
-    
-    func isOlderThanVersion(version: NXOSVersion) -> Bool {
-        return self.closestNumeric < version.closestNumeric
-    }
-    
-    func isNewerOrEqualToVersion(version: NXOSVersion) -> Bool {
-        return self.closestNumeric >= version.closestNumeric
-    }
-    
-    func isOlderOrEqualToVersion(version: NXOSVersion) -> Bool {
-        return self.closestNumeric <= version.closestNumeric
+    static func < (lhs: NXOSVersion, rhs: NXOSVersion) -> Bool {
+        lhs.closestNumeric < rhs.closestNumeric
     }
 }
 
