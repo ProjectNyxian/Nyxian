@@ -610,11 +610,9 @@ class CodeEditorViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(updateUndoRedoButtons), name: .NSUndoManagerDidRedoChange, object: textView.undoManager)
         NotificationCenter.default.addObserver(self, selector: #selector(updateUndoRedoButtons), name: .NSUndoManagerDidCloseUndoGroup, object: textView.undoManager)
         
-        if #unavailable(iOS 26.0) {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidConnect), name: .GCKeyboardDidConnect, object: nil)
-                NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidDisconnect), name: .GCKeyboardDidDisconnect, object: nil)
-            }
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidConnect), name: .GCKeyboardDidConnect, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidDisconnect), name: .GCKeyboardDidDisconnect, object: nil)
         }
     }
     
@@ -624,13 +622,19 @@ class CodeEditorViewController: UIViewController {
     }
     
     @objc private func hardwareKeyboardDidConnect(_ notification: Notification) {
-        textView.inputAccessoryView = nil
-        textView.reloadInputViews()
+        textView.resignFirstResponder()
+        if #unavailable(iOS 26.0) {
+            textView.inputAccessoryView = nil
+            textView.reloadInputViews()
+        }
     }
         
     @objc private func hardwareKeyboardDidDisconnect(_ notification: Notification) {
-        setupToolbar(textView: textView)
-        textView.reloadInputViews()
+        textView.resignFirstResponder()
+        if #unavailable(iOS 26.0) {
+            setupToolbar(textView: textView)
+            textView.reloadInputViews()
+        }
     }
     
     override var keyCommands: [UIKeyCommand]? {
