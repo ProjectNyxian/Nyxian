@@ -44,11 +44,6 @@ DEFINE_HOOK(getegid, gid_t, (void))
     return (gid_t)environment_syscall(SYS_getegid);
 }
 
-DEFINE_HOOK(getpid, pid_t, (void))
-{
-    return (pid_t)environment_syscall(SYS_getpid);
-}
-
 DEFINE_HOOK(getppid, pid_t, (void))
 {
     return (pid_t)environment_syscall(SYS_getppid);
@@ -119,7 +114,6 @@ void environment_cred_init(void)
     DO_HOOK_GLOBAL(seteuid);
     DO_HOOK_GLOBAL(setegid);
     DO_HOOK_GLOBAL(setregid);
-    DO_HOOK_GLOBAL(getpid);
     DO_HOOK_GLOBAL(getsid);
     DO_HOOK_GLOBAL(setsid);
 }
