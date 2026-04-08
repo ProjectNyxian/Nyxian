@@ -48,14 +48,6 @@ fileprivate func numericValue(_ version: String) -> Double {
     return major * 1_000_000 + minor * 1_000 + patch
 }
 
-func closestIOSVersion(to input: String) -> String? {
-    let target = numericValue(input)
-
-    return iOSVersions.min(by: {
-        abs(numericValue($0) - target) < abs(numericValue($1) - target)
-    })
-}
-
 struct NXOSVersion: Comparable, CustomStringConvertible {
     let versionString: String
     let versionNumeric: Double
@@ -115,7 +107,8 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
     private let pickerTitle: String
 
     init(title: String, selectedVersion: String) {
-        let selectedVersion = closestIOSVersion(to: selectedVersion) ?? selectedVersion
+        let osVersion: NXOSVersion = NXOSVersion(versionString: selectedVersion) ?? NXOSVersion.maximumBuildVersion
+        let selectedVersion = osVersion.pickerVersionString
         self.pickerTitle = title
         self.selectedVersion = selectedVersion
         super.init(nibName: nil, bundle: nil)
