@@ -156,7 +156,6 @@ kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo,
 {
     assert(kvo != NULL);
     
-    /* sanity check */
     if(!kvo_retain(kvo))
     {
         return NULL;

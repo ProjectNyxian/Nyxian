@@ -84,7 +84,10 @@ void kvobject_release(kvobject_strong_t *kvo)
                 pthread_rwlock_destroy(&(kvo->event_rwlock));
                 break;
             case kvObjBaseTypeObjectSnapshot:
-                kvo_release(kvo->orig);
+                if(kvo->orig != NULL)
+                {
+                    kvo_release(kvo->orig);
+                }
                 break;
             case kvObjBaseTypeObjectRCU:
                 kvo_invalidate(kvo);
