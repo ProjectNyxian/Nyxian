@@ -24,6 +24,54 @@
 #import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
+#import <objc/runtime.h>
+
+static const char kNSExtensionKey;
+static const char kIdentifierKey;
+
+@implementation FBProcess (ProcEnvironment)
+
+- (NSString *)nsExtension
+{
+    return objc_getAssociatedObject(self, &kNSExtensionKey);
+}
+
+- (void)setNsExtension:(NSString *)nsExtension
+{
+    objc_setAssociatedObject(self, &kNSExtensionKey, nsExtension, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSString *)identifier
+{
+    return objc_getAssociatedObject(self, &kIdentifierKey);
+}
+
+- (void)setIdentifier:(NSString *)identifier
+{
+    objc_setAssociatedObject(self, &kIdentifierKey, identifier, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+@end
+
+@interface PEProcessObserver : NSObject<FBProcessObserver>
+
++ (instancetype)processObserver;
+
+@end
+
+@implementation PEProcessObserver
+
+
+
++ (instancetype)processObserver
+{
+    PEProcessObserver *observer = PEProcessObserver.alloc.init;
+    return observer;
+}
+
+
+
+@end
 
 NSExtension *PEGetNSExtension(void)
 {
@@ -49,7 +97,7 @@ NSExtension *PEGetNSExtension(void)
     return extension;
 }
 
-void PESpawnNSExtensionTimeout(void)
+void PESpawnTimeout(void)
 {
     static mach_timebase_info_data_t timebase;
     static uint64_t lastSpawnTick = 0;
@@ -79,18 +127,14 @@ void PESpawnNSExtensionTimeout(void)
     lastSpawnTick = mach_absolute_time();
 }
 
-bool PESpawnNSExtension(NSDictionary *items,
-                        pid_t *pid,
-                        NSUUID **identifier,
-                        NSExtension **extension)
+FBProcess *PESpawnFBProcess(NSDictionary *items)
 {
-    assert(items != nil && pid != NULL && identifier != nil && extension != nil);
+    assert(items != nil);
     
     /* enforce timeout */
-    PESpawnNSExtensionTimeout();
+    PESpawnTimeout();
     
-    __block NSExtension *extractedExtension = PEGetNSExtension();
-    *extension = extractedExtension;
+    NSExtension *extension = PEGetNSExtension();
     
     /* insert required items */
     NSMutableDictionary *mutableItems = [items mutableCopy];
@@ -108,24 +152,46 @@ bool PESpawnNSExtension(NSDictionary *items,
      * something unexpected like that is the case.. ugh
      */
     NSError *error;
-    *identifier = [extractedExtension beginExtensionRequestWithInputItems:@[item] error:&error];
+    NSUUID *identifier = [extension beginExtensionRequestWithInputItems:@[item] error:&error];
     
     /* checking if execution it self suceeded */
-    if(error != nil || *identifier == nil)
+    if(error != nil || identifier == nil)
     {
+        [extension _kill:SIGKILL];
         return false;
     }
     
-    *pid = [extractedExtension pidForRequestIdentifier:*identifier];
+    pid_t pid = [extension pidForRequestIdentifier:identifier];
     
     /*
      * checking if process is still valid
      * we need its BSD process identifier.
      */
-    if(*pid < 0)
+    if(pid < 0)
     {
+        [extension _kill:SIGKILL];
         return false;
     }
     
-    return true;
+    /* next step is creation of FBProcess */
+    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(pid)];
+    RBSProcessHandle *processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:&error];
+    if(processHandle == nil || error != nil)
+    {
+        [extension _kill:SIGKILL];
+        return nil;
+    }
+    
+    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+    FBProcess *process = [manager registerProcessForAuditToken:processHandle.auditToken];
+    if(process == nil)
+    {
+        [extension _kill:SIGKILL];
+        return nil;
+    }
+    
+    process.nsExtension = extension;
+    process.identifier = identifier;
+    
+    return process;
 }

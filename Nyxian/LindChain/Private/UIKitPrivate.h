@@ -405,6 +405,7 @@
 
 @interface FBScene : NSObject
 
+@property (nonatomic, readonly, copy) NSString *identifier;
 @property (nonatomic) id<FBSceneDelegate> delegate;
 @property (getter=isValid, nonatomic, readonly) bool valid;
 

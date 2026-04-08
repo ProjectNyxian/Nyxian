@@ -38,11 +38,12 @@
 
 @implementation PEProcess
 
+@dynamic pid;
+
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session
 {
     self = [super init];
     
-    self.pid = -1;
     self.session = session;
     
     self.executablePath = items[@"PEExecutablePath"];
@@ -60,14 +61,19 @@
     __weak typeof(self) weakSelf = self;
     
     /* spawning process */
-    NSUUID *identifier;
-    NSExtension *extension;
-    if(!PESpawnNSExtension(items, &(self->_pid), &identifier, &extension))
+    self.process = PESpawnFBProcess(items);
+    if(self.process == nil)
     {
         return nil;
     }
-    self.identifier = identifier;
-    self.extension = extension;
+    
+    [self.process addObserver:self];
+    if(!self.process.running)
+    {
+        FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
+        [manager _removeProcess:self.process];
+        return nil;
+    }
     
     ksurface_proc_t *child = proc_fork(proc, self.pid, [self.executablePath UTF8String]);
     if(child == NULL)
@@ -80,33 +86,21 @@
         self.proc = child;
     }
     
-    RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(self.pid)];
-    
-    /* TODO: handle rbs process handler creation failure */
-    NSError *error;
-    self.processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:&error];
-    
-    // Setting process handle directly from process monitor
-    FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-    // At this point, the process is spawned and we're ready to create a scene to render in our app
-    /* FIXME: cleanup if return is nil */
-    FBProcess *process = [manager registerProcessForAuditToken:self.processHandle.auditToken];
-    [process addObserver:self];
-    
-    self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", identifier];
+    NSString *sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", self.process.identifier];
     
     FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
-    definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];
+    definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:sceneID];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         __strong typeof(weakSelf) innerSelf = weakSelf;
         if(innerSelf == nil) return;
         
         @try {
-            if (!innerSelf.processHandle || !innerSelf.processHandle.identity) {
+            if(!innerSelf.process.rbsHandle || !innerSelf.process.identity)
+            {
                 @throw [NSException exceptionWithName:@"InvalidProcessIdentity" reason:@"Process handle or identity is nil" userInfo:nil];
             }
-            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.processHandle.identity];
+            definition.clientIdentity = [PrivClass(FBSSceneClientIdentity) identityForProcessIdentity:innerSelf.process.identity];
         } @catch (NSException *exception) {
             klog_log("LDEProcess", "failed to create client identity for pid %d: %s", innerSelf.pid, [exception.reason UTF8String]);
             [innerSelf terminate];
@@ -180,7 +174,7 @@
         _isSuspended = NO;
     }
     
-    [self.extension _kill:signal];
+    [self.process.nsExtension _kill:signal];
     
     if(signal == SIGSTOP)
     {
@@ -317,6 +311,15 @@
 {
     [arg2 removeObserver:self];
     [arg1 removeObserver:self];
+}
+
+- (id)forwardingTargetForSelector:(SEL)sel
+{
+    if([self.process respondsToSelector:sel])
+    {
+        return self.process;
+    }
+    return [super forwardingTargetForSelector:sel];
 }
 
 - (void)dealloc

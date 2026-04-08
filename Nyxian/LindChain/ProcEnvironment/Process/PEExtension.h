@@ -32,8 +32,15 @@
  */
 #define SPAWN_TIMEOUT 30000000ull
 
+@interface FBProcess (ProcEnvironment)
+
+@property (nonatomic, strong) NSExtension *nsExtension;
+@property (nonatomic, strong) NSUUID *identifier;
+
+@end
+
 NSExtension *PEGetNSExtension(void);
-void PESpawnNSExtensionTimeout(void);
-bool PESpawnNSExtension(NSDictionary *items, pid_t *pid, NSUUID **identifier, NSExtension **extension);
+void PESpawnTimeout(void);
+FBProcess *PESpawnFBProcess(NSDictionary *items);
 
 #endif /* PEEXTENSION_H */

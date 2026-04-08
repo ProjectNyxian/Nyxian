@@ -98,7 +98,7 @@ void UIKitFixesInit(void)
     }
     
     @try {
-        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.sceneID];
+        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:self.process.scene.identifier];
         [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
             context.appearanceStyle = 2;
         }];
@@ -113,7 +113,7 @@ void UIKitFixesInit(void)
     [self.view addSubview:self.presenter.presentationView];
     
     /* registering to window */
-    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.sceneID];
+    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.process.scene.identifier];
     
     return YES;
 }
@@ -126,7 +126,7 @@ void UIKitFixesInit(void)
     [_presenter invalidate];
     
     /* unregistering scene lol */
-    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
+    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.scene.identifier];
     
     /* terminating process so it stops eating our cores x3 */
     [_process terminate];
@@ -266,7 +266,7 @@ void UIKitFixesInit(void)
 {
     os_unfair_lock_lock(&_lock);
     
-    if(![self.process.processHandle isValid] || self.process.isSuspended || !diff)
+    if(!self.process.process.running || self.process.isSuspended || !diff)
     {
         os_unfair_lock_unlock(&_lock);
         return;
@@ -297,7 +297,7 @@ void UIKitFixesInit(void)
  
     os_unfair_lock_lock(&_lock);
     
-    if(![self.process.processHandle isValid] || self.process.isSuspended)
+    if(!self.process.process.running || self.process.isSuspended)
     {
         os_unfair_lock_unlock(&_lock);
         return;
@@ -334,12 +334,12 @@ void UIKitFixesInit(void)
     _UIScenePresenter *oldPresenter = self.presenter;
     
     /* unregister old window */
-    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.sceneID];
+    [self.windowScene _unregisterSettingsDiffActionArrayForKey:self.process.scene.identifier];
     
     self.process = process;
     
     @try {
-        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:process.sceneID];
+        self.presenter = [self.process.scene.uiPresentationManager createPresenterWithIdentifier:process.scene.identifier];
         [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
             context.appearanceStyle = 2;
         }];
@@ -366,7 +366,7 @@ void UIKitFixesInit(void)
     }
     
     /* register new window */
-    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:process.sceneID];
+    [self.windowScene _registerSettingsDiffActionArray:@[self] forKey:process.scene.identifier];
     
     os_unfair_lock_unlock(&_lock);
     

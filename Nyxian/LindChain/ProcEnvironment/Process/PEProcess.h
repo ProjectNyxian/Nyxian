@@ -34,21 +34,17 @@
 @interface PEProcess : NSObject <FBProcessObserver,FBProcessManagerObserver,FBSceneDelegate>
 
 #if !JAILBREAK_ENV
-@property (nonatomic,strong) NSExtension *extension;
 @property (nonatomic) ksurface_proc_t *proc;
 #endif /* !JAILBREAK_ENV */
 
 @property (nonatomic,weak) NXWindowSessionApplication *session;
-@property (nonatomic,strong) RBSProcessHandle *processHandle;
+@property (nonatomic,strong) FBProcess *process;
 @property (nonatomic,strong) FBScene *scene;
-@property (nonatomic,strong) NSString *sceneID;
 @property (nonatomic) dispatch_once_t notifyWindowManagerOnce;
 @property (nonatomic,strong) UIImage *snapshot;
 
 // Process properties
-@property (nonatomic,strong) NSUUID *identifier;
 @property (nonatomic,strong) NSString *bundleIdentifier;
-
 @property (nonatomic,strong) NSString *displayName;
 @property (nonatomic,strong) NSString *executablePath;
 

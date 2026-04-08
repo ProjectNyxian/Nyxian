@@ -1354,6 +1354,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
+					"-Wl,-U,_OBJC_CLASS_$_FBProcess",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1472,6 +1473,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
+					"-Wl,-U,_OBJC_CLASS_$_FBProcess",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
