@@ -21,7 +21,7 @@
 
 import UIKit
 
-let iOSVersions: [String] = [
+let NXOSVersionSupportedBuildVersions: [String] = [
     // Legacy (generally not recommended to use these)
     "9.0", "9.1", "9.2", "9.3",
     "10.0", "10.1", "10.2", "10.3",
@@ -55,8 +55,8 @@ struct NXOSVersion: Comparable, CustomStringConvertible {
     private(set) var pickerVersionString: String
     
     static let hostVersion: NXOSVersion = NXOSVersion()!
-    static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.first)!
-    static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.last)!
+    static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.first)!
+    static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
     
     init?(versionString inputString: String?) {
         guard let inputString = inputString,
@@ -66,7 +66,7 @@ struct NXOSVersion: Comparable, CustomStringConvertible {
         versionString = inputString
         versionNumeric = numericValue(versionString)
         pickerVersionString = versionString
-        pickerVersionString = iOSVersions.min(by: {
+        pickerVersionString = NXOSVersionSupportedBuildVersions.min(by: {
             abs(numericValue($0) - self.versionNumeric) < abs(numericValue($1) - self.versionNumeric)
         }) ?? pickerVersionString
     }
@@ -126,7 +126,7 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
         pickerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(pickerView)
         
-        let idx = iOSVersions.firstIndex(of: selectedVersion) ?? iOSVersions.count - 1
+        let idx = NXOSVersionSupportedBuildVersions.firstIndex(of: selectedVersion) ?? NXOSVersionSupportedBuildVersions.count - 1
         pickerView.selectRow(idx, inComponent: 0, animated: false)
         
         NSLayoutConstraint.activate([
@@ -139,15 +139,15 @@ class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelega
     func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
 
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        iOSVersions.count
+        NXOSVersionSupportedBuildVersions.count
     }
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        "iOS \(iOSVersions[row])"
+        "iOS \(NXOSVersionSupportedBuildVersions[row])"
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        selectedVersion = iOSVersions[row]
+        selectedVersion = NXOSVersionSupportedBuildVersions[row]
         onVersionSelected?(selectedVersion)
     }
 }

@@ -232,8 +232,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
         self.pendingBundleShortVersion = project.projectConfig.dictionary["LDEBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
         self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
         self.pendingExecutable = project.projectConfig.dictionary["LDEExecutable"] as? String ?? ""
-        self.pendingMinVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? iOSVersions.first ?? "13.0"
-        self.pendingMaxVersion = project.projectConfig.dictionary["LDEVersion"] as? String ?? iOSVersions.last  ?? "18.4"
+        self.pendingMinVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
+        self.pendingMaxVersion = project.projectConfig.dictionary["LDEVersion"] as? String ?? NXOSVersionSupportedBuildVersions.last  ?? "26.4"
         self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         super.init(style: .insetGrouped)
