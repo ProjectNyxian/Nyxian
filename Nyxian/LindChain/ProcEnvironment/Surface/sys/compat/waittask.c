@@ -37,7 +37,8 @@ bool waittask_proc_event_handler(kvobject_event_type_t type,
     {
         case kvObjEventDeinit:
         case kvObjEventCustom1: /* task port available */
-            send_reply(&(payload->buffer->header), 0, NULL, 0, 0, true);
+            errno = 0;
+            send_reply(&(payload->buffer->header), 0, NULL, 0, true);
             return true;
         case kvObjEventUnregister:
             mach_port_mod_refs(mach_task_self(), payload->task, MACH_PORT_RIGHT_SEND, -1);

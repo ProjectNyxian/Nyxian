@@ -41,10 +41,6 @@
 {
     self = [super init];
     self.processes = [[NSMutableDictionary alloc] init];
-    
-    mach_timebase_info_data_t timebase;
-    mach_timebase_info(&timebase);
-    
     return self;
 }
 
@@ -63,8 +59,6 @@
 {    
     /* creating a process */
     PEProcess *process = [[PEProcess alloc] initWithItems:items withKernelSurfaceProcess:proc withSession:nil];
-    
-    /* null pointer check */
     if(process == nil)
     {
         return -1;
@@ -72,8 +66,7 @@
     
     /* getting process identifier */
     pid_t pid = process.pid;
-    
-    if(pid == -1)
+    if(pid < 0)
     {
         return -1;
     }
@@ -172,7 +165,7 @@
     
     /* getting pid of process */
     pid_t pid = process.pid;
-    if(pid == -1)
+    if(pid < 0)
     {
         return -1;
     }

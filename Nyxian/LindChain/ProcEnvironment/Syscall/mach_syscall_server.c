@@ -80,11 +80,8 @@ static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg
     
     /* creating process copy with process reference consumption */
     ksurface_proc_snapshot_t *proc_snapshot = kvo_snapshot(proc, kvObjSnapConsumeReference);
-    
-    /* null pointer check */
     if(proc_snapshot == NULL)
     {
-        kvo_release(proc);
         return NULL;
     }
     
@@ -98,7 +95,6 @@ void send_reply(mach_msg_header_t *request,
                 int64_t result,
                 mach_port_t *out_ports,
                 uint32_t out_ports_cnt,
-                errno_t err,
                 bool release_req)
 {
     /* stack allocating  */
@@ -114,7 +110,7 @@ void send_reply(mach_msg_header_t *request,
     reply.header.msgh_size = sizeof(reply);
     reply.header.msgh_id = request->msgh_id + 100;
     reply.result = result;
-    reply.err = err;
+    reply.err = errno;
     
     /*
      * this is the ports descriptor used to hand
@@ -297,7 +293,7 @@ static void* syscall_worker_thread(void *ctx)
          */
         if(buffer != NULL)
         {
-            send_reply(&(req->header), result, out_ports, out_ports_cnt, errno, false);
+            send_reply(&(req->header), result, out_ports, out_ports_cnt, false);
         }
     }
     

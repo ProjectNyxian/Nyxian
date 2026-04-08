@@ -136,6 +136,6 @@ void syscall_server_stop(syscall_server_t *server);
 mach_port_t syscall_server_get_port(syscall_server_t *server);
 void syscall_server_register(syscall_server_t *server, uint32_t syscall_num, syscall_handler_t handler);
 
-void send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, errno_t err, bool release_req);
+void send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, bool release_req);
 
 #endif /* MACH_SYSCALL_SERVER_H */

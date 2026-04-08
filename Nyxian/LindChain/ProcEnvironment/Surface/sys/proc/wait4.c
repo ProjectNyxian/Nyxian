@@ -106,7 +106,8 @@ bool wait4_proc_event_handler(kvobject_event_type_t type,
 out_trigger_unregister:
     mach_syscall_copy_out(payload->task, sizeof(int), &(child->nyx.p_status), payload->status_ptr);
     child->nyx.p_status = 0;
-    send_reply(&(payload->buffer->header), proc_getpid(child), NULL, 0, 0, true);
+    errno = 0;
+    send_reply(&(payload->buffer->header), proc_getpid(child), NULL, 0, true);
     kvo_unlock(child);
     pthread_mutex_unlock(&(parent->children.mutex));
     return true;
