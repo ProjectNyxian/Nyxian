@@ -145,16 +145,16 @@ class Builder {
         
         // Nyxian requirement checks
         if osVersionNeeded < NXOSVersion.minimumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion.rawVersionString) at a minimum."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion) at a minimum."])
         }
         
         if osVersionNeeded > NXOSVersion.maximumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion.rawVersionString) at a maximum."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion) at a maximum."])
         }
         
         // Project requirement check
         if osVersionNeeded > NXOSVersion.hostVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded.rawVersionString) is needed to build the app, but host version \(NXOSVersion.hostVersion.rawVersionString) is present."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is needed to build the app, but host version \(NXOSVersion.hostVersion) is present."])
         }
     }
     

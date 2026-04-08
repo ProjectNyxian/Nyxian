@@ -56,33 +56,31 @@ func closestIOSVersion(to input: String) -> String? {
     })
 }
 
-struct NXOSVersion: Comparable {
-    private let closestNumeric: Double
+struct NXOSVersion: Comparable, CustomStringConvertible {
+    let versionString: String
+    let versionNumeric: Double
     
-    let rawVersionString: String
+    private(set) var pickerVersionString: String
     
-    var versionString: String? {
-        return iOSVersions.min(by: {
-            abs(numericValue($0) - self.closestNumeric) < abs(numericValue($1) - self.closestNumeric)
-        })
-    }
-    
-    static let hostVersion: NXOSVersion = NXOSVersion()
+    static let hostVersion: NXOSVersion = NXOSVersion()!
     static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.first)!
     static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: iOSVersions.last)!
     
-    init?(versionString: String?) {
-        guard let versionString = versionString,
-              NXOSVersion.isValidVersionString(versionString) else {
+    init?(versionString inputString: String?) {
+        guard let inputString = inputString,
+              NXOSVersion.isValidVersionString(inputString) else {
             return nil
         }
-        rawVersionString = versionString
-        closestNumeric = numericValue(rawVersionString)
+        versionString = inputString
+        versionNumeric = numericValue(versionString)
+        pickerVersionString = versionString
+        pickerVersionString = iOSVersions.min(by: {
+            abs(numericValue($0) - self.versionNumeric) < abs(numericValue($1) - self.versionNumeric)
+        }) ?? pickerVersionString
     }
     
-    init() {
-        rawVersionString = UIDevice.current.systemVersion
-        closestNumeric = numericValue(rawVersionString)
+    init?() {
+        self.init(versionString: UIDevice.current.systemVersion)
     }
     
     static private func isValidVersionString(_ version: String) -> Bool {
@@ -95,11 +93,15 @@ struct NXOSVersion: Comparable {
     }
     
     static func == (lhs: NXOSVersion, rhs: NXOSVersion) -> Bool {
-        lhs.closestNumeric == rhs.closestNumeric
+        lhs.versionNumeric == rhs.versionNumeric
     }
     
     static func < (lhs: NXOSVersion, rhs: NXOSVersion) -> Bool {
-        lhs.closestNumeric < rhs.closestNumeric
+        lhs.versionNumeric < rhs.versionNumeric
+    }
+    
+    var description: String {
+        return versionString
     }
 }
 
