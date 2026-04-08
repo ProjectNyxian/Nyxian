@@ -62,6 +62,7 @@ kvobject_strong_t *kvobject_alloc(kvobject_main_event_handler_t handler)
     if(pthread_rwlock_init(&(kvo->rwlock), NULL) != 0)
     {
         free(kvo);
+        return NULL;
     }
     
     if(pthread_rwlock_init(&(kvo->event_rwlock), NULL) != 0)
@@ -126,6 +127,7 @@ kvobject_strong_t *kvobject_copy(kvobject_t *kvo)
     if(pthread_rwlock_init(&(kvo_dup->rwlock), NULL) != 0)
     {
         free(kvo_dup);
+        goto out_unlock;
     }
     
     if(pthread_rwlock_init(&(kvo_dup->event_rwlock), NULL) != 0)
