@@ -28,19 +28,17 @@ import Foundation
 #else
     let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
-    let newestBootstrapVersion: Int = 15
+    let newestBootstrapVersion: Int = 16
     
-    // Paths that we for sure do not need
-    let bootstrapDeletionIfFoundPaths: [String] = [
-        "/Config",
-        "/Certificates"
-    ]
+    @objc var sdkPath: String {
+        self.bootstrapPath("/SDK/iPhoneOS26.4.sdk")
+    }
     
-    var bootstrapPlistPath: String {
+    @objc var bootstrapPlistPath: String {
         bootstrapPath("/bootstrap.plist")
     }
     
-    var bootstrapVersion: Int {
+    @objc var bootstrapVersion: Int {
         get {
             guard FileManager.default.fileExists(atPath: bootstrapPlistPath),
                   let dict = NSDictionary(contentsOfFile: bootstrapPlistPath),
@@ -57,7 +55,7 @@ import Foundation
         }
     }
     
-    var isBootstrapInstalled: Bool {
+    @objc var isBootstrapInstalled: Bool {
         return FileManager.default.fileExists(atPath: bootstrapPlistPath) && bootstrapVersion > 0
     }
     
@@ -65,6 +63,12 @@ import Foundation
         var path: String = path
         if path.hasPrefix("/") { path.removeFirst() }
         return URL(fileURLWithPath: path, relativeTo: URL(fileURLWithPath: rootPath)).path
+    }
+    
+    @objc func sdkPath(_ path: String) -> String {
+        var path: String = path
+        if path.hasPrefix("/") { path.removeFirst() }
+        return URL(fileURLWithPath: path, relativeTo: URL(fileURLWithPath: sdkPath)).path
     }
     
     @objc func relativeToBootstrapSafe(_ absolutePath: String) -> String? {
@@ -141,7 +145,6 @@ import Foundation
                         print("[*] Creating folder structures")
                         
                         // We need include to put clangs includations into
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Include"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/SDK"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
                         
@@ -214,7 +217,7 @@ import Foundation
                     }
                     
                     if self.bootstrapVersion < 15 {
-                        // Permission fixup for the DOS zip vulnerability
+                        // permission fixup for the DOS zip vulnerability
                         let url = URL(fileURLWithPath: NSTemporaryDirectory())
                         let fm = FileManager.default
                         guard let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: nil) else { return }
@@ -230,14 +233,16 @@ import Foundation
                         
                         self.bootstrapVersion = 15
                     }
-                }
-                
-                // Deletion check
-                print("[*] deleting deprecated parts of the bootstrap")
-                for deleteItem in self.bootstrapDeletionIfFoundPaths {
-                    let bootstrapDeleteItem = self.bootstrapPath(deleteItem)
-                    if FileManager.default.fileExists(atPath: bootstrapDeleteItem) {
-                        try FileManager.default.removeItem(atPath: bootstrapDeleteItem)
+                    
+                    if self.bootstrapVersion < 16 {
+                        for deleteItem in ["/Config", "/Certificates"] {
+                            let bootstrapDeleteItem = self.bootstrapPath(deleteItem)
+                            if FileManager.default.fileExists(atPath: bootstrapDeleteItem) {
+                                try? FileManager.default.removeItem(atPath: bootstrapDeleteItem)
+                            }
+                        }
+                        
+                        self.bootstrapVersion = 16
                     }
                 }
             } catch {
@@ -251,7 +256,7 @@ import Foundation
         }
     }
     
-    func waitTillDone() {
+    @objc func waitTillDone() {
         guard Bootstrap.shared.bootstrapVersion != Bootstrap.shared.newestBootstrapVersion else { return }
         
         XCButton.switchImage(withSystemName: "archivebox.fill", animated: true)
