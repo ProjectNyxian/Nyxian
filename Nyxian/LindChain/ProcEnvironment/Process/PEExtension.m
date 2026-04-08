@@ -53,26 +53,6 @@ static const char kIdentifierKey;
 
 @end
 
-@interface PEProcessObserver : NSObject<FBProcessObserver>
-
-+ (instancetype)processObserver;
-
-@end
-
-@implementation PEProcessObserver
-
-
-
-+ (instancetype)processObserver
-{
-    PEProcessObserver *observer = PEProcessObserver.alloc.init;
-    return observer;
-}
-
-
-
-@end
-
 NSExtension *PEGetNSExtension(void)
 {
     static NSBundle *liveProcessBundle = nil;
