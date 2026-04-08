@@ -170,7 +170,7 @@ int environment_posix_spawn(pid_t *process_identifier,
     if(!checkCodeSignature(resolved))
     {
         /* attempt signing */
-        int ret = (int)environment_syscall(SYS_signexec, resolved);
+        int ret = (int)environment_syscall(SYS_pectl, PECTL_CS_SIGN_PATH, resolved, MACH_PORT_NULL);
         
         if(ret != 0)
         {

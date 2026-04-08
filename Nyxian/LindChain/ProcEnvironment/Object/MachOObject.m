@@ -27,6 +27,13 @@
 
 @implementation MachOObject
 
++ (instancetype)objectForFDObject:(FDObject*)object
+{
+    MachOObject *mobject = [[MachOObject alloc] init];
+    mobject.fd = object.fd;
+    return mobject;
+}
+
 + (BOOL)isBinarySignedAtPath:(NSString *)path
 {
     return checkCodeSignature([path UTF8String]);
@@ -48,9 +55,9 @@
         return NO;
     }
     
+    /* run signer~~ UwU */
     BOOL success = [MachOObject signBinaryAtPath:binPath];
     
-    /* run signer~~ UwU */
     if(!success)
     {
         [[NSFileManager defaultManager] removeItemAtPath:binPath error:nil];

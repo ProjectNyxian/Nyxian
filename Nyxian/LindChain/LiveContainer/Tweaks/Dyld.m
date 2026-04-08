@@ -115,8 +115,10 @@ DEFINE_HOOK(dlopen, void *, (const char * __path,
     if(!checkCodeSignature(__path))
     {
         /* sign if invalid */
-        environment_syscall(SYS_signexec, __path);
-        refreshFile(__path);
+        if((int)environment_syscall(SYS_pectl, PECTL_CS_SIGN_PATH, __path, MACH_PORT_NULL) == 0)
+        {
+            refreshFile(__path);
+        }
     }
     
     /* continue with opening */

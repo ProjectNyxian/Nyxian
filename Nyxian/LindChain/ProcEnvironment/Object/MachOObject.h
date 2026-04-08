@@ -39,6 +39,7 @@
 
 @interface MachOObject : FDObject
 
++ (instancetype)objectForFDObject:(FDObject*)object;
 + (BOOL)isBinarySignedAtPath:(NSString*)path;
 + (BOOL)signBinaryAtPath:(NSString*)path;
 - (BOOL)signAndWriteBack;

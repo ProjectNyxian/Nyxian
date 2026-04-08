@@ -19,13 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/syscall.h>
 #import <LindChain/ServiceKit/Service.h>
 #include <dlfcn.h>
 #include <mach/mach.h>
-
-#define SYS_pectl       761
-
-#define PECTL_SET_ENDPOINT 0b00000000
 
 @interface NSXPCListenerEndpoint ()
 
@@ -97,7 +94,6 @@ int PEServiceMain(int argc,
        serviceProtocol != nil)
     {
         ServiceServer *serviceServer = [[ServiceServer alloc] initWithClass:serviceClass withServerProtocol:serviceProtocol withObserverProtocol:clientProtocol];
-        void (*environment_syscall)(uint32_t syscall_num, ...) = dlsym(RTLD_DEFAULT, "environment_syscall");
         
         NSXPCListenerEndpoint *endpoint = [serviceServer getEndpointForConnection];
         mach_port_t port = xpc_endpoint_copy_listener_port_4sim(endpoint._endpoint);
@@ -110,7 +106,7 @@ int PEServiceMain(int argc,
         
         if(port != MACH_PORT_NULL)
         {
-            environment_syscall(SYS_pectl, PECTL_SET_ENDPOINT, [serviceIdentifier UTF8String], port);
+            environment_syscall(SYS_pectl, PECTL_LS_SET_ENDPOINT, [serviceIdentifier UTF8String], port);
         }
         CFRunLoopRun();
     }

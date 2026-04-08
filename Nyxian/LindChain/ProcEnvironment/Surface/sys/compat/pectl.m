@@ -20,11 +20,13 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
+#import <LindChain/ProcEnvironment/Object/MachOObject.h>
 #import <LindChain/ProcEnvironment/Process/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/Process/PEBootstrapRegistry.h>
 #import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <Foundation/Foundation.h>
+#import <LindChain/Services/containerd/PEContainer.h>
 
 extern mach_port_t xpc_endpoint_copy_listener_port_4sim(NSObject<OS_xpc_object>*);
 extern NSObject<OS_xpc_object> *xpc_endpoint_create_mach_port_4sim(mach_port_t port);
@@ -35,7 +37,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
     
     switch(action)
     {
-        case PECTL_GET_ENDPOINT:
+        case PECTL_LS_GET_ENDPOINT:
         {
             if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_snapshot_), PEEntitlementLaunchServicesGetEndpoint))
             {
@@ -87,7 +89,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
             
             sys_return;
         }
-        case PECTL_SET_ENDPOINT:
+        case PECTL_LS_SET_ENDPOINT:
         {
             sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_SEND);
             
@@ -158,7 +160,7 @@ DEFINE_SYSCALL_HANDLER(pectl)
             
             sys_return;
         }
-        case PECTL_SET_BAMSET:
+        case PECTL_PE_SET_BAMSET:
         {
             /* getting boolean */
             bool active = args[0];
@@ -172,6 +174,93 @@ DEFINE_SYSCALL_HANDLER(pectl)
             else
             {
                 sys_return_failure(EACCES);
+            }
+            
+            sys_return;
+        }
+        case PECTL_CS_GET_PUBKEY:
+        {
+            userspace_pointer_t key_user_ptr = (userspace_pointer_t)args[0];
+            userspace_pointer_t key_len_ptr = (userspace_pointer_t)args[1];
+            
+            size_t key_len = 0;
+            if(!mach_syscall_copy_in(sys_task_, sizeof(size_t), &key_len, key_len_ptr))
+            {
+                sys_return_failure(EFAULT);
+            }
+            
+            if(key_len < ksurface->pub_key_len)
+            {
+                sys_return_failure(E2BIG);
+            }
+            
+            if(!mach_syscall_copy_out(sys_task_, ksurface->pub_key_len, ksurface->pub_key, key_user_ptr) ||
+               !mach_syscall_copy_out(sys_task_, sizeof(size_t), &key_len, key_len_ptr))
+            {
+                sys_return_failure(EFAULT);
+            }
+            
+            sys_return;
+        }
+        case PECTL_CS_GET_PRVKEY:
+        {
+            /* will be unimplemented for god knows how long */
+            sys_return_failure(EPERM);
+        }
+        case PECTL_CS_SIGN_PATH:
+        {
+            /*
+             * checking entitlements weither the process is entitled enough to
+             * sign unsigned binaries for opening or executing them, this is
+             * done by checking if it is entitled to spawn processes, this
+             * entitlement is meant to be a arbitary spawn entitlement against
+             * equevalents like PEEntitlementProcessSpawnSignedOnly which is
+             * used to only allow the spawn of binaries which are already signed.
+             * all this is done to ensure the user does consent do these things!
+             */
+            if(!entitlement_got_entitlement(proc_getentitlements(sys_proc_), PEEntitlementProcessSpawn))
+            {
+                sys_return_failure(EPERM);
+            }
+            
+            /* getting path */
+            userspace_pointer_t userspace_str = (userspace_pointer_t)args[1];
+            
+            char *path = mach_syscall_copy_str_in(sys_task_, userspace_str, MAXHOSTNAMELEN);
+            if(path == NULL)
+            {
+                sys_return_failure(ENOMEM);
+            }
+            
+            NSString *nsPath = [NSString stringWithCString:path encoding:NSUTF8StringEncoding];
+            free(path);
+            if(nsPath == nil)
+            {
+                sys_return_failure(ENOMEM);
+            }
+            
+            /* asking containerd for a object */
+            FDObject *object = [[PEContainer shared] fdObjectForItemAtPath:nsPath withFlags:O_RDWR withMode:0];
+            if(object == nil)
+            {
+                sys_return_failure(ENOENT);
+            }
+            
+            /*
+             * create mach object object out of the file descriptor
+             * on return the file descriptor is destroyed by default
+             * by ARC on the PEObject
+             */
+            MachOObject *machOObject = [MachOObject objectForFDObject:object];
+            if(machOObject == NULL)
+            {
+                sys_return_failure(ENOEXEC);
+            }
+            
+            /* signing that shit */
+            if(![machOObject signAndWriteBack])
+            {
+                sys_return_failure(ENOEXEC);
             }
             
             sys_return;

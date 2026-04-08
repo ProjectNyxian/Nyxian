@@ -54,7 +54,6 @@ typedef struct {
 
 env_sys_entry_t sys_env_entries[] = {
     SYS_ENTRY(SYS_gettask,     T_NUM,       T_NUM,  T_POUT, T_NUM, T_NUM,  T_NUM),
-    SYS_ENTRY(SYS_signexec,    T_FILEIN,    T_NUM,  T_NUM,  T_NUM, T_NUM,  T_NUM),
     SYS_ENTRY(SYS_handoffep,   T_RPIN,      T_NUM,  T_NUM,  T_NUM, T_NUM,  T_NUM),
     SYS_ENTRY(SYS_ioctl,       T_FIN,       T_NUM,  T_NUM,  T_NUM, T_NUM,  T_NUM),
     SYS_ENTRY(SYS_pectl,       T_NUM,       T_NUM,  T_PIN,  T_POUT, T_NUM, T_NUM)

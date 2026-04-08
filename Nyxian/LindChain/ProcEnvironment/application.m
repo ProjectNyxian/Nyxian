@@ -35,13 +35,13 @@
 
 - (BOOL)hook_setActive:(BOOL)active error:(NSError*)outError
 {
-    environment_syscall(SYS_pectl, PECTL_SET_BAMSET, active, MACH_PORT_NULL, NULL);
+    environment_syscall(SYS_pectl, PECTL_PE_SET_BAMSET, active, MACH_PORT_NULL, NULL);
     return [self hook_setActive:active error:outError];
 }
 
 - (BOOL)hook_setActive:(BOOL)active withOptions:(AVAudioSessionSetActiveOptions)options error:(NSError **)outError
 {
-    environment_syscall(SYS_pectl, PECTL_SET_BAMSET, active, MACH_PORT_NULL, NULL);
+    environment_syscall(SYS_pectl, PECTL_PE_SET_BAMSET, active, MACH_PORT_NULL, NULL);
     return [self hook_setActive:active withOptions:options error:outError];
 }
 

@@ -25,16 +25,16 @@
 #include <LindChain/ProcEnvironment/Surface/surface.h>
 
 /* launch services */
-#define PECTL_SET_ENDPOINT  0b00000000
-#define PECTL_GET_ENDPOINT  0b00000001
+#define PECTL_LS_SET_ENDPOINT   0b00000000  /* sets the endpoint of a launch service identifier (i.e. com.mycompany.daemon) */
+#define PECTL_LS_GET_ENDPOINT   0b00000001  /* gets the endpoint of a launch service identifier (i.e. com.cr4zy.containerd) */
 
 /* environment */
-#define PECTL_SET_BAMSET    0b00000010
-/*
- * more compat will move into process
- * environment ctl likely soon, like
- * SYS_enttoken and SYS_handoffep
- */
+#define PECTL_PE_SET_BAMSET     0b00000010  /* sets background audio mode (i.e Spotify playing music in background)         */
+
+/* code signing */
+#define PECTL_CS_GET_PUBKEY     0b00000011  /* getting the code signature public key                                        */
+#define PECTL_CS_GET_PRVKEY     0b00000100  /* noop                                                                         */
+#define PECTL_CS_SIGN_PATH      0b00000101  /* signs executable at a specific path                                          */
 
 DEFINE_SYSCALL_HANDLER(pectl);
 

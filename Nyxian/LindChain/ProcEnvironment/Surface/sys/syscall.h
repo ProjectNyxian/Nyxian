@@ -31,7 +31,6 @@
 #include <LindChain/ProcEnvironment/Surface/sys/cred/getuid.h>
 #include <LindChain/ProcEnvironment/Surface/sys/cred/getgid.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/gettask.h>
-#include <LindChain/ProcEnvironment/Surface/sys/compat/signexec.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/procpath.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #include <LindChain/ProcEnvironment/Surface/sys/cred/getsid.h>
@@ -42,7 +41,6 @@
 #include <LindChain/ProcEnvironment/Surface/sys/compat/setent.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/waittask.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
-#include <LindChain/ProcEnvironment/Surface/sys/compat/getpk.h>
 #include <sys/syscall.h>
 
 /* additional nyxian syscalls for now */
@@ -51,16 +49,14 @@
 #define SYS_gethostname 752         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_sethostname 753         /* MARK: deprecated.. use SYS_sysctl instead */
 #define SYS_gettask     754         /* gets task port */
-#define SYS_signexec    755         /* uses file descriptor passed by guest to sign executable */
-#define SYS_procpath    756         /* gets process path of a pid */
-#define SYS_procbsd     757         /* MARK: deprecated.. use SYS_sysctl instead */
-#define SYS_handoffep   758         /* handoff exception port to kvirt */
-#define SYS_setent      759         /* sets entitlements (sanitized ofc) */
-#define SYS_waittask    760         /* waits till task port of a task is available */
-#define SYS_pectl       761         /* utility for many proc environment operations */
-#define SYS_getpk       762         /* copy out the public signature key */
+#define SYS_procpath    755         /* gets process path of a pid */
+#define SYS_procbsd     756         /* MARK: deprecated.. use SYS_sysctl instead */
+#define SYS_handoffep   757         /* handoff exception port to kvirt */
+#define SYS_setent      758         /* sets entitlements (sanitized ofc) */
+#define SYS_waittask    759         /* waits till task port of a task is available */
+#define SYS_pectl       760         /* utility for many proc environment operations */
 
-#define SYS_N 27
+#define SYS_N 25
 
 typedef struct {
     const char *name;
