@@ -34,13 +34,13 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 
 @implementation PEProcessManager {
-    os_unfair_lock processes_array_lock;
+    NSMutableDictionary<NSNumber*,PEProcess*> *_processes;
 }
 
 - (instancetype)init
 {
     self = [super init];
-    self.processes = [[NSMutableDictionary alloc] init];
+    _processes = [[NSMutableDictionary alloc] init];
     return self;
 }
 
@@ -72,9 +72,10 @@
     }
     
     /* inserting process */
-    os_unfair_lock_lock(&processes_array_lock);
-    [self.processes setObject:process forKey:@(pid)];
-    os_unfair_lock_unlock(&processes_array_lock);
+    @synchronized(_processes)
+    {
+        [_processes setObject:process forKey:@(pid)];
+    }
     
     /* returning pid */
     return pid;
@@ -171,42 +172,45 @@
     }
     
     /* setting process */
-    os_unfair_lock_lock(&processes_array_lock);
-    [self.processes setObject:process forKey:@(pid)];
-    os_unfair_lock_unlock(&processes_array_lock);
+    @synchronized(_processes)
+    {
+        [_processes setObject:process forKey:@(pid)];
+    }
 
     return pid;
 }
 
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {
-    os_unfair_lock_lock(&processes_array_lock);
-    PEProcess *process = [self.processes objectForKey:@(pid)];
-    os_unfair_lock_unlock(&processes_array_lock);
+    PEProcess *process = nil;
+    @synchronized(_processes)
+    {
+        process = [_processes objectForKey:@(pid)];
+    }
     return process;
 }
 
 - (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier
 {
-    os_unfair_lock_lock(&processes_array_lock);
-    for(NSNumber *key in self.processes)
+    @synchronized(_processes)
     {
-        PEProcess *process = self.processes[key];
-        if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
+        for(PEProcess *process in _processes.allValues)
         {
-            os_unfair_lock_unlock(&processes_array_lock);
-            return process;
+            if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
+            {
+                return process;
+            }
         }
     }
-    os_unfair_lock_unlock(&processes_array_lock);
     return nil;
 }
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
-    os_unfair_lock_lock(&processes_array_lock);
-    [self.processes removeObjectForKey:@(pid)];
-    os_unfair_lock_unlock(&processes_array_lock);
+    @synchronized(_processes)
+    {
+        [_processes removeObjectForKey:@(pid)];
+    }
 }
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier

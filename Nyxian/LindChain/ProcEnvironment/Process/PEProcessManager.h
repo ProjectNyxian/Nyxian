@@ -27,8 +27,6 @@
 
 @interface PEProcessManager : NSObject
 
-@property (atomic) NSMutableDictionary<NSNumber*,PEProcess*> *processes;
-
 - (instancetype)init;
 + (instancetype)shared;
 
