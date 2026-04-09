@@ -32,7 +32,6 @@ import Combine
 class Builder {
     private let project: NXProject
     private let compiler: Compiler
-    private let linker: Linker
     private let argsString: String
     
     private var dirtySourceFiles: [String] = []
@@ -50,7 +49,6 @@ class Builder {
         let genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
         
         self.compiler = Compiler(genericCompilerFlags)
-        self.linker = Linker()
         
         try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
         
@@ -271,8 +269,9 @@ class Builder {
             self.project.machoPath
         ] + objectFiles
         
-        if self.linker.ld64((ldArgs as NSArray).mutableCopy() as? NSMutableArray) != 0 {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:self.linker.error ?? "Linking object files together to a executable failed"])
+        var errorString: NSString?
+        if LDELinker.link((ldArgs as NSArray).mutableCopy() as? NSMutableArray, errorString:&errorString) != 0 {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:errorString ?? "Linking object files together to a executable failed"])
         }
     }
     

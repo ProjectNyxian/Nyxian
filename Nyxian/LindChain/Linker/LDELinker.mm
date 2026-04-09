@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Linker/Linker.h>
+#import <LindChain/Linker/LDELinker.h>
 #include "lld/Common/Driver.h"
 #include "lld/Common/ErrorHandler.h"
 #include "llvm/ADT/ArrayRef.h"
@@ -36,15 +36,9 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
 } // namespace macho
 } // namespace lld
 
-@implementation Linker
+@implementation LDELinker
 
-- (instancetype)init
-{
-    self = [super init];
-    return self;
-}
-
-- (int)ld64:(NSMutableArray*)flags
++ (int)link:(NSMutableArray*)flags errorString:(NSString **)error
 {
     const int argc = (int)[flags count] + 1;
     char **argv = (char **)malloc(sizeof(char*) * argc);
@@ -76,9 +70,9 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
         lld::CommonLinkerContext::destroy();
     });
 
-    if(!errBuffer.empty())
+    if(!errBuffer.empty() && error != nil)
     {
-        _error = [NSString stringWithCString:errBuffer.c_str() encoding:NSUTF8StringEncoding];
+        *error = [NSString stringWithCString:errBuffer.c_str() encoding:NSUTF8StringEncoding];
     }
 
     for(int i = 0; i < argc; i++) free(argv[i]);

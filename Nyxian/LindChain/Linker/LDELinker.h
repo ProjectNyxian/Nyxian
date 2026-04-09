@@ -19,18 +19,15 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LINDCHAIN_LINKER_LINKER_H
-#define LINDCHAIN_LINKER_LINKER_H
+#ifndef LDELINKER_H
+#define LDELINKER_H
 
 #import <Foundation/Foundation.h>
 
-@interface Linker : NSObject
+@interface LDELinker : NSObject
 
-@property (nonatomic,strong) NSString *error;
-
-- (instancetype)init;
-- (int)ld64:(NSMutableArray*)flags;
++ (int)link:(NSMutableArray*)flags errorString:(NSString**)error;
 
 @end
 
-#endif /* LINDCHAIN_LINKER_LINKER_H */
+#endif /* LDELINKER_H */

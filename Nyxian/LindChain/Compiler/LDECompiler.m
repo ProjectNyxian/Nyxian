@@ -28,9 +28,6 @@
 #include <LindChain/Compiler/LDEObjectCompiler.h>
 #include <LindChain/Compiler/LDEDependencyScanner.h>
 
-@interface Compiler ()
-@end
-
 @implementation Compiler {
     dependency_scan_service_t _svc;
     object_compiler_t _cmp;

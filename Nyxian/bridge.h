@@ -24,7 +24,7 @@
 
 /* LindChain Core Headers */
 #import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/Linker/linker.h>
+#import <LindChain/Linker/LDELinker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/Core/LDEFilesFinder.h>
