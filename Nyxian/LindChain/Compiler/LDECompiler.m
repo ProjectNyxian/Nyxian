@@ -62,7 +62,15 @@
     self.lock = [[NSLock alloc] init];
     
     _svc = CreateScanService();
-    _cmp = CreateObjectCompiler();
+    
+    const int argc = (int)[_flags count];
+    char **argv = (char **)malloc(sizeof(char*) * argc);
+    for(int i = 0; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i] UTF8String]);
+    
+    _cmp = CreateObjectCompiler([_triple UTF8String], argc, (const char**)argv);
+    
+    for(int i = 0; i < argc; i++) free(argv[i]);
+    free(argv);
     
     return self;
 }
@@ -74,23 +82,9 @@
           outputFile:(NSString*)outputFilePath
               issues:(NSArray<Synitem*> * * _Nonnull)issues
 {
-    /*
-     * creating C array out of NSArray.
-     * TODO: a lot of this array can be reused.
-     */
-    const int argc = (int)[_flags count] + 2;
-    char **argv = (char **)malloc(sizeof(char*) * argc);
-    argv[0] = strdup("clang");
-    argv[1] = strdup([filePath UTF8String]);
-    
-    /* access flags unconcurrently */
-    [self.lock lock];
-    for(int i = 2; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i - 2] UTF8String]);
-    [self.lock unlock];
-    
     /* compile and get the resulting integer */
     char *errorString = NULL;
-    const int result = CompileObject(_cmp, argc, (const char**)argv, [outputFilePath UTF8String], [_triple UTF8String], &errorString);
+    const int result = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &errorString);
     
     /*
      * check if errorString is allocated, if so...
@@ -102,10 +96,6 @@
         *issues = [Synitem OfClangErrorWithString:errorObjCString];
         free(errorString);
     }
-    
-    /* deallocating the entire C array */
-    for(int i = 0; i < argc; i++) free(argv[i]);
-    free(argv);
     
     return result;
 }

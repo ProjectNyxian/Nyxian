@@ -55,13 +55,26 @@ struct opaque_compiler {
     }();
     
     llvm::IntrusiveRefCntPtr<DiagnosticIDs> DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
+    
+    llvm::Triple TargetTriple;
+    
+    std::vector<std::string> BaseArgs;
 };
 
 extern "C" {
 
-object_compiler_t CreateObjectCompiler(void)
+object_compiler_t CreateObjectCompiler(const char *platformTriple,
+                                       int argc,
+                                       const char **argv)
 {
-    return new opaque_compiler();
+    auto *compiler = new opaque_compiler();
+    compiler->TargetTriple = llvm::Triple(platformTriple);
+    compiler->BaseArgs.push_back("clang");
+    for(int i = 0; i < argc; i++)
+    {
+        compiler->BaseArgs.push_back(argv[i]);
+    }
+    return compiler;
 }
 
 void FreeObjectCompiler(object_compiler_t cmp)
@@ -70,10 +83,8 @@ void FreeObjectCompiler(object_compiler_t cmp)
 }
 
 int CompileObject(object_compiler_t cmp,
-                  int argc,
-                  const char **argv,
+                  const char *inputFilePath,
                   const char *outputFilePath,
-                  const char *platformTriple,
                   char **errorStringSet)
 {
     /* error string setup */
@@ -82,21 +93,21 @@ int CompileObject(object_compiler_t cmp,
     
     /* setting up diagnostic engine */
     auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*(cmp->DiagOpts));
-    DiagnosticsEngine Diags(cmp->DiagID, &*(cmp->DiagOpts), DiagClient.get());
-    
-    /* setting up platform triple */
-    llvm::Triple TargetTriple(platformTriple);
-    
-    /* setting up clang driver */
-    Driver TheDriver(argv[0], TargetTriple.str(), Diags);
+    DiagnosticsEngine Diags(cmp->DiagID, &*(cmp->DiagOpts), DiagClient.get(), false);
     
     /* setting up argument */
     SmallVector<const char *, 64> Args;
-    Args.reserve(argc + 3);             /* reserving arguments */
-    Args.assign(argv, argv + argc);     /* filling args */
+    for(const std::string &arg : cmp->BaseArgs)
+    {
+        Args.push_back(arg.c_str());
+    }
+    Args.push_back(inputFilePath);
     Args.push_back("-c");
     Args.push_back("-o");
     Args.push_back(outputFilePath);
+    
+    /* setting up clang driver */
+    Driver TheDriver("clang", cmp->TargetTriple.str(), Diags);
     
     /* building compilation */
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));
