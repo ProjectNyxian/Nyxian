@@ -117,6 +117,15 @@ class CodeEditorViewController: UIViewController {
         self.title = (self.path as NSString).lastPathComponent
         
         if UIDevice.current.userInterfaceIdiom != .pad {
+            let saveButton: UIBarButtonItem = UIBarButtonItem()
+            saveButton.tintColor = .label
+            saveButton.title = "Save"
+            saveButton.target = self
+            saveButton.action = #selector(saveText)
+            self.navigationItem.setRightBarButton(saveButton, animated: true)
+        }
+        
+        if UIDevice.current.userInterfaceIdiom != .pad {
             let closeButton: UIBarButtonItem = UIBarButtonItem()
             closeButton.tintColor = .label
             closeButton.title = "Close"
