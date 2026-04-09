@@ -37,6 +37,7 @@ typedef struct opaque_scan_service *dependency_scan_service_t;
 
 dependency_scan_service_t CreateScanService(void);
 void FreeScanService(dependency_scan_service_t svc);
+
 dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, int argc, const char **argv);
 void FreeScanResult(dependency_scan_result_t result);
 

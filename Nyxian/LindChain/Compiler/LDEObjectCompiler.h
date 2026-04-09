@@ -26,7 +26,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-int CompileObject(int argc, const char **argv, const char *outputFilePath, const char *platformTriple, char **errorStringSet);
+typedef struct opaque_compiler *object_compiler_t;
+
+object_compiler_t CreateObjectCompiler(void);
+void FreeObjectCompiler(object_compiler_t cmp);
+
+int CompileObject(object_compiler_t cmp, int argc, const char **argv, const char *outputFilePath, const char *platformTriple, char **errorStringSet);
 
 #ifdef __cplusplus
 }

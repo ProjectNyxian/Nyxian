@@ -41,9 +41,36 @@
 using namespace clang;
 using namespace clang::driver;
 
+struct opaque_compiler {
+    llvm::IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = []() {
+        auto opts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
+        opts->ShowColors = false;
+        opts->ShowLevel = true;
+        opts->ShowOptionNames = false;
+        opts->MessageLength = 0;
+        opts->ShowSourceRanges = false;
+        opts->ShowPresumedLoc = false;
+        opts->ShowCarets = false;
+        return opts;
+    }();
+    
+    llvm::IntrusiveRefCntPtr<DiagnosticIDs> DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
+};
+
 extern "C" {
 
-int CompileObject(int argc,
+object_compiler_t CreateObjectCompiler(void)
+{
+    return new opaque_compiler();
+}
+
+void FreeObjectCompiler(object_compiler_t cmp)
+{
+    delete static_cast<opaque_compiler *>(cmp);
+}
+
+int CompileObject(object_compiler_t cmp,
+                  int argc,
                   const char **argv,
                   const char *outputFilePath,
                   const char *platformTriple,
@@ -53,20 +80,9 @@ int CompileObject(int argc,
     std::string errorString;
     llvm::raw_string_ostream errorOutputStream(errorString);
     
-    /* setting up diagnostic options */
-    auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
-    DiagOpts->ShowColors = false;
-    DiagOpts->ShowLevel = true;
-    DiagOpts->ShowOptionNames = false;
-    DiagOpts->MessageLength = 0;
-    DiagOpts->ShowSourceRanges = false;
-    DiagOpts->ShowPresumedLoc = false;
-    DiagOpts->ShowCarets = false;
-    
     /* setting up diagnostic engine */
-    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*DiagOpts);
-    auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
-    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient.get());
+    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*(cmp->DiagOpts));
+    DiagnosticsEngine Diags(cmp->DiagID, &*(cmp->DiagOpts), DiagClient.get());
     
     /* setting up platform triple */
     llvm::Triple TargetTriple(platformTriple);

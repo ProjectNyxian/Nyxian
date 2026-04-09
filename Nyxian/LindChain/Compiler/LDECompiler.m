@@ -38,6 +38,7 @@
 
 @implementation Compiler {
     dependency_scan_service_t _svc;
+    object_compiler_t _cmp;
 }
 
 ///
@@ -61,6 +62,7 @@
     self.lock = [[NSLock alloc] init];
     
     _svc = CreateScanService();
+    _cmp = CreateObjectCompiler();
     
     return self;
 }
@@ -88,7 +90,7 @@
     
     /* compile and get the resulting integer */
     char *errorString = NULL;
-    const int result = CompileObject(argc, (const char**)argv, [outputFilePath UTF8String], [_triple UTF8String], &errorString);
+    const int result = CompileObject(_cmp, argc, (const char**)argv, [outputFilePath UTF8String], [_triple UTF8String], &errorString);
     
     /*
      * check if errorString is allocated, if so...
@@ -167,6 +169,7 @@
 
 - (void)dealloc
 {
+    FreeObjectCompiler(_cmp);
     FreeScanService(_svc);
 }
 
