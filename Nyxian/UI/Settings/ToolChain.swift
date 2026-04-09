@@ -38,11 +38,12 @@ class ToolChainController: UIThemedTableViewController {
         #if !JAILBREAK_ENV
         return 2
         #else // !JAILBREAK_ENV
-        if #available(iOS 16.0, *) {
+        /*if #available(iOS 16.0, *) {
             return 3
         } else {
             return 2
-        }
+        }*/
+        return 2
         #endif
     }
     

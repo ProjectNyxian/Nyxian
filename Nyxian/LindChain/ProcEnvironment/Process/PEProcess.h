@@ -60,7 +60,9 @@
 // Callback
 @property (nonatomic, copy) void (^exitingCallback)(void);
 
+#if !JAILBREAK_ENV
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session;
+#endif /* !JAILBREAK_ENV */
 
 - (void)sendSignal:(int)signal;
 - (BOOL)suspend;

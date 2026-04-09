@@ -31,7 +31,7 @@
 #import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/Linker/linker.h>
+#import <LindChain/Linker/LDELinker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/Core/LDEFilesFinder.h>
@@ -46,6 +46,7 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXProject.h>
+#import <LindChain/Project/NXDocumentManager.h>
 
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>

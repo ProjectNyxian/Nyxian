@@ -54,6 +54,8 @@
     return processManagerSingletone;
 }
 
+#if !JAILBREAK_ENV
+
 - (pid_t)spawnProcessWithItems:(NSDictionary*)items
       withKernelSurfaceProcess:(ksurface_proc_t*)proc
 {    
@@ -179,6 +181,12 @@
 
     return pid;
 }
+
+#else
+
+
+
+#endif /* !JAILBREAK_ENV */
 
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {

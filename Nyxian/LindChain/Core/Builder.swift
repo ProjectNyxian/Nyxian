@@ -368,7 +368,8 @@ class Builder {
             if #available(iOS 16.0, *) {
                 
                 // avoid lsapplication workspace if user wants it so
-                if let avoidLSAWObj: NSNumber = UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber,
+                // FIXME: currently unsupported
+                if let avoidLSAWObj: NSNumber = (NSNumber(value: false) as NSNumber?) /*UserDefaults.standard.object(forKey: "LDEOpenAppInsideNyxian") as? NSNumber*/,
                    !avoidLSAWObj.boolValue {
                     
                     var success = false
@@ -391,7 +392,7 @@ class Builder {
                     return
                 }
                 
-                PEProcessManager.shared().spawnProcess(withBundleID: self.project.projectConfig.bundleid)
+                PEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid)
             } else {
                 while(!LSApplicationWorkspace.default().openApplication(withBundleID: self.project.projectConfig.bundleid)) {
                     relax()
