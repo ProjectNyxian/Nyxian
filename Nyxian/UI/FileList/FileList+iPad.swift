@@ -166,8 +166,13 @@ class SplitScreenDetailViewController: UIViewController {
             if let vc = newValue {
                 self.addChild(vc)
                 vc.view.alpha = 0
-                
                 self.view.addSubview(vc.view)
+                
+                if let codeVC = vc as? CodeEditorViewController,
+                   UIDevice.current.userInterfaceIdiom == .pad,
+                   #available(iOS 26.0, *) {
+                    codeVC.textView.textContainerInset = UIEdgeInsets(top: 20, left: 2, bottom: 20, right: 0)
+                }
                 
                 vc.view.translatesAutoresizingMaskIntoConstraints = false
                 

@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		791C96052F8726B0006AF674 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 791C96042F8726B0006AF674 /* Runestone */; };
+		791C99502F87687C006AF674 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 791C994F2F87687C006AF674 /* Runestone */; };
 		793A4E3B2F84FE1D003B609A /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 793A4E3A2F84FE1D003B609A /* Runestone */; };
-		793A4E4A2F86DB3E003B609A /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 793A4E492F86DB3E003B609A /* Runestone */; };
 		793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 793A7E4F2EB5996A0044418E /* SwiftTerm */; };
 		793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79BF9A8E2E62BA7D00C60D4C /* libarchive.tbd */; };
 		795227872F45B52000D1C3CC /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 79BF97F72E6291EE00C60D4C /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -398,11 +399,12 @@
 				79B70C1F2F732364000F38E7 /* Runestone in Frameworks */,
 				AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */,
 				793A4E3B2F84FE1D003B609A /* Runestone in Frameworks */,
-				793A4E4A2F86DB3E003B609A /* Runestone in Frameworks */,
+				791C96052F8726B0006AF674 /* Runestone in Frameworks */,
 				793FCD242E6730740011B3F5 /* libarchive.tbd in Frameworks */,
 				AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */,
 				AFF4E3492DCCCE0F00B1B5F9 /* TreeSitterXML in Frameworks */,
 				793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */,
+				791C99502F87687C006AF674 /* Runestone in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -540,7 +542,8 @@
 				79B70C1B2F73223A000F38E7 /* Runestone */,
 				79B70C1E2F732364000F38E7 /* Runestone */,
 				793A4E3A2F84FE1D003B609A /* Runestone */,
-				793A4E492F86DB3E003B609A /* Runestone */,
+				791C96042F8726B0006AF674 /* Runestone */,
+				791C994F2F87687C006AF674 /* Runestone */,
 			);
 			productName = LindDE;
 			productReference = 7944B5652DEC74EA00834134 /* Nyxian.app */;
@@ -582,7 +585,7 @@
 				AFF4E3472DCCCE0F00B1B5F9 /* XCRemoteSwiftPackageReference "tree-sitter-xml" */,
 				793A7E4E2EB599690044418E /* XCRemoteSwiftPackageReference "SwiftTerm" */,
 				79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */,
-				793A4E482F86DB3E003B609A /* XCRemoteSwiftPackageReference "Runestone" */,
+				791C994E2F87687C006AF674 /* XCRemoteSwiftPackageReference "Runestone" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AF9916D02DC8C42200DDF895;
@@ -1544,12 +1547,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		793A4E482F86DB3E003B609A /* XCRemoteSwiftPackageReference "Runestone" */ = {
+		791C994E2F87687C006AF674 /* XCRemoteSwiftPackageReference "Runestone" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ProjectNyxian/Runestone.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.0.1;
+				version = 0.0.2;
 			};
 		};
 		793A7E4E2EB599690044418E /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
@@ -1635,13 +1638,17 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		793A4E3A2F84FE1D003B609A /* Runestone */ = {
+		791C96042F8726B0006AF674 /* Runestone */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Runestone;
 		};
-		793A4E492F86DB3E003B609A /* Runestone */ = {
+		791C994F2F87687C006AF674 /* Runestone */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 793A4E482F86DB3E003B609A /* XCRemoteSwiftPackageReference "Runestone" */;
+			package = 791C994E2F87687C006AF674 /* XCRemoteSwiftPackageReference "Runestone" */;
+			productName = Runestone;
+		};
+		793A4E3A2F84FE1D003B609A /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
 			productName = Runestone;
 		};
 		793A7E4F2EB5996A0044418E /* SwiftTerm */ = {

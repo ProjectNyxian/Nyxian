@@ -65,7 +65,6 @@ void kvobject_invalidate(kvobject_strong_t *kvo)
     atomic_store(&(kvo->state), kvObjStateInvalid);
 }
 
-
 void kvobject_release(kvobject_strong_t *kvo)
 {
     assert(kvo != NULL);

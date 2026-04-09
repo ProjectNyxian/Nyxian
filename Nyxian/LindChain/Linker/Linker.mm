@@ -24,6 +24,8 @@
 #include "lld/Common/ErrorHandler.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/CrashRecoveryContext.h"
+#include "lld/Common/CommonLinkerContext.h"
 
 extern "C" void ls_printf(const char *format, ...);
 

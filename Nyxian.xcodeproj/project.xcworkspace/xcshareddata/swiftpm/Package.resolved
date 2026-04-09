@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ProjectNyxian/Runestone.git",
       "state" : {
-        "revision" : "43f3c9e1a8d9489b52f01821b323d5d209eacf2d",
-        "version" : "0.0.1"
+        "revision" : "8b98d2559233279c404a48b544ab6c02f4ab0f5b",
+        "version" : "0.0.2"
       }
     },
     {

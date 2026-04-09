@@ -179,7 +179,7 @@ class CodeEditorViewController: UIViewController {
         
         if #available(iOS 26.0, *),
            UIDevice.current.userInterfaceIdiom == .pad {
-            self.textView.textContainerInset = UIEdgeInsets(top: 20, left: 2, bottom: 2, right: 0)
+            self.textView.textContainerInset = UIEdgeInsets(top: 20, left: 2, bottom: 20, right: 0)
             self.textView.gutterLeadingPadding = 10
         } else {
             self.textView.textContainerInset = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 0)
