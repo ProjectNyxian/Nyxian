@@ -137,10 +137,12 @@ class SplitScreenDetailViewController: UIViewController {
             }
             
             // releasing memory of previous SynpushServer
-            if let oldValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController,
-               let coordinator: Coordinator = oldValue.coordinator {
-                coordinator.debounce?.invalidate()
-                oldValue.synpushServer?.releaseMemory()
+            if let oldValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController {
+                oldValue.document?.autosave()
+                if let coordinator: Coordinator = oldValue.coordinator {
+                    coordinator.debounce?.invalidate()
+                    oldValue.synpushServer?.releaseMemory()
+                }
             }
             
             // trying to get old constraints

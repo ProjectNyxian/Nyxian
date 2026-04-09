@@ -561,8 +561,7 @@ class CodeEditorViewController: UIViewController {
     @objc func saveText() {
         if !self.isReadOnly {
             defer {
-                self.document?.text = self.textView.text
-                self.document?.save(to: URL(fileURLWithPath: self.path), for: .forOverwriting)
+                self.document?.autosave()
             }
             
             showSaveAnimation()
