@@ -28,7 +28,7 @@ extern "C" {
 
 typedef struct opaque_compiler *object_compiler_t;
 
-object_compiler_t CreateObjectCompiler(const char *platformTriple, int argc, const char **argv);
+object_compiler_t CreateObjectCompiler(int argc, const char **argv);
 void FreeObjectCompiler(object_compiler_t cmp);
 
 int CompileObject(object_compiler_t cmp, const char *inputFilePath, const char *outputFilePath, char **errorStringSet);

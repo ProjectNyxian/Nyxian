@@ -56,19 +56,15 @@ struct opaque_compiler {
     
     llvm::IntrusiveRefCntPtr<DiagnosticIDs> DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
     
-    llvm::Triple TargetTriple;
-    
     std::vector<std::string> BaseArgs;
 };
 
 extern "C" {
 
-object_compiler_t CreateObjectCompiler(const char *platformTriple,
-                                       int argc,
+object_compiler_t CreateObjectCompiler(int argc,
                                        const char **argv)
 {
     auto *compiler = new opaque_compiler();
-    compiler->TargetTriple = llvm::Triple(platformTriple);
     compiler->BaseArgs.push_back("clang");
     for(int i = 0; i < argc; i++)
     {
@@ -107,7 +103,7 @@ int CompileObject(object_compiler_t cmp,
     Args.push_back(outputFilePath);
     
     /* setting up clang driver */
-    Driver TheDriver("clang", cmp->TargetTriple.str(), Diags);
+    Driver TheDriver("clang", "", Diags);
     
     /* building compilation */
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));

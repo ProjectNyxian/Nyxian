@@ -29,15 +29,52 @@ using namespace clang;
 using namespace clang::tooling::dependencies;
 
 struct opaque_scan_service {
-    DependencyScanningService service;
-    opaque_scan_service() : service(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Make, ScanningOptimizations::None, false) {}
+    DependencyScanningService service {
+        ScanningMode::DependencyDirectivesScan,
+        ScanningOutputFormat::Make,
+        ScanningOptimizations::None,
+        false
+    };
+    std::vector<std::string> BaseArgs;
+    std::string sysroot;
+    std::string resourceDir;
 };
 
 extern "C" {
 
-dependency_scan_service_t CreateScanService(void)
+dependency_scan_service_t CreateScanService(int argc,
+                                            const char **argv)
 {
-    return new opaque_scan_service();
+    auto *svc = new opaque_scan_service();
+    svc->BaseArgs.push_back("clang");
+    for(int i = 0; i < argc; i++)
+    {
+        svc->BaseArgs.push_back(argv[i]);
+    }
+    
+    for(size_t i = 0; i < svc->BaseArgs.size(); i++)
+    {
+        if(svc->BaseArgs[i] == "-isysroot" && i + 1 < svc->BaseArgs.size())
+        {
+            svc->sysroot = svc->BaseArgs[i + 1];
+            i++;
+        }
+        else if(llvm::StringRef(svc->BaseArgs[i]).starts_with("-isysroot") && svc->BaseArgs[i].size() > 9)
+        {
+            svc->sysroot = svc->BaseArgs[i].substr(9);
+        }
+        else if(svc->BaseArgs[i] == "-resource-dir" && i + 1 < svc->BaseArgs.size())
+        {
+            svc->resourceDir = svc->BaseArgs[i + 1];
+            i++;
+        }
+        else if(llvm::StringRef(svc->BaseArgs[i]).starts_with("-resource-dir="))
+        {
+            svc->resourceDir = svc->BaseArgs[i].substr(strlen("-resource-dir="));
+        }
+    }
+    
+    return svc;
 }
 
 void FreeScanService(dependency_scan_service_t svc)
@@ -45,38 +82,16 @@ void FreeScanService(dependency_scan_service_t svc)
     delete static_cast<opaque_scan_service *>(svc);
 }
 
-dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, int argc, const char **argv)
+dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc,
+                                          const char *inputFilePath)
 {
     dependency_scan_result_t out = {nullptr, 0, 0, nullptr};
     DependencyScanningTool tool(static_cast<opaque_scan_service *>(svc)->service);
     
-    std::vector<std::string> args(argv, argv + argc);
+    std::vector<std::string> Args = svc->BaseArgs;
+    Args.push_back(inputFilePath);
     
-    std::string sysroot;
-    std::string resourceDir;
-    for(size_t i = 0; i < args.size(); i++)
-    {
-        if(args[i] == "-isysroot" && i + 1 < args.size())
-        {
-            sysroot = args[i + 1];
-            i++;
-        }
-        else if(llvm::StringRef(args[i]).starts_with("-isysroot") && args[i].size() > 9)
-        {
-            sysroot = args[i].substr(9);
-        }
-        else if(args[i] == "-resource-dir" && i + 1 < args.size())
-        {
-            resourceDir = args[i + 1];
-            i++;
-        }
-        else if(llvm::StringRef(args[i]).starts_with("-resource-dir="))
-        {
-            resourceDir = args[i].substr(strlen("-resource-dir="));
-        }
-    }
-    
-    llvm::Expected<std::string> depsOrErr = tool.getDependencyFile(args, "/");
+    llvm::Expected<std::string> depsOrErr = tool.getDependencyFile(Args, "/");
     if(!depsOrErr)
     {
         std::string errStr = llvm::toString(depsOrErr.takeError());
@@ -105,8 +120,8 @@ dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, int arg
         token = token.trim(" \t\n\r\\");
         if(token.empty()) continue;
         if(first) { first = false; continue; }
-        if(!sysroot.empty() && token.starts_with(sysroot)) continue;
-        if(!resourceDir.empty() && token.starts_with(resourceDir)) continue;
+        if(!svc->sysroot.empty() && token.starts_with(svc->sysroot)) continue;
+        if(!svc->resourceDir.empty() && token.starts_with(svc->resourceDir)) continue;
         headers.push_back(token.str());
     }
     

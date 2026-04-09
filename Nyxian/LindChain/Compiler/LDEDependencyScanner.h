@@ -35,10 +35,10 @@ typedef struct {
 
 typedef struct opaque_scan_service *dependency_scan_service_t;
 
-dependency_scan_service_t CreateScanService(void);
+dependency_scan_service_t CreateScanService(int argc, const char **argv);
 void FreeScanService(dependency_scan_service_t svc);
 
-dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, int argc, const char **argv);
+dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, const char *inputFilePath);
 void FreeScanResult(dependency_scan_result_t result);
 
 #ifdef __cplusplus

@@ -29,11 +29,6 @@
 #include <LindChain/Compiler/LDEDependencyScanner.h>
 
 @interface Compiler ()
-
-@property (nonatomic,strong) NSArray * _Nonnull flags;
-@property (nonatomic,strong) NSString *triple;
-@property (nonatomic,strong) NSLock *lock;
-
 @end
 
 @implementation Compiler {
@@ -47,27 +42,13 @@
 - (instancetype)init:(NSArray*)flags
 {
     self = [super init];
-    _flags = [flags copy];
     
-    NSUInteger index = [_flags indexOfObject:@"-target"];
-    if(index != NSNotFound)
-    {
-        _triple = [_flags objectAtIndex:index + 1];
-    }
-    else
-    {
-        _triple = @"arm64-apple-ios14.0";
-    }
-    
-    self.lock = [[NSLock alloc] init];
-    
-    _svc = CreateScanService();
-    
-    const int argc = (int)[_flags count];
+    const int argc = (int)[flags count];
     char **argv = (char **)malloc(sizeof(char*) * argc);
-    for(int i = 0; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i] UTF8String]);
+    for(int i = 0; i < argc; i++) argv[i] = strdup([[flags objectAtIndex:i] UTF8String]);
     
-    _cmp = CreateObjectCompiler([_triple UTF8String], argc, (const char**)argv);
+    _svc = CreateScanService(argc, (const char**)argv);
+    _cmp = CreateObjectCompiler(argc, (const char**)argv);
     
     for(int i = 0; i < argc; i++) free(argv[i]);
     free(argv);
@@ -103,19 +84,7 @@
 - (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath
                                     error:(NSError**)error
 {
-    const int argc = (int)[_flags count] + 2;
-    char **argv = (char **)malloc(sizeof(char*) * argc);
-    argv[0] = strdup("clang");
-    argv[1] = strdup([filePath UTF8String]);
-    
-    [self.lock lock];
-    for(int i = 2; i < argc; i++) argv[i] = strdup([[_flags objectAtIndex:i - 2] UTF8String]);
-    [self.lock unlock];
-    
-    dependency_scan_result_t result = ScanDependencies(_svc, argc, (const char**)argv);
-    
-    for(int i = 0; i < argc; i++) free(argv[i]);
-    free(argv);
+    dependency_scan_result_t result = ScanDependencies(_svc, [filePath UTF8String]);
 
     if(result.failed)
     {
@@ -125,7 +94,7 @@
             NSString *badFile = nil;
 
             NSRange first = [errMsg rangeOfString:@"'"];
-            NSRange last  = [errMsg rangeOfString:@"'" options:NSBackwardsSearch];
+            NSRange last = [errMsg rangeOfString:@"'" options:NSBackwardsSearch];
 
             if(first.location != NSNotFound && first.location != last.location)
             {
