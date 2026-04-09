@@ -27,18 +27,6 @@
 #include "llvm/Support/CrashRecoveryContext.h"
 #include "lld/Common/CommonLinkerContext.h"
 
-extern "C" void ls_printf(const char *format, ...);
-
-#if JAILBREAK_ENV
-
-extern "C" {
-
-int shell(NSString *command, uid_t uid, NSArray<NSString *> *env, NSString **output);
-
-}
-
-#endif /* JAILBREAK_ENV */
-
 namespace lld {
 namespace macho {
 
@@ -58,38 +46,45 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
 
 - (int)ld64:(NSMutableArray*)flags
 {
-    // Allocating a C array by the given _flags array
     const int argc = (int)[flags count] + 1;
     char **argv = (char **)malloc(sizeof(char*) * argc);
     argv[0] = strdup("ld64.lld");
     for(int i = 1; i < argc; i++) argv[i] = strdup([[flags objectAtIndex:i - 1] UTF8String]);
     
-    // Creating a ArrayRef for LLVM
-    llvm::ArrayRef<const char*> args(argv, argc);
-    
-    // Creating a errBuffer
+    int retCode = -1;
+    std::string outBuffer;
     std::string errBuffer;
-    llvm::raw_string_ostream errStream(errBuffer);
     
-    // Definining the drivers
-    const lld::DriverDef drivers[] = {
-        {lld::Darwin, &lld::macho::link},
-    };
+    llvm::CrashRecoveryContext CRC;
+    llvm::CrashRecoveryContext::Enable();
     
-    // Link!
-    lld::Result result = lld::lldMain(args, llvm::outs(), errStream, drivers);
-    
-    // Flusing the error stram and priting it
-    errStream.flush();
-    
-    const char *str = errBuffer.c_str();
-    if(str) _error = [NSString stringWithCString:errBuffer.c_str() encoding:NSUTF8StringEncoding];
-    
-    // Deallocating the entire C array
+    CRC.RunSafely([&]{
+        llvm::ArrayRef<const char*> args(argv, argc);
+        llvm::raw_string_ostream outStream(outBuffer);
+        llvm::raw_string_ostream errStream(errBuffer);
+
+        const lld::DriverDef drivers[] = {
+            {lld::Darwin, &lld::macho::link},
+        };
+        
+        lld::Result result = lld::lldMain(args, outStream, errStream, drivers);
+        
+        outStream.flush();
+        errStream.flush();
+        retCode = result.retCode;
+        
+        lld::CommonLinkerContext::destroy();
+    });
+
+    if(!errBuffer.empty())
+    {
+        _error = [NSString stringWithCString:errBuffer.c_str() encoding:NSUTF8StringEncoding];
+    }
+
     for(int i = 0; i < argc; i++) free(argv[i]);
     free(argv);
-    
-    return result.retCode;
+
+    return retCode;
 }
 
 @end
