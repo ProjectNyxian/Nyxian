@@ -42,20 +42,6 @@ using namespace clang;
 using namespace clang::driver;
 
 struct opaque_compiler {
-    llvm::IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = []() {
-        auto opts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
-        opts->ShowColors = false;
-        opts->ShowLevel = true;
-        opts->ShowOptionNames = false;
-        opts->MessageLength = 0;
-        opts->ShowSourceRanges = false;
-        opts->ShowPresumedLoc = false;
-        opts->ShowCarets = false;
-        return opts;
-    }();
-    
-    llvm::IntrusiveRefCntPtr<DiagnosticIDs> DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
-    
     std::vector<std::string> BaseArgs;
 };
 
@@ -83,13 +69,23 @@ int CompileObject(object_compiler_t cmp,
                   const char *outputFilePath,
                   char **errorStringSet)
 {
+    auto DiagOpts = llvm::IntrusiveRefCntPtr<DiagnosticOptions>();
+    DiagOpts->ShowColors = false;
+    DiagOpts->ShowLevel = true;
+    DiagOpts->ShowOptionNames = false;
+    DiagOpts->MessageLength = 0;
+    DiagOpts->ShowSourceRanges = false;
+    DiagOpts->ShowPresumedLoc = false;
+    DiagOpts->ShowCarets = false;
+    
     /* error string setup */
     std::string errorString;
     llvm::raw_string_ostream errorOutputStream(errorString);
     
     /* setting up diagnostic engine */
-    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*(cmp->DiagOpts));
-    DiagnosticsEngine Diags(cmp->DiagID, &*(cmp->DiagOpts), DiagClient.get(), false);
+    auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
+    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*DiagOpts);
+    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient.get(), false);
     
     /* setting up argument */
     SmallVector<const char *, 64> Args;

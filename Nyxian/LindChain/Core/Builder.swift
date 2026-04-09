@@ -278,7 +278,7 @@ class Builder {
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
 #if !JAILBREAK_ENV
         if LCUtils.certificateData() == nil {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Miscellanous > Import Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
         }
         
         if(buildType == .RunningApp) {
