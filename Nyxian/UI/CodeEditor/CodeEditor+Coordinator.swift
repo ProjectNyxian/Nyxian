@@ -67,10 +67,10 @@ class Coordinator: NSObject, TextViewDelegate {
     }
     
     func textViewDidChange(_ textView: TextView) {
-        guard self.parent?.synpushServer != nil else { return }
         if((textView.text as NSString).length != 0) {
             self.parent?.document?.text = textView.text
         }
+        guard self.parent?.synpushServer != nil else { return }
         if !self.isInvalidated {
             self.isInvalidated = true
             for item in self.entries {
