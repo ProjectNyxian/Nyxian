@@ -123,8 +123,8 @@ class DebugDatabase: Codable {
             self.lock.unlock()
             return
         }
-        self.lock.unlock()
         internalObject.debugItems.append(DebugItem(severity: severity, message: message, line: 0, column: 0))
+        self.lock.unlock()
     }
     
     func setFileDebug(ofPath path: String, synItems: [Synitem]) {

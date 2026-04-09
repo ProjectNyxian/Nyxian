@@ -29,13 +29,16 @@
     /* REQUIRED, OTHERWISE YOUR CODE IS GONE AFTER CLOSING PROJECT */
     if(!self.hasUnsavedChanges)
     {
-        if(completionHandler)
-        {
-            completionHandler(YES);
-        }
+        if (completionHandler) completionHandler(YES);
         return;
     }
-    [self saveToURL:self.fileURL forSaveOperation:UIDocumentSaveForOverwriting completionHandler:completionHandler];
+    [self saveToURL:self.fileURL
+   forSaveOperation:UIDocumentSaveForOverwriting
+  completionHandler:^(BOOL success) {
+        [super autosaveWithCompletionHandler:^(BOOL _) {
+            if(completionHandler) completionHandler(success);
+        }];
+    }];
 }
 
 - (void)setText:(NSString *)text
@@ -49,18 +52,18 @@
                    error:(NSError **)outError
 {
     NSData *data = contents;
-    self.text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    _text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     
     /* fallback encodings so my japanese and chinese users are happy */
-    if (!self.text)
+    if(!_text)
     {
         NSStringEncoding detected;
-        self.text = [NSString stringWithContentsOfURL:self.fileURL usedEncoding:&detected error:outError];
+        _text = [NSString stringWithContentsOfURL:self.fileURL usedEncoding:&detected error:outError];
     }
     
-    if(!self.text)
+    if(!_text)
     {
-        self.text = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+        _text = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
     }
     
     return YES;
@@ -79,14 +82,7 @@
         return nil;
     }
     
-    data = data ?: [NSData data];
     return data;
-}
-
-- (void)closeWithCompletionHandler:(void (^)(BOOL))completionHandler
-{
-    [self autosaveWithCompletionHandler:completionHandler];
-    return;
 }
 
 @end
