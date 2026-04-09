@@ -22,7 +22,10 @@
 #import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
 #import <LindChain/ProcEnvironment/Process/PEBootstrapRegistry.h>
 
-@implementation PELaunchServiceRegistry
+@implementation PELaunchServiceRegistry {
+    os_unfair_lock _lock;
+    NSMutableArray<PELaunchService*> *_launchServices;
+}
 
 - (instancetype)init
 {
@@ -30,9 +33,8 @@
     _launchServices = [[NSMutableArray alloc] init];
     _lock = OS_UNFAIR_LOCK_INIT;
     
-    NSFileManager *fm = [[NSFileManager alloc] init];
     NSString *plistPath = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Shared"] stringByAppendingPathComponent:@"LaunchServices"];
-    NSArray<NSString*> *plists = [fm contentsOfDirectoryAtPath:plistPath error:nil];
+    NSArray<NSString*> *plists = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:plistPath error:nil];
    
     for(NSString *plist in plists)
     {
@@ -81,18 +83,17 @@
 
 - (PELaunchService *)serviceForIdentifier:(NSString *)serviceIdentifier
 {
-    PELaunchService *service = nil;
     os_unfair_lock_lock(&_lock);
     for(PELaunchService *item in _launchServices)
     {
         if([item.serviceIdentifier isEqualToString:serviceIdentifier])
         {
-            service = item;
-            break;
+            os_unfair_lock_unlock(&_lock);
+            return item;
         }
     }
     os_unfair_lock_unlock(&_lock);
-    return service;
+    return nil;
 }
 
 @end

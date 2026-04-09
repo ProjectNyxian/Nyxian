@@ -130,9 +130,7 @@ typedef int64_t (*syscall_handler_t)(
 typedef struct syscall_server syscall_server_t;
 
 syscall_server_t *syscall_server_create(void);
-void syscall_server_destroy(syscall_server_t *server);
 int syscall_server_start(syscall_server_t *server);
-void syscall_server_stop(syscall_server_t *server);
 mach_port_t syscall_server_get_port(syscall_server_t *server);
 void syscall_server_register(syscall_server_t *server, uint32_t syscall_num, syscall_handler_t handler);
 

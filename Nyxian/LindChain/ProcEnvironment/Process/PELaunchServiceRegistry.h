@@ -26,10 +26,7 @@
 #import <os/lock.h>
 #import <LindChain/ProcEnvironment/Process/PELaunchService.h>
 
-@interface PELaunchServiceRegistry : NSObject {
-    os_unfair_lock _lock;
-    NSMutableArray<PELaunchService*> *_launchServices;
-}
+@interface PELaunchServiceRegistry : NSObject
 
 - (instancetype)init;
 + (instancetype)shared;

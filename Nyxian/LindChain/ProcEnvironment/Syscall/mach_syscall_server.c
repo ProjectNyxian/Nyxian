@@ -46,23 +46,11 @@ struct syscall_server {
  */
 static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg)
 {
-    /* checking if audit trailer is within bounds */
-    size_t trailer_offset = round_msg(msg->msgh_size);
-    if(trailer_offset + sizeof(mach_msg_audit_trailer_t) > sizeof(recv_buffer_t))
-    {
-        return NULL;
-    }
-    
-    /* getting mach msg audit trailer which contains audit information */
-    mach_msg_audit_trailer_t *trailer = (mach_msg_audit_trailer_t *)((uint8_t *)msg + trailer_offset);
-    
-    /* checking trailer format */
-    if(trailer->msgh_trailer_type != MACH_MSG_TRAILER_FORMAT_0 ||
-       trailer->msgh_trailer_size < sizeof(mach_msg_audit_trailer_t))
-    {
-        /* defensive programming, didnt got the caller */
-        return NULL;
-    }
+    /*
+     * gives us a trailer, cuz the XNU kernel gurantees a trailer if asked
+     * and syscall_worker_thread was engineered to ask that lol.
+     */
+    mach_msg_audit_trailer_t *trailer = (mach_msg_audit_trailer_t *)((uint8_t *)msg + round_msg(msg->msgh_size));
     
     /* yep clear to go */
     audit_token_t *token = &trailer->msgh_audit;
@@ -166,6 +154,8 @@ void send_reply(mach_msg_header_t *request,
  */
 static void* syscall_worker_thread(void *ctx)
 {
+    assert(ctx != NULL);
+    
     /* getting the server */
     syscall_server_t *server = (syscall_server_t *)ctx;
     
@@ -186,7 +176,6 @@ static void* syscall_worker_thread(void *ctx)
         if(buffer == NULL)
         {
             kern_return_t kr = vm_allocate(mach_task_self(), (vm_address_t*)&buffer, sizeof(recv_buffer_t), VM_FLAGS_ANYWHERE);
-            
             if(kr != KERN_SUCCESS)
             {
                 /* ohh no, spin spin :c */
@@ -210,6 +199,7 @@ static void* syscall_worker_thread(void *ctx)
             if(mr == MACH_RCV_PORT_DIED || mr == MACH_RCV_INVALID_NAME)
             {
                 vm_deallocate(mach_task_self(), (vm_address_t)buffer, sizeof(recv_buffer_t));
+                // environment_panic("syscall server worker thread died unexpectedly, this is undefined behaviour. (mr = 0x%x)", mr);
                 break;
             }
             continue;
@@ -303,26 +293,12 @@ static void* syscall_worker_thread(void *ctx)
 syscall_server_t* syscall_server_create(void)
 {
     /* allocating server */
-    syscall_server_t *server = malloc(sizeof(syscall_server_t));
+    syscall_server_t *server = calloc(1, sizeof(syscall_server_t));
     if(server == NULL)
     {
         return NULL;
     }
-    
-    memset(server, 0, sizeof(syscall_server_t));
     return server;
-}
-
-void syscall_server_destroy(syscall_server_t *server)
-{
-    /* null pointer check */
-    assert(server != NULL);
-    
-    /* stopping the server */
-    syscall_server_stop(server);
-    
-    /* releasing the memory the server was created with */
-    free(server);
 }
 
 void syscall_server_register(syscall_server_t *server,
@@ -331,6 +307,7 @@ void syscall_server_register(syscall_server_t *server,
 {
     assert(server->port == MACH_PORT_NULL && server != NULL && syscall_num < MAX_SYSCALLS);
     
+#if DEBUG
     /* trying to get syscall handler */
     syscall_handler_t phandler = server->handlers[syscall_num];
     
@@ -340,6 +317,7 @@ void syscall_server_register(syscall_server_t *server,
         /* shall never ever happen */
         environment_panic("syscall handler for %lu is already registered", syscall_num);
     }
+#endif /* DEBUG */
     
     /* setting syscall handler */
     server->handlers[syscall_num] = handler;
@@ -347,21 +325,15 @@ void syscall_server_register(syscall_server_t *server,
 
 int syscall_server_start(syscall_server_t *server)
 {
-    /* null pointer check*/
-    if(!server)
-    {
-        return -1;
-    }
-    
-    kern_return_t kr;
+    assert(server != NULL);
     
     /* creating syscall server port */
     mach_port_options_t options = {
-        .flags = MPO_INSERT_SEND_RIGHT | MPO_QLIMIT | MPO_IMMOVABLE_RECEIVE | MPO_PORT | MPO_STRICT | MPO_CONNECTION_PORT_WITH_PORT_ARRAY,
+        .flags = MPO_PORT | MPO_IMMOVABLE_RECEIVE | MPO_INSERT_SEND_RIGHT | MPO_QLIMIT | MPO_STRICT,
         .mpl = SYSCALL_QUEUE_LIMIT,
     };
         
-    kr = mach_port_construct(mach_task_self(), &options, 0, &server->port);
+    kern_return_t kr = mach_port_construct(mach_task_self(), &options, 0, &server->port);
     
     /* mach return check */
     if(kr != KERN_SUCCESS)
@@ -385,36 +357,6 @@ int syscall_server_start(syscall_server_t *server)
     }
     
     return 0;
-}
-
-void syscall_server_stop(syscall_server_t *server)
-{
-    /* null pointer check */
-    if(!server)
-    {
-        return;
-    }
-    
-    /* checking if port is null */
-    if(server->port != MACH_PORT_NULL)
-    {
-        /* destroying mach port */
-        mach_port_deallocate(mach_task_self(), server->port);
-        
-        /* setting port */
-        server->port = MACH_PORT_NULL;
-    }
-    
-    /* stopping each thread of the server */
-    for(int i = 0; i < server->threads_cnt; i++)
-    {
-        if(server->threads[i])
-        {
-            pthread_join(server->threads[i], NULL);
-        }
-    }
-    
-    server->port = MACH_PORT_NULL;
 }
 
 mach_port_t syscall_server_get_port(syscall_server_t *server)
