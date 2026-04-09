@@ -69,7 +69,11 @@ int CompileObject(object_compiler_t cmp,
                   const char *outputFilePath,
                   char **errorStringSet)
 {
-    auto DiagOpts = llvm::IntrusiveRefCntPtr<DiagnosticOptions>();
+    /* error string setup */
+    std::string errorString;
+    llvm::raw_string_ostream errorOutputStream(errorString);
+    
+    auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
     DiagOpts->ShowColors = false;
     DiagOpts->ShowLevel = true;
     DiagOpts->ShowOptionNames = false;
@@ -77,10 +81,6 @@ int CompileObject(object_compiler_t cmp,
     DiagOpts->ShowSourceRanges = false;
     DiagOpts->ShowPresumedLoc = false;
     DiagOpts->ShowCarets = false;
-    
-    /* error string setup */
-    std::string errorString;
-    llvm::raw_string_ostream errorOutputStream(errorString);
     
     /* setting up diagnostic engine */
     auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
