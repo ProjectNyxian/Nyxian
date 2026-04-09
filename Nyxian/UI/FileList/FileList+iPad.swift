@@ -445,9 +445,11 @@ class SplitScreenDetailViewController: UIViewController {
         let unselectedColor: UIColor = .clear
         
         for tab in tabs {
-            let targetColor: UIColor = (tab == selectedTab) ? selectedColor : unselectedColor
+            let isSelected: Bool = (tab == selectedTab)
+            let targetColor: UIColor = isSelected ? selectedColor : unselectedColor
             UIView.animate(withDuration: 0.25) {
                 tab.backgroundColor = targetColor
+                tab.setSelected(isSelected)
             }
         }
     }
@@ -472,6 +474,7 @@ class UIButtonTab: UIButton {
     let vc: CodeEditorViewController
     let closeAction: (UIButtonTab) -> Void
     
+    private var closeButton: UIButton?
     private let fileIcon: FileIcon
     
     init(frame: CGRect,
@@ -497,7 +500,6 @@ class UIButtonTab: UIButton {
             self.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        self.contentEdgeInsets = UIEdgeInsets(top: 0, left: 32, bottom: 0, right: 10)
         self.setTitle((vc.path as NSString).lastPathComponent, for: .normal)
         self.setTitleColor(currentTheme?.textColor, for: .normal)
         self.titleLabel?.font = .systemFont(ofSize: 13)
@@ -533,32 +535,29 @@ class UIButtonTab: UIButton {
         
         openAction(self)
         
-        var items: [UIMenuElement] = []
-        var buttons: [UIBarButtonItem] = []
-        for item in vc.navigationItem.rightBarButtonItems ?? [] {
-            if let title = item.title {
-                items.append(UIAction(title: title, image: item.image, handler: { [weak self] _ in
-                    guard let s = self else { return }
-                    s.vc.perform(item.action)
-                }))
-            } else {
-                buttons.append(item)
-            }
-        }
+        self.contentEdgeInsets = UIEdgeInsets(top: 0, left: 32, bottom: 0, right: 28) // make room for close button
         
-        let contextMenu = UIMenu(options: .displayInline, children: [
-            UIMenu(options: .displayInline, children: items),
-            UIMenu(options: .displayInline, children: [
-                UIAction(title: "Close (Cmd + W)", handler: { [weak self] _ in
-                    guard let s = self else { return }
-                    closeAction(s)
-                })
-            ])
+        let closeButton = UIButton(type: .system)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setImage(UIImage(systemName: "xmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)), for: .normal)
+        closeButton.tintColor = currentTheme?.textColor.withAlphaComponent(0.6)
+        closeButton.addAction(UIAction { [weak self] _ in
+            guard let s = self else { return }
+            closeAction(s)
+        }, for: .touchUpInside)
+        
+        self.addSubview(closeButton)
+        NSLayoutConstraint.activate([
+            closeButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -6),
+            closeButton.widthAnchor.constraint(equalToConstant: 18),
+            closeButton.heightAnchor.constraint(equalToConstant: 18)
         ])
-        
-        self.storedMenu = contextMenu
-        let menuInteraction = UIContextMenuInteraction(delegate: self)
-        self.addInteraction(menuInteraction)
+        self.closeButton = closeButton
+    }
+    
+    func setSelected(_ selected: Bool) {
+        self.closeButton?.isHidden = !selected
     }
     
     private var storedMenu: UIMenu?
