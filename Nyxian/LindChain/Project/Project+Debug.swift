@@ -22,23 +22,33 @@
 import Foundation
 import UIKit
 
+extension SynpushType: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(UInt32.self)
+        self = SynpushType(rawValue: UInt8(raw)) ?? SynpushType.file
+    }
+}
+
+extension SynpushLevel: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(UInt32.self)
+        self = SynpushLevel(rawValue: UInt8(raw)) ?? SynpushLevel.note
+    }
+}
+
 /*
  * Debug "tile" in UI
  *
  */
 class DebugItem: Codable {
-    enum DebugServerity: UInt8, Codable {
-        case Note = 0
-        case Warning = 1
-        case Error = 2
-    }
-    
-    let severity: DebugItem.DebugServerity
+    let severity: SynpushLevel
     let message: String     // in case of it being a file it contains the error, in case of it being a message it contains the message it self
     let line: UInt64        // in case of it being a file it contains at what line the error is
     let column: UInt64      // in case of it being a file it contains at what column the error is, this and the previous variable is ignored in case of it being a DebugMessage
     
-    init(severity: DebugItem.DebugServerity, message: String, line: UInt64, column: UInt64) {
+    init(severity: SynpushLevel, message: String, line: UInt64, column: UInt64) {
         self.severity = severity
         self.message = message
         self.line = line
@@ -117,7 +127,7 @@ class DebugDatabase: Codable {
     /*
      * Functions to manage object entries
      */
-    func addInternalMessage(message: String, severity: DebugItem.DebugServerity) {
+    func addInternalMessage(message: String, severity: SynpushLevel) {
         self.lock.lock()
         guard let internalObject = self.debugObjects["Internal"] else {
             self.lock.unlock()
@@ -127,7 +137,7 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func setFileDebug(ofPath path: String, synItems: [Synitem]) {
+    func setFileDebug(ofPath path: String, synItems: [Syndiag]) {
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return
         }
@@ -136,7 +146,7 @@ class DebugDatabase: Codable {
         let fileObject: DebugObject = DebugObject(title: relPath, type: .DebugFile)
         
         for item in synItems {
-            let debugItem: DebugItem = DebugItem(severity: DebugItem.DebugServerity(rawValue: item.type) ?? .Note, message: item.message, line: item.line, column: item.column)
+            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: item.line, column: item.column)
             fileObject.debugItems.append(debugItem)
         }
         
@@ -144,8 +154,8 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func getFileDebug(ofPath path: String) -> [Synitem] {
-        var synItems: [Synitem] = []
+    func getFileDebug(ofPath path: String) -> [Syndiag] {
+        var synItems: [Syndiag] = []
         
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return synItems
@@ -158,8 +168,9 @@ class DebugDatabase: Codable {
         }
         
         for item in fileObject.debugItems {
-            let synItem: Synitem = Synitem()
-            synItem.type = item.severity.rawValue
+            let synItem: Syndiag = Syndiag()
+            synItem.level = item.severity
+            synItem.type = .file
             synItem.message = item.message
             synItem.line = item.line
             synItem.column = item.column
@@ -265,7 +276,7 @@ class UIDebugViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let items = sortedDebugObjects[indexPath.section].debugItems
-        let item = (items.count > 0) ? items[indexPath.row] : DebugItem(severity: .Note, message: "Contains no messages", line: 0, column: 0)
+        let item = (items.count > 0) ? items[indexPath.row] : DebugItem(severity: .note, message: "Contains no messages", line: 0, column: 0)
         
         let cell = UITableViewCell()
         cell.textLabel?.text = item.message
@@ -275,23 +286,23 @@ class UIDebugViewController: UITableViewController {
         
         let tintColor: UIColor = {
             switch item.severity {
-            case .Note:
-                return UIColor.systemBlue
-            case .Warning:
+            case .warning:
                 return UIColor.systemOrange
-            case .Error:
+            case .error:
                 return UIColor.systemRed
+            default:
+                return UIColor.systemBlue
             }
         }()
         
         let symbolName: String = {
             switch item.severity {
-            case .Note:
-                return "info.circle.fill"
-            case .Warning:
+            case .warning:
                 return "exclamationmark.triangle.fill"
-            case .Error:
+            case .error:
                 return "xmark.octagon.fill"
+            default:
+                return "info.circle.fill"
             }
         }()
         

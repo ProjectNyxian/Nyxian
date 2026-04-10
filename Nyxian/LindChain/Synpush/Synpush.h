@@ -20,7 +20,7 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synitem.h>
+#import <LindChain/Synpush/Syndiag.h>
 #import <LindChain/Synpush/Syndef.h>
 #include <clang-c/Index.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
-- (NSArray<Synitem *> *)getDiagnostics;
+- (NSArray<Syndiag *> *)getDiagnostics;
 
 - (Syndef*)getDefinitionAtLine:(unsigned)line column:(unsigned)column;
 

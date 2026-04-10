@@ -28,25 +28,46 @@
 extern "C" {
 #endif /* __cplusplus */
 
-typedef enum SynpushType {
+#ifdef __OBJC__
+typedef NS_ENUM(uint8_t, SynpushType) {
+#else
+typedef enum SynpushType : uint8_t {
+#endif /* __OBJC__ */
     SynpushTypeFile = 0,
     SynpushTypeTargetFile,
     SynpushTypeInternal,
+#ifdef __OBJC__
+};
+#else
 } synpushtype_t;
+#endif /* __OBJC__ */
 
-typedef enum SynpushLevel {
+#ifdef __OBJC__
+typedef NS_ENUM(uint8_t, SynpushLevel) {
+#else
+typedef enum SynpushLevel : uint8_t  {
+#endif /* __OBJC__ */
     SynpushLevelNote = 0,
     SynpushLevelRemark,
     SynpushLevelWarning,
     SynpushLevelError,
     SynpushLevelFatal,
+#ifdef __OBJC__
+};
+#else
 } synpushlevel_t;
+#endif /* __OBJC__ */
 
 typedef struct opaque_synpushcore *synpushcore_t;
 
 typedef struct synpushitem {
+#ifdef __OBJC__
+    SynpushType type;
+    SynpushLevel level;
+#else
     synpushtype_t type;
     synpushlevel_t level;
+#endif /* __OBJC__ */
     
     const char *filepath;
     

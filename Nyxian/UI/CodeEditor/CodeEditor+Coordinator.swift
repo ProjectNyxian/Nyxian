@@ -33,11 +33,11 @@ class Coordinator: NSObject, TextViewDelegate {
     private(set) var needsAnotherProcess: Bool = false
 
     private(set) var debounce: LDEDebouncer?
-    private(set) var diag: [Synitem] = []
-    private let vtkey: [(String,UIColor)] = [
-        ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
-        ("exclamationmark.triangle.fill", UIColor.orange.withAlphaComponent(0.3)),
-        ("xmark.octagon.fill", UIColor.red.withAlphaComponent(0.3))
+    private(set) var diag: [Syndiag] = []
+    private let vtkey: [SynpushLevel:(String,UIColor)] = [
+        .note: ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
+        .warning: ("exclamationmark.triangle.fill", UIColor.orange.withAlphaComponent(0.3)),
+        .error: ("xmark.octagon.fill", UIColor.red.withAlphaComponent(0.3))
     ]
     
     init(parent: CodeEditorViewController) {
@@ -163,7 +163,9 @@ class Coordinator: NSObject, TextViewDelegate {
             }
             guard let rect = rect else { continue }
             
-            let properties: (String,UIColor) = self.vtkey[Int(item.type)]
+            guard let properties: (String,UIColor) = self.vtkey[item.level] else {
+                continue
+            }
             
             DispatchQueue.main.async {
                 let view: UIView = UIView(frame: CGRect(x: 0, y: rect.origin.y, width: 3000, height: rect.height))

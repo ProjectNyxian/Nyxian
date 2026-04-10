@@ -32,13 +32,13 @@ static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
 
 #pragma mark - Small C helpers
 
-static inline uint8_t mapSeverity(enum CXDiagnosticSeverity severity) {
-    switch (severity) {
-        case CXDiagnostic_Note:    return 0;
-        case CXDiagnostic_Warning: return 1;
-        case CXDiagnostic_Error:
-        case CXDiagnostic_Fatal:   return 2;
-        default:                   return 2;
+static inline SynpushLevel mapSeverity(enum CXDiagnosticSeverity severity) {
+    switch(severity)
+    {
+        case CXDiagnostic_Warning: return SynpushLevelWarning;
+        case CXDiagnostic_Error:   return SynpushLevelError;
+        case CXDiagnostic_Fatal:   return SynpushLevelFatal;
+        default:                   return SynpushLevelNote;
     }
 }
 
@@ -153,7 +153,7 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_unlock(&_mutex);
 }
 
-- (NSArray<Synitem *> *)getDiagnostics
+- (NSArray<Syndiag *> *)getDiagnostics
 {
     pthread_mutex_lock(&_mutex);
 
@@ -168,7 +168,7 @@ static BOOL isHeaderFile(const char *path)
     unsigned count = clang_getNumDiagnostics(_unit);
     
     /* preallocating array with count of items */
-    NSMutableArray<Synitem *> *items = [NSMutableArray arrayWithCapacity:count];
+    NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
 
     CXFile targetFile = NULL;
     for(unsigned i = 0; i < count; ++i)
@@ -230,10 +230,10 @@ static BOOL isHeaderFile(const char *path)
         const char *cmsg = clang_getCString(diagStr);
 
         /* creating actual SynItem! */
-        Synitem *item = [[Synitem alloc] init];
+        Syndiag *item = [[Syndiag alloc] init];
         item.line    = line;
         item.column  = col;
-        item.type    = mapSeverity(severity);
+        item.level    = mapSeverity(severity);
         item.message = [NSString stringWithFormat:@"%s", cmsg ?: "Unknown"];
         [items addObject:item];
 

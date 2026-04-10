@@ -30,7 +30,7 @@
 
 - (instancetype)init:(NSArray*)flags;
 
-- (int)compileObject:(NSString*)filePath outputFile:(NSString*)outputFilePath issues:(NSArray<Synitem*>**)issues;
+- (int)compileObject:(NSString*)filePath outputFile:(NSString*)outputFilePath issues:(NSArray<Syndiag*>**)issues;
 - (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error;
 
 @end

@@ -19,27 +19,30 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Synpush/Synitem.h>
+#import <LindChain/Synpush/Syndiag.h>
 
-@implementation Synitem
+@implementation Syndiag
 
-+ (UInt8)SynitemLevelOfClangLevel:(NSString *)levelStr {
++ (SynpushLevel)SynitemLevelOfClangLevel:(NSString *)levelStr
+{
     levelStr = [levelStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    if ([levelStr hasPrefix:@"error"] || [levelStr hasPrefix:@"fatal"]) return 2;
-    if ([levelStr hasPrefix:@"warning"]) return 1;
-    if ([levelStr hasPrefix:@"note"]) return 3;
-    if ([levelStr hasPrefix:@"remark"]) return 4;
-    return 0;
+    if([levelStr hasPrefix:@"error"]) return SynpushLevelError;
+    if([levelStr hasPrefix:@"fatal"]) return SynpushLevelFatal;
+    if([levelStr hasPrefix:@"warning"]) return SynpushLevelWarning;
+    if([levelStr hasPrefix:@"remark"]) return SynpushLevelRemark;
+    return SynpushLevelNote;
 }
 
-+ (NSArray<Synitem *> *)OfClangErrorWithString:(NSString *)errorString {
-    NSMutableArray<Synitem *> *issues = [[NSMutableArray alloc] init];
++ (NSArray<Syndiag *> *)OfClangErrorWithString:(NSString *)errorString
+{
+    NSMutableArray<Syndiag *> *issues = [[NSMutableArray alloc] init];
     [self OfClangErrorWithString:errorString usingArray:&issues];
     return issues;
 }
 
 + (void)OfClangErrorWithString:(NSString *)errorString
-                    usingArray:(NSMutableArray<Synitem *> **)issues {
+                    usingArray:(NSMutableArray<Syndiag *> **)issues
+{
     NSArray *errorLines = [errorString componentsSeparatedByString:@"\n"];
     
     for (NSString *line in errorLines) {
@@ -55,18 +58,19 @@
         NSUInteger levelIdx = hasCol ? 3 : 2;
         if (errorComponents.count <= levelIdx + 1) continue;
         
-        Synitem *item = [[Synitem alloc] init];
-        item.line = [potentialLine integerValue];
-        item.column = hasCol ? [potentialCol integerValue] : 0;
-        item.type = [Synitem SynitemLevelOfClangLevel:errorComponents[levelIdx]];
+        Syndiag *syndiag = [[Syndiag alloc] init];
+        syndiag.line = [potentialLine integerValue];
+        syndiag.column = hasCol ? [potentialCol integerValue] : 0;
+        syndiag.type = SynpushTypeFile;
+        syndiag.level = [Syndiag SynitemLevelOfClangLevel:errorComponents[levelIdx]];
         
-        if (item.type == 0) continue;
+        if (syndiag.type == 0) continue;
         
         NSUInteger msgStart = levelIdx + 1;
-        item.message = [[errorComponents subarrayWithRange:NSMakeRange(msgStart, errorComponents.count - msgStart)] componentsJoinedByString:@":"];
-        item.message = [item.message stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        syndiag.message = [[errorComponents subarrayWithRange:NSMakeRange(msgStart, errorComponents.count - msgStart)] componentsJoinedByString:@":"];
+        syndiag.message = [syndiag.message stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
         
-        [*issues addObject:item];
+        [*issues addObject:syndiag];
     }
 }
 

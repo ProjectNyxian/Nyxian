@@ -19,21 +19,28 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SYNITEM_H
-#define SYNITEM_H
+#ifndef SYNDIAG_H
+#define SYNDIAG_H
 
 #import <Foundation/Foundation.h>
+#import <LindChain/Synpush/SynpushCore.h>
 
-@interface Synitem : NSObject
+@interface Syndiag : NSObject
 
+@property (nonatomic,readwrite) SynpushType type;
+@property (nonatomic,readwrite) SynpushLevel level;
+
+@property (nonatomic,strong) NSString *filepath;
 @property (nonatomic,readwrite) UInt64 line;
 @property (nonatomic,readwrite) UInt64 column;
-@property (nonatomic,readwrite) UInt8 type;
+
 @property (nonatomic,strong) NSString *message;
 
-+ (NSArray<Synitem*> *)OfClangErrorWithString:(NSString*)errorString;
-+ (void)OfClangErrorWithString:(NSString*)errorString usingArray:(NSMutableArray<Synitem*> **)issues;
+/* will later be deprecated because LDEObjectCompiler will use SynpushCore utilites, as CompilerInvocation and so on use the same underlying APIs as SynpushCore */
++ (SynpushLevel)SynitemLevelOfClangLevel:(NSString *)levelStr;
++ (NSArray<Syndiag*> *)OfClangErrorWithString:(NSString*)errorString;
++ (void)OfClangErrorWithString:(NSString*)errorString usingArray:(NSMutableArray<Syndiag*> **)issues;
 
 @end
 
-#endif /* SYNITEM_H */
+#endif /* SYNDIAG_H */

@@ -243,7 +243,7 @@ class Builder {
                         threader.lockdown = true
                     }
                     
-                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Synitem]) ?? [])
+                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Syndiag]) ?? [])
                     
                     XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)
@@ -477,7 +477,7 @@ class Builder {
             } catch {
                 try? builder.clean()
                 result = false
-                builder.database.addInternalMessage(message: error.localizedDescription, severity: .Error)
+                builder.database.addInternalMessage(message: error.localizedDescription, severity: .error)
             }
             
             builder.database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
