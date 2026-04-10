@@ -52,10 +52,20 @@
     self.view.backgroundColor = UIColor.clearColor;
     self.view.autoresizingMask = UIViewAutoresizingNone;
     
-    self.view.layer.shadowColor = UIColor.blackColor.CGColor;
-    self.view.layer.shadowOpacity = 0.8;
-    self.view.layer.shadowRadius = 20;
-    self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    if(UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark)
+    {
+        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+        self.view.layer.shadowOpacity = 0.8;
+        self.view.layer.shadowRadius = 20;
+        self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    }
+    else
+    {
+        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+        self.view.layer.shadowOpacity = 0.4;
+        self.view.layer.shadowRadius = 10;
+        self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    }
     
     _contentStack = [UIStackView new];
     _contentStack.frame = self.view.bounds;
@@ -574,6 +584,21 @@
 {
     [super traitCollectionDidChange:previousTraitCollection];
     _contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
+    
+    if(UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark)
+    {
+        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+        self.view.layer.shadowOpacity = 0.8;
+        self.view.layer.shadowRadius = 20;
+        self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    }
+    else
+    {
+        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+        self.view.layer.shadowOpacity = 0.4;
+        self.view.layer.shadowRadius = 10;
+        self.view.layer.shadowOffset = CGSizeMake(0, 0);
+    }
 }
 
 - (NSString*)getWindowName
