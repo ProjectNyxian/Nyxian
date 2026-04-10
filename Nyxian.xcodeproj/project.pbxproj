@@ -111,6 +111,7 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				LindChain/Clang.xcframework,
 				LindChain/JBSupport/Shell.m,
 				LindChain/JBSupport/tshelper,
 				LindChain/LiveContainer/LCBootstrap.m,
@@ -143,6 +144,7 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				LindChain/Clang.xcframework,
 				LindChain/Debugger/Utils.c,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
@@ -306,24 +308,20 @@
 		7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
-				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
-				LindChain/Clang.xcframework,
 				LindChain/OpenSSL.xcframework,
 			);
 		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
-				LindChain/Clang.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */;
 			membershipExceptions = (
-				LindChain/Clang.xcframework,
 				LindChain/OpenSSL.xcframework,
 			);
 		};

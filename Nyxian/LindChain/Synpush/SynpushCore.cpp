@@ -55,7 +55,7 @@ bool SPCreateUnit(spcore_t spc)
     remaps.push_back(spc->file);
     ArrayRef<ASTUnit::RemappedFile> remapRef = remaps;
     
-    if(spc->unit != nullptr)
+    if(spc->unit == nullptr)
     {
         spc->unit = ASTUnit::LoadFromCommandLine(args.data(),
                                                  args.data() + args.size(),
@@ -83,7 +83,7 @@ bool SPCreateUnit(spcore_t spc)
     }
     else
     {
-        if(!spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
+        if(spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
         {
             SPDestroyUnit(spc);
         }
@@ -111,12 +111,16 @@ spcore_t SPCreateCore(int argc, const char **argv)
 
 void SPFreeCore(spcore_t spc)
 {
+    if(spc->unit != nullptr)
+    {
+        SPDestroyUnit(spc);
+    }
     delete static_cast<opaque_synpushcore *>(spc);
 }
 
 void SPUpdateArguments(spcore_t spc,
-                        int argc,
-                        const char **argv)
+                       int argc,
+                       const char **argv)
 {
     SPDestroyUnit(spc);
     spc->BaseArgs.clear();
@@ -137,11 +141,11 @@ void SPUpdateFileContent(spcore_t spc,
 
 uint64_t SPDiagnosticCount(spcore_t spc)
 {
-    return spc->unit->stored_diag_size();
+    return (spc->unit == nullptr) ? 0 : spc->unit->stored_diag_size();
 }
 
-spdiag_t SPCDiagnosticGet(spcore_t spc,
-                          uint64_t index)
+spdiag_t SPDiagnosticGet(spcore_t spc,
+                         uint64_t index)
 {
     const StoredDiagnostic &diag = spc->unit->stored_diag_begin()[index];
     clang::PresumedLoc loc = spc->unit->getSourceManager().getPresumedLoc(diag.getLocation());

@@ -21,50 +21,13 @@
 
 #import <LindChain/Synpush/Synpush.h>
 #import <pthread.h>
-#import <dispatch/dispatch.h>
 #import <string.h>
 #import <strings.h>
 
-static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
-                          CXTranslationUnit_KeepGoing |
-                          CXTranslationUnit_IncludeBriefCommentsInCodeCompletion |
-                          CXTranslationUnit_DetailedPreprocessingRecord;
-
-#pragma mark - Small C helpers
-
-static inline SPDiagLevel mapSeverity(enum CXDiagnosticSeverity severity) {
-    switch(severity)
-    {
-        case CXDiagnostic_Warning: return SPDiagLevelWarning;
-        case CXDiagnostic_Error:   return SPDiagLevelError;
-        case CXDiagnostic_Fatal:   return SPDiagLevelFatal;
-        default:                   return SPDiagLevelNote;
-    }
-}
-
-static BOOL isHeaderFile(const char *path)
-{
-    if(!path)
-    {
-        return NO;
-    }
-    
-    const char *ext = strrchr(path, '.');
-    
-    if(!ext)
-    {
-        return NO;
-    }
-    
-    return (strcmp(ext, ".h")  == 0 || strcmp(ext, ".hh") == 0 || strcmp(ext, ".hpp") == 0);
-}
 
 #pragma mark - SynpushServer
 
 @interface SynpushServer () {
-    CXIndex _index;
-    CXTranslationUnit _unit;
-    struct CXUnsavedFile _unsaved;
     NSData *_contentData;
     NSString *_filepath;
     char *_cFilename;
@@ -72,7 +35,7 @@ static BOOL isHeaderFile(const char *path)
     char **_args;
     pthread_mutex_t _mutex;
     
-   // synpushcore_t _spc;
+    spcore_t _spc;
 }
 @end
 
@@ -86,7 +49,6 @@ static BOOL isHeaderFile(const char *path)
     /* initilizing step numero uno */
     _filepath = [filepath copy];
     _cFilename = strdup(_filepath.UTF8String);
-    _unsaved.Filename = _cFilename;
 
     pthread_mutex_init(&_mutex, NULL);
     return self;
@@ -123,7 +85,7 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_lock(&_mutex);
     
     /* checking for unit */
-    if(!_unit)
+    if(!_spc)
     {
         /* needs reactivation */
         pthread_mutex_unlock(&_mutex);
@@ -132,23 +94,9 @@ static BOOL isHeaderFile(const char *path)
     }
     
     _contentData = newData;
-
-    _unsaved.Filename = _cFilename;
-    _unsaved.Contents = (const char*)_contentData.bytes;
-    _unsaved.Length   = (unsigned long)_contentData.length;
-    clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit));
     
-    /*const int argc = (int)[args count];
-    char **argv = (char **)malloc(sizeof(char*) * argc);
-    for(int i = 0; i < argc; i++) argv[i] = strdup([[args objectAtIndex:i] UTF8String]);
-    
-    _spc = SPCCreateCore(argc, (const char**)argv);
-    SPCUploadFileContent(_spc, _cFilename, _contentData.bytes);
-    SPCTest(_spc);
-    SPCFreeCore(_spc);
-    
-    for(int i = 0; i < argc; i++) free(argv[i]);
-    free(argv);*/
+    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes);
+    SPCreateUnit(_spc);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -158,87 +106,38 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_lock(&_mutex);
 
     /* checking if unit is already active */
-    if(!_unit)
+    if(_spc == NULL)
     {
         /* its not so fall back to being an asshole */
         pthread_mutex_unlock(&_mutex);
         return @[];
     }
     
-    unsigned count = clang_getNumDiagnostics(_unit);
+    uint64_t count = SPDiagnosticCount(_spc);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
 
-    CXFile targetFile = NULL;
-    for(unsigned i = 0; i < count; ++i)
+    //CXFile targetFile = NULL;
+    for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        CXDiagnostic diag = clang_getDiagnostic(_unit, i);
+        spdiag_t diag = SPDiagnosticGet(_spc, i);
         
-        /* getting severity of diagnostic */
-        enum CXDiagnosticSeverity severity = clang_getDiagnosticSeverity(diag);
-        
-        /* checking if we shall ignore the diagnostic */
-        if(severity == CXDiagnostic_Ignored)
+        /* TODO: remove this check, let the Coordinator do this */
+        if(diag.type == SPDiagTypeTargetFile)
         {
-            clang_disposeDiagnostic(diag);
-            continue;
-        }
-
-        /* getting location of diagnostic (line and column basically lol x3) */
-        CXSourceLocation loc = clang_getDiagnosticLocation(diag);
-        
-        /* now getting the user readable location */
-        CXFile file;
-        unsigned line = 0, col = 0;
-        clang_getSpellingLocation(loc, &file, &line, &col, NULL);
-        
-        /* checking if we got the file already */
-        if(targetFile == NULL)
-        {
-            
-            /*
-             * getting name of file and checking if its
-             * the same file targetted
-             */
-            CXString fileName = clang_getFileName(file);
-            const char *fn = clang_getCString(fileName);
-            BOOL sameFile = (fn && _cFilename) ? (strcmp(fn, _cFilename) == 0) : NO;
-            clang_disposeString(fileName);
-            if(!sameFile)
-            {
-                clang_disposeDiagnostic(diag);
-                continue;
-            }
-            
-            /* finally got the targetFile */
-            targetFile = file;
-        }
-        else
-        {
-            /* already got the file! */
-            if(!clang_File_isEqual(file, targetFile))
-            {
-                clang_disposeDiagnostic(diag);
-                continue;
-            }
+            /* creating actual SynItem! */
+            Syndiag *item = [[Syndiag alloc] init];
+            item.line = diag.line;
+            item.column = diag.column;
+            item.type = diag.type;
+            item.level = diag.level;
+            item.message = [NSString stringWithCString:diag.message encoding:NSUTF8StringEncoding];
+            [items addObject:item];
         }
         
-        /* getting diagnostic string */
-        CXString diagStr = clang_getDiagnosticSpelling(diag);
-        const char *cmsg = clang_getCString(diagStr);
-
-        /* creating actual SynItem! */
-        Syndiag *item = [[Syndiag alloc] init];
-        item.line    = line;
-        item.column  = col;
-        item.level    = mapSeverity(severity);
-        item.message = [NSString stringWithFormat:@"%s", cmsg ?: "Unknown"];
-        [items addObject:item];
-
-        clang_disposeString(diagStr);
-        clang_disposeDiagnostic(diag);
+        SPDiagnosticDestroy(diag);
     }
 
     pthread_mutex_unlock(&_mutex);
@@ -252,22 +151,13 @@ static BOOL isHeaderFile(const char *path)
     pthread_mutex_lock(&_mutex);
     
     /* dispose many clang things to get rid of most */
-    if(_unit)
+    if(_spc != NULL)
     {
-        clang_disposeTranslationUnit(_unit);
-        _unit = NULL;
-    }
-    
-    if(_index)
-    {
-        clang_disposeIndex(_index);
-        _index = NULL;
+        SPFreeCore(_spc);
     }
     
     /* releasing content data memory */
     _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
-    _unsaved.Contents = (const char*)_contentData.bytes;
-    _unsaved.Length = 0;
     
     pthread_mutex_unlock(&_mutex);
 }
@@ -275,7 +165,7 @@ static BOOL isHeaderFile(const char *path)
 - (BOOL)isActive
 {
     pthread_mutex_lock(&_mutex);
-    BOOL active = (_unit != NULL);
+    BOOL active = (_spc != NULL);
     pthread_mutex_unlock(&_mutex);
     return active;
 }
@@ -308,32 +198,24 @@ static BOOL isHeaderFile(const char *path)
     
     /* making sure that bytes doesnt get deallocated randomly */
     _contentData = data;
-    _unsaved.Contents = (const char*)_contentData.bytes;
-    _unsaved.Length = (unsigned long)_contentData.length;
     
-    /* creating new index */
-    _index = clang_createIndex(0, 0);
+    /* creating new synpush core and update all */
+    _spc = SPCreateCore(_argc, (const char**)_args);
+    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes);
+    bool succeed = SPCreateUnit(_spc);
     
-    /* parsing code*/
-    enum CXErrorCode err = clang_parseTranslationUnit2(_index, _cFilename, (const char *const *)_args, _argc, &_unsaved, 1, tuFlags, &_unit);
-    
-    /* done */
     pthread_mutex_unlock(&_mutex);
     
-    return (err == CXError_Success && _unit != NULL);
+    return succeed;
 }
 
 - (void)dealloc
 {
     /* locking and disposing lol */
     pthread_mutex_lock(&_mutex);
-    if(_unit)
+    if(_spc != NULL)
     {
-        clang_disposeTranslationUnit(_unit);
-    }
-    if(_index)
-    {
-        clang_disposeIndex(_index);
+        SPFreeCore(_spc);
     }
     
     if(_args != NULL)
@@ -355,197 +237,7 @@ static BOOL isHeaderFile(const char *path)
 - (Syndef*)getDefinitionAtLine:(unsigned)line
                         column:(unsigned)column
 {
-    pthread_mutex_lock(&_mutex);
-    
-    /* no unit, no definition */
-    if(!_unit)
-    {
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* get the source file we are working with */
-    CXFile file = clang_getFile(_unit, [_filepath UTF8String]);
-    if(!file)
-    {
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* build a source location from the provided line and column */
-    CXSourceLocation loc = clang_getLocation(_unit, file, line, column);
-    
-    /* get the cursor sitting at that location */
-    CXCursor cursor = clang_getCursor(_unit, loc);
-    
-    /* check if cursor is valid */
-    if(clang_Cursor_isNull(cursor) || clang_isInvalid(clang_getCursorKind(cursor)))
-    {
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* get the definition cursor — try direct definition first */
-    CXCursor defCursor = clang_getCursorDefinition(cursor);
-
-    /*
-     * if that failed or returned the same location (call expr pointing to itself),
-     * resolve the referenced symbol first, then get its definition.
-     */
-    if(clang_Cursor_isNull(defCursor) ||
-       clang_isInvalid(clang_getCursorKind(defCursor)) ||
-       clang_equalCursors(defCursor, cursor))
-    {
-        CXCursor referenced = clang_getCursorReferenced(cursor);
-        
-        if(!clang_Cursor_isNull(referenced) && !clang_isInvalid(clang_getCursorKind(referenced)))
-        {
-            defCursor = clang_getCursorDefinition(referenced);
-            
-            /* if still no definition, use the declaration itself */
-            if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
-            {
-                defCursor = referenced;
-            }
-        }
-    }
-
-    /* last resort: canonical declaration */
-    if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
-    {
-        defCursor = clang_getCanonicalCursor(cursor);
-    }
-    
-    /* still nothing? bail */
-    if(clang_Cursor_isNull(defCursor) || clang_isInvalid(clang_getCursorKind(defCursor)))
-    {
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* objc specific patches and fixes  */
-    enum CXCursorKind defKind = clang_getCursorKind(defCursor);
-    if(defKind == CXCursor_ObjCInstanceMethodDecl ||
-       defKind == CXCursor_ObjCClassMethodDecl)
-    {
-        /* checking if cursor it self is the impl */
-        BOOL cursorIsTheImpl = NO;
-        if(clang_equalCursors(clang_getCanonicalCursor(cursor),
-                              clang_getCanonicalCursor(defCursor)))
-        {
-            /* its the impl it self */
-            CXSourceLocation cursorLoc = clang_getCursorLocation(cursor);
-            CXFile cursorFile = NULL;
-            clang_getSpellingLocation(cursorLoc, &cursorFile, NULL, NULL, NULL);
-            
-            if(cursorFile)
-            {
-                CXString cursorFilename = clang_getFileName(cursorFile);
-                const char *cursorFilenameCStr = clang_getCString(cursorFilename);
-                cursorIsTheImpl = !isHeaderFile(cursorFilenameCStr);
-                clang_disposeString(cursorFilename);
-            }
-        }
-        
-        if(cursorIsTheImpl)
-        {
-            /* getting cursor to header decl */
-            CXCursor *overridden = NULL;
-            unsigned  numOverridden = 0;
-            clang_getOverriddenCursors(cursor, &overridden, &numOverridden);
-            
-            CXCursor best = cursor;
-
-            for(unsigned i = 0; i < numOverridden; i++)
-            {
-                CXCursor candidate = overridden[i];
-
-                CXSourceLocation loc = clang_getCursorLocation(candidate);
-                CXFile file = NULL;
-                clang_getSpellingLocation(loc, &file, NULL, NULL, NULL);
-
-                if(!file)
-                {
-                    continue;
-                }
-
-                CXString fname = clang_getFileName(file);
-                const char *fnameCStr = clang_getCString(fname);
-                BOOL inHeader = isHeaderFile(fnameCStr);
-                clang_disposeString(fname);
-
-                if(inHeader)
-                {
-                    best = candidate;
-                    break;
-                }
-            }
-            
-            if(overridden)
-            {
-                clang_disposeOverriddenCursors(overridden);
-            }
-
-            if(!clang_equalCursors(best, cursor))
-            {
-                defCursor = best;
-            }
-
-            CXCursor canonical = clang_getCanonicalCursor(cursor);
-
-            CXSourceLocation loc = clang_getCursorLocation(canonical);
-            CXFile file = NULL;
-            clang_getSpellingLocation(loc, &file, NULL, NULL, NULL);
-
-            if(file)
-            {
-                CXString fname = clang_getFileName(file);
-                const char *fnameCStr = clang_getCString(fname);
-                BOOL inHeader = isHeaderFile(fnameCStr);
-                clang_disposeString(fname);
-
-                if(inHeader)
-                {
-                    defCursor = canonical;
-                }
-            }
-        }
-    }
-    
-    /* extract the location of the definition */
-    CXSourceLocation defLoc = clang_getCursorLocation(defCursor);
-    
-    CXFile defFile;
-    unsigned defLine = 0, defCol = 0;
-    clang_getSpellingLocation(defLoc, &defFile, &defLine, &defCol, NULL);
-    
-    if(!defFile)
-    {
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* get the filepath of the definition */
-    CXString defFilename = clang_getFileName(defFile);
-    const char *defFilenameCStr = clang_getCString(defFilename);
-    
-    if(!defFilenameCStr)
-    {
-        clang_disposeString(defFilename);
-        pthread_mutex_unlock(&_mutex);
-        return nil;
-    }
-    
-    /* build the result */
-    Syndef *def = [[Syndef alloc] init];
-    def.filepath = [NSString stringWithUTF8String:defFilenameCStr];
-    def.line     = defLine;
-    def.column   = defCol;
-    
-    clang_disposeString(defFilename);
-    pthread_mutex_unlock(&_mutex);
-    
-    return def;
+    return nil;
 }
 
 @end

@@ -22,6 +22,10 @@
 #ifndef SYNPUSHCORE_H
 #define SYNPUSHCORE_H
 
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+#endif /* __OBJC__ */
+
 #include <stdint.h>
 
 #ifdef __cplusplus
