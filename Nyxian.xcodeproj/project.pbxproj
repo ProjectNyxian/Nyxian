@@ -111,7 +111,6 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Clang.xcframework,
 				LindChain/JBSupport/Shell.m,
 				LindChain/JBSupport/tshelper,
 				LindChain/LiveContainer/LCBootstrap.m,
@@ -144,7 +143,6 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Clang.xcframework,
 				LindChain/Debugger/Utils.c,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,

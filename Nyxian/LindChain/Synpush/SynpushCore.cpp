@@ -140,6 +140,10 @@ void SPUpdateFileContent(spcore_t spc,
     llvm::StringRef contentRef(content, length);
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
     auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
+    if(spc->file.second != nullptr)
+    {
+        delete spc->file.second;
+    }
     if(!spc->file.first.empty() && spc->file.first != remap.first && spc->unit != nullptr)
     {
         SPDestroyUnit(spc);
