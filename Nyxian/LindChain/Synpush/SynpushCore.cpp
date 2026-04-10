@@ -137,7 +137,12 @@ void SPUpdateFileContent(spcore_t spc,
 {
     llvm::StringRef contentRef(content, length);
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
-    spc->file = clang::ASTUnit::RemappedFile(filepath, buf.release());
+    auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
+    if(!spc->file.first.empty() && spc->file.first != remap.first && spc->unit != nullptr)
+    {
+        SPDestroyUnit(spc);
+    }
+    spc->file = remap;
 }
 
 uint64_t SPDiagnosticCount(spcore_t spc)
