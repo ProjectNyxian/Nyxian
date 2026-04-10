@@ -82,22 +82,25 @@
     UIThemedTabViewController *themedTabViewController = [[UIThemedTabViewController alloc] init];
     
     ContentViewController *contentViewController = [[ContentViewController alloc] initWithPath: [[Bootstrap shared] bootstrapPath:@"/Projects"]];
+    ApplicationManagementViewController * applicationViewController = [ApplicationManagementViewController shared];
     SettingsViewController *settingsViewController = [[SettingsViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
     
     UINavigationController *contentNavigationController = [[UINavigationController alloc] initWithRootViewController:contentViewController];
+    UINavigationController *applicationNavigationController = [[UINavigationController alloc] initWithRootViewController:applicationViewController];
     UINavigationController *settingsNavigationController = [[UINavigationController alloc] initWithRootViewController:settingsViewController];
     
-    contentNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Projects" image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:0];
-    settingsNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Settings" image:[UIImage systemImageNamed:@"gear"] tag:1];
+    contentNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Projects" image:[UIImage systemImageNamed:@"folder.fill"] tag:0];
+    applicationViewController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Applications" image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:1];
+    settingsNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Settings" image:[UIImage systemImageNamed:@"gear"] tag:2];
 
-    NSMutableArray<UIViewController*> *viewControllers = [[NSMutableArray alloc] initWithArray:@[contentNavigationController, settingsNavigationController]];
+    NSMutableArray<UIViewController*> *viewControllers = [[NSMutableArray alloc] initWithArray:@[contentNavigationController, applicationNavigationController, settingsNavigationController]];
     
-    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+    if(@available(iOS 26.0, *))
     {
-        if(@available(iOS 26.0, *))
+        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
         {
             UIViewController *fakeViewController = [[UIViewController alloc] init];
-            fakeViewController.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:2];
+            fakeViewController.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:3];
             fakeViewController.tabBarItem.title = @"Switcher";
             fakeViewController.tabBarItem.image = [UIImage systemImageNamed:@"iphone.app.switcher"];
             [viewControllers addObject:fakeViewController];
@@ -113,7 +116,7 @@
 
 - (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController
 {
-    if(viewController.tabBarItem.tag == 2)
+    if(viewController.tabBarItem.tag == 3)
     {
         [_window showAppSwitcherExternal];
         return NO;

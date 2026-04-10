@@ -196,7 +196,7 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
         self.tableView.register(NXProjectTableCell.self, forCellReuseIdentifier: NXProjectTableCell.reuseIdentifier())
         LDEApplicationWorkspace.shared().ping()
         self.title = "Applications"
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", image: UIImage(systemName: "plus"), target: self, action: #selector(plusButtonPressed))
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: nil, image: UIImage(systemName: "square.and.arrow.down.fill"), target: self, action: #selector(plusButtonPressed))
     }
     
     override func viewDidAppear(_ animated: Bool) {
