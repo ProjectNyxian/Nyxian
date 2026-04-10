@@ -24,6 +24,7 @@
 #import <dispatch/dispatch.h>
 #import <string.h>
 #import <strings.h>
+#import <LindChain/Synpush/SynpushCore.h>
 
 static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
                           CXTranslationUnit_KeepGoing |
@@ -71,6 +72,8 @@ static BOOL isHeaderFile(const char *path)
     int _argc;
     char **_args;
     pthread_mutex_t _mutex;
+    
+    synpushcore_t _spc;
 }
 @end
 
@@ -80,7 +83,7 @@ static BOOL isHeaderFile(const char *path)
 {
     self = [super init];
     if(!self) return nil;
-
+    
     /* initilizing step numero uno */
     _filepath = [filepath copy];
     _cFilename = strdup(_filepath.UTF8String);
@@ -135,6 +138,18 @@ static BOOL isHeaderFile(const char *path)
     _unsaved.Contents = (const char*)_contentData.bytes;
     _unsaved.Length   = (unsigned long)_contentData.length;
     clang_reparseTranslationUnit(_unit, 1, &_unsaved, clang_defaultReparseOptions(_unit));
+    
+    /*const int argc = (int)[args count];
+    char **argv = (char **)malloc(sizeof(char*) * argc);
+    for(int i = 0; i < argc; i++) argv[i] = strdup([[args objectAtIndex:i] UTF8String]);
+    
+    _spc = SPCCreateCore(argc, (const char**)argv);
+    SPCUploadFileContent(_spc, _cFilename, _contentData.bytes);
+    SPCTest(_spc);
+    SPCFreeCore(_spc);
+    
+    for(int i = 0; i < argc; i++) free(argv[i]);
+    free(argv);*/
 
     pthread_mutex_unlock(&_mutex);
 }

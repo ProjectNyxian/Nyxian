@@ -111,6 +111,9 @@ class SplitScreenDetailViewController: UIViewController {
     
     var logViewTopConstraint: NSLayoutConstraint? = nil
     var logView: LogTextView?
+    var logViewHeightConstraint: NSLayoutConstraint?
+    var logViewHeight: CGFloat = 300
+    let resizeHandle = UIView()
     
     var childVCMasterConstraints: [NSLayoutConstraint]?
     var childVCMaster: UIViewController?
@@ -198,7 +201,11 @@ class SplitScreenDetailViewController: UIViewController {
                         self.logViewTopConstraint?.isActive = false
                         
                         constraints.append(contentsOf: [
-                            logView!.heightAnchor.constraint(equalToConstant: 300)
+                            {
+                                let h = logView!.heightAnchor.constraint(equalToConstant: logViewHeight)
+                                self.logViewHeightConstraint = h
+                                return h
+                            }()
                         ])
                     }
                     
@@ -386,6 +393,18 @@ class SplitScreenDetailViewController: UIViewController {
             ])
         }
         
+        resizeHandle.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(resizeHandle)
+        NSLayoutConstraint.activate([
+            resizeHandle.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            resizeHandle.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            resizeHandle.bottomAnchor.constraint(equalTo: logView!.topAnchor),
+            resizeHandle.heightAnchor.constraint(equalToConstant: 24)
+        ])
+        
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleResizePan(_:)))
+        resizeHandle.addGestureRecognizer(pan)
+        
         self.navigationItem.titleView = self.scrollView
         
         var barButtons: [UIBarButtonItem] = []
@@ -405,6 +424,21 @@ class SplitScreenDetailViewController: UIViewController {
             self.present(loggerView, animated: true)
         }))
         self.navigationItem.rightBarButtonItems = barButtons
+    }
+    
+    @objc private func handleResizePan(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: self.view)
+        gesture.setTranslation(.zero, in: self.view)
+        
+        let minHeight: CGFloat = 80
+        let maxHeight: CGFloat = self.view.bounds.height * 0.7
+        
+        logViewHeight = max(minHeight, min(maxHeight, logViewHeight - translation.y))
+        logViewHeightConstraint?.constant = logViewHeight
+        
+        UIView.animate(withDuration: 0.0) {
+            self.view.layoutIfNeeded()
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {

@@ -138,19 +138,22 @@ static const CGFloat kAutoScrollThreshold = 20.0;
     self.selectedRange = NSMakeRange(self.text.length, 0);
     
     _isAppendingOutput = NO;
-
+    
     if(_followTail)
     {
-        [self scrollToBottom];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self scrollToBottom];
+        });
     }
 }
 
 - (void)scrollToBottom
 {
-    if(self.text.length > 0)
+    UIEdgeInsets insets = self.contentInset;
+    CGFloat bottomOffset = self.contentSize.height - self.bounds.size.height + insets.bottom;
+    if(bottomOffset > self.contentOffset.y)
     {
-        NSRange range = NSMakeRange(self.text.length - 1, 1);
-        [self scrollRangeToVisible:range];
+        [self setContentOffset:CGPointMake(0, MAX(0, bottomOffset)) animated:NO];
     }
 }
 
@@ -258,6 +261,16 @@ static const CGFloat kAutoScrollThreshold = 20.0;
     
     /* starting reading from new pipe */
     [_pipe.fileHandleForReading readInBackgroundAndNotify];
+}
+
+- (void)setContentOffset:(CGPoint)contentOffset
+{
+    [super setContentOffset:contentOffset];
+    if(!_isAppendingOutput)
+    {
+        CGFloat distanceFromBottom = self.contentSize.height - self.bounds.size.height - contentOffset.y;
+        _followTail = (distanceFromBottom <= kAutoScrollThreshold);
+    }
 }
 
 @end

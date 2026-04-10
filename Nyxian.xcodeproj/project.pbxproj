@@ -143,7 +143,7 @@
 		79AF512C2F1CBD110055004A /* Exceptions for "Nyxian" folder in "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Debugger/Utils.m,
+				LindChain/Debugger/Utils.c,
 				LindChain/Decompiler/CodeBufferDecompiler.cpp,
 				LindChain/Decompiler/Decompiler.mm,
 				LindChain/litehook/litehook.c,
@@ -259,7 +259,7 @@
 		79BF9A972E62BB6900C60D4C /* Exceptions for "Nyxian" folder in "LiveProcess" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				LindChain/Debugger/Utils.m,
+				LindChain/Debugger/Utils.c,
 				LindChain/litehook/litehook.c,
 				LindChain/LiveContainer/LCBootstrap.m,
 				LindChain/LiveContainer/LCMachOUtils.m,
