@@ -187,6 +187,27 @@ synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
     
     syndiag.message = strdup(diag.getMessage().str().c_str());
     
+    switch(diag.getLevel())
+    {
+        case clang::DiagnosticsEngine::Note:
+            syndiag.level = SynpushLevelNote;
+            break;
+        case clang::DiagnosticsEngine::Remark:
+            syndiag.level = SynpushLevelRemark;
+            break;
+        case clang::DiagnosticsEngine::Warning:
+            syndiag.level = SynpushLevelWarning;
+            break;
+        case clang::DiagnosticsEngine::Error:
+            syndiag.level = SynpushLevelError;
+            break;
+        case clang::DiagnosticsEngine::Fatal:
+            syndiag.level = SynpushLevelFatal;
+            /* fall through */
+        default:
+            break;
+    }
+    
     return syndiag;
 }
 
