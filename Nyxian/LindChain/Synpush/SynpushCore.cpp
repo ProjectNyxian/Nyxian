@@ -167,7 +167,15 @@ synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
     
     if(loc.isValid())
     {
-        syndiag.type = SynpushTypeFile;
+        if(spc->file.first == loc.getFilename())
+        {
+            syndiag.type = SynpushTypeTargetFile;
+        }
+        else
+        {
+            syndiag.type = SynpushTypeFile;
+        }
+        
         syndiag.filepath = loc.getFilename();
         syndiag.line = loc.getLine();
         syndiag.column = loc.getColumn();
