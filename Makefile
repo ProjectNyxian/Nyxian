@@ -34,11 +34,6 @@ Nyxian/LindChain/LLVM.xcframework:
 	rm -rf Nyxian/LindChain/LLVM.xcframework
 	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
 
-Nyxian/LindChain/Clang.xcframework: Nyxian/LindChain/LLVM.xcframework
-	cd LLVM-On-iOS; $(MAKE)
-	rm -rf Nyxian/LindChain/Clang.xcframework
-	mv LLVM-On-iOS/Clang.xcframework Nyxian/LindChain/Clang.xcframework
-
 # Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:
 	$(MAKE) -C TrollStore pre_build
@@ -54,7 +49,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/LLVM.xcframework Nyxian/LindChain/Clang.xcframework
+compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/LLVM.xcframework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \
@@ -98,6 +93,7 @@ clean:
 clean-artifacts:
 	-rm *.ipa
 	-rm *.deb
+	-rm *.tipa
 
 clean-all: clean clean-artifacts
 	rm -rf Nyxian/LindChain/LLVM.xcframework
