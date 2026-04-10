@@ -64,8 +64,6 @@
         syndiag.type = SPDiagTypeFile;
         syndiag.level = [Syndiag SynitemLevelOfClangLevel:errorComponents[levelIdx]];
         
-        if (syndiag.type == 0) continue;
-        
         NSUInteger msgStart = levelIdx + 1;
         syndiag.message = [[errorComponents subarrayWithRange:NSMakeRange(msgStart, errorComponents.count - msgStart)] componentsJoinedByString:@":"];
         syndiag.message = [syndiag.message stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
