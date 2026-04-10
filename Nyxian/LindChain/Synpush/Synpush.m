@@ -95,7 +95,7 @@
     
     _contentData = newData;
     
-    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes);
+    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
     SPCreateUnit(_spc);
 
     pthread_mutex_unlock(&_mutex);
@@ -201,7 +201,7 @@
     
     /* creating new synpush core and update all */
     _spc = SPCreateCore(_argc, (const char**)_args);
-    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes);
+    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
     bool succeed = SPCreateUnit(_spc);
     
     pthread_mutex_unlock(&_mutex);

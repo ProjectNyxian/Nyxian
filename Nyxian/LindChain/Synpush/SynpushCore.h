@@ -83,7 +83,7 @@ bool SPCreateUnit(spcore_t spc);
 void SPDestroyUnit(spcore_t spc);
 
 void SPUpdateArguments(spcore_t spc, int argc, const char **argv);
-void SPUpdateFileContent(spcore_t spc, const char *filepath, const char *content);
+void SPUpdateFileContent(spcore_t spc, const char *filepath, const char *content, size_t length);
 
 uint64_t SPDiagnosticCount(spcore_t spc);
 spdiag_t SPDiagnosticGet(spcore_t spc, uint64_t index);

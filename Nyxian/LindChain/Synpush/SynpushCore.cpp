@@ -34,7 +34,6 @@ using namespace clang::driver;
 
 struct opaque_synpushcore {
     std::vector<std::string> BaseArgs;
-    std::string resourcesDir;
     ASTUnit::RemappedFile file;
     std::unique_ptr<ASTUnit> unit;
 };
@@ -61,7 +60,7 @@ bool SPCreateUnit(spcore_t spc)
                                                  args.data() + args.size(),
                                                  std::make_shared<PCHContainerOperations>(),
                                                  diags,
-                                                 spc->resourcesDir,          // ResourceFilesPath — important, can't be empty
+                                                 "",
                                                  /*StorePreamblesInMemory=*/true,
                                                  /*PreambleStoragePath=*/"",
                                                  /*OnlyLocalDecls=*/false,
@@ -133,9 +132,11 @@ void SPUpdateArguments(spcore_t spc,
 
 void SPUpdateFileContent(spcore_t spc,
                          const char *filepath,
-                         const char *content)
+                         const char *content,
+                         size_t length)
 {
-    std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(content, filepath);
+    llvm::StringRef contentRef(content, length);
+    std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
     spc->file = clang::ASTUnit::RemappedFile(filepath, buf.release());
 }
 
