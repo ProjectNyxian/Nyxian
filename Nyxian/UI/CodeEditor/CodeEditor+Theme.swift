@@ -122,13 +122,39 @@ func neoRGB(_ red: CGFloat,_ green: CGFloat,_ blue: CGFloat ) -> UIColor {
     return UIColor(red: red/255.0, green: green/255.0, blue: blue/255.0, alpha: 1.0)
 }
 
-func ldeThemeColorGen(colorEntry: [String:Any]) -> UIColor {
-    // Get light and dark mode
-    let light: [String:Int] = colorEntry["light"] as! [String:Int];
-    let dark: [String:Int] = colorEntry["dark"] as! [String:Int];
+func ldeRGBStringToColor(_ str: String) -> UIColor {
+    let parts = str.split(separator: ":").compactMap { Double($0) }
+    guard parts.count == 3 else {
+        assertionFailure("Malformed LDE color string: \(str)")
+        return .clear
+    }
+    return neoRGB(parts[0], parts[1], parts[2])
+}
+
+func ldeThemeColorGen(colorEntry: Any) -> UIColor {
+    // New format
+    if let dict = colorEntry as? [String: String],
+       let lightStr = dict["light"],
+       let darkStr = dict["dark"] {
+        return gibDynamicColor(
+            light: ldeRGBStringToColor(lightStr),
+            dark: ldeRGBStringToColor(darkStr)
+        )
+    }
     
-    // Now forcefully!
-    return UIColor(light: (CGFloat(light["red"]!), CGFloat(light["green"]!), CGFloat(light["blue"]!)), dark: (CGFloat(dark["red"]!), CGFloat(dark["green"]!), CGFloat(dark["blue"]!)), alpha: Double(light["alpha"]!))
+    // Fallback to old format
+    if let dict = colorEntry as? [String: Any],
+       let light = dict["light"] as? [String: Int],
+       let dark = dict["dark"] as? [String: Int] {
+        return UIColor(
+            light: (CGFloat(light["red"]!), CGFloat(light["green"]!), CGFloat(light["blue"]!)),
+            dark:  (CGFloat(dark["red"]!),  CGFloat(dark["green"]!),  CGFloat(dark["blue"]!)),
+            alpha: Double(light["alpha"] ?? 10) / 10.0
+        )
+    }
+    
+    assertionFailure("Unknown color entry format: \(colorEntry)")
+    return .clear
 }
 
 class LDETheme: Theme {
