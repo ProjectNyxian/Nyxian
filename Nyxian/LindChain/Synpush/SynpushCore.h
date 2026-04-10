@@ -39,7 +39,7 @@ typedef enum SynpushType : uint8_t {
 #ifdef __OBJC__
 };
 #else
-} synpushtype_t;
+} SynpushType;
 #endif /* __OBJC__ */
 
 #ifdef __OBJC__
@@ -55,19 +55,14 @@ typedef enum SynpushLevel : uint8_t  {
 #ifdef __OBJC__
 };
 #else
-} synpushlevel_t;
+} SynpushLevel;
 #endif /* __OBJC__ */
 
 typedef struct opaque_synpushcore *synpushcore_t;
 
 typedef struct synpushitem {
-#ifdef __OBJC__
     SynpushType type;
     SynpushLevel level;
-#else
-    synpushtype_t type;
-    synpushlevel_t level;
-#endif /* __OBJC__ */
     
     const char *filepath;
     
