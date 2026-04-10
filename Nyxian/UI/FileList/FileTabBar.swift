@@ -226,13 +226,7 @@ class FileTabBar: UIVisualEffectView, UIScrollViewDelegate {
             stack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
         ])
         
-        if #available(iOS 26.0, *) {
-            leftShadowLayer.colors = [UIColor.black.withAlphaComponent(0.40).cgColor, UIColor.black.withAlphaComponent(0).cgColor]
-            rightShadowLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.40).cgColor]
-        } else {
-            leftShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(1).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor]
-            rightShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).cgColor]
-        }
+        updateShadowApparance()
         
         leftShadowLayer.startPoint = CGPoint(x: 0, y: 0.5)
         leftShadowLayer.endPoint = CGPoint(x: 1, y: 0.5)
@@ -285,5 +279,27 @@ class FileTabBar: UIVisualEffectView, UIScrollViewDelegate {
     
     override var intrinsicContentSize: CGSize {
         return CGSize(width: UIView.noIntrinsicMetric, height: 44)
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateShadowApparance()
+    }
+    
+    func updateShadowApparance() {
+        if #available(iOS 26.0, *) {
+            switch(UITraitCollection.current.userInterfaceStyle)
+            {
+                case .dark:
+                    leftShadowLayer.colors = [UIColor.black.withAlphaComponent(0.40).cgColor, UIColor.black.withAlphaComponent(0).cgColor]
+                    rightShadowLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.40).cgColor]
+                default:
+                    leftShadowLayer.colors = [UIColor.white.withAlphaComponent(1.0).cgColor, UIColor.white.withAlphaComponent(0).cgColor]
+                    rightShadowLayer.colors = [UIColor.white.withAlphaComponent(0).cgColor, UIColor.white.withAlphaComponent(1.0).cgColor]
+            }
+        } else {
+            leftShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(1).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor]
+            rightShadowLayer.colors = [(currentTheme?.gutterBackgroundColor ?? UIColor.black).withAlphaComponent(0).cgColor, (currentTheme?.gutterBackgroundColor ?? UIColor.black).cgColor]
+        }
     }
 }
