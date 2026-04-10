@@ -121,7 +121,8 @@
 
 - (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController
 {
-    if(viewController.tabBarItem.tag == _fakeViewController.tabBarItem.tag)
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone &&
+       viewController.tabBarItem.tag == _fakeViewController.tabBarItem.tag)
     {
         [_window showAppSwitcherExternal];
         return NO;
