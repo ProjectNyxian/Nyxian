@@ -40,6 +40,12 @@ struct opaque_synpushcore {
 
 bool SPCreateUnit(spcore_t spc)
 {
+    if(spc->file.second == nullptr)
+    {
+        /* the file has not been updated */
+        return false;
+    }
+    
     /* setting up argument */
     SmallVector<const char *, 64> args;
     for(const std::string &arg : spc->BaseArgs)
@@ -90,7 +96,15 @@ reparse_from_nothing:
         }
     }
     
-    return (spc->unit != nullptr);
+    bool success = (spc->unit != nullptr);
+    
+    if(success)
+    {
+        /* ASTUnit now owns the MemoryBuffer ptr */
+        spc->file.second = nullptr;
+    }
+    
+    return success;
 }
 
 void SPDestroyUnit(spcore_t spc)
@@ -116,6 +130,10 @@ void SPFreeCore(spcore_t spc)
     {
         SPDestroyUnit(spc);
     }
+    if(spc->file.second)
+    {
+        delete spc->file.second;
+    }
     delete static_cast<opaque_synpushcore *>(spc);
 }
 
@@ -140,6 +158,10 @@ void SPUpdateFileContent(spcore_t spc,
     llvm::StringRef contentRef(content, length);
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
     auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
+    if(spc->file.second)
+    {
+        delete spc->file.second;
+    }
     if(!spc->file.first.empty() && spc->file.first != remap.first && spc->unit != nullptr)
     {
         SPDestroyUnit(spc);
