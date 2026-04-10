@@ -75,7 +75,7 @@ typedef struct synpushitem {
 synpushcore_t SPCCreateCore(int argc, const char **argv);
 void SPCFreeCore(synpushcore_t spc);
 
-void SPCCreateUnit(synpushcore_t spc);
+bool SPCCreateUnit(synpushcore_t spc);
 void SPCDestroyUnit(synpushcore_t spc);
 
 void SPCUpdateArguments(synpushcore_t spc, int argc, const char **argv);

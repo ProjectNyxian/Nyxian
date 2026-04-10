@@ -39,7 +39,7 @@ struct opaque_synpushcore {
     std::unique_ptr<ASTUnit> unit;
 };
 
-void SPCCreateUnit(synpushcore_t spc)
+bool SPCCreateUnit(synpushcore_t spc)
 {
     /* setting up argument */
     SmallVector<const char *, 64> args;
@@ -50,8 +50,6 @@ void SPCCreateUnit(synpushcore_t spc)
     args.push_back(spc->file.first.c_str());
     
     auto diags = CompilerInstance::createDiagnostics(new clang::DiagnosticOptions());
-    
-    std::unique_ptr<clang::ASTUnit> errAST;
     
     SmallVector<ASTUnit::RemappedFile, 4> remaps;
     remaps.push_back(spc->file);
@@ -81,21 +79,17 @@ void SPCCreateUnit(synpushcore_t spc)
                                                  /*ForSerialization=*/false,
                                                  /*RetainExcludedConditionalBlocks=*/false,
                                                  /*ModuleFormat=*/std::nullopt,
-                                                 &errAST);
-        
-        if(!spc->unit && errAST)
-        {
-            for(auto it = errAST->stored_diag_begin();
-                it != errAST->stored_diag_end(); ++it)
-            {
-                llvm::errs() << it->getMessage() << "\n";
-            }
-        }
+                                                 nullptr);
     }
     else
     {
-        spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef);
+        if(!spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
+        {
+            SPCDestroyUnit(spc);
+        }
     }
+    
+    return (spc->unit != nullptr);
 }
 
 void SPCDestroyUnit(synpushcore_t spc)
@@ -139,17 +133,6 @@ void SPCUpdateFileContent(synpushcore_t spc,
 {
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(content, filepath);
     spc->file = clang::ASTUnit::RemappedFile(filepath, buf.release());
-}
-
-static const char *levelStr(clang::DiagnosticsEngine::Level lvl) {
-    switch (lvl) {
-        case clang::DiagnosticsEngine::Note: return "note";
-        case clang::DiagnosticsEngine::Remark: return "remark";
-        case clang::DiagnosticsEngine::Warning: return "warning";
-        case clang::DiagnosticsEngine::Error: return "error";
-        case clang::DiagnosticsEngine::Fatal: return "fatal";
-        default: return "unknown";
-    }
 }
 
 uint64_t SPCDiagnosticCount(synpushcore_t spc)
