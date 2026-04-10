@@ -154,6 +154,7 @@
     if(_spc != NULL)
     {
         SPFreeCore(_spc);
+        _spc = NULL;
     }
     
     /* releasing content data memory */

@@ -55,6 +55,7 @@ bool SPCreateUnit(spcore_t spc)
     ArrayRef<ASTUnit::RemappedFile> remapRef = remaps;
     
     if(spc->unit == nullptr)
+reparse_from_nothing:
     {
         spc->unit = ASTUnit::LoadFromCommandLine(args.data(),
                                                  args.data() + args.size(),
@@ -85,6 +86,7 @@ bool SPCreateUnit(spcore_t spc)
         if(spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
         {
             SPDestroyUnit(spc);
+            goto reparse_from_nothing;
         }
     }
     
