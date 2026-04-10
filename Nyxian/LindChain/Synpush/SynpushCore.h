@@ -29,40 +29,38 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifdef __OBJC__
-typedef NS_ENUM(uint8_t, SynpushType) {
+typedef NS_ENUM(uint8_t, SPDiagType) {
 #else
-typedef enum SynpushType : uint8_t {
+typedef enum SPDiagType : uint8_t {
 #endif /* __OBJC__ */
-    SynpushTypeFile = 0,
-    SynpushTypeTargetFile,
-    SynpushTypeInternal,
+    SPDiagTypeFile = 0,
+    SPDiagTypeTargetFile,
+    SPDiagTypeInternal,
 #ifdef __OBJC__
 };
 #else
-} SynpushType;
+} SPDiagType;
 #endif /* __OBJC__ */
 
 #ifdef __OBJC__
-typedef NS_ENUM(uint8_t, SynpushLevel) {
+typedef NS_ENUM(uint8_t, SPDiagLevel) {
 #else
-typedef enum SynpushLevel : uint8_t  {
+typedef enum SPDiagLevel : uint8_t  {
 #endif /* __OBJC__ */
-    SynpushLevelNote = 0,
-    SynpushLevelRemark,
-    SynpushLevelWarning,
-    SynpushLevelError,
-    SynpushLevelFatal,
+    SPDiagLevelNote = 0,
+    SPDiagLevelRemark,
+    SPDiagLevelWarning,
+    SPDiagLevelError,
+    SPDiagLevelFatal,
 #ifdef __OBJC__
 };
 #else
-} SynpushLevel;
+} SPDiagLevel;
 #endif /* __OBJC__ */
 
-typedef struct opaque_synpushcore *synpushcore_t;
-
-typedef struct synpushitem {
-    SynpushType type;
-    SynpushLevel level;
+typedef struct spdiag {
+    SPDiagType type;
+    SPDiagLevel level;
     
     const char *filepath;
     
@@ -70,20 +68,22 @@ typedef struct synpushitem {
     uint64_t column;
     
     const char *message;
-} synpushdiag_t;
+} spdiag_t;
 
-synpushcore_t SPCCreateCore(int argc, const char **argv);
-void SPCFreeCore(synpushcore_t spc);
+typedef struct opaque_synpushcore *spcore_t;
 
-bool SPCCreateUnit(synpushcore_t spc);
-void SPCDestroyUnit(synpushcore_t spc);
+spcore_t SPCreateCore(int argc, const char **argv);
+void SPFreeCore(spcore_t spc);
 
-void SPCUpdateArguments(synpushcore_t spc, int argc, const char **argv);
-void SPCUpdateFileContent(synpushcore_t spc, const char *filepath, const char *content);
+bool SPCreateUnit(spcore_t spc);
+void SPDestroyUnit(spcore_t spc);
 
-uint64_t SPCDiagnosticCount(synpushcore_t spc);
-synpushdiag_t SPCDiagnosticGet(synpushcore_t spc, uint64_t index);
-void SPCDiagnosticDestroy(synpushdiag_t syndiag);
+void SPUpdateArguments(spcore_t spc, int argc, const char **argv);
+void SPUpdateFileContent(spcore_t spc, const char *filepath, const char *content);
+
+uint64_t SPDiagnosticCount(spcore_t spc);
+spdiag_t SPDiagnosticGet(spcore_t spc, uint64_t index);
+void SPDiagnosticDestroy(spdiag_t syndiag);
 
 #ifdef __cplusplus
 }

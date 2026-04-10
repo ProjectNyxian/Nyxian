@@ -22,33 +22,20 @@
 import Foundation
 import UIKit
 
-extension SynpushType: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(UInt32.self)
-        self = SynpushType(rawValue: UInt8(raw)) ?? SynpushType.file
-    }
-}
-
-extension SynpushLevel: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(UInt32.self)
-        self = SynpushLevel(rawValue: UInt8(raw)) ?? SynpushLevel.note
-    }
-}
+extension SPDiagType: Codable {}
+extension SPDiagLevel: Codable {}
 
 /*
  * Debug "tile" in UI
  *
  */
 class DebugItem: Codable {
-    let severity: SynpushLevel
+    let severity: SPDiagLevel
     let message: String     // in case of it being a file it contains the error, in case of it being a message it contains the message it self
     let line: UInt64        // in case of it being a file it contains at what line the error is
     let column: UInt64      // in case of it being a file it contains at what column the error is, this and the previous variable is ignored in case of it being a DebugMessage
     
-    init(severity: SynpushLevel, message: String, line: UInt64, column: UInt64) {
+    init(severity: SPDiagLevel, message: String, line: UInt64, column: UInt64) {
         self.severity = severity
         self.message = message
         self.line = line
@@ -127,7 +114,7 @@ class DebugDatabase: Codable {
     /*
      * Functions to manage object entries
      */
-    func addInternalMessage(message: String, severity: SynpushLevel) {
+    func addInternalMessage(message: String, severity: SPDiagLevel) {
         self.lock.lock()
         guard let internalObject = self.debugObjects["Internal"] else {
             self.lock.unlock()

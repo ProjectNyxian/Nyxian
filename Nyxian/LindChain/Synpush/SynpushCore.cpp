@@ -39,7 +39,7 @@ struct opaque_synpushcore {
     std::unique_ptr<ASTUnit> unit;
 };
 
-bool SPCCreateUnit(synpushcore_t spc)
+bool SPCreateUnit(spcore_t spc)
 {
     /* setting up argument */
     SmallVector<const char *, 64> args;
@@ -85,20 +85,20 @@ bool SPCCreateUnit(synpushcore_t spc)
     {
         if(!spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
         {
-            SPCDestroyUnit(spc);
+            SPDestroyUnit(spc);
         }
     }
     
     return (spc->unit != nullptr);
 }
 
-void SPCDestroyUnit(synpushcore_t spc)
+void SPDestroyUnit(spcore_t spc)
 {
     spc->unit.reset();
     spc->unit = nullptr;
 }
 
-synpushcore_t SPCCreateCore(int argc, const char **argv)
+spcore_t SPCreateCore(int argc, const char **argv)
 {
     auto *spc = new opaque_synpushcore();
     spc->BaseArgs.push_back("clang");
@@ -109,16 +109,16 @@ synpushcore_t SPCCreateCore(int argc, const char **argv)
     return spc;
 }
 
-void SPCFreeCore(synpushcore_t spc)
+void SPFreeCore(spcore_t spc)
 {
     delete static_cast<opaque_synpushcore *>(spc);
 }
 
-void SPCUpdateArguments(synpushcore_t spc,
+void SPUpdateArguments(spcore_t spc,
                         int argc,
                         const char **argv)
 {
-    SPCDestroyUnit(spc);
+    SPDestroyUnit(spc);
     spc->BaseArgs.clear();
     spc->BaseArgs.push_back("clang");
     for(int i = 0; i < argc; i++)
@@ -127,36 +127,36 @@ void SPCUpdateArguments(synpushcore_t spc,
     }
 }
 
-void SPCUpdateFileContent(synpushcore_t spc,
-                          const char *filepath,
-                          const char *content)
+void SPUpdateFileContent(spcore_t spc,
+                         const char *filepath,
+                         const char *content)
 {
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(content, filepath);
     spc->file = clang::ASTUnit::RemappedFile(filepath, buf.release());
 }
 
-uint64_t SPCDiagnosticCount(synpushcore_t spc)
+uint64_t SPDiagnosticCount(spcore_t spc)
 {
     return spc->unit->stored_diag_size();
 }
 
-synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
-                               uint64_t index)
+spdiag_t SPCDiagnosticGet(spcore_t spc,
+                          uint64_t index)
 {
     const StoredDiagnostic &diag = spc->unit->stored_diag_begin()[index];
     clang::PresumedLoc loc = spc->unit->getSourceManager().getPresumedLoc(diag.getLocation());
     
-    synpushdiag_t syndiag = {};
+    spdiag_t syndiag = {};
     
     if(loc.isValid())
     {
         if(spc->file.first == loc.getFilename())
         {
-            syndiag.type = SynpushTypeTargetFile;
+            syndiag.type = SPDiagTypeTargetFile;
         }
         else
         {
-            syndiag.type = SynpushTypeFile;
+            syndiag.type = SPDiagTypeFile;
         }
         
         syndiag.filepath = loc.getFilename();
@@ -165,7 +165,7 @@ synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
     }
     else
     {
-        syndiag.type = SynpushTypeInternal;
+        syndiag.type = SPDiagTypeInternal;
     }
     
     syndiag.message = strdup(diag.getMessage().str().c_str());
@@ -173,19 +173,19 @@ synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
     switch(diag.getLevel())
     {
         case clang::DiagnosticsEngine::Note:
-            syndiag.level = SynpushLevelNote;
+            syndiag.level = SPDiagLevelNote;
             break;
         case clang::DiagnosticsEngine::Remark:
-            syndiag.level = SynpushLevelRemark;
+            syndiag.level = SPDiagLevelRemark;
             break;
         case clang::DiagnosticsEngine::Warning:
-            syndiag.level = SynpushLevelWarning;
+            syndiag.level = SPDiagLevelWarning;
             break;
         case clang::DiagnosticsEngine::Error:
-            syndiag.level = SynpushLevelError;
+            syndiag.level = SPDiagLevelError;
             break;
         case clang::DiagnosticsEngine::Fatal:
-            syndiag.level = SynpushLevelFatal;
+            syndiag.level = SPDiagLevelFatal;
             /* fall through */
         default:
             break;
@@ -194,7 +194,7 @@ synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
     return syndiag;
 }
 
-void SPCDiagnosticDestroy(synpushdiag_t syndiag)
+void SPDiagnosticDestroy(spdiag_t syndiag)
 {
     if(syndiag.message)
     {

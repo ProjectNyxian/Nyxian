@@ -32,13 +32,13 @@ static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
 
 #pragma mark - Small C helpers
 
-static inline SynpushLevel mapSeverity(enum CXDiagnosticSeverity severity) {
+static inline SPDiagLevel mapSeverity(enum CXDiagnosticSeverity severity) {
     switch(severity)
     {
-        case CXDiagnostic_Warning: return SynpushLevelWarning;
-        case CXDiagnostic_Error:   return SynpushLevelError;
-        case CXDiagnostic_Fatal:   return SynpushLevelFatal;
-        default:                   return SynpushLevelNote;
+        case CXDiagnostic_Warning: return SPDiagLevelWarning;
+        case CXDiagnostic_Error:   return SPDiagLevelError;
+        case CXDiagnostic_Fatal:   return SPDiagLevelFatal;
+        default:                   return SPDiagLevelNote;
     }
 }
 

@@ -27,8 +27,8 @@
 
 @interface Syndiag : NSObject
 
-@property (nonatomic,readwrite) SynpushType type;
-@property (nonatomic,readwrite) SynpushLevel level;
+@property (nonatomic,readwrite) SPDiagType type;
+@property (nonatomic,readwrite) SPDiagLevel level;
 
 @property (nonatomic,strong) NSString *filepath;
 @property (nonatomic,readwrite) UInt64 line;
@@ -37,7 +37,7 @@
 @property (nonatomic,strong) NSString *message;
 
 /* will later be deprecated because LDEObjectCompiler will use SynpushCore utilites, as CompilerInvocation and so on use the same underlying APIs as SynpushCore */
-+ (SynpushLevel)SynitemLevelOfClangLevel:(NSString *)levelStr;
++ (SPDiagLevel)SynitemLevelOfClangLevel:(NSString *)levelStr;
 + (NSArray<Syndiag*> *)OfClangErrorWithString:(NSString*)errorString;
 + (void)OfClangErrorWithString:(NSString*)errorString usingArray:(NSMutableArray<Syndiag*> **)issues;
 
