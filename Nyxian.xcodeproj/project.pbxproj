@@ -712,10 +712,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
-					Nyxian/,
-				);
+				HEADER_SEARCH_PATHS = Nyxian/;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
@@ -833,10 +830,7 @@
 				ENABLE_PREVIEWS = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"Nyxian/LindChain/LLVM.xcframework/ios-arm64/Headers",
-					Nyxian/,
-				);
+				HEADER_SEARCH_PATHS = Nyxian/;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;

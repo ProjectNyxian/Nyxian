@@ -33,6 +33,7 @@
 
 - (instancetype)initWithWindowScene:(UIWindowScene *)windowScene
 {
+    [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
     static BOOL hasInitialized = NO;
     if(hasInitialized)
     {
