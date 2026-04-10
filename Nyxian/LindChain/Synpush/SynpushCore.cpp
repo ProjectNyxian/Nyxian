@@ -27,6 +27,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/StringRef.h"
 #include "clang/Basic/LLVM.h"
+#include <stdlib.h>
 
 using namespace clang;
 using namespace clang::driver;
@@ -151,21 +152,41 @@ static const char *levelStr(clang::DiagnosticsEngine::Level lvl) {
     }
 }
 
-void SPCTest(synpushcore_t spc)
+uint64_t SPCDiagnosticCount(synpushcore_t spc)
 {
-    /*auto astUnit = createUnit(spc);
+    return spc->unit->stored_diag_size();
+}
+
+synpushdiag_t SPCDiagnosticGet(synpushcore_t spc,
+                               uint64_t index)
+{
+    const StoredDiagnostic &diag = spc->unit->stored_diag_begin()[index];
+    clang::PresumedLoc loc = spc->unit->getSourceManager().getPresumedLoc(diag.getLocation());
     
-    for(auto it = astUnit->stored_diag_begin(); it != astUnit->stored_diag_end(); ++it)
+    synpushdiag_t syndiag = {};
+    
+    if(loc.isValid())
     {
-        const clang::StoredDiagnostic &diag = *it;
-        
-        clang::PresumedLoc loc = astUnit->getSourceManager().getPresumedLoc(diag.getLocation());
-        
-        llvm::errs()
-        << levelStr(diag.getLevel()) << ": "
-        << diag.getMessage() << ": "
-        << loc.getFilename() << ":"
-        << loc.getLine() << ":"
-        << loc.getColumn() << "\n";
-    }*/
+        syndiag.type = SynpushTypeFile;
+        syndiag.filepath = loc.getFilename();
+        syndiag.line = loc.getLine();
+        syndiag.column = loc.getColumn();
+    }
+    else
+    {
+        syndiag.type = SynpushTypeInternal;
+    }
+    
+    syndiag.message = strdup(diag.getMessage().str().c_str());
+    
+    return syndiag;
+}
+
+void SPCDiagnosticDestroy(synpushdiag_t syndiag)
+{
+    if(syndiag.message)
+    {
+        free((void *)syndiag.message);
+        syndiag.message = nullptr;
+    }
 }

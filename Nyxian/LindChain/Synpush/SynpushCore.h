@@ -22,11 +22,39 @@
 #ifndef SYNPUSHCORE_H
 #define SYNPUSHCORE_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+typedef enum SynpushType {
+    SynpushTypeFile = 0,
+    SynpushTypeTargetFile,
+    SynpushTypeInternal,
+} synpushtype_t;
+
+typedef enum SynpushLevel {
+    SynpushLevelNote = 0,
+    SynpushLevelRemark,
+    SynpushLevelWarning,
+    SynpushLevelError,
+    SynpushLevelFatal,
+} synpushlevel_t;
+
 typedef struct opaque_synpushcore *synpushcore_t;
+
+typedef struct synpushitem {
+    synpushtype_t type;
+    synpushlevel_t level;
+    
+    const char *filepath;
+    
+    uint64_t line;
+    uint64_t column;
+    
+    const char *message;
+} synpushdiag_t;
 
 synpushcore_t SPCCreateCore(int argc, const char **argv);
 void SPCFreeCore(synpushcore_t spc);
@@ -37,7 +65,9 @@ void SPCDestroyUnit(synpushcore_t spc);
 void SPCUpdateArguments(synpushcore_t spc, int argc, const char **argv);
 void SPCUpdateFileContent(synpushcore_t spc, const char *filepath, const char *content);
 
-void SPCTest(synpushcore_t spc);
+uint64_t SPCDiagnosticCount(synpushcore_t spc);
+synpushdiag_t SPCDiagnosticGet(synpushcore_t spc, uint64_t index);
+void SPCDiagnosticDestroy(synpushdiag_t syndiag);
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,6 @@
 #import <dispatch/dispatch.h>
 #import <string.h>
 #import <strings.h>
-#import <LindChain/Synpush/SynpushCore.h>
 
 static unsigned tuFlags = CXTranslationUnit_CacheCompletionResults |
                           CXTranslationUnit_KeepGoing |
@@ -73,7 +72,7 @@ static BOOL isHeaderFile(const char *path)
     char **_args;
     pthread_mutex_t _mutex;
     
-    synpushcore_t _spc;
+   // synpushcore_t _spc;
 }
 @end
 
