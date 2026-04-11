@@ -212,8 +212,8 @@ uint64_t SPUnitGetDiagnosticCount(SPUnit unit)
     return (unit->unit == nullptr) ? 0 : unit->unit->stored_diag_size();
 }
 
-SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit,
-                                   uint64_t index)
+CCDiagnosticRef CCDiagnosticCreateFromUnit(SPUnit unit,
+                                           uint64_t index)
 {
     if(unit->unit == nullptr)
     {
@@ -225,11 +225,11 @@ SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit,
         return nullptr;
     }
     
-    SPDiag *syndiag = new (std::nothrow) SPDiag();
-    if(syndiag == nullptr)
-    {
-        return nullptr;
-    }
+    CCDiagType type;
+    CCDiagLevel level;
+    CFURLRef fileURL;
+    CCSourceLocation location;
+    CFStringRef message;
     
     const StoredDiagnostic &diag = unit->unit->stored_diag_begin()[index];
     clang::PresumedLoc loc = unit->unit->getSourceManager().getPresumedLoc(diag.getLocation());
@@ -238,54 +238,48 @@ SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit,
     {
         if(unit->file.first == loc.getFilename())
         {
-            syndiag->type = SPDiagTypeTargetFile;
+            type = CCDiagTypeTargetFile;
         }
         else
         {
-            syndiag->type = SPDiagTypeFile;
+            type = CCDiagTypeFile;
         }
         
-        syndiag->filepath = loc.getFilename();
-        syndiag->line = loc.getLine();
-        syndiag->column = loc.getColumn();
+        const char *fileName = loc.getFilename();
+        CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, fileName, kCFStringEncodingUTF8);
+        CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+        CFRelease(fileStr);
+        
+        location = CCSourceLocationMake(loc.getLine(), loc.getColumn());
     }
     else
     {
-        syndiag->type = SPDiagTypeInternal;
+        type = CCDiagTypeInternal;
     }
     
-    syndiag->message = strdup(diag.getMessage().str().c_str());
+    message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);;
     
     switch(diag.getLevel())
     {
         case clang::DiagnosticsEngine::Note:
-            syndiag->level = SPDiagLevelNote;
+            level = CCDiagLevelNote;
             break;
         case clang::DiagnosticsEngine::Remark:
-            syndiag->level = SPDiagLevelRemark;
+            level = CCDiagLevelRemark;
             break;
         case clang::DiagnosticsEngine::Warning:
-            syndiag->level = SPDiagLevelWarning;
+            level = CCDiagLevelWarning;
             break;
         case clang::DiagnosticsEngine::Error:
-            syndiag->level = SPDiagLevelError;
+            level = CCDiagLevelError;
             break;
         case clang::DiagnosticsEngine::Fatal:
-            syndiag->level = SPDiagLevelFatal;
+            level = CCDiagLevelFatal;
             break;
         default:
-            syndiag->level = SPDiagLevelUnknown;
+            level = CCDiagLevelNote;
             break;
     }
     
-    return syndiag;
-}
-
-void SPDiagnosticDestroy(SPDiag *syndiag)
-{
-    if(syndiag->message)
-    {
-        free((void *)syndiag->message);
-    }
-    delete static_cast<SPDiag *>(syndiag);
+    return CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
 }

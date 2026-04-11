@@ -26,37 +26,11 @@
 #include <stddef.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <LindChain/CoreCompiler/CCDiagnostic.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-typedef CF_ENUM(uint8_t, SPDiagType) {
-    SPDiagTypeFile = 0,
-    SPDiagTypeTargetFile,
-    SPDiagTypeInternal,
-};
-
-typedef CF_ENUM(uint8_t, SPDiagLevel) {
-    SPDiagLevelNote = 0,
-    SPDiagLevelRemark,
-    SPDiagLevelWarning,
-    SPDiagLevelError,
-    SPDiagLevelFatal,
-    SPDiagLevelUnknown,
-};
-
-typedef struct spdiag {
-    SPDiagType type;
-    SPDiagLevel level;
-    
-    const char *filepath;
-    
-    uint64_t line;
-    uint64_t column;
-    
-    const char *message;
-} SPDiag;
 
 typedef struct opaque_synpushunit *SPUnit;
 
@@ -69,8 +43,7 @@ void SPUnitSetArguments(SPUnit unit, int argc, const char **argv);
 void SPUnitSetFileContent(SPUnit unit, const char *filepath, const char *content, size_t length);
 
 uint64_t SPUnitGetDiagnosticCount(SPUnit unit);
-SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit, uint64_t index);
-void SPDiagnosticDestroy(SPDiag *diag);
+CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreateFromUnit(SPUnit unit, uint64_t index);
 
 #ifdef __cplusplus
 }

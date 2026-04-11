@@ -122,27 +122,30 @@
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        SPDiag *diag = SPDiagnosticCreateFromUnit((__bridge SPUnit)_unit, i);
-        
-        if(diag == NULL)
+        CCDiagnosticRef diagnostic = CCDiagnosticCreateFromUnit((__bridge SPUnit)_unit, i);
+        if(diagnostic == nil)
         {
             continue;
         }
         
+        CCDiagType type = CCDiagnosticGetType(diagnostic);
+        
         /* TODO: remove this check, let the Coordinator do this */
-        if(diag->type == SPDiagTypeTargetFile)
+        if(type == CCDiagTypeTargetFile)
         {
+            CCSourceLocation location = CCDiagnosticGetLocation(diagnostic);
+            
             /* creating actual SynItem! */
             Syndiag *item = [[Syndiag alloc] init];
-            item.line = diag->line;
-            item.column = diag->column;
-            item.type = diag->type;
-            item.level = diag->level;
-            item.message = [NSString stringWithCString:diag->message encoding:NSUTF8StringEncoding];
+            item.line = location.line;
+            item.column = location.column;
+            item.type = CCDiagnosticGetType(diagnostic);
+            item.level = CCDiagnosticGetLevel(diagnostic);
+            item.message = CFBridgingRelease(CCDiagnosticGetMessage(diagnostic));
             [items addObject:item];
         }
         
-        SPDiagnosticDestroy(diag);
+        CFRelease(diagnostic);
     }
 
     pthread_mutex_unlock(&_mutex);

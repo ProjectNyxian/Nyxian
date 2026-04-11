@@ -34,7 +34,7 @@ class Coordinator: NSObject, TextViewDelegate {
 
     private(set) var debounce: LDEDebouncer?
     private(set) var diag: [Syndiag] = []
-    private let vtkey: [SPDiagLevel:(String,UIColor)] = [
+    private let vtkey: [CCDiagLevel:(String,UIColor)] = [
         .note: ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
         .warning: ("exclamationmark.triangle.fill", UIColor.orange.withAlphaComponent(0.3)),
         .error: ("xmark.octagon.fill", UIColor.red.withAlphaComponent(0.3))
