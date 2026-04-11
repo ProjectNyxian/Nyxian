@@ -28,32 +28,69 @@
 #include "llvm/ADT/StringRef.h"
 #include "clang/Basic/LLVM.h"
 #include <stdlib.h>
+#import <CoreFoundation/CoreFoundation.h>
+#import <LindChain/Private/CoreFoundation/CFRuntime.h>
 
 using namespace clang;
 using namespace clang::driver;
 
+static CFTypeID gSPUnitTypeID = _kCFRuntimeNotATypeID;
+
 struct opaque_synpushunit {
+    CFRuntimeBase _base;
     std::vector<std::string> BaseArgs;
     ASTUnit::RemappedFile file;
     std::unique_ptr<ASTUnit> unit;
 };
 
-SPUnit SPUnitCreate(void)
+static void SPUnitFinalize(CFTypeRef cf)
 {
-    return new (std::nothrow) opaque_synpushunit();
-}
-
-void SPUnitDestroy(SPUnit unit)
-{
-    if(unit->unit != nullptr)
-    {
-        unit->unit.reset();
-    }
+    SPUnit unit = (SPUnit)cf;
+    unit->unit.reset();
     if(unit->file.second)
     {
         delete unit->file.second;
     }
-    delete static_cast<opaque_synpushunit *>(unit);
+    unit->BaseArgs.~vector();
+}
+
+static const CFRuntimeClass gSPUnitClass = {
+    0,                  /* version */
+    "SPUnit",           /* class name */
+    nullptr,            /* init */
+    nullptr,            /* copy */
+    SPUnitFinalize,     /* finalize */
+    nullptr,            /* equal */
+    nullptr,            /* hash */
+    nullptr,            /* copyFormattingDesc */
+    nullptr,            /* copyDebugDesc */
+};
+
+CFTypeID SPUnitGetTypeID(void)
+{
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        gSPUnitTypeID = _CFRuntimeRegisterClass(&gSPUnitClass);
+    });
+    return gSPUnitTypeID;
+}
+
+SPUnit SPUnitCreate(const CFAllocatorRef allocator)
+{
+    SPUnit unit = (SPUnit)_CFRuntimeCreateInstance(
+        allocator,
+        SPUnitGetTypeID(),
+        sizeof(opaque_synpushunit) - sizeof(CFRuntimeBase),
+        nullptr
+    );
+    if(unit == nullptr) return nullptr;
+    
+    /* TODO: initilize in a init handler */
+    new (&unit->BaseArgs) std::vector<std::string>();
+    unit->file = ASTUnit::RemappedFile();
+    new (&unit->unit) std::unique_ptr<ASTUnit>();
+    
+    return unit;
 }
 
 bool SPUnitReparse(SPUnit unit)

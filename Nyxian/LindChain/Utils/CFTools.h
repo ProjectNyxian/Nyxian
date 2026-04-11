@@ -24,17 +24,9 @@
 
 #include <stdint.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <LindChain/Private/CoreFoundation/CFRuntime.h>
 
 #define cfheader_size() sizeof(CFRuntimeBase)
-
-/* https://github.com/opensource-apple/CF/blob/3cc41a76b1491f50813e28a4ec09954ffa359e6f/CFRuntime.h#L222 */
-typedef struct __CFRuntimeBase {
-    uintptr_t _cfisa;
-    uint8_t _cfinfo[4];
-#if __LP64__
-    uint32_t _rc;
-#endif
-} CFRuntimeBase;
 
 void CFOverwrite(CFTypeRef dst, CFTypeRef src);
 

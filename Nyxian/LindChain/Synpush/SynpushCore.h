@@ -22,47 +22,29 @@
 #ifndef SYNPUSHCORE_H
 #define SYNPUSHCORE_H
 
-#ifdef __OBJC__
-#import <Foundation/Foundation.h>
-#endif /* __OBJC__ */
-
 #include <stdint.h>
 #include <stddef.h>
+
+#include <CoreFoundation/CoreFoundation.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef __OBJC__
-typedef NS_ENUM(uint8_t, SPDiagType) {
-#else
-typedef enum SPDiagType : uint8_t {
-#endif /* __OBJC__ */
+typedef CF_ENUM(uint8_t, SPDiagType) {
     SPDiagTypeFile = 0,
     SPDiagTypeTargetFile,
     SPDiagTypeInternal,
-#ifdef __OBJC__
 };
-#else
-} SPDiagType;
-#endif /* __OBJC__ */
 
-#ifdef __OBJC__
-typedef NS_ENUM(uint8_t, SPDiagLevel) {
-#else
-typedef enum SPDiagLevel : uint8_t  {
-#endif /* __OBJC__ */
+typedef CF_ENUM(uint8_t, SPDiagLevel) {
     SPDiagLevelNote = 0,
     SPDiagLevelRemark,
     SPDiagLevelWarning,
     SPDiagLevelError,
     SPDiagLevelFatal,
     SPDiagLevelUnknown,
-#ifdef __OBJC__
 };
-#else
-} SPDiagLevel;
-#endif /* __OBJC__ */
 
 typedef struct spdiag {
     SPDiagType type;
@@ -78,8 +60,9 @@ typedef struct spdiag {
 
 typedef struct opaque_synpushunit *SPUnit;
 
-SPUnit SPUnitCreate(void);
-void SPUnitDestroy(SPUnit unit);
+CFTypeID SPUnitGetTypeID(void);
+
+SPUnit CF_RETURNS_RETAINED SPUnitCreate(const CFAllocatorRef allocator);
 bool SPUnitReparse(SPUnit unit);
 
 void SPUnitSetArguments(SPUnit unit, int argc, const char **argv);

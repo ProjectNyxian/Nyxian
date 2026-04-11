@@ -35,7 +35,7 @@
     char **_args;
     pthread_mutex_t _mutex;
     
-    SPUnit _unit;
+    id _unit;
 }
 @end
 
@@ -85,7 +85,7 @@
     pthread_mutex_lock(&_mutex);
     
     /* checking for unit */
-    if(!_unit)
+    if(_unit == nil)
     {
         /* needs reactivation */
         pthread_mutex_unlock(&_mutex);
@@ -95,8 +95,8 @@
     
     _contentData = newData;
     
-    SPUnitSetFileContent(_unit, _cFilename, _contentData.bytes, _contentData.length);
-    SPUnitReparse(_unit);
+    SPUnitSetFileContent((__bridge SPUnit)_unit, _cFilename, _contentData.bytes, _contentData.length);
+    SPUnitReparse((__bridge SPUnit)_unit);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -106,14 +106,14 @@
     pthread_mutex_lock(&_mutex);
 
     /* checking if unit is already active */
-    if(_unit == NULL)
+    if(_unit == nil)
     {
         /* its not so fall back to being an asshole */
         pthread_mutex_unlock(&_mutex);
         return @[];
     }
     
-    uint64_t count = SPUnitGetDiagnosticCount(_unit);
+    uint64_t count = SPUnitGetDiagnosticCount((__bridge SPUnit)_unit);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
@@ -122,7 +122,7 @@
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        SPDiag *diag = SPDiagnosticCreateFromUnit(_unit, i);
+        SPDiag *diag = SPDiagnosticCreateFromUnit((__bridge SPUnit)_unit, i);
         
         if(diag == NULL)
         {
@@ -156,10 +156,9 @@
     pthread_mutex_lock(&_mutex);
     
     /* dispose many clang things to get rid of most */
-    if(_unit != NULL)
+    if(_unit != nil)
     {
-        SPUnitDestroy(_unit);
-        _unit = NULL;
+        _unit = nil;
     }
     
     /* releasing content data memory */
@@ -171,7 +170,7 @@
 - (BOOL)isActive
 {
     pthread_mutex_lock(&_mutex);
-    BOOL active = (_unit != NULL);
+    BOOL active = (_unit != nil);
     pthread_mutex_unlock(&_mutex);
     return active;
 }
@@ -206,14 +205,17 @@
     _contentData = data;
     
     /* creating new synpush core and update all */
-    _unit = SPUnitCreate();
-    if(_unit == NULL)
+    SPUnit unit = SPUnitCreate(kCFAllocatorDefault);
+    if(unit == nil)
     {
         return false;
     }
-    SPUnitSetArguments(_unit, _argc, (const char**)_args);
-    SPUnitSetFileContent(_unit, _cFilename, _contentData.bytes, _contentData.length);
-    bool succeed = SPUnitReparse(_unit);
+    
+    _unit = CFBridgingRelease(unit);
+    
+    SPUnitSetArguments(unit, _argc, (const char**)_args);
+    SPUnitSetFileContent(unit, _cFilename, _contentData.bytes, _contentData.length);
+    bool succeed = SPUnitReparse(unit);
     
     pthread_mutex_unlock(&_mutex);
     
@@ -224,11 +226,6 @@
 {
     /* locking and disposing lol */
     pthread_mutex_lock(&_mutex);
-    if(_unit != NULL)
-    {
-        SPUnitDestroy(_unit);
-    }
-    
     if(_args != NULL)
     {
         
@@ -252,4 +249,3 @@
 }
 
 @end
-
