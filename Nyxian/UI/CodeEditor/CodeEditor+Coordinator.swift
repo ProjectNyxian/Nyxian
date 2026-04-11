@@ -26,14 +26,14 @@ import Runestone
 // MARK: - COORDINATOR
 class Coordinator: NSObject, TextViewDelegate {
     private(set) weak var parent: CodeEditorViewController?
-    private var entries: [UInt64:(NeoButton?,UIView?)] = [:]
+    private var entries: [CFIndex:(NeoButton?,UIView?)] = [:]
     
     private(set) var isProcessing: Bool = false
     private(set) var isInvalidated: Bool = false
     private(set) var needsAnotherProcess: Bool = false
 
     private(set) var debounce: LDEDebouncer?
-    private(set) var diag: [Syndiag] = []
+    private(set) var diag: [LDEDiagnostic] = []
     private let vtkey: [CCDiagnosticLevel:(String,UIColor)] = [
         .note: ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
         .warning: ("exclamationmark.triangle.fill", UIColor.orange.withAlphaComponent(0.3)),
@@ -154,12 +154,12 @@ class Coordinator: NSObject, TextViewDelegate {
         }
         
         for item in diag {
-            guard self.entries[item.line] == nil else { continue }
-            self.entries[item.line] = (nil, nil)
+            guard self.entries[item.location.line] == nil else { continue }
+            self.entries[item.location.line] = (nil, nil)
             
             var rect: CGRect?
             DispatchQueue.main.sync {
-                rect = parent.textView.rectForLine(Int(item.line))
+                rect = parent.textView.rectForLine(Int(item.location.line))
             }
             guard let rect = rect else { continue }
             
@@ -255,7 +255,7 @@ class Coordinator: NSObject, TextViewDelegate {
                 
                 view.alpha = 0
                 button.alpha = 0
-                self.entries[item.line] = (button,view)
+                self.entries[item.location.line] = (button,view)
                 
                 if let textInputView = parent.textView.getTextInputView() {
                     textInputView.addSubview(view)

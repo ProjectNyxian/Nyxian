@@ -58,7 +58,7 @@
 ///
 - (int)compileObject:(nonnull NSString*)filePath
           outputFile:(NSString*)outputFilePath
-              issues:(NSArray<Syndiag*> * * _Nonnull)issues
+              issues:(NSArray<LDEDiagnostic*> * * _Nonnull)issues
 {
     /* compile and get the resulting integer */
     char *errorString = NULL;
@@ -71,7 +71,7 @@
     if(errorString)
     {
         NSString *errorObjCString = [NSString stringWithCString:errorString encoding:NSUTF8StringEncoding];
-        *issues = [Syndiag OfClangErrorWithString:errorObjCString];
+        *issues = [LDEDiagnostic diagnosticsOfClangErrorWithString:errorObjCString];
         free(errorString);
     }
     

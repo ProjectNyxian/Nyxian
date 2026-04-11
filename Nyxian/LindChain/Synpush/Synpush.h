@@ -20,7 +20,7 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Syndiag.h>
+#import <LindChain/Compiler/LDEDiagnostic.h>
 #import <LindChain/Synpush/Syndef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,7 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
-- (NSArray<Syndiag *> *)getDiagnostics;
+- (NSArray<LDEDiagnostic *> *)getDiagnostics;
 - (Syndef*)getDefinitionAtLine:(unsigned)line column:(unsigned)column;
 
 - (void)releaseMemory;

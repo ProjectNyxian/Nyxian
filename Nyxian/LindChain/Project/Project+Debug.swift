@@ -124,7 +124,7 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func setFileDebug(ofPath path: String, synItems: [Syndiag]) {
+    func setFileDebug(ofPath path: String, synItems: [LDEDiagnostic]) {
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return
         }
@@ -133,7 +133,7 @@ class DebugDatabase: Codable {
         let fileObject: DebugObject = DebugObject(title: relPath, type: .DebugFile)
         
         for item in synItems {
-            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: item.line, column: item.column)
+            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: UInt64(item.location.line), column: UInt64(item.location.column))
             fileObject.debugItems.append(debugItem)
         }
         
@@ -141,8 +141,8 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func getFileDebug(ofPath path: String) -> [Syndiag] {
-        var synItems: [Syndiag] = []
+    func getFileDebug(ofPath path: String) -> [LDEDiagnostic] {
+        var synItems: [LDEDiagnostic] = []
         
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return synItems
@@ -154,14 +154,10 @@ class DebugDatabase: Codable {
             return []
         }
         
+        let fileURL: URL = URL(fileURLWithPath: path)
+        
         for item in fileObject.debugItems {
-            let synItem: Syndiag = Syndiag()
-            synItem.level = item.severity
-            synItem.type = .file
-            synItem.message = item.message
-            synItem.line = item.line
-            synItem.column = item.column
-            synItems.append(synItem)
+            synItems.append(LDEDiagnostic(type: .file, level: item.severity, fileURL: fileURL, location: CCSourceLocation(line: CFIndex(item.line), column: CFIndex(item.column)), message: item.message))
         }
         self.lock.unlock()
         

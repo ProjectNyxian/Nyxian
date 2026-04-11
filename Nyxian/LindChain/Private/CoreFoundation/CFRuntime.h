@@ -275,6 +275,8 @@ CF_EXPORT void _CFRuntimeInitStaticInstance(void *memory, CFTypeID typeID);
      */
 #define CF_HAS_INIT_STATIC_INSTANCE 1
 
+extern void _CFRuntimeBridgeClasses(CFTypeID cf_type_id, const char *className);
+
 CF_EXTERN_C_END
 
 #endif /* ! __COREFOUNDATION_CFRUNTIME__ */

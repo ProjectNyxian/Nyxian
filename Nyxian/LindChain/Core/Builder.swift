@@ -243,7 +243,7 @@ class Builder {
                         threader.lockdown = true
                     }
                     
-                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [Syndiag]) ?? [])
+                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [LDEDiagnostic]) ?? [])
                     
                     XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)

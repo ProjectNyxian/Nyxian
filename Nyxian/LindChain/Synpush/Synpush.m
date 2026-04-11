@@ -97,7 +97,7 @@
     pthread_mutex_unlock(&_mutex);
 }
 
-- (NSArray<Syndiag *> *)getDiagnostics
+- (NSArray<LDEDiagnostic *> *)getDiagnostics
 {
     pthread_mutex_lock(&_mutex);
 
@@ -112,36 +112,22 @@
     uint64_t count = CCMutableUnitGetDiagnosticCount((__bridge CCMutableUnitRef)_unit);
     
     /* preallocating array with count of items */
-    NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
+    NSMutableArray<LDEDiagnostic *> *items = [NSMutableArray arrayWithCapacity:count];
 
     //CXFile targetFile = NULL;
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        CCDiagnosticRef diagnostic = CCDiagnosticCreateFromMutableUnit((__bridge CCMutableUnitRef)_unit, i);
+        LDEDiagnostic *diagnostic = CFBridgingRelease(CCDiagnosticCreateFromMutableUnit((__bridge CCMutableUnitRef)_unit, i));
         if(diagnostic == nil)
         {
             continue;
         }
         
-        CCDiagnosticType type = CCDiagnosticGetType(diagnostic);
-        
-        /* TODO: remove this check, let the Coordinator do this */
-        if(type == CCDiagnosticTypeTargetFile)
+        if(diagnostic.type == CCDiagnosticTypeTargetFile)
         {
-            CCSourceLocation location = CCDiagnosticGetLocation(diagnostic);
-            
-            /* creating actual SynItem! */
-            Syndiag *item = [[Syndiag alloc] init];
-            item.line = location.line;
-            item.column = location.column;
-            item.type = CCDiagnosticGetType(diagnostic);
-            item.level = CCDiagnosticGetLevel(diagnostic);
-            item.message = CFBridgingRelease(CFRetain(CCDiagnosticGetMessage(diagnostic)));
-            [items addObject:item];
+            [items addObject:diagnostic];
         }
-        
-        CFRelease(diagnostic);
     }
 
     pthread_mutex_unlock(&_mutex);
