@@ -71,7 +71,25 @@
 
 - (id)contentsForType:(NSString *)typeName error:(NSError **)outError
 {
-    NSString *text = self.delegate ? [self.delegate documentRequestsText:self] : self.text;
+    __block NSString *text = nil;
+    
+    if(self.delegate) {
+        if(NSThread.isMainThread)
+        {
+            text = [self.delegate documentRequestsText:self];
+        }
+        else
+        {
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                text = [self.delegate documentRequestsText:self];
+            });
+        }
+    }
+    else
+    {
+        text = self.text;
+    }
+    
     NSData *data = [text dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
     
     if(!data)

@@ -83,6 +83,10 @@ static void *LDEWorkerThreadMain(void *arg)
         if(atomic_load(&worker->shouldExit))
         {
             pthread_mutex_unlock(&worker->mutex);
+            if(worker->semaphore) {
+                dispatch_semaphore_signal(worker->semaphore);
+                worker->semaphore = nil;
+            }
             break;
         }
         
@@ -177,14 +181,17 @@ static void *LDEWorkerThreadMain(void *arg)
         workerIndex = [_freeWorkers.lastObject intValue];
         [_freeWorkers removeLastObject];
     });
-
+    
+    dispatch_queue_t freeWorkerQueue = _freeWorkerQueue;
+    NSMutableArray *freeWorkers = _freeWorkers;
+    
     LDEWorkerThread *worker = &_workers[workerIndex];
     pthread_mutex_lock(&worker->mutex);
     worker->currentBlock = code;
     worker->completionBlock = ^{
         if (completion) completion();
-        dispatch_sync(self.freeWorkerQueue, ^{
-            [self.freeWorkers addObject:@(workerIndex)];
+        dispatch_sync(freeWorkerQueue, ^{
+            [freeWorkers addObject:@(workerIndex)];
         });
     };
     worker->semaphore = self.semaphore;
@@ -199,7 +206,7 @@ static void *LDEWorkerThreadMain(void *arg)
     {
         pthread_mutex_lock(&_workers[i].mutex);
         atomic_store(&_workers[i].shouldExit, true);
-        pthread_cond_signal(&_workers[i].cond);
+        pthread_cond_broadcast(&_workers[i].cond);
         pthread_mutex_unlock(&_workers[i].mutex);
     }
     for(int i = 0; i < _workerCount; i++)
