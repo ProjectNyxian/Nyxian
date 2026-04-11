@@ -21,6 +21,8 @@
 
 #include <LindChain/CoreCompiler/CCSourceLocation.h>
 
+const CCSourceLocation CCSourceLocationZero = { 0, 0 };
+
 CCSourceLocation CCSourceLocationMake(CFIndex line,
                                       CFIndex column)
 {

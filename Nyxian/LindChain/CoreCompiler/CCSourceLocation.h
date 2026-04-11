@@ -29,6 +29,8 @@ typedef struct {
     CFIndex column;
 } CCSourceLocation;
 
+CC_EXPORT const CCSourceLocation CCSourceLocationZero;
+
 CC_EXPORT CCSourceLocation CCSourceLocationMake(CFIndex line, CFIndex column);
 CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1, CCSourceLocation location2);
 

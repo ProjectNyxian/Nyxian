@@ -224,7 +224,7 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
     
     CCDiagType type;
     CCDiagLevel level;
-    CFURLRef fileURL;
+    CFURLRef fileURL = nullptr;
     CCSourceLocation location;
     CFStringRef message;
     
@@ -278,5 +278,11 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
             break;
     }
     
-    return CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
+    CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
+    if(fileURL)
+    {
+        CFRelease(fileURL);
+    }
+    CFRelease(message);
+    return result;
 }

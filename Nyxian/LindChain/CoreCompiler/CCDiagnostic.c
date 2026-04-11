@@ -40,28 +40,34 @@ static CFTypeRef CCDiagnosticCopy(CFAllocatorRef allocator,
 
 static void CCDiagnosticFinalize(CFTypeRef cf)
 {
-    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
-    CFRelease(diagnostic->fileURL);
+    CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
+    if(diagnostic->type != CCDiagTypeInternal)
+    {
+        CFRelease(diagnostic->fileURL);
+    }
     CFRelease(diagnostic->message);
 }
 
 static Boolean CCDiagnosticEqual(CFTypeRef cf1,
                                  CFTypeRef cf2)
 {
-    struct opaque_ccdiag *diagnostic1 = (struct opaque_ccdiag*)cf1;
-    struct opaque_ccdiag *diagnostic2 = (struct opaque_ccdiag*)cf2;
+    CCDiagnosticRef diagnostic1 = (CCDiagnosticRef)cf1;
+    CCDiagnosticRef diagnostic2 = (CCDiagnosticRef)cf2;
     
-    if(!CFEqual(diagnostic1->fileURL, diagnostic2->fileURL))
+    if(diagnostic1->type != diagnostic2->type || diagnostic1->level != diagnostic2->level)
     {
         return false;
+    }
+    
+    if(diagnostic1->type != CCDiagTypeInternal)
+    {
+        if(!CFEqual(diagnostic1->fileURL, diagnostic2->fileURL))
+        {
+            return false;
+        }
     }
     
     if(!CCSourceLocationEqualToLocation(diagnostic1->location, diagnostic2->location))
-    {
-        return false;
-    }
-    
-    if(diagnostic1->type != diagnostic2->type || diagnostic1->level != diagnostic2->level)
     {
         return false;
     }
@@ -76,19 +82,27 @@ static Boolean CCDiagnosticEqual(CFTypeRef cf1,
 
 static CFHashCode CCDiagnosticHash(CFTypeRef cf)
 {
-    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
-    return CFHash(diagnostic->fileURL) ^ CFHash(diagnostic->message);
+    CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
+    if(diagnostic->type != CCDiagTypeInternal)
+    {
+        return CFHash(diagnostic->fileURL) ^ CFHash(diagnostic->message);
+    }
+    return CFHash(diagnostic->message);
 }
 
 static CFStringRef CCDiagnosticCopyFormattingDesc(CFTypeRef cf, CFDictionaryRef options)
 {
-    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@:%ld:%ld: %@"), diagnostic->fileURL, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
+    CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
+    if(diagnostic->type != CCDiagTypeInternal)
+    {
+        return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@:%ld:%ld: %@"), diagnostic->fileURL, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
+    }
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<internal>: %@"), diagnostic->message);
 }
 
 static CFStringRef CCDiagnosticCopyDebugDesc(CFTypeRef cf)
 {
-    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
+    CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
     return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCDiagnostic %p: line=%ld col=%ld message=%@>"), cf, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
 }
 
@@ -113,14 +127,14 @@ CFTypeID CCDiagnosticGetTypeID(void)
     return gCCDiagnosticTypeID;
 }
 
-CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreate(CFAllocatorRef allocator,
-                                                       CCDiagType type,
-                                                       CCDiagLevel level,
-                                                       CFURLRef fileURL,
-                                                       CCSourceLocation location,
-                                                       CFStringRef message)
+CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
+                                   CCDiagType type,
+                                   CCDiagLevel level,
+                                   CFURLRef fileURL,
+                                   CCSourceLocation location,
+                                   CFStringRef message)
 {
-    assert(fileURL != nil && message != nil);
+    assert(message != nil);
     
     struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)_CFRuntimeCreateInstance(allocator, CCDiagnosticGetTypeID(), sizeof(struct opaque_ccdiag) - sizeof(CFRuntimeBase), NULL);
     if(diagnostic == nil)
@@ -130,34 +144,52 @@ CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreate(CFAllocatorRef allocator,
     
     diagnostic->type = type;
     diagnostic->level = level;
-    diagnostic->fileURL = CFRetain(fileURL);
     diagnostic->location = location;
     diagnostic->message = CFRetain(message);
+    
+    if(type != CCDiagTypeInternal)
+    {
+        diagnostic->fileURL = CFRetain(fileURL);
+    }
     
     return (CCDiagnosticRef)diagnostic;
 }
 
 CCDiagType CCDiagnosticGetType(CCDiagnosticRef diagnostic)
 {
-    return ((struct opaque_ccdiag*)diagnostic)->type;
+    return diagnostic->type;
 }
 
 CCDiagLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic)
 {
-    return ((struct opaque_ccdiag*)diagnostic)->level;
+    return diagnostic->level;
 }
 
 CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic)
 {
-    return CFRetain(((struct opaque_ccdiag*)diagnostic)->fileURL);
+    if(diagnostic->type != CCDiagTypeInternal)
+    {
+        return CFRetain(diagnostic->fileURL);
+    }
+    else
+    {
+        return nil;
+    }
 }
 
 CCSourceLocation CCDiagnosticGetLocation(CCDiagnosticRef diagnostic)
 {
-    return ((struct opaque_ccdiag*)diagnostic)->location;
+    if(diagnostic->type != CCDiagTypeInternal)
+    {
+        return (diagnostic->location);
+    }
+    else
+    {
+        return CCSourceLocationZero;
+    }
 }
 
 CFStringRef CCDiagnosticGetMessage(CCDiagnosticRef diagnostic)
 {
-    return CFRetain(((struct opaque_ccdiag*)diagnostic)->message);
+    return CFRetain(diagnostic->message);
 }
