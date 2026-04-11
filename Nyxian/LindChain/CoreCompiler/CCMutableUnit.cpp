@@ -196,14 +196,17 @@ void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
     }
 }
 
-void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
-                                 const char *filepath,
-                                 const char *content,
-                                 size_t length)
+CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
+                                           CFURLRef fileURL,
+                                           CFDataRef content)
 {
-    llvm::StringRef contentRef(content, length);
+    char filepath[PATH_MAX];
+    CFURLGetFileSystemRepresentation(fileURL, true, (UInt8*)filepath, sizeof(filepath));
+    
+    llvm::StringRef contentRef((const char*)CFDataGetBytePtr(content), CFDataGetLength(content));
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
     auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
+    
     if(mutableUnit->file.second)
     {
         delete mutableUnit->file.second;
@@ -266,7 +269,7 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
         location = CCSourceLocationZero;
     }
     
-    message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);;
+    message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);
     
     switch(diag.getLevel())
     {

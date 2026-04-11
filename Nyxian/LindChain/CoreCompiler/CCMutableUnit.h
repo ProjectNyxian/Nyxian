@@ -34,7 +34,7 @@ CC_EXPORT CCMutableUnitRef CF_RETURNS_RETAINED CCMutableUnitCreate(CFAllocatorRe
 CC_EXPORT bool CCMutableUnitReparse(CCMutableUnitRef mutableUnit);
 
 CC_EXPORT void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit, CFArrayRef arguments);
-CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit, const char *filepath, const char *content, size_t length);
+CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);
 
 CC_EXPORT CFIndex CCMutableUnitGetDiagnosticCount(CCMutableUnitRef mutableUnit);
 CC_EXPORT CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit, uint64_t index);

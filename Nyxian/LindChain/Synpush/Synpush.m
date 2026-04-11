@@ -29,8 +29,7 @@
 
 @interface SynpushServer () {
     NSData *_contentData;
-    NSString *_filepath;
-    char *_cFilename;
+    NSURL *_fileURL;
     pthread_mutex_t _mutex;
     
     id _unit;
@@ -45,8 +44,7 @@
     if(!self) return nil;
     
     /* initilizing step numero uno */
-    _filepath = [filepath copy];
-    _cFilename = strdup(_filepath.UTF8String);
+    _fileURL = [NSURL fileURLWithPath:filepath];
 
     pthread_mutex_init(&_mutex, NULL);
     return self;
@@ -56,7 +54,7 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args
 {
-    NSString *extension = [_filepath pathExtension];
+    NSString *extension = [_fileURL pathExtension];
     
     if([extension isEqualToString:@"h"])
     {
@@ -93,7 +91,7 @@
     
     _contentData = newData;
     
-    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, _cFilename, _contentData.bytes, _contentData.length);
+    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
     CCMutableUnitReparse((__bridge CCMutableUnitRef)_unit);
 
     pthread_mutex_unlock(&_mutex);
@@ -155,16 +153,8 @@
 - (void)releaseMemory
 {
     pthread_mutex_lock(&_mutex);
-    
-    /* dispose many clang things to get rid of most */
-    if(_unit != nil)
-    {
-        _unit = nil;
-    }
-    
-    /* releasing content data memory */
+    _unit = nil;
     _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
-    
     pthread_mutex_unlock(&_mutex);
 }
 
@@ -200,9 +190,9 @@
     
     _unit = CFBridgingRelease(unit);
     
-    CCMutableUnitSetArguments(unit, (__bridge CFArrayRef)args);
-    CCMutableUnitSetFileContent(unit, _cFilename, _contentData.bytes, _contentData.length);
-    bool succeed = CCMutableUnitReparse(unit);
+    CCMutableUnitSetArguments((__bridge CCMutableUnitRef)_unit, (__bridge CFArrayRef)args);
+    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
+    bool succeed = CCMutableUnitReparse((__bridge CCMutableUnitRef)_unit);
     
     pthread_mutex_unlock(&_mutex);
     
@@ -210,9 +200,7 @@
 }
 
 - (void)dealloc
-{    
-    free(_cFilename);
-    
+{
     /* destroying the lock */
     pthread_mutex_destroy(&_mutex);
 }
