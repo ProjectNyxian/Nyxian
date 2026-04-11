@@ -71,7 +71,8 @@
 
 - (id)contentsForType:(NSString *)typeName error:(NSError **)outError
 {
-    NSData *data = [self.text dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
+    NSString *text = self.delegate ? [self.delegate documentRequestsText:self] : self.text;
+    NSData *data = [text dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
     
     if(!data)
     {

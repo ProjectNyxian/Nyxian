@@ -36,7 +36,7 @@ func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
 }
 
 // MARK: - OnDissapear Container
-class CodeEditorViewController: UIViewController {
+class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var document: NXDocument?
     private(set) var path: String
     private(set) var textView: TextView
@@ -107,6 +107,7 @@ class CodeEditorViewController: UIViewController {
                 self?.dismiss(animated: true)
                 return
             }
+            doc.delegate = self
             self?.document = doc
             
             DispatchQueue.main.async {
@@ -246,6 +247,10 @@ class CodeEditorViewController: UIViewController {
         self.textView.editorDelegate = self.coordinator
         
         self.goto(line: line, column: column)
+    }
+    
+    func documentRequestsText(_ document: NXDocument!) -> String! {
+        return self.textView.text
     }
     
     func goto(line: UInt64?, column: UInt64?) {

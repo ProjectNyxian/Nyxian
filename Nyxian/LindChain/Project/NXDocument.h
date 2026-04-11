@@ -25,8 +25,17 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+@class NXDocument;
+
+@protocol NXDocumentDelegate <NSObject>
+
+- (NSString *)documentRequestsText:(NXDocument *)document;
+
+@end
+
 @interface NXDocument : UIDocument
 
+@property (nonatomic, weak) id<NXDocumentDelegate> delegate;
 @property (nonatomic,strong) NSString *text;
 
 - (BOOL)loadFromContents:(id)contents ofType:(NSString *)typeName error:(NSError **)outError;
