@@ -113,7 +113,7 @@
         return @[];
     }
     
-    uint64_t count = SPUnitDiagnosticCount(_unit);
+    uint64_t count = SPUnitGetDiagnosticCount(_unit);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];

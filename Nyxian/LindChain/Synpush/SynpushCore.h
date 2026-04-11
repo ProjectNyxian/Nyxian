@@ -85,7 +85,7 @@ bool SPUnitReparse(SPUnit unit);
 void SPUnitSetArguments(SPUnit unit, int argc, const char **argv);
 void SPUnitSetFileContent(SPUnit unit, const char *filepath, const char *content, size_t length);
 
-uint64_t SPUnitDiagnosticCount(SPUnit unit);
+uint64_t SPUnitGetDiagnosticCount(SPUnit unit);
 SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit, uint64_t index);
 void SPDiagnosticDestroy(SPDiag *diag);
 

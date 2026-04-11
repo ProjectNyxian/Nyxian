@@ -175,7 +175,7 @@ void SPUnitSetFileContent(SPUnit unit,
     unit->file = remap;
 }
 
-uint64_t SPUnitDiagnosticCount(SPUnit unit)
+uint64_t SPUnitGetDiagnosticCount(SPUnit unit)
 {
     return (unit->unit == nullptr) ? 0 : unit->unit->stored_diag_size();
 }
