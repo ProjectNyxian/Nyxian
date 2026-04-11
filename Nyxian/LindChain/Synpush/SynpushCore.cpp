@@ -32,182 +32,179 @@
 using namespace clang;
 using namespace clang::driver;
 
-struct opaque_synpushcore {
+struct opaque_synpushunit {
     std::vector<std::string> BaseArgs;
     ASTUnit::RemappedFile file;
     std::unique_ptr<ASTUnit> unit;
 };
 
-bool SPCoreUnitCreate(spcore_t spc)
+SPUnit SPUnitCreate(void)
 {
-    if(spc->file.second == nullptr)
+    return new (std::nothrow) opaque_synpushunit();
+}
+
+void SPUnitDestroy(SPUnit unit)
+{
+    if(unit->unit != nullptr)
     {
-        /* the file has not been updated */
+        unit->unit.reset();
+    }
+    if(unit->file.second)
+    {
+        delete unit->file.second;
+    }
+    delete static_cast<opaque_synpushunit *>(unit);
+}
+
+bool SPUnitReparse(SPUnit unit)
+{
+    if(unit->BaseArgs.size() == 0)
+    {
+        /* arguments havent been set */
         return false;
+    }
+    
+    if(unit->file.second == nullptr)
+    {
+        /*
+         * the file has not been updated,
+         * so when the AST unit exists
+         * and is non null then that means
+         * its still as valid as before.
+         */
+        return (unit->unit != nullptr);
     }
     
     /* setting up argument */
     SmallVector<const char *, 64> args;
-    for(const std::string &arg : spc->BaseArgs)
+    for(const std::string &arg : unit->BaseArgs)
     {
         args.push_back(arg.c_str());
     }
-    args.push_back(spc->file.first.c_str());
+    args.push_back(unit->file.first.c_str());
     
     auto diags = CompilerInstance::createDiagnostics(new clang::DiagnosticOptions());
     
     SmallVector<ASTUnit::RemappedFile, 4> remaps;
-    remaps.push_back(spc->file);
+    remaps.push_back(unit->file);
     ArrayRef<ASTUnit::RemappedFile> remapRef = remaps;
     
-    if(spc->unit == nullptr)
+    if(unit->unit == nullptr)
 reparse_from_nothing:
     {
-        spc->unit = ASTUnit::LoadFromCommandLine(args.data(),
-                                                 args.data() + args.size(),
-                                                 std::make_shared<PCHContainerOperations>(),
-                                                 diags,
-                                                 "",
-                                                 /*StorePreamblesInMemory=*/true,
-                                                 /*PreambleStoragePath=*/"",
-                                                 /*OnlyLocalDecls=*/false,
-                                                 clang::CaptureDiagsKind::All,
-                                                 remapRef,
-                                                 /*RemappedFilesKeepOriginalName=*/true,
-                                                 /*PrecompilePreambleAfterNParses=*/0,  // 0 = no preamble precompilation
-                                                 clang::TU_Complete,
-                                                 /*CacheCodeCompletionResults=*/false,
-                                                 /*IncludeBriefComments=*/false,
-                                                 /*AllowPCHWithCompilerErrors=*/false,
-                                                 clang::SkipFunctionBodiesScope::None,
-                                                 /*SingleFileParse=*/false,
-                                                 /*UserFilesAreVolatile=*/false,
-                                                 /*ForSerialization=*/false,
-                                                 /*RetainExcludedConditionalBlocks=*/false,
-                                                 /*ModuleFormat=*/std::nullopt,
-                                                 nullptr);
+        unit->unit = ASTUnit::LoadFromCommandLine(args.data(),
+                                                  args.data() + args.size(),
+                                                  std::make_shared<PCHContainerOperations>(),
+                                                  diags,
+                                                  "",    /* resources comes from arguments */
+                                                  /*StorePreamblesInMemory=*/true,
+                                                  /*PreambleStoragePath=*/"",
+                                                  /*OnlyLocalDecls=*/false,
+                                                  clang::CaptureDiagsKind::All,
+                                                  remapRef,
+                                                  /*RemappedFilesKeepOriginalName=*/true,
+                                                  /*PrecompilePreambleAfterNParses=*/0,  // 0 = no preamble precompilation
+                                                  clang::TU_Complete,
+                                                  /*CacheCodeCompletionResults=*/false,
+                                                  /*IncludeBriefComments=*/false,
+                                                  /*AllowPCHWithCompilerErrors=*/false,
+                                                  clang::SkipFunctionBodiesScope::None,
+                                                  /*SingleFileParse=*/false,
+                                                  /*UserFilesAreVolatile=*/false,
+                                                  /*ForSerialization=*/false,
+                                                  /*RetainExcludedConditionalBlocks=*/false,
+                                                  /*ModuleFormat=*/std::nullopt,
+                                                  nullptr);
     }
     else
     {
-        if(spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
+        if(unit->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
         {
-            SPCoreUnitDestroy(spc);
+            /*
+             * failed reparse, gonna have to
+             * parse from 0.
+             */
+            unit->unit.reset();
             goto reparse_from_nothing;
         }
     }
     
-    bool success = (spc->unit != nullptr);
+    bool success = (unit->unit != nullptr);
     
     if(success)
     {
         /* ASTUnit now owns the MemoryBuffer ptr */
-        spc->file.second = nullptr;
+        unit->file.second = nullptr;
     }
     
     return success;
 }
 
-void SPCoreUnitDestroy(spcore_t spc)
+void SPUnitSetArguments(SPUnit unit,
+                        int argc,
+                        const char **argv)
 {
-    spc->unit.reset();
-    spc->unit = nullptr;
-}
-
-spcore_t SPCoreCreate(int argc,
-                      const char **argv)
-{
-    auto *spc = new (std::nothrow) opaque_synpushcore();
-    if(spc == nullptr)
+    if(unit->unit != nullptr)
     {
-        return nullptr;
+        unit->unit.reset();
     }
-    
-    spc->BaseArgs.push_back("clang");
+    unit->BaseArgs.clear();
+    unit->BaseArgs.push_back("clang");
     for(int i = 0; i < argc; i++)
     {
-        spc->BaseArgs.push_back(argv[i]);
-    }
-    return spc;
-}
-
-void SPCoreDestroy(spcore_t spc)
-{
-    if(spc->unit != nullptr)
-    {
-        SPCoreUnitDestroy(spc);
-    }
-    if(spc->file.second)
-    {
-        delete spc->file.second;
-    }
-    delete static_cast<opaque_synpushcore *>(spc);
-}
-
-void SPCoreUpdateArguments(spcore_t spc,
-                           int argc,
-                           const char **argv)
-{
-    if(spc->unit != nullptr)
-    {
-        SPCoreUnitDestroy(spc);
-    }
-    spc->BaseArgs.clear();
-    spc->BaseArgs.push_back("clang");
-    for(int i = 0; i < argc; i++)
-    {
-        spc->BaseArgs.push_back(argv[i]);
+        unit->BaseArgs.push_back(argv[i]);
     }
 }
 
-void SPCoreUpdateFileContent(spcore_t spc,
-                             const char *filepath,
-                             const char *content,
-                             size_t length)
+void SPUnitSetFileContent(SPUnit unit,
+                          const char *filepath,
+                          const char *content,
+                          size_t length)
 {
     llvm::StringRef contentRef(content, length);
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
     auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
-    if(spc->file.second)
+    if(unit->file.second)
     {
-        delete spc->file.second;
+        delete unit->file.second;
     }
-    if(!spc->file.first.empty() && spc->file.first != remap.first && spc->unit != nullptr)
+    if(!unit->file.first.empty() && unit->file.first != remap.first && unit->unit != nullptr)
     {
-        SPCoreUnitDestroy(spc);
+        unit->unit.reset();
     }
-    spc->file = remap;
+    unit->file = remap;
 }
 
-uint64_t SPCoreUnitDiagnosticCount(spcore_t spc)
+uint64_t SPUnitDiagnosticCount(SPUnit unit)
 {
-    return (spc->unit == nullptr) ? 0 : spc->unit->stored_diag_size();
+    return (unit->unit == nullptr) ? 0 : unit->unit->stored_diag_size();
 }
 
-spdiag_t *SPCoreUnitDiagnosticCreate(spcore_t spc,
-                                    uint64_t index)
+SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit,
+                                   uint64_t index)
 {
-    if(spc->unit == nullptr)
+    if(unit->unit == nullptr)
     {
         return nullptr;
     }
     
-    if(index >= spc->unit->stored_diag_size())
+    if(index >= unit->unit->stored_diag_size())
     {
         return nullptr;
     }
     
-    spdiag_t *syndiag = new (std::nothrow) spdiag_t();
+    SPDiag *syndiag = new (std::nothrow) SPDiag();
     if(syndiag == nullptr)
     {
         return nullptr;
     }
     
-    const StoredDiagnostic &diag = spc->unit->stored_diag_begin()[index];
-    clang::PresumedLoc loc = spc->unit->getSourceManager().getPresumedLoc(diag.getLocation());
+    const StoredDiagnostic &diag = unit->unit->stored_diag_begin()[index];
+    clang::PresumedLoc loc = unit->unit->getSourceManager().getPresumedLoc(diag.getLocation());
     
     if(loc.isValid())
     {
-        if(spc->file.first == loc.getFilename())
+        if(unit->file.first == loc.getFilename())
         {
             syndiag->type = SPDiagTypeTargetFile;
         }
@@ -252,11 +249,11 @@ spdiag_t *SPCoreUnitDiagnosticCreate(spcore_t spc,
     return syndiag;
 }
 
-void SPCoreUnitDiagnosticDestroy(spdiag_t *syndiag)
+void SPDiagnosticDestroy(SPDiag *syndiag)
 {
     if(syndiag->message)
     {
         free((void *)syndiag->message);
     }
-    delete static_cast<spdiag_t *>(syndiag);
+    delete static_cast<SPDiag *>(syndiag);
 }

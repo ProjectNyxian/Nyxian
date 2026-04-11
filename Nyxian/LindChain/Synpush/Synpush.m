@@ -35,7 +35,7 @@
     char **_args;
     pthread_mutex_t _mutex;
     
-    spcore_t _spc;
+    SPUnit _unit;
 }
 @end
 
@@ -85,7 +85,7 @@
     pthread_mutex_lock(&_mutex);
     
     /* checking for unit */
-    if(!_spc)
+    if(!_unit)
     {
         /* needs reactivation */
         pthread_mutex_unlock(&_mutex);
@@ -95,8 +95,8 @@
     
     _contentData = newData;
     
-    SPCoreUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
-    SPCoreUnitCreate(_spc);
+    SPUnitSetFileContent(_unit, _cFilename, _contentData.bytes, _contentData.length);
+    SPUnitReparse(_unit);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -106,14 +106,14 @@
     pthread_mutex_lock(&_mutex);
 
     /* checking if unit is already active */
-    if(_spc == NULL)
+    if(_unit == NULL)
     {
         /* its not so fall back to being an asshole */
         pthread_mutex_unlock(&_mutex);
         return @[];
     }
     
-    uint64_t count = SPCoreUnitDiagnosticCount(_spc);
+    uint64_t count = SPUnitDiagnosticCount(_unit);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
@@ -122,7 +122,7 @@
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        spdiag_t *diag = SPCoreUnitDiagnosticCreate(_spc, i);
+        SPDiag *diag = SPDiagnosticCreateFromUnit(_unit, i);
         
         if(diag == NULL)
         {
@@ -142,7 +142,7 @@
             [items addObject:item];
         }
         
-        SPCoreUnitDiagnosticDestroy(diag);
+        SPDiagnosticDestroy(diag);
     }
 
     pthread_mutex_unlock(&_mutex);
@@ -156,10 +156,10 @@
     pthread_mutex_lock(&_mutex);
     
     /* dispose many clang things to get rid of most */
-    if(_spc != NULL)
+    if(_unit != NULL)
     {
-        SPCoreDestroy(_spc);
-        _spc = NULL;
+        SPUnitDestroy(_unit);
+        _unit = NULL;
     }
     
     /* releasing content data memory */
@@ -171,7 +171,7 @@
 - (BOOL)isActive
 {
     pthread_mutex_lock(&_mutex);
-    BOOL active = (_spc != NULL);
+    BOOL active = (_unit != NULL);
     pthread_mutex_unlock(&_mutex);
     return active;
 }
@@ -206,9 +206,14 @@
     _contentData = data;
     
     /* creating new synpush core and update all */
-    _spc = SPCoreCreate(_argc, (const char**)_args);
-    SPCoreUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
-    bool succeed = SPCoreUnitCreate(_spc);
+    _unit = SPUnitCreate();
+    if(_unit == NULL)
+    {
+        return false;
+    }
+    SPUnitSetArguments(_unit, _argc, (const char**)_args);
+    SPUnitSetFileContent(_unit, _cFilename, _contentData.bytes, _contentData.length);
+    bool succeed = SPUnitReparse(_unit);
     
     pthread_mutex_unlock(&_mutex);
     
@@ -219,9 +224,9 @@
 {
     /* locking and disposing lol */
     pthread_mutex_lock(&_mutex);
-    if(_spc != NULL)
+    if(_unit != NULL)
     {
-        SPCoreDestroy(_spc);
+        SPUnitDestroy(_unit);
     }
     
     if(_args != NULL)

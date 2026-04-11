@@ -74,22 +74,20 @@ typedef struct spdiag {
     uint64_t column;
     
     const char *message;
-} spdiag_t;
+} SPDiag;
 
-typedef struct opaque_synpushcore *spcore_t;
+typedef struct opaque_synpushunit *SPUnit;
 
-spcore_t SPCoreCreate(int argc, const char **argv);
-void SPCoreDestroy(spcore_t spc);
+SPUnit SPUnitCreate(void);
+void SPUnitDestroy(SPUnit unit);
+bool SPUnitReparse(SPUnit unit);
 
-bool SPCoreUnitCreate(spcore_t spc);
-void SPCoreUnitDestroy(spcore_t spc);
+void SPUnitSetArguments(SPUnit unit, int argc, const char **argv);
+void SPUnitSetFileContent(SPUnit unit, const char *filepath, const char *content, size_t length);
 
-void SPCoreUpdateArguments(spcore_t spc, int argc, const char **argv);
-void SPCoreUpdateFileContent(spcore_t spc, const char *filepath, const char *content, size_t length);
-
-uint64_t SPCoreUnitDiagnosticCount(spcore_t spc);
-spdiag_t *SPCoreUnitDiagnosticCreate(spcore_t spc, uint64_t index);
-void SPCoreUnitDiagnosticDestroy(spdiag_t *syndiag);
+uint64_t SPUnitDiagnosticCount(SPUnit unit);
+SPDiag *SPDiagnosticCreateFromUnit(SPUnit unit, uint64_t index);
+void SPDiagnosticDestroy(SPDiag *diag);
 
 #ifdef __cplusplus
 }
