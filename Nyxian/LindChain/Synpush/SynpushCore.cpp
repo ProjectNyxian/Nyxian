@@ -38,7 +38,7 @@ struct opaque_synpushcore {
     std::unique_ptr<ASTUnit> unit;
 };
 
-bool SPCreateUnit(spcore_t spc)
+bool SPCoreUnitCreate(spcore_t spc)
 {
     if(spc->file.second == nullptr)
     {
@@ -91,7 +91,7 @@ reparse_from_nothing:
     {
         if(spc->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
         {
-            SPDestroyUnit(spc);
+            SPCoreUnitDestroy(spc);
             goto reparse_from_nothing;
         }
     }
@@ -107,15 +107,21 @@ reparse_from_nothing:
     return success;
 }
 
-void SPDestroyUnit(spcore_t spc)
+void SPCoreUnitDestroy(spcore_t spc)
 {
     spc->unit.reset();
     spc->unit = nullptr;
 }
 
-spcore_t SPCreateCore(int argc, const char **argv)
+spcore_t SPCoreCreate(int argc,
+                      const char **argv)
 {
-    auto *spc = new opaque_synpushcore();
+    auto *spc = new (std::nothrow) opaque_synpushcore();
+    if(spc == nullptr)
+    {
+        return nullptr;
+    }
+    
     spc->BaseArgs.push_back("clang");
     for(int i = 0; i < argc; i++)
     {
@@ -124,11 +130,11 @@ spcore_t SPCreateCore(int argc, const char **argv)
     return spc;
 }
 
-void SPFreeCore(spcore_t spc)
+void SPCoreDestroy(spcore_t spc)
 {
     if(spc->unit != nullptr)
     {
-        SPDestroyUnit(spc);
+        SPCoreUnitDestroy(spc);
     }
     if(spc->file.second)
     {
@@ -137,11 +143,14 @@ void SPFreeCore(spcore_t spc)
     delete static_cast<opaque_synpushcore *>(spc);
 }
 
-void SPUpdateArguments(spcore_t spc,
-                       int argc,
-                       const char **argv)
+void SPCoreUpdateArguments(spcore_t spc,
+                           int argc,
+                           const char **argv)
 {
-    SPDestroyUnit(spc);
+    if(spc->unit != nullptr)
+    {
+        SPCoreUnitDestroy(spc);
+    }
     spc->BaseArgs.clear();
     spc->BaseArgs.push_back("clang");
     for(int i = 0; i < argc; i++)
@@ -150,10 +159,10 @@ void SPUpdateArguments(spcore_t spc,
     }
 }
 
-void SPUpdateFileContent(spcore_t spc,
-                         const char *filepath,
-                         const char *content,
-                         size_t length)
+void SPCoreUpdateFileContent(spcore_t spc,
+                             const char *filepath,
+                             const char *content,
+                             size_t length)
 {
     llvm::StringRef contentRef(content, length);
     std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
@@ -164,75 +173,90 @@ void SPUpdateFileContent(spcore_t spc,
     }
     if(!spc->file.first.empty() && spc->file.first != remap.first && spc->unit != nullptr)
     {
-        SPDestroyUnit(spc);
+        SPCoreUnitDestroy(spc);
     }
     spc->file = remap;
 }
 
-uint64_t SPDiagnosticCount(spcore_t spc)
+uint64_t SPCoreUnitDiagnosticCount(spcore_t spc)
 {
     return (spc->unit == nullptr) ? 0 : spc->unit->stored_diag_size();
 }
 
-spdiag_t SPDiagnosticGet(spcore_t spc,
-                         uint64_t index)
+spdiag_t *SPCoreUnitDiagnosticCreate(spcore_t spc,
+                                    uint64_t index)
 {
+    if(spc->unit == nullptr)
+    {
+        return nullptr;
+    }
+    
+    if(index >= spc->unit->stored_diag_size())
+    {
+        return nullptr;
+    }
+    
+    spdiag_t *syndiag = new (std::nothrow) spdiag_t();
+    if(syndiag == nullptr)
+    {
+        return nullptr;
+    }
+    
     const StoredDiagnostic &diag = spc->unit->stored_diag_begin()[index];
     clang::PresumedLoc loc = spc->unit->getSourceManager().getPresumedLoc(diag.getLocation());
-    
-    spdiag_t syndiag = {};
     
     if(loc.isValid())
     {
         if(spc->file.first == loc.getFilename())
         {
-            syndiag.type = SPDiagTypeTargetFile;
+            syndiag->type = SPDiagTypeTargetFile;
         }
         else
         {
-            syndiag.type = SPDiagTypeFile;
+            syndiag->type = SPDiagTypeFile;
         }
         
-        syndiag.filepath = loc.getFilename();
-        syndiag.line = loc.getLine();
-        syndiag.column = loc.getColumn();
+        syndiag->filepath = loc.getFilename();
+        syndiag->line = loc.getLine();
+        syndiag->column = loc.getColumn();
     }
     else
     {
-        syndiag.type = SPDiagTypeInternal;
+        syndiag->type = SPDiagTypeInternal;
     }
     
-    syndiag.message = strdup(diag.getMessage().str().c_str());
+    syndiag->message = strdup(diag.getMessage().str().c_str());
     
     switch(diag.getLevel())
     {
         case clang::DiagnosticsEngine::Note:
-            syndiag.level = SPDiagLevelNote;
+            syndiag->level = SPDiagLevelNote;
             break;
         case clang::DiagnosticsEngine::Remark:
-            syndiag.level = SPDiagLevelRemark;
+            syndiag->level = SPDiagLevelRemark;
             break;
         case clang::DiagnosticsEngine::Warning:
-            syndiag.level = SPDiagLevelWarning;
+            syndiag->level = SPDiagLevelWarning;
             break;
         case clang::DiagnosticsEngine::Error:
-            syndiag.level = SPDiagLevelError;
+            syndiag->level = SPDiagLevelError;
             break;
         case clang::DiagnosticsEngine::Fatal:
-            syndiag.level = SPDiagLevelFatal;
-            /* fall through */
+            syndiag->level = SPDiagLevelFatal;
+            break;
         default:
+            syndiag->level = SPDiagLevelUnknown;
             break;
     }
     
     return syndiag;
 }
 
-void SPDiagnosticDestroy(spdiag_t syndiag)
+void SPCoreUnitDiagnosticDestroy(spdiag_t *syndiag)
 {
-    if(syndiag.message)
+    if(syndiag->message)
     {
-        free((void *)syndiag.message);
-        syndiag.message = nullptr;
+        free((void *)syndiag->message);
     }
+    delete static_cast<spdiag_t *>(syndiag);
 }

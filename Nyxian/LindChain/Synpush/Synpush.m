@@ -95,8 +95,8 @@
     
     _contentData = newData;
     
-    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
-    SPCreateUnit(_spc);
+    SPCoreUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
+    SPCoreUnitCreate(_spc);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -113,7 +113,7 @@
         return @[];
     }
     
-    uint64_t count = SPDiagnosticCount(_spc);
+    uint64_t count = SPCoreUnitDiagnosticCount(_spc);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
@@ -122,22 +122,27 @@
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        spdiag_t diag = SPDiagnosticGet(_spc, i);
+        spdiag_t *diag = SPCoreUnitDiagnosticCreate(_spc, i);
+        
+        if(diag == NULL)
+        {
+            continue;
+        }
         
         /* TODO: remove this check, let the Coordinator do this */
-        if(diag.type == SPDiagTypeTargetFile)
+        if(diag->type == SPDiagTypeTargetFile)
         {
             /* creating actual SynItem! */
             Syndiag *item = [[Syndiag alloc] init];
-            item.line = diag.line;
-            item.column = diag.column;
-            item.type = diag.type;
-            item.level = diag.level;
-            item.message = [NSString stringWithCString:diag.message encoding:NSUTF8StringEncoding];
+            item.line = diag->line;
+            item.column = diag->column;
+            item.type = diag->type;
+            item.level = diag->level;
+            item.message = [NSString stringWithCString:diag->message encoding:NSUTF8StringEncoding];
             [items addObject:item];
         }
         
-        SPDiagnosticDestroy(diag);
+        SPCoreUnitDiagnosticDestroy(diag);
     }
 
     pthread_mutex_unlock(&_mutex);
@@ -153,7 +158,7 @@
     /* dispose many clang things to get rid of most */
     if(_spc != NULL)
     {
-        SPFreeCore(_spc);
+        SPCoreDestroy(_spc);
         _spc = NULL;
     }
     
@@ -201,9 +206,9 @@
     _contentData = data;
     
     /* creating new synpush core and update all */
-    _spc = SPCreateCore(_argc, (const char**)_args);
-    SPUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
-    bool succeed = SPCreateUnit(_spc);
+    _spc = SPCoreCreate(_argc, (const char**)_args);
+    SPCoreUpdateFileContent(_spc, _cFilename, _contentData.bytes, _contentData.length);
+    bool succeed = SPCoreUnitCreate(_spc);
     
     pthread_mutex_unlock(&_mutex);
     
@@ -216,7 +221,7 @@
     pthread_mutex_lock(&_mutex);
     if(_spc != NULL)
     {
-        SPFreeCore(_spc);
+        SPCoreDestroy(_spc);
     }
     
     if(_args != NULL)

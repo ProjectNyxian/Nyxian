@@ -57,6 +57,7 @@ typedef enum SPDiagLevel : uint8_t  {
     SPDiagLevelWarning,
     SPDiagLevelError,
     SPDiagLevelFatal,
+    SPDiagLevelUnknown,
 #ifdef __OBJC__
 };
 #else
@@ -77,18 +78,18 @@ typedef struct spdiag {
 
 typedef struct opaque_synpushcore *spcore_t;
 
-spcore_t SPCreateCore(int argc, const char **argv);
-void SPFreeCore(spcore_t spc);
+spcore_t SPCoreCreate(int argc, const char **argv);
+void SPCoreDestroy(spcore_t spc);
 
-bool SPCreateUnit(spcore_t spc);
-void SPDestroyUnit(spcore_t spc);
+bool SPCoreUnitCreate(spcore_t spc);
+void SPCoreUnitDestroy(spcore_t spc);
 
-void SPUpdateArguments(spcore_t spc, int argc, const char **argv);
-void SPUpdateFileContent(spcore_t spc, const char *filepath, const char *content, size_t length);
+void SPCoreUpdateArguments(spcore_t spc, int argc, const char **argv);
+void SPCoreUpdateFileContent(spcore_t spc, const char *filepath, const char *content, size_t length);
 
-uint64_t SPDiagnosticCount(spcore_t spc);
-spdiag_t SPDiagnosticGet(spcore_t spc, uint64_t index);
-void SPDiagnosticDestroy(spdiag_t syndiag);
+uint64_t SPCoreUnitDiagnosticCount(spcore_t spc);
+spdiag_t *SPCoreUnitDiagnosticCreate(spcore_t spc, uint64_t index);
+void SPCoreUnitDiagnosticDestroy(spdiag_t *syndiag);
 
 #ifdef __cplusplus
 }
