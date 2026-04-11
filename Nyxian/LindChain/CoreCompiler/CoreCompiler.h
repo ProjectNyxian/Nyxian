@@ -19,22 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CCDIAGNOSTIC_H
-#define CCDIAGNOSTIC_H
+#ifndef CORECOMPILER_H
+#define CORECOMPILER_H
 
 #include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCDiagnostic.h>
+#include <LindChain/CoreCompiler/CCMutableUnit.h>
 #include <LindChain/CoreCompiler/CCSourceLocation.h>
 
-typedef struct opaque_ccdiag *CCDiagnosticRef;
-
-CC_EXPORT CFTypeID CCDiagnosticGetTypeID(void);
-
-CC_EXPORT CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreate(CFAllocatorRef allocator, CCDiagType type, CCDiagLevel level, CFURLRef fileURL, CCSourceLocation location, CFStringRef message);
-
-CC_EXPORT CCDiagType CCDiagnosticGetType(CCDiagnosticRef diagnostic);
-CC_EXPORT CCDiagLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic);
-CC_EXPORT CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic);
-CC_EXPORT CCSourceLocation CCDiagnosticGetLocation(CCDiagnosticRef diagnostic);
-CC_EXPORT CFStringRef CCDiagnosticGetMessage(CCDiagnosticRef diagnostic);
-
-#endif /* CCDIAGNOSTIC_H */
+#endif /* CORECOMPILER_H */

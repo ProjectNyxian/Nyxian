@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/Synpush/Synpush.h>
-#import <LindChain/CoreCompiler/CCMutableUnit.h>
+#import <LindChain/CoreCompiler/CoreCompiler.h>
 #import <pthread.h>
 #import <string.h>
 #import <strings.h>
@@ -31,8 +31,6 @@
     NSData *_contentData;
     NSString *_filepath;
     char *_cFilename;
-    int _argc;
-    char **_args;
     pthread_mutex_t _mutex;
     
     id _unit;
@@ -141,7 +139,7 @@
             item.column = location.column;
             item.type = CCDiagnosticGetType(diagnostic);
             item.level = CCDiagnosticGetLevel(diagnostic);
-            item.message = CFBridgingRelease(CCDiagnosticGetMessage(diagnostic));
+            item.message = CFBridgingRelease(CFRetain(CCDiagnosticGetMessage(diagnostic)));
             [items addObject:item];
         }
         
@@ -189,21 +187,6 @@
     /* its not so we need to reactivate it */
     pthread_mutex_lock(&_mutex);
     
-    /* free if allocated */
-    if(_args != NULL)
-    {
-        for (int i = 0; i < _argc; ++i) free(_args[i]);
-        free(_args);
-    }
-    
-    /* making arguments ready */
-    _argc = (int)args.count;
-    _args = (char**)calloc((size_t)_argc, sizeof(char*));
-    for(int i = 0; i < _argc; ++i)
-    {
-        _args[i] = strdup([args[i] UTF8String]);
-    }
-    
     /* making sure that bytes doesnt get deallocated randomly */
     _contentData = data;
     
@@ -211,12 +194,13 @@
     CCMutableUnitRef unit = CCMutableUnitCreate(kCFAllocatorDefault);
     if(unit == nil)
     {
+        pthread_mutex_unlock(&_mutex);
         return false;
     }
     
     _unit = CFBridgingRelease(unit);
     
-    CCMutableUnitSetArguments(unit, _argc, (const char**)_args);
+    CCMutableUnitSetArguments(unit, (__bridge CFArrayRef)args);
     CCMutableUnitSetFileContent(unit, _cFilename, _contentData.bytes, _contentData.length);
     bool succeed = CCMutableUnitReparse(unit);
     
@@ -226,19 +210,7 @@
 }
 
 - (void)dealloc
-{
-    /* locking and disposing lol */
-    pthread_mutex_lock(&_mutex);
-    if(_args != NULL)
-    {
-        
-        /* releasing da rest */
-        for (int i = 0; i < _argc; ++i) free(_args[i]);
-        free(_args);
-    }
-    
-    pthread_mutex_unlock(&_mutex);
-    
+{    
     free(_cFilename);
     
     /* destroying the lock */

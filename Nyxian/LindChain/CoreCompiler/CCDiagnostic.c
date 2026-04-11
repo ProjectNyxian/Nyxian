@@ -169,7 +169,7 @@ CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic)
 {
     if(diagnostic->type != CCDiagTypeInternal)
     {
-        return CFRetain(diagnostic->fileURL);
+        return diagnostic->fileURL;
     }
     else
     {
@@ -191,5 +191,5 @@ CCSourceLocation CCDiagnosticGetLocation(CCDiagnosticRef diagnostic)
 
 CFStringRef CCDiagnosticGetMessage(CCDiagnosticRef diagnostic)
 {
-    return CFRetain(diagnostic->message);
+    return diagnostic->message;
 }

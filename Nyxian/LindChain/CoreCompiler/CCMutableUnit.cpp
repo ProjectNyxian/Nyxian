@@ -42,7 +42,7 @@ struct opaque_ccmutableunit {
 
 static void CCMutableUnitFinalize(CFTypeRef cf)
 {
-    opaque_ccmutableunit *unit = (opaque_ccmutableunit*)cf;
+    CCMutableUnitRef unit = (CCMutableUnitRef)cf;
     unit->unit.reset();
     if(unit->file.second)
     {
@@ -53,7 +53,7 @@ static void CCMutableUnitFinalize(CFTypeRef cf)
 
 static void CCMutableUnitInit(CFTypeRef cf)
 {
-    opaque_ccmutableunit *unit = (opaque_ccmutableunit*)cf;
+    CCMutableUnitRef unit = (CCMutableUnitRef)cf;
     new (&unit->BaseArgs) std::vector<std::string>();
     unit->file = ASTUnit::RemappedFile();
     new (&unit->unit) std::unique_ptr<ASTUnit>();
@@ -170,8 +170,7 @@ reparse_from_nothing:
 }
 
 void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
-                               int argc,
-                               const char **argv)
+                               CFArrayRef arguments)
 {
     if(mutableUnit->unit != nullptr)
     {
@@ -179,9 +178,21 @@ void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
     }
     mutableUnit->BaseArgs.clear();
     mutableUnit->BaseArgs.push_back("clang");
-    for(int i = 0; i < argc; i++)
+    CFIndex count = CFArrayGetCount(arguments);
+    for(CFIndex i = 0; i < count; i++)
     {
-        mutableUnit->BaseArgs.push_back(argv[i]);
+        CFStringRef arg = (CFStringRef)CFArrayGetValueAtIndex(arguments, i);
+        const char *ptr = CFStringGetCStringPtr(arg, kCFStringEncodingUTF8);
+        if(ptr)
+        {
+            mutableUnit->BaseArgs.push_back(ptr);
+        }
+        else
+        {
+            char buf[1024];
+            CFStringGetCString(arg, buf, sizeof(buf), kCFStringEncodingUTF8);
+            mutableUnit->BaseArgs.push_back(buf);
+        }
     }
 }
 
@@ -204,7 +215,7 @@ void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
     mutableUnit->file = remap;
 }
 
-uint64_t CCMutableUnitGetDiagnosticCount(CCMutableUnitRef mutableUnit)
+CFIndex CCMutableUnitGetDiagnosticCount(CCMutableUnitRef mutableUnit)
 {
     return (mutableUnit->unit == nullptr) ? 0 : mutableUnit->unit->stored_diag_size();
 }
@@ -252,6 +263,7 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
     else
     {
         type = CCDiagTypeInternal;
+        location = CCSourceLocationZero;
     }
     
     message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);;

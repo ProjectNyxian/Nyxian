@@ -23,7 +23,7 @@
 #define SYNDIAG_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/CoreCompiler/CCDiagnostic.h>
+#import <LindChain/CoreCompiler/CoreCompiler.h>
 
 @interface Syndiag : NSObject
 
