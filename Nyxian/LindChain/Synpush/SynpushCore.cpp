@@ -247,7 +247,7 @@ CCDiagnosticRef CCDiagnosticCreateFromUnit(SPUnit unit,
         
         const char *fileName = loc.getFilename();
         CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, fileName, kCFStringEncodingUTF8);
-        CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+        fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
         CFRelease(fileStr);
         
         location = CCSourceLocationMake(loc.getLine(), loc.getColumn());
