@@ -54,10 +54,18 @@ static void SPUnitFinalize(CFTypeRef cf)
     unit->BaseArgs.~vector();
 }
 
+static void SPUnitInit(CFTypeRef cf)
+{
+    SPUnit unit = (SPUnit)cf;
+    new (&unit->BaseArgs) std::vector<std::string>();
+    unit->file = ASTUnit::RemappedFile();
+    new (&unit->unit) std::unique_ptr<ASTUnit>();
+}
+
 static const CFRuntimeClass gSPUnitClass = {
     0,                  /* version */
     "SPUnit",           /* class name */
-    nullptr,            /* init */
+    SPUnitInit,         /* init */
     nullptr,            /* copy */
     SPUnitFinalize,     /* finalize */
     nullptr,            /* equal */
@@ -77,20 +85,7 @@ CFTypeID SPUnitGetTypeID(void)
 
 SPUnit SPUnitCreate(const CFAllocatorRef allocator)
 {
-    SPUnit unit = (SPUnit)_CFRuntimeCreateInstance(
-        allocator,
-        SPUnitGetTypeID(),
-        sizeof(opaque_synpushunit) - sizeof(CFRuntimeBase),
-        nullptr
-    );
-    if(unit == nullptr) return nullptr;
-    
-    /* TODO: initilize in a init handler */
-    new (&unit->BaseArgs) std::vector<std::string>();
-    unit->file = ASTUnit::RemappedFile();
-    new (&unit->unit) std::unique_ptr<ASTUnit>();
-    
-    return unit;
+    return (SPUnit)_CFRuntimeCreateInstance(allocator, SPUnitGetTypeID(), sizeof(opaque_synpushunit) - sizeof(CFRuntimeBase), nullptr);
 }
 
 bool SPUnitReparse(SPUnit unit)
