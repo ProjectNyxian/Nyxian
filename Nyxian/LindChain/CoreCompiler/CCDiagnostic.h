@@ -29,10 +29,10 @@ typedef struct opaque_ccdiag *CCDiagnosticRef;
 
 CC_EXPORT CFTypeID CCDiagnosticGetTypeID(void);
 
-CC_EXPORT CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreate(CFAllocatorRef allocator, CCDiagType type, CCDiagLevel level, CFURLRef fileURL, CCSourceLocation location, CFStringRef message);
+CC_EXPORT CCDiagnosticRef CF_RETURNS_RETAINED CCDiagnosticCreate(CFAllocatorRef allocator, CCDiagnosticType type, CCDiagnosticLevel level, CFURLRef fileURL, CCSourceLocation location, CFStringRef message);
 
-CC_EXPORT CCDiagType CCDiagnosticGetType(CCDiagnosticRef diagnostic);
-CC_EXPORT CCDiagLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic);
+CC_EXPORT CCDiagnosticType CCDiagnosticGetType(CCDiagnosticRef diagnostic);
+CC_EXPORT CCDiagnosticLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic);
 CC_EXPORT CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic);
 CC_EXPORT CCSourceLocation CCDiagnosticGetLocation(CCDiagnosticRef diagnostic);
 CC_EXPORT CFStringRef CCDiagnosticGetMessage(CCDiagnosticRef diagnostic);

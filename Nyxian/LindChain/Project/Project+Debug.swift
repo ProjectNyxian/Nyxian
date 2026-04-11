@@ -22,20 +22,20 @@
 import Foundation
 import UIKit
 
-extension CCDiagType: Codable {}
-extension CCDiagLevel: Codable {}
+extension CCDiagnosticType: Codable {}
+extension CCDiagnosticLevel: Codable {}
 
 /*
  * Debug "tile" in UI
  *
  */
 class DebugItem: Codable {
-    let severity: CCDiagLevel
+    let severity: CCDiagnosticLevel
     let message: String     // in case of it being a file it contains the error, in case of it being a message it contains the message it self
     let line: UInt64        // in case of it being a file it contains at what line the error is
     let column: UInt64      // in case of it being a file it contains at what column the error is, this and the previous variable is ignored in case of it being a DebugMessage
     
-    init(severity: CCDiagLevel, message: String, line: UInt64, column: UInt64) {
+    init(severity: CCDiagnosticLevel, message: String, line: UInt64, column: UInt64) {
         self.severity = severity
         self.message = message
         self.line = line
@@ -114,7 +114,7 @@ class DebugDatabase: Codable {
     /*
      * Functions to manage object entries
      */
-    func addInternalMessage(message: String, severity: CCDiagLevel) {
+    func addInternalMessage(message: String, severity: CCDiagnosticLevel) {
         self.lock.lock()
         guard let internalObject = self.debugObjects["Internal"] else {
             self.lock.unlock()

@@ -248,8 +248,8 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
         return nullptr;
     }
     
-    CCDiagType type;
-    CCDiagLevel level;
+    CCDiagnosticType type;
+    CCDiagnosticLevel level;
     CFURLRef fileURL = nullptr;
     CCSourceLocation location;
     CFStringRef message;
@@ -261,11 +261,11 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
     {
         if(mutableUnit->file.first == loc.getFilename())
         {
-            type = CCDiagTypeTargetFile;
+            type = CCDiagnosticTypeTargetFile;
         }
         else
         {
-            type = CCDiagTypeFile;
+            type = CCDiagnosticTypeFile;
         }
         
         const char *fileName = loc.getFilename();
@@ -277,7 +277,7 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
     }
     else
     {
-        type = CCDiagTypeInternal;
+        type = CCDiagnosticTypeInternal;
         location = CCSourceLocationZero;
     }
     
@@ -286,22 +286,22 @@ CCDiagnosticRef CCDiagnosticCreateFromMutableUnit(CCMutableUnitRef mutableUnit,
     switch(diag.getLevel())
     {
         case clang::DiagnosticsEngine::Note:
-            level = CCDiagLevelNote;
+            level = CCDiagnosticLevelNote;
             break;
         case clang::DiagnosticsEngine::Remark:
-            level = CCDiagLevelRemark;
+            level = CCDiagnosticLevelRemark;
             break;
         case clang::DiagnosticsEngine::Warning:
-            level = CCDiagLevelWarning;
+            level = CCDiagnosticLevelWarning;
             break;
         case clang::DiagnosticsEngine::Error:
-            level = CCDiagLevelError;
+            level = CCDiagnosticLevelError;
             break;
         case clang::DiagnosticsEngine::Fatal:
-            level = CCDiagLevelFatal;
+            level = CCDiagnosticLevelFatal;
             break;
         default:
-            level = CCDiagLevelNote;
+            level = CCDiagnosticLevelNote;
             break;
     }
     

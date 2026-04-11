@@ -31,20 +31,20 @@
 #define CC_EXPORT extern __attribute__((visibility("default")))
 #endif
 
-typedef CF_ENUM(uint8_t, CCDiagType) {
-    CCDiagTypeFile = 0,
-    CCDiagTypeTargetFile,
-    CCDiagTypeInternal,
-    CCDiagTypeUnknown,
+typedef CF_ENUM(uint8_t, CCDiagnosticType) {
+    CCDiagnosticTypeFile = 0,
+    CCDiagnosticTypeTargetFile,
+    CCDiagnosticTypeInternal,
+    CCDiagnosticTypeUnknown,
 };
 
-typedef CF_ENUM(uint8_t, CCDiagLevel) {
-    CCDiagLevelNote = 0,
-    CCDiagLevelRemark,
-    CCDiagLevelWarning,
-    CCDiagLevelError,
-    CCDiagLevelFatal,
-    CCDiagLevelUnknown,
+typedef CF_ENUM(uint8_t, CCDiagnosticLevel) {
+    CCDiagnosticLevelNote = 0,
+    CCDiagnosticLevelRemark,
+    CCDiagnosticLevelWarning,
+    CCDiagnosticLevelError,
+    CCDiagnosticLevelFatal,
+    CCDiagnosticLevelUnknown,
 };
 
 #endif /* CCBASE_H */

@@ -25,8 +25,8 @@ static CFTypeID gCCDiagnosticTypeID = _kCFRuntimeNotATypeID;
 
 struct opaque_ccdiag {
     CFRuntimeBase _base;
-    CCDiagType type;
-    CCDiagLevel level;
+    CCDiagnosticType type;
+    CCDiagnosticLevel level;
     CFURLRef fileURL;
     CCSourceLocation location;
     CFStringRef message;
@@ -41,7 +41,7 @@ static CFTypeRef CCDiagnosticCopy(CFAllocatorRef allocator,
 static void CCDiagnosticFinalize(CFTypeRef cf)
 {
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
-    if(diagnostic->type != CCDiagTypeInternal)
+    if(diagnostic->type != CCDiagnosticTypeInternal)
     {
         CFRelease(diagnostic->fileURL);
     }
@@ -59,7 +59,7 @@ static Boolean CCDiagnosticEqual(CFTypeRef cf1,
         return false;
     }
     
-    if(diagnostic1->type != CCDiagTypeInternal)
+    if(diagnostic1->type != CCDiagnosticTypeInternal)
     {
         if(!CFEqual(diagnostic1->fileURL, diagnostic2->fileURL))
         {
@@ -83,7 +83,7 @@ static Boolean CCDiagnosticEqual(CFTypeRef cf1,
 static CFHashCode CCDiagnosticHash(CFTypeRef cf)
 {
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
-    if(diagnostic->type != CCDiagTypeInternal)
+    if(diagnostic->type != CCDiagnosticTypeInternal)
     {
         return CFHash(diagnostic->fileURL) ^ CFHash(diagnostic->message);
     }
@@ -93,7 +93,7 @@ static CFHashCode CCDiagnosticHash(CFTypeRef cf)
 static CFStringRef CCDiagnosticCopyFormattingDesc(CFTypeRef cf, CFDictionaryRef options)
 {
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
-    if(diagnostic->type != CCDiagTypeInternal)
+    if(diagnostic->type != CCDiagnosticTypeInternal)
     {
         return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@:%ld:%ld: \"%@\""), diagnostic->fileURL, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
     }
@@ -128,8 +128,8 @@ CFTypeID CCDiagnosticGetTypeID(void)
 }
 
 CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
-                                   CCDiagType type,
-                                   CCDiagLevel level,
+                                   CCDiagnosticType type,
+                                   CCDiagnosticLevel level,
                                    CFURLRef fileURL,
                                    CCSourceLocation location,
                                    CFStringRef message)
@@ -147,7 +147,7 @@ CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
     diagnostic->location = location;
     diagnostic->message = CFRetain(message);
     
-    if(type != CCDiagTypeInternal)
+    if(type != CCDiagnosticTypeInternal)
     {
         diagnostic->fileURL = CFRetain(fileURL);
     }
@@ -155,19 +155,19 @@ CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
     return (CCDiagnosticRef)diagnostic;
 }
 
-CCDiagType CCDiagnosticGetType(CCDiagnosticRef diagnostic)
+CCDiagnosticType CCDiagnosticGetType(CCDiagnosticRef diagnostic)
 {
     return diagnostic->type;
 }
 
-CCDiagLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic)
+CCDiagnosticLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic)
 {
     return diagnostic->level;
 }
 
 CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic)
 {
-    if(diagnostic->type != CCDiagTypeInternal)
+    if(diagnostic->type != CCDiagnosticTypeInternal)
     {
         return diagnostic->fileURL;
     }
@@ -179,7 +179,7 @@ CFURLRef CCDiagnosticGetFileURL(CCDiagnosticRef diagnostic)
 
 CCSourceLocation CCDiagnosticGetLocation(CCDiagnosticRef diagnostic)
 {
-    if(diagnostic->type != CCDiagTypeInternal)
+    if(diagnostic->type != CCDiagnosticTypeInternal)
     {
         return (diagnostic->location);
     }

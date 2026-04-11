@@ -23,14 +23,14 @@
 
 @implementation Syndiag
 
-+ (CCDiagLevel)SynitemLevelOfClangLevel:(NSString *)levelStr
++ (CCDiagnosticLevel)SynitemLevelOfClangLevel:(NSString *)levelStr
 {
     levelStr = [levelStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    if([levelStr hasPrefix:@"error"]) return CCDiagLevelError;
-    if([levelStr hasPrefix:@"fatal"]) return CCDiagLevelFatal;
-    if([levelStr hasPrefix:@"warning"]) return CCDiagLevelWarning;
-    if([levelStr hasPrefix:@"remark"]) return CCDiagLevelRemark;
-    return CCDiagLevelNote;
+    if([levelStr hasPrefix:@"error"]) return CCDiagnosticLevelError;
+    if([levelStr hasPrefix:@"fatal"]) return CCDiagnosticLevelFatal;
+    if([levelStr hasPrefix:@"warning"]) return CCDiagnosticLevelError;
+    if([levelStr hasPrefix:@"remark"]) return CCDiagnosticLevelRemark;
+    return CCDiagnosticLevelNote;
 }
 
 + (NSArray<Syndiag *> *)OfClangErrorWithString:(NSString *)errorString
@@ -61,7 +61,7 @@
         Syndiag *syndiag = [[Syndiag alloc] init];
         syndiag.line = [potentialLine integerValue];
         syndiag.column = hasCol ? [potentialCol integerValue] : 0;
-        syndiag.type = CCDiagTypeFile;
+        syndiag.type = CCDiagnosticTypeFile;
         syndiag.level = [Syndiag SynitemLevelOfClangLevel:errorComponents[levelIdx]];
         
         NSUInteger msgStart = levelIdx + 1;

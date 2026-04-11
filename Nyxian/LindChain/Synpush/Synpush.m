@@ -124,10 +124,10 @@
             continue;
         }
         
-        CCDiagType type = CCDiagnosticGetType(diagnostic);
+        CCDiagnosticType type = CCDiagnosticGetType(diagnostic);
         
         /* TODO: remove this check, let the Coordinator do this */
-        if(type == CCDiagTypeTargetFile)
+        if(type == CCDiagnosticTypeTargetFile)
         {
             CCSourceLocation location = CCDiagnosticGetLocation(diagnostic);
             
