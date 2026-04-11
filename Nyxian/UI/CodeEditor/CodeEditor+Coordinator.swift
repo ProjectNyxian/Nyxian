@@ -67,7 +67,7 @@ class Coordinator: NSObject, TextViewDelegate {
     }
     
     func textViewDidChange(_ textView: TextView) {
-        if((textView.text as NSString).length != 0) {
+        if(!textView.text.isEmpty) {
             self.parent?.document?.text = textView.text
         }
         guard self.parent?.synpushServer != nil else { return }
