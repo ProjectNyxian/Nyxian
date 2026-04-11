@@ -196,9 +196,9 @@ void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
     }
 }
 
-CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
-                                           CFURLRef fileURL,
-                                           CFDataRef content)
+void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
+                                 CFURLRef fileURL,
+                                 CFDataRef content)
 {
     char filepath[PATH_MAX];
     CFURLGetFileSystemRepresentation(fileURL, true, (UInt8*)filepath, sizeof(filepath));
@@ -216,6 +216,18 @@ CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
         mutableUnit->unit.reset();
     }
     mutableUnit->file = remap;
+}
+
+CFURLRef CCMutableUnitGetFileURL(CCMutableUnitRef mutableUnit)
+{
+    if(mutableUnit->file.first.empty())
+    {
+        return nullptr;
+    }
+    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, mutableUnit->file.first.c_str(), kCFStringEncodingUTF8);
+    CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+    CFRelease(fileStr);
+    return fileURL;
 }
 
 CFIndex CCMutableUnitGetDiagnosticCount(CCMutableUnitRef mutableUnit)
