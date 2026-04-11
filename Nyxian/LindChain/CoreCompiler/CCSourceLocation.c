@@ -29,3 +29,9 @@ CCSourceLocation CCSourceLocationMake(CFIndex line,
     loc.column = column;
     return loc;
 }
+
+CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1,
+                                                  CCSourceLocation location2)
+{
+    return (location1.line == location2.line && location1.column == location2.column);
+}

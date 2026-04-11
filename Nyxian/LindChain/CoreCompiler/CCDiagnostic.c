@@ -32,6 +32,12 @@ struct opaque_ccdiag {
     CFStringRef message;
 };
 
+static CFTypeRef CCDiagnosticCopy(CFAllocatorRef allocator,
+                                  CFTypeRef cf)
+{
+    return CFRetain(cf);
+}
+
 static void CCDiagnosticFinalize(CFTypeRef cf)
 {
     struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
@@ -39,16 +45,63 @@ static void CCDiagnosticFinalize(CFTypeRef cf)
     CFRelease(diagnostic->message);
 }
 
+static Boolean CCDiagnosticEqual(CFTypeRef cf1,
+                                 CFTypeRef cf2)
+{
+    struct opaque_ccdiag *diagnostic1 = (struct opaque_ccdiag*)cf1;
+    struct opaque_ccdiag *diagnostic2 = (struct opaque_ccdiag*)cf2;
+    
+    if(!CFEqual(diagnostic1->fileURL, diagnostic2->fileURL))
+    {
+        return false;
+    }
+    
+    if(!CCSourceLocationEqualToLocation(diagnostic1->location, diagnostic2->location))
+    {
+        return false;
+    }
+    
+    if(diagnostic1->type != diagnostic2->type || diagnostic1->level != diagnostic2->level)
+    {
+        return false;
+    }
+
+    if(!CFEqual(diagnostic1->message, diagnostic2->message))
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+static CFHashCode CCDiagnosticHash(CFTypeRef cf)
+{
+    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
+    return CFHash(diagnostic->fileURL) ^ CFHash(diagnostic->message);
+}
+
+static CFStringRef CCDiagnosticCopyFormattingDesc(CFTypeRef cf, CFDictionaryRef options)
+{
+    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@:%ld:%ld: %@"), diagnostic->fileURL, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
+}
+
+static CFStringRef CCDiagnosticCopyDebugDesc(CFTypeRef cf)
+{
+    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)cf;
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCDiagnostic %p: line=%ld col=%ld message=%@>"), cf, diagnostic->location.line, diagnostic->location.column, diagnostic->message);
+}
+
 static const CFRuntimeClass gCCDiagnosticClass = {
-    0,                      /* version */
-    "LDEDiagnostic",        /* class name (later for OBJC type) */
-    NULL,                   /* init */
-    NULL,                   /* copy */
-    CCDiagnosticFinalize,   /* finalize */
-    NULL,                   /* equal */
-    NULL,                   /* hash */
-    NULL,                   /* copyFormattingDesc */
-    NULL,                   /* copyDebugDesc */
+    0,                              /* version */
+    "LDEDiagnostic",                /* class name (later for OBJC type) */
+    NULL,                           /* init */
+    CCDiagnosticCopy,               /* copy */
+    CCDiagnosticFinalize,           /* finalize */
+    CCDiagnosticEqual,              /* equal */
+    CCDiagnosticHash,               /* hash */
+    CCDiagnosticCopyFormattingDesc, /* copyFormattingDesc */
+    CCDiagnosticCopyDebugDesc,      /* copyDebugDesc */
 };
 
 CFTypeID CCDiagnosticGetTypeID(void)

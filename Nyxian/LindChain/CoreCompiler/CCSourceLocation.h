@@ -30,5 +30,6 @@ typedef struct {
 } CCSourceLocation;
 
 CC_EXPORT CCSourceLocation CCSourceLocationMake(CFIndex line, CFIndex column);
+CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1, CCSourceLocation location2);
 
 #endif /* CCSOURCELOCATION_H */
