@@ -20,10 +20,10 @@
 */
 
 #import <LindChain/Synpush/Synpush.h>
+#import <LindChain/CoreCompiler/CCMutableUnit.h>
 #import <pthread.h>
 #import <string.h>
 #import <strings.h>
-
 
 #pragma mark - SynpushServer
 
@@ -95,8 +95,8 @@
     
     _contentData = newData;
     
-    SPUnitSetFileContent((__bridge SPUnit)_unit, _cFilename, _contentData.bytes, _contentData.length);
-    SPUnitReparse((__bridge SPUnit)_unit);
+    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, _cFilename, _contentData.bytes, _contentData.length);
+    CCMutableUnitReparse((__bridge CCMutableUnitRef)_unit);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -113,7 +113,7 @@
         return @[];
     }
     
-    uint64_t count = SPUnitGetDiagnosticCount((__bridge SPUnit)_unit);
+    uint64_t count = CCMutableUnitGetDiagnosticCount((__bridge CCMutableUnitRef)_unit);
     
     /* preallocating array with count of items */
     NSMutableArray<Syndiag *> *items = [NSMutableArray arrayWithCapacity:count];
@@ -122,7 +122,7 @@
     for(uint64_t i = 0; i < count; ++i)
     {
         /* getting diagnostic */
-        CCDiagnosticRef diagnostic = CCDiagnosticCreateFromUnit((__bridge SPUnit)_unit, i);
+        CCDiagnosticRef diagnostic = CCDiagnosticCreateFromMutableUnit((__bridge CCMutableUnitRef)_unit, i);
         if(diagnostic == nil)
         {
             continue;
@@ -208,7 +208,7 @@
     _contentData = data;
     
     /* creating new synpush core and update all */
-    SPUnit unit = SPUnitCreate(kCFAllocatorDefault);
+    CCMutableUnitRef unit = CCMutableUnitCreate(kCFAllocatorDefault);
     if(unit == nil)
     {
         return false;
@@ -216,9 +216,9 @@
     
     _unit = CFBridgingRelease(unit);
     
-    SPUnitSetArguments(unit, _argc, (const char**)_args);
-    SPUnitSetFileContent(unit, _cFilename, _contentData.bytes, _contentData.length);
-    bool succeed = SPUnitReparse(unit);
+    CCMutableUnitSetArguments(unit, _argc, (const char**)_args);
+    CCMutableUnitSetFileContent(unit, _cFilename, _contentData.bytes, _contentData.length);
+    bool succeed = CCMutableUnitReparse(unit);
     
     pthread_mutex_unlock(&_mutex);
     
