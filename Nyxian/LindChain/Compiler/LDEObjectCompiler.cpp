@@ -69,20 +69,6 @@ CCUnitRef CompileObject(object_compiler_t cmp,
                         const char *outputFilePath,
                         bool *didSucceed)
 {
-    auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
-    DiagOpts->ShowColors = false;
-    DiagOpts->ShowLevel = true;
-    DiagOpts->ShowOptionNames = false;
-    DiagOpts->MessageLength = 0;
-    DiagOpts->ShowSourceRanges = false;
-    DiagOpts->ShowPresumedLoc = false;
-    DiagOpts->ShowCarets = false;
-    
-    /* setting up diagnostic engine */
-    auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
-    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(llvm::errs(), &*DiagOpts);
-    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(DiagID, DiagOpts, new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts), true));
-    
     /* setting up argument */
     SmallVector<const char *, 64> Args;
     for(const std::string &arg : cmp->BaseArgs)
@@ -95,6 +81,7 @@ CCUnitRef CompileObject(object_compiler_t cmp,
     Args.push_back(outputFilePath);
     
     /* setting up clang driver */
+    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>()));
     Driver TheDriver("clang", "", *Diags);
     
     /* building compilation */
