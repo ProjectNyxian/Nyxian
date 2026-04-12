@@ -20,81 +20,45 @@
 */
 
 #import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/Private/CoreFoundation/CFRuntime.h>
+#import <libkern/OSAtomic.h>
+#include <objc/runtime.h>
 
 @implementation LDECFType
 
-+ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
-{
-    return NO;
-}
-
-- (id)retain
-{
-    return (__bridge id)CFRetain((__bridge CFTypeRef)self);
-}
-
-- (oneway void)release
-{
-    CFRelease((__bridge CFTypeRef)self);
-}
-
-- (unsigned long long)retainCount
-{
-    return CFGetRetainCount((__bridge CFTypeRef)self);
-}
-
-- (BOOL)_tryRetain
-{
-    if(CFGetRetainCount((__bridge CFTypeRef)self) == 0)
-    {
-        return NO;
-    }
-    CFRetain((__bridge CFTypeRef)self);
-    return YES;
-}
-
-- (BOOL)_isDeallocating
-{
-    return CFGetRetainCount((__bridge CFTypeRef)self) == 0;
-}
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-missing-super-calls"
-- (void)dealloc
++ (void)load
 {
     /*
-     * CF manages the memory of this object
-     * and not us, so we cant call
-     * [super dealloc], get that in your god damn
-     * brain compiler.
+     * needed since the class is not existing at
+     * link time it seems like and only exists
+     * at runtime and DYLD can't resolve it
+     * so we do it using the ObjC runtime.
      */
-}
-#pragma clang diagnostic pop
-
-- (NSString *)description
-{
-    CFStringRef desc = CFCopyDescription((__bridge CFTypeRef)self);
-    if(desc == NULL)
+    Class nscfType = NSClassFromString(@"NSCFType");
+    if(!nscfType)
     {
-        return [super description];
+        return;
     }
-    NSString *result = (__bridge NSString *)desc;
-    CFRelease(desc);
-    return result;
-}
-
-- (unsigned long long)hash
-{
-    return CFHash((__bridge CFTypeRef)self);
-}
-
-- (BOOL)isEqual:(id)other
-{
-    if(other == nil)
+    
+    Class self_class = [self class];
+    Class self_meta = object_getClass(self_class);
+    
+    /* instance methods */
+    unsigned int count = 0;
+    Method *methods = class_copyMethodList(nscfType, &count);
+    for(unsigned int i = 0; i < count; i++)
     {
-        return NO;
+        class_addMethod(self_class, method_getName(methods[i]), method_getImplementation(methods[i]), method_getTypeEncoding(methods[i]));
     }
-    return (BOOL)CFEqual((__bridge CFTypeRef)self, (__bridge CFTypeRef)other);
+    free(methods);
+    
+    /* class methods */
+    Method *classMethods = class_copyMethodList(object_getClass(nscfType), &count);
+    for(unsigned int i = 0; i < count; i++)
+    {
+        class_addMethod(self_meta, method_getName(classMethods[i]), method_getImplementation(classMethods[i]), method_getTypeEncoding(classMethods[i]));
+    }
+    free(classMethods);
 }
 
 @end

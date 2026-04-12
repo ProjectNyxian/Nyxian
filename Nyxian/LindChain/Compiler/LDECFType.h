@@ -23,21 +23,7 @@
 
 #import <Foundation/Foundation.h>
 
-/* mirror implementation of https://github.com/qingralf/iOS18-Runtime-Headers/blob/cfdd406d3a0bbac8473571dda5482e155b1cc402/Frameworks/CoreFoundation.framework/__NSCFType.h#L5 */
 @interface LDECFType : NSObject
-
-+ (bool)automaticallyNotifiesObserversForKey:(id)arg1;
-
-- (bool)_isDeallocating;
-- (bool)_tryRetain;
-- (void)dealloc;
-- (id)description;
-- (unsigned long long)hash;
-- (bool)isEqual:(id)arg1;
-- (oneway void)release;
-- (id)retain;
-- (unsigned long long)retainCount;
-
 @end
 
 #endif /* !LDECFTYPE_H */
