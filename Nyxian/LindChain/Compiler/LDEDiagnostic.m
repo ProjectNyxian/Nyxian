@@ -123,4 +123,32 @@
     }
 }
 
+- (instancetype)retain
+{
+    return (__bridge LDEDiagnostic*)CFRetain((__bridge CFTypeRef)self);
+}
+
+- (oneway void)release
+{
+    CFRelease((__bridge CFTypeRef)self);
+}
+
+- (NSUInteger)retainCount
+{
+    return (NSUInteger)CFGetRetainCount((__bridge CFTypeRef)self);
+}
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-missing-super-calls"
+- (void)dealloc
+{
+    /*
+     * CF manages the memory of this object
+     * and not us, so we cant call
+     * [super dealloc], get that in your god damn
+     * brain compiler.
+     */
+}
+#pragma clang diagnostic pop
+
 @end

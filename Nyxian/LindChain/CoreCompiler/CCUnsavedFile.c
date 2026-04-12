@@ -88,6 +88,9 @@ static const CFRuntimeClass gCCUnsavedFileClass = {
     CCUnsavedFileHash,                  /* hash */
     CCUnsavedFileCopyFormattingDesc,    /* copyFormattingDesc */
     CCUnsavedFileCopyDebugDesc,         /* copyDebugDesc */
+    NULL,
+    NULL,
+    0
 };
 
 CFTypeID CCUnsavedFileGetTypeID(void)

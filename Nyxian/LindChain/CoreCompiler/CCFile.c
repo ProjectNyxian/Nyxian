@@ -77,6 +77,9 @@ static const CFRuntimeClass gCCFileClass = {
     CCFileHash,                     /* hash */
     CCFileCopyFormattingDesc,       /* copyFormattingDesc */
     CCFileCopyDebugDesc,            /* copyDebugDesc */
+    NULL,
+    NULL,
+    0
 };
 
 CFTypeID CCFileGetTypeID(void)

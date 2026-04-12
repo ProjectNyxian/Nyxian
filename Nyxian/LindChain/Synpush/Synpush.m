@@ -109,27 +109,7 @@
         return @[];
     }
     
-    uint64_t count = CCMutableUnitGetDiagnosticCount((__bridge CCMutableUnitRef)_unit);
-    
-    /* preallocating array with count of items */
-    NSMutableArray<LDEDiagnostic *> *items = [NSMutableArray arrayWithCapacity:count];
-
-    //CXFile targetFile = NULL;
-    for(uint64_t i = 0; i < count; ++i)
-    {
-        /* getting diagnostic */
-        LDEDiagnostic *diagnostic = CFBridgingRelease(CCDiagnosticCreateFromMutableUnit((__bridge CCMutableUnitRef)_unit, i));
-        if(diagnostic == nil)
-        {
-            continue;
-        }
-        
-        if(diagnostic.type == CCDiagnosticTypeTargetFile)
-        {
-            [items addObject:diagnostic];
-        }
-    }
-
+    NSArray<LDEDiagnostic *> *items = CFBridgingRelease(CCMutableUnitGetDiagnostics((__bridge CCMutableUnitRef)_unit));
     pthread_mutex_unlock(&_mutex);
     return items;
 }

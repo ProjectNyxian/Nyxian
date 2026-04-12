@@ -116,6 +116,9 @@ static const CFRuntimeClass gCCDiagnosticClass = {
     CCDiagnosticHash,               /* hash */
     CCDiagnosticCopyFormattingDesc, /* copyFormattingDesc */
     CCDiagnosticCopyDebugDesc,      /* copyDebugDesc */
+    NULL,
+    NULL,
+    0
 };
 
 CFTypeID CCDiagnosticGetTypeID(void)
