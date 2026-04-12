@@ -15,27 +15,7 @@ Nyxian is an iOS app that empowers developers with a full toolchain they can use
 
 ## Installation
 
-### Jailed
-Jailed is the main version of Nyxian. You need a free or paid apple developer account, which you have to use to sign and install Nyxian and in Nyxian you have to import the same developer certificate.
-**Do not use LiveContainer** to use Nyxian, install Nyxian seperately.
-
-**Keep all app extensions when installing!**
-
-##### Requirements
-
-- iOS/iPadOS 16+
-- AltStore 2.0+ / SideStore 0.6.0+
-
-##### Download:
-<a href="https://stikstore.app/altdirect/?url=https://nyxian.app/apps.json&exclude=livecontainer" target="_blank">
-   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
-</a>
-<a href="https://github.com/ProjectNyxian/Nyxian/releases/download/0.8.6/nyxian.ipa" target="_blank">
-   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
-</a>
-
-### Jailbroken
-A guide is coming here soon, but for now just look at the releases.
+[Guide](https://nyxian.app/docs/installation)
 
 ## Todo
 - [x] Code execution using NSExtension
