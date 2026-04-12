@@ -104,7 +104,7 @@ CCFileRef CCFileCreate(CFAllocatorRef allocator,
     return file;
 }
 
-CC_EXPORT CFURLRef CCFileGetFileURL(CCFileRef file)
+CFURLRef CCFileGetFileURL(CCFileRef file)
 {
     return file->fileURL;
 }
