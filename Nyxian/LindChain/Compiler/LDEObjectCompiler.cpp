@@ -64,15 +64,11 @@ void FreeObjectCompiler(object_compiler_t cmp)
     delete static_cast<opaque_compiler *>(cmp);
 }
 
-int CompileObject(object_compiler_t cmp,
-                  const char *inputFilePath,
-                  const char *outputFilePath,
-                  char **errorStringSet)
+CCUnitRef CompileObject(object_compiler_t cmp,
+                        const char *inputFilePath,
+                        const char *outputFilePath,
+                        bool *didSucceed)
 {
-    /* error string setup */
-    std::string errorString;
-    llvm::raw_string_ostream errorOutputStream(errorString);
-    
     auto DiagOpts = llvm::makeIntrusiveRefCnt<DiagnosticOptions>();
     DiagOpts->ShowColors = false;
     DiagOpts->ShowLevel = true;
@@ -84,8 +80,8 @@ int CompileObject(object_compiler_t cmp,
     
     /* setting up diagnostic engine */
     auto DiagID = llvm::makeIntrusiveRefCnt<DiagnosticIDs>();
-    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(errorOutputStream, &*DiagOpts);
-    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient.get(), false);
+    auto DiagClient = std::make_unique<TextDiagnosticPrinter>(llvm::errs(), &*DiagOpts);
+    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(DiagID, DiagOpts, new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts), true));
     
     /* setting up argument */
     SmallVector<const char *, 64> Args;
@@ -99,7 +95,7 @@ int CompileObject(object_compiler_t cmp,
     Args.push_back(outputFilePath);
     
     /* setting up clang driver */
-    Driver TheDriver("clang", "", Diags);
+    Driver TheDriver("clang", "", *Diags);
     
     /* building compilation */
     std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));
@@ -108,8 +104,8 @@ int CompileObject(object_compiler_t cmp,
     if(C == NULL)
     {
         /* setting error string */
-        *errorStringSet = strdup(errorString.c_str());
-        return 1;
+        if(didSucceed) *didSucceed = false;
+        return nullptr;
     }
     
     /* getting jobs */
@@ -123,8 +119,8 @@ int CompileObject(object_compiler_t cmp,
         llvm::SmallString<256> Msg;
         llvm::raw_svector_ostream OS(Msg);
         Jobs.Print(OS, "; ", true);
-        *errorStringSet = strdup(Msg.c_str());
-        return 1;
+        if(didSucceed) *didSucceed = false;
+        return nullptr;
     }
     
     /* getting command */
@@ -134,17 +130,17 @@ int CompileObject(object_compiler_t cmp,
     if(Cmd.getCreator().getName() != StringRef("clang"))
     {
         /* its not */
-        Diags.Report(diag::err_fe_expected_clang_command);
-        *errorStringSet = strdup(errorString.c_str());
-        return 1;
+        Diags->Report(diag::err_fe_expected_clang_command);
+        if(didSucceed) *didSucceed = false;
+        return nullptr;
     }
     
     /* getting ccargs */
     const auto &CCArgs = Cmd.getArguments();
     
     /* creating clang invocation */
-    auto CI = std::make_unique<CompilerInvocation>();
-    CompilerInvocation::CreateFromArgs(*CI, CCArgs, Diags);
+    auto CI = std::make_shared<CompilerInvocation>();
+    CompilerInvocation::CreateFromArgs(*CI, CCArgs, *Diags);
     
     /*
      * disabling free
@@ -155,26 +151,25 @@ int CompileObject(object_compiler_t cmp,
      */
     CI->getFrontendOpts().DisableFree = false;
     
-    /* creating clang instance */
-    CompilerInstance Clang;
-    Clang.setInvocation(std::move(CI));
-    Clang.createDiagnostics(DiagClient.release(), false);
-    
-    /* hopefully this check is successful */
-    if(!Clang.hasDiagnostics())
-    {
-        /* failed :c */
-        *errorStringSet = strdup("Failed to create diagnostics");
-        return 1;
-    }
-    
     /* compiling */
     auto Act = std::make_unique<EmitObjAction>();
-    bool success = Clang.ExecuteAction(*Act);
+    
+    ASTUnit *ASTUnit = ASTUnit::LoadFromCompilerInvocationAction(
+        CI,
+        std::make_shared<PCHContainerOperations>(),
+        Diags,
+        Act.release(),
+        nullptr,
+        true,
+        "",
+        false,
+        CaptureDiagsKind::All
+    );
+    
+    if(didSucceed) *didSucceed = ASTUnit != nullptr && !ASTUnit->getDiagnostics().hasErrorOccurred();
     
     /* creating error string */
-    *errorStringSet = strdup(errorString.c_str());
-    return !success || Clang.getDiagnostics().hasErrorOccurred();
+    return CCUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
 }
 
 }

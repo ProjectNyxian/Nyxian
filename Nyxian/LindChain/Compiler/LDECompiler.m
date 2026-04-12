@@ -61,21 +61,14 @@
               issues:(NSArray<LDEDiagnostic*> * * _Nonnull)issues
 {
     /* compile and get the resulting integer */
-    char *errorString = NULL;
-    const int result = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &errorString);
-    
-    /*
-     * check if errorString is allocated, if so...
-     * TODO: as RFFI information is included in LLVM we can make our own diagnostics engine which we can use to efficiently get the errors them selves, not requiring us to change the diagniostic options forcefully
-     */
-    if(errorString)
+    BOOL didSucceed;
+    CCUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &didSucceed);
+    if(unit)
     {
-        NSString *errorObjCString = [NSString stringWithCString:errorString encoding:NSUTF8StringEncoding];
-        *issues = [LDEDiagnostic diagnosticsOfClangErrorWithString:errorObjCString];
-        free(errorString);
+        *issues = CFBridgingRelease(CCUnitCopyDiagnostics(unit));
+        CFRelease(unit);
     }
-    
-    return result;
+    return didSucceed ? 0 : 1;
 }
 
 - (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath

@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/CoreCompiler/CCMutableUnit.h>
+#include <LindChain/CoreCompiler/CCUnit.h>
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Tooling/Tooling.h>
@@ -31,20 +31,24 @@
 using namespace clang;
 using namespace clang::driver;
 
-static CFTypeID gCCMutableUnitTypeID = _kCFRuntimeNotATypeID;
+static CFTypeID gCCUnitTypeID = _kCFRuntimeNotATypeID;
 
-struct opaque_ccmutableunit {
+struct opaque_ccunit {
     CFRuntimeBase _base;
+    Boolean isMutable;
     std::vector<std::string> BaseArgs;
     ASTUnit::RemappedFile file;
     std::unique_ptr<ASTUnit> unit;
     CFArrayRef diagnostics;
 };
 
-static void CCMutableUnitFinalize(CFTypeRef cf)
+static void CCUnitFinalize(CFTypeRef cf)
 {
     CCMutableUnitRef unit = (CCMutableUnitRef)cf;
-    unit->unit.reset();
+    if(unit->unit != nullptr)
+    {
+        unit->unit.reset();
+    }
     if(unit->file.second)
     {
         delete unit->file.second;
@@ -56,21 +60,22 @@ static void CCMutableUnitFinalize(CFTypeRef cf)
     }
 }
 
-static void CCMutableUnitInit(CFTypeRef cf)
+static void CCUnitInit(CFTypeRef cf)
 {
     CCMutableUnitRef unit = (CCMutableUnitRef)cf;
     new (&unit->BaseArgs) std::vector<std::string>();
     unit->file = ASTUnit::RemappedFile();
     new (&unit->unit) std::unique_ptr<ASTUnit>();
     unit->diagnostics = nullptr;
+    unit->isMutable = true;
 }
 
-static const CFRuntimeClass gCCMutableUnitClass = {
+static const CFRuntimeClass gCCUnitClass = {
     0,                              /* version */
-    "LDEMutableUnit",               /* class name (later for OBJC type) */
-    CCMutableUnitInit,              /* init */
+    "LDEUnit",                      /* class name (later for OBJC type) */
+    CCUnitInit,                     /* init */
     NULL,                           /* copy */
-    CCMutableUnitFinalize,          /* finalize */
+    CCUnitFinalize,                 /* finalize */
     NULL,                           /* equal */
     NULL,                           /* hash */
     NULL,                           /* copyFormattingDesc */
@@ -80,22 +85,138 @@ static const CFRuntimeClass gCCMutableUnitClass = {
     0
 };
 
-CFTypeID CCMutableUnitGetTypeID(void)
+CFTypeID CCUnitGetTypeID(void)
 {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
-        gCCMutableUnitTypeID = _CFRuntimeRegisterClass(&gCCMutableUnitClass);
+        gCCUnitTypeID = _CFRuntimeRegisterClass(&gCCUnitClass);
     });
-    return gCCMutableUnitTypeID;
+    return gCCUnitTypeID;
 }
 
-CCMutableUnitRef CCMutableUnitCreate(CFAllocatorRef allocator)
+Boolean _CCUnitRefillDiagnosticArray(CCMutableUnitRef mutableUnit)
 {
-    return (CCMutableUnitRef)_CFRuntimeCreateInstance(allocator, CCMutableUnitGetTypeID(), sizeof(opaque_ccmutableunit) - sizeof(CFRuntimeBase), nullptr);
+    if(mutableUnit->diagnostics != nullptr)
+    {
+        return false;
+    }
+    
+    /* ASTUnit now owns the MemoryBuffer ptr */
+    mutableUnit->file.second = nullptr;
+    
+    /* now parse the diagnostics */
+    CFIndex count = mutableUnit->unit->stored_diag_size();
+    CFMutableArrayRef diagnostics = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
+    if(diagnostics == nullptr)
+    {
+        return false;
+    }
+    
+    /* now indice for indice */
+    for(CFIndex i = 0; i < count; i++)
+    {
+        CCDiagnosticType type;
+        CCDiagnosticLevel level;
+        CFURLRef fileURL = nullptr;
+        CCSourceLocation location;
+        CFStringRef message;
+        
+        const StoredDiagnostic &diag = mutableUnit->unit->stored_diag_begin()[i];
+        clang::PresumedLoc loc = mutableUnit->unit->getSourceManager().getPresumedLoc(diag.getLocation());
+        
+        if(loc.isValid())
+        {
+            if(mutableUnit->file.first == loc.getFilename())
+            {
+                type = CCDiagnosticTypeTargetFile;
+            }
+            else
+            {
+                type = CCDiagnosticTypeFile;
+            }
+            
+            const char *fileName = loc.getFilename();
+            CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, fileName, kCFStringEncodingUTF8);
+            fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+            CFRelease(fileStr);
+            
+            location = CCSourceLocationMake(loc.getLine(), loc.getColumn());
+        }
+        else
+        {
+            type = CCDiagnosticTypeInternal;
+            location = CCSourceLocationZero;
+        }
+        
+        message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);
+        
+        switch(diag.getLevel())
+        {
+            case clang::DiagnosticsEngine::Note:
+                level = CCDiagnosticLevelNote;
+                break;
+            case clang::DiagnosticsEngine::Remark:
+                level = CCDiagnosticLevelRemark;
+                break;
+            case clang::DiagnosticsEngine::Warning:
+                level = CCDiagnosticLevelWarning;
+                break;
+            case clang::DiagnosticsEngine::Error:
+                level = CCDiagnosticLevelError;
+                break;
+            case clang::DiagnosticsEngine::Fatal:
+                level = CCDiagnosticLevelFatal;
+                break;
+            default:
+                level = CCDiagnosticLevelNote;
+                break;
+        }
+        
+        CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
+        if(fileURL)
+        {
+            CFRelease(fileURL);
+        }
+        CFRelease(message);
+        
+        CFArrayAppendValue(diagnostics, result);
+        CFRelease(result); /* array owns now a reference */
+    }
+    
+    mutableUnit->diagnostics = diagnostics;
+    
+    return true;
 }
 
-Boolean CCMutableUnitReparse(CCMutableUnitRef mutableUnit)
+CCMutableUnitRef CCUnitCreateMutable(CFAllocatorRef allocator)
 {
+    return (CCMutableUnitRef)_CFRuntimeCreateInstance(allocator, CCUnitGetTypeID(), sizeof(opaque_ccunit) - sizeof(CFRuntimeBase), nullptr);
+}
+
+CCUnitRef CCUnitCreateWithASTUnit(CFAllocatorRef allocator,
+                                  std::unique_ptr<clang::ASTUnit> astUnit)
+{
+    if(astUnit == nullptr)
+    {
+        /* cannot create empty unit */
+        return nullptr;
+    }
+    
+    CCUnitRef unit = (CCUnitRef)_CFRuntimeCreateInstance(allocator, CCUnitGetTypeID(), sizeof(opaque_ccunit) - sizeof(CFRuntimeBase), nullptr);
+    unit->unit = std::move(astUnit);
+    _CCUnitRefillDiagnosticArray(unit);
+    unit->isMutable = false;
+    
+    return unit;
+}
+
+Boolean CCUnitReparse(CCMutableUnitRef mutableUnit)
+{
+    if(!mutableUnit->isMutable)
+    {
+        return false;
+    }
+    
     /*
      * releasing diagnostics array, because
      * the data it contains is now invalid
@@ -182,101 +303,23 @@ reparse_from_nothing:
     
     bool success = (mutableUnit->unit != nullptr);
     
-    if(success)
+    if(success && !_CCUnitRefillDiagnosticArray(mutableUnit))
     {
-        /* ASTUnit now owns the MemoryBuffer ptr */
-        mutableUnit->file.second = nullptr;
-        
-        /* now parse the diagnostics */
-        CFIndex count = mutableUnit->unit->stored_diag_size();
-        CFMutableArrayRef diagnostics = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
-        if(diagnostics == nullptr)
-        {
-            success = false;
-            goto out_return;
-        }
-        
-        /* now indice for indice */
-        for(CFIndex i = 0; i < count; i++)
-        {
-            CCDiagnosticType type;
-            CCDiagnosticLevel level;
-            CFURLRef fileURL = nullptr;
-            CCSourceLocation location;
-            CFStringRef message;
-            
-            const StoredDiagnostic &diag = mutableUnit->unit->stored_diag_begin()[i];
-            clang::PresumedLoc loc = mutableUnit->unit->getSourceManager().getPresumedLoc(diag.getLocation());
-            
-            if(loc.isValid())
-            {
-                if(mutableUnit->file.first == loc.getFilename())
-                {
-                    type = CCDiagnosticTypeTargetFile;
-                }
-                else
-                {
-                    type = CCDiagnosticTypeFile;
-                }
-                
-                const char *fileName = loc.getFilename();
-                CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, fileName, kCFStringEncodingUTF8);
-                fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
-                CFRelease(fileStr);
-                
-                location = CCSourceLocationMake(loc.getLine(), loc.getColumn());
-            }
-            else
-            {
-                type = CCDiagnosticTypeInternal;
-                location = CCSourceLocationZero;
-            }
-            
-            message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);
-            
-            switch(diag.getLevel())
-            {
-                case clang::DiagnosticsEngine::Note:
-                    level = CCDiagnosticLevelNote;
-                    break;
-                case clang::DiagnosticsEngine::Remark:
-                    level = CCDiagnosticLevelRemark;
-                    break;
-                case clang::DiagnosticsEngine::Warning:
-                    level = CCDiagnosticLevelWarning;
-                    break;
-                case clang::DiagnosticsEngine::Error:
-                    level = CCDiagnosticLevelError;
-                    break;
-                case clang::DiagnosticsEngine::Fatal:
-                    level = CCDiagnosticLevelFatal;
-                    break;
-                default:
-                    level = CCDiagnosticLevelNote;
-                    break;
-            }
-            
-            CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
-            if(fileURL)
-            {
-                CFRelease(fileURL);
-            }
-            CFRelease(message);
-            
-            CFArrayAppendValue(diagnostics, result);
-            CFRelease(result); /* array owns now a reference */
-        }
-        
-        mutableUnit->diagnostics = diagnostics;
+        return false;
     }
     
 out_return:
     return success;
 }
 
-void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
-                               CFArrayRef arguments)
+void CCUnitSetArguments(CCMutableUnitRef mutableUnit,
+                        CFArrayRef arguments)
 {
+    if(!mutableUnit->isMutable)
+    {
+        return;
+    }
+    
     if(mutableUnit->unit != nullptr)
     {
         mutableUnit->unit.reset();
@@ -301,10 +344,15 @@ void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit,
     }
 }
 
-void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
-                                 CFURLRef fileURL,
-                                 CFDataRef content)
+void CCUnitSetFileContent(CCMutableUnitRef mutableUnit,
+                          CFURLRef fileURL,
+                          CFDataRef content)
 {
+    if(!mutableUnit->isMutable)
+    {
+        return;
+    }
+    
     char filepath[PATH_MAX];
     CFURLGetFileSystemRepresentation(fileURL, true, (UInt8*)filepath, sizeof(filepath));
     
@@ -323,23 +371,23 @@ void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit,
     mutableUnit->file = remap;
 }
 
-CFURLRef CCMutableUnitGetFileURL(CCMutableUnitRef mutableUnit)
+CFURLRef CCUnitGetFileURL(CCUnitRef unit)
 {
-    if(mutableUnit->file.first.empty())
+    if(unit->file.first.empty())
     {
         return nullptr;
     }
-    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, mutableUnit->file.first.c_str(), kCFStringEncodingUTF8);
+    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, unit->file.first.c_str(), kCFStringEncodingUTF8);
     CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
     CFRelease(fileStr);
     return fileURL;
 }
 
-CFArrayRef CCMutableUnitGetDiagnostics(CCMutableUnitRef mutableUnit)
+CFArrayRef CCUnitCopyDiagnostics(CCUnitRef unit)
 {
-    if(mutableUnit->diagnostics == nullptr)
+    if(unit->diagnostics == nullptr)
     {
         return nullptr;
     }
-    return (CFArrayRef)CFRetain(mutableUnit->diagnostics);
+    return (CFArrayRef)CFRetain(unit->diagnostics);
 }

@@ -22,6 +22,8 @@
 #ifndef LDEOBJECTCOMPILER_H
 #define LDEOBJECTCOMPILER_H
 
+#include <LindChain/CoreCompiler/CCUnit.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -31,7 +33,8 @@ typedef struct opaque_compiler *object_compiler_t;
 object_compiler_t CreateObjectCompiler(int argc, const char **argv);
 void FreeObjectCompiler(object_compiler_t cmp);
 
-int CompileObject(object_compiler_t cmp, const char *inputFilePath, const char *outputFilePath, char **errorStringSet);
+/* MARK: this will mark that this API will deprecate and will become CCObjectFile or CCObjectCompiler */
+CCUnitRef CompileObject(object_compiler_t cmp, const char *inputFilePath, const char *outputFilePath, bool *didSucceed);
 
 #ifdef __cplusplus
 }

@@ -391,19 +391,19 @@ class SplitScreenDetailViewController: UIViewController {
                 logView!.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
                 logView!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
             ])
+            
+            resizeHandle.translatesAutoresizingMaskIntoConstraints = false
+            self.view.addSubview(resizeHandle)
+            NSLayoutConstraint.activate([
+                resizeHandle.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                resizeHandle.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                resizeHandle.bottomAnchor.constraint(equalTo: logView!.topAnchor),
+                resizeHandle.heightAnchor.constraint(equalToConstant: 24)
+            ])
+            
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(handleResizePan(_:)))
+            resizeHandle.addGestureRecognizer(pan)
         }
-        
-        resizeHandle.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(resizeHandle)
-        NSLayoutConstraint.activate([
-            resizeHandle.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            resizeHandle.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            resizeHandle.bottomAnchor.constraint(equalTo: logView!.topAnchor),
-            resizeHandle.heightAnchor.constraint(equalToConstant: 24)
-        ])
-        
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleResizePan(_:)))
-        resizeHandle.addGestureRecognizer(pan)
         
         self.navigationItem.titleView = self.scrollView
         

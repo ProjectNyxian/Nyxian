@@ -24,7 +24,9 @@
 
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCDiagnostic.h>
-#include <LindChain/CoreCompiler/CCMutableUnit.h>
+#include <LindChain/CoreCompiler/CCUnit.h>
 #include <LindChain/CoreCompiler/CCSourceLocation.h>
+#include <LindChain/CoreCompiler/CCFile.h>
+#include <LindChain/CoreCompiler/CCUnsavedFile.h>
 
 #endif /* CORECOMPILER_H */

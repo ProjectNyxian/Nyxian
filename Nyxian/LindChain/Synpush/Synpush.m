@@ -91,8 +91,8 @@
     
     _contentData = newData;
     
-    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
-    CCMutableUnitReparse((__bridge CCMutableUnitRef)_unit);
+    CCUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
+    CCUnitReparse((__bridge CCMutableUnitRef)_unit);
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -109,7 +109,7 @@
         return @[];
     }
     
-    NSArray<LDEDiagnostic *> *items = CFBridgingRelease(CCMutableUnitGetDiagnostics((__bridge CCMutableUnitRef)_unit));
+    NSArray<LDEDiagnostic *> *items = CFBridgingRelease(CCUnitCopyDiagnostics((__bridge CCMutableUnitRef)_unit));
     pthread_mutex_unlock(&_mutex);
     return items;
 }
@@ -147,7 +147,7 @@
     _contentData = data;
     
     /* creating new synpush core and update all */
-    CCMutableUnitRef unit = CCMutableUnitCreate(kCFAllocatorDefault);
+    CCMutableUnitRef unit = CCUnitCreateMutable(kCFAllocatorDefault);
     if(unit == nil)
     {
         pthread_mutex_unlock(&_mutex);
@@ -156,9 +156,9 @@
     
     _unit = CFBridgingRelease(unit);
     
-    CCMutableUnitSetArguments((__bridge CCMutableUnitRef)_unit, (__bridge CFArrayRef)args);
-    CCMutableUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
-    bool succeed = CCMutableUnitReparse((__bridge CCMutableUnitRef)_unit);
+    CCUnitSetArguments((__bridge CCMutableUnitRef)_unit, (__bridge CFArrayRef)args);
+    CCUnitSetFileContent((__bridge CCMutableUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
+    bool succeed = CCUnitReparse((__bridge CCMutableUnitRef)_unit);
     
     pthread_mutex_unlock(&_mutex);
     

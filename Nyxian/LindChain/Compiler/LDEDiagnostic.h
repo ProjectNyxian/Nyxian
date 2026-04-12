@@ -37,9 +37,6 @@
 + (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level fileURL:(NSURL *)fileURL location:(CCSourceLocation)location message:(NSString *)message;
 + (instancetype)diagnosticWithCCDiagnostic:(CCDiagnosticRef)ref;
 
-+ (NSArray<LDEDiagnostic *> *)diagnosticsOfClangErrorWithString:(NSString *)errorString;
-+ (void)diagnosticsOfClangErrorWithString:(NSString *)errorString usingArray:(NSMutableArray<LDEDiagnostic *> **)issues;
-
 @end
 
 #endif /* LDEDIAGNOSTIC_H */
