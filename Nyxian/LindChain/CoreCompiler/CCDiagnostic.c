@@ -136,7 +136,7 @@ CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
 {
     assert(message != nil);
     
-    struct opaque_ccdiag *diagnostic = (struct opaque_ccdiag*)_CFRuntimeCreateInstance(allocator, CCDiagnosticGetTypeID(), sizeof(struct opaque_ccdiag) - sizeof(CFRuntimeBase), NULL);
+    CCDiagnosticRef diagnostic = (CCDiagnosticRef)_CFRuntimeCreateInstance(allocator, CCDiagnosticGetTypeID(), sizeof(struct opaque_ccdiag) - sizeof(CFRuntimeBase), NULL);
     if(diagnostic == nil)
     {
         return nil;
@@ -152,7 +152,7 @@ CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
         diagnostic->fileURL = CFRetain(fileURL);
     }
     
-    return (CCDiagnosticRef)diagnostic;
+    return diagnostic;
 }
 
 CCDiagnosticType CCDiagnosticGetType(CCDiagnosticRef diagnostic)
