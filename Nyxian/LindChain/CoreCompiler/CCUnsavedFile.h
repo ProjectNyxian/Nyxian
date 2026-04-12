@@ -29,6 +29,7 @@ typedef struct opaque_ccunsavedfile *CCUnsavedFileRef;
 CC_EXPORT CFTypeID CCUnsavedFileGetTypeID(void);
 
 CC_EXPORT CCUnsavedFileRef CF_RETURNS_RETAINED CCUnsavedFileCreate(CFAllocatorRef allocator, CFURLRef fileURL, CFDataRef data);
+CC_EXPORT CCUnsavedFileRef CF_RETURNS_RETAINED CCUnsavedFileCreateCopy(CFAllocatorRef allocator, CCUnsavedFileRef unsavedFile);
 
 CC_EXPORT CFURLRef CCUnsavedFileGetFileURL(CCUnsavedFileRef unsavedFile);
 CC_EXPORT CFDataRef CCUnsavedFileGetData(CCUnsavedFileRef unsavedFile);

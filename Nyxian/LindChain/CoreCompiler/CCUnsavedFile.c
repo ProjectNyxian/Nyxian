@@ -117,6 +117,12 @@ CCUnsavedFileRef CCUnsavedFileCreate(CFAllocatorRef allocator,
     return unsavedFile;
 }
 
+CCUnsavedFileRef CCUnsavedFileCreateCopy(CFAllocatorRef allocator,
+                                         CCUnsavedFileRef unsavedFile)
+{
+    return CCUnsavedFileCreate(allocator, unsavedFile->fileURL, unsavedFile->data);
+}
+
 CFURLRef CCUnsavedFileGetFileURL(CCUnsavedFileRef unsavedFile)
 {
     return unsavedFile->fileURL;
