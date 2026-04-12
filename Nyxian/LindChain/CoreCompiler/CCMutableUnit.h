@@ -31,7 +31,7 @@ CC_EXPORT CFTypeID CCMutableUnitGetTypeID(void);
 
 CC_EXPORT CCMutableUnitRef CF_RETURNS_RETAINED CCMutableUnitCreate(CFAllocatorRef allocator);
 
-CC_EXPORT bool CCMutableUnitReparse(CCMutableUnitRef mutableUnit);
+CC_EXPORT Boolean CCMutableUnitReparse(CCMutableUnitRef mutableUnit);
 
 CC_EXPORT void CCMutableUnitSetArguments(CCMutableUnitRef mutableUnit, CFArrayRef arguments);
 CC_EXPORT void CCMutableUnitSetFileContent(CCMutableUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);

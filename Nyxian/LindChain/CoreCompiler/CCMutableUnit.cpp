@@ -85,7 +85,7 @@ CCMutableUnitRef CCMutableUnitCreate(CFAllocatorRef allocator)
     return (CCMutableUnitRef)_CFRuntimeCreateInstance(allocator, CCMutableUnitGetTypeID(), sizeof(opaque_ccmutableunit) - sizeof(CFRuntimeBase), nullptr);
 }
 
-bool CCMutableUnitReparse(CCMutableUnitRef mutableUnit)
+Boolean CCMutableUnitReparse(CCMutableUnitRef mutableUnit)
 {
     if(mutableUnit->BaseArgs.size() == 0)
     {
