@@ -111,7 +111,7 @@
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				LindChain/Compiler/LDEDiagnostic.m = "-fno-objc-arc";
+				LindChain/Compiler/LDECFType.m = "-fno-objc-arc";
 			};
 			membershipExceptions = (
 				LindChain/JBSupport/Shell.m,

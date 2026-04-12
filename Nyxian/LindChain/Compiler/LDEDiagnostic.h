@@ -24,8 +24,9 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/CoreCompiler/CCDiagnostic.h>
+#import <LindChain/Compiler/LDECFType.h>
 
-@interface LDEDiagnostic : NSObject
+@interface LDEDiagnostic : LDECFType
 
 @property (nonatomic, readonly) CCDiagnosticType type;
 @property (nonatomic, readonly) CCDiagnosticLevel level;
