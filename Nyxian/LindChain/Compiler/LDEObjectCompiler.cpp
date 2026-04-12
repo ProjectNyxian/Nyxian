@@ -66,8 +66,7 @@ void FreeObjectCompiler(object_compiler_t cmp)
 
 CCASTUnitRef CompileObject(object_compiler_t cmp,
                            const char *inputFilePath,
-                           const char *outputFilePath,
-                           bool *didSucceed)
+                           const char *outputFilePath)
 {
     /* setting up argument */
     SmallVector<const char *, 64> Args;
@@ -90,8 +89,6 @@ CCASTUnitRef CompileObject(object_compiler_t cmp,
     /* null pointer check */
     if(C == NULL)
     {
-        /* setting error string */
-        if(didSucceed) *didSucceed = false;
         return nullptr;
     }
     
@@ -106,7 +103,6 @@ CCASTUnitRef CompileObject(object_compiler_t cmp,
         llvm::SmallString<256> Msg;
         llvm::raw_svector_ostream OS(Msg);
         Jobs.Print(OS, "; ", true);
-        if(didSucceed) *didSucceed = false;
         return nullptr;
     }
     
@@ -118,7 +114,6 @@ CCASTUnitRef CompileObject(object_compiler_t cmp,
     {
         /* its not */
         Diags->Report(diag::err_fe_expected_clang_command);
-        if(didSucceed) *didSucceed = false;
         return nullptr;
     }
     
@@ -152,8 +147,6 @@ CCASTUnitRef CompileObject(object_compiler_t cmp,
         false,
         CaptureDiagsKind::All
     );
-    
-    if(didSucceed) *didSucceed = ASTUnit != nullptr && !ASTUnit->getDiagnostics().hasErrorOccurred();
     
     /* creating error string */
     return CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));

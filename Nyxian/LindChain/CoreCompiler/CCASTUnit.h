@@ -49,6 +49,7 @@ CC_EXPORT Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit);
 CC_EXPORT void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit, CFArrayRef arguments);
 CC_EXPORT void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);
 CC_EXPORT CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit);
+CC_EXPORT Boolean CCASTUnitErrorOccured(CCASTUnitRef unit);
 
 CC_EXPORT CFArrayRef CF_RETURNS_RETAINED CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
 

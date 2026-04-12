@@ -383,6 +383,22 @@ CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit)
     return fileURL;
 }
 
+Boolean CCASTUnitErrorOccured(CCASTUnitRef unit)
+{
+    if(unit->unit == nullptr)
+    {
+        /*
+         * no unit, return the constant
+         * that makes the possibility for a
+         * programmer to find the mistake of
+         * not having parsed anything the most
+         * probable.
+         */
+        return true;
+    }
+    return unit->unit->getDiagnostics().hasErrorOccurred();
+}
+
 CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit)
 {
     if(unit->diagnostics == nullptr)

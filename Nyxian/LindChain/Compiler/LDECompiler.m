@@ -61,12 +61,17 @@
               issues:(NSArray<LDEDiagnostic*> * * _Nonnull)issues
 {
     /* compile and get the resulting integer */
-    BOOL didSucceed;
-    CCASTUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &didSucceed);
+    bool didSucceed = false;
+    CCASTUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String]);
     if(unit)
     {
         *issues = CFBridgingRelease(CCASTUnitCopyDiagnostics(unit));
+        didSucceed = !CCASTUnitErrorOccured(unit);
         CFRelease(unit);
+    }
+    else
+    {
+        return 1;
     }
     return didSucceed ? 0 : 1;
 }
