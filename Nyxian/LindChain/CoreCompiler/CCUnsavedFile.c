@@ -32,7 +32,8 @@ struct opaque_ccunsavedfile {
 static CFTypeRef CCUnsavedFileCopy(CFAllocatorRef allocator,
                                    CFTypeRef cf)
 {
-    return CFRetain(cf);
+    CCUnsavedFileRef unsavedFileRef = (CCUnsavedFileRef)cf;
+    return CCUnsavedFileCreate(allocator, unsavedFileRef->fileURL, unsavedFileRef->data);
 }
 
 static void CCUnsavedFileFinalize(CFTypeRef cf)
@@ -53,7 +54,7 @@ static Boolean CCUnsavedFileEqual(CFTypeRef cf1,
         return false;
     }
     
-    return CFEqual(unsavedFileRef1->fileURL, unsavedFileRef1->fileURL);
+    return CFEqual(unsavedFileRef1->fileURL, unsavedFileRef2->fileURL);
 }
 
 static CFHashCode CCUnsavedFileHash(CFTypeRef cf)
@@ -89,7 +90,7 @@ static const CFRuntimeClass gCCUnsavedFileClass = {
     CCUnsavedFileCopyDebugDesc,         /* copyDebugDesc */
 };
 
-CFTypeID CCFileGetTypeID(void)
+CFTypeID CCUnsavedFileGetTypeID(void)
 {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
@@ -124,4 +125,18 @@ CFURLRef CCUnsavedFileGetFileURL(CCUnsavedFileRef unsavedFile)
 CFDataRef CCUnsavedFileGetData(CCUnsavedFileRef unsavedFile)
 {
     return unsavedFile->data;
+}
+
+void CCUnsavedFileSetFileURL(CCUnsavedFileRef unsavedFile,
+                             CFURLRef fileURL)
+{
+    CFRelease(unsavedFile->fileURL);
+    unsavedFile->fileURL = CFRetain(fileURL);
+}
+
+void CCUnsavedFileSetData(CCUnsavedFileRef unsavedFile,
+                          CFDataRef data)
+{
+    CFRelease(unsavedFile->data);
+    unsavedFile->data = CFRetain(data);
 }

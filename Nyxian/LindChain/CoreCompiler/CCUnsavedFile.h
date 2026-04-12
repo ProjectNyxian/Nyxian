@@ -33,4 +33,7 @@ CC_EXPORT CCUnsavedFileRef CF_RETURNS_RETAINED CCUnsavedFileCreate(CFAllocatorRe
 CC_EXPORT CFURLRef CCUnsavedFileGetFileURL(CCUnsavedFileRef unsavedFile);
 CC_EXPORT CFDataRef CCUnsavedFileGetData(CCUnsavedFileRef unsavedFile);
 
+CC_EXPORT void CCUnsavedFileSetFileURL(CCUnsavedFileRef unsavedFile, CFURLRef fileURL);
+CC_EXPORT void CCUnsavedFileSetData(CCUnsavedFileRef unsavedFile, CFDataRef data);
+
 #endif /* CCUNSAVEDFILE_H */
