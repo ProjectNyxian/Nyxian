@@ -18,3 +18,8 @@
  You should have received a copy of the GNU Affero General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
+
+#ifndef CCCOMPILER_H
+#define CCCOMPILER_H
+
+#endif /* CCCOMPILER_H */

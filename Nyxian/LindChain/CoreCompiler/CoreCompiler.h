@@ -27,6 +27,5 @@
 #include <LindChain/CoreCompiler/CCASTUnit.h>
 #include <LindChain/CoreCompiler/CCSourceLocation.h>
 #include <LindChain/CoreCompiler/CCFile.h>
-#include <LindChain/CoreCompiler/CCUnsavedFile.h>
 
 #endif /* CORECOMPILER_H */
