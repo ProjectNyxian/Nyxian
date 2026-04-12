@@ -62,10 +62,10 @@
 {
     /* compile and get the resulting integer */
     BOOL didSucceed;
-    CCUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &didSucceed);
+    CCASTUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String], &didSucceed);
     if(unit)
     {
-        *issues = CFBridgingRelease(CCUnitCopyDiagnostics(unit));
+        *issues = CFBridgingRelease(CCASTUnitCopyDiagnostics(unit));
         CFRelease(unit);
     }
     return didSucceed ? 0 : 1;

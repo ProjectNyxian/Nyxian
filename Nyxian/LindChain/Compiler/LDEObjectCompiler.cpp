@@ -64,10 +64,10 @@ void FreeObjectCompiler(object_compiler_t cmp)
     delete static_cast<opaque_compiler *>(cmp);
 }
 
-CCUnitRef CompileObject(object_compiler_t cmp,
-                        const char *inputFilePath,
-                        const char *outputFilePath,
-                        bool *didSucceed)
+CCASTUnitRef CompileObject(object_compiler_t cmp,
+                           const char *inputFilePath,
+                           const char *outputFilePath,
+                           bool *didSucceed)
 {
     /* setting up argument */
     SmallVector<const char *, 64> Args;
@@ -156,7 +156,7 @@ CCUnitRef CompileObject(object_compiler_t cmp,
     if(didSucceed) *didSucceed = ASTUnit != nullptr && !ASTUnit->getDiagnostics().hasErrorOccurred();
     
     /* creating error string */
-    return CCUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
+    return CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
 }
 
 }

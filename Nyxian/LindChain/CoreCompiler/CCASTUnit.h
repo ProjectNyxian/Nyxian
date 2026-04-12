@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CCUNIT_T
-#define CCUNIT_T
+#ifndef CCASTUNIT_T
+#define CCASTUNIT_T
 
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCDiagnostic.h>
@@ -34,22 +34,22 @@
 #include <clang/Basic/LLVM.h>
 #endif /* __cplusplus */
 
-typedef struct opaque_ccunit *CCMutableUnitRef;
-typedef struct opaque_ccunit *CCUnitRef;
+typedef struct opaque_ccastunit *CCMutableASTUnitRef;
+typedef struct opaque_ccastunit *CCASTUnitRef;
 
-CC_EXPORT CFTypeID CCUnitGetTypeID(void);
+CC_EXPORT CFTypeID CCAstUnitGetTypeID(void);
 
-CC_EXPORT CCMutableUnitRef CF_RETURNS_RETAINED CCUnitCreateMutable(CFAllocatorRef allocator);
+CC_EXPORT CCMutableASTUnitRef CF_RETURNS_RETAINED CCASTUnitCreateMutable(CFAllocatorRef allocator);
 #ifdef __cplusplus
-CC_EXPORT CCUnitRef CF_RETURNS_RETAINED CCUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit);
+CC_EXPORT CCASTUnitRef CF_RETURNS_RETAINED CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit);
 #endif /* __cplusplus */
 
-CC_EXPORT Boolean CCUnitReparse(CCMutableUnitRef mutableUnit);
+CC_EXPORT Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit);
 
-CC_EXPORT void CCUnitSetArguments(CCMutableUnitRef mutableUnit, CFArrayRef arguments);
-CC_EXPORT void CCUnitSetFileContent(CCMutableUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);
-CC_EXPORT CFURLRef CCUnitGetFileURL(CCUnitRef unit);
+CC_EXPORT void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit, CFArrayRef arguments);
+CC_EXPORT void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);
+CC_EXPORT CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit);
 
-CC_EXPORT CFArrayRef CF_RETURNS_RETAINED CCUnitCopyDiagnostics(CCUnitRef unit);
+CC_EXPORT CFArrayRef CF_RETURNS_RETAINED CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
 
-#endif /* CCUNIT_T */
+#endif /* CCASTUNIT_T */

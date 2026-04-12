@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/CoreCompiler/CCUnit.h>
+#include <LindChain/CoreCompiler/CCASTUnit.h>
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Tooling/Tooling.h>
@@ -31,9 +31,9 @@
 using namespace clang;
 using namespace clang::driver;
 
-static CFTypeID gCCUnitTypeID = _kCFRuntimeNotATypeID;
+static CFTypeID gCCASTUnitTypeID = _kCFRuntimeNotATypeID;
 
-struct opaque_ccunit {
+struct opaque_ccastunit {
     CFRuntimeBase _base;
     Boolean isMutable;
     std::vector<std::string> BaseArgs;
@@ -42,9 +42,9 @@ struct opaque_ccunit {
     CFArrayRef diagnostics;
 };
 
-static void CCUnitFinalize(CFTypeRef cf)
+static void CCASTUnitFinalize(CFTypeRef cf)
 {
-    CCMutableUnitRef unit = (CCMutableUnitRef)cf;
+    CCMutableASTUnitRef unit = (CCMutableASTUnitRef)cf;
     if(unit->unit != nullptr)
     {
         unit->unit.reset();
@@ -60,9 +60,9 @@ static void CCUnitFinalize(CFTypeRef cf)
     }
 }
 
-static void CCUnitInit(CFTypeRef cf)
+static void CCASTUnitInit(CFTypeRef cf)
 {
-    CCMutableUnitRef unit = (CCMutableUnitRef)cf;
+    CCMutableASTUnitRef unit = (CCMutableASTUnitRef)cf;
     new (&unit->BaseArgs) std::vector<std::string>();
     unit->file = ASTUnit::RemappedFile();
     new (&unit->unit) std::unique_ptr<ASTUnit>();
@@ -70,12 +70,12 @@ static void CCUnitInit(CFTypeRef cf)
     unit->isMutable = true;
 }
 
-static const CFRuntimeClass gCCUnitClass = {
+static const CFRuntimeClass gCCASTUnitClass = {
     0,                              /* version */
-    "LDEUnit",                      /* class name (later for OBJC type) */
-    CCUnitInit,                     /* init */
+    "LDEASTUnit",                   /* class name (later for OBJC type) */
+    CCASTUnitInit,                  /* init */
     NULL,                           /* copy */
-    CCUnitFinalize,                 /* finalize */
+    CCASTUnitFinalize,              /* finalize */
     NULL,                           /* equal */
     NULL,                           /* hash */
     NULL,                           /* copyFormattingDesc */
@@ -85,16 +85,16 @@ static const CFRuntimeClass gCCUnitClass = {
     0
 };
 
-CFTypeID CCUnitGetTypeID(void)
+CFTypeID CCASTUnitGetTypeID(void)
 {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
-        gCCUnitTypeID = _CFRuntimeRegisterClass(&gCCUnitClass);
+        gCCASTUnitTypeID = _CFRuntimeRegisterClass(&gCCASTUnitClass);
     });
-    return gCCUnitTypeID;
+    return gCCASTUnitTypeID;
 }
 
-Boolean _CCUnitRefillDiagnosticArray(CCMutableUnitRef mutableUnit)
+Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
 {
     if(mutableUnit->diagnostics != nullptr)
     {
@@ -188,13 +188,13 @@ Boolean _CCUnitRefillDiagnosticArray(CCMutableUnitRef mutableUnit)
     return true;
 }
 
-CCMutableUnitRef CCUnitCreateMutable(CFAllocatorRef allocator)
+CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator)
 {
-    return (CCMutableUnitRef)_CFRuntimeCreateInstance(allocator, CCUnitGetTypeID(), sizeof(opaque_ccunit) - sizeof(CFRuntimeBase), nullptr);
+    return (CCMutableASTUnitRef)_CFRuntimeCreateInstance(allocator, CCASTUnitGetTypeID(), sizeof(opaque_ccastunit) - sizeof(CFRuntimeBase), nullptr);
 }
 
-CCUnitRef CCUnitCreateWithASTUnit(CFAllocatorRef allocator,
-                                  std::unique_ptr<clang::ASTUnit> astUnit)
+CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
+                                        std::unique_ptr<clang::ASTUnit> astUnit)
 {
     if(astUnit == nullptr)
     {
@@ -202,15 +202,15 @@ CCUnitRef CCUnitCreateWithASTUnit(CFAllocatorRef allocator,
         return nullptr;
     }
     
-    CCUnitRef unit = (CCUnitRef)_CFRuntimeCreateInstance(allocator, CCUnitGetTypeID(), sizeof(opaque_ccunit) - sizeof(CFRuntimeBase), nullptr);
+    CCASTUnitRef unit = (CCASTUnitRef)_CFRuntimeCreateInstance(allocator, CCASTUnitGetTypeID(), sizeof(opaque_ccastunit) - sizeof(CFRuntimeBase), nullptr);
     unit->unit = std::move(astUnit);
-    _CCUnitRefillDiagnosticArray(unit);
+    _CCASTUnitRefillDiagnosticArray(unit);
     unit->isMutable = false;
     
     return unit;
 }
 
-Boolean CCUnitReparse(CCMutableUnitRef mutableUnit)
+Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit)
 {
     if(!mutableUnit->isMutable)
     {
@@ -303,7 +303,7 @@ reparse_from_nothing:
     
     bool success = (mutableUnit->unit != nullptr);
     
-    if(success && !_CCUnitRefillDiagnosticArray(mutableUnit))
+    if(success && !_CCASTUnitRefillDiagnosticArray(mutableUnit))
     {
         return false;
     }
@@ -312,8 +312,8 @@ out_return:
     return success;
 }
 
-void CCUnitSetArguments(CCMutableUnitRef mutableUnit,
-                        CFArrayRef arguments)
+void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
+                           CFArrayRef arguments)
 {
     if(!mutableUnit->isMutable)
     {
@@ -344,9 +344,9 @@ void CCUnitSetArguments(CCMutableUnitRef mutableUnit,
     }
 }
 
-void CCUnitSetFileContent(CCMutableUnitRef mutableUnit,
-                          CFURLRef fileURL,
-                          CFDataRef content)
+void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit,
+                             CFURLRef fileURL,
+                             CFDataRef content)
 {
     if(!mutableUnit->isMutable)
     {
@@ -371,7 +371,7 @@ void CCUnitSetFileContent(CCMutableUnitRef mutableUnit,
     mutableUnit->file = remap;
 }
 
-CFURLRef CCUnitGetFileURL(CCUnitRef unit)
+CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit)
 {
     if(unit->file.first.empty())
     {
@@ -383,7 +383,7 @@ CFURLRef CCUnitGetFileURL(CCUnitRef unit)
     return fileURL;
 }
 
-CFArrayRef CCUnitCopyDiagnostics(CCUnitRef unit)
+CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit)
 {
     if(unit->diagnostics == nullptr)
     {
