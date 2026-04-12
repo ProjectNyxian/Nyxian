@@ -216,10 +216,7 @@ CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
 
 Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit)
 {
-    if(!mutableUnit->isMutable)
-    {
-        return false;
-    }
+    assert(mutableUnit->isMutable);
     
     /*
      * releasing diagnostics array, because
@@ -316,10 +313,7 @@ reparse_from_nothing:
 void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
                            CFArrayRef arguments)
 {
-    if(!mutableUnit->isMutable)
-    {
-        return;
-    }
+    assert(mutableUnit->isMutable);
     
     if(mutableUnit->unit != nullptr)
     {
@@ -349,10 +343,7 @@ void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit,
                              CFURLRef fileURL,
                              CFDataRef content)
 {
-    if(!mutableUnit->isMutable)
-    {
-        return;
-    }
+    assert(mutableUnit->isMutable);
     
     char filepath[PATH_MAX];
     CFURLGetFileSystemRepresentation(fileURL, true, (UInt8*)filepath, sizeof(filepath));

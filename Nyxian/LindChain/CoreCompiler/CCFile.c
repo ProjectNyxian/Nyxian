@@ -193,12 +193,7 @@ CFDataRef CCFileCopyUnsavedData(CCFileRef file)
 void CCFileSetFileURL(CCMutableFileRef mutableFile,
                       CFURLRef fileURL)
 {
-    assert(fileURL != nil);
-    
-    if(!mutableFile->isMutable)
-    {
-        return;
-    }
+    assert(fileURL != nil && mutableFile->isMutable);
     
     if(mutableFile->fileURL)
     {
@@ -211,10 +206,7 @@ void CCFileSetFileURL(CCMutableFileRef mutableFile,
 void CCFileSetUnsavedData(CCMutableFileRef mutableFile,
                           CFDataRef data)
 {
-    if(!mutableFile->isMutable)
-    {
-        return;
-    }
+    assert(mutableFile->isMutable);
     
     if(mutableFile->unsavedData)
     {
