@@ -39,9 +39,9 @@ typedef struct opaque_ccastunit *CCASTUnitRef;
 
 CC_EXPORT CFTypeID CCAstUnitGetTypeID(void);
 
-CC_EXPORT CCMutableASTUnitRef CF_RETURNS_RETAINED CCASTUnitCreateMutable(CFAllocatorRef allocator);
+CC_EXPORT CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator);
 #ifdef __cplusplus
-CC_EXPORT CCASTUnitRef CF_RETURNS_RETAINED CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit);
+CC_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit);
 #endif /* __cplusplus */
 
 CC_EXPORT Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit);
@@ -51,6 +51,6 @@ CC_EXPORT void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit, CFURLRef
 CC_EXPORT CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit);
 CC_EXPORT Boolean CCASTUnitErrorOccured(CCASTUnitRef unit);
 
-CC_EXPORT CFArrayRef CF_RETURNS_RETAINED CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
+CC_EXPORT CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
 
 #endif /* CCASTUNIT_T */

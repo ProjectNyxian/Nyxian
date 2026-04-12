@@ -116,6 +116,18 @@ CCMutableFileRef CCFileCreateMutable(CFAllocatorRef allocator,
     return mutableFile;
 }
 
+CCMutableFileRef CCFileCreateMutableWithUnsavedData(CFAllocatorRef allocator,
+                                                    CFURLRef fileURL,
+                                                    CFDataRef data)
+{
+    assert(data != nil);
+    
+    CCMutableFileRef mutableFile = CCFileCreateMutable(allocator, fileURL);
+    mutableFile->unsavedData = CFRetain(data);
+    
+    return mutableFile;
+}
+
 static CCFileRef _CCFileCreateCopy(CFAllocatorRef allocator,
                                    CCFileRef file,
                                    bool isMutable)
