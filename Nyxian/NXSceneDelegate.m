@@ -32,7 +32,6 @@
 
 @implementation NXSceneDelegate {
     NXWindowServer *_window;
-    UIViewController *_fakeViewController;
 }
 
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions
@@ -88,27 +87,20 @@
     UINavigationController *contentNavigationController = [[UINavigationController alloc] initWithRootViewController:contentViewController];
     UINavigationController *settingsNavigationController = [[UINavigationController alloc] initWithRootViewController:settingsViewController];
     
-    contentNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Projects" image:[UIImage systemImageNamed:@"folder.fill"] tag:0];
-    settingsNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Settings" image:[UIImage systemImageNamed:@"gear"] tag:2];
-    
-#if !JAILBREAK_ENV
-    ApplicationManagementViewController * applicationViewController = [ApplicationManagementViewController shared];
-    UINavigationController *applicationNavigationController = [[UINavigationController alloc] initWithRootViewController:applicationViewController];
-    applicationViewController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Applications" image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:1];
-    NSMutableArray<UIViewController*> *viewControllers = [[NSMutableArray alloc] initWithArray:@[contentNavigationController, applicationNavigationController, settingsNavigationController]];
-#else
+    contentNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Projects" image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:0];
+    settingsNavigationController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Settings" image:[UIImage systemImageNamed:@"gear"] tag:1];
+
     NSMutableArray<UIViewController*> *viewControllers = [[NSMutableArray alloc] initWithArray:@[contentNavigationController, settingsNavigationController]];
-#endif /* !JAILBREAK_ENV */
     
-    if(@available(iOS 26.0, *))
+    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
-        if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+        if(@available(iOS 26.0, *))
         {
-            _fakeViewController = [[UIViewController alloc] init];
-            _fakeViewController.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:viewControllers.count];
-            _fakeViewController.tabBarItem.title = @"Switcher";
-            _fakeViewController.tabBarItem.image = [UIImage systemImageNamed:@"iphone.app.switcher"];
-            [viewControllers addObject:_fakeViewController];
+            UIViewController *fakeViewController = [[UIViewController alloc] init];
+            fakeViewController.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:2];
+            fakeViewController.tabBarItem.title = @"Switcher";
+            fakeViewController.tabBarItem.image = [UIImage systemImageNamed:@"iphone.app.switcher"];
+            [viewControllers addObject:fakeViewController];
         }
     }
     
@@ -121,8 +113,7 @@
 
 - (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController
 {
-    if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone &&
-       viewController.tabBarItem.tag == _fakeViewController.tabBarItem.tag)
+    if(viewController.tabBarItem.tag == 2)
     {
         [_window showAppSwitcherExternal];
         return NO;

@@ -30,9 +30,9 @@ class SettingsViewController: UIThemedTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 #if !JAILBREAK_ENV
 #if DEBUG
-        return 5
+        return 6
 #else
-        return 4
+        return 5
 #endif // DEBUG
 #else
         return 3
@@ -44,6 +44,51 @@ class SettingsViewController: UIThemedTableViewController {
         cell.accessoryType = .disclosureIndicator
 
         switch indexPath.row {
+#if !JAILBREAK_ENV
+        case 0:
+            cell.imageView?.image = UIImage(systemName: {
+                if #available(iOS 16.0, *) {
+                    return "wrench.adjustable.fill"
+                } else {
+                    return "gearshape.2.fill"
+                }
+            }())
+            cell.textLabel?.text = "Toolchain"
+            break
+        case 1:
+            cell.imageView?.image = UIImage(systemName: "app.badge.fill")
+            cell.textLabel?.text = "Applications"
+            break
+        case 2:
+            cell.imageView?.image = UIImage(systemName: "paintbrush.fill")
+            cell.textLabel?.text = "Customization"
+            break
+        case 3:
+            cell.imageView?.image = UIImage(systemName: {
+                if #available(iOS 17.0, *) {
+                    return "checkmark.seal.text.page.fill"
+                } else {
+                    return "checkmark.seal.fill"
+                }
+            }())
+            cell.textLabel?.text = "Certificate"
+            break
+#if DEBUG
+        case 4:
+            cell.imageView?.image = UIImage(systemName: "ant.fill")
+            cell.textLabel?.text = "Kernel Log"
+            break
+        case 5:
+            cell.imageView?.image = UIImage(systemName: "person.3.fill")
+            cell.textLabel?.text = "Credits"
+            break
+#else
+        case 4:
+            cell.imageView?.image = UIImage(systemName: "person.3.fill")
+            cell.textLabel?.text = "Credits"
+            break
+#endif // DEBUG
+#else
         case 0:
             cell.imageView?.image = UIImage(systemName: {
                 if #available(iOS 16.0, *) {
@@ -58,33 +103,6 @@ class SettingsViewController: UIThemedTableViewController {
             cell.imageView?.image = UIImage(systemName: "paintbrush.fill")
             cell.textLabel?.text = "Customization"
             break
-#if !JAILBREAK_ENV
-        case 2:
-            cell.imageView?.image = UIImage(systemName: {
-                if #available(iOS 17.0, *) {
-                    return "checkmark.seal.text.page.fill"
-                } else {
-                    return "checkmark.seal.fill"
-                }
-            }())
-            cell.textLabel?.text = "Certificate"
-            break
-#if DEBUG
-        case 3:
-            cell.imageView?.image = UIImage(systemName: "ant.fill")
-            cell.textLabel?.text = "Kernel Log"
-            break
-        case 4:
-            cell.imageView?.image = UIImage(systemName: "person.3.fill")
-            cell.textLabel?.text = "Credits"
-            break
-#else
-        case 5:
-            cell.imageView?.image = UIImage(systemName: "person.3.fill")
-            cell.textLabel?.text = "Credits"
-            break
-#endif // DEBUG
-#else
         case 2:
             cell.imageView?.image = UIImage(systemName: "person.3.fill")
             cell.textLabel?.text = "Credits"
@@ -105,23 +123,29 @@ class SettingsViewController: UIThemedTableViewController {
     private func navigateToController(for index: Int, animated: Bool) {
         guard let viewController: UIViewController = {
             switch index {
+#if !JAILBREAK_ENV
+            case 0:
+                return ToolChainController(style: .insetGrouped)
+            case 1:
+                return ApplicationManagementViewController.shared
+            case 2:
+                return CustomizationViewController(style: .insetGrouped)
+            case 3:
+                return CertificateController(style: .insetGrouped)
+#if DEBUG
+            case 4:
+                return KernelLogViewController()
+            case 5:
+                return CreditsViewController(style: .insetGrouped)
+#else
+            case 4:
+                return CreditsViewController(style: .insetGrouped)
+#endif // DEBUG
+#else
             case 0:
                 return ToolChainController(style: .insetGrouped)
             case 1:
                 return CustomizationViewController(style: .insetGrouped)
-#if !JAILBREAK_ENV
-            case 2:
-                return CertificateController(style: .insetGrouped)
-#if DEBUG
-            case 3:
-                return KernelLogViewController()
-            case 4:
-                return CreditsViewController(style: .insetGrouped)
-#else
-            case 5:
-                return CreditsViewController(style: .insetGrouped)
-#endif // DEBUG
-#else
             case 2:
                 return CreditsViewController(style: .insetGrouped)
 #endif /* !JAILBREAK_ENV */
