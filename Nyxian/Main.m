@@ -25,7 +25,6 @@
 #import <LindChain/LiveContainer/Tweaks/libproc.h>
 #import <NXAppDelegate.h>
 #import <bridge.h>
-
 #if !JAILBREAK_ENV
 
 bool liveProcessIsAvailable(void)

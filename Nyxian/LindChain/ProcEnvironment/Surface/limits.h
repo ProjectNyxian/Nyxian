@@ -30,8 +30,11 @@
  * complain about this to me, complain
  * about this to apple, their the reason
  * why, launchd doesnt let us spawn more.
+ *
+ * and jetsam is involved, which means
+ * we can only set a soft limit for now.
  */
-#define PROC_MAX 500    /* TODO: find a way to get the limit programatically */
+#define PROC_MAX 2000   /* MARK: jetsam is involved, meaning hard no by apple */
 
 /*
  * why would a process need more than 128
@@ -43,6 +46,6 @@
  * the maximum count of pid that the
  * radix tree supports.
  */
-#define PID_MAX UINT64_MAX
+#define PID_MAX INT32_MAX
 
 #endif /* PROCENVIRONMENT_LIMITS_H */
