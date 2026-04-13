@@ -49,11 +49,14 @@ CC_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std:
 CC_EXPORT Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit);
 
 CC_EXPORT void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit, CFArrayRef arguments);
+
 CC_EXPORT void CCASTUnitSetFile(CCMutableASTUnitRef mutableUnit, CCFileRef file);
 CC_EXPORT CCFileRef CCASTUnitGetFile(CCASTUnitRef unit);
 CC_EXPORT CCFileRef CCASTUnitCopyFile(CCASTUnitRef unit);
+
 CC_EXPORT Boolean CCASTUnitErrorOccured(CCASTUnitRef unit);
-/* CC_EXPORT CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location); */
+
+CC_EXPORT CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location);
 
 CC_EXPORT CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
 

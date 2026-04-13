@@ -382,6 +382,11 @@ Boolean CCASTUnitErrorOccured(CCASTUnitRef unit)
     return unit->unit->getDiagnostics().hasErrorOccurred();
 }
 
+CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location)
+{
+    return nil;
+}
+
 CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit)
 {
     if(unit->diagnostics == nullptr)
