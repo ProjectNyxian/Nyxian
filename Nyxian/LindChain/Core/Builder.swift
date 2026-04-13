@@ -46,7 +46,7 @@ class Builder {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cachePath!)/debug.json")
         self.database.reuseDatabase()
         
-        let genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
+        var genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
         
         self.compiler = Compiler(genericCompilerFlags)
         
@@ -55,6 +55,17 @@ class Builder {
         self.dirtySourceFiles = LDEFilesFinder(self.project.path, ["c","cpp","m","mm"], ["Resources"])
         for item in dirtySourceFiles {
             objectFiles.append("\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: item))))")
+        }
+        
+        genericCompilerFlags.append(contentsOf: self.dirtySourceFiles)
+        genericCompilerFlags.append("-o")
+        genericCompilerFlags.append(self.project.machoPath)
+        
+        let driver: LDEDriver = LDEDriver(arguments: genericCompilerFlags)
+        let jobs: [LDEJob] = driver.jobs
+        
+        for job in jobs {
+            print("\n\(job.type): \(job.arguments!)")
         }
         
         // Check if args have changed

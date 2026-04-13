@@ -22,4 +22,16 @@
 #ifndef CCDRIVER_H
 #define CCDRIVER_H
 
+#include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCJob.h>
+
+typedef struct opaque_ccdriver *CCDriverRef;
+
+CC_EXPORT CFTypeID CCDriverGetTypeID(void);
+
+CC_EXPORT CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments);
+
+CC_EXPORT CFArrayRef CCDriverGetJobs(CCDriverRef driver);
+CC_EXPORT CFArrayRef CCDriverCopyJobs(CCDriverRef driver);
+
 #endif /* CCDRIVER_H */

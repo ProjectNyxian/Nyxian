@@ -51,7 +51,7 @@ static CFStringRef CCJobCopyFormattingDesc(CFTypeRef cf,
 static CFStringRef CCJobCopyDebugDesc(CFTypeRef cf)
 {
     CCJobRef jobRef = (CCJobRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCFile %p: type=%d arguments=%@>"), cf, jobRef->type, jobRef->arguments);
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCJob %p: type=%d arguments=%@>"), cf, jobRef->type, jobRef->arguments);
 }
 
 static const CFRuntimeClass gCCJobClass = {
@@ -91,6 +91,7 @@ CCJobRef CCJobCreate(CFAllocatorRef allocator,
     }
     
     jobRef->arguments = CFRetain(args);
+    jobRef->type = type;
     
     return jobRef;
 }

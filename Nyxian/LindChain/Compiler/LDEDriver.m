@@ -19,21 +19,23 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDECOMPILER_H
-#define LDECOMPILER_H
-
-#import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Compiler/LDEDriver.h>
 
-/// Class (intended to be single-instanced) to provide LLVM C++ service to Swift front-end
-@interface Compiler : NSObject
+@implementation LDEDriver
 
-- (instancetype)init:(NSArray*)flags;
++ (void)load
+{
+    _CFRuntimeBridgeClasses(CCDriverGetTypeID(), "LDEDriver");
+}
 
-- (int)compileObject:(NSString*)filePath outputFile:(NSString*)outputFilePath issues:(NSArray<LDEDiagnostic*>**)issues;
-- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error;
++ (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments
+{
+    return (__bridge_transfer LDEDriver*)CCDriverCreate(kCFAllocatorDefault, (__bridge CFArrayRef)arguments);
+}
+
+- (NSArray<LDEJob*>*)jobs
+{
+    return (__bridge NSArray<LDEJob*>*)CCDriverGetJobs((__bridge void*)self);
+}
 
 @end
-
-#endif /* LDECOMPILER_H */

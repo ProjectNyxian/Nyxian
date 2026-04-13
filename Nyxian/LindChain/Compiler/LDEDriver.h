@@ -19,21 +19,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDECOMPILER_H
-#define LDECOMPILER_H
+#ifndef LDEDRIVER_H
+#define LDEDRIVER_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synpush.h>
-#import <LindChain/Compiler/LDEDriver.h>
+#import <LindChain/CoreCompiler/CCDriver.h>
+#import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/Compiler/LDEJob.h>
 
-/// Class (intended to be single-instanced) to provide LLVM C++ service to Swift front-end
-@interface Compiler : NSObject
+@interface LDEDriver : LDECFType
 
-- (instancetype)init:(NSArray*)flags;
+@property (nonatomic, readonly) NSArray<LDEJob*> *jobs;
 
-- (int)compileObject:(NSString*)filePath outputFile:(NSString*)outputFilePath issues:(NSArray<LDEDiagnostic*>**)issues;
-- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error;
++ (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments;
 
 @end
 
-#endif /* LDECOMPILER_H */
+#endif /* LDEDRIVER_H */
