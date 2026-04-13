@@ -25,21 +25,6 @@
 #import <LindChain/Compiler/LDECFType.h>
 #import <LindChain/CoreCompiler/CCFile.h>
 
-/*
- CC_EXPORT CFTypeID CCFileGetTypeID(void);
-
- CC_EXPORT CCMutableFileRef CCFileCreateMutable(CFAllocatorRef allocator, CFURLRef fileURL);
- CC_EXPORT CCMutableFileRef CCFileCreateMutableWithUnsavedData(CFAllocatorRef allocator, CFURLRef fileURL, CFDataRef data);
- CC_EXPORT CCFileRef CCFileCreateCopy(CFAllocatorRef allocator, CCFileRef file);
- CC_EXPORT CCMutableFileRef CCFileCreateMutableCopy(CFAllocatorRef allocator, CCFileRef file);
-
- CC_EXPORT CFURLRef CCFileGetFileURL(CCFileRef file);
- CC_EXPORT CFDataRef CCFileGetUnsavedData(CCFileRef file);
- CC_EXPORT CFDataRef CCFileCopyUnsavedData(CCFileRef file);
- CC_EXPORT void CCFileSetFileURL(CCMutableFileRef mutableFile, CFURLRef fileURL);
- CC_EXPORT void CCFileSetUnsavedData(CCMutableFileRef mutableFile, CFDataRef data);
- */
-
 @interface LDEFile : LDECFType
 
 @property (nonatomic, readonly) NSURL *fileURL;
