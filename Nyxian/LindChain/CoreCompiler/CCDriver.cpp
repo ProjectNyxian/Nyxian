@@ -158,7 +158,7 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
     /* getting jobs */
     const auto &Jobs = C->getJobs();
     
-    CFMutableArrayRef jobs = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
+    CFMutableArrayRef jobsArray = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
     
     /* checking job properties */
     for(auto &Job : Jobs)
@@ -179,15 +179,16 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
             CFRelease(argStr);
         }
         
-        CCJobRef job = CCJobCreate(kCFAllocatorDefault, CCJobTypeFromCommand(Cmd), cmdArgs);
-        if(job != nullptr)
+        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, CCJobTypeFromCommand(Cmd), cmdArgs);
+        if(jobRef != nullptr)
         {
-            CFArrayAppendValue(jobs, job);
+            CFArrayAppendValue(jobsArray, jobRef);
+            CFRelease(jobRef);
         }
         CFRelease(cmdArgs);
     }
     
-    driverRef->jobs = jobs;
+    driverRef->jobs = jobsArray;
     return driverRef;
 }
 
