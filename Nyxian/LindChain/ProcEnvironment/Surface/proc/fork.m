@@ -212,7 +212,7 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
     /* retain process that wants to exit */
     if(!kvo_retain(proc))
     {
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     /* lock mutex */
@@ -259,7 +259,7 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
         {
             /* releasing child */
             kvo_release(proc);
-            return SURFACE_FAILED;
+            return SURFACE_FAILURE;
         }
         
         /* lock order: parent → child */
@@ -324,7 +324,7 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     /* retain process that wants to be zombified */
     if(!kvo_retain(proc))
     {
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     pthread_mutex_lock(&(proc->children.mutex));

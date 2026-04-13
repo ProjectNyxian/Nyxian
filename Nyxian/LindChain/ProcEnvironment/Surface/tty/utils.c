@@ -28,7 +28,7 @@ ksurface_return_t tty_suspend(ksurface_tty_t *tty)
     assert(tty != NULL);
     
     thread_t thread = pthread_mach_thread_np(tty->pump_thread);
-    return (thread_suspend(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILED;
+    return (thread_suspend(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILURE;
 }
 
 ksurface_return_t tty_resume(ksurface_tty_t *tty)
@@ -36,5 +36,5 @@ ksurface_return_t tty_resume(ksurface_tty_t *tty)
     assert(tty != NULL);
     
     thread_t thread = pthread_mach_thread_np(tty->pump_thread);
-    return (thread_resume(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILED;
+    return (thread_resume(thread) == KERN_SUCCESS) ? SURFACE_SUCCESS : SURFACE_FAILURE;
 }

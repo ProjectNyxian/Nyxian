@@ -70,7 +70,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(!kvo_retain(proc))
     {
         proc_table_unlock();
-        return SURFACE_RETAIN_FAILED;
+        return SURFACE_RETAIN_FAILURE;
     }
     
     /* inserting process into radix tree */
@@ -78,7 +78,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     {
         kvo_release(proc);
         proc_table_unlock();
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     /*

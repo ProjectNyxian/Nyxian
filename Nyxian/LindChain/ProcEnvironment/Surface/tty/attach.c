@@ -48,7 +48,7 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
     /* retain process */
     if(!kvo_retain(proc))
     {
-        return SURFACE_RETAIN_FAILED;
+        return SURFACE_RETAIN_FAILURE;
     }
     
     /*
@@ -59,7 +59,7 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
     if(ksr != SURFACE_SUCCESS)
     {
         kvo_release(proc);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     kvo_wrlock(proc);

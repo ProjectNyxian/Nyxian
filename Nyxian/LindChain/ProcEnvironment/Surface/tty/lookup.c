@@ -38,7 +38,7 @@ ksurface_return_t tty_for_port(fileport_t port,
     /* validating file descriptor */
     if(fd < 0)
     {
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     /* getting unique object pointer */
@@ -47,7 +47,7 @@ ksurface_return_t tty_for_port(fileport_t port,
     if(proc_pidfdinfo(getpid(), fd, PROC_PIDFDSOCKETINFO, &si, sizeof(si)) <= 0)
     {
         close(fd);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     /* disposing that fd, not needed rn */
@@ -66,7 +66,7 @@ ksurface_return_t tty_for_port(fileport_t port,
     if(*tty == NULL ||
        !kvo_retain(*tty))
     {
-        return SURFACE_RETAIN_FAILED;
+        return SURFACE_RETAIN_FAILURE;
     }
     
     return SURFACE_SUCCESS;

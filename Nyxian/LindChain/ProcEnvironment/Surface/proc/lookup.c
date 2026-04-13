@@ -48,7 +48,7 @@ ksurface_return_t proc_for_pid(pid_t pid,
     if(!kvo_retain(*proc))
     {
         proc_table_unlock();
-        return SURFACE_RETAIN_FAILED;
+        return SURFACE_RETAIN_FAILURE;
     }
     
     proc_table_unlock();
@@ -107,7 +107,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
          * cannot validate type.
          */
         task_unlock();
-        return SURFACE_LOOKUP_FAILED;
+        return SURFACE_LOOKUP_FAILURE;
     }
     
     switch(ipc_port_type)
@@ -154,14 +154,14 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
              * system(ksurface) termination.
              */
             task_unlock();
-            return SURFACE_LOOKUP_FAILED;
+            return SURFACE_LOOKUP_FAILURE;
     }
     
     task_unlock();
     
     if(kr != KERN_SUCCESS)
     {
-        return SURFACE_ACQUIRE_FAILED;
+        return SURFACE_ACQUIRE_FAILURE;
     }
     
     /*

@@ -55,21 +55,21 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     EVP_PKEY *priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p, (long)ksurface->priv_key_len);
     if(!priv)
     {
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if(!mdctx)
     {
         EVP_PKEY_free(priv);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     if(EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, priv) != 1)
     {
         EVP_MD_CTX_free(mdctx);
         EVP_PKEY_free(priv);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
 
     size_t mac_len;
@@ -77,7 +77,7 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     {
         EVP_MD_CTX_free(mdctx);
         EVP_PKEY_free(priv);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     blob->mac_len = mac_len;
     

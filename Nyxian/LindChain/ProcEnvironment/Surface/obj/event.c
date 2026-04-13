@@ -56,7 +56,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
         free(e_event);
-        return SURFACE_FAILED;
+        return SURFACE_FAILURE;
     }
     
     /* setting properties */
