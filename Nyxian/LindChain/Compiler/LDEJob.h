@@ -19,18 +19,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CCJOB_H
-#define CCJOB_H
+#ifndef LDEJOB_H
+#define LDEJOB_H
 
-#include <LindChain/CoreCompiler/CCBase.h>
+#import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/CoreCompiler/CCJob.h>
 
-typedef struct opaque_ccjob *CCJobRef;
+@interface LDEJob : LDECFType
 
-CC_EXPORT CFTypeID CCJobGetTypeID(void);
+@property (nonatomic, readonly) CCJobType type;
+@property (nonatomic, readonly) NSArray<NSString*> *arguments;
 
-CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CCJobType type, CFArrayRef args);
++ (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments;
 
-CC_EXPORT CCJobType CCJobGetType(CCJobRef job);
-CC_EXPORT CFArrayRef CCJobGetArguments(CCJobRef job);
+@end
 
-#endif /* CCJOB_H */
+#endif /* LDEJOB_H */

@@ -20,3 +20,87 @@
 */
 
 #include <LindChain/CoreCompiler/CCJob.h>
+
+static CFTypeID gCCJobTypeID = _kCFRuntimeNotATypeID;
+
+struct opaque_ccjob {
+    CFRuntimeBase _base;
+    CCJobType type;
+    CFArrayRef arguments;
+};
+
+static CFTypeRef CCJobCopy(CFAllocatorRef allocator,
+                           CFTypeRef cf)
+{
+    return CFRetain(cf);
+}
+
+static void CCJobFinalize(CFTypeRef cf)
+{
+    CCJobRef jobRef = (CCJobRef)cf;
+    CFRelease(jobRef->arguments);
+}
+
+static CFStringRef CCJobCopyFormattingDesc(CFTypeRef cf,
+                                           CFDictionaryRef options)
+{
+    CCJobRef jobRef = (CCJobRef)cf;
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@"), jobRef->arguments);
+}
+
+static CFStringRef CCJobCopyDebugDesc(CFTypeRef cf)
+{
+    CCJobRef jobRef = (CCJobRef)cf;
+    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCFile %p: type=%d arguments=%@>"), cf, jobRef->type, jobRef->arguments);
+}
+
+static const CFRuntimeClass gCCJobClass = {
+    0,                              /* version */
+    "LDEJob",                       /* class name (later for OBJC type) */
+    NULL,                           /* init */
+    CCJobCopy,                      /* copy */
+    CCJobFinalize,                  /* finalize */
+    NULL,                           /* equal */
+    NULL,                           /* hash */
+    CCJobCopyFormattingDesc,        /* copyFormattingDesc */
+    CCJobCopyDebugDesc,             /* copyDebugDesc */
+    NULL,
+    NULL,
+    0
+};
+
+CFTypeID CCJobGetTypeID(void)
+{
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        gCCJobTypeID = _CFRuntimeRegisterClass(&gCCJobClass);
+    });
+    return gCCJobTypeID;
+}
+
+CCJobRef CCJobCreate(CFAllocatorRef allocator,
+                     CCJobType type,
+                     CFArrayRef args)
+{
+    assert(args != nil);
+    
+    CCJobRef jobRef = (CCJobRef)_CFRuntimeCreateInstance(allocator, CCJobGetTypeID(), sizeof(struct opaque_ccjob) - sizeof(CFRuntimeBase), NULL);
+    if(jobRef == nil)
+    {
+        return nil;
+    }
+    
+    jobRef->arguments = CFRetain(args);
+    
+    return jobRef;
+}
+
+CCJobType CCJobGetType(CCJobRef job)
+{
+    return job->type;
+}
+
+CFArrayRef CCJobGetArguments(CCJobRef job)
+{
+    return job->arguments;
+}
