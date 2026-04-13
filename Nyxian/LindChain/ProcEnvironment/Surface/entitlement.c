@@ -29,8 +29,6 @@
 #include <OpenSSL/pem.h>
 #include <assert.h>
 
-#if HOST_ENV
-
 ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
                                              const char *cdhash,
                                              PEEntitlement entitlement)
@@ -88,8 +86,6 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     
     return SURFACE_SUCCESS;
 }
-
-#endif /* HOST_ENV */
 
 ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
                                           uint8_t *pub_key,

@@ -23,9 +23,7 @@
 #define PROC_ENTITLEMENT_H
 
 #include <LindChain/ProcEnvironment/Surface/return.h>
-#ifdef __OBJC__
-#import <Foundation/Foundation.h>
-#endif /* __OBJC__ */
+#include <CoreFoundation/CoreFoundation.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -39,11 +37,7 @@ typedef struct ksurface_ent_result ksurface_ent_result_t;
  @enum PEEntitlement
  @abstract Entitlements which are responsible for the permitives of the environment hostsided
  */
-#ifdef __OBJC__
-typedef NS_OPTIONS(uint64_t, PEEntitlement) {
-#else
-typedef enum : uint64_t {
-#endif /* __OBJC__ */
+typedef CF_OPTIONS(uint64_t, PEEntitlement) {
     /*! No entitlements at all */
     PEEntitlementNone                               = 0,
     
@@ -123,11 +117,7 @@ typedef enum : uint64_t {
     PEEntitlementKernel                             = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesManager | PEEntitlementPlatform,
     
     PEEntitlementAll                                = PEEntitlementGetTaskAllowed | PEEntitlementTaskForPid | PEEntitlementProcessEnumeration | PEEntitlementProcessKill | PEEntitlementProcessSpawn | PEEntitlementProcessSpawnSignedOnly | PEEntitlementProcessElevate | PEEntitlementHostManager | PEEntitlementCredentialsManager | PEEntitlementLaunchServicesStart | PEEntitlementLaunchServicesStop | PEEntitlementLaunchServicesToggle | PEEntitlementLaunchServicesGetEndpoint | PEEntitlementLaunchServicesSetEndpoint | PEEntitlementDyldHideLiveProcess | PEEntitlementProcessSpawnInheriteEntitlements | PEEntitlementPlatform | PEEntitlementPlatformRoot,
-#ifdef __OBJC__
 };
-#else
-} PEEntitlement;
-#endif /* __OBJC__ */
     
 struct __attribute__((packed)) ksurface_ent_blob {
     PEEntitlement entitlement;
