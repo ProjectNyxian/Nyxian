@@ -21,15 +21,21 @@
 
 #include <LindChain/CoreCompiler/CCSourceLocation.h>
 
-const CCSourceLocation CCSourceLocationZero = { 0, 0 };
+const CCSourceLocation CCSourceLocationZero = { false, 0, 0 };
 
 CCSourceLocation CCSourceLocationMake(CFIndex line,
                                       CFIndex column)
 {
     CCSourceLocation loc;
+    loc.isValid = true;
     loc.line = line;
     loc.column = column;
     return loc;
+}
+
+CF_EXPORT Boolean CFSourceLocationIsValid(CCSourceLocation location)
+{
+    return location.isValid;
 }
 
 CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1,

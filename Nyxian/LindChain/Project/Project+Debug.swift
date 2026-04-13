@@ -157,7 +157,7 @@ class DebugDatabase: Codable {
         let fileURL: URL = URL(fileURLWithPath: path)
         
         for item in fileObject.debugItems {
-            synItems.append(LDEDiagnostic(type: .file, level: item.severity, fileURL: fileURL, location: CCSourceLocation(line: CFIndex(item.line), column: CFIndex(item.column)), message: item.message))
+            synItems.append(LDEDiagnostic(type: .file, level: item.severity, fileURL: fileURL, location: CCSourceLocation(isValid: true, line: CFIndex(item.line), column: CFIndex(item.column)), message: item.message))
         }
         self.lock.unlock()
         

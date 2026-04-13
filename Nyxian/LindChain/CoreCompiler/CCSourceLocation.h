@@ -25,6 +25,7 @@
 #include <LindChain/CoreCompiler/CCBase.h>
 
 typedef struct {
+    Boolean isValid;
     CFIndex line;
     CFIndex column;
 } CCSourceLocation;
@@ -32,6 +33,7 @@ typedef struct {
 CC_EXPORT const CCSourceLocation CCSourceLocationZero;
 
 CC_EXPORT CCSourceLocation CCSourceLocationMake(CFIndex line, CFIndex column);
+CF_EXPORT Boolean CFSourceLocationIsValid(CCSourceLocation location);
 CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1, CCSourceLocation location2);
 
 #endif /* CCSOURCELOCATION_H */
