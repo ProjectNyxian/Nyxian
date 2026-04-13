@@ -37,8 +37,8 @@ struct opaque_ccastunit {
     CFRuntimeBase _base;
     Boolean isMutable;
     std::vector<std::string> BaseArgs;
-    ASTUnit::RemappedFile file;
     std::unique_ptr<ASTUnit> unit;
+    CCFileRef file;
     CFArrayRef diagnostics;
 };
 
@@ -49,11 +49,11 @@ static void CCASTUnitFinalize(CFTypeRef cf)
     {
         unit->unit.reset();
     }
-    if(unit->file.second)
-    {
-        delete unit->file.second;
-    }
     unit->BaseArgs.~vector();
+    if(unit->file != nullptr)
+    {
+        CFRelease(unit->file);
+    }
     if(unit->diagnostics != nullptr)
     {
         CFRelease(unit->diagnostics);
@@ -64,10 +64,10 @@ static void CCASTUnitInit(CFTypeRef cf)
 {
     CCMutableASTUnitRef unit = (CCMutableASTUnitRef)cf;
     new (&unit->BaseArgs) std::vector<std::string>();
-    unit->file = ASTUnit::RemappedFile();
     new (&unit->unit) std::unique_ptr<ASTUnit>();
-    unit->diagnostics = nullptr;
     unit->isMutable = true;
+    unit->file = nullptr;
+    unit->diagnostics = nullptr;
 }
 
 static const CFRuntimeClass gCCASTUnitClass = {
@@ -101,9 +101,6 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
         return false;
     }
     
-    /* ASTUnit now owns the MemoryBuffer ptr */
-    mutableUnit->file.second = nullptr;
-    
     /* now parse the diagnostics */
     CFIndex count = mutableUnit->unit->stored_diag_size();
     CFMutableArrayRef diagnostics = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
@@ -126,7 +123,10 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
         
         if(loc.isValid())
         {
-            if(mutableUnit->file.first == loc.getFilename())
+            char filePath[PATH_MAX];
+            CFURLGetFileSystemRepresentation(CCFileGetFileURL(mutableUnit->file), true, (UInt8*)filePath, sizeof(filePath));
+            
+            if(strncmp(filePath, loc.getFilename(), PATH_MAX) == 0)
             {
                 type = CCDiagnosticTypeTargetFile;
             }
@@ -237,29 +237,29 @@ Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit)
         return false;
     }
     
-    if(mutableUnit->file.second == nullptr)
-    {
-        /*
-         * the file has not been updated,
-         * so when the AST unit exists
-         * and is non null then that means
-         * its still as valid as before.
-         */
-        return (mutableUnit->unit != nullptr);
-    }
-    
     /* setting up argument */
     SmallVector<const char *, 64> args;
     for(const std::string &arg : mutableUnit->BaseArgs)
     {
         args.push_back(arg.c_str());
     }
-    args.push_back(mutableUnit->file.first.c_str());
+    
+    char filePath[PATH_MAX];
+    CFURLGetFileSystemRepresentation(CCFileGetFileURL(mutableUnit->file), true, (UInt8*)filePath, sizeof(filePath));
+    
+    args.push_back(filePath);
     
     auto diags = CompilerInstance::createDiagnostics(new clang::DiagnosticOptions());
     
     SmallVector<ASTUnit::RemappedFile, 4> remaps;
-    remaps.push_back(mutableUnit->file);
+    CFDataRef data = CCFileGetUnsavedData(mutableUnit->file);
+    if(data != nullptr)
+    {
+        llvm::StringRef contentRef((const char*)CFDataGetBytePtr(data), CFDataGetLength(data));
+        std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filePath);
+        auto remap = clang::ASTUnit::RemappedFile(filePath, buf.release());
+        remaps.push_back(remap);
+    }
     ArrayRef<ASTUnit::RemappedFile> remapRef = remaps;
     
     if(mutableUnit->unit == nullptr)
@@ -339,40 +339,34 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
     }
 }
 
-void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit,
-                             CFURLRef fileURL,
-                             CFDataRef content)
+CC_EXPORT void CCASTUnitSetFile(CCMutableASTUnitRef mutableUnit,
+                                CCFileRef file)
 {
     assert(mutableUnit->isMutable);
     
-    char filepath[PATH_MAX];
-    CFURLGetFileSystemRepresentation(fileURL, true, (UInt8*)filepath, sizeof(filepath));
-    
-    llvm::StringRef contentRef((const char*)CFDataGetBytePtr(content), CFDataGetLength(content));
-    std::unique_ptr<llvm::MemoryBuffer> buf = llvm::MemoryBuffer::getMemBufferCopy(contentRef, filepath);
-    auto remap = clang::ASTUnit::RemappedFile(filepath, buf.release());
-    
-    if(mutableUnit->file.second)
+    if(mutableUnit->file != nullptr)
     {
-        delete mutableUnit->file.second;
+        if(!CFEqual(CCFileGetFileURL(mutableUnit->file), CCFileGetFileURL(file)))
+        {
+            mutableUnit->unit.reset();
+        }
+        CFRelease(mutableUnit->file);
     }
-    if(!mutableUnit->file.first.empty() && mutableUnit->file.first != remap.first && mutableUnit->unit != nullptr)
-    {
-        mutableUnit->unit.reset();
-    }
-    mutableUnit->file = remap;
+    mutableUnit->file = (CCFileRef)CFRetain(file);
 }
 
-CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit)
+CCFileRef CCASTUnitGetFile(CCASTUnitRef unit)
 {
-    if(unit->file.first.empty())
+    return unit->file;
+}
+
+CCFileRef CCASTUnitCopyFile(CCASTUnitRef unit)
+{
+    if(unit->file == nullptr)
     {
         return nullptr;
     }
-    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, unit->file.first.c_str(), kCFStringEncodingUTF8);
-    CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
-    CFRelease(fileStr);
-    return fileURL;
+    return CCFileCreateCopy(kCFAllocatorDefault, unit->file);
 }
 
 Boolean CCASTUnitErrorOccured(CCASTUnitRef unit)

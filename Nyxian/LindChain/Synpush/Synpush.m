@@ -20,7 +20,8 @@
 */
 
 #import <LindChain/Synpush/Synpush.h>
-#import <LindChain/CoreCompiler/CoreCompiler.h>
+#import <LindChain/Compiler/LDEASTUnit.h>
+#import <LindChain/Compiler/LDEFile.h>
 #import <pthread.h>
 #import <string.h>
 #import <strings.h>
@@ -28,11 +29,10 @@
 #pragma mark - SynpushServer
 
 @interface SynpushServer () {
-    NSData *_contentData;
-    NSURL *_fileURL;
     pthread_mutex_t _mutex;
     
-    id _unit;
+    LDEMutableASTUnit *_unit;
+    LDEMutableFile *_file;
 }
 @end
 
@@ -44,7 +44,8 @@
     if(!self) return nil;
     
     /* initilizing step numero uno */
-    _fileURL = [NSURL fileURLWithPath:filepath];
+    NSURL *fileURL = [NSURL fileURLWithPath:filepath];
+    _file = [LDEMutableFile mutableFileWithFileURL:fileURL];
 
     pthread_mutex_init(&_mutex, NULL);
     return self;
@@ -54,7 +55,8 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args
 {
-    NSString *extension = [_fileURL pathExtension];
+    
+    NSString *extension = [_file.fileURL pathExtension];
     
     if([extension isEqualToString:@"h"])
     {
@@ -89,10 +91,8 @@
         return;
     }
     
-    _contentData = newData;
-    
-    CCASTUnitSetFileContent((__bridge CCMutableASTUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
-    CCASTUnitReparse((__bridge CCMutableASTUnitRef)_unit);
+    [_file setUnsavedData:newData];
+    [_unit reparse];
 
     pthread_mutex_unlock(&_mutex);
 }
@@ -109,7 +109,7 @@
         return @[];
     }
     
-    NSArray<LDEDiagnostic *> *items = CFBridgingRelease(CCASTUnitCopyDiagnostics((__bridge CCMutableASTUnitRef)_unit));
+    NSArray<LDEDiagnostic *> *items = [_unit diagnostics];
     pthread_mutex_unlock(&_mutex);
     return items;
 }
@@ -120,7 +120,6 @@
 {
     pthread_mutex_lock(&_mutex);
     _unit = nil;
-    _contentData = [@"" dataUsingEncoding:NSUTF8StringEncoding];
     pthread_mutex_unlock(&_mutex);
 }
 
@@ -143,22 +142,17 @@
     /* its not so we need to reactivate it */
     pthread_mutex_lock(&_mutex);
     
-    /* making sure that bytes doesnt get deallocated randomly */
-    _contentData = data;
-    
     /* creating new synpush core and update all */
-    CCMutableASTUnitRef unit = CCASTUnitCreateMutable(kCFAllocatorDefault);
-    if(unit == nil)
+    _unit = [LDEMutableASTUnit unit];
+    if(_unit == nil)
     {
         pthread_mutex_unlock(&_mutex);
         return false;
     }
     
-    _unit = CFBridgingRelease(unit);
-    
-    CCASTUnitSetArguments((__bridge CCMutableASTUnitRef)_unit, (__bridge CFArrayRef)args);
-    CCASTUnitSetFileContent((__bridge CCMutableASTUnitRef)_unit, (__bridge CFURLRef)_fileURL, (__bridge CFDataRef)_contentData);
-    bool succeed = CCASTUnitReparse((__bridge CCMutableASTUnitRef)_unit);
+    [_unit setFile:_file];
+    [_unit setArguments:args];
+    bool succeed = [_unit reparse];
     
     pthread_mutex_unlock(&_mutex);
     

@@ -24,6 +24,7 @@
 
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCDiagnostic.h>
+#include <LindChain/CoreCompiler/CCFile.h>
 #ifdef __cplusplus
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -37,7 +38,7 @@
 typedef struct opaque_ccastunit *CCMutableASTUnitRef;
 typedef struct opaque_ccastunit *CCASTUnitRef;
 
-CC_EXPORT CFTypeID CCAstUnitGetTypeID(void);
+CC_EXPORT CFTypeID CCASTUnitGetTypeID(void);
 
 CC_EXPORT CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator);
 #ifdef __cplusplus
@@ -47,8 +48,9 @@ CC_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std:
 CC_EXPORT Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit);
 
 CC_EXPORT void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit, CFArrayRef arguments);
-CC_EXPORT void CCASTUnitSetFileContent(CCMutableASTUnitRef mutableUnit, CFURLRef fileURL, CFDataRef content);
-CC_EXPORT CFURLRef CCASTUnitGetFileURL(CCASTUnitRef unit);
+CC_EXPORT void CCASTUnitSetFile(CCMutableASTUnitRef mutableUnit, CCFileRef file);
+CC_EXPORT CCFileRef CCASTUnitGetFile(CCASTUnitRef unit);
+CC_EXPORT CCFileRef CCASTUnitCopyFile(CCASTUnitRef unit);
 CC_EXPORT Boolean CCASTUnitErrorOccured(CCASTUnitRef unit);
 
 CC_EXPORT CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit);

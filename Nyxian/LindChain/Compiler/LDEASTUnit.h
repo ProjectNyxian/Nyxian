@@ -19,12 +19,31 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDECFTYPE_H
-#define LDECFTYPE_H
+#ifndef LDEASTUNIT_H
+#define LDEASTUNIT_H
 
-#import <Foundation/Foundation.h>
+#import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/CoreCompiler/CCASTUnit.h>
+#import <LindChain/Compiler/LDEDiagnostic.h>
+#import <LindChain/Compiler/LDEFile.h>
 
-@interface LDECFType : NSObject
+@interface LDEASTUnit : LDECFType
+
+@property (nonatomic, readonly) LDEFile *file;
+@property (nonatomic, readonly) NSArray<LDEDiagnostic*> *diagnostics;
+@property (nonatomic, readonly) BOOL hasErrorOccured;
+
 @end
 
-#endif /* !LDECFTYPE_H */
+@interface LDEMutableASTUnit : LDEASTUnit
+
+@property (nonatomic, readwrite) LDEFile *file;
+
++ (instancetype)unit;
+
+- (BOOL)reparse;
+- (void)setArguments:(NSArray<NSString*>*)arguments;
+
+@end
+
+#endif /* LDEASTUNIT_H */
