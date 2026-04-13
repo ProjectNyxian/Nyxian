@@ -165,7 +165,7 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
                 level = CCDiagnosticLevelFatal;
                 break;
             default:
-                level = CCDiagnosticLevelNote;
+                level = CCDiagnosticLevelUnknown;
                 break;
         }
         

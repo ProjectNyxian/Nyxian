@@ -25,6 +25,7 @@
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCDiagnostic.h>
 #include <LindChain/CoreCompiler/CCFile.h>
+#include <LindChain/CoreCompiler/CCFileSourceLocation.h>
 #ifdef __cplusplus
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -52,6 +53,7 @@ CC_EXPORT void CCASTUnitSetFile(CCMutableASTUnitRef mutableUnit, CCFileRef file)
 CC_EXPORT CCFileRef CCASTUnitGetFile(CCASTUnitRef unit);
 CC_EXPORT CCFileRef CCASTUnitCopyFile(CCASTUnitRef unit);
 CC_EXPORT Boolean CCASTUnitErrorOccured(CCASTUnitRef unit);
+/* CC_EXPORT CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location); */
 
 CC_EXPORT CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit);
 
