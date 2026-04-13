@@ -670,7 +670,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                 let (line, column) = self.offsetToLineColumn(text: text, offset: offset)
                 
                 DispatchQueue.global(qos: .userInitiated).async {
-                    guard let def = server.getDefinitionAtLine(UInt32(line), column: UInt32(column)) else {
+                    guard let def = server.getDefinitionAt(CCSourceLocationMake(line, column)) else {
                         DispatchQueue.main.async {
                             self.showNoDefinitionFound()
                         }
@@ -704,15 +704,15 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         return (line, column)
     }
     
-    private func openDefinition(_ def: Syndef) {
+    private func openDefinition(_ def: LDEFileSourceLocation) {
         /* check if definition is in the same file */
-        if def.filepath == self.path {
-            self.goto(line: UInt64(def.line), column: UInt64(def.column))
+        if def.fileURL.path == self.path {
+            self.goto(line: UInt64(def.location.line), column: UInt64(def.location.column))
             return
         }
         
         /* check if file actually exists (could be a sdk header) */
-        let fileExists = FileManager.default.fileExists(atPath: def.filepath)
+        let fileExists = FileManager.default.fileExists(atPath: def.fileURL.path)
         
         if !fileExists {
             showNoDefinitionFound()
@@ -722,18 +722,18 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         /* open in a new read-only editor if its a system header, writable if its in the project */
         let isInsideProject: Bool
         if let project = self.project, let projectPath = project.path {
-            isInsideProject = def.filepath.hasPrefix(projectPath)
+            isInsideProject = def.fileURL.path.hasPrefix(projectPath)
         } else {
             isInsideProject = false
         }
         
         if UIDevice.current.userInterfaceIdiom != .pad {
-            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.filepath, line: UInt64(def.line), column: UInt64(def.column), isReadOnly: !isInsideProject)
+            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: UInt64(def.location.line), column: UInt64(def.location.column), isReadOnly: !isInsideProject)
             let destEditorNav = UINavigationController(rootViewController: destEditor)
             destEditorNav.modalPresentationStyle = .pageSheet
             self.present(destEditorNav, animated: true);
         } else {
-            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",def.filepath,"\(def.line)","\(def.column)", isInsideProject ? "0" : "1"])
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",def.fileURL.path,"\(def.location.line)","\(def.location.column)", isInsideProject ? "0" : "1"])
         }
     }
     

@@ -21,7 +21,7 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/Compiler/LDEDiagnostic.h>
-#import <LindChain/Synpush/Syndef.h>
+#import <LindChain/Compiler/LDEFileSourceLocation.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
 - (NSArray<LDEDiagnostic *> *)getDiagnostics;
-- (Syndef*)getDefinitionAtLine:(unsigned)line column:(unsigned)column;
+- (LDEFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
 
 - (void)releaseMemory;
 

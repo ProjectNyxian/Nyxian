@@ -19,7 +19,29 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Synpush/Syndef.h>
+#import <LindChain/Compiler/LDEFileSourceLocation.h>
 
-@implementation Syndef
+@implementation LDEFileSourceLocation
+
++ (void)load
+{
+    _CFRuntimeBridgeClasses(CCFileSourceLocationGetTypeID(), "LDEFileSourceLocation");
+}
+
++ (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL
+                           withSourceLocation:(CCSourceLocation)location
+{
+    return (__bridge_transfer LDEFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorDefault, (__bridge CFURLRef)fileURL, location);
+}
+
+- (NSURL*)fileURL
+{
+    return (__bridge NSURL*)CCFileSourceLocationGetFileURL((__bridge void *)self);
+}
+
+- (CCSourceLocation)location
+{
+    return CCFileSourceLocationGetLocation((__bridge void *)self);
+}
+
 @end

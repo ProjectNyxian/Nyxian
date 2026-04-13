@@ -46,6 +46,11 @@
     return CCASTUnitErrorOccured((__bridge void *)self);
 }
 
+- (LDEFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(CCSourceLocation)location
+{
+    return (__bridge_transfer LDEFileSourceLocation*)CCASTUnitCopyDefinitionAtLocation((__bridge void*)self, location);
+}
+
 @end
 
 @implementation LDEMutableASTUnit

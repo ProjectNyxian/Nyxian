@@ -27,6 +27,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/ADT/StringRef.h>
 #include <clang/Basic/LLVM.h>
+#include <clang/AST/RecursiveASTVisitor.h>
 
 using namespace clang;
 using namespace clang::driver;
@@ -382,9 +383,234 @@ Boolean CCASTUnitErrorOccured(CCASTUnitRef unit)
     return unit->unit->getDiagnostics().hasErrorOccurred();
 }
 
+class DeclAtLocationVisitor : public RecursiveASTVisitor<DeclAtLocationVisitor> {
+public:
+    SourceLocation targetLoc;
+    SourceManager *SM;
+    Decl *found = nullptr;
+    
+    bool shouldVisitTemplateInstantiations() const { return true; }
+    
+    bool VisitDeclRefExpr(DeclRefExpr *E)
+    {
+        if(SM->getSpellingLoc(E->getLocation()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = E->getDecl();
+            return false;
+        }
+        return true;
+    }
+    
+    bool VisitMemberExpr(MemberExpr *E)
+    {
+        if(SM->getSpellingLoc(E->getMemberLoc()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = E->getMemberDecl();
+            return false;
+        }
+        return true;
+    }
+    
+    bool VisitObjCMessageExpr(ObjCMessageExpr *E)
+    {
+        if(SM->getSpellingLoc(E->getSelectorStartLoc()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = E->getMethodDecl();
+            return false;
+        }
+        return true;
+    }
+    
+    bool VisitObjCPropertyRefExpr(ObjCPropertyRefExpr *E)
+    {
+        if(SM->getSpellingLoc(E->getLocation()) == SM->getSpellingLoc(targetLoc))
+        {
+            if(E->isExplicitProperty())
+            {
+                found = E->getExplicitProperty();
+            }
+            return false;
+        }
+        return true;
+    }
+    
+    bool VisitObjCInterfaceDecl(ObjCInterfaceDecl *D)
+    {
+        if(D->getSuperClass() &&
+           SM->getSpellingLoc(D->getSuperClassLoc()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = D->getSuperClass()->getDefinition();
+            if(!found)
+            {
+                found = D->getSuperClass();
+            }
+            return false;
+        }
+        
+        auto locIt = D->protocol_loc_begin();
+        for(auto *proto : D->protocols())
+        {
+            if(SM->getSpellingLoc(*locIt) == SM->getSpellingLoc(targetLoc))
+            {
+                found = proto->getDefinition();
+                if(!found)
+                {
+                    found = proto;
+                }
+                return false;
+            }
+            ++locIt;
+        }
+        
+        return true;
+    }
+    
+    bool VisitObjCCategoryDecl(ObjCCategoryDecl *D)
+    {
+        if(D->getClassInterface() &&
+           SM->getSpellingLoc(D->getLocation()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = D->getClassInterface()->getDefinition();
+            return false;
+        }
+        return true;
+    }
+    
+    bool VisitObjCImplementationDecl(ObjCImplementationDecl *D)
+    {
+        if(SM->getSpellingLoc(D->getLocation()) == SM->getSpellingLoc(targetLoc))
+        {
+            ObjCInterfaceDecl *iface = D->getClassInterface();
+            if(iface)
+            {
+                found = iface->getDefinition();
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    bool VisitObjCInterfaceTypeLoc(ObjCInterfaceTypeLoc TL)
+    {
+        if(SM->getSpellingLoc(TL.getNameLoc()) == SM->getSpellingLoc(targetLoc))
+        {
+            ObjCInterfaceDecl *iface = TL.getIFaceDecl();
+            if(iface)
+            {
+                found = iface->getDefinition();
+                if(!found)
+                {
+                    found = iface;
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    bool VisitNamedDecl(NamedDecl *D)
+    {
+        if(SM->getSpellingLoc(D->getLocation()) == SM->getSpellingLoc(targetLoc))
+        {
+            found = D;
+            return false;
+        }
+        return true;
+    }
+};
+
 CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location)
 {
-    return nil;
+    if(unit->unit == nullptr || unit->file == nullptr)
+    {
+        return nullptr;
+    }
+    
+    char filePath[PATH_MAX];
+    if(!CFURLGetFileSystemRepresentation(CCFileGetFileURL(unit->file), true, (UInt8*)filePath, sizeof(filePath)))
+    {
+        return nullptr;
+    }
+    
+    SourceManager &SM = unit->unit->getSourceManager();
+    FileManager &FM = unit->unit->getFileManager();
+    
+    auto fileEntry = FM.getFile(filePath);
+    if(!fileEntry)
+    {
+        return nullptr;
+    }
+    
+    FileID fileID = SM.translateFile(*fileEntry);
+    if(fileID.isInvalid())
+    {
+        return nullptr;
+    }
+    
+    SourceLocation loc = SM.translateLineCol(fileID, (unsigned int)location.line, (unsigned int)location.column);
+    if(loc.isInvalid())
+    {
+        return nullptr;
+    }
+    
+    DeclAtLocationVisitor visitor;
+    visitor.targetLoc = loc;
+    visitor.SM = &SM;
+    visitor.TraverseAST(unit->unit->getASTContext());
+    
+    Decl *cursor = visitor.found;
+    if(!cursor)
+    {
+        return nullptr;
+    }
+    
+    Decl *defDecl = nullptr;
+    
+    /* getting definition (hopefully) */
+    if(auto *ID = dyn_cast<ObjCInterfaceDecl>(cursor))
+    {
+        defDecl = ID->getDefinition();
+    }
+    else if(auto *PD = dyn_cast<ObjCProtocolDecl>(cursor))
+    {
+        defDecl = PD->getDefinition();
+    }
+    else if(auto *TD = dyn_cast<TagDecl>(cursor))
+    {
+        defDecl = TD->getDefinition();
+    }
+    else if(auto *FD = dyn_cast<FunctionDecl>(cursor))
+    {
+        defDecl = FD->getDefinition();
+    }
+    
+    /* last resort */
+    if(defDecl == nullptr)
+    {
+        defDecl = cursor->getCanonicalDecl();
+    }
+    
+    if(!defDecl)
+    {
+        return nullptr;
+    }
+    
+    SourceLocation defLoc = defDecl->getLocation();
+    PresumedLoc presumed = SM.getPresumedLoc(defLoc);
+    
+    if(presumed.isInvalid())
+    {
+        return nullptr;
+    }
+    
+    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, presumed.getFilename(), kCFStringEncodingUTF8);
+    CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+    CFRelease(fileStr);
+    
+    CCSourceLocation resultLoc = CCSourceLocationMake(presumed.getLine(), presumed.getColumn());
+    CCFileSourceLocationRef result = CCFileSourceLocationCreate(kCFAllocatorDefault, fileURL, resultLoc);
+    CFRelease(fileURL);
+    return result;
 }
 
 CFArrayRef CCASTUnitCopyDiagnostics(CCASTUnitRef unit)

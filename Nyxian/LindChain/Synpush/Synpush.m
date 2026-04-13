@@ -22,15 +22,14 @@
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Compiler/LDEASTUnit.h>
 #import <LindChain/Compiler/LDEFile.h>
-#import <pthread.h>
 #import <string.h>
 #import <strings.h>
+#include <os/lock.h>
 
 #pragma mark - SynpushServer
 
 @interface SynpushServer () {
-    pthread_mutex_t _mutex;
-    
+    os_unfair_lock _lock;
     LDEMutableASTUnit *_unit;
     LDEMutableFile *_file;
 }
@@ -46,8 +45,7 @@
     /* initilizing step numero uno */
     NSURL *fileURL = [NSURL fileURLWithPath:filepath];
     _file = [LDEMutableFile mutableFileWithFileURL:fileURL];
-
-    pthread_mutex_init(&_mutex, NULL);
+    _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
 
@@ -80,13 +78,13 @@
         return;
     }
     
-    pthread_mutex_lock(&_mutex);
+    os_unfair_lock_lock(&_lock);
     
     /* checking for unit */
     if(_unit == nil)
     {
         /* needs reactivation */
-        pthread_mutex_unlock(&_mutex);
+        os_unfair_lock_unlock(&_lock);
         [self reactivateWithData:newData withArgs:args];
         return;
     }
@@ -94,23 +92,23 @@
     [_file setUnsavedData:newData];
     [_unit reparse];
 
-    pthread_mutex_unlock(&_mutex);
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (NSArray<LDEDiagnostic *> *)getDiagnostics
 {
-    pthread_mutex_lock(&_mutex);
+    os_unfair_lock_lock(&_lock);
 
     /* checking if unit is already active */
     if(_unit == nil)
     {
         /* its not so fall back to being an asshole */
-        pthread_mutex_unlock(&_mutex);
+        os_unfair_lock_unlock(&_lock);
         return @[];
     }
     
     NSArray<LDEDiagnostic *> *items = [_unit diagnostics];
-    pthread_mutex_unlock(&_mutex);
+    os_unfair_lock_unlock(&_lock);
     return items;
 }
 
@@ -118,16 +116,16 @@
 
 - (void)releaseMemory
 {
-    pthread_mutex_lock(&_mutex);
+    os_unfair_lock_lock(&_lock);
     _unit = nil;
-    pthread_mutex_unlock(&_mutex);
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (BOOL)isActive
 {
-    pthread_mutex_lock(&_mutex);
+    os_unfair_lock_lock(&_lock);
     BOOL active = (_unit != nil);
-    pthread_mutex_unlock(&_mutex);
+    os_unfair_lock_unlock(&_lock);
     return active;
 }
 
@@ -140,35 +138,32 @@
     }
     
     /* its not so we need to reactivate it */
-    pthread_mutex_lock(&_mutex);
+    os_unfair_lock_lock(&_lock);
     
     /* creating new synpush core and update all */
     _unit = [LDEMutableASTUnit unit];
     if(_unit == nil)
     {
-        pthread_mutex_unlock(&_mutex);
+        os_unfair_lock_unlock(&_lock);
         return false;
     }
     
+    [_file setUnsavedData:data];
     [_unit setFile:_file];
     [_unit setArguments:args];
     bool succeed = [_unit reparse];
     
-    pthread_mutex_unlock(&_mutex);
+    os_unfair_lock_unlock(&_lock);
     
     return succeed;
 }
 
-- (void)dealloc
+- (LDEFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location
 {
-    /* destroying the lock */
-    pthread_mutex_destroy(&_mutex);
-}
-
-- (Syndef*)getDefinitionAtLine:(unsigned)line
-                        column:(unsigned)column
-{
-    return nil;
+    os_unfair_lock_lock(&_lock);
+    LDEFileSourceLocation *fileSourceLocation = [_unit fileSourceLocationForDefinitionAtLocation:location];
+    os_unfair_lock_unlock(&_lock);
+    return fileSourceLocation;
 }
 
 @end

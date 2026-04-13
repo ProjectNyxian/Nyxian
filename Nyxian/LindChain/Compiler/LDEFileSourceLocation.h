@@ -19,17 +19,19 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SYNDEF_H
-#define SYNDEF_H
+#ifndef LDEFILESOURCELOCATION_H
+#define LDEFILESOURCELOCATION_H
 
-#import <Foundation/Foundation.h>
+#import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/CoreCompiler/CCFileSourceLocation.h>
 
-@interface Syndef : NSObject
+@interface LDEFileSourceLocation : LDECFType
 
-@property (nonatomic, strong) NSString *filepath;
-@property (nonatomic, assign) unsigned line;
-@property (nonatomic, assign) unsigned column;
+@property (nonatomic, readonly) NSURL *fileURL;
+@property (nonatomic, readonly) CCSourceLocation location;
+
++ (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL withSourceLocation:(CCSourceLocation)location;
 
 @end
 
-#endif /* SYNDEF_H */
+#endif /* LDEFILESOURCELOCATION_H */

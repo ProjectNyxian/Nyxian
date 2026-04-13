@@ -26,12 +26,15 @@
 #import <LindChain/CoreCompiler/CCASTUnit.h>
 #import <LindChain/Compiler/LDEDiagnostic.h>
 #import <LindChain/Compiler/LDEFile.h>
+#import <LindChain/Compiler/LDEFileSourceLocation.h>
 
 @interface LDEASTUnit : LDECFType
 
 @property (nonatomic, readonly) LDEFile *file;
 @property (nonatomic, readonly) NSArray<LDEDiagnostic*> *diagnostics;
 @property (nonatomic, readonly) BOOL hasErrorOccured;
+
+- (LDEFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(CCSourceLocation)location;
 
 @end
 
