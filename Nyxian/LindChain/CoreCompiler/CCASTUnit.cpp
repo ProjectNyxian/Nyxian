@@ -112,7 +112,7 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
     /* now indice for indice */
     for(CFIndex i = 0; i < count; i++)
     {
-        CCDiagnosticType type;
+        CCDiagnosticType type = CCDiagnosticTypeFile;
         CCDiagnosticLevel level;
         CFURLRef fileURL = nullptr;
         CCSourceLocation location;
@@ -123,16 +123,13 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
         
         if(loc.isValid())
         {
-            char filePath[PATH_MAX];
-            CFURLGetFileSystemRepresentation(CCFileGetFileURL(mutableUnit->file), true, (UInt8*)filePath, sizeof(filePath));
-            
-            if(strncmp(filePath, loc.getFilename(), PATH_MAX) == 0)
+            if(mutableUnit->file != nullptr)
             {
-                type = CCDiagnosticTypeTargetFile;
-            }
-            else
-            {
-                type = CCDiagnosticTypeFile;
+                char filePath[PATH_MAX];
+                if(CFURLGetFileSystemRepresentation(CCFileGetFileURL(mutableUnit->file), true, (UInt8*)filePath, sizeof(filePath)))
+                {
+                    type = (strncmp(filePath, loc.getFilename(), PATH_MAX) == 0) ? CCDiagnosticTypeTargetFile : CCDiagnosticTypeFile;
+                }
             }
             
             const char *fileName = loc.getFilename();

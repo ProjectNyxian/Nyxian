@@ -27,6 +27,7 @@
 #import <LindChain/Synpush/Synpush.h>
 #include <LindChain/Compiler/LDEObjectCompiler.h>
 #include <LindChain/Compiler/LDEDependencyScanner.h>
+#include <LindChain/Compiler/LDEASTUnit.h>
 
 @implementation Compiler {
     dependency_scan_service_t _svc;
@@ -62,12 +63,11 @@
 {
     /* compile and get the resulting integer */
     bool didSucceed = false;
-    CCASTUnitRef unit = CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String]);
+    LDEASTUnit *unit = (__bridge_transfer LDEASTUnit*)CompileObject(_cmp, [filePath UTF8String], [outputFilePath UTF8String]);
     if(unit)
     {
-        *issues = CFBridgingRelease(CCASTUnitCopyDiagnostics(unit));
-        didSucceed = !CCASTUnitErrorOccured(unit);
-        CFRelease(unit);
+        *issues = unit.diagnostics;
+        didSucceed = !unit.hasErrorOccured;
     }
     else
     {
