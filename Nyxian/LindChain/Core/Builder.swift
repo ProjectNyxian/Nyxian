@@ -185,7 +185,8 @@ class Builder {
                         threader.lockdown = true
                     }
                     
-                    self.database.setFileDebug(ofPath: job.input[0].path, synItems: (issues as? [LDEDiagnostic]) ?? [])
+                    /* TODO: fix this by using some kind of marker, probably by filtering the diagnostic's for code file only or something */
+                    //self.database.setFileDebug(ofPath: job.input[0].path, synItems: (issues as? [LDEDiagnostic]) ?? [])
                     
                     XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)

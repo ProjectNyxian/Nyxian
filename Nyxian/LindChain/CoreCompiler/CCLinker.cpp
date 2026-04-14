@@ -42,7 +42,7 @@ CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
     assert(job != nullptr);
     assert(CCJobGetType(job) == CCJobTypeLinker);
     
-    CFArrayRef argsArray = CCJobCopyArguments(job);
+    CFArrayRef argsArray = CCJobGetArguments(job);
     CFIndex count = CFArrayGetCount(argsArray);
 
     llvm::SmallVector<std::string, 64> argStorage;
@@ -62,8 +62,6 @@ CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
         argStorage.back().resize(strlen(argStorage.back().c_str()));
         Args.push_back(argStorage.back().c_str());
     }
-
-    CFRelease(argsArray);
     
     std::vector<LDDiagnostic> diagnostics;
     int retCode;

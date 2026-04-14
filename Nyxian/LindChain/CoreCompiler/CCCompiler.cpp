@@ -46,7 +46,7 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     assert(job != nullptr);
     assert(CCJobGetType(job) == CCJobTypeCompiler);
     
-    CFArrayRef argsArray = CCJobCopyArguments(job);
+    CFArrayRef argsArray = CCJobGetArguments(job);
     CFIndex count = CFArrayGetCount(argsArray);
 
     llvm::SmallVector<std::string, 64> argStorage;
@@ -63,8 +63,6 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         argStorage.back().resize(strlen(argStorage.back().c_str()));
         Args.push_back(argStorage.back().c_str());
     }
-
-    CFRelease(argsArray);
     
     /* setting up clang driver */
     IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>(), new IgnoringDiagConsumer()));

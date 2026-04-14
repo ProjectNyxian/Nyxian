@@ -147,6 +147,25 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
     return driverRef;
 }
 
+static CCJobType _CCJobTypeGetFromCommand(const clang::driver::Command *Cmd)
+{
+    const clang::driver::Action &source = Cmd->getSource();
+    
+    if(clang::isa<clang::driver::CompileJobAction>(source) ||
+       clang::isa<clang::driver::AssembleJobAction>(source))
+    {
+        return CCJobTypeCompiler;
+    }
+    else if(clang::isa<clang::driver::LinkJobAction>(source))
+    {
+        return CCJobTypeLinker;
+    }
+    else
+    {
+        return CCJobTypeUnknown;
+    }
+}
+
 CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
 {
     llvm::SmallVector<const char *, 64> Args;
@@ -177,11 +196,30 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
         {
             continue;
         }
-        
+
         const Command &Cmd = cast<Command>(Job);
-        
-        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, driver, &Cmd);
-        if(jobRef != nullptr)
+        CCJobType type = _CCJobTypeGetFromCommand(&Cmd);
+
+        const llvm::opt::ArgStringList &cmdArgs = Cmd.getArguments();
+        CFMutableArrayRef argsArray = CFArrayCreateMutable(kCFAllocatorDefault, cmdArgs.size(), &kCFTypeArrayCallBacks);
+        for(const char *arg : cmdArgs)
+        {
+            if(!arg)
+            {
+                continue;
+            }
+            CFStringRef s = CFStringCreateWithCString(kCFAllocatorDefault, arg, kCFStringEncodingUTF8);
+            if(s)
+            {
+                CFArrayAppendValue(argsArray, s);
+                CFRelease(s);
+            }
+        }
+
+        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, type, argsArray);
+        CFRelease(argsArray);
+
+        if(jobRef)
         {
             CFArrayAppendValue(jobsArray, jobRef);
             CFRelease(jobRef);

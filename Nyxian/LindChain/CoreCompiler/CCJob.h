@@ -24,35 +24,14 @@
 
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCDiagnostic.h>
-#if defined(__cplusplus) && !defined(__OBJC__)
-#include <clang/Driver/Job.h>
-#endif /* __cplusplus && !__OBJC__ */
 
 typedef struct opaque_ccjob *CCJobRef;
 
 CC_EXPORT CFTypeID CCJobGetTypeID(void);
 
-#if defined(__cplusplus) && !defined(__OBJC__)
-CC_CXX_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CFTypeRef driver, const clang::driver::Command *Cmd);
-#endif /* __cplusplus && !__OBJC__ */
-
-/*
- * TODO: create a easy job creation method
- *
- * CC_EXPORT CCJobRef CCJobCreateWithType(CCJobType type, CFArrayRef arguments);
- */
+CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CCJobType type, CFArrayRef CC1Arguments);
 
 CC_EXPORT CCJobType CCJobGetType(CCJobRef job);
-CC_EXPORT CFArrayRef CCJobCopyArguments(CCJobRef job);
-CC_EXPORT CFArrayRef CCJobGetInput(CCJobRef job);
-CC_EXPORT CFArrayRef CCJobGetOutput(CCJobRef job);
-CC_EXPORT void CCJobSetInput(CCJobRef job, CFArrayRef input);
-CC_EXPORT void CCJobSetOutput(CCJobRef job, CFArrayRef output);
-
-/*
- * TODO: create a easy job execution method
- *
- * CC_EXPORT Boolean CCJobExecute(CCJobRef job, CFArrayRef *diagnostics);
- */
+CC_EXPORT CFArrayRef CCJobGetArguments(CCJobRef job);
 
 #endif /* CCJOB_H */
