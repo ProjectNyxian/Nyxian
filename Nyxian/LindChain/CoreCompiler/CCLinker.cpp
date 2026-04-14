@@ -20,9 +20,86 @@
 */
 
 #include <LindChain/CoreCompiler/CCLinker.h>
+#include <lld/Common/Driver.h>
+#include <lld/Common/ErrorHandler.h>
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/CrashRecoveryContext.h>
+#include <lld/Common/CommonLinkerContext.h>
+
+namespace lld {
+namespace macho {
+
+bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
+          llvm::raw_ostream &stderrOS, bool exitEarly, bool disableOutput);
+
+} // namespace macho
+} // namespace lld
 
 CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
                                      CFArrayRef *outDiagnostics)
 {
-    return false;
+    assert(job != nullptr);
+    assert(CCJobGetType(job) == CCJobTypeLinker);
+    
+    CFArrayRef argsArray = CCJobCopyArguments(job);
+    CFIndex count = CFArrayGetCount(argsArray);
+
+    llvm::SmallVector<std::string, 64> argStorage;
+    llvm::SmallVector<const char *, 64> Args;
+    argStorage.reserve(count);
+    Args.reserve(count);
+
+    for(CFIndex i = 0; i < count; i++)
+    {
+        CFStringRef s = (CFStringRef)CFArrayGetValueAtIndex(argsArray, i);
+        CFIndex len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(s), kCFStringEncodingUTF8) + 1;
+        argStorage.push_back(std::string(len, '\0'));
+        CFStringGetCString(s, argStorage.back().data(), len, kCFStringEncodingUTF8);
+        argStorage.back().resize(strlen(argStorage.back().c_str()));
+        Args.push_back(argStorage.back().c_str());
+    }
+
+    CFRelease(argsArray);
+    
+    std::vector<LDDiagnostic> diagnostics;
+    int retCode;
+    
+    llvm::CrashRecoveryContext CRC;
+    CRC.RunSafely([&]{
+        const lld::DriverDef drivers[] = {
+            {lld::Darwin, &lld::macho::link},
+        };
+        
+        lld::Result result = lld::lldMain(Args, llvm::nulls(), llvm::nulls(), drivers, [&diagnostics](const LDDiagnostic &diag) {
+            diagnostics.push_back(diag);
+        });
+        retCode = result.retCode;
+        
+        lld::CommonLinkerContext::destroy();
+    });
+    
+    if(outDiagnostics != nullptr)
+    {
+        /* process error returns */
+        CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorDefault, diagnostics.size(), &kCFTypeArrayCallBacks);
+        if(result == nullptr)
+        {
+            return retCode == 0;
+        }
+        
+        for(auto it = diagnostics.begin(); it != diagnostics.end(); ++it)
+        {
+            CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(kCFAllocatorDefault, CCDiagnosticTypeInternal, (it->kind == LDDiagnostic::Kind::Error) ? CCDiagnosticLevelError : CCDiagnosticLevelWarning, nullptr, CCSourceLocationZero, CFStringCreateWithCString(kCFAllocatorDefault, it->message.c_str(), kCFStringEncodingUTF8));
+            if(diagnosticRef != nullptr)
+            {
+                CFArrayAppendValue(result, diagnosticRef);
+                CFRelease(diagnosticRef);
+            }
+        }
+        
+        *outDiagnostics = result;
+    }
+    
+    return retCode == 0;
 }

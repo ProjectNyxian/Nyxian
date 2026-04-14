@@ -99,6 +99,4 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     
     /* creating error string */
     return CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
-    
-    return nullptr;
 }

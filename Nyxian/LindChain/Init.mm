@@ -20,8 +20,9 @@
 */
 
 #import <Foundation/Foundation.h>
-#include "llvm/Support/InitLLVM.h"
-#include "llvm/Support/TargetSelect.h"
+#include <llvm/Support/InitLLVM.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CrashRecoveryContext.h>
 
 extern "C"  int ls_getfd(void);
 
@@ -39,4 +40,5 @@ void llvm_init(void)
     llvm::InitializeAllAsmPrinters();
     llvm::InitializeAllDisassemblers();
     llvm::install_fatal_error_handler(NyxLLVMErrorHandler);
+    llvm::CrashRecoveryContext::Enable();
 }
