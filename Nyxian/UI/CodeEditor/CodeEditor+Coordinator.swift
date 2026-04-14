@@ -79,12 +79,12 @@ class Coordinator: NSObject, TextViewDelegate {
             self.isInvalidated = true
             for item in self.entries {
                 UIView.animate(withDuration: 0.3) {
-                    item.value.1!.backgroundColor = UIColor.systemGray.withAlphaComponent(0.3)
-                    item.value.0!.backgroundColor = UIColor.systemGray.withAlphaComponent(1.0)
-                    item.value.0!.isUserInteractionEnabled = false
-                    item.value.0!.errorview?.alpha = 0.0
+                    item.value.1?.backgroundColor = UIColor.systemGray.withAlphaComponent(0.3)
+                    item.value.0?.backgroundColor = UIColor.systemGray.withAlphaComponent(1.0)
+                    item.value.0?.isUserInteractionEnabled = false
+                    item.value.0?.errorview?.alpha = 0.0
                 } completion: { _ in
-                    item.value.0!.errorview?.removeFromSuperview()
+                    item.value.0?.errorview?.removeFromSuperview()
                 }
             }
         }
