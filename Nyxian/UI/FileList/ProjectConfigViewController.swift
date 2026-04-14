@@ -302,7 +302,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
 
     private enum BuildFlagRow: Int, CaseIterable {
         case compilerFlags
-        case linkerFlags
+        case linkerFlags    /* MARK: compatibility for NXFalconV1 and older */
 
         var title: String {
             switch self {
@@ -325,7 +325,12 @@ class ProjectConfigViewController: UIThemedTableViewController {
                     return GeneralRow.allCases.count - 3
                 }
             case .deplyment: return DeploymentRow.allCases.count
-            case .buildFlags: return BuildFlagRow.allCases.count
+            case .buildFlags:
+                if project.projectConfig.projectFormat == .falconV2 {
+                    return BuildFlagRow.allCases.count - 1
+                } else {
+                    return BuildFlagRow.allCases.count
+                }
         }
     }
 
@@ -355,7 +360,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 }
             case .buildFlags:
                 let row = BuildFlagRow(rawValue: indexPath.row)!
-                cell.textLabel?.text        = row.title
+                cell.textLabel?.text = row.title
                 switch row {
                     case .compilerFlags: cell.detailTextLabel?.text = subtitle(for: pendingCompilerFlags)
                     case .linkerFlags: cell.detailTextLabel?.text = subtitle(for: pendingLinkerFlags)

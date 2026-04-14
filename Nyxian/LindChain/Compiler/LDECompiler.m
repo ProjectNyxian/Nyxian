@@ -24,8 +24,6 @@
 #include <string.h>
 #include <pthread.h>
 #import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/Synpush/Synpush.h>
-#include <LindChain/Compiler/LDEObjectCompiler.h>
 #include <LindChain/Compiler/LDEDependencyScanner.h>
 #import <LindChain/CoreCompiler/CCCompiler.h>
 
