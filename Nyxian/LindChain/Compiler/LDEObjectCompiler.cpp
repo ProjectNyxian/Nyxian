@@ -80,7 +80,7 @@ CCASTUnitRef CompileObject(object_compiler_t cmp,
     Args.push_back(outputFilePath);
     
     /* setting up clang driver */
-    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>()));
+    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>(), new IgnoringDiagConsumer()));
     Driver TheDriver("clang", "", *Diags);
     
     /* building compilation */
