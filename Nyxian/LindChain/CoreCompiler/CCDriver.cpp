@@ -241,9 +241,9 @@ void CCDriverSetOutputPathCallback(CCDriverRef driver,
         return;
     }
     
-    driver->driver->OutputPathOverride = [callback, context](const clang::driver::JobAction &JA,
-                                                             const char *baseInput,
-                                                             llvm::StringRef boundArch) -> std::string
+    driver->driver->OutputPathOverride = [callback, driver](const clang::driver::JobAction &JA,
+                                                            const char *baseInput,
+                                                            llvm::StringRef boundArch) -> std::string
     {
         if(!clang::isa<clang::driver::CompileJobAction>(JA) &&
            !clang::isa<clang::driver::AssembleJobAction>(JA))
@@ -251,7 +251,7 @@ void CCDriverSetOutputPathCallback(CCDriverRef driver,
             return "";
         }
         
-        const char *result = callback(baseInput, context);
+        const char *result = callback(baseInput, driver->outputPathCallbackContext);
         if(!result)
         {
             return "";

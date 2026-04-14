@@ -35,8 +35,7 @@ static NXProjectType const NXProjectTypeWeb = 6;        /* Not implemented yet *
 
 typedef int NXProjectFormat NS_TYPED_ENUM;
 static NXProjectFormat const NXProjectFormatKate = 0;
-static NXProjectFormat const NXProjectFormatFalconV1 = 1;
-static NXProjectFormat const NXProjectFormatFalconV2 = 2;
+static NXProjectFormat const NXProjectFormatFalcon = 1;
 static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
 
 typedef NSString * NXCodeTemplateScheme NS_TYPED_ENUM;

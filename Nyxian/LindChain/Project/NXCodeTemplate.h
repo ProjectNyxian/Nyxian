@@ -27,5 +27,6 @@
 
 BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme, NXCodeTemplateLanguage language, NSString *projectName, NSString *projectPath);
 NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
+NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
 
 #endif /* NXCODETEMPLATE_H */

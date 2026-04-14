@@ -35,6 +35,8 @@ class Builder {
     private var compilerJobs: [LDEJob] = []
     private var linkerJobs: [LDEJob] = []
     
+    private var objectFiles: [String] = []
+    
     let database: DebugDatabase
     
     init?(project: NXProject) {
@@ -62,6 +64,7 @@ class Builder {
                 return path
             }
             let newPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
+            self.objectFiles.append(newPath)
             return newPath
         }
         
@@ -69,12 +72,16 @@ class Builder {
             switch(job.type) {
             case .compiler:
                 self.compilerJobs.append(job)
-            case .linker:
-                self.linkerJobs.append(job)
             default:
                 break
             }
         }
+        
+        var linkerFlags = self.project.projectConfig.linkerFlags as! [String]
+        linkerFlags.append(contentsOf: self.objectFiles)
+        linkerFlags.append("-o")
+        linkerFlags.append(self.project.machoPath)
+        self.linkerJobs.append(LDEJob(type: .linker, withArguments: linkerFlags))
     }
     
     func headsup() throws {
@@ -202,7 +209,14 @@ class Builder {
     
     func link() throws {
         for job in linkerJobs {
-            if !LDELinker.execute(job, outDiagnostics: nil) {
+            var issues: NSArray?
+            
+            if !LDELinker.execute(job, outDiagnostics: &issues) {
+                
+                for item in (issues as! [LDEDiagnostic]) {
+                    self.database.addInternalMessage(message: item.message, severity: item.level)
+                }
+                
                 throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
             }
         }

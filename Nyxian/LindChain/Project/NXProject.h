@@ -37,6 +37,7 @@
 @property (nonatomic,strong,readonly) NSString *shortVersion;
 @property (nonatomic,strong,readonly) NSDictionary *infoDictionary;
 @property (nonatomic,strong,readonly) NSArray *compilerFlags;
+@property (nonatomic,strong,readonly) NSArray *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
 @property (nonatomic,readonly) int type;
 @property (nonatomic,readonly) int threads;

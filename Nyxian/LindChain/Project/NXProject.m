@@ -48,14 +48,9 @@
          */
         return NXProjectFormatKate;
     }
-    else if([projectFormat isEqualToString:@"NXFalcon"] ||
-            [projectFormat isEqualToString:@"NXFalconV1"])
+    else if([projectFormat isEqualToString:@"NXFalcon"])
     {
-        return NXProjectFormatFalconV1;
-    }
-    else if([projectFormat isEqualToString:@"NXFalconV2"])
-    {
-        return NXProjectFormatFalconV2;
+        return NXProjectFormatFalcon;
     }
     
     return NXProjectFormatDefault;
@@ -72,36 +67,12 @@
 {
     NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
     
-    if([self projectFormat] == NXProjectFormatFalconV2)
+    if([self projectFormat] == NXProjectFormatFalcon)
     {
         return compilerFlags;
     }
-    else if([self projectFormat] == NXProjectFormatFalconV1)
-    {
-        /*
-         * if we don't filter some linker flags then
-         * the translation breaks.
-         */
-        NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
-        NSMutableArray *filteredLinker = [NSMutableArray array];
-        NSSet *skipArgs = [NSSet setWithObjects:@"-syslibroot", @"-platform_version", nil];
-        for(NSUInteger i = 0; i < linkerFlags.count; i++)
-        {
-            NSString *flag = linkerFlags[i];
-            if([skipArgs containsObject:flag])
-            {
-                NSUInteger skip = [flag isEqualToString:@"-platform_version"] ? 3 : 1;
-                i += skip;
-                continue;
-            }
-            [filteredLinker addObject:flag];
-        }
-        return [compilerFlags arrayByAddingObjectsFromArray:filteredLinker];
-    }
     else if([self projectFormat] == NXProjectFormatKate)
     {
-        /* FIXME: compiler and linker flags are now merged */
-        
         NSMutableArray *array = [compilerFlags mutableCopy];
         
         [array addObjectsFromArray:@[
@@ -113,6 +84,38 @@
             [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/PrivateFrameworks"]],
             @"-resource-dir",
             [[Bootstrap shared] bootstrapPath:@"/Include"]
+        ]];
+        
+        return array;
+    }
+    
+    return @[];
+}
+
+- (NSArray*)linkerFlags
+{
+    NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
+    
+    if([self projectFormat] == NXProjectFormatFalcon)
+    {
+        return linkerFlags;
+    }
+    else if([self projectFormat] == NXProjectFormatKate)
+    {
+        NSMutableArray *array = [linkerFlags mutableCopy];
+        
+        [array addObjectsFromArray:@[
+            @"-platform_version",
+            @"ios",
+            [self platformMinimumVersion],
+            [self readSecureFromKey:@"LDEVersion" withDefaultValue:@"26.4"],
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            [[Bootstrap shared] sdkPath],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/SubFrameworks"]],
+            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/PrivateFrameworks"]],
+            [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
         ]];
         
         return array;
@@ -293,7 +296,7 @@
     {
         case NXProjectTypeApp:
             projConfigPlist = @{
-                @"NXProjectFormat": @"NXFalconV2",
+                @"NXProjectFormat": @"NXFalcon",
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
                 @"LDEBundleIdentifier": bundleid,
@@ -324,7 +327,19 @@
                     @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                     @"-resource-dir",
                     @"$(BSROOT)/Include",
-                    @"-fobjc-arc",
+                    @"-fobjc-arc"
+                ],
+                @"LDELinkerFlags": @[
+                    @"-platform_version",
+                    @"ios",
+                    @"$(LDEMinimumVersion)",
+                    @"$(LDEVersion)",
+                    @"-arch",
+                    @"arm64",
+                    @"-syslibroot",
+                    @"$(SDKROOT)",
+                    @"-F$(SDKROOT)/System/Library/SubFrameworks",
+                    @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                     @"-L$(BSROOT)/lib",
                     @"-ObjC",
                     @"-lc",
@@ -339,13 +354,14 @@
             break;
         case NXProjectTypeUtility:
             projConfigPlist = @{
-                @"NXProjectFormat": @"NXFalconV2",
+                @"NXProjectFormat": @"NXFalcon",
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
                 @"LDEProjectType": @(type),
                 @"LDEVersion": NXOSVersion.maximumBuildVersion.versionString,
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
+                @"LDELinkerFlags": NXLinkerFlagsForCodeTemplateLanguage(language),
                 @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;

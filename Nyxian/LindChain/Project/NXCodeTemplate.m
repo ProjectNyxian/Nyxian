@@ -62,15 +62,52 @@ BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
 
 NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
 {
-    if([language isEqualToString:NXCodeTemplateLanguageC])
+    if([language isEqualToString:NXCodeTemplateLanguageC] ||
+       [language isEqualToString:NXCodeTemplateLanguageCpp])
     {
         return @[
             @"-target",
             @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
             @"-isysroot",
             @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-resource-dir",
+            @"$(BSROOT)/Include",
+        ];
+    }
+    else if([language isEqualToString:NXCodeTemplateLanguageObjC])
+    {
+        return @[
+            @"-target",
+            @"arm64-apple-ios$(LDEMinimumVersion)",
+            @"-isysroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
+            @"-resource-dir",
+            @"$(BSROOT)/Include",
+            @"-fobjc-arc"
+        ];
+    }
+    return nil;
+}
+
+NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+{
+    if([language isEqualToString:NXCodeTemplateLanguageC])
+    {
+        return @[
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
+            @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
             @"-L$(BSROOT)/lib",
             @"-lc",
             @"-lclang_rt.ios"
@@ -79,12 +116,16 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
     else if([language isEqualToString:NXCodeTemplateLanguageCpp])
     {
         return @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
-            @"-isysroot",
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
             @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
             @"-L$(BSROOT)/lib",
             @"-lc",
             @"-lc++",
@@ -94,12 +135,16 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
     else if([language isEqualToString:NXCodeTemplateLanguageObjC])
     {
         return @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
-            @"-isysroot",
+            @"-platform_version",
+            @"ios",
+            @"$(LDEMinimumVersion)",
+            @"$(LDEVersion)",
+            @"-arch",
+            @"arm64",
+            @"-syslibroot",
             @"$(SDKROOT)",
+            @"-F$(SDKROOT)/System/Library/SubFrameworks",
+            @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
             @"-L$(BSROOT)/lib",
             @"-lc",
             @"-lclang_rt.ios",
