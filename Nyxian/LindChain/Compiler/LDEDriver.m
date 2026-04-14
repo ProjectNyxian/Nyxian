@@ -35,7 +35,7 @@
 
 - (NSArray<LDEJob*>*)jobs
 {
-    return (__bridge NSArray<LDEJob*>*)CCDriverGetJobs((__bridge void*)self);
+    return (__bridge_transfer NSArray<LDEJob*>*)CCDriverCopyJobs((__bridge void*)self);
 }
 
 @end

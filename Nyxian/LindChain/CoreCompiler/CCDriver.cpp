@@ -45,7 +45,6 @@ static CFTypeID gCCDriverTypeID = _kCFRuntimeNotATypeID;
 
 struct opaque_ccdriver {
     CFRuntimeBase _base;
-    CFArrayRef jobs;
     IntrusiveRefCntPtr<DiagnosticsEngine> diags;
     std::unique_ptr<Driver> driver;
     std::unique_ptr<Compilation> compilation;
@@ -61,29 +60,12 @@ static CFTypeRef CCDriverCopy(CFAllocatorRef allocator,
 static void CCDriverFinalize(CFTypeRef cf)
 {
     CCDriverRef driverRef = (CCDriverRef)cf;
-    if(driverRef->jobs)
-    {
-        CFRelease(driverRef->jobs);
-    }
     driverRef->compilation.reset();
     driverRef->driver.reset();
     driverRef->compilation.~unique_ptr<Compilation>();
     driverRef->driver.~unique_ptr<Driver>();
     driverRef->diags.~IntrusiveRefCntPtr<DiagnosticsEngine>();
     driverRef->argStorage.~SmallVector<std::string, 64>();
-}
-
-static CFStringRef CCDriverCopyFormattingDesc(CFTypeRef cf,
-                                              CFDictionaryRef options)
-{
-    CCDriverRef driverRef = (CCDriverRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@"), driverRef->jobs);
-}
-
-static CFStringRef CCDriverCopyDebugDesc(CFTypeRef cf)
-{
-    CCDriverRef driverRef = (CCDriverRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCDriver %p: jobs=%@>"), cf, driverRef->jobs);
 }
 
 static const CFRuntimeClass gCCDriverClass = {
@@ -94,8 +76,8 @@ static const CFRuntimeClass gCCDriverClass = {
     CCDriverFinalize,               /* finalize */
     NULL,                           /* equal */
     NULL,                           /* hash */
-    CCDriverCopyFormattingDesc,     /* copyFormattingDesc */
-    CCDriverCopyDebugDesc,          /* copyDebugDesc */
+    NULL,                           /* copyFormattingDesc */
+    NULL,                           /* copyDebugDesc */
     NULL,
     NULL,
     0
@@ -175,10 +157,15 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         return nullptr;
     }
     
+    return driverRef;
+}
+
+CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
+{
     /* getting jobs */
-    const auto &Jobs = driverRef->compilation->getJobs();
+    const auto &Jobs = driver->compilation->getJobs();
     
-    CFMutableArrayRef jobsArray = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
+    CFMutableArrayRef jobsArray = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
     
     /* checking job properties */
     for(auto &Job : Jobs)
@@ -190,7 +177,7 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         
         const Command &Cmd = cast<Command>(Job);
         
-        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, driverRef, &Cmd);
+        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, driver, &Cmd);
         if(jobRef != nullptr)
         {
             CFArrayAppendValue(jobsArray, jobRef);
@@ -198,16 +185,5 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         }
     }
     
-    driverRef->jobs = jobsArray;
-    return driverRef;
-}
-
-CFArrayRef CCDriverGetJobs(CCDriverRef driver)
-{
-    return driver->jobs;
-}
-
-CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
-{
-    return (CFArrayRef)CFRetain(driver->jobs);
+    return jobsArray;
 }

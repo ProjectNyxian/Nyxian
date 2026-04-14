@@ -44,7 +44,7 @@ class Builder {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cachePath!)/debug.json")
         self.database.reuseDatabase()
         
-        var genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
+        var driverFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
         
         try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
         
@@ -52,11 +52,11 @@ class Builder {
             return nil
         }
         
-        genericCompilerFlags.append(contentsOf: codeFiles)
-        genericCompilerFlags.append("-o")
-        genericCompilerFlags.append(self.project.machoPath)
+        driverFlags.append(contentsOf: codeFiles)
+        driverFlags.append("-o")
+        driverFlags.append(self.project.machoPath)
         
-        let driver: LDEDriver = LDEDriver(arguments: genericCompilerFlags)
+        let driver: LDEDriver = LDEDriver(arguments: driverFlags)
         let jobs: [LDEJob] = driver.jobs
         
         var linkerInputItems: [URL] = []

@@ -31,7 +31,6 @@ CC_EXPORT CFTypeID CCDriverGetTypeID(void);
 
 CC_EXPORT CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments);
 
-CC_EXPORT CFArrayRef CCDriverGetJobs(CCDriverRef driver);
 CC_EXPORT CFArrayRef CCDriverCopyJobs(CCDriverRef driver);
 
 #endif /* CCDRIVER_H */
