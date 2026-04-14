@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 zipgod24
 
  This file is part of Nyxian.
 
@@ -372,17 +373,17 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     
     ksurface_proc_t *parent = NULL;
     ksurface_return_t ksr = proc_parent_for_proc(proc, &parent);
-    
     if(ksr == SURFACE_SUCCESS)
     {
         kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)proc);
+        
+        PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
+        if(process != nil)
+        {
+            [process sendSignal:SIGCHLD];
+        }
+        
         kvo_release(parent);
-    }
-    
-    PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:proc_getpid(parent)];
-    if(process != nil)
-    {
-        [process sendSignal:SIGCHLD];
     }
     
     kvo_release(proc);
