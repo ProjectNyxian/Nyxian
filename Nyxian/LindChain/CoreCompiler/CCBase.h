@@ -27,6 +27,7 @@
 
 #ifdef __cplusplus
 #define CC_EXPORT extern "C" __attribute__((visibility("default")))
+#define CC_CXX_EXPORT extern __attribute__((visibility("default")))
 #else
 #define CC_EXPORT extern __attribute__((visibility("default")))
 #endif

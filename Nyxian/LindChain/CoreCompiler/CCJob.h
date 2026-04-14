@@ -32,7 +32,7 @@ typedef struct opaque_ccjob *CCJobRef;
 CC_EXPORT CFTypeID CCJobGetTypeID(void);
 
 #ifdef __cplusplus
-CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CFTypeRef driver, const clang::driver::Command *Cmd);
+CC_CXX_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CFTypeRef driver, const clang::driver::Command *Cmd);
 #endif /* __cplusplus */
 
 CC_EXPORT CCJobType CCJobGetType(CCJobRef job);
