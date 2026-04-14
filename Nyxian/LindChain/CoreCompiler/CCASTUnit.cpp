@@ -321,6 +321,7 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
     }
     mutableUnit->BaseArgs.clear();
     mutableUnit->BaseArgs.push_back("clang");
+    mutableUnit->BaseArgs.push_back("--start-no-unused-arguments");
     
     CFIndex count = CFArrayGetCount(arguments);
     SmallVector<const char *, 64> rawArgs;
@@ -367,6 +368,8 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
             mutableUnit->BaseArgs.push_back(s);
         }
     }
+    
+    mutableUnit->BaseArgs.push_back("--end-no-unused-arguments");
 }
 
 CC_EXPORT void CCASTUnitSetFile(CCMutableASTUnitRef mutableUnit,
