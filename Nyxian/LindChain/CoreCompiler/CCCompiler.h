@@ -22,4 +22,10 @@
 #ifndef CCCOMPILER_H
 #define CCCOMPILER_H
 
+#include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCASTUnit.h>
+#include <LindChain/CoreCompiler/CCJob.h>
+
+CC_EXPORT CCASTUnitRef CCCompilerJobExecute(CCJobRef job);
+
 #endif /* CCCOMPILER_H */

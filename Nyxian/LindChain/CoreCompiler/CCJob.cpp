@@ -130,21 +130,14 @@ CCJobType CCJobGetType(CCJobRef job)
 {
     const clang::driver::Action &source = job->Cmd->getSource();
     
-    if(clang::isa<clang::driver::CompileJobAction>(source))
+    if(clang::isa<clang::driver::CompileJobAction>(source) ||
+       clang::isa<clang::driver::AssembleJobAction>(source))
     {
         return CCJobTypeCompiler;
     }
     else if(clang::isa<clang::driver::LinkJobAction>(source))
     {
         return CCJobTypeLinker;
-    }
-    else if(clang::isa<clang::driver::AssembleJobAction>(source))
-    {
-        return CCJobTypeAssembler;
-    }
-    else if(clang::isa<clang::driver::BackendJobAction>(source))
-    {
-        return CCJobTypeBackend;
     }
     else
     {

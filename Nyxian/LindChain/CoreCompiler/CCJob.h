@@ -23,6 +23,7 @@
 #define CCJOB_H
 
 #include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCDiagnostic.h>
 #ifdef __cplusplus
 #include <clang/Driver/Job.h>
 #endif /* __cplusplus */
@@ -41,5 +42,11 @@ CC_EXPORT CFArrayRef CCJobGetInput(CCJobRef job);
 CC_EXPORT CFArrayRef CCJobGetOutput(CCJobRef job);
 CC_EXPORT void CCJobSetInput(CCJobRef job, CFArrayRef input);
 CC_EXPORT void CCJobSetOutput(CCJobRef job, CFArrayRef output);
+
+/*
+ * TODO: create a easy job execution method
+ *
+ * CC_EXPORT Boolean CCJobExecute(CCJobRef job, CFArrayRef *diagnostics);
+ */
 
 #endif /* CCJOB_H */

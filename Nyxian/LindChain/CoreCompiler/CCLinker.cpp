@@ -20,3 +20,9 @@
 */
 
 #include <LindChain/CoreCompiler/CCLinker.h>
+
+CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
+                                     CFArrayRef *outDiagnostics)
+{
+    return false;
+}

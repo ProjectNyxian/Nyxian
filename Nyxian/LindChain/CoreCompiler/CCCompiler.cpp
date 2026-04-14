@@ -20,3 +20,85 @@
 */
 
 #include <LindChain/CoreCompiler/CCCompiler.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/DiagnosticOptions.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/CodeGen/CodeGenAction.h>
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Driver.h>
+#include <clang/Driver/Tool.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Support/TargetSelect.h>
+
+using namespace clang;
+using namespace clang::driver;
+
+CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
+{
+    assert(job != nullptr);
+    assert(CCJobGetType(job) == CCJobTypeCompiler);
+    
+    CFArrayRef argsArray = CCJobCopyArguments(job);
+    CFIndex count = CFArrayGetCount(argsArray);
+
+    llvm::SmallVector<std::string, 64> argStorage;
+    llvm::SmallVector<const char *, 64> Args;
+    argStorage.reserve(count);
+    Args.reserve(count);
+
+    for(CFIndex i = 0; i < count; i++)
+    {
+        CFStringRef s = (CFStringRef)CFArrayGetValueAtIndex(argsArray, i);
+        CFIndex len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(s), kCFStringEncodingUTF8) + 1;
+        argStorage.push_back(std::string(len, '\0'));
+        CFStringGetCString(s, argStorage.back().data(), len, kCFStringEncodingUTF8);
+        argStorage.back().resize(strlen(argStorage.back().c_str()));
+        Args.push_back(argStorage.back().c_str());
+    }
+
+    CFRelease(argsArray);
+    
+    /* setting up clang driver */
+    IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>(), new IgnoringDiagConsumer()));
+    
+    /* creating clang invocation */
+    auto CI = std::make_shared<CompilerInvocation>();
+    CompilerInvocation::CreateFromArgs(*CI, Args, *Diags);
+    
+    /*
+     * disabling free
+     *
+     * this is very important to prevent memory leak, clang is usually
+     * designed to run in a one hit way, but this is a iOS app so it
+     * cannot run in one hit.
+     */
+    CI->getFrontendOpts().DisableFree = false;
+    
+    /* compiling */
+    auto Act = std::make_unique<EmitObjAction>();
+    
+    ASTUnit *ASTUnit = ASTUnit::LoadFromCompilerInvocationAction(
+        CI,
+        std::make_shared<PCHContainerOperations>(),
+        Diags,
+        Act.release(),
+        nullptr,
+        true,
+        "",
+        false,
+        CaptureDiagsKind::All
+    );
+    
+    /* creating error string */
+    return CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
+    
+    return nullptr;
+}

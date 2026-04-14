@@ -22,4 +22,10 @@
 #ifndef CCLINKER_H
 #define CCLINKER_H
 
+#include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCDiagnostic.h>
+#include <LindChain/CoreCompiler/CCJob.h>
+
+CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job, CFArrayRef *outDiagnostics);
+
 #endif /* CCLINKER_H */
