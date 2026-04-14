@@ -28,8 +28,6 @@
 #include <llvm/ADT/StringRef.h>
 #include <clang/Basic/LLVM.h>
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/Driver/Options.h>
-#include <llvm/Option/ArgList.h>
 
 using namespace clang;
 using namespace clang::driver;
@@ -322,55 +320,30 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
     mutableUnit->BaseArgs.clear();
     mutableUnit->BaseArgs.push_back("clang");
     
-    /* https://stackoverflow.com/a/75990569 */
+    /*
+     * silencing those weird linker warnings
+     * on live typechecking, which libclang
+     * doesn't do automatically, but it should
+     * be done automatically to not piss of
+     * developers and engineers like me.
+     */
     mutableUnit->BaseArgs.push_back("--start-no-unused-arguments");
-    
     CFIndex count = CFArrayGetCount(arguments);
-    SmallVector<const char *, 64> rawArgs;
-    std::vector<std::string> storage;
-    storage.reserve(count);
     for(CFIndex i = 0; i < count; i++)
     {
         CFStringRef arg = (CFStringRef)CFArrayGetValueAtIndex(arguments, i);
         const char *ptr = CFStringGetCStringPtr(arg, kCFStringEncodingUTF8);
-        if(!ptr)
+        if(ptr)
+        {
+            mutableUnit->BaseArgs.push_back(ptr);
+        }
+        else
         {
             char buf[1024];
             CFStringGetCString(arg, buf, sizeof(buf), kCFStringEncodingUTF8);
-            storage.push_back(buf);
-            ptr = storage.back().c_str();
-        }
-        rawArgs.push_back(ptr);
-    }
-    
-    /* let the driver's own option table classify each argument */
-    const llvm::opt::OptTable &opts = clang::driver::getDriverOptTable();
-    unsigned missingIdx, missingCnt;
-    llvm::opt::InputArgList parsed =
-    opts.ParseArgs(rawArgs, missingIdx, missingCnt);
-    
-    SmallVector<const char *, 16> rendered;
-    for(const llvm::opt::Arg *arg : parsed)
-    {
-        /*
-         * ignore linker input and options so ASTUnit
-         * shuts up about those, which libclang does
-         * not complicating your life.
-         */
-        if(arg->getOption().hasFlag(clang::driver::options::LinkerInput) ||
-           arg->getOption().hasFlag(clang::driver::options::LinkOption))
-        {
-            continue;
-        }
-        
-        rendered.clear();
-        arg->render(parsed, rendered);
-        for(const char *s : rendered)
-        {
-            mutableUnit->BaseArgs.push_back(s);
+            mutableUnit->BaseArgs.push_back(buf);
         }
     }
-    
     mutableUnit->BaseArgs.push_back("--end-no-unused-arguments");
 }
 
