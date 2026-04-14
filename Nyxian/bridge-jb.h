@@ -31,7 +31,10 @@
 #import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/Linker/LDELinker.h>
+#import <LindChain/Compiler/LDEDriver.h>
+#import <LindChain/Compiler/LDEJob.h>
+#import <LindChain/Compiler/LDECompiler.h>
+#import <LindChain/COmpiler/LDELinker.h>
 #import <LindChain/Synpush/Synpush.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/Core/LDEFilesFinder.h>
