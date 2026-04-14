@@ -57,17 +57,17 @@ class Builder {
         driverFlags.append(self.project.machoPath)
         
         let driver: LDEDriver = LDEDriver(arguments: driverFlags)
-        let jobs: [LDEJob] = driver.jobs
+        driver.outputPathCallback = { path in
+            guard let path = path else {
+                return path
+            }
+            let newPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
+            return newPath
+        }
         
-        var linkerInputItems: [URL] = []
-        
-        for job in jobs {
+        for job in driver.jobs {
             switch(job.type) {
             case .compiler:
-                let inputSourceFile: URL = job.input[0]
-                let outputObjectFile: URL = URL(fileURLWithPath: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: inputSourceFile.path))))")
-                linkerInputItems.append(outputObjectFile)
-                job.output = [outputObjectFile]
                 self.compilerJobs.append(job)
             case .linker:
                 self.linkerJobs.append(job)
@@ -75,8 +75,6 @@ class Builder {
                 break
             }
         }
-        
-        self.linkerJobs[0].input = linkerInputItems
     }
     
     func headsup() throws {

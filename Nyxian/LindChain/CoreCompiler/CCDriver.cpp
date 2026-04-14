@@ -49,6 +49,7 @@ struct opaque_ccdriver {
     std::unique_ptr<Driver> driver;
     std::unique_ptr<Compilation> compilation;
     llvm::SmallVector<std::string, 64> argStorage;
+    void *outputPathCallbackContext;
 };
 
 static CFTypeRef CCDriverCopy(CFAllocatorRef allocator,
@@ -121,14 +122,7 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         driverRef->argStorage.back().resize(strlen(driverRef->argStorage.back().c_str()));
     }
     
-    llvm::SmallVector<const char *, 64> Args;
-    Args.reserve(driverRef->argStorage.size() + 2);
-    Args.push_back("clang");
-    Args.push_back("-fuse-ld=lld"); /* forcing LLD instead of GNU's eww linker */
-    for(const std::string &s : driverRef->argStorage)
-    {
-        Args.push_back(s.c_str());
-    }
+    driverRef->outputPathCallbackContext = nullptr;
     
     /* setting up clang driver */
     IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>(), new IgnoringDiagConsumer()));
@@ -150,18 +144,27 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         return nullptr;
     }
     
-    driverRef->compilation.reset(driverRef->driver->BuildCompilation(Args));
-    if(driverRef->compilation == nullptr)
-    {
-        CFRelease(driverRef);
-        return nullptr;
-    }
-    
     return driverRef;
 }
 
 CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
 {
+    llvm::SmallVector<const char *, 64> Args;
+    Args.reserve(driver->argStorage.size() + 2);
+    Args.push_back("clang");
+    Args.push_back("-fuse-ld=lld"); /* forcing LLD instead of GNU's eww linker */
+    for(const std::string &s : driver->argStorage)
+    {
+        Args.push_back(s.c_str());
+    }
+    
+    driver->compilation.reset(driver->driver->BuildCompilation(Args));
+    
+    if(driver->compilation == nullptr)
+    {
+        return nullptr;
+    }
+    
     /* getting jobs */
     const auto &Jobs = driver->compilation->getJobs();
     
@@ -186,4 +189,40 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
     }
     
     return jobsArray;
+}
+
+void CCDriverSetOutputPathCallback(CCDriverRef driver,
+                                   CCOutputPathCallback callback,
+                                   void *context)
+{
+    driver->outputPathCallbackContext = context;
+    
+    if(callback == nullptr)
+    {
+        driver->driver->OutputPathOverride = std::nullopt;
+        return;
+    }
+    
+    driver->driver->OutputPathOverride = [callback, context](const clang::driver::JobAction &JA,
+                                                             const char *baseInput,
+                                                             llvm::StringRef boundArch) -> std::string
+    {
+        if(!clang::isa<clang::driver::CompileJobAction>(JA) &&
+           !clang::isa<clang::driver::AssembleJobAction>(JA))
+        {
+            return "";
+        }
+        
+        const char *result = callback(baseInput, context);
+        if(!result)
+        {
+            return "";
+        }
+        return std::string(result);
+    };
+}
+
+void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver)
+{
+    return driver->outputPathCallbackContext;
 }

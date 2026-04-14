@@ -26,11 +26,15 @@
 #include <LindChain/CoreCompiler/CCJob.h>
 
 typedef struct opaque_ccdriver *CCDriverRef;
+typedef const char *(*CCOutputPathCallback)(const char *baseInput, void *context);
 
 CC_EXPORT CFTypeID CCDriverGetTypeID(void);
 
 CC_EXPORT CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments);
 
 CC_EXPORT CFArrayRef CCDriverCopyJobs(CCDriverRef driver);
+
+CC_EXPORT void CCDriverSetOutputPathCallback(CCDriverRef driver, CCOutputPathCallback callback, void *context);
+CC_EXPORT void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver);
 
 #endif /* CCDRIVER_H */

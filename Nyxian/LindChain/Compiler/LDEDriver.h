@@ -30,6 +30,7 @@
 @interface LDEDriver : LDECFType
 
 @property (nonatomic, readonly) NSArray<LDEJob*> *jobs;
+@property (nonatomic, readwrite) NSString *(^outputPathCallback)(NSString *baseInput);
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments;
 

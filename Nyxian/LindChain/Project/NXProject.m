@@ -78,8 +78,25 @@
     }
     else if([self projectFormat] == NXProjectFormatFalconV1)
     {
-        /* FIXME: compiler and linker flags are now merged */
-        return compilerFlags;
+        /*
+         * if we don't filter some linker flags then
+         * the translation breaks.
+         */
+        NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
+        NSMutableArray *filteredLinker = [NSMutableArray array];
+        NSSet *skipArgs = [NSSet setWithObjects:@"-syslibroot", @"-platform_version", nil];
+        for(NSUInteger i = 0; i < linkerFlags.count; i++)
+        {
+            NSString *flag = linkerFlags[i];
+            if([skipArgs containsObject:flag])
+            {
+                NSUInteger skip = [flag isEqualToString:@"-platform_version"] ? 3 : 1;
+                i += skip;
+                continue;
+            }
+            [filteredLinker addObject:flag];
+        }
+        return [compilerFlags arrayByAddingObjectsFromArray:filteredLinker];
     }
     else if([self projectFormat] == NXProjectFormatKate)
     {

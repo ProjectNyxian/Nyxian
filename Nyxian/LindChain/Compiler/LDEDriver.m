@@ -20,6 +20,14 @@
 */
 
 #import <LindChain/Compiler/LDEDriver.h>
+#import <Block.h>
+
+static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
+{
+    NSString *(^b)(NSString *) = (__bridge NSString*(^)(NSString *))ctx;
+    NSString *result = b([NSString stringWithUTF8String:baseInput]);
+    return result.UTF8String;
+}
 
 @implementation LDEDriver
 
@@ -35,7 +43,43 @@
 
 - (NSArray<LDEJob*>*)jobs
 {
-    return (__bridge_transfer NSArray<LDEJob*>*)CCDriverCopyJobs((__bridge void*)self);
+    return (__bridge_transfer NSArray<LDEJob*>*)CCDriverCopyJobs((__bridge CCDriverRef)self);
+}
+
+- (void)setOutputPathCallback:(NSString *(^)(NSString *))outputPathCallback
+{
+    CCDriverRef ref = (__bridge CCDriverRef)self;
+    
+    void *ctx = CCDriverGetOutputPathCallbackContext(ref);
+    if(ctx)
+    {
+        Block_release(ctx);
+    }
+    
+    if(!outputPathCallback)
+    {
+        CCDriverSetOutputPathCallback(ref, nil, nil);
+        return;
+    }
+    
+    void *heapBlock = Block_copy((__bridge void *)outputPathCallback);
+    
+    CCDriverSetOutputPathCallback(ref, LDEDriverOutputPathBridge, heapBlock);
+}
+
+- (NSString *(^)(NSString *))outputPathCallback
+{
+    void *ctx = CCDriverGetOutputPathCallbackContext((CCDriverRef)(__bridge CFTypeRef)self);
+    if(!ctx)
+    {
+        return nil;
+    }
+    return (__bridge NSString*(^)(NSString *))ctx;
+}
+
+- (void)dealloc
+{
+    self.outputPathCallback = nil;
 }
 
 @end
