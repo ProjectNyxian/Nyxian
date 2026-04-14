@@ -321,6 +321,8 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
     }
     mutableUnit->BaseArgs.clear();
     mutableUnit->BaseArgs.push_back("clang");
+    
+    /* https://stackoverflow.com/a/75990569 */
     mutableUnit->BaseArgs.push_back("--start-no-unused-arguments");
     
     CFIndex count = CFArrayGetCount(arguments);
