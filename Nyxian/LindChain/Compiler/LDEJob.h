@@ -25,12 +25,14 @@
 #import <LindChain/Compiler/LDECFType.h>
 #import <LindChain/CoreCompiler/CCJob.h>
 
+/* MARK: create im-mutable version of LDEJob */
+
 @interface LDEJob : LDECFType
 
 @property (nonatomic, readonly) CCJobType type;
 @property (nonatomic, readonly) NSArray<NSString*> *arguments;
-
-+ (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments;
+@property (nonatomic, readwrite) NSArray<NSURL*> *input;
+@property (nonatomic, readwrite) NSArray<NSURL*> *output;
 
 @end
 

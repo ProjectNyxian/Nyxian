@@ -46,6 +46,10 @@ static CFTypeID gCCDriverTypeID = _kCFRuntimeNotATypeID;
 struct opaque_ccdriver {
     CFRuntimeBase _base;
     CFArrayRef jobs;
+    IntrusiveRefCntPtr<DiagnosticsEngine> diags;
+    std::unique_ptr<Driver> driver;
+    std::unique_ptr<Compilation> compilation;
+    llvm::SmallVector<std::string, 64> argStorage;
 };
 
 static CFTypeRef CCDriverCopy(CFAllocatorRef allocator,
@@ -57,7 +61,16 @@ static CFTypeRef CCDriverCopy(CFAllocatorRef allocator,
 static void CCDriverFinalize(CFTypeRef cf)
 {
     CCDriverRef driverRef = (CCDriverRef)cf;
-    CFRelease(driverRef->jobs);
+    if(driverRef->jobs)
+    {
+        CFRelease(driverRef->jobs);
+    }
+    driverRef->compilation.reset();
+    driverRef->driver.reset();
+    driverRef->compilation.~unique_ptr<Compilation>();
+    driverRef->driver.~unique_ptr<Driver>();
+    driverRef->diags.~IntrusiveRefCntPtr<DiagnosticsEngine>();
+    driverRef->argStorage.~SmallVector<std::string, 64>();
 }
 
 static CFStringRef CCDriverCopyFormattingDesc(CFTypeRef cf,
@@ -97,17 +110,6 @@ CFTypeID CCDriverGetTypeID(void)
     return gCCDriverTypeID;
 }
 
-static CCJobType CCJobTypeFromCommand(const Command &Cmd)
-{
-    const llvm::opt::ArgStringList &Args = Cmd.getArguments();
-    if(!Args.empty() && llvm::StringRef(Args[0]) == "-cc1")
-    {
-        return CCJobTypeCompiler;
-    }
-
-    return CCJobTypeLinker;
-}
-
 CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
 {
     assert(arguments != nullptr);
@@ -118,45 +120,63 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         return nullptr;
     }
     
-    SmallVector<std::string, 64> ArgStorage;
-    SmallVector<const char *, 64> Args;
-
-    Args.push_back("clang");
-    Args.push_back("-fuse-ld=lld"); /* forcing LLD instead of GNU's eww linker */
-
     CFIndex count = CFArrayGetCount(arguments);
+    
+    new (&driverRef->argStorage) llvm::SmallVector<std::string, 64>();
+    driverRef->argStorage.reserve(count);
     for(CFIndex i = 0; i < count; i++)
     {
         CFStringRef arg = (CFStringRef)CFArrayGetValueAtIndex(arguments, i);
-        const char *ptr = CFStringGetCStringPtr(arg, kCFStringEncodingUTF8);
-        if(ptr)
+        
+        if(CFStringGetLength(arg) == 0)
         {
-            Args.push_back(ptr);
+            continue;
         }
-        else
-        {
-            ArgStorage.push_back(std::string(1024, '\0'));
-            CFStringGetCString(arg, ArgStorage.back().data(), 1024, kCFStringEncodingUTF8);
-            ArgStorage.back().resize(strlen(ArgStorage.back().c_str()));
-            Args.push_back(ArgStorage.back().c_str());
-        }
+        
+        CFIndex len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(arg), kCFStringEncodingUTF8) + 1;
+        driverRef->argStorage.push_back(std::string(len, '\0'));
+        CFStringGetCString(arg, driverRef->argStorage.back().data(), len, kCFStringEncodingUTF8);
+        driverRef->argStorage.back().resize(strlen(driverRef->argStorage.back().c_str()));
+    }
+    
+    llvm::SmallVector<const char *, 64> Args;
+    Args.reserve(driverRef->argStorage.size() + 2);
+    Args.push_back("clang");
+    Args.push_back("-fuse-ld=lld"); /* forcing LLD instead of GNU's eww linker */
+    for(const std::string &s : driverRef->argStorage)
+    {
+        Args.push_back(s.c_str());
     }
     
     /* setting up clang driver */
     IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(llvm::makeIntrusiveRefCnt<DiagnosticIDs>(), llvm::makeIntrusiveRefCnt<DiagnosticOptions>(), new IgnoringDiagConsumer()));
-    Driver TheDriver("clang", "", *Diags);
     
     /* building compilation */
-    std::unique_ptr<Compilation> C(TheDriver.BuildCompilation(Args));
+    new (&driverRef->diags) IntrusiveRefCntPtr<DiagnosticsEngine>();
+    new (&driverRef->driver) std::unique_ptr<Driver>();
+    new (&driverRef->compilation) std::unique_ptr<Compilation>();
     
-    /* null pointer check */
-    if(C == NULL)
+    driverRef->diags = Diags;
+    
+    try
     {
+        driverRef->driver = std::make_unique<Driver>("clang", "", *Diags);
+    }
+    catch (...)
+    {
+        CFRelease(driverRef);
+        return nullptr;
+    }
+    
+    driverRef->compilation.reset(driverRef->driver->BuildCompilation(Args));
+    if(driverRef->compilation == nullptr)
+    {
+        CFRelease(driverRef);
         return nullptr;
     }
     
     /* getting jobs */
-    const auto &Jobs = C->getJobs();
+    const auto &Jobs = driverRef->compilation->getJobs();
     
     CFMutableArrayRef jobsArray = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
     
@@ -169,23 +189,13 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
         }
         
         const Command &Cmd = cast<Command>(Job);
-        const llvm::opt::ArgStringList &Args = Cmd.getArguments();
         
-        CFMutableArrayRef cmdArgs = CFArrayCreateMutable(kCFAllocatorDefault, Args.size(), &kCFTypeArrayCallBacks);
-        for(const char *Arg : Args)
-        {
-            CFStringRef argStr = CFStringCreateWithCString(kCFAllocatorDefault, Arg, kCFStringEncodingUTF8);
-            CFArrayAppendValue(cmdArgs, argStr);
-            CFRelease(argStr);
-        }
-        
-        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, CCJobTypeFromCommand(Cmd), cmdArgs);
+        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, driverRef, &Cmd);
         if(jobRef != nullptr)
         {
             CFArrayAppendValue(jobsArray, jobRef);
             CFRelease(jobRef);
         }
-        CFRelease(cmdArgs);
     }
     
     driverRef->jobs = jobsArray;

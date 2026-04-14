@@ -23,14 +23,23 @@
 #define CCJOB_H
 
 #include <LindChain/CoreCompiler/CCBase.h>
+#ifdef __cplusplus
+#include <clang/Driver/Job.h>
+#endif /* __cplusplus */
 
 typedef struct opaque_ccjob *CCJobRef;
 
 CC_EXPORT CFTypeID CCJobGetTypeID(void);
 
-CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CCJobType type, CFArrayRef args);
+#ifdef __cplusplus
+CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CFTypeRef driver, const clang::driver::Command *Cmd);
+#endif /* __cplusplus */
 
 CC_EXPORT CCJobType CCJobGetType(CCJobRef job);
-CC_EXPORT CFArrayRef CCJobGetArguments(CCJobRef job);
+CC_EXPORT CFArrayRef CCJobCopyArguments(CCJobRef job);
+CC_EXPORT CFArrayRef CCJobGetInput(CCJobRef job);
+CC_EXPORT CFArrayRef CCJobGetOutput(CCJobRef job);
+CC_EXPORT void CCJobSetInput(CCJobRef job, CFArrayRef input);
+CC_EXPORT void CCJobSetOutput(CCJobRef job, CFArrayRef output);
 
 #endif /* CCJOB_H */

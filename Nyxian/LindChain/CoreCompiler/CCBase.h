@@ -50,6 +50,8 @@ typedef CF_ENUM(uint8_t, CCDiagnosticLevel) {
 typedef CF_ENUM(uint8_t, CCJobType) {
     CCJobTypeCompiler = 0,
     CCJobTypeLinker,
+    CCJobTypeAssembler,
+    CCJobTypeBackend,
     CCJobTypeUnknown
 };
 

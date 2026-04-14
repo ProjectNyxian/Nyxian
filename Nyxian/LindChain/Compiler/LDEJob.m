@@ -28,12 +28,6 @@
     _CFRuntimeBridgeClasses(CCJobGetTypeID(), "LDEJob");
 }
 
-+ (instancetype)jobWithType:(CCJobType)type
-              withArguments:(NSArray<NSString*>*)arguments
-{
-    return (__bridge_transfer LDEJob*)CCJobCreate(kCFAllocatorDefault, type, (__bridge CFArrayRef)arguments);
-}
-
 - (CCJobType)type
 {
     return CCJobGetType((__bridge void*)self);
@@ -41,7 +35,27 @@
 
 - (NSArray<NSString*>*)arguments
 {
-    return (__bridge NSArray<NSString*>*)CCJobGetArguments((__bridge void*)self);
+    return (__bridge_transfer NSArray<NSString*>*)CCJobCopyArguments((__bridge void*)self);
+}
+
+- (NSArray<NSURL*>*)input
+{
+    return (__bridge NSArray<NSURL*>*)CCJobGetInput((__bridge void*)self);
+}
+
+- (void)setInput:(NSArray<NSURL*>*)input
+{
+    CCJobSetInput((__bridge void*)self, (__bridge CFArrayRef)input);
+}
+
+- (NSArray<NSURL*>*)output
+{
+    return (__bridge NSArray<NSURL*>*)CCJobGetOutput((__bridge void*)self);
+}
+
+- (void)setOutput:(NSArray<NSURL*>*)output
+{
+    CCJobSetOutput((__bridge void*)self, (__bridge CFArrayRef)output);
 }
 
 @end
