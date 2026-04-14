@@ -31,15 +31,13 @@ import Combine
 
 class Builder {
     private let project: NXProject
-    private let compiler: Compiler
-    private let argsString: String
     
-    private var dirtySourceFiles: [String] = []
-    private var objectFiles: [String] = []
+    private var compilerJobs: [LDEJob] = []
+    private var linkerJobs: [LDEJob] = []
     
     let database: DebugDatabase
     
-    init(project: NXProject) {
+    init?(project: NXProject) {
         self.project = project
         self.project.reload()
         
@@ -48,16 +46,13 @@ class Builder {
         
         var genericCompilerFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
         
-        self.compiler = Compiler(genericCompilerFlags)
-        
         try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
         
-        self.dirtySourceFiles = LDEFilesFinder(self.project.path, ["c","cpp","m","mm"], ["Resources"])
-        for item in dirtySourceFiles {
-            objectFiles.append("\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: item))))")
+        guard let codeFiles = LDEFilesFinder(self.project.path, ["c","cpp","m","mm"], ["Resources"]) else {
+            return nil
         }
         
-        genericCompilerFlags.append(contentsOf: self.dirtySourceFiles)
+        genericCompilerFlags.append(contentsOf: codeFiles)
         genericCompilerFlags.append("-o")
         genericCompilerFlags.append(self.project.machoPath)
         
@@ -65,81 +60,15 @@ class Builder {
         let jobs: [LDEJob] = driver.jobs
         
         for job in jobs {
-            print("\n\(job.type): \(job.arguments!)")
-        }
-        
-        // Check if args have changed
-        self.argsString = genericCompilerFlags.joined(separator: " ")
-        var fileArgsString: String = ""
-        if FileManager.default.fileExists(atPath: "\(self.project.cachePath!)/args.txt") {
-            // Check if the args string matches up
-            fileArgsString = (try? String(contentsOf: URL(fileURLWithPath: "\(self.project.cachePath!)/args.txt"), encoding: .utf8)) ?? ""
-        }
-        
-        if fileArgsString == self.argsString, self.project.projectConfig.increment {
-            let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
-            XCButton.switchImage(withSystemName: "magnifyingglass", animated: true)
-            guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
-                /* shall not happen */
-               return
-            }
-            
-            let files = self.dirtySourceFiles
-            var result: [String] = []
-            let lock = NSLock()
-            
-            for _ in files {
-                threader.enter()
-            }
-            
-            for file in files {
-                threader.dispatchExecution( {
-                    if self.isFileDirty(file) {
-                        lock.lock()
-                        result.append(file)
-                        lock.unlock()
-                    }
-                    
-                    XCButton.incrementProgress(withValue: pstep)
-                }, withCompletion: nil)
-            }
-            
-            threader.wait()
-            
-            XCButton.resetProgress()
-            XCButton.switchImage(withSystemName: "hammer.fill", animated: true)
-            
-            self.dirtySourceFiles = result
-        }
-    }
-    
-    ///
-    /// Function to detect if a file is dirty (has to be recompiled)
-    ///
-    private func isFileDirty(_ item: String) -> Bool {
-        let objectFilePath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: item))))"
-        
-        // Checking if the source file is newer than the compiled object file
-        guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: item)[.modificationDate] as? Date,
-              let objectDate = try? FileManager.default.attributesOfItem(atPath: objectFilePath)[.modificationDate] as? Date,
-              objectDate > sourceDate else {
-            return true
-        }
-        
-        // Checking if the header files included by the source code are newer than the object file
-        guard let headers = try? self.compiler.headers(forFilePath: item) else {
-            return true
-        }
-        
-        for header in headers {
-            guard FileManager.default.fileExists(atPath: header),
-                  let headerDate = try? FileManager.default.attributesOfItem(atPath: header)[.modificationDate] as? Date,
-                  objectDate > headerDate else {
-                return true
+            switch(job.type) {
+            case .compiler:
+                self.compilerJobs.append(job)
+            case .linker:
+                self.linkerJobs.append(job)
+            default:
+                break
             }
         }
-        
-        return false
     }
     
     func headsup() throws {
@@ -232,29 +161,25 @@ class Builder {
     /// Function to build object files
     ///
     func compile() throws {
-        if self.dirtySourceFiles.count > 0 {
-            let pstep: Double = 1.00 / Double(self.dirtySourceFiles.count)
+        if self.compilerJobs.count > 0 {
+            let pstep: Double = 1.00 / Double(self.compilerJobs.count)
             guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
             }
             
-            for _ in self.dirtySourceFiles {
+            for _ in self.compilerJobs {
                 threader.enter();
             }
             
-            for filePath in self.dirtySourceFiles {
+            for job in self.compilerJobs {
                 threader.dispatchExecution( {
                     var issues: NSArray?
                     
-                    if self.compiler.compileObject(
-                        filePath,
-                        outputFile: "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: filePath))))",
-                        issues: &issues
-                    ) != 0 {
+                    if !LDECompiler.execute(job, outDiagnostics: &issues) {
                         threader.lockdown = true
                     }
                     
-                    self.database.setFileDebug(ofPath: filePath, synItems: (issues as? [LDEDiagnostic]) ?? [])
+                    self.database.setFileDebug(ofPath: job.input[0].path, synItems: (issues as? [LDEDiagnostic]) ?? [])
                     
                     XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)
@@ -265,24 +190,14 @@ class Builder {
             if threader.lockdown {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
             }
-            
-            do {
-                try self.argsString.write(to: URL(fileURLWithPath: "\(project.cachePath!)/args.txt"), atomically: false, encoding: .utf8)
-            } catch {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
-            }
         }
     }
     
     func link() throws {
-        let ldArgs: [String] = self.project.projectConfig.linkerFlags as! [String] + [
-            "-o",
-            self.project.machoPath
-        ] + objectFiles
-        
-        var errorString: NSString?
-        if LDELinker.link((ldArgs as NSArray).mutableCopy() as? NSMutableArray, errorString:&errorString) != 0 {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:errorString ?? "Linking object files together to a executable failed"])
+        for job in linkerJobs {
+            if !LDELinker.execute(job, outDiagnostics: nil) {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
+            }
         }
     }
     
@@ -449,9 +364,11 @@ class Builder {
             Bootstrap.shared.waitTillDone()
             
             var result: Bool = true
-            let builder: Builder = Builder(
+            guard let builder: Builder = Builder(
                 project: project
-            )
+            ) else {
+                return
+            }
             
             var resetNeeded: Bool = false
             func progressStage(systemName: String? = nil, increment: Double? = nil, handler: () throws -> Void) throws {

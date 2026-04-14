@@ -23,16 +23,14 @@
 #define LDECOMPILER_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Synpush/Synpush.h>
-#import <LindChain/Compiler/LDEDriver.h>
+#import <LindChain/Compiler/LDEJob.h>
+#import <LindChain/Compiler/LDEDiagnostic.h>
+#include <LindChain/Compiler/LDEASTUnit.h>
 
-/// Class (intended to be single-instanced) to provide LLVM C++ service to Swift front-end
-@interface Compiler : NSObject
+@interface LDECompiler : NSObject
 
-- (instancetype)init:(NSArray*)flags;
-
-- (int)compileObject:(NSString*)filePath outputFile:(NSString*)outputFilePath issues:(NSArray<LDEDiagnostic*>**)issues;
-- (NSArray<NSString*>*)headersForFilePath:(NSString*)filePath error:(NSError**)error;
++ (LDEASTUnit*)executeJob:(LDEJob*)job;
++ (BOOL)executeJob:(LDEJob*)job outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic;
 
 @end
 

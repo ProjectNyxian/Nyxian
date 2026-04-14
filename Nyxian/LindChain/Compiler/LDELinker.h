@@ -19,34 +19,17 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/Synpush/Synpush.h>
-#include <LindChain/Compiler/LDEObjectCompiler.h>
-#include <LindChain/Compiler/LDEDependencyScanner.h>
-#import <LindChain/CoreCompiler/CCCompiler.h>
+#ifndef LDELINKER_H
+#define LDELINKER_H
 
-@implementation LDECompiler
+#import <Foundation/Foundation.h>
+#import <LindChain/Compiler/LDEJob.h>
+#import <LindChain/Compiler/LDEDiagnostic.h>
 
-+ (LDEASTUnit*)executeJob:(LDEJob*)job
-{
-    return (__bridge_transfer LDEASTUnit*)CCCompilerJobExecute((__bridge CCJobRef)job);
-}
+@interface LDELinker : NSObject
 
-+ (BOOL)executeJob:(LDEJob*)job
-    outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic
-{
-    LDEASTUnit *unit = [self executeJob:job];
-    
-    if(outDiagnostic != nil)
-    {
-        *outDiagnostic = unit.diagnostics;
-    }
-    
-    return !unit.hasErrorOccured;
-}
++ (BOOL)executeJob:(LDEJob*)job outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic;
 
 @end
+
+#endif /* LDELINKER_H */

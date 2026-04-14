@@ -19,15 +19,23 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDELINKER_H
-#define LDELINKER_H
+#import <LindChain/Compiler/LDELinker.h>
+#import <LindChain/CoreCompiler/CCLinker.h>
 
-#import <Foundation/Foundation.h>
+@implementation LDELinker
 
-@interface LDELinker : NSObject
-
-+ (int)link:(NSMutableArray*)flags errorString:(NSString**)error;
++ (BOOL)executeJob:(LDEJob*)job
+    outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic
+{
+    CFArrayRef array = nil;
+    BOOL success = CCLinkerJobExecute((__bridge CCJobRef)job, &array);
+    
+    if(array != nil && outDiagnostic != nil)
+    {
+        *outDiagnostic = (__bridge_transfer NSArray<LDEDiagnostic*>*)array;
+    }
+    
+    return success;
+}
 
 @end
-
-#endif /* LDELINKER_H */
