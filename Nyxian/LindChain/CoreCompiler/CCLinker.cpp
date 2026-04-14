@@ -49,6 +49,9 @@ CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
     llvm::SmallVector<const char *, 64> Args;
     argStorage.reserve(count);
     Args.reserve(count);
+    
+    argStorage.push_back("ld64.lld");   /* have to inject */
+    Args.push_back(argStorage.back().c_str());
 
     for(CFIndex i = 0; i < count; i++)
     {
