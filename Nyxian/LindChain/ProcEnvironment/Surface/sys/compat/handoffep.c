@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 zipgod24
 
  This file is part of Nyxian.
 
@@ -90,7 +91,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     task_unlock();
     
     /* preparing ktfp */
-    khandoffep_t *hep = malloc(sizeof(mach_port_t));
+    khandoffep_t *hep = malloc(sizeof(khandoffep_t));
     if(hep == NULL)
     {
         sys_return_failure(ENOMEM);
