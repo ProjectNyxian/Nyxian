@@ -427,13 +427,15 @@ class SplitScreenDetailViewController: UIViewController {
     }
     
     @objc private func handleResizePan(_ gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: self.view)
-        gesture.setTranslation(.zero, in: self.view)
+        let location = gesture.location(in: self.view)
         
         let minHeight: CGFloat = 80
         let maxHeight: CGFloat = self.view.bounds.height * 0.7
         
-        logViewHeight = max(minHeight, min(maxHeight, logViewHeight - translation.y))
+        let bottomEdge = self.view.bounds.height - 16
+        let newHeight = bottomEdge - location.y
+        
+        logViewHeight = max(minHeight, min(maxHeight, newHeight))
         logViewHeightConstraint?.constant = logViewHeight
         
         UIView.animate(withDuration: 0.0) {

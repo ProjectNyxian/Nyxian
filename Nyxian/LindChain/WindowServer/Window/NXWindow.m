@@ -34,8 +34,6 @@
     CADisplayLink *_resizeDisplayLink;
     NSTimer *_resizeEndDebounceTimer;
     int _resizeEndDebounceRefCnt;
-    CGPoint _resizeAnchor;
-    CGPoint _grabOffset;
 }
 
 - (instancetype)initWithSession:(NXWindowSession*)session
@@ -333,24 +331,19 @@
 - (void)moveWindow:(UIPanGestureRecognizer*)gesture
 {
     if(_isMaximized) return;
-
-    CGPoint finger = [gesture locationInView:self.view.superview];
-
+    
     switch(gesture.state)
     {
-
         case UIGestureRecognizerStateBegan:
-        {
             [self focusWindow];
-            CGPoint pointInWindow = [gesture locationInView:self.view];
-            _grabOffset = pointInWindow;
+            [gesture setTranslation:CGPointZero inView:self.view.superview];
             break;
-        }
         case UIGestureRecognizerStateChanged:
         {
-            CGRect frame = self.view.frame;
-            frame.origin.x = finger.x - _grabOffset.x;
-            frame.origin.y = finger.y - _grabOffset.y;
+            CGPoint delta = [gesture translationInView:self.view.superview];
+            CGRect frame = self.originalFrame;
+            frame.origin.x += delta.x;
+            frame.origin.y += delta.y;
             frame = [self.delegate window:self wantsToChangeToRect:frame];
             self.view.frame = frame;
             break;
@@ -367,30 +360,21 @@
 - (void)resizeWindow:(UIPanGestureRecognizer*)gesture
 {
     if(_isMaximized) return;
-
-    CGPoint finger = [gesture locationInView:self.view.superview];
-
+    
     switch(gesture.state)
     {
         case UIGestureRecognizerStateBegan:
-        {
             [self focusWindow];
             [self resizeActionStart];
-            _resizeAnchor = CGPointMake(
-                CGRectGetMinX(self.view.frame),
-                CGRectGetMinY(self.view.frame)
-            );
+            [gesture setTranslation:CGPointZero inView:self.view.superview];
             break;
-        }
         case UIGestureRecognizerStateChanged:
         {
-            CGFloat newWidth  = finger.x - _resizeAnchor.x;
-            CGFloat newHeight = finger.y - _resizeAnchor.y;
-            
+            CGPoint delta = [gesture translationInView:self.view.superview];
             CGRect oldFrame = self.view.frame;
             CGRect proposed = oldFrame;
-            proposed.size.width = MAX(300, newWidth);
-            proposed.size.height = MAX(200, newHeight);
+            proposed.size.width  = MAX(300, self.originalFrame.size.width  + delta.x);
+            proposed.size.height = MAX(200, self.originalFrame.size.height + delta.y);
             
             CGRect corrected = [self.delegate window:self wantsToChangeToRect:proposed];
             BOOL widthBlocked  = (corrected.origin.x != proposed.origin.x);
@@ -399,13 +383,13 @@
             if(widthBlocked)
             {
                 corrected.size.width = oldFrame.size.width;
-                corrected.origin.x   = oldFrame.origin.x;
+                corrected.origin.x = oldFrame.origin.x;
             }
             
             if(heightBlocked)
             {
                 corrected.size.height = oldFrame.size.height;
-                corrected.origin.y    = oldFrame.origin.y;
+                corrected.origin.y = oldFrame.origin.y;
             }
             
             self.view.frame = corrected;
