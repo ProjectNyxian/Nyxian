@@ -250,6 +250,14 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     }
     
     func documentRequestsText(_ document: NXDocument!) -> String! {
+        guard let project = self.project,
+              let database = self.database,
+              let _ = self.synpushServer,
+              let coordinator = self.coordinator else { return self.textView.text }
+        
+        database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
+        database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+        
         return self.textView.text
     }
     
