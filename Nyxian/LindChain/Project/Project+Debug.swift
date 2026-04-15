@@ -106,7 +106,7 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic]) {
+    func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic], clearPrevious: Bool = false) {
         self.lock.lock()
         
         var debugItems: [DebugItem] = []
@@ -120,6 +120,10 @@ class DebugDatabase: Codable {
             self.debugObjects[title] = object
             self.lock.unlock()
             return
+        }
+        
+        if clearPrevious {
+            internalObject.debugItems.removeAll()
         }
         
         internalObject.debugItems.append(contentsOf: debugItems)
@@ -337,13 +341,19 @@ class UIDebugViewController: UITableViewController {
     @objc func reloadTableData() {
         debugDatabase.lock.lock()
         self.sortedDebugObjects = debugDatabase.debugObjects.values.sorted {
-            if $0.title == "Internal" {
+            if $0.title == "Internal" && $1.title != "Internal" {
                 return true
-            } else if $0.flavour == .Message {
-                return true
-            } else {
-                return $0.title < $1.title
             }
+            if $1.title == "Internal" && $0.title != "Internal" {
+                return false
+            }
+            if $0.flavour == .Message && $1.flavour != .Message {
+                return true
+            }
+            if $1.flavour == .Message && $0.flavour != .Message {
+                return false
+            }
+            return $0.title > $1.title
         }
         debugDatabase.lock.unlock()
         tableView.reloadData()
