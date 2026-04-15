@@ -29,8 +29,9 @@
 
 @interface LDEDriver : LDECFType
 
-@property (nonatomic, readonly) NSArray<LDEJob*> *jobs;
+@property (nonatomic, readonly, copy) NSArray<LDEJob*> *jobs;
 @property (nonatomic, readwrite) NSString *(^outputPathCallback)(NSString *baseInput);
+@property (nonatomic, readonly, copy) NSURL *sysrootURL;
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments;
 

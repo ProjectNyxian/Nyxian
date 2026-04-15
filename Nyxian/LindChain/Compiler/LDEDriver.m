@@ -69,12 +69,17 @@ static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
 
 - (NSString *(^)(NSString *))outputPathCallback
 {
-    void *ctx = CCDriverGetOutputPathCallbackContext((CCDriverRef)(__bridge CFTypeRef)self);
+    void *ctx = CCDriverGetOutputPathCallbackContext((__bridge CCDriverRef)self);
     if(!ctx)
     {
         return nil;
     }
     return (__bridge NSString*(^)(NSString *))ctx;
+}
+
+- (NSURL*)sysrootURL
+{
+    return (__bridge_transfer NSURL*)CCDriverCopySysrootURL((__bridge CCDriverRef)self);
 }
 
 - (void)dealloc

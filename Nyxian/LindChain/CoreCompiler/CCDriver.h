@@ -37,4 +37,6 @@ CC_EXPORT CFArrayRef CCDriverCopyJobs(CCDriverRef driver);
 CC_EXPORT void CCDriverSetOutputPathCallback(CCDriverRef driver, CCOutputPathCallback callback, void *context);
 CC_EXPORT void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver);
 
+CC_EXPORT CFURLRef CCDriverCopySysrootURL(CCDriverRef driver);
+
 #endif /* CCDRIVER_H */

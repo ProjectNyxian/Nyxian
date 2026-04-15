@@ -264,3 +264,22 @@ void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver)
 {
     return driver->outputPathCallbackContext;
 }
+
+CFURLRef CCDriverCopySysrootURL(CCDriverRef driver)
+{
+    std::string cxxstr = driver->compilation->getSysRoot().str();
+    if(cxxstr.empty())
+    {
+        return nullptr;
+    }
+    
+    const char *sysroot = cxxstr.c_str();
+    
+    CFStringRef str = CFStringCreateWithCString(kCFAllocatorDefault, sysroot, kCFStringEncodingUTF8);
+    if(str == nullptr)
+    {
+        return nullptr;
+    }
+    
+    return CFURLCreateWithFileSystemPath(kCFAllocatorDefault, str, kCFURLPOSIXPathStyle, true);
+}
