@@ -95,6 +95,34 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         CaptureDiagsKind::All
     );
     
+    CCFileRef sourceFile = nullptr;
+    {
+        std::string originalInputFileName = ASTUnit->getOriginalSourceFileName().str();
+        if(originalInputFileName.empty())
+        {
+            goto out_failed_file;
+        }
+        
+        const char *originalInputFileNameCStr = originalInputFileName.c_str();
+        
+        CFStringRef str = CFStringCreateWithCString(kCFAllocatorDefault, originalInputFileNameCStr, kCFStringEncodingUTF8);
+        if(str == nullptr)
+        {
+            goto out_failed_file;
+        }
+        
+        CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, str, kCFURLPOSIXPathStyle, true);
+        sourceFile = CCFileCreateMutable(kCFAllocatorDefault, fileURL);
+    }
+    
     /* creating error string */
-    return CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit));
+out_failed_file:
+    CCASTUnitRef unit = CCASTUnitCreateWithASTUnit(kCFAllocatorDefault, std::unique_ptr<clang::ASTUnit>(ASTUnit), sourceFile);
+    
+    if(sourceFile != nullptr)
+    {
+        CFRelease(sourceFile);
+    }
+    
+    return unit;
 }

@@ -186,22 +186,21 @@ class Builder {
             
             for job in self.compilerJobs {
                 threader.dispatchExecution( {
-                    var issues: NSArray?
+                    defer { XCButton.incrementProgress(withValue: pstep) }
                     
-                    if !job.execute(withOutDiagnostics: &issues) {
+                    guard let astUnit: LDEASTUnit = LDECompiler.execute(job),
+                          let file: LDEFile = astUnit.file else {
                         threader.lockdown = true
+                        return
                     }
                     
-                    for item in issues as! [LDEDiagnostic] {
-                        if let fileSourceLocation: LDEFileSourceLocation = item.fileSourceLocation {
-                            let fileURL: URL = fileSourceLocation.fileURL
-                            
-                            /* TODO: a new kind of diagnostic database will be required, a incremental one a domain based one, rather than being purely categoric */
-                            self.database.setFileDebug(ofPath: fileURL.path, synItems: [item])
-                        }
-                    }
+                    let issues: [LDEDiagnostic] = astUnit.diagnostics
+                    self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
                     
-                    XCButton.incrementProgress(withValue: pstep)
+                    if astUnit.hasErrorOccured {
+                        threader.lockdown = true
+                        return
+                    }
                 }, withCompletion: nil)
             }
             

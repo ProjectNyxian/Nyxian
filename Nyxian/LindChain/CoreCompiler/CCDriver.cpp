@@ -196,10 +196,10 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
         {
             continue;
         }
-
+        
         const Command &Cmd = cast<Command>(Job);
         CCJobType type = _CCJobTypeGetFromCommand(&Cmd);
-
+        
         const llvm::opt::ArgStringList &cmdArgs = Cmd.getArguments();
         CFMutableArrayRef argsArray = CFArrayCreateMutable(kCFAllocatorDefault, cmdArgs.size(), &kCFTypeArrayCallBacks);
         for(const char *arg : cmdArgs)
@@ -215,10 +215,10 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
                 CFRelease(s);
             }
         }
-
+        
         CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, type, argsArray);
         CFRelease(argsArray);
-
+        
         if(jobRef)
         {
             CFArrayAppendValue(jobsArray, jobRef);

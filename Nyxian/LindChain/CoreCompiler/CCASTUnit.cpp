@@ -192,8 +192,9 @@ CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator)
     return (CCMutableASTUnitRef)_CFRuntimeCreateInstance(allocator, CCASTUnitGetTypeID(), sizeof(opaque_ccastunit) - sizeof(CFRuntimeBase), nullptr);
 }
 
-CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
-                                        std::unique_ptr<clang::ASTUnit> astUnit)
+CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
+                                                      std::unique_ptr<clang::ASTUnit> astUnit,
+                                                      CCFileRef file)
 {
     if(astUnit == nullptr)
     {
@@ -205,7 +206,10 @@ CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
     unit->unit = std::move(astUnit);
     _CCASTUnitRefillDiagnosticArray(unit);
     
-    /* TODO: use CCFile, remove CCUnsavedFile, make it one type, if data is set then its unsaved, if not then it just gets the data from disk */
+    if(file != nullptr)
+    {
+        unit->file = (CCFileRef)CFRetain(file);
+    }
     
     /* marking immutable, since not a live AST object */
     unit->isMutable = false;
