@@ -270,7 +270,7 @@
                 self->_contentStack.layer.cornerRadius = 20;
             }
             self->_contentStack.layer.borderWidth = 0.5;
-            self.view.layer.shadowOpacity = 1.0;
+            [self refreshEffects];
             self->_resizeHandle.hidden = NO;
         };
         
@@ -567,8 +567,12 @@
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
     [super traitCollectionDidChange:previousTraitCollection];
+    [self refreshEffects];
+}
+
+- (void)refreshEffects
+{
     _contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
-    
     if(UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark)
     {
         self.view.layer.shadowColor = UIColor.blackColor.CGColor;
