@@ -91,23 +91,39 @@ class DebugDatabase: Codable {
     
     func addMessage(message: String, title: String = "Internal", severity: CCDiagnosticLevel) {
         self.lock.lock()
+        let item = DebugItem(severity: severity, message: message, line: 0, column: 0)
+        
         guard let internalObject = self.debugObjects[title] else {
+            let object = DebugObject(title: title, flavour: .Message)
+            object.debugItems.append(item)
+            self.debugObjects[title] = object
             self.lock.unlock()
             return
         }
-        internalObject.debugItems.append(DebugItem(severity: severity, message: message, line: 0, column: 0))
+        
+        internalObject.debugItems.append(item)
+        
         self.lock.unlock()
     }
     
     func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic]) {
         self.lock.lock()
+        
+        var debugItems: [DebugItem] = []
+        for item in items {
+            debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation?.location.line ?? 0, column: item.fileSourceLocation?.location.column ?? 0))
+        }
+        
         guard let internalObject = self.debugObjects[title] else {
+            let object = DebugObject(title: title, flavour: .Message)
+            object.debugItems.append(contentsOf: debugItems)
+            self.debugObjects[title] = object
             self.lock.unlock()
             return
         }
-        for item in items {
-            internalObject.debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation.location.line, column: item.fileSourceLocation.location.column))
-        }
+        
+        internalObject.debugItems.append(contentsOf: debugItems)
+        
         self.lock.unlock()
     }
     

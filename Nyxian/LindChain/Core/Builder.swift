@@ -218,11 +218,7 @@ class Builder {
             var issues: NSArray?
             
             if !job.execute(withOutDiagnostics: &issues) {
-                
-                for item in (issues as! [LDEDiagnostic]) {
-                    self.database.addMessage(message: item.message, severity: item.level)
-                }
-                
+                self.database.addDiagnosticMessages(title: "Linker", items: (issues as! [LDEDiagnostic]))
                 throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
             }
         }
