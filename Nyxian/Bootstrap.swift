@@ -92,19 +92,6 @@ import Foundation
         }
     }
     
-    func migrateToBootstrapPlistIfNeeded() {
-        if FileManager.default.fileExists(atPath: bootstrapPlistPath) {
-            return
-        }
-
-        let legacyVersion = UserDefaults.standard.integer(forKey: "LDEBootstrapVersion")
-        if legacyVersion > 0 && legacyVersion < 10 {
-            print("[*] migrating bootstrap state from UserDefaults (v\(legacyVersion))")
-            bootstrapVersion = legacyVersion
-            UserDefaults.standard.removeObject(forKey: "LDEBootstrapVersion")
-        }
-    }
-    
     @objc func bootstrap() {
         // Cmon one UIInit once part can be here ^^
         UIBarButtonItem.swizzleBarButtonitem
@@ -113,18 +100,14 @@ import Foundation
         print("[*] checking upon nyxian bootstrap")
         
         LDEPthreadDispatch {
-            // Bootstrap migration
-            self.migrateToBootstrapPlistIfNeeded()
-            
-#if JAILBREAK_ENV
             if(!FileManager.default.fileExists(atPath: self.rootPath)) {
                 do {
                     try FileManager.default.createDirectory(atPath: self.rootPath, withIntermediateDirectories: true)
                 } catch {
+                    // Something terrible has happened
                     exit(0)
                 }
             }
-#endif // JAILBREAK_ENV
             
             print("[*] install status: \(self.isBootstrapInstalled)")
             print("[*] version: \(self.bootstrapVersion)")
