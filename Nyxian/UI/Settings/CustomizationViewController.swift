@@ -136,7 +136,7 @@ int main(void)
                     RevertUI()
                 }
             } else if indexPath.row == 2 {
-                cell = StepperTableCell(title: "Font Size", key: "LDEFontSize", defaultValue: 10, minValue: 8, maxValue: 15)
+                cell = StepperTableCell(title: "Font Size", key: "LDEFontSize", defaultValue: 12, minValue: 6, maxValue: 20)
                 (cell as! StepperTableCell).callback = { newValue in
                     self.themePreviewCell!.switchTheme(theme: LDEThemeReader.shared.currentlySelectedTheme())
                 }

@@ -158,7 +158,9 @@ func ldeThemeColorGen(colorEntry: Any) -> UIColor {
 }
 
 class LDETheme: Theme {
-    var fontSize: CGFloat = CGFloat(UserDefaults.standard.double(forKey: "CEFontSize"))
+    var fontSize: CGFloat {
+        return UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 12.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
+    }
     
     var font: UIFont {
         return UIFont.monospacedSystemFont(ofSize: fontSize, weight: .semibold)

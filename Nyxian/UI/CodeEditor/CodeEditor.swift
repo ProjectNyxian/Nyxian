@@ -136,7 +136,6 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         
         let theme: LDETheme = currentTheme ?? LDEThemeReader.shared.currentlySelectedTheme()
-        theme.fontSize = UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 10.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
             
         self.view.backgroundColor = .systemBackground
         self.textView.backgroundColor = theme.backgroundColor

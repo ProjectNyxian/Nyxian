@@ -114,7 +114,6 @@ extension ThemePickerPreviewCell {
     }
     
     func switchTheme(theme: LDETheme) {
-        theme.fontSize = UserDefaults.standard.object(forKey: "LDEFontSize") == nil ? 10.0 : CGFloat(UserDefaults.standard.integer(forKey: "LDEFontSize"))
         textView.theme = theme
         textView.backgroundColor = theme.backgroundColor
         textView.insertionPointColor = theme.textColor
