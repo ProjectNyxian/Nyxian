@@ -28,14 +28,27 @@ extension CCDiagnosticLevel: Codable {}
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
     let message: String
-    let line: CFIndex
-    let column: CFIndex
     
-    init(severity: CCDiagnosticLevel, message: String, line: CFIndex, column: CFIndex) {
+    // TODO: make CCSourceLocation conforming to codable
+    private var isValid: Bool = false
+    private var line: CFIndex = 0
+    private var column: CFIndex = 0
+    
+    var sourceLocation: CCSourceLocation {
+        get {
+            return CCSourceLocation(isValid: DarwinBoolean(booleanLiteral: self.isValid), line: self.line, column: self.column)
+        }
+        set {
+            self.isValid = newValue.isValid.boolValue
+            self.line = newValue.line
+            self.column = newValue.column
+        }
+    }
+    
+    init(severity: CCDiagnosticLevel, message: String, sourceLocation: CCSourceLocation = CCSourceLocationZero) {
         self.severity = severity
         self.message = message
-        self.line = line
-        self.column = column
+        self.sourceLocation = sourceLocation
     }
 }
 
@@ -91,7 +104,7 @@ class DebugDatabase: Codable {
     
     func addMessage(message: String, title: String = "Internal", severity: CCDiagnosticLevel) {
         self.lock.lock()
-        let item = DebugItem(severity: severity, message: message, line: 0, column: 0)
+        let item = DebugItem(severity: severity, message: message)
         
         guard let internalObject = self.debugObjects[title] else {
             let object = DebugObject(title: title, flavour: .Message)
@@ -112,7 +125,7 @@ class DebugDatabase: Codable {
         if items.count > 0 {
             var debugItems: [DebugItem] = []
             for item in items {
-                debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation?.location.line ?? 0, column: item.fileSourceLocation?.location.column ?? 0))
+                debugItems.append(DebugItem(severity: item.level, message: item.message, sourceLocation: item.fileSourceLocation?.location ?? CCSourceLocationZero))
             }
             
             guard let internalObject = self.debugObjects[title] else {
@@ -144,7 +157,7 @@ class DebugDatabase: Codable {
         let fileObject: DebugObject = DebugObject(title: relPath, flavour: .File)
         
         for item in synItems {
-            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation.location.line, column: item.fileSourceLocation.location.column)
+            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, sourceLocation: item.fileSourceLocation?.location ?? CCSourceLocationZero)
             fileObject.debugItems.append(debugItem)
         }
         
@@ -243,7 +256,7 @@ class UIDebugViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let items = sortedDebugObjects[indexPath.section].debugItems
-        let item = (items.count > 0) ? items[indexPath.row] : DebugItem(severity: .note, message: "Contains no messages", line: 0, column: 0)
+        let item = (items.count > 0) ? items[indexPath.row] : DebugItem(severity: .note, message: "Contains no messages")
         
         let cell = UITableViewCell()
         cell.textLabel?.text = item.message
@@ -324,18 +337,22 @@ class UIDebugViewController: UITableViewController {
         }
         
         let item: DebugItem = object.debugItems[indexPath.row]
+        if !item.sourceLocation.isValid.boolValue {
+            // It's not a file location
+            return
+        }
         
         let path: String = Bootstrap.shared.bootstrapPath(object.title)
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",path,"\(item.line)","\(item.column)"])
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",path,"\(item.sourceLocation.line)","\(item.sourceLocation.column)"])
             self.dismiss(animated: true)
         } else {
             let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
                 project: project,
                 path: path,
-                line: item.line,
-                column: item.column
+                line: item.sourceLocation.line,
+                column: item.sourceLocation.column
             ))
             fileVC.modalPresentationStyle = .overFullScreen
             self.present(fileVC, animated: true)

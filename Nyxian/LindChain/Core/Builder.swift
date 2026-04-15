@@ -170,9 +170,6 @@ class Builder {
         }
     }
     
-    ///
-    /// Function to build object files
-    ///
     func compile() throws {
         if self.compilerJobs.count > 0 {
             let pstep: Double = 1.00 / Double(self.compilerJobs.count)
