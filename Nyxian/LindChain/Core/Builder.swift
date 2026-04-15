@@ -220,7 +220,7 @@ class Builder {
             if !job.execute(withOutDiagnostics: &issues) {
                 
                 for item in (issues as! [LDEDiagnostic]) {
-                    self.database.addInternalMessage(message: item.message, severity: item.level)
+                    self.database.addMessage(message: item.message, severity: item.level)
                 }
                 
                 throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
@@ -432,7 +432,7 @@ class Builder {
             } catch {
                 try? builder.clean()
                 result = false
-                builder.database.addInternalMessage(message: error.localizedDescription, severity: .error)
+                builder.database.addMessage(message: error.localizedDescription, severity: .error)
             }
             
             builder.database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")

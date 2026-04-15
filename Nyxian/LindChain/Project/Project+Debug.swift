@@ -25,10 +25,6 @@ import UIKit
 extension CCDiagnosticType: Codable {}
 extension CCDiagnosticLevel: Codable {}
 
-/*
- * Debug "tile" in UI
- *
- */
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
     let message: String     // in case of it being a file it contains the error, in case of it being a message it contains the message it self
@@ -43,10 +39,6 @@ class DebugItem: Codable {
     }
 }
 
-/*
- * Content of one thing (i.e file/blah)
- *
- */
 class DebugObject: Codable {
     enum DebugObjectType: Codable {
         case DebugFile
@@ -63,10 +55,6 @@ class DebugObject: Codable {
     }
 }
 
-/*
- * Content of debug file (i.e `debug.json`)
- *
- */
 class DebugDatabase: Codable {
     var debugObjects: [String:DebugObject] = [:]
     let lock = NSLock()
@@ -75,9 +63,6 @@ class DebugDatabase: Codable {
         case debugObjects
     }
     
-    /*
-     * Function that gets the database of a filepath
-     */
     static func getDatabase(ofPath path: String) -> DebugDatabase {
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: path))
@@ -86,19 +71,12 @@ class DebugDatabase: Codable {
             return blob
         } catch {
             print("Failed to decode certblob:", error)
-            // MARK: If it doesnt exist we create one
             let debugDatabase: DebugDatabase = DebugDatabase()
-            
             debugDatabase.debugObjects["Internal"] = DebugObject(title: "Internal", type: .DebugMessage)
-            
-            // First object is reserved for internal
             return debugDatabase
         }
     }
     
-    /*
-     * Function that saves the database to a filepath
-     */
     func saveDatabase(toPath path: String) {
         do {
             let encoder = JSONEncoder()
@@ -111,12 +89,9 @@ class DebugDatabase: Codable {
         }
     }
     
-    /*
-     * Functions to manage object entries
-     */
-    func addInternalMessage(message: String, severity: CCDiagnosticLevel) {
+    func addMessage(message: String, title: String = "Internal", severity: CCDiagnosticLevel) {
         self.lock.lock()
-        guard let internalObject = self.debugObjects["Internal"] else {
+        guard let internalObject = self.debugObjects[title] else {
             self.lock.unlock()
             return
         }
@@ -156,10 +131,6 @@ class DebugDatabase: Codable {
     }
 }
 
-/*
- * Debug UI: Issue Navigator and Database at the same time that will be shared over the entire project :3
- *
- */
 class UIDebugViewController: UITableViewController {
     let file: String
     var project: NXProject
