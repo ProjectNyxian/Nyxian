@@ -27,11 +27,11 @@ extension CCDiagnosticLevel: Codable {}
 
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
-    let message: String     // in case of it being a file it contains the error, in case of it being a message it contains the message it self
-    let line: UInt64        // in case of it being a file it contains at what line the error is
-    let column: UInt64      // in case of it being a file it contains at what column the error is, this and the previous variable is ignored in case of it being a DebugMessage
+    let message: String
+    let line: CFIndex
+    let column: CFIndex
     
-    init(severity: CCDiagnosticLevel, message: String, line: UInt64, column: UInt64) {
+    init(severity: CCDiagnosticLevel, message: String, line: CFIndex, column: CFIndex) {
         self.severity = severity
         self.message = message
         self.line = line
@@ -40,18 +40,18 @@ class DebugItem: Codable {
 }
 
 class DebugObject: Codable {
-    enum DebugObjectType: Codable {
-        case DebugFile
-        case DebugMessage
+    enum Flavour: Codable {
+        case File
+        case Message
     }
     
-    let title: String       // in case of it being a file it contains the last path component, in case of it being a message it contains "Internal"
-    let type: DebugObject.DebugObjectType
+    let title: String
+    let flavour: Flavour
     var debugItems: [DebugItem] = []
     
-    init(title: String, type: DebugObject.DebugObjectType) {
+    init(title: String, flavour: Flavour) {
         self.title = title
-        self.type = type
+        self.flavour = flavour
     }
 }
 
@@ -72,7 +72,7 @@ class DebugDatabase: Codable {
         } catch {
             print("Failed to decode certblob:", error)
             let debugDatabase: DebugDatabase = DebugDatabase()
-            debugDatabase.debugObjects["Internal"] = DebugObject(title: "Internal", type: .DebugMessage)
+            debugDatabase.debugObjects["Internal"] = DebugObject(title: "Internal", flavour: .Message)
             return debugDatabase
         }
     }
@@ -99,16 +99,28 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
+    func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic]) {
+        self.lock.lock()
+        guard let internalObject = self.debugObjects[title] else {
+            self.lock.unlock()
+            return
+        }
+        for item in items {
+            internalObject.debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation.location.line, column: item.fileSourceLocation.location.column))
+        }
+        self.lock.unlock()
+    }
+    
     func setFileDebug(ofPath path: String, synItems: [LDEDiagnostic]) {
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return
         }
         
         self.lock.lock()
-        let fileObject: DebugObject = DebugObject(title: relPath, type: .DebugFile)
+        let fileObject: DebugObject = DebugObject(title: relPath, flavour: .File)
         
         for item in synItems {
-            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: UInt64(item.fileSourceLocation.location.line), column: UInt64(item.fileSourceLocation.location.column))
+            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation.location.line, column: item.fileSourceLocation.location.column)
             fileObject.debugItems.append(debugItem)
         }
         
@@ -123,11 +135,11 @@ class DebugDatabase: Codable {
     
     func clearDatabase() {
         self.debugObjects = [:]
-        self.debugObjects["Internal"] = DebugObject(title: "Internal", type: .DebugMessage)
+        self.debugObjects["Internal"] = DebugObject(title: "Internal", flavour: .Message)
     }
     
     func reuseDatabase() {
-        self.debugObjects["Internal"] = DebugObject(title: "Internal", type: .DebugMessage)
+        self.debugObjects["Internal"] = DebugObject(title: "Internal", flavour: .Message)
     }
 }
 
@@ -281,9 +293,12 @@ class UIDebugViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: true)
         
-        guard indexPath.section != 0 else { return }
-        
         let object: DebugObject = sortedDebugObjects[indexPath.section]
+        if object.flavour != .File {
+            // It's not a file
+            return
+        }
+        
         let item: DebugItem = object.debugItems[indexPath.row]
         
         let path: String = Bootstrap.shared.bootstrapPath(object.title)
@@ -308,8 +323,8 @@ class UIDebugViewController: UITableViewController {
         self.sortedDebugObjects = debugDatabase.debugObjects.values.sorted {
             if $0.title == "Internal" {
                 return true
-            } else if $1.title == "Internal" {
-                return false
+            } else if $0.flavour == .Message {
+                return true
             } else {
                 return $0.title < $1.title
             }

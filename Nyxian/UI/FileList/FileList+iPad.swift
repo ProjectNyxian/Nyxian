@@ -246,7 +246,7 @@ class SplitScreenDetailViewController: UIViewController {
     }
     private var tabs: [UIButtonTab] = []
     
-    func openPath(path: String, line: UInt64, column: UInt64, isReadOnly: Bool) {
+    func openPath(path: String, line: CFIndex, column: CFIndex, isReadOnly: Bool) {
         if let existingTab = tabs.first(where: { $0.path == path }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
@@ -458,7 +458,7 @@ class SplitScreenDetailViewController: UIViewController {
         if args.count > 1 {
             switch(args[0]) {
             case "open":
-                self.openPath(path: args[1], line: UInt64(args[2]) ?? 0, column: UInt64(args[3]) ?? 0, isReadOnly: (args.count >= 5 && args[4] == "1"))
+                self.openPath(path: args[1], line: CFIndex(args[2]) ?? 0, column: CFIndex(args[3]) ?? 0, isReadOnly: (args.count >= 5 && args[4] == "1"))
                 break
             case "close":
                 self.closeTab(path: args[1])
@@ -516,8 +516,8 @@ class UIButtonTab: UIButton {
     init(frame: CGRect,
          project: NXProject,
          path: String,
-         line: UInt64,
-         column: UInt64,
+         line: CFIndex,
+         column: CFIndex,
          openAction: @escaping (UIButtonTab) -> Void,
          closeAction: @escaping (UIButtonTab) -> Void,
          isReadOnly: Bool) {

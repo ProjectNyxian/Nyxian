@@ -44,8 +44,8 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var synpushServer: SynpushServer?
     private(set) var coordinator: Coordinator?
     private(set) var database: DebugDatabase?
-    private(set) var line: UInt64?
-    private(set) var column: UInt64?
+    private(set) var line: CFIndex?
+    private(set) var column: CFIndex?
     private(set) var floatingToolbar: UIToolbar?
     private(set) var floatingToolbarBottomConstraint: NSLayoutConstraint?
     
@@ -59,8 +59,8 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     init(
         project: NXProject?,
         path: String,
-        line: UInt64? = nil,
-        column: UInt64? = nil,
+        line: CFIndex? = nil,
+        column: CFIndex? = nil,
         isReadOnly: Bool = false
     ) {
         self.path = path
@@ -253,7 +253,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         return self.textView.text
     }
     
-    func goto(line: UInt64?, column: UInt64?) {
+    func goto(line: CFIndex?, column: CFIndex?) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard let line = line, line > 0 else { return }
             let column = column.map { $0 > 0 ? $0 - 1 : 0 } ?? 0
@@ -707,7 +707,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private func openDefinition(_ def: LDEFileSourceLocation) {
         /* check if definition is in the same file */
         if def.fileURL.path == self.path {
-            self.goto(line: UInt64(def.location.line), column: UInt64(def.location.column))
+            self.goto(line: def.location.line, column: def.location.column)
             return
         }
         
@@ -728,7 +728,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         
         if UIDevice.current.userInterfaceIdiom != .pad {
-            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: UInt64(def.location.line), column: UInt64(def.location.column), isReadOnly: !isInsideProject)
+            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: def.location.line, column: def.location.column, isReadOnly: !isInsideProject)
             let destEditorNav = UINavigationController(rootViewController: destEditor)
             destEditorNav.modalPresentationStyle = .pageSheet
             self.present(destEditorNav, animated: true);
