@@ -117,13 +117,15 @@ import Foundation
                 if !self.isBootstrapInstalled ||
                     self.bootstrapVersion != self.newestBootstrapVersion {
                     
-                    // "e need to clear the entire path if its not installed
+                    // need to clear the entire path if its not installed
+                    // to make sure it can be safely installed in the first
+                    // place.
                     if !self.isBootstrapInstalled {
                         print("[*] Bootstrap is not installed, clearing")
                         self.clearPath(path: "/")
                     }
                     
-                    if self.bootstrapVersion < 1 {
+                    if self.bootstrapVersion < 9 {
                         // Creating bootstrap base
                         print("[*] Creating folder structures")
                         
@@ -131,16 +133,9 @@ import Foundation
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/SDK"), withIntermediateDirectories: false)
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
                         
-                        self.bootstrapVersion = 1
-                    }
-                    
-                    if self.bootstrapVersion < 5 {
                         print("[*] creating bootstrap cache")
                         try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Cache"), withIntermediateDirectories: false)
-                        self.bootstrapVersion = 5
-                    }
-                    
-                    if self.bootstrapVersion < 9 {
+                        
                         if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
                             try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
                         }
