@@ -188,12 +188,18 @@ class Builder {
                 threader.dispatchExecution( {
                     var issues: NSArray?
                     
-                    if !LDECompiler.execute(job, outDiagnostics: &issues) {
+                    if !job.execute(withOutDiagnostics: &issues) {
                         threader.lockdown = true
                     }
                     
-                    /* TODO: fix this by using some kind of marker, probably by filtering the diagnostic's for code file only or something */
-                    //self.database.setFileDebug(ofPath: job.input[0].path, synItems: (issues as? [LDEDiagnostic]) ?? [])
+                    for item in issues as! [LDEDiagnostic] {
+                        if let fileSourceLocation: LDEFileSourceLocation = item.fileSourceLocation {
+                            let fileURL: URL = fileSourceLocation.fileURL
+                            
+                            /* TODO: a new kind of diagnostic database will be required, a incremental one a domain based one, rather than being purely categoric */
+                            self.database.setFileDebug(ofPath: fileURL.path, synItems: [item])
+                        }
+                    }
                     
                     XCButton.incrementProgress(withValue: pstep)
                 }, withCompletion: nil)
@@ -211,7 +217,7 @@ class Builder {
         for job in linkerJobs {
             var issues: NSArray?
             
-            if !LDELinker.execute(job, outDiagnostics: &issues) {
+            if !job.execute(withOutDiagnostics: &issues) {
                 
                 for item in (issues as! [LDEDiagnostic]) {
                     self.database.addInternalMessage(message: item.message, severity: item.level)

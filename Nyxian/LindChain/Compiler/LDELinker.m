@@ -30,9 +30,16 @@
     CFArrayRef array = nil;
     BOOL success = CCLinkerJobExecute((__bridge CCJobRef)job, &array);
     
-    if(array != nil && outDiagnostic != nil)
+    if(array != nil)
     {
-        *outDiagnostic = (__bridge_transfer NSArray<LDEDiagnostic*>*)array;
+        if(outDiagnostic != nil)
+        {
+            *outDiagnostic = (__bridge_transfer NSArray<LDEDiagnostic*>*)array;
+        }
+        else
+        {
+            CFRelease(array);
+        }
     }
     
     return success;

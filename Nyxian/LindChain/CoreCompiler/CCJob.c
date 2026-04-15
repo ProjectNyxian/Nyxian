@@ -21,6 +21,8 @@
 
 #include <LindChain/CoreCompiler/CCJob.h>
 #include <LindChain/CoreCompiler/CCDriver.h>
+#include <LindChain/CoreCompiler/CCCompiler.h>
+#include <LindChain/CoreCompiler/CCLinker.h>
 
 static CFTypeID gCCJobTypeID = _kCFRuntimeNotATypeID;
 
@@ -95,4 +97,40 @@ CCJobType CCJobGetType(CCJobRef job)
 CFArrayRef CCJobGetArguments(CCJobRef job)
 {
     return job->arguments;
+}
+
+Boolean CCJobExecuteJob(CCJobRef job,
+                        CFArrayRef *outDiagnostic)
+{
+    switch(job->type)
+    {
+        case CCJobTypeCompiler:
+        {
+            CCASTUnitRef ASTUnit = CCCompilerJobExecute(job);
+            if(ASTUnit == nil)
+            {
+                return false;
+            }
+            
+            CFArrayRef diagnostics = CCASTUnitCopyDiagnostics(ASTUnit);
+            if(diagnostics)
+            {
+                *outDiagnostic = diagnostics;
+            }
+            
+            Boolean didErrorOccur = CCASTUnitErrorOccured(ASTUnit);
+            
+            CFRelease(ASTUnit);
+            
+            return !didErrorOccur;
+        }
+        case CCJobTypeLinker:
+        {
+            return CCLinkerJobExecute(job, outDiagnostic);
+        }
+        case CCJobTypeUnknown:
+            /* fallthrough */
+        default:
+            return false;
+    }
 }

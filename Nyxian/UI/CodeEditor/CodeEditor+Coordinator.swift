@@ -149,10 +149,10 @@ class Coordinator: NSObject, TextViewDelegate {
         }
         
         for item in diag {
-            guard self.entries[item.location.line] == nil else { continue }
-            self.entries[item.location.line] = (nil, nil)
+            guard self.entries[item.fileSourceLocation.location.line] == nil else { continue }
+            self.entries[item.fileSourceLocation.location.line] = (nil, nil)
             
-            guard let rect = parent.textView.rectForLine(Int(item.location.line)) else { continue }
+            guard let rect = parent.textView.rectForLine(Int(item.fileSourceLocation.location.line)) else { continue }
             guard let properties: (String,UIColor) = self.vtkey[item.level] else { continue }
             
             let view: UIView = UIView(frame: CGRect(x: 0, y: rect.origin.y, width: 3000, height: rect.height))
@@ -235,7 +235,7 @@ class Coordinator: NSObject, TextViewDelegate {
             
             view.alpha = 0
             button.alpha = 0
-            self.entries[item.location.line] = (button, view)
+            self.entries[item.fileSourceLocation.location.line] = (button, view)
             
             if let textInputView = parent.textView.getTextInputView() {
                 textInputView.addSubview(view)

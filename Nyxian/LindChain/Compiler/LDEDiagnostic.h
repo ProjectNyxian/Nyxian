@@ -25,17 +25,16 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/CoreCompiler/CCDiagnostic.h>
 #import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/Compiler/LDEFileSourceLocation.h>
 
 @interface LDEDiagnostic : LDECFType
 
 @property (nonatomic, readonly) CCDiagnosticType type;
 @property (nonatomic, readonly) CCDiagnosticLevel level;
-@property (nonatomic, readonly, copy) NSURL *fileURL;
-@property (nonatomic, readonly) CCSourceLocation location;
-@property (nonatomic, readonly, copy) NSString *message;
+@property (nonatomic, readonly) LDEFileSourceLocation *fileSourceLocation;
+@property (nonatomic, readonly) NSString *message;
 
-+ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level fileURL:(NSURL *)fileURL location:(CCSourceLocation)location message:(NSString *)message;
-+ (instancetype)diagnosticWithCCDiagnostic:(CCDiagnosticRef)ref;
++ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level fileSourceLocation:(LDEFileSourceLocation *)fileSourceLocation message:(NSString *)message;
 
 @end
 

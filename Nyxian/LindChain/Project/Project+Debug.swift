@@ -133,35 +133,12 @@ class DebugDatabase: Codable {
         let fileObject: DebugObject = DebugObject(title: relPath, type: .DebugFile)
         
         for item in synItems {
-            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: UInt64(item.location.line), column: UInt64(item.location.column))
+            let debugItem: DebugItem = DebugItem(severity: item.level, message: item.message, line: UInt64(item.fileSourceLocation.location.line), column: UInt64(item.fileSourceLocation.location.column))
             fileObject.debugItems.append(debugItem)
         }
         
         self.debugObjects[relPath] = (synItems.count > 0) ? fileObject : nil
         self.lock.unlock()
-    }
-    
-    func getFileDebug(ofPath path: String) -> [LDEDiagnostic] {
-        var synItems: [LDEDiagnostic] = []
-        
-        guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
-            return synItems
-        }
-        
-        self.lock.lock()
-        guard let fileObject: DebugObject = self.debugObjects[relPath] else {
-            self.lock.unlock()
-            return []
-        }
-        
-        let fileURL: URL = URL(fileURLWithPath: path)
-        
-        for item in fileObject.debugItems {
-            synItems.append(LDEDiagnostic(type: .file, level: item.severity, fileURL: fileURL, location: CCSourceLocation(isValid: true, line: CFIndex(item.line), column: CFIndex(item.column)), message: item.message))
-        }
-        self.lock.unlock()
-        
-        return synItems
     }
     
     func removeFileDebug(ofPath path: String) {

@@ -170,7 +170,8 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
                 break;
         }
         
-        CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL, location, message);
+        CCFileSourceLocationRef fileSourceLocation = CCFileSourceLocationCreate(kCFAllocatorDefault, fileURL, location);
+        CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileSourceLocation, message);
         if(fileURL)
         {
             CFRelease(fileURL);

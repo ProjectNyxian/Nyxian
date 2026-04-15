@@ -26,8 +26,7 @@
 
 typedef struct {
     Boolean isValid;
-    CFIndex line;
-    CFIndex column;
+    CFIndex line, column;
 } CCSourceLocation;
 
 CC_EXPORT const CCSourceLocation CCSourceLocationZero;

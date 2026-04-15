@@ -44,4 +44,24 @@
     return (__bridge NSArray<NSString*>*)CCJobGetArguments((__bridge void*)self);
 }
 
+- (BOOL)executeJobWithOutDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic
+{
+    CFArrayRef array = nil;
+    BOOL success = CCJobExecuteJob((__bridge CCJobRef)self, &array);
+    
+    if(array != nil)
+    {
+        if(outDiagnostic != nil)
+        {
+            *outDiagnostic = (__bridge_transfer NSArray<LDEDiagnostic*>*)array;
+        }
+        else
+        {
+            CFRelease(array);
+        }
+    }
+    
+    return success;
+}
+
 @end

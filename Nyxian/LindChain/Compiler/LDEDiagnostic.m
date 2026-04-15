@@ -30,17 +30,11 @@
 
 + (instancetype)diagnosticWithType:(CCDiagnosticType)type
                              level:(CCDiagnosticLevel)level
-                           fileURL:(NSURL*)fileURL
-                          location:(CCSourceLocation)location
-                           message:(NSString*)message
+                fileSourceLocation:(LDEFileSourceLocation *)fileSourceLocation
+                           message:(NSString *)message
 {
-    /* MARK: will crash without message */
-    return (__bridge_transfer LDEDiagnostic*)CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileURL  ? CFRetain((__bridge CFURLRef)fileURL) : NULL, location, message  ? CFRetain((__bridge CFStringRef)message)   : NULL);
-}
-
-+ (instancetype)diagnosticWithCCDiagnostic:(CCDiagnosticRef)ref
-{
-    return (__bridge LDEDiagnostic*)ref;
+    /* FIXME: will crash without message */
+    return (__bridge_transfer LDEDiagnostic*)CCDiagnosticCreate(kCFAllocatorDefault, type, level, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
 }
 
 - (CCDiagnosticType)type
@@ -53,14 +47,9 @@
     return CCDiagnosticGetLevel((__bridge void *)self);
 }
 
-- (NSURL*)fileURL
+- (LDEFileSourceLocation*)fileSourceLocation
 {
-    return (__bridge NSURL *)CCDiagnosticGetFileURL((__bridge void *)self);
-}
-
-- (CCSourceLocation)location
-{
-    return CCDiagnosticGetLocation((__bridge void *)self);
+    return (__bridge LDEFileSourceLocation*)CCDiagnosticGetFileSourceLocation((__bridge void *)self);
 }
 
 - (NSString*)message

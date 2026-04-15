@@ -34,4 +34,6 @@ CC_EXPORT CCJobRef CCJobCreate(CFAllocatorRef allocator, CCJobType type, CFArray
 CC_EXPORT CCJobType CCJobGetType(CCJobRef job);
 CC_EXPORT CFArrayRef CCJobGetArguments(CCJobRef job);
 
+CC_EXPORT Boolean CCJobExecuteJob(CCJobRef job, CFArrayRef *outDiagnostic);
+
 #endif /* CCJOB_H */

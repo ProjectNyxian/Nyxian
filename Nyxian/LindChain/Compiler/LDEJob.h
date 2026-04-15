@@ -23,6 +23,7 @@
 #define LDEJOB_H
 
 #import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/Compiler/LDEDiagnostic.h>
 #import <LindChain/CoreCompiler/CCJob.h>
 
 @interface LDEJob : LDECFType
@@ -31,6 +32,8 @@
 @property (nonatomic, readonly) NSArray<NSString*> *arguments;
 
 + (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments;
+
+- (BOOL)executeJobWithOutDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic;
 
 @end
 
