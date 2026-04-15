@@ -622,11 +622,6 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            if #available(iOS 26.0, *) {
-                self.textView.textContainerInset = UIEdgeInsets(top: 20, left: 2, bottom: 20, right: 0)
-            } else {
-                self.textView.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 0)
-            }
             self.coordinator?.textViewDidChange(self.textView)
         }
     }
