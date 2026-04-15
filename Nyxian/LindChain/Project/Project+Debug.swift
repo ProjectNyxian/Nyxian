@@ -109,24 +109,28 @@ class DebugDatabase: Codable {
     func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic], clearPrevious: Bool = false) {
         self.lock.lock()
         
-        var debugItems: [DebugItem] = []
-        for item in items {
-            debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation?.location.line ?? 0, column: item.fileSourceLocation?.location.column ?? 0))
+        if items.count > 0 {
+            var debugItems: [DebugItem] = []
+            for item in items {
+                debugItems.append(DebugItem(severity: item.level, message: item.message, line: item.fileSourceLocation?.location.line ?? 0, column: item.fileSourceLocation?.location.column ?? 0))
+            }
+            
+            guard let internalObject = self.debugObjects[title] else {
+                let object = DebugObject(title: title, flavour: .Message)
+                object.debugItems.append(contentsOf: debugItems)
+                self.debugObjects[title] = object
+                self.lock.unlock()
+                return
+            }
+            
+            if clearPrevious {
+                internalObject.debugItems.removeAll()
+            }
+            
+            internalObject.debugItems.append(contentsOf: debugItems)
+        } else if clearPrevious {
+            self.debugObjects.removeValue(forKey: title)
         }
-        
-        guard let internalObject = self.debugObjects[title] else {
-            let object = DebugObject(title: title, flavour: .Message)
-            object.debugItems.append(contentsOf: debugItems)
-            self.debugObjects[title] = object
-            self.lock.unlock()
-            return
-        }
-        
-        if clearPrevious {
-            internalObject.debugItems.removeAll()
-        }
-        
-        internalObject.debugItems.append(contentsOf: debugItems)
         
         self.lock.unlock()
     }
