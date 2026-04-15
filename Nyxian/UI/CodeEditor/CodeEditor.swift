@@ -624,6 +624,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     }
     
     override func viewWillDisappear(_ animated: Bool) {
+        self.saveText()
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self)
     }
