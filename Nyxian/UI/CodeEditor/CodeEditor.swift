@@ -621,10 +621,15 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
             NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidConnect), name: .GCKeyboardDidConnect, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidDisconnect), name: .GCKeyboardDidDisconnect, object: nil)
         }
+        
+        self.textView.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 0)
+        self.coordinator?.textViewDidChange(self.textView)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        self.saveText()
+        self.document?.autosave()
+        self.coordinator?.debounce?.invalidate()
+        self.synpushServer?.releaseMemory()
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self)
     }

@@ -139,15 +139,6 @@ class SplitScreenDetailViewController: UIViewController {
                 })
             }
             
-            // releasing memory of previous SynpushServer
-            if let oldValue: CodeEditorViewController = childVCMaster as? CodeEditorViewController {
-                oldValue.document?.autosave()
-                if let coordinator: Coordinator = oldValue.coordinator {
-                    coordinator.debounce?.invalidate()
-                    oldValue.synpushServer?.releaseMemory()
-                }
-            }
-            
             // trying to get old constraints
             if let oldConstraints = self.childVCMasterConstraints {
                 NSLayoutConstraint.deactivate(oldConstraints)
@@ -159,14 +150,6 @@ class SplitScreenDetailViewController: UIViewController {
             
             // setting to new view controller
             childVCMaster = newValue
-            
-            // reevaluing SynpushServer
-            if let newValue: CodeEditorViewController = newValue as? CodeEditorViewController {
-                newValue.textView.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 0)
-                if let coordinator: Coordinator = newValue.coordinator {
-                    coordinator.textViewDidChange(newValue.textView)
-                }
-            }
             
             if let vc = newValue {
                 self.addChild(vc)
