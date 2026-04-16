@@ -680,22 +680,30 @@ bool ZSignAsset::GetCMSContent2(const void* strCMSDataInput, int size, string &s
     CMS_ContentInfo *cms = d2i_CMS_bio(in, NULL);
     if (!cms)
     {
+        BIO_free(in);
         return ZSignAsset::CMSError();
     }
 
     ASN1_OCTET_STRING **pos = CMS_get0_content(cms);
     if (!pos)
     {
+        CMS_ContentInfo_free(cms);
+        BIO_free(in);
         return ZSignAsset::CMSError();
     }
 
     if (!(*pos))
     {
+        CMS_ContentInfo_free(cms);
+        BIO_free(in);
         return ZSignAsset::CMSError();
     }
 
     strContentOutput.clear();
     strContentOutput.append((const char *)(*pos)->data, (*pos)->length);
+    
+    CMS_ContentInfo_free(cms);
+    BIO_free(in);
     return (!strContentOutput.empty());
 }
 
