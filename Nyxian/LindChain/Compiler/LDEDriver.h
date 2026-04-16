@@ -27,12 +27,13 @@
 #import <LindChain/Compiler/LDECFType.h>
 #import <LindChain/Compiler/LDEJob.h>
 #import <LindChain/Compiler/LDESDK.h>
+#import <LindChain/Compiler/LDEFile.h>
 
 @class LDEDriver;
 
 @protocol LDEDriverDelegate <NSObject>
 @optional
-- (NSString*)driver:(LDEDriver*)driver outputPathForInput:(NSString*)baseInput;
+- (NSString*)driver:(LDEDriver*)driver outputPathForInputFile:(LDEFile*)file skipCompile:(BOOL*)skip;
 @end
 
 @interface LDEDriver : LDECFType

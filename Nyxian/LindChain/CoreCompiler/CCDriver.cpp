@@ -237,13 +237,14 @@ void CCDriverSetOutputPathCallback(CCDriverRef driver,
     
     if(callback == nullptr)
     {
-        driver->driver->OutputPathOverride = std::nullopt;
+        driver->driver->OutputPathOverride = nullptr;
         return;
     }
     
     driver->driver->OutputPathOverride = [callback, driver](const clang::driver::JobAction &JA,
                                                             const char *baseInput,
-                                                            llvm::StringRef boundArch) -> std::string
+                                                            llvm::StringRef boundArch,
+                                                            bool *skip) -> std::string
     {
         if(!clang::isa<clang::driver::CompileJobAction>(JA) &&
            !clang::isa<clang::driver::AssembleJobAction>(JA))
@@ -251,11 +252,14 @@ void CCDriverSetOutputPathCallback(CCDriverRef driver,
             return "";
         }
         
-        const char *result = callback(baseInput, driver->outputPathCallbackContext);
+        bool shouldSkip = false;
+        const char *result = callback(baseInput, &shouldSkip, driver->outputPathCallbackContext);
         if(!result)
         {
             return "";
         }
+        
+        *skip = shouldSkip;
         return std::string(result);
     };
 }

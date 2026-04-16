@@ -27,7 +27,7 @@
 #include <LindChain/CoreCompiler/CCSDK.h>
 
 typedef struct opaque_ccdriver *CCDriverRef;
-typedef const char *(*CCOutputPathCallback)(const char *baseInput, void *context);
+typedef const char *(*CCOutputPathCallback)(const char *baseInput, bool *skip, void *context);
 
 CC_EXPORT CFTypeID CCDriverGetTypeID(void);
 

@@ -23,17 +23,21 @@
 #import <Block.h>
 #import <objc/runtime.h>
 
-static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
+static const char *LDEDriverOutputPathBridge(const char *baseInput, bool *skip, void *ctx)
 {
     LDEDriver *driver = (__bridge LDEDriver*)ctx;
     id<LDEDriverDelegate> delegate = driver.delegate;
     
-    if(![delegate respondsToSelector:@selector(driver:outputPathForInput:)])
+    if(![delegate respondsToSelector:@selector(driver:outputPathForInputFile:skipCompile:)])
     {
         return nil;
     }
     
-    NSString *result = [delegate driver:driver outputPathForInput:[NSString stringWithUTF8String:baseInput]];
+    NSString *inputPath = [NSString stringWithUTF8String:baseInput];
+    NSURL *inputURL = [NSURL fileURLWithPath:inputPath];
+    LDEFile *file = [LDEFile fileWithURL:inputURL];
+    
+    NSString *result = [delegate driver:driver outputPathForInputFile:file skipCompile:skip];
     return result.UTF8String;
 }
 

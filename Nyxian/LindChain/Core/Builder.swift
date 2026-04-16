@@ -39,6 +39,9 @@ class Builder: NSObject, LDEDriverDelegate {
     
     let database: DebugDatabase
     
+    let driver: LDEDriver
+    let dependencyScanner: LDEDependencyScanner
+    
     init?(project: NXProject) {
         self.project = project
         self.project.reload()
@@ -58,23 +61,14 @@ class Builder: NSObject, LDEDriverDelegate {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoPath)
         
+        self.driver = LDEDriver(arguments: driverFlags)
+        self.dependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        
         super.init()
-        
-        let driver: LDEDriver = LDEDriver(arguments: driverFlags)
-        let dependencyScanner: LDEDependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
-        
-        for item in codeFiles {
-            let file = LDEFile(url: URL(fileURLWithPath: item))
-            let headers: [LDEFile] = dependencyScanner.headerFiles(for: file)
-            
-            for header in headers {
-                print("\(header.fileURL!)")
-            }
-        }
         
         driver.delegate = self
         
-        let jobs: [LDEJob] = driver.generateJobs()
+        let jobs: [LDEJob] = self.driver.generateJobs()
         for job in jobs {
             switch(job.type) {
             case .compiler:
@@ -91,13 +85,35 @@ class Builder: NSObject, LDEDriverDelegate {
         self.linkerJobs.append(LDEJob(type: .linker, withArguments: linkerFlags))
     }
     
-    func driver(_ driver: LDEDriver!, outputPathForInput baseInput: String!) -> String? {
-        guard let path = baseInput else {
-            return baseInput
+    func driver(_ driver: LDEDriver!, outputPathForInputFile file: LDEFile!, skipCompile skip: UnsafeMutablePointer<ObjCBool>!) -> String! {
+        let path: String = file.fileURL.path
+        let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
+        
+        defer { self.objectFiles.append(objectPath) }
+        
+        // Checking if the source file is newer than the compiled object file
+        guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
+              let objectDate = try? FileManager.default.attributesOfItem(atPath: objectPath)[.modificationDate] as? Date,
+              objectDate > sourceDate else {
+            return objectPath
         }
-        let newPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
-        self.objectFiles.append(newPath)
-        return newPath
+        
+        // Checking if the header files included by the source code are newer than the object file
+        if let headers = self.dependencyScanner.headerFiles(for: file) {
+            for header in headers {
+                let headerPath = header.fileURL.path
+                guard FileManager.default.fileExists(atPath: headerPath),
+                      let headerDate = try? FileManager.default.attributesOfItem(atPath: headerPath)[.modificationDate] as? Date,
+                      objectDate > headerDate else {
+                    return objectPath
+                }
+            }
+        } else {
+            return objectPath
+        }
+        
+        skip?.pointee = ObjCBool(true)
+        return objectPath
     }
     
     func headsup() throws {
