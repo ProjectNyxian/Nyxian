@@ -63,7 +63,8 @@ class Builder: NSObject, LDEDriverDelegate {
         let driver: LDEDriver = LDEDriver(arguments: driverFlags)
         driver.delegate = self
         
-        for job in driver.jobs {
+        let jobs: [LDEJob] = driver.generateJobs()
+        for job in jobs {
             switch(job.type) {
             case .compiler:
                 self.compilerJobs.append(job)

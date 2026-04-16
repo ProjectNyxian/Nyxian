@@ -37,13 +37,13 @@
 
 @interface LDEDriver : LDECFType
 
-@property (nonatomic, readonly, copy) NSArray<LDEJob*> *jobs;
 @property (nonatomic, readonly, copy) NSURL *sysrootURL;
 @property (nonatomic, readonly, copy) LDESDK *sdk;
 
 @property (nonatomic, readwrite, weak) id<LDEDriverDelegate> delegate;
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments;
+- (NSArray<LDEJob*>*)generateJobs;
 
 @end
 

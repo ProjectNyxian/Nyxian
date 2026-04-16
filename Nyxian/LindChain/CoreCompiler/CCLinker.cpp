@@ -36,8 +36,8 @@ bool link(llvm::ArrayRef<const char *> args, llvm::raw_ostream &stdoutOS,
 } // namespace macho
 } // namespace lld
 
-CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
-                                     CFArrayRef *outDiagnostics)
+Boolean CCLinkerJobExecute(CCJobRef job,
+                           CFArrayRef *outDiagnostics)
 {
     assert(job != nullptr);
     assert(CCJobGetType(job) == CCJobTypeLinker);
