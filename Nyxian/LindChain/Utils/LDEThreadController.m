@@ -20,6 +20,7 @@
 */
 
 #import <LindChain/Utils/LDEThreadController.h>
+#import <LindChain/CoreCompiler/CCUtils.h>
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 #include <pthread.h>
@@ -42,14 +43,7 @@ void LDEPthreadDispatch(void (^code)(void))
 
 int LDEGetOptimalThreadCount(void)
 {
-    static int cpuCount = 0;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        size_t size = sizeof(int);
-        int result = sysctlbyname("hw.logicalcpu_max", &cpuCount, &size, NULL, 0);
-        cpuCount = (result == 0 && cpuCount > 0) ? cpuCount : (int)[[NSProcessInfo processInfo] activeProcessorCount];
-    });
-    return cpuCount;
+    return (int)CCGetMaximumPerformanceCores();
 }
 
 int LDEGetUserSetThreadCount(void)

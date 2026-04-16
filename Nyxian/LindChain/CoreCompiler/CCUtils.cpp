@@ -19,26 +19,31 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <Foundation/Foundation.h>
-#include <llvm/Support/InitLLVM.h>
+#include <LindChain/CoreCompiler/CCUtils.h>
+#include <llvm/Support/Threading.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/CrashRecoveryContext.h>
 
-extern "C"  int ls_getfd(void);
+CFIndex CCGetMaximumPerformanceCores(void)
+{
+    return llvm::heavyweight_hardware_concurrency().compute_thread_count();
+}
 
-void NyxLLVMErrorHandler(void *userData, const char *reason, bool genCrashDiag) {
-    //dprintf(ls_getfd(), "LLVM trapped fatal error: %s\n", reason);
+static void NyxLLVMErrorHandler(void *userData, const char *reason, bool genCrashDiag)
+{
+    fprintf(stderr, "[LindChain] fatal LLVM error: %s\n", reason);
+    abort();
 }
 
 __attribute__((constructor))
 void llvm_init(void)
 {
-    llvm::InitializeAllTargetInfos();
-    llvm::InitializeAllTargets();
-    llvm::InitializeAllTargetMCs();
-    llvm::InitializeAllAsmParsers();
-    llvm::InitializeAllAsmPrinters();
-    llvm::InitializeAllDisassemblers();
+    LLVMInitializeAArch64TargetInfo();
+    LLVMInitializeAArch64Target();
+    LLVMInitializeAArch64TargetMC();
+    LLVMInitializeAArch64AsmParser();
+    LLVMInitializeAArch64AsmPrinter();
+    LLVMInitializeAArch64Disassembler();
     llvm::install_fatal_error_handler(NyxLLVMErrorHandler);
     llvm::CrashRecoveryContext::Enable();
 }
