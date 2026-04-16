@@ -32,6 +32,11 @@
     _CFRuntimeBridgeClasses(CCFileGetTypeID(), "LDEFile");
 }
 
++ (instancetype)fileWithURL:(NSURL*)fileURL
+{
+    return (__bridge_transfer LDEFile*)CCFileCreate(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
+}
+
 - (NSURL*)fileURL
 {
     return (__bridge NSURL*)CCFileGetFileURL((__bridge void *)self);
@@ -42,6 +47,11 @@
     return (__bridge NSData*)CCFileGetUnsavedData((__bridge void *)self);
 }
 
+- (CCFileType)type
+{
+    return CCFileGetType((__bridge void *)self);
+}
+
 @end
 
 @implementation LDEMutableFile
@@ -49,14 +59,15 @@
 @dynamic fileURL;
 @dynamic unsavedData;
 
-+ (instancetype)mutableFileWithFileURL:(NSURL*)fileURL
++ (instancetype)fileWithURL:(NSURL*)fileURL
 {
     LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutable(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
     object_setClass(obj, [LDEMutableFile class]);
     return (LDEMutableFile *)obj;
 }
 
-+ (instancetype)mutableFileWithFileURL:(NSURL*)fileURL withUnsavedData:(NSData*)unsavedData
++ (instancetype)fileWithURL:(NSURL*)fileURL
+            withUnsavedData:(NSData*)unsavedData
 {
     LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableWithUnsavedData(kCFAllocatorDefault, (__bridge CFURLRef)fileURL, (__bridge CFDataRef)unsavedData);
     object_setClass(obj, [LDEMutableFile class]);

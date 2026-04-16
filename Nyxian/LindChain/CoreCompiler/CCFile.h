@@ -29,6 +29,7 @@ typedef struct opaque_ccfile *CCMutableFileRef;
 
 CC_EXPORT CFTypeID CCFileGetTypeID(void);
 
+CC_EXPORT CCFileRef CCFileCreate(CFAllocatorRef allocator, CFURLRef fileURL);
 CC_EXPORT CCMutableFileRef CCFileCreateMutable(CFAllocatorRef allocator, CFURLRef fileURL);
 CC_EXPORT CCMutableFileRef CCFileCreateMutableWithUnsavedData(CFAllocatorRef allocator, CFURLRef fileURL, CFDataRef data);
 CC_EXPORT CCFileRef CCFileCreateCopy(CFAllocatorRef allocator, CCFileRef file);

@@ -98,6 +98,24 @@ CFTypeID CCFileGetTypeID(void)
     return gCCFileTypeID;
 }
 
+CCFileRef CCFileCreate(CFAllocatorRef allocator,
+                       CFURLRef fileURL)
+{
+    assert(fileURL != nil);
+    
+    CCFileRef file = (CCFileRef)_CFRuntimeCreateInstance(allocator, CCFileGetTypeID(), sizeof(struct opaque_ccfile) - sizeof(CFRuntimeBase), NULL);
+    if(file == nil)
+    {
+        return nil;
+    }
+    
+    file->isMutable = false;
+    file->fileURL = CFRetain(fileURL);
+    file->unsavedData = nil;
+    
+    return file;
+}
+
 CCMutableFileRef CCFileCreateMutable(CFAllocatorRef allocator,
                                      CFURLRef fileURL)
 {

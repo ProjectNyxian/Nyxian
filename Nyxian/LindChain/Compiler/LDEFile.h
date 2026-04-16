@@ -29,6 +29,9 @@
 
 @property (nonatomic, readonly) NSURL *fileURL;
 @property (nonatomic, readonly) NSData *unsavedData;
+@property (nonatomic, readonly) CCFileType type;
+
++ (instancetype)fileWithURL:(NSURL*)fileURL;
 
 @end
 
@@ -37,8 +40,8 @@
 @property (nonatomic, readwrite) NSURL *fileURL;
 @property (nonatomic, readwrite) NSData *unsavedData;
 
-+ (instancetype)mutableFileWithFileURL:(NSURL*)fileURL;
-+ (instancetype)mutableFileWithFileURL:(NSURL*)fileURL withUnsavedData:(NSData*)unsavedData;
++ (instancetype)fileWithURL:(NSURL*)fileURL;
++ (instancetype)fileWithURL:(NSURL*)fileURL withUnsavedData:(NSData*)unsavedData;
 
 @end
 

@@ -44,7 +44,7 @@
     
     /* initilizing step numero uno */
     NSURL *fileURL = [NSURL fileURLWithPath:filepath];
-    _file = [LDEMutableFile mutableFileWithFileURL:fileURL];
+    _file = [LDEMutableFile fileWithURL:fileURL];
     _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
