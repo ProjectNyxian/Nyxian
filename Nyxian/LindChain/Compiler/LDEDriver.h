@@ -28,12 +28,20 @@
 #import <LindChain/Compiler/LDEJob.h>
 #import <LindChain/Compiler/LDESDK.h>
 
+@class LDEDriver;
+
+@protocol LDEDriverDelegate <NSObject>
+@optional
+- (NSString*)driver:(LDEDriver*)driver outputPathForInput:(NSString*)baseInput;
+@end
+
 @interface LDEDriver : LDECFType
 
 @property (nonatomic, readonly, copy) NSArray<LDEJob*> *jobs;
-@property (nonatomic, readwrite) NSString *(^outputPathCallback)(NSString *baseInput);
 @property (nonatomic, readonly, copy) NSURL *sysrootURL;
 @property (nonatomic, readonly, copy) LDESDK *sdk;
+
+@property (nonatomic, readwrite, weak) id<LDEDriverDelegate> delegate;
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments;
 

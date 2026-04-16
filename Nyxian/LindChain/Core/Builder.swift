@@ -29,7 +29,7 @@ import Combine
 
 #endif // JAILBREAK_ENV
 
-class Builder {
+class Builder: NSObject, LDEDriverDelegate {
     private let project: NXProject
     
     private var compilerJobs: [LDEJob] = []
@@ -58,15 +58,10 @@ class Builder {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoPath)
         
+        super.init()
+        
         let driver: LDEDriver = LDEDriver(arguments: driverFlags)
-        driver.outputPathCallback = { path in
-            guard let path = path else {
-                return path
-            }
-            let newPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
-            self.objectFiles.append(newPath)
-            return newPath
-        }
+        driver.delegate = self
         
         for job in driver.jobs {
             switch(job.type) {
@@ -82,6 +77,15 @@ class Builder {
         linkerFlags.append("-o")
         linkerFlags.append(self.project.machoPath)
         self.linkerJobs.append(LDEJob(type: .linker, withArguments: linkerFlags))
+    }
+    
+    func driver(_ driver: LDEDriver!, outputPathForInput baseInput: String!) -> String? {
+        guard let path = baseInput else {
+            return baseInput
+        }
+        let newPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
+        self.objectFiles.append(newPath)
+        return newPath
     }
     
     func headsup() throws {

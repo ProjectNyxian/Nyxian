@@ -21,13 +21,30 @@
 
 #import <LindChain/Compiler/LDEDriver.h>
 #import <Block.h>
+#import <objc/runtime.h>
 
 static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
 {
-    NSString *(^b)(NSString *) = (__bridge NSString*(^)(NSString *))ctx;
-    NSString *result = b([NSString stringWithUTF8String:baseInput]);
+    LDEDriver *driver = (__bridge LDEDriver*)ctx;
+    id<LDEDriverDelegate> delegate = driver.delegate;
+    
+    if(![delegate respondsToSelector:@selector(driver:outputPathForInput:)])
+    {
+        return nil;
+    }
+    
+    NSString *result = [delegate driver:driver outputPathForInput:[NSString stringWithUTF8String:baseInput]];
     return result.UTF8String;
 }
+
+static const void *LDEDriverDelegateKey = &LDEDriverDelegateKey;
+
+@interface LDEWeakWrapper : NSObject
+@property (nonatomic, weak) id<LDEDriverDelegate> delegate;
+@end
+
+@implementation LDEWeakWrapper
+@end
 
 @implementation LDEDriver
 
@@ -46,37 +63,6 @@ static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
     return (__bridge_transfer NSArray<LDEJob*>*)CCDriverCopyJobs((__bridge CCDriverRef)self);
 }
 
-- (void)setOutputPathCallback:(NSString *(^)(NSString *))outputPathCallback
-{
-    CCDriverRef ref = (__bridge CCDriverRef)self;
-    
-    void *ctx = CCDriverGetOutputPathCallbackContext(ref);
-    if(ctx)
-    {
-        Block_release(ctx);
-    }
-    
-    if(!outputPathCallback)
-    {
-        CCDriverSetOutputPathCallback(ref, nil, nil);
-        return;
-    }
-    
-    void *heapBlock = Block_copy((__bridge void *)outputPathCallback);
-    
-    CCDriverSetOutputPathCallback(ref, LDEDriverOutputPathBridge, heapBlock);
-}
-
-- (NSString *(^)(NSString *))outputPathCallback
-{
-    void *ctx = CCDriverGetOutputPathCallbackContext((__bridge CCDriverRef)self);
-    if(!ctx)
-    {
-        return nil;
-    }
-    return (__bridge NSString*(^)(NSString *))ctx;
-}
-
 - (NSURL*)sysrootURL
 {
     return (__bridge_transfer NSURL*)CCDriverCopySysrootURL((__bridge CCDriverRef)self);
@@ -87,9 +73,36 @@ static const char *LDEDriverOutputPathBridge(const char *baseInput, void *ctx)
     return (__bridge_transfer LDESDK*)CCDriverCopySDK((__bridge CCDriverRef)self);
 }
 
+- (void)setDelegate:(id<LDEDriverDelegate>)delegate
+{
+    LDEWeakWrapper *wrapper = nil;
+    
+    if(delegate)
+    {
+        wrapper = [LDEWeakWrapper new];
+        wrapper.delegate = delegate;
+    }
+    
+    objc_setAssociatedObject(self, LDEDriverDelegateKey, wrapper, OBJC_ASSOCIATION_RETAIN);
+    
+    if(!delegate)
+    {
+        CCDriverSetOutputPathCallback((__bridge CCDriverRef)self, nil, nil);
+        return;
+    }
+    
+    CCDriverSetOutputPathCallback((__bridge CCDriverRef)self, LDEDriverOutputPathBridge, (__bridge void*)self);
+}
+
+- (id<LDEDriverDelegate>)delegate
+{
+    LDEWeakWrapper *wrapper = objc_getAssociatedObject(self, LDEDriverDelegateKey);
+    return wrapper.delegate;
+}
+
 - (void)dealloc
 {
-    self.outputPathCallback = nil;
+    self.delegate = nil;
 }
 
 @end
