@@ -19,17 +19,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CCSDK_H
-#define CCSDK_H
+#import <LindChain/Compiler/LDESDK.h>
+#import <LindChain/CoreCompiler/CCSDK.h>
 
-#include <LindChain/CoreCompiler/CCBase.h>
+@implementation LDESDK
 
-typedef struct opaque_ccsdk *CCSDKRef;
++ (void)load
+{
+    _CFRuntimeBridgeClasses(CCSDKGetTypeID(), "LDESDK");
+}
 
-CC_EXPORT CFTypeID CCSDKGetTypeID(void);
++ (instancetype)sdkForFileURL:(NSURL*)fileURL
+{
+    return (__bridge_transfer LDESDK*)CCSDKCreateWithFileURL(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
+}
 
-CC_EXPORT CCSDKRef CCSDKCreateWithFileURL(CFAllocatorRef allocator, CFURLRef fileURL);
+- (NSString*)version
+{
+    return (__bridge_transfer NSString*)CCSDKCopyVersion((__bridge CCSDKRef)self);
+}
 
-CC_EXPORT CFStringRef CCSDKCopyVersion(CCSDKRef sdk);
-
-#endif /* CCSDK_H */
+@end
