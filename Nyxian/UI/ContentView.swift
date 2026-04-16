@@ -103,9 +103,8 @@ import UIKit
     }
     
     func addProject(_ project: NXProject) {
-        let type = NXProjectType(rawValue: project.projectConfig.type)
         let key = {
-            switch type {
+            switch project.projectConfig.type {
             case .app: return "applications"
             case .utility: return "utilities"
             default: return "unknown"
@@ -148,9 +147,8 @@ import UIKit
 
     func removeProject(_ project: NXProject) {
         project.remove()
-        let type = NXProjectType(rawValue: project.projectConfig.type)
         let key = {
-            switch type {
+            switch project.projectConfig.type {
             case .app: return "applications"
             case .utility: return "utilities"
             default: return "unknown"
@@ -305,7 +303,7 @@ import UIKit
         let sectionProjects = self.projectsList[key] ?? []
         let project: NXProject = sectionProjects[indexPath.row];
         let cell: NXProjectTableCell = self.tableView.dequeueReusableCell(withIdentifier: NXProjectTableCell.reuseIdentifier()) as! NXProjectTableCell
-        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == NXProjectType.app.rawValue, showBundleID: project.projectConfig.type == NXProjectType.app.rawValue, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
+        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == .app, showBundleID: project.projectConfig.type == .app, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
         return cell
     }
     

@@ -86,7 +86,7 @@ class Builder {
     
     func headsup() throws {
         let type = project.projectConfig.type
-        if(type != 1 && type != 2) {
+        if(type != .app && type != .utility) {
             throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
         }
         
@@ -123,7 +123,7 @@ class Builder {
         }
         
         // if payload exists remove it
-        if self.project.projectConfig.type == NXProjectType.app.rawValue {
+        if self.project.projectConfig.type == .app {
             let payloadPath: String = self.project.payloadPath
             if FileManager.default.fileExists(atPath: payloadPath) {
                 try? FileManager.default.removeItem(atPath: payloadPath)
@@ -137,7 +137,7 @@ class Builder {
     }
     
     func prepare() throws {
-        if project.projectConfig.type == NXProjectType.app.rawValue {
+        if project.projectConfig.type == .app {
             let bundlePath: String = self.project.bundlePath
             let resourcesPath: String = self.project.resourcesPath
             
@@ -228,7 +228,7 @@ class Builder {
         }
         
         if(buildType == .RunningApp) {
-            if self.project.projectConfig.type == NXProjectType.app.rawValue {
+            if self.project.projectConfig.type == .app {
                 let semaphore = DispatchSemaphore(value: 0)
                 var nsError: NSError? = nil
                 
@@ -279,7 +279,7 @@ class Builder {
                 if let nsError = nsError {
                     throw nsError
                 }
-            } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
+            } else if self.project.projectConfig.type == .utility {
                 MachOObject.signBinary(atPath: self.project.machoPath)
                 macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
                 
@@ -301,7 +301,7 @@ class Builder {
         try self.package()
         
         if buildType == .RunningApp,
-          self.project.projectConfig.type == NXProjectType.app.rawValue {
+          self.project.projectConfig.type == .app {
             // installing app
             var output: NSString?
             if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packagePath ?? ""], 0, nil, &output) != 0 {
@@ -352,7 +352,7 @@ class Builder {
 #if JAILBREAK_ENV
         let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
         if FileManager.default.fileExists(atPath: entitlementsPath),
-           self.project.projectConfig.type == NXProjectType.app.rawValue {
+           self.project.projectConfig.type == .app {
             // pseudo signing executable
             if !ZSigner.adhocSignMachO(atPath: self.project.machoPath!, bundleId: self.project.projectConfig.bundleid!, entitlementData: try Data(contentsOf: URL(fileURLWithPath: entitlementsPath))) {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Unknown error happened pseudo signing application with entitlements"])

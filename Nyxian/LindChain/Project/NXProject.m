@@ -81,7 +81,7 @@
         _shortVersion = [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]];
         _infoDictionary = [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}];
         _platformMinimumVersion = [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"];
-        _type = (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
+        _type = (NXProjectType)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
         _outputPath = [self readKey:@"LDEOutputPath"];
         
         /* MARK: compiler flags */

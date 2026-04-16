@@ -39,7 +39,7 @@
 @property (nonatomic,strong,readonly) NSArray *compilerFlags;
 @property (nonatomic,strong,readonly) NSArray *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
-@property (nonatomic,readonly) int type;
+@property (nonatomic,readonly) NXProjectType type;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
 + (NSArray*)sdkCompilerFlags;
