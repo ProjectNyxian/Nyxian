@@ -281,5 +281,20 @@ CFURLRef CCDriverCopySysrootURL(CCDriverRef driver)
         return nullptr;
     }
     
-    return CFURLCreateWithFileSystemPath(kCFAllocatorDefault, str, kCFURLPOSIXPathStyle, true);
+    CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, str, kCFURLPOSIXPathStyle, true);
+    CFRelease(str);
+    return url;
+}
+
+CCSDKRef CCDriverCopySDK(CCDriverRef driver)
+{
+    CFURLRef sdkRoot = CCDriverCopySysrootURL(driver);
+    if(sdkRoot == nullptr)
+    {
+        return nullptr;
+    }
+    
+    CCSDKRef sdk = CCSDKCreateWithFileURL(kCFAllocatorDefault, sdkRoot);
+    CFRelease(sdkRoot);
+    return sdk;
 }

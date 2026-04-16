@@ -30,6 +30,7 @@
 @interface NXProjectConfig : NXPlist
 
 @property (nonatomic,readonly) NXProjectFormat projectFormat;
+@property (nonatomic,readonly) NXProjectType type;
 @property (nonatomic,strong,readonly) NSString *executable;
 @property (nonatomic,strong,readonly) NSString *displayName;
 @property (nonatomic,strong,readonly) NSString *bundleid;
@@ -39,7 +40,6 @@
 @property (nonatomic,strong,readonly) NSArray *compilerFlags;
 @property (nonatomic,strong,readonly) NSArray *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
-@property (nonatomic,readonly) NXProjectType type;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
 + (NSArray*)sdkCompilerFlags;

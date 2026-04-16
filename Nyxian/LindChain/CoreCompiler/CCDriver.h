@@ -24,6 +24,7 @@
 
 #include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCJob.h>
+#include <LindChain/CoreCompiler/CCSDK.h>
 
 typedef struct opaque_ccdriver *CCDriverRef;
 typedef const char *(*CCOutputPathCallback)(const char *baseInput, void *context);
@@ -38,5 +39,6 @@ CC_EXPORT void CCDriverSetOutputPathCallback(CCDriverRef driver, CCOutputPathCal
 CC_EXPORT void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver);
 
 CC_EXPORT CFURLRef CCDriverCopySysrootURL(CCDriverRef driver);
+CC_EXPORT CCSDKRef CCDriverCopySDK(CCDriverRef driver);
 
 #endif /* CCDRIVER_H */

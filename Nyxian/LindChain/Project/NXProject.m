@@ -74,6 +74,7 @@
         }
         
         /* MARK: keys */
+        _type = (NXProjectType)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
         _executable = [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"];
         _displayName = [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]];
         _bundleid = [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
@@ -81,7 +82,6 @@
         _shortVersion = [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]];
         _infoDictionary = [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}];
         _platformMinimumVersion = [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"];
-        _type = (NXProjectType)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
         _outputPath = [self readKey:@"LDEOutputPath"];
         
         /* MARK: compiler flags */
