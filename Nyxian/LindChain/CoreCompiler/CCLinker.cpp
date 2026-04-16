@@ -91,7 +91,9 @@ CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job,
         
         for(auto it = diagnostics.begin(); it != diagnostics.end(); ++it)
         {
-            CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(kCFAllocatorDefault, CCDiagnosticTypeInternal, (it->kind == LDDiagnostic::Kind::Error) ? CCDiagnosticLevelError : CCDiagnosticLevelWarning, nullptr, CFStringCreateWithCString(kCFAllocatorDefault, it->message.c_str(), kCFStringEncodingUTF8));
+            CFStringRef message = CFStringCreateWithCString(kCFAllocatorDefault, it->message.c_str(), kCFStringEncodingUTF8);
+            CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(kCFAllocatorDefault, CCDiagnosticTypeInternal, (it->kind == LDDiagnostic::Kind::Error) ? CCDiagnosticLevelError : CCDiagnosticLevelWarning, nullptr, message);
+            CFRelease(message);
             if(diagnosticRef != nullptr)
             {
                 CFArrayAppendValue(result, diagnosticRef);
