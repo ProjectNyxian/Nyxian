@@ -223,16 +223,20 @@ static const char *_CCASTUnitLangFlagForFile(CCFileRef file)
     {
         case CCFileTypeC:
             return "c";
+        case CCFileTypeCHeader:
+            return "c-header";
         case CCFileTypeObjC:
             return "objective-c";
-        case CCFileTypeCXX:
-            return "c++";
-        case CCFileTypeObjCXX:
-            return "objective-c++";
-        case CCFileTypeCXXHeader:
-            return "c++-header";
         case CCFileTypeObjCHeader:
             return "objective-c-header";
+        case CCFileTypeCXX:
+            return "c++";
+        case CCFileTypeCXXHeader:
+            return "c++-header";
+        case CCFileTypeObjCXX:
+            return "objective-c++";
+        case CCFileTypeObjCXXHeader:
+            return "objective-c++-header";
         default:
             return nullptr;
     }

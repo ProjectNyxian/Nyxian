@@ -56,12 +56,13 @@ typedef CF_ENUM(uint8_t, CCJobType) {
 
 typedef CF_ENUM(uint8_t, CCFileType) {
     CCFileTypeC = 0,
-    CCFileTypeCXX,
-    CCFileTypeObjC,
-    CCFileTypeObjCXX,
     CCFileTypeCHeader,
+    CCFileTypeCXX,
     CCFileTypeCXXHeader,
+    CCFileTypeObjC,
     CCFileTypeObjCHeader,
+    CCFileTypeObjCXX,
+    CCFileTypeObjCXXHeader,
     CCFileTypeSwift,
     CCFileTypeUnknown
 };
