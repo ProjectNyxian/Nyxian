@@ -230,6 +230,10 @@ CCFileType CCFileGetType(CCFileRef file)
     {
         type = CCFileTypeSwift;
     }
+    else if(CFEqual(CFSTR("o"), extension))
+    {
+        type = CCFileTypeObject;
+    }
     
     CFRelease(extension);
     return type;

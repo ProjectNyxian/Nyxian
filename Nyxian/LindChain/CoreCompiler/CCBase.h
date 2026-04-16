@@ -64,7 +64,8 @@ typedef CF_ENUM(uint8_t, CCFileType) {
     CCFileTypeObjCXX,
     CCFileTypeObjCXXHeader,
     CCFileTypeSwift,
-    CCFileTypeUnknown
+    CCFileTypeObject,
+    CCFileTypeUnknown,
 };
 
 #endif /* CCBASE_H */
