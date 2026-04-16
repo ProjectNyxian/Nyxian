@@ -77,22 +77,16 @@ static void *LDEWorkerThreadMain(void *arg)
         if(atomic_load(&worker->shouldExit))
         {
             pthread_mutex_unlock(&worker->mutex);
-            if(worker->semaphore) {
-                dispatch_semaphore_signal(worker->semaphore);
-                worker->semaphore = nil;
-            }
             break;
         }
         
         /* setting blocks up  */
         void (^code)(void) = worker->currentBlock;
         void (^completion)(void) = worker->completionBlock;
-        dispatch_semaphore_t sem = worker->semaphore;
         
         /* clear worker references to allow ARC to release captured objects */
         worker->currentBlock = nil;
         worker->completionBlock = nil;
-        worker->semaphore = nil;
         
         /* storing that we are working on API request rawrrr x3 */
         atomic_store(&worker->hasWork, false);
@@ -108,11 +102,6 @@ static void *LDEWorkerThreadMain(void *arg)
         {
             completion();
         }
-        if(sem)
-        {
-            /* signaling semaphore ofc */
-            dispatch_semaphore_signal(sem);
-        }
     }
     
     return NULL;
@@ -124,13 +113,14 @@ static void *LDEWorkerThreadMain(void *arg)
 @property (nonatomic, readonly) int threads;
 @property (nonatomic, assign) LDEWorkerThread *workers;
 @property (nonatomic, assign) int workerCount;
-@property (nonatomic, strong) dispatch_queue_t freeWorkerQueue;
-@property (nonatomic, strong) NSMutableArray *freeWorkers;
-
 
 @end
 
-@implementation LDEThreadController
+@implementation LDEThreadController {
+    int _freeStack[64];
+    int _freeTop;
+    pthread_mutex_t _freeStackMutex;
+}
 
 - (instancetype)initWithThreads:(uint32_t)threads
 {
@@ -139,12 +129,12 @@ static void *LDEWorkerThreadMain(void *arg)
     _semaphore = dispatch_semaphore_create(threads);
     _workerCount = threads;
     _workers = calloc(threads, sizeof(LDEWorkerThread));
-    _freeWorkerQueue = dispatch_queue_create("com.nyxian.freeworker", DISPATCH_QUEUE_SERIAL);
-    _freeWorkers = [NSMutableArray array];
+    pthread_mutex_init(&_freeStackMutex, NULL);
     for(int i = 0; i < threads; i++)
     {
-        [_freeWorkers addObject:@(i)];
+        _freeStack[i] = i;
     }
+    _freeTop = threads;
     for(int i = 0; i < threads; i++)
     {
         _workers[i].cpuIndex = i % LDEGetOptimalThreadCount();
@@ -170,25 +160,22 @@ static void *LDEWorkerThreadMain(void *arg)
 - (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion
 {
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
-    __block int workerIndex = -1;
-    dispatch_sync(_freeWorkerQueue, ^{
-        workerIndex = [_freeWorkers.lastObject intValue];
-        [_freeWorkers removeLastObject];
-    });
     
-    dispatch_queue_t freeWorkerQueue = _freeWorkerQueue;
-    NSMutableArray *freeWorkers = _freeWorkers;
+    pthread_mutex_lock(&_freeStackMutex);
+    int workerIndex = _freeStack[--_freeTop];
+    pthread_mutex_unlock(&_freeStackMutex);
     
     LDEWorkerThread *worker = &_workers[workerIndex];
+    dispatch_semaphore_t sem = self.semaphore;
     pthread_mutex_lock(&worker->mutex);
     worker->currentBlock = code;
     worker->completionBlock = ^{
         if (completion) completion();
-        dispatch_sync(freeWorkerQueue, ^{
-            [freeWorkers addObject:@(workerIndex)];
-        });
+        pthread_mutex_lock(&self->_freeStackMutex);
+        self->_freeStack[self->_freeTop++] = workerIndex;
+        pthread_mutex_unlock(&self->_freeStackMutex);
+        dispatch_semaphore_signal(sem);
     };
-    worker->semaphore = self.semaphore;
     atomic_store(&worker->hasWork, true);
     pthread_cond_signal(&worker->cond);
     pthread_mutex_unlock(&worker->mutex);
@@ -209,6 +196,7 @@ static void *LDEWorkerThreadMain(void *arg)
         pthread_mutex_destroy(&_workers[i].mutex);
         pthread_cond_destroy(&_workers[i].cond);
     }
+    pthread_mutex_destroy(&_freeStackMutex);
     free(_workers);
 }
 

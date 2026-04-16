@@ -42,6 +42,8 @@ class Builder: NSObject, LDEDriverDelegate {
     let driver: LDEDriver
     let dependencyScanner: LDEDependencyScanner
     
+    let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool == true
+    
     init?(project: NXProject) {
         self.project = project
         self.project.reload()
@@ -91,28 +93,31 @@ class Builder: NSObject, LDEDriverDelegate {
         
         defer { self.objectFiles.append(objectPath) }
         
-        // Checking if the source file is newer than the compiled object file
-        guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
-              let objectDate = try? FileManager.default.attributesOfItem(atPath: objectPath)[.modificationDate] as? Date,
-              objectDate > sourceDate else {
-            return objectPath
-        }
-        
-        // Checking if the header files included by the source code are newer than the object file
-        if let headers = self.dependencyScanner.headerFiles(for: file) {
-            for header in headers {
-                let headerPath = header.fileURL.path
-                guard FileManager.default.fileExists(atPath: headerPath),
-                      let headerDate = try? FileManager.default.attributesOfItem(atPath: headerPath)[.modificationDate] as? Date,
-                      objectDate > headerDate else {
-                    return objectPath
-                }
+        if self.incrementalBuild {
+            // Checking if the source file is newer than the compiled object file
+            guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
+                  let objectDate = try? FileManager.default.attributesOfItem(atPath: objectPath)[.modificationDate] as? Date,
+                  objectDate > sourceDate else {
+                return objectPath
             }
-        } else {
-            return objectPath
+            
+            // Checking if the header files included by the source code are newer than the object file
+            if let headers = self.dependencyScanner.headerFiles(for: file) {
+                for header in headers {
+                    let headerPath = header.fileURL.path
+                    guard FileManager.default.fileExists(atPath: headerPath),
+                          let headerDate = try? FileManager.default.attributesOfItem(atPath: headerPath)[.modificationDate] as? Date,
+                          objectDate > headerDate else {
+                        return objectPath
+                    }
+                }
+            } else {
+                return objectPath
+            }
+            
+            skip?.pointee = ObjCBool(true)
         }
         
-        skip?.pointee = ObjCBool(true)
         return objectPath
     }
     

@@ -34,7 +34,6 @@ typedef struct {
     pthread_cond_t cond;
     void (^__strong currentBlock)(void);
     void (^__strong completionBlock)(void);
-    dispatch_semaphore_t __strong semaphore;
     int cpuIndex;
     _Atomic(bool) shouldExit;
     _Atomic(bool) hasWork;
