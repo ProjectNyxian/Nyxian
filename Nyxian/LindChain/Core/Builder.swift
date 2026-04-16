@@ -173,7 +173,7 @@ class Builder {
     func compile() throws {
         if self.compilerJobs.count > 0 {
             let pstep: Double = 1.00 / Double(self.compilerJobs.count)
-            guard let threader = LDEThreadGroupController(threads: UInt32(self.project.projectConfig.threads)) else {
+            guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
             }
             
@@ -234,7 +234,7 @@ class Builder {
                 
                 LCUtils.signAppBundle(withZSign: URL(fileURLWithPath: project.bundlePath)) { [weak self] result, error in
                     guard let self = self else { return }
-                    macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
+                    macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
                     if result {
                         if LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) {
                             DispatchQueue.main.async {
@@ -281,7 +281,7 @@ class Builder {
                 }
             } else if self.project.projectConfig.type == NXProjectType.utility.rawValue {
                 MachOObject.signBinary(atPath: self.project.machoPath)
-                macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
+                macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
                 
                 if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
                     DispatchQueue.main.sync {
@@ -293,7 +293,7 @@ class Builder {
                 }
             }
         } else {
-            macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.generateEntitlements())
+            macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
             try self.package()
         }
 #else

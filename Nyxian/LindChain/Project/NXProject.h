@@ -40,8 +40,6 @@
 @property (nonatomic,strong,readonly) NSArray *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
 @property (nonatomic,readonly) int type;
-@property (nonatomic,readonly) int threads;
-@property (nonatomic,readonly) BOOL increment;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
 + (NSArray*)sdkCompilerFlags;
@@ -50,28 +48,7 @@
 
 @interface NXEntitlementsConfig : NXPlist
 
-@property (nonatomic,readonly) BOOL getTaskAllowed;
-@property (nonatomic,readonly) BOOL taskForPid;
-@property (nonatomic,readonly) BOOL taskForPidHost;
-@property (nonatomic,readonly) BOOL processEnumeration;
-@property (nonatomic,readonly) BOOL processKill;
-@property (nonatomic,readonly) BOOL processSpawn;
-@property (nonatomic,readonly) BOOL processSpawnSignedOnly;
-@property (nonatomic,readonly) BOOL processElevate;
-@property (nonatomic,readonly) BOOL hostManager;
-@property (nonatomic,readonly) BOOL credManager;
-@property (nonatomic,readonly) BOOL launchServiceStart;
-@property (nonatomic,readonly) BOOL launchServiceStop;
-@property (nonatomic,readonly) BOOL launchServiceToggle;
-@property (nonatomic,readonly) BOOL launchServiceGetEndpoint;
-@property (nonatomic,readonly) BOOL launchServiceSetEndpoint;
-@property (nonatomic,readonly) BOOL launchServiceManager;
-@property (nonatomic,readonly) BOOL dyldHideLiveProcess;
-@property (nonatomic,readonly) BOOL processSpawnInheriteEntitlements;
-@property (nonatomic,readonly) BOOL platform;
-@property (nonatomic,readonly) BOOL platformRoot;
-
-- (PEEntitlement)generateEntitlements;
+@property (nonatomic,readonly) PEEntitlement entitlement;
 
 @end
 

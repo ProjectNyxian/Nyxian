@@ -27,130 +27,6 @@
 
 @implementation NXProjectConfig
 
-- (NXProjectFormat)projectFormat
-{
-    NSString *projectFormat = [self readSecureFromKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
-    
-    if([projectFormat isEqualToString:@"NXKate"])
-    {
-        /*
-         * TODO: add deprecation message to project issue navigator
-         * this wont exist for ever, i plan on removing compat
-         * for older project types after each 5th newest project
-         * format, meaning NXKate will be removed
-         * after 4 new project formats being released.
-         * there can also be formats like NXProjectFormatFalconR1
-         * the R would stand for revision, but revisions will be
-         * safe from this rule... only major project formats..
-         * so for NXProjectFormatFalconR1 to be removed for example
-         * NXProjectFormatFalcon needs to be removed, revisions
-         * compatibility will die together with the original.
-         */
-        return NXProjectFormatKate;
-    }
-    else if([projectFormat isEqualToString:@"NXFalcon"])
-    {
-        return NXProjectFormatFalcon;
-    }
-    
-    return NXProjectFormatDefault;
-}
-
-- (NSString*)executable { return [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"]; }
-- (NSString*)displayName { return [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]]; }
-- (NSString*)bundleid { return [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]]; }
-- (NSString*)version { return [self readSecureFromKey:@"LDEBundleVersion" withDefaultValue:@"1.0"]; }
-- (NSString*)shortVersion { return [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]]; }
-- (NSDictionary*)infoDictionary { return [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}]; }
-
-- (NSArray*)compilerFlags
-{
-    NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
-    
-    if([self projectFormat] == NXProjectFormatFalcon)
-    {
-        return compilerFlags;
-    }
-    else if([self projectFormat] == NXProjectFormatKate)
-    {
-        NSMutableArray *array = [compilerFlags mutableCopy];
-        
-        [array addObjectsFromArray:@[
-            @"-target",
-            [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
-            @"-isysroot",
-            [[Bootstrap shared] sdkPath],
-            @"-resource-dir",
-            [[Bootstrap shared] bootstrapPath:@"/Include"]
-        ]];
-        
-        return array;
-    }
-    
-    return @[];
-}
-
-- (NSArray*)linkerFlags
-{
-    NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
-    
-    if([self projectFormat] == NXProjectFormatFalcon)
-    {
-        return linkerFlags;
-    }
-    else if([self projectFormat] == NXProjectFormatKate)
-    {
-        NSMutableArray *array = [linkerFlags mutableCopy];
-        
-        [array addObjectsFromArray:@[
-            @"-platform_version",
-            @"ios",
-            [self platformMinimumVersion],
-            [self readSecureFromKey:@"LDEVersion" withDefaultValue:@"26.4"],
-            @"-arch",
-            @"arm64",
-            @"-syslibroot",
-            [[Bootstrap shared] sdkPath],
-            [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
-        ]];
-        
-        return array;
-    }
-    
-    return @[];
-}
-
-- (NSString*)platformMinimumVersion { return [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"]; }
-- (int)type { return (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp]; }
-- (int)threads
-{
-    const int maxThreads = LDEGetOptimalThreadCount();
-    int pthreads = (int)[self readIntegerForKey:@"LDEOverwriteThreads" withDefaultValue:LDEGetUserSetThreadCount()];
-    
-    if(pthreads == 0)
-    {
-        pthreads = LDEGetUserSetThreadCount();
-    }
-    else if(pthreads > maxThreads)
-    {
-        pthreads = maxThreads;
-    }
-    
-    return pthreads;
-}
-
-- (BOOL)increment
-{
-    NSNumber *value = [self readKey:@"LDEOverwriteIncrementalBuild"];
-    NSNumber *userSetValue = [[NSUserDefaults standardUserDefaults] objectForKey:@"LDEIncrementalBuild"];
-    return value ? value.boolValue : userSetValue ? userSetValue.boolValue : YES;
-}
-
-- (NSString*)outputPath
-{
-    return [self readKey:@"LDEOutputPath"];
-}
-
 + (NSArray*)sdkCompilerFlags
 {
     return @[
@@ -163,56 +39,142 @@
     ];
 }
 
+- (BOOL)reloadIfNeeded
+{
+    BOOL reloaded = [super reloadIfNeeded];
+    if(reloaded)
+    {
+        /* MARK: projectFormat */
+        NSString *projectFormat = [self readSecureFromKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
+        
+        if([projectFormat isEqualToString:@"NXKate"])
+        {
+            /*
+             * TODO: add deprecation message to project issue navigator
+             * this wont exist for ever, i plan on removing compat
+             * for older project types after each 5th newest project
+             * format, meaning NXKate will be removed
+             * after 4 new project formats being released.
+             * there can also be formats like NXProjectFormatFalconR1
+             * the R would stand for revision, but revisions will be
+             * safe from this rule... only major project formats..
+             * so for NXProjectFormatFalconR1 to be removed for example
+             * NXProjectFormatFalcon needs to be removed, revisions
+             * compatibility will die together with the original.
+             */
+            _projectFormat = NXProjectFormatKate;
+        }
+        else if([projectFormat isEqualToString:@"NXFalcon"])
+        {
+            _projectFormat = NXProjectFormatFalcon;
+        }
+        else
+        {
+            _projectFormat = NXProjectFormatDefault;
+        }
+        
+        /* MARK: keys */
+        _executable = [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"];
+        _displayName = [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]];
+        _bundleid = [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
+        _version = [self readSecureFromKey:@"LDEBundleVersion" withDefaultValue:@"1.0"];
+        _shortVersion = [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]];
+        _infoDictionary = [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}];
+        _platformMinimumVersion = [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:@"17.0"];
+        _type = (int)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
+        _outputPath = [self readKey:@"LDEOutputPath"];
+        
+        /* MARK: compiler flags */
+        NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
+        
+        if([self projectFormat] == NXProjectFormatFalcon)
+        {
+            _compilerFlags = compilerFlags;
+        }
+        else if([self projectFormat] == NXProjectFormatKate)
+        {
+            NSMutableArray *array = [compilerFlags mutableCopy];
+            
+            [array addObjectsFromArray:@[
+                @"-target",
+                [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
+                @"-isysroot",
+                [[Bootstrap shared] sdkPath],
+                @"-resource-dir",
+                [[Bootstrap shared] bootstrapPath:@"/Include"]
+            ]];
+            
+            _compilerFlags = array;
+        }
+        else
+        {
+            _compilerFlags = @[];
+        }
+        
+        /* MARK: linker flags */
+        NSArray *linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
+        
+        if([self projectFormat] == NXProjectFormatFalcon)
+        {
+            _linkerFlags = linkerFlags;
+        }
+        else if([self projectFormat] == NXProjectFormatKate)
+        {
+            NSMutableArray *array = [linkerFlags mutableCopy];
+            
+            [array addObjectsFromArray:@[
+                @"-platform_version",
+                @"ios",
+                [self platformMinimumVersion],
+                [self readSecureFromKey:@"LDEVersion" withDefaultValue:@"26.4"],
+                @"-arch",
+                @"arm64",
+                @"-syslibroot",
+                [[Bootstrap shared] sdkPath],
+                [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
+            ]];
+            
+            _linkerFlags = array;
+        }
+        else
+        {
+            _linkerFlags = @[];
+        }
+    }
+    return reloaded;
+}
+
 @end
 
 @implementation NXEntitlementsConfig
 
-- (BOOL)getTaskAllowed { return [self readBooleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]; }
-- (BOOL)taskForPid { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]; }
-- (BOOL)taskForPidHost { return [self readBooleanForKey:@"com.nyxian.pe.task_for_pid_host" withDefaultValue:NO]; }
-- (BOOL)processEnumeration { return [self readBooleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]; }
-- (BOOL)processKill { return [self readBooleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]; }
-- (BOOL)processSpawn { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]; }
-- (BOOL)processSpawnSignedOnly { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_signed_only" withDefaultValue:NO]; }
-- (BOOL)processElevate { return [self readBooleanForKey:@"com.nyxian.pe.process_elevate" withDefaultValue:NO]; }
-- (BOOL)hostManager { return [self readBooleanForKey:@"com.nyxian.pe.host_manager" withDefaultValue:NO]; }
-- (BOOL)credManager { return [self readBooleanForKey:@"com.nyxian.pe.credentials_manager" withDefaultValue:NO]; }
-- (BOOL)launchServiceStart { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_start" withDefaultValue:NO]; }
-- (BOOL)launchServiceStop { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]; }
-- (BOOL)launchServiceToggle { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]; }
-- (BOOL)launchServiceGetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]; }
-- (BOOL)launchServiceSetEndpoint { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_set_endpoint" withDefaultValue:NO]; }
-- (BOOL)launchServiceManager { return [self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]; }
-- (BOOL)dyldHideLiveProcess { return [self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:YES]; }
-- (BOOL)processSpawnInheriteEntitlements { return [self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]; }
-- (BOOL)platform { return [self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]; }
-- (BOOL)platformRoot { return [self readBooleanForKey:@"com.nyxian.pe.platform_root" withDefaultValue:NO]; }
-
-- (PEEntitlement)generateEntitlements
+- (BOOL)reloadIfNeeded
 {
-    PEEntitlement entitlements = 0;
-    
-    if([self getTaskAllowed]) entitlements |= PEEntitlementGetTaskAllowed;
-    if([self taskForPid]) entitlements |= PEEntitlementTaskForPid;
-    if([self processEnumeration]) entitlements |= PEEntitlementProcessEnumeration;
-    if([self processKill]) entitlements |= PEEntitlementProcessKill;
-    if([self processSpawn]) entitlements |= PEEntitlementProcessSpawn;
-    if([self processSpawnSignedOnly]) entitlements |= PEEntitlementProcessSpawnSignedOnly;
-    if([self processElevate]) entitlements |= PEEntitlementProcessElevate;
-    if([self hostManager]) entitlements |= PEEntitlementHostManager;
-    if([self credManager]) entitlements |= PEEntitlementCredentialsManager;
-    if([self launchServiceStart]) entitlements |= PEEntitlementLaunchServicesStart;
-    if([self launchServiceStop]) entitlements |= PEEntitlementLaunchServicesStop;
-    if([self launchServiceToggle]) entitlements |= PEEntitlementLaunchServicesToggle;
-    if([self launchServiceGetEndpoint]) entitlements |= PEEntitlementLaunchServicesGetEndpoint;
-    if([self launchServiceSetEndpoint]) entitlements |= PEEntitlementLaunchServicesSetEndpoint;
-    if([self launchServiceManager]) entitlements |= PEEntitlementLaunchServicesManager;
-    if([self dyldHideLiveProcess]) entitlements |= PEEntitlementDyldHideLiveProcess;
-    if([self processSpawnInheriteEntitlements]) entitlements |= PEEntitlementProcessSpawnInheriteEntitlements;
-    if([self platform]) entitlements |= PEEntitlementPlatform;
-    if([self platformRoot]) entitlements |= PEEntitlementPlatformRoot;
-    
-    return entitlements;
+    BOOL reloaded = [super reloadIfNeeded];
+    if(reloaded)
+    {
+        _entitlement = PEEntitlementNone;
+        if([self readBooleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]) _entitlement |= PEEntitlementGetTaskAllowed;
+        if([self readBooleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]) _entitlement |= PEEntitlementTaskForPid;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessEnumeration;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessKill;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawn;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn_signed_only" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnSignedOnly;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_elevate" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessElevate;
+        if([self readBooleanForKey:@"com.nyxian.pe.host_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementHostManager;
+        if([self readBooleanForKey:@"com.nyxian.pe.credentials_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementCredentialsManager;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_start" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStart;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStop;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesToggle;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesGetEndpoint;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_set_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesSetEndpoint;
+        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesManager;
+        if([self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:NO]) _entitlement |= PEEntitlementDyldHideLiveProcess;
+        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnInheriteEntitlements;
+        if([self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatform;
+        if([self readBooleanForKey:@"com.nyxian.pe.platform_root" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatformRoot;
+    }
+    return reloaded;
 }
 
 @end
