@@ -52,6 +52,18 @@
     return CCFileGetType((__bridge void *)self);
 }
 
+- (nonnull id)copyWithZone:(nullable NSZone *)zone
+{
+    return (__bridge_transfer LDEFile*)CCFileCreateCopy(kCFAllocatorDefault, (__bridge CCFileRef)self);
+}
+
+- (nonnull id)mutableCopyWithZone:(nullable NSZone *)zone
+{
+    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableCopy(kCFAllocatorDefault, (__bridge CCFileRef)self);
+    object_setClass(obj, [LDEMutableFile class]);
+    return (LDEMutableFile *)obj;
+}
+
 @end
 
 @implementation LDEMutableFile

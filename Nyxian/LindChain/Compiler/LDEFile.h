@@ -25,7 +25,7 @@
 #import <LindChain/Compiler/LDECFType.h>
 #import <LindChain/CoreCompiler/CCFile.h>
 
-@interface LDEFile : LDECFType
+@interface LDEFile : LDECFType <NSCopying,NSMutableCopying>
 
 @property (nonatomic, readonly) NSURL *fileURL;
 @property (nonatomic, readonly) NSData *unsavedData;
