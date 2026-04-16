@@ -254,6 +254,12 @@ class ProjectConfigViewController: UIThemedTableViewController {
         saveButton.action = #selector(saveTapped)
         saveButton.isEnabled = false
         navigationItem.rightBarButtonItem = saveButton
+        
+        let closeButton: UIBarButtonItem = UIBarButtonItem()
+        closeButton.image = UIImage(systemName: "xmark")
+        closeButton.target = self
+        closeButton.action = #selector(closeTapped)
+        navigationItem.leftBarButtonItem = closeButton
     }
     
     private enum Section: Int, CaseIterable {
@@ -470,6 +476,10 @@ class ProjectConfigViewController: UIThemedTableViewController {
         project.projectConfig.dictionary["LDEBundleShortVersion"] = pendingBundleShortVersion
         project.projectConfig.save()
         isDirty = false
+    }
+    
+    @objc private func closeTapped() {
+        self.dismiss(animated: true)
     }
     
     private func markDirty() {

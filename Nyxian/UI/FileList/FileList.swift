@@ -346,6 +346,7 @@ import UniformTypeIdentifiers
                     let vc: ProjectConfigViewController = ProjectConfigViewController(project: project)
                     let nvc: UINavigationController = UINavigationController(rootViewController: vc)
                     nvc.modalPresentationStyle = .formSheet
+                    nvc.isModalInPresentation = true
                     self.present(nvc, animated: true)
                 }
             ]))
