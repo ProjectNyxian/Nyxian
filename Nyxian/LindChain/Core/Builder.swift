@@ -46,7 +46,7 @@ class Builder: NSObject, LDEDriverDelegate {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cachePath!)/debug.json")
         self.database.reuseDatabase()
         
-        var driverFlags: [String] = self.project.projectConfig.compilerFlags as! [String]
+        var driverFlags: [String] = self.project.projectConfig.compilerFlags
         
         try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
         
@@ -61,7 +61,7 @@ class Builder: NSObject, LDEDriverDelegate {
         super.init()
         
         let driver: LDEDriver = LDEDriver(arguments: driverFlags)
-        let dependencyScanner: LDEDependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags as! [String])
+        let dependencyScanner: LDEDependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
         for item in codeFiles {
             let file = LDEFile(url: URL(fileURLWithPath: item))
@@ -84,7 +84,7 @@ class Builder: NSObject, LDEDriverDelegate {
             }
         }
         
-        var linkerFlags = self.project.projectConfig.linkerFlags as! [String]
+        var linkerFlags: [String] = self.project.projectConfig.linkerFlags
         linkerFlags.append(contentsOf: self.objectFiles)
         linkerFlags.append("-o")
         linkerFlags.append(self.project.machoPath)

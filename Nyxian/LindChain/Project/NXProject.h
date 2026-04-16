@@ -37,8 +37,8 @@
 @property (nonatomic,strong,readonly) NSString *version;
 @property (nonatomic,strong,readonly) NSString *shortVersion;
 @property (nonatomic,strong,readonly) NSDictionary *infoDictionary;
-@property (nonatomic,strong,readonly) NSArray *compilerFlags;
-@property (nonatomic,strong,readonly) NSArray *linkerFlags;
+@property (nonatomic,strong,readonly) NSArray<NSString*> *compilerFlags;
+@property (nonatomic,strong,readonly) NSArray<NSString*> *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
