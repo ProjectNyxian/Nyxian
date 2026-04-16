@@ -34,6 +34,7 @@ CC_EXPORT CCMutableFileRef CCFileCreateMutableWithUnsavedData(CFAllocatorRef all
 CC_EXPORT CCFileRef CCFileCreateCopy(CFAllocatorRef allocator, CCFileRef file);
 CC_EXPORT CCMutableFileRef CCFileCreateMutableCopy(CFAllocatorRef allocator, CCFileRef file);
 
+CC_EXPORT CCFileType CCFileGetType(CCFileRef file);
 CC_EXPORT CFURLRef CCFileGetFileURL(CCFileRef file);
 CC_EXPORT CFDataRef CCFileGetUnsavedData(CCFileRef file);
 CC_EXPORT CFDataRef CCFileCopyUnsavedData(CCFileRef file);

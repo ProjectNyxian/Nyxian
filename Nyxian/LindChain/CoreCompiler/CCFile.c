@@ -167,6 +167,56 @@ CCMutableFileRef CCFileCreateMutableCopy(CFAllocatorRef allocator,
     return _CCFileCreateCopy(allocator, file, true);
 }
 
+CCFileType CCFileGetType(CCFileRef file)
+{
+    CFStringRef extension = CFURLCopyPathExtension(file->fileURL);
+    if(extension == nil)
+    {
+        return CCFileTypeUnknown;
+    }
+    
+    /* FIXME: get header types later by project indexing */
+    CCFileType type = CCFileTypeUnknown;
+    
+    if(CFEqual(CFSTR("c"), extension))
+    {
+        type = CCFileTypeC;
+    }
+    else if(CFEqual(CFSTR("cpp"), extension) ||
+            CFEqual(CFSTR("cc"), extension) ||
+            CFEqual(CFSTR("cxx"), extension) ||
+            CFEqual(CFSTR("c++"), extension))
+    {
+        type = CCFileTypeCXX;
+    }
+    else if(CFEqual(CFSTR("hpp"), extension) ||
+            CFEqual(CFSTR("hh"), extension) ||
+            CFEqual(CFSTR("h++"), extension) ||
+            CFEqual(CFSTR("hxx"), extension))
+    {
+        type = CCFileTypeCXXHeader;
+    }
+    else if(CFEqual(CFSTR("h"), extension))
+    {
+        type = CCFileTypeObjCHeader;
+    }
+    else if(CFEqual(CFSTR("m"), extension))
+    {
+        type = CCFileTypeObjC;
+    }
+    else if(CFEqual(CFSTR("mm"), extension))
+    {
+        type = CCFileTypeObjCXX;
+    }
+    else if(CFEqual(CFSTR("swift"), extension))
+    {
+        type = CCFileTypeSwift;
+    }
+    
+    CFRelease(extension);
+    return type;
+}
+
 CFURLRef CCFileGetFileURL(CCFileRef file)
 {
     return file->fileURL;

@@ -53,24 +53,6 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args
 {
-    
-    NSString *extension = [_file.fileURL pathExtension];
-    
-    if([extension isEqualToString:@"h"])
-    {
-        args = [args arrayByAddingObjectsFromArray:@[
-            @"-x",
-            @"objective-c-header"
-        ]];
-    }
-    else if([extension isEqualToString:@"hpp"])
-    {
-        args = [args arrayByAddingObjectsFromArray:@[
-            @"-x",
-            @"c++-header"
-        ]];
-    }
-    
     /* getting data from content (dont allow lossy conversion, because otherwise chineese, japanese, etc users are pissed off)*/
     NSData *newData = [content dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO];
     if(!newData)

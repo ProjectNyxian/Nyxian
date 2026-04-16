@@ -54,4 +54,16 @@ typedef CF_ENUM(uint8_t, CCJobType) {
     CCJobTypeUnknown
 };
 
+typedef CF_ENUM(uint8_t, CCFileType) {
+    CCFileTypeC = 0,
+    CCFileTypeCXX,
+    CCFileTypeObjC,
+    CCFileTypeObjCXX,
+    CCFileTypeCHeader,
+    CCFileTypeCXXHeader,
+    CCFileTypeObjCHeader,
+    CCFileTypeSwift,
+    CCFileTypeUnknown
+};
+
 #endif /* CCBASE_H */

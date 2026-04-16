@@ -217,6 +217,27 @@ CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
     return (CCASTUnitRef)unit;
 }
 
+static const char *_CCASTUnitLangFlagForFile(CCFileRef file)
+{
+    switch(CCFileGetType(file))
+    {
+        case CCFileTypeC:
+            return "c";
+        case CCFileTypeObjC:
+            return "objective-c";
+        case CCFileTypeCXX:
+            return "c++";
+        case CCFileTypeObjCXX:
+            return "objective-c++";
+        case CCFileTypeCXXHeader:
+            return "c++-header";
+        case CCFileTypeObjCHeader:
+            return "objective-c-header";
+        default:
+            return nullptr;
+    }
+}
+
 Boolean CCASTUnitReparse(CCMutableASTUnitRef mutableUnit)
 {
     assert(mutableUnit->isMutable);
@@ -324,6 +345,13 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
     }
     mutableUnit->BaseArgs.clear();
     mutableUnit->BaseArgs.push_back("clang");
+    
+    const char *lang = _CCASTUnitLangFlagForFile(mutableUnit->file);
+    if(lang)
+    {
+        mutableUnit->BaseArgs.push_back("-x");
+        mutableUnit->BaseArgs.push_back(lang);
+    }
     
     /*
      * silencing those weird linker warnings
