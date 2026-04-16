@@ -80,8 +80,6 @@
             [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self platformMinimumVersion]]],
             @"-isysroot",
             [[Bootstrap shared] sdkPath],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/SubFrameworks"]],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/PrivateFrameworks"]],
             @"-resource-dir",
             [[Bootstrap shared] bootstrapPath:@"/Include"]
         ]];
@@ -113,8 +111,6 @@
             @"arm64",
             @"-syslibroot",
             [[Bootstrap shared] sdkPath],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/SubFrameworks"]],
-            [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/PrivateFrameworks"]],
             [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]]
         ]];
         
@@ -162,8 +158,6 @@
         @"apple-arm64-ios26.4",
         @"-isysroot",
         [[Bootstrap shared] sdkPath],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/SubFrameworks"]],
-        [@"-F" stringByAppendingString:[[Bootstrap shared] sdkPath:@"/System/Library/PrivateFrameworks"]],
         @"-resource-dir",
         [[Bootstrap shared] bootstrapPath:@"/Include"]
     ];
@@ -323,8 +317,6 @@
                     @"arm64-apple-ios$(LDEMinimumVersion)",
                     @"-isysroot",
                     @"$(SDKROOT)",
-                    @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                    @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                     @"-resource-dir",
                     @"$(BSROOT)/Include",
                     @"-fobjc-arc"
@@ -338,8 +330,6 @@
                     @"arm64",
                     @"-syslibroot",
                     @"$(SDKROOT)",
-                    @"-F$(SDKROOT)/System/Library/SubFrameworks",
-                    @"-F$(SDKROOT)/System/Library/PrivateFrameworks",
                     @"-L$(BSROOT)/lib",
                     @"-ObjC",
                     @"-lc",
