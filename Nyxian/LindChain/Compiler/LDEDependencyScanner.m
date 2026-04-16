@@ -19,31 +19,24 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/CoreCompiler/CCCompiler.h>
+#import <LindChain/Compiler/LDEDependencyScanner.h>
+#import <LindChain/CoreCompiler/CCDependencyScanner.h>
 
-@implementation LDECompiler
+@implementation LDEDependencyScanner
 
-+ (LDEASTUnit*)executeJob:(LDEJob*)job
++ (void)load
 {
-    return (__bridge_transfer LDEASTUnit*)CCCompilerJobExecute((__bridge CCJobRef)job);
+    _CFRuntimeBridgeClasses(CCDependencyScannerGetTypeID(), "LDEDependencyScanner");
 }
 
-+ (BOOL)executeJob:(LDEJob*)job
-    outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic
++ (instancetype)dependencyScannerWithArguments:(NSArray<NSString*>*)arguments
 {
-    LDEASTUnit *unit = [self executeJob:job];
-    
-    if(outDiagnostic != nil)
-    {
-        *outDiagnostic = unit.diagnostics;
-    }
-    
-    return !unit.hasErrorOccured;
+    return (__bridge_transfer LDEDependencyScanner*)CCDependencyScannerCreate(kCFAllocatorDefault, (__bridge CFArrayRef)arguments);
+}
+
+- (NSArray<LDEFile*>*)headerFilesForFile:(LDEFile*)file
+{
+    return (__bridge_transfer NSArray<LDEFile*>*)CCDependencyScannerCopyDependencyFilesForFile((__bridge CCDependencyScannerRef)self, (__bridge CCFileRef)file);
 }
 
 @end

@@ -19,31 +19,18 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#import <LindChain/Compiler/LDECompiler.h>
-#import <LindChain/CoreCompiler/CCCompiler.h>
+#ifndef CCDEPENDENCYSCANNER_H
+#define CCDEPENDENCYSCANNER_H
 
-@implementation LDECompiler
+#include <LindChain/CoreCompiler/CCBase.h>
+#include <LindChain/CoreCompiler/CCFile.h>
 
-+ (LDEASTUnit*)executeJob:(LDEJob*)job
-{
-    return (__bridge_transfer LDEASTUnit*)CCCompilerJobExecute((__bridge CCJobRef)job);
-}
+typedef struct opaque_ccdependencyscanner *CCDependencyScannerRef;
 
-+ (BOOL)executeJob:(LDEJob*)job
-    outDiagnostics:(NSArray<LDEDiagnostic*>**)outDiagnostic
-{
-    LDEASTUnit *unit = [self executeJob:job];
-    
-    if(outDiagnostic != nil)
-    {
-        *outDiagnostic = unit.diagnostics;
-    }
-    
-    return !unit.hasErrorOccured;
-}
+CC_EXPORT CFTypeID CCDependencyScannerGetTypeID(void);
 
-@end
+CC_EXPORT CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef allocator, CFArrayRef arguments);
+
+CC_EXPORT CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef dependencyScanner, CCFileRef file);
+
+#endif /* CCDEPENDENCYSCANNER_H */

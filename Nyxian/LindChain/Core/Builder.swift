@@ -61,6 +61,17 @@ class Builder: NSObject, LDEDriverDelegate {
         super.init()
         
         let driver: LDEDriver = LDEDriver(arguments: driverFlags)
+        let dependencyScanner: LDEDependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags as! [String])
+        
+        for item in codeFiles {
+            let file = LDEFile(url: URL(fileURLWithPath: item))
+            let headers: [LDEFile] = dependencyScanner.headerFiles(for: file)
+            
+            for header in headers {
+                print("\(header.fileURL!)")
+            }
+        }
+        
         driver.delegate = self
         
         let jobs: [LDEJob] = driver.generateJobs()

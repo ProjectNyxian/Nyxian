@@ -22,27 +22,15 @@
 #ifndef LDEDEPENDENCYSCANNER_H
 #define LDEDEPENDENCYSCANNER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#import <LindChain/Compiler/LDECFType.h>
+#import <LindChain/Compiler/LDEFile.h>
 
-typedef struct {
-    char **headers;
-    int count;
-    bool failed;
-    char *errorMsg;
-} dependency_scan_result_t;
+@interface LDEDependencyScanner : LDECFType
 
-typedef struct opaque_scan_service *dependency_scan_service_t;
++ (instancetype)dependencyScannerWithArguments:(NSArray<NSString*>*)arguments;
 
-dependency_scan_service_t CreateScanService(int argc, const char **argv);
-void FreeScanService(dependency_scan_service_t svc);
+- (NSArray<LDEFile*>*)headerFilesForFile:(LDEFile*)file;
 
-dependency_scan_result_t ScanDependencies(dependency_scan_service_t svc, const char *inputFilePath);
-void FreeScanResult(dependency_scan_result_t result);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+@end
 
 #endif /* LDEDEPENDENCYSCANNER_H */
