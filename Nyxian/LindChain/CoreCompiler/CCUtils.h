@@ -23,7 +23,17 @@
 #define CCUTILS_H
 
 #include <LindChain/CoreCompiler/CCBase.h>
+#if __cplusplus
+#include <llvm/Support/Threading.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CrashRecoveryContext.h>
+#endif /* __cplusplus */
 
 CC_EXPORT CFIndex CCGetMaximumPerformanceCores(void);
+
+#if __cplusplus
+CC_CXX_EXPORT llvm::SmallVector<std::string, 64> CCArrayToStringVector(CFArrayRef array);
+CC_CXX_EXPORT llvm::SmallVector<const char *, 64> StringVectorToCStrings(const llvm::SmallVector<std::string, 64> &vec);
+#endif /* __cplusplus */
 
 #endif /* CCUTILS_H */

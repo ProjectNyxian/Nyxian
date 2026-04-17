@@ -20,6 +20,7 @@
 */
 
 #include <LindChain/CoreCompiler/CCDriver.h>
+#include <LindChain/CoreCompiler/CCUtils.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Basic/SourceManager.h>
@@ -104,25 +105,9 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator,
         return nullptr;
     }
     
-    CFIndex count = CFArrayGetCount(arguments);
-    
-    new (&driverRef->argStorage) llvm::SmallVector<std::string, 64>();
-    driverRef->argStorage.reserve(count);
-    for(CFIndex i = 0; i < count; i++)
-    {
-        CFStringRef arg = (CFStringRef)CFArrayGetValueAtIndex(arguments, i);
-        
-        if(CFStringGetLength(arg) == 0)
-        {
-            continue;
-        }
-        
-        CFIndex len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(arg), kCFStringEncodingUTF8) + 1;
-        driverRef->argStorage.push_back(std::string(len, '\0'));
-        CFStringGetCString(arg, driverRef->argStorage.back().data(), len, kCFStringEncodingUTF8);
-        driverRef->argStorage.back().resize(strlen(driverRef->argStorage.back().c_str()));
-    }
-    
+    driverRef->argStorage = CCArrayToStringVector(arguments);
+    driverRef->argStorage.insert(driverRef->argStorage.begin(), "-fuse-ld=lld");
+    driverRef->argStorage.insert(driverRef->argStorage.begin(), "clang");
     driverRef->outputPathCallbackContext = nullptr;
     
     /* setting up clang driver */
@@ -169,14 +154,7 @@ static CCJobType _CCJobTypeGetFromCommand(const clang::driver::Command *Cmd)
 
 CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
 {
-    llvm::SmallVector<const char *, 64> Args;
-    Args.reserve(driver->argStorage.size() + 2);
-    Args.push_back("clang");
-    Args.push_back("-fuse-ld=lld"); /* forcing LLD instead of GNU's eww linker */
-    for(const std::string &s : driver->argStorage)
-    {
-        Args.push_back(s.c_str());
-    }
+    llvm::SmallVector<const char *, 64> Args = StringVectorToCStrings(driver->argStorage);
     
     driver->compilation.reset(driver->driver->BuildCompilation(Args));
     

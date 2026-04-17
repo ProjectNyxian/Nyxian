@@ -19,6 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/CoreCompiler/CCBase.h>
 #include <LindChain/CoreCompiler/CCUtils.h>
 #include <llvm/Support/Threading.h>
 #include <llvm/Support/TargetSelect.h>
@@ -27,6 +28,41 @@
 CFIndex CCGetMaximumPerformanceCores(void)
 {
     return llvm::heavyweight_hardware_concurrency().compute_thread_count();
+}
+
+llvm::SmallVector<std::string, 64> CCArrayToStringVector(CFArrayRef array)
+{
+    llvm::SmallVector<std::string, 64> result;
+    CFIndex count = CFArrayGetCount(array);
+    result.reserve(count);
+    
+    for(CFIndex i = 0; i < count; i++)
+    {
+        CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(array, i);
+        if(str == nullptr)
+        {
+            continue;
+        }
+        
+        CFIndex len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(str), kCFStringEncodingUTF8) + 1;
+        std::string s(len, '\0');
+        CFStringGetCString(str, s.data(), len, kCFStringEncodingUTF8);
+        s.resize(strlen(s.c_str()));
+        result.push_back(std::move(s));
+    }
+    
+    return result;
+}
+
+llvm::SmallVector<const char *, 64> StringVectorToCStrings(const llvm::SmallVector<std::string, 64> &vec)
+{
+    llvm::SmallVector<const char *, 64> result;
+    result.reserve(vec.size());
+    for(const std::string &s : vec)
+    {
+        result.push_back(s.c_str());
+    }
+    return result;
 }
 
 static void NyxLLVMErrorHandler(void *userData, const char *reason, bool genCrashDiag)
