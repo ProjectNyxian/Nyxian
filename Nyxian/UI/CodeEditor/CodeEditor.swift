@@ -26,6 +26,7 @@ import TreeSitterC
 import TreeSitterObjc
 import TreeSitterXML
 import TreeSitterCPP
+import TreeSitterSwift
 import GameController
 
 func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
@@ -216,6 +217,10 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterXML_TreeSitterXML.bundle/xml/highlights.scm")
             ])
             break
+        case "swift":
+            loadLanguage(language: tree_sitter_swift(), highlightsURL: [
+                URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterSwift_TreeSitterSwift.bundle/queries/highlights.scm")
+            ])
         default:
             break
         }

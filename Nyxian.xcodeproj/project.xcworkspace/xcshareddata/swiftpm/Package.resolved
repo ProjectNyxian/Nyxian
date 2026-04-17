@@ -1,5 +1,5 @@
 {
-  "originHash" : "6810c71c7e2c1ae607535e5cb948bb35ac8077f1557f481671a24c824ebc791f",
+  "originHash" : "770c8143f663bf2d9687ae93d0ddfb8cee5d24ac48558a8e6afe0be4533d105e",
   "pins" : [
     {
       "identity" : "runestone",
@@ -62,6 +62,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "181a81b8f23a2d593e7ab4259981f50122909fda"
+      }
+    },
+    {
+      "identity" : "tree-sitter-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ProjectNyxian/tree-sitter-swift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "5e12e0b6d90d518ff27039dd01f3da7db88fd072"
       }
     },
     {
