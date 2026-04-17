@@ -59,7 +59,7 @@ static const void *LDEDriverDelegateKey = &LDEDriverDelegateKey;
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments
 {
-    return (__bridge_transfer LDEDriver*)CCDriverCreate(kCFAllocatorDefault, (__bridge CFArrayRef)arguments);
+    return (__bridge_transfer LDEDriver*)CCDriverCreate(kCFAllocatorSystemDefault, (__bridge CFArrayRef)arguments);
 }
 
 - (NSArray<LDEJob*>*)generateJobs

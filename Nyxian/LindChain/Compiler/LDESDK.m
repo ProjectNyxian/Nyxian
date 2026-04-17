@@ -31,7 +31,7 @@
 
 + (instancetype)sdkForFileURL:(NSURL*)fileURL
 {
-    return (__bridge_transfer LDESDK*)CCSDKCreateWithFileURL(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
+    return (__bridge_transfer LDESDK*)CCSDKCreateWithFileURL(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL);
 }
 
 - (NSString*)version

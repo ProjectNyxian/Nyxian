@@ -65,13 +65,13 @@ static CFStringRef CCFileCopyFormattingDesc(CFTypeRef cf,
                                             CFDictionaryRef options)
 {
     CCFileRef fileRef = (CCFileRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@"), fileRef->fileURL);
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@"), fileRef->fileURL);
 }
 
 static CFStringRef CCFileCopyDebugDesc(CFTypeRef cf)
 {
     CCFileRef fileRef = (CCFileRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCFile %p: fileURL=%@>"), cf, fileRef->fileURL);
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CCFile %p: fileURL=%@>"), cf, fileRef->fileURL);
 }
 
 static const CFRuntimeClass gCCFileClass = {

@@ -31,7 +31,7 @@
 + (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL
                            withSourceLocation:(CCSourceLocation)location
 {
-    return (__bridge_transfer LDEFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorDefault, (__bridge CFURLRef)fileURL, location);
+    return (__bridge_transfer LDEFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL, location);
 }
 
 - (NSURL*)fileURL

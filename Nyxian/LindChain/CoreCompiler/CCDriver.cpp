@@ -93,7 +93,8 @@ CFTypeID CCDriverGetTypeID(void)
     return gCCDriverTypeID;
 }
 
-CCDriverRef CCDriverCreate(CFAllocatorRef allocator, CFArrayRef arguments)
+CCDriverRef CCDriverCreate(CFAllocatorRef allocator,
+                           CFArrayRef arguments)
 {
     assert(arguments != nullptr);
     
@@ -187,7 +188,8 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
     /* getting jobs */
     const auto &Jobs = driver->compilation->getJobs();
     
-    CFMutableArrayRef jobsArray = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    CFAllocatorRef allocator = CFGetAllocator(driver);
+    CFMutableArrayRef jobsArray = CFArrayCreateMutable(allocator, 0, &kCFTypeArrayCallBacks);
     
     /* checking job properties */
     for(auto &Job : Jobs)
@@ -201,14 +203,14 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
         CCJobType type = _CCJobTypeGetFromCommand(&Cmd);
         
         const llvm::opt::ArgStringList &cmdArgs = Cmd.getArguments();
-        CFMutableArrayRef argsArray = CFArrayCreateMutable(kCFAllocatorDefault, cmdArgs.size(), &kCFTypeArrayCallBacks);
+        CFMutableArrayRef argsArray = CFArrayCreateMutable(allocator, cmdArgs.size(), &kCFTypeArrayCallBacks);
         for(const char *arg : cmdArgs)
         {
             if(!arg)
             {
                 continue;
             }
-            CFStringRef s = CFStringCreateWithCString(kCFAllocatorDefault, arg, kCFStringEncodingUTF8);
+            CFStringRef s = CFStringCreateWithCString(allocator, arg, kCFStringEncodingUTF8);
             if(s)
             {
                 CFArrayAppendValue(argsArray, s);
@@ -216,7 +218,7 @@ CFArrayRef CCDriverCopyJobs(CCDriverRef driver)
             }
         }
         
-        CCJobRef jobRef = CCJobCreate(kCFAllocatorDefault, type, argsArray);
+        CCJobRef jobRef = CCJobCreate(allocator, type, argsArray);
         CFRelease(argsArray);
         
         if(jobRef)
@@ -279,13 +281,14 @@ CFURLRef CCDriverCopySysrootURL(CCDriverRef driver)
     
     const char *sysroot = cxxstr.c_str();
     
-    CFStringRef str = CFStringCreateWithCString(kCFAllocatorDefault, sysroot, kCFStringEncodingUTF8);
+    CFAllocatorRef allocator = CFGetAllocator(driver);
+    CFStringRef str = CFStringCreateWithCString(allocator, sysroot, kCFStringEncodingUTF8);
     if(str == nullptr)
     {
         return nullptr;
     }
     
-    CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, str, kCFURLPOSIXPathStyle, true);
+    CFURLRef url = CFURLCreateWithFileSystemPath(allocator, str, kCFURLPOSIXPathStyle, true);
     CFRelease(str);
     return url;
 }
@@ -298,7 +301,7 @@ CCSDKRef CCDriverCopySDK(CCDriverRef driver)
         return nullptr;
     }
     
-    CCSDKRef sdk = CCSDKCreateWithFileURL(kCFAllocatorDefault, sdkRoot);
+    CCSDKRef sdk = CCSDKCreateWithFileURL(CFGetAllocator(driver), sdkRoot);
     CFRelease(sdkRoot);
     return sdk;
 }

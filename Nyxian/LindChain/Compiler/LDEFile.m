@@ -34,18 +34,18 @@
 
 + (instancetype)fileWithURL:(NSURL*)fileURL
 {
-    return (__bridge_transfer LDEFile*)CCFileCreate(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
+    return (__bridge_transfer LDEFile*)CCFileCreate(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL);
 }
 
 + (instancetype)fileWithPath:(NSString*)filePath
 {
-    return (__bridge_transfer LDEFile*)CCFileCreateWithFilePath(kCFAllocatorDefault, (__bridge CFStringRef)filePath);
+    return (__bridge_transfer LDEFile*)CCFileCreateWithFilePath(kCFAllocatorSystemDefault, (__bridge CFStringRef)filePath);
 }
 
 + (instancetype)fileWithCString:(const char*)path
                        encoding:(NSStringEncoding)encoding
 {
-    return (__bridge_transfer LDEFile*)CCFileCreateWithCString(kCFAllocatorDefault, path, CFStringConvertNSStringEncodingToEncoding(encoding));
+    return (__bridge_transfer LDEFile*)CCFileCreateWithCString(kCFAllocatorSystemDefault, path, CFStringConvertNSStringEncodingToEncoding(encoding));
 }
 
 - (NSURL*)fileURL
@@ -65,12 +65,12 @@
 
 - (nonnull id)copyWithZone:(nullable NSZone *)zone
 {
-    return (__bridge_transfer LDEFile*)CCFileCreateCopy(kCFAllocatorDefault, (__bridge CCFileRef)self);
+    return (__bridge_transfer LDEFile*)CCFileCreateCopy(kCFAllocatorSystemDefault, (__bridge CCFileRef)self);
 }
 
 - (nonnull id)mutableCopyWithZone:(nullable NSZone *)zone
 {
-    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableCopy(kCFAllocatorDefault, (__bridge CCFileRef)self);
+    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableCopy(kCFAllocatorSystemDefault, (__bridge CCFileRef)self);
     object_setClass(obj, [LDEMutableFile class]);
     return (LDEMutableFile *)obj;
 }
@@ -84,7 +84,7 @@
 
 + (instancetype)fileWithURL:(NSURL*)fileURL
 {
-    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutable(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
+    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutable(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL);
     object_setClass(obj, [LDEMutableFile class]);
     return (LDEMutableFile *)obj;
 }
@@ -92,7 +92,7 @@
 + (instancetype)fileWithURL:(NSURL*)fileURL
             withUnsavedData:(NSData*)unsavedData
 {
-    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableWithUnsavedData(kCFAllocatorDefault, (__bridge CFURLRef)fileURL, (__bridge CFDataRef)unsavedData);
+    LDEFile *obj = (__bridge_transfer LDEFile*)CCFileCreateMutableWithUnsavedData(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL, (__bridge CFDataRef)unsavedData);
     object_setClass(obj, [LDEMutableFile class]);
     return (LDEMutableFile *)obj;
 }

@@ -83,7 +83,8 @@ Boolean CCLinkerJobExecute(CCJobRef job,
     if(outDiagnostics != nullptr)
     {
         /* process error returns */
-        CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorDefault, diagnostics.size(), &kCFTypeArrayCallBacks);
+        CFAllocatorRef allocator = CFGetAllocator(job);
+        CFMutableArrayRef result = CFArrayCreateMutable(allocator, diagnostics.size(), &kCFTypeArrayCallBacks);
         if(result == nullptr)
         {
             return retCode == 0;
@@ -91,8 +92,8 @@ Boolean CCLinkerJobExecute(CCJobRef job,
         
         for(auto it = diagnostics.begin(); it != diagnostics.end(); ++it)
         {
-            CFStringRef message = CFStringCreateWithCString(kCFAllocatorDefault, it->message.c_str(), kCFStringEncodingUTF8);
-            CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(kCFAllocatorDefault, CCDiagnosticTypeInternal, (it->kind == LDDiagnostic::Kind::Error) ? CCDiagnosticLevelError : CCDiagnosticLevelWarning, nullptr, message);
+            CFStringRef message = CFStringCreateWithCString(allocator, it->message.c_str(), kCFStringEncodingUTF8);
+            CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(allocator, CCDiagnosticTypeInternal, (it->kind == LDDiagnostic::Kind::Error) ? CCDiagnosticLevelError : CCDiagnosticLevelWarning, nullptr, message);
             CFRelease(message);
             if(diagnosticRef != nullptr)
             {

@@ -102,9 +102,11 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
         return false;
     }
     
+    CFAllocatorRef allocator = CFGetAllocator(mutableUnit);
+    
     /* now parse the diagnostics */
     CFIndex count = mutableUnit->unit->stored_diag_size();
-    CFMutableArrayRef diagnostics = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
+    CFMutableArrayRef diagnostics = CFArrayCreateMutable(allocator, count, &kCFTypeArrayCallBacks);
     if(diagnostics == nullptr)
     {
         return false;
@@ -134,8 +136,8 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
             }
             
             const char *fileName = loc.getFilename();
-            CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, fileName, kCFStringEncodingUTF8);
-            fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+            CFStringRef fileStr = CFStringCreateWithCString(allocator, fileName, kCFStringEncodingUTF8);
+            fileURL = CFURLCreateWithFileSystemPath(allocator, fileStr, kCFURLPOSIXPathStyle, false);
             CFRelease(fileStr);
             
             location = CCSourceLocationMake(loc.getLine(), loc.getColumn());
@@ -146,7 +148,7 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
             location = CCSourceLocationZero;
         }
         
-        message = CFStringCreateWithCString(kCFAllocatorDefault, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);
+        message = CFStringCreateWithCString(allocator, diag.getMessage().str().c_str(), kCFStringEncodingUTF8);
         
         switch(diag.getLevel())
         {
@@ -170,8 +172,8 @@ Boolean _CCASTUnitRefillDiagnosticArray(CCMutableASTUnitRef mutableUnit)
                 break;
         }
         
-        CCFileSourceLocationRef fileSourceLocation = CCFileSourceLocationCreate(kCFAllocatorDefault, fileURL, location);
-        CCDiagnosticRef result = CCDiagnosticCreate(kCFAllocatorDefault, type, level, fileSourceLocation, message);
+        CCFileSourceLocationRef fileSourceLocation = CCFileSourceLocationCreate(allocator, fileURL, location);
+        CCDiagnosticRef result = CCDiagnosticCreate(allocator, type, level, fileSourceLocation, message);
         if(fileURL)
         {
             CFRelease(fileURL);
@@ -411,7 +413,7 @@ CCFileRef CCASTUnitCopyFile(CCASTUnitRef unit)
     {
         return nullptr;
     }
-    return CCFileCreateCopy(kCFAllocatorDefault, unit->file);
+    return CCFileCreateCopy(CFGetAllocator(unit), unit->file);
 }
 
 Boolean CCASTUnitErrorOccured(CCASTUnitRef unit)
@@ -566,7 +568,8 @@ public:
     }
 };
 
-CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCSourceLocation location)
+CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit,
+                                                          CCSourceLocation location)
 {
     if(unit->unit == nullptr || unit->file == nullptr)
     {
@@ -650,12 +653,13 @@ CCFileSourceLocationRef CCASTUnitCopyDefinitionAtLocation(CCASTUnitRef unit, CCS
         return nullptr;
     }
     
-    CFStringRef fileStr = CFStringCreateWithCString(kCFAllocatorDefault, presumed.getFilename(), kCFStringEncodingUTF8);
-    CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, fileStr, kCFURLPOSIXPathStyle, false);
+    CFAllocatorRef allocator = CFGetAllocator(unit);
+    CFStringRef fileStr = CFStringCreateWithCString(allocator, presumed.getFilename(), kCFStringEncodingUTF8);
+    CFURLRef fileURL = CFURLCreateWithFileSystemPath(allocator, fileStr, kCFURLPOSIXPathStyle, false);
     CFRelease(fileStr);
     
     CCSourceLocation resultLoc = CCSourceLocationMake(presumed.getLine(), presumed.getColumn());
-    CCFileSourceLocationRef result = CCFileSourceLocationCreate(kCFAllocatorDefault, fileURL, resultLoc);
+    CCFileSourceLocationRef result = CCFileSourceLocationCreate(allocator, fileURL, resultLoc);
     CFRelease(fileURL);
     return result;
 }

@@ -34,7 +34,7 @@
                            message:(NSString *)message
 {
     /* FIXME: will crash without message */
-    return (__bridge_transfer LDEDiagnostic*)CCDiagnosticCreate(kCFAllocatorDefault, type, level, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
+    return (__bridge_transfer LDEDiagnostic*)CCDiagnosticCreate(kCFAllocatorSystemDefault, type, level, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
 }
 
 - (CCDiagnosticType)type

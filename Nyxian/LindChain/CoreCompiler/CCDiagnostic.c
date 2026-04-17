@@ -101,15 +101,15 @@ static CFStringRef CCDiagnosticCopyFormattingDesc(CFTypeRef cf, CFDictionaryRef 
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
     if(diagnostic->type != CCDiagnosticTypeInternal)
     {
-        return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@: \"%@\""), diagnostic->fileSourceLocation, diagnostic->message);
+        return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@: \"%@\""), diagnostic->fileSourceLocation, diagnostic->message);
     }
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<internal>: \"%@\""), diagnostic->message);
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<internal>: \"%@\""), diagnostic->message);
 }
 
 static CFStringRef CCDiagnosticCopyDebugDesc(CFTypeRef cf)
 {
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)cf;
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("<CCDiagnostic %p: location=%@ message=\"%@\">"), cf, diagnostic->fileSourceLocation, diagnostic->message);
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CCDiagnostic %p: location=%@ message=\"%@\">"), cf, diagnostic->fileSourceLocation, diagnostic->message);
 }
 
 static const CFRuntimeClass gCCDiagnosticClass = {

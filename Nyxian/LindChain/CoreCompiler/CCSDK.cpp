@@ -125,5 +125,5 @@ CFStringRef CCSDKCopyVersion(CCSDKRef sdk)
         return nullptr;
     }
     
-    return CFStringCreateWithCString(kCFAllocatorDefault, versionCStr, kCFStringEncodingUTF8);
+    return CFStringCreateWithCString(CFGetAllocator(sdk), versionCStr, kCFStringEncodingUTF8);
 }

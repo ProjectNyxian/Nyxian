@@ -59,7 +59,7 @@
 
 + (instancetype)unit
 {
-    LDEASTUnit *obj = (__bridge_transfer LDEASTUnit*)CCASTUnitCreateMutable(kCFAllocatorDefault);
+    LDEASTUnit *obj = (__bridge_transfer LDEASTUnit*)CCASTUnitCreateMutable(kCFAllocatorSystemDefault);
     object_setClass(obj, [LDEMutableASTUnit class]);
     return (LDEMutableASTUnit *)obj;
 }

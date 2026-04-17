@@ -31,7 +31,7 @@
 
 + (instancetype)dependencyScannerWithArguments:(NSArray<NSString*>*)arguments
 {
-    return (__bridge_transfer LDEDependencyScanner*)CCDependencyScannerCreate(kCFAllocatorDefault, (__bridge CFArrayRef)arguments);
+    return (__bridge_transfer LDEDependencyScanner*)CCDependencyScannerCreate(kCFAllocatorSystemDefault, (__bridge CFArrayRef)arguments);
 }
 
 - (NSArray<LDEFile*>*)headerFilesForFile:(LDEFile*)file

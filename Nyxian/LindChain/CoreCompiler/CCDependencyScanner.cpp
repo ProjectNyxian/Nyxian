@@ -179,7 +179,7 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
         return nullptr;
     }
     
-    CFMutableArrayRef headers = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    CFMutableArrayRef headers = CFArrayCreateMutable(CFGetAllocator(dependencyScanner), 0, &kCFTypeArrayCallBacks);
     if(headers == nullptr)
     {
         return nullptr;
@@ -189,6 +189,7 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
     llvm::SmallVector<llvm::StringRef, 32> tokens;
     remaining.split(tokens, ' ', -1, false);
     
+    CFAllocatorRef allocator = CFGetAllocator(dependencyScanner);
     bool first = true;
     for(llvm::StringRef token : tokens)
     {
@@ -199,19 +200,19 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
         if(!dependencyScanner->resourceDir.empty() && token.starts_with(dependencyScanner->resourceDir)) continue;
         
         std::string tokenStr = token.str();
-        CFStringRef stringRef = CFStringCreateWithCString(kCFAllocatorDefault, tokenStr.c_str(), kCFStringEncodingUTF8);
+        CFStringRef stringRef = CFStringCreateWithCString(allocator, tokenStr.c_str(), kCFStringEncodingUTF8);
         if(stringRef == nullptr)
         {
             continue;
         }
         
-        CFURLRef fileURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, stringRef, kCFURLPOSIXPathStyle, false);
+        CFURLRef fileURL = CFURLCreateWithFileSystemPath(allocator, stringRef, kCFURLPOSIXPathStyle, false);
         if(fileURL == nullptr)
         {
             continue;
         }
         
-        CCFileRef file = CCFileCreate(kCFAllocatorDefault, fileURL);
+        CCFileRef file = CCFileCreate(allocator, fileURL);
         if(file == nullptr)
         {
             continue;

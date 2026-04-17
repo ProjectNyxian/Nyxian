@@ -31,7 +31,7 @@
 + (instancetype)jobWithType:(CCJobType)type
               withArguments:(NSArray<NSString*>*)arguments
 {
-    return (__bridge_transfer LDEJob*)CCJobCreate(kCFAllocatorDefault, type, (__bridge CFArrayRef)arguments);
+    return (__bridge_transfer LDEJob*)CCJobCreate(kCFAllocatorSystemDefault, type, (__bridge CFArrayRef)arguments);
 }
 
 - (CCJobType)type
