@@ -66,6 +66,8 @@ class FileIcon: UIView {
         
         if entry.type == .file {
             switch ext {
+            case "swift":
+                configureImageIcon(name: "swift", tintColor: .systemOrange)
             case "c":
                 configureTextIcon(text: "c", color: .systemPurple)
             case "h":
@@ -78,7 +80,7 @@ class FileIcon: UIView {
                 configureTextIcon(text: "m", color: .systemPurple)
             case "mm":
                 configureStackedIcon(base: "m", color: .systemBlue)
-            case "plist":
+            case "plist","xml":
                 configureImageIcon(name: "tablecells.fill")
             case "zip", "tar", "zst":
                 configureImageIcon(name: "archivebox.fill")
