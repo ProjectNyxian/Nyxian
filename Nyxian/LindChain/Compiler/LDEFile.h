@@ -32,6 +32,8 @@
 @property (nonatomic, readonly) CCFileType type;
 
 + (instancetype)fileWithURL:(NSURL*)fileURL;
++ (instancetype)fileWithPath:(NSString*)filePath;
++ (instancetype)fileWithCString:(const char*)path encoding:(NSStringEncoding)encoding;
 
 @end
 

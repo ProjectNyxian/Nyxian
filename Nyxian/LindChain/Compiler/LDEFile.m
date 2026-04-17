@@ -37,6 +37,17 @@
     return (__bridge_transfer LDEFile*)CCFileCreate(kCFAllocatorDefault, (__bridge CFURLRef)fileURL);
 }
 
++ (instancetype)fileWithPath:(NSString*)filePath
+{
+    return (__bridge_transfer LDEFile*)CCFileCreateWithFilePath(kCFAllocatorDefault, (__bridge CFStringRef)filePath);
+}
+
++ (instancetype)fileWithCString:(const char*)path
+                       encoding:(NSStringEncoding)encoding
+{
+    return (__bridge_transfer LDEFile*)CCFileCreateWithCString(kCFAllocatorDefault, path, CFStringConvertNSStringEncodingToEncoding(encoding));
+}
+
 - (NSURL*)fileURL
 {
     return (__bridge NSURL*)CCFileGetFileURL((__bridge void *)self);

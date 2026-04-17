@@ -116,6 +116,35 @@ CCFileRef CCFileCreate(CFAllocatorRef allocator,
     return file;
 }
 
+CCFileRef CCFileCreateWithFilePath(CFAllocatorRef allocator,
+                                   CFStringRef filePath)
+{
+    CFURLRef fileURL = CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLPOSIXPathStyle, false); /* its never a directory if it's a CCFileRef */
+    if(fileURL == nil)
+    {
+        return nil;
+    }
+    
+    CCFileRef file = CCFileCreate(allocator, fileURL);
+    CFRelease(fileURL);
+    return file;
+}
+
+CCFileRef CCFileCreateWithCString(CFAllocatorRef allocator,
+                                  const char *path,
+                                  CFStringEncoding encoding)
+{
+    CFStringRef filePath = CFStringCreateWithCString(allocator, path, encoding);
+    if(filePath == nil)
+    {
+        return nil;
+    }
+    
+    CCFileRef file = CCFileCreateWithFilePath(allocator, filePath);
+    CFRelease(filePath);
+    return file;
+}
+
 CCMutableFileRef CCFileCreateMutable(CFAllocatorRef allocator,
                                      CFURLRef fileURL)
 {
