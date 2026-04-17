@@ -105,15 +105,7 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         }
         
         const char *originalInputFileNameCStr = originalInputFileName.c_str();
-        
-        CFStringRef str = CFStringCreateWithCString(allocator, originalInputFileNameCStr, kCFStringEncodingUTF8);
-        if(str == nullptr)
-        {
-            goto out_failed_file;
-        }
-        
-        CFURLRef fileURL = CFURLCreateWithFileSystemPath(allocator, str, kCFURLPOSIXPathStyle, true);
-        sourceFile = CCFileCreate(allocator, fileURL);
+        sourceFile = CCFileCreateWithCString(allocator, originalInputFileNameCStr, kCFStringEncodingUTF8);
     }
     
     /* creating error string */

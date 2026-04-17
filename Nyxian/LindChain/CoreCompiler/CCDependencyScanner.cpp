@@ -200,19 +200,7 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
         if(!dependencyScanner->resourceDir.empty() && token.starts_with(dependencyScanner->resourceDir)) continue;
         
         std::string tokenStr = token.str();
-        CFStringRef stringRef = CFStringCreateWithCString(allocator, tokenStr.c_str(), kCFStringEncodingUTF8);
-        if(stringRef == nullptr)
-        {
-            continue;
-        }
-        
-        CFURLRef fileURL = CFURLCreateWithFileSystemPath(allocator, stringRef, kCFURLPOSIXPathStyle, false);
-        if(fileURL == nullptr)
-        {
-            continue;
-        }
-        
-        CCFileRef file = CCFileCreate(allocator, fileURL);
+        CCFileRef file = CCFileCreateWithCString(allocator, tokenStr.c_str(), kCFStringEncodingUTF8);
         if(file == nullptr)
         {
             continue;
