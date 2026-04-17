@@ -226,10 +226,15 @@ static const char *_CCASTUnitLangFlagForFile(CCFileRef file)
     {
         case CCFileTypeC:
             return "c";
-        case CCFileTypeCHeader:
-            return "c-header";
+        /*
+         * MARK: special mapping, due to missing indexing in CoreCompiler for now
+         *
+         * case CCFileTypeCHeader:
+         *    return "c-header";
+        */
         case CCFileTypeObjC:
             return "objective-c";
+        case CCFileTypeCHeader:
         case CCFileTypeObjCHeader:
             return "objective-c-header";
         case CCFileTypeCXX:
