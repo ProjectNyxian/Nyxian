@@ -38,7 +38,7 @@ func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var document: NXDocument?
-    private(set) var path: String
+    private(set) var file: LDEFile
     private(set) var textView: TextView
     private(set) var project: NXProject?
     private(set) var synpushServer: SynpushServer?
@@ -63,7 +63,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         column: CFIndex? = nil,
         isReadOnly: Bool = false
     ) {
-        self.path = path
+        self.file = LDEFile(url: URL(fileURLWithPath: path))
         self.textView = TextView()
         
         self.project = project
@@ -71,19 +71,12 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         self.column = column
         self.isReadOnly = isReadOnly
         
-        if !isReadOnly {
-            if let project = project {
-                let cachePath = project.cachePath!
-                let suffix = (self.path as NSString).pathExtension
-                if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
-                    self.synpushServer = SynpushServer(self.path)
-                    self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
-                }
-            }
-        } else {
-            let suffix = (self.path as NSString).pathExtension
-            if ["c", "m", "cpp", "mm", "h", "hpp"].contains(suffix) {
-                self.synpushServer = SynpushServer(self.path)
+        if [CCFileType.C, CCFileType.CXX, CCFileType.objC, CCFileType.objCXX, CCFileType.cHeader, CCFileType.cxxHeader, CCFileType.objCHeader, CCFileType.objCXXHeader].contains(self.file.type) {
+            self.synpushServer = SynpushServer(self.file.fileURL.path)
+                
+            if let project = project,
+               let cachePath = project.cachePath {
+                self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
             }
         }
         
@@ -102,7 +95,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
             self.navigationController?.navigationBar.scrollEdgeAppearance = currentNavigationBarAppearance
         }
         
-        NXDocumentManager.shared().open(URL(fileURLWithPath: path)) { [weak self] doc in
+        NXDocumentManager.shared().open(URL(fileURLWithPath: self.file.fileURL.path)) { [weak self] doc in
             guard let doc = doc else {
                 self?.dismiss(animated: true)
                 return
@@ -115,7 +108,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
             }
         }
         
-        self.title = (self.path as NSString).lastPathComponent
+        self.title = self.file.fileURL.lastPathComponent
         
         if UIDevice.current.userInterfaceIdiom != .pad {
             let saveButton: UIBarButtonItem = UIBarButtonItem()
@@ -197,7 +190,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
             self.textView.setLanguageMode(languageMode)
         }
         
-        switch (self.path as NSString).pathExtension {
+        switch self.file.fileURL.pathExtension {
         case "m","h":
             loadLanguage(language: tree_sitter_objc(), highlightsURL: [
                 URL(fileURLWithPath: "\(Bundle.main.bundlePath)/TreeSitterC_TreeSitterC.bundle/queries/highlights.scm"),
@@ -254,7 +247,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
               let _ = self.synpushServer,
               let coordinator = self.coordinator else { return self.textView.text }
         
-        database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
+        database.setFileDebug(ofPath: self.file.fileURL.path, synItems: coordinator.diag)
         database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
         
         return self.textView.text
@@ -578,7 +571,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                   let _ = self.synpushServer,
                   let coordinator = self.coordinator else { return }
             
-            database.setFileDebug(ofPath: self.path, synItems: coordinator.diag)
+            database.setFileDebug(ofPath: self.file.fileURL.path, synItems: coordinator.diag)
             database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
         }
     }
@@ -720,7 +713,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     
     private func openDefinition(_ def: LDEFileSourceLocation) {
         /* check if definition is in the same file */
-        if def.fileURL.path == self.path {
+        if def.fileURL == self.file.fileURL {
             self.goto(line: def.location.line, column: def.location.column)
             return
         }
@@ -776,6 +769,6 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     }
     
     deinit {
-        NXDocumentManager.shared().close(URL(fileURLWithPath: self.path), completion: nil)
+        NXDocumentManager.shared().close(URL(fileURLWithPath: self.file.fileURL.path), completion: nil)
     }
 }

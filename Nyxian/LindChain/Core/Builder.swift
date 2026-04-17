@@ -35,8 +35,6 @@ class Builder: NSObject, LDEDriverDelegate {
     private var compilerJobs: [LDEJob] = []
     private var linkerJobs: [LDEJob] = []
     
-    private var objectFiles: [String] = []
-    
     let database: DebugDatabase
     
     let driver: LDEDriver
@@ -62,6 +60,7 @@ class Builder: NSObject, LDEDriverDelegate {
         driverFlags.append(contentsOf: codeFiles)
         driverFlags.append("-o")
         driverFlags.append(self.project.machoPath)
+        driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
         
         self.driver = LDEDriver(arguments: driverFlags)
         self.dependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
@@ -75,23 +74,17 @@ class Builder: NSObject, LDEDriverDelegate {
             switch(job.type) {
             case .compiler:
                 self.compilerJobs.append(job)
+            case .linker:
+                self.linkerJobs.append(job)
             default:
                 break
             }
         }
-        
-        var linkerFlags: [String] = self.project.projectConfig.linkerFlags
-        linkerFlags.append(contentsOf: self.objectFiles)
-        linkerFlags.append("-o")
-        linkerFlags.append(self.project.machoPath)
-        self.linkerJobs.append(LDEJob(type: .linker, withArguments: linkerFlags))
     }
     
     func driver(_ driver: LDEDriver!, outputPathForInputFile file: LDEFile!, skipCompile skip: UnsafeMutablePointer<ObjCBool>!) -> String! {
         let path: String = file.fileURL.path
         let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
-        
-        defer { self.objectFiles.append(objectPath) }
         
         if self.incrementalBuild {
             // Checking if the source file is newer than the compiled object file

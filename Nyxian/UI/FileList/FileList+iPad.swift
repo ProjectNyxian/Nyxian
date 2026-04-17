@@ -513,7 +513,7 @@ class UIButtonTab: UIButton {
             self.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        self.setTitle((vc.path as NSString).lastPathComponent, for: .normal)
+        self.setTitle((path as NSString).lastPathComponent, for: .normal)
         self.setTitleColor(currentTheme?.textColor, for: .normal)
         self.titleLabel?.font = .systemFont(ofSize: 13)
         self.contentHorizontalAlignment = .center
