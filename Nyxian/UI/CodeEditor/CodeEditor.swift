@@ -56,14 +56,17 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     
     let isReadOnly: Bool
     
-    init(
+    init?(
         project: NXProject?,
         path: String,
         line: CFIndex? = nil,
         column: CFIndex? = nil,
         isReadOnly: Bool = false
     ) {
-        self.file = LDEFile(url: URL(fileURLWithPath: path))
+        guard let file = LDEFile(path: path) else {
+            return nil
+        }
+        self.file = file
         self.textView = TextView()
         
         self.project = project
@@ -735,7 +738,9 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         
         if UIDevice.current.userInterfaceIdiom != .pad {
-            let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: def.location.line, column: def.location.column, isReadOnly: !isInsideProject)
+            guard let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: def.location.line, column: def.location.column, isReadOnly: !isInsideProject) else {
+                return
+            }
             let destEditorNav = UINavigationController(rootViewController: destEditor)
             destEditorNav.modalPresentationStyle = .pageSheet
             self.present(destEditorNav, animated: true);

@@ -279,14 +279,16 @@ class SplitScreenDetailViewController: UIViewController {
             }
         }
         
-        let button = UIButtonTab(frame: CGRect(x: 0, y: 0, width: 100, height: 100),
-                                 project: self.project,
-                                 path: path,
-                                 line: line,
-                                 column: column,
-                                 openAction: open,
-                                 closeAction: close,
-                                 isReadOnly: isReadOnly)
+        guard let button = UIButtonTab(frame: CGRect(x: 0, y: 0, width: 100, height: 100),
+                                       project: self.project,
+                                       path: path,
+                                       line: line,
+                                       column: column,
+                                       openAction: open,
+                                       closeAction: close,
+                                       isReadOnly: isReadOnly) else {
+            return
+        }
         
         self.scrollView.addArrangedSubview(button)
         self.tabs.append(button)
@@ -490,7 +492,7 @@ class UIButtonTab: UIButton {
     private var closeButton: UIButton?
     private let fileIcon: FileIcon
     
-    init(frame: CGRect,
+    init?(frame: CGRect,
          project: NXProject,
          path: String,
          line: CFIndex,
@@ -500,7 +502,12 @@ class UIButtonTab: UIButton {
          isReadOnly: Bool) {
         
         self.path = path
-        self.vc = CodeEditorViewController(project: project, path: path, line: line, column: column, isReadOnly: isReadOnly)
+        
+        guard let codeEditor = CodeEditorViewController(project: project, path: path, line: line, column: column, isReadOnly: isReadOnly) else {
+            return nil
+        }
+        
+        self.vc = codeEditor
         self.closeAction = closeAction
         
         self.fileIcon = FileIcon(withFontSize: 15)

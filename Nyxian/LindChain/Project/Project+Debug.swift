@@ -348,12 +348,16 @@ class UIDebugViewController: UITableViewController {
             NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",path,"\(item.sourceLocation.line)","\(item.sourceLocation.column)"])
             self.dismiss(animated: true)
         } else {
-            let fileVC = UINavigationController(rootViewController: CodeEditorViewController(
+            guard let codeEditor = CodeEditorViewController(
                 project: project,
                 path: path,
                 line: item.sourceLocation.line,
                 column: item.sourceLocation.column
-            ))
+            ) else {
+                return
+            }
+            
+            let fileVC = UINavigationController(rootViewController: codeEditor)
             fileVC.modalPresentationStyle = .overFullScreen
             self.present(fileVC, animated: true)
         }
