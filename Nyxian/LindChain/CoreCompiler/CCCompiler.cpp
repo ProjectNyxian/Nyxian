@@ -95,27 +95,5 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         CaptureDiagsKind::All
     );
     
-    CFAllocatorRef allocator = CFGetAllocator(job);
-    CCFileRef sourceFile = nullptr;
-    {
-        std::string originalInputFileName = ASTUnit->getOriginalSourceFileName().str();
-        if(originalInputFileName.empty())
-        {
-            goto out_failed_file;
-        }
-        
-        const char *originalInputFileNameCStr = originalInputFileName.c_str();
-        sourceFile = CCFileCreateWithCString(allocator, originalInputFileNameCStr, kCFStringEncodingUTF8);
-    }
-    
-    /* creating error string */
-out_failed_file:
-    CCASTUnitRef unit = CCASTUnitCreateWithASTUnit(allocator, std::unique_ptr<clang::ASTUnit>(ASTUnit), sourceFile);
-    
-    if(sourceFile != nullptr)
-    {
-        CFRelease(sourceFile);
-    }
-    
-    return unit;
+    return  CCASTUnitCreateWithASTUnit(CFGetAllocator(job), std::unique_ptr<clang::ASTUnit>(ASTUnit));
 }

@@ -195,8 +195,7 @@ CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator)
 }
 
 CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
-                                                      std::unique_ptr<clang::ASTUnit> astUnit,
-                                                      CCFileRef file)
+                                                      std::unique_ptr<clang::ASTUnit> astUnit)
 {
     if(astUnit == nullptr)
     {
@@ -208,9 +207,11 @@ CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
     unit->unit = std::move(astUnit);
     _CCASTUnitRefillDiagnosticArray(unit);
     
-    if(file != nullptr)
+    std::string originalInputFileName = unit->unit->getOriginalSourceFileName().str();
+    if(!originalInputFileName.empty())
     {
-        unit->file = (CCFileRef)CFRetain(file);
+        const char *originalInputFileNameCStr = originalInputFileName.c_str();
+        unit->file = CCFileCreateWithCString(allocator, originalInputFileNameCStr, kCFStringEncodingUTF8);
     }
     
     /* marking immutable, since not a live AST object */
