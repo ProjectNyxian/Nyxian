@@ -89,7 +89,7 @@ class FileIcon: UIView {
             case "png", "jpg", "jpeg", "gif", "svg":
                 configureImageIcon(name: "photo.fill")
             default:
-                if #unavailable(iOS 17.0) {
+                if #unavailable(iOS 18.0) {
                     configureImageIcon(name: "text.alignleft")
                 } else {
                     configureImageIcon(name: "text.page.fill")
