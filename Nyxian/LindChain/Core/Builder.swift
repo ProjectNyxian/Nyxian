@@ -41,7 +41,7 @@ class Builder: NSObject, CCKDriverDelegate {
     let driver: CCKDriver
     let dependencyScanner: CCKDependencyScanner
     
-    let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool == true
+    let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
     
     init?(project: NXProject) {
         self.project = project
