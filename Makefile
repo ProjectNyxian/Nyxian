@@ -29,10 +29,10 @@ trollstore: compile pseudo-sign package_tipa clean
 
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
-Nyxian/LindChain/LLVM.xcframework:
+Nyxian/LindChain/CoreCompiler.framework:
 	cd LLVM-On-iOS; $(MAKE)
-	rm -rf Nyxian/LindChain/LLVM.xcframework
-	mv LLVM-On-iOS/LLVM.xcframework Nyxian/LindChain/LLVM.xcframework
+	rm -rf Nyxian/LindChain/CoreCompiler.framework
+	mv LLVM-On-iOS/CoreCompiler.framework Nyxian/LindChain/CoreCompiler.framework
 
 # Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:
@@ -49,7 +49,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/LLVM.xcframework
+compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/CoreCompiler.framework
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \
@@ -96,10 +96,7 @@ clean-artifacts:
 	-rm *.tipa
 
 clean-all: clean clean-artifacts
-	rm -rf Nyxian/LindChain/LLVM.xcframework
-	rm -rf Nyxian/LindChain/Clang.xcframework
-	-rm -rf Nyxian/LindChain/JBSupport/libroot*
+	rm -rf Nyxian/LindChain/CoreCompiler.framework
 	-rm Nyxian/LindChain/JBSupport/tshelper
-	cd libroot; make clean; git reset --hard
-	cd LLVM-On-iOS; make clean-all; git reset --hard
+	cd LLVM-On-iOS; make clean; git reset --hard
 	cd TrollStore; make clean; git reset --hard

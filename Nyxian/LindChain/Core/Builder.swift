@@ -21,6 +21,7 @@
 
 import Foundation
 import Combine
+import CoreCompiler
 
 #if JAILBREAK_ENV
 
@@ -29,16 +30,16 @@ import Combine
 
 #endif // JAILBREAK_ENV
 
-class Builder: NSObject, LDEDriverDelegate {
+class Builder: NSObject, CCKDriverDelegate {
     private let project: NXProject
     
-    private var compilerJobs: [LDEJob] = []
-    private var linkerJobs: [LDEJob] = []
+    private var compilerJobs: [CCKJob] = []
+    private var linkerJobs: [CCKJob] = []
     
     let database: DebugDatabase
     
-    let driver: LDEDriver
-    let dependencyScanner: LDEDependencyScanner
+    let driver: CCKDriver
+    let dependencyScanner: CCKDependencyScanner
     
     let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool == true
     
@@ -62,14 +63,14 @@ class Builder: NSObject, LDEDriverDelegate {
         driverFlags.append(self.project.machoPath)
         driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
         
-        self.driver = LDEDriver(arguments: driverFlags)
-        self.dependencyScanner = LDEDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        self.driver = CCKDriver(arguments: driverFlags)
+        self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
         super.init()
         
         driver.delegate = self
         
-        let jobs: [LDEJob] = self.driver.generateJobs()
+        let jobs: [CCKJob] = self.driver.generateJobs()
         for job in jobs {
             switch(job.type) {
             case .compiler:
@@ -82,7 +83,7 @@ class Builder: NSObject, LDEDriverDelegate {
         }
     }
     
-    func driver(_ driver: LDEDriver!, outputPathForInputFile file: LDEFile!, skipCompile skip: UnsafeMutablePointer<ObjCBool>!) -> String! {
+    func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!, skipCompile skip: UnsafeMutablePointer<ObjCBool>!) -> String! {
         let path: String = file.fileURL.path
         let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
         
@@ -215,13 +216,13 @@ class Builder: NSObject, LDEDriverDelegate {
                 threader.dispatchExecution( {
                     defer { XCButton.incrementProgress(withValue: pstep) }
                     
-                    guard let astUnit: LDEASTUnit = LDECompiler.execute(job),
-                          let file: LDEFile = astUnit.file else {
+                    guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
+                          let file: CCKFile = astUnit.file else {
                         threader.lockdown = true
                         return
                     }
                     
-                    let issues: [LDEDiagnostic] = astUnit.diagnostics
+                    let issues: [CCKDiagnostic] = astUnit.diagnostics
                     self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
                     
                     if astUnit.hasErrorOccured {
@@ -244,10 +245,10 @@ class Builder: NSObject, LDEDriverDelegate {
             var issues: NSArray?
             
             if !job.execute(withOutDiagnostics: &issues) {
-                self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [LDEDiagnostic]) ?? [], clearPrevious: true)
+                self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
                 throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
             }
-            self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [LDEDiagnostic]) ?? [], clearPrevious: true)
+            self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
         }
     }
     

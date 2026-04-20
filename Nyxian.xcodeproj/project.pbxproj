@@ -113,9 +113,6 @@
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		798BBD332F1D265200CBB23F /* Exceptions for "Nyxian" folder in "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			additionalCompilerFlagsByRelativePath = {
-				LindChain/Compiler/LDECFType.m = "-fno-objc-arc";
-			};
 			membershipExceptions = (
 				LindChain/JBSupport/Shell.m,
 				LindChain/JBSupport/tshelper,
@@ -310,20 +307,24 @@
 		7960686E2F3F357400CE34D7 /* Exceptions for "Nyxian" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
+				LindChain/CoreCompiler.framework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
+				LindChain/CoreCompiler.framework,
 				LindChain/OpenSSL.xcframework,
 			);
 		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
+				LindChain/CoreCompiler.framework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */;
 			membershipExceptions = (
+				LindChain/CoreCompiler.framework,
 				LindChain/OpenSSL.xcframework,
 			);
 		};
@@ -718,6 +719,10 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Nyxian/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = Nyxian/;
 				INFOPLIST_FILE = Info.plist;
@@ -835,6 +840,10 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Nyxian/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
+				);
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = Nyxian/;
@@ -1174,6 +1183,10 @@
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_ENHANCED_SECURITY = NO;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
+				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -1292,6 +1305,10 @@
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_ENHANCED_SECURITY = NO;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Nyxian/LindChain",
+				);
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_INFOPLIST_FILE = YES;

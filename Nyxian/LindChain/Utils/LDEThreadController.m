@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/Utils/LDEThreadController.h>
-#import <LindChain/CoreCompiler/CCUtils.h>
+#import <CoreCompiler/CCUtils.h>
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 #include <pthread.h>

@@ -20,8 +20,8 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Compiler/LDEDiagnostic.h>
-#import <LindChain/Compiler/LDEFileSourceLocation.h>
+#import <CoreCompiler/CCKDiagnostic.h>
+#import <CoreCompiler/CCKFileSourceLocation.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,8 +33,8 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
-- (NSArray<LDEDiagnostic *> *)getDiagnostics;
-- (LDEFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
+- (NSArray<CCKDiagnostic *> *)getDiagnostics;
+- (CCKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
 
 - (void)releaseMemory;
 

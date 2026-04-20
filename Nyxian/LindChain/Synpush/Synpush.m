@@ -20,8 +20,8 @@
 */
 
 #import <LindChain/Synpush/Synpush.h>
-#import <LindChain/Compiler/LDEASTUnit.h>
-#import <LindChain/Compiler/LDEFile.h>
+#import <CoreCompiler/CCKASTUnit.h>
+#import <CoreCompiler/CCKFile.h>
 #import <string.h>
 #import <strings.h>
 #include <os/lock.h>
@@ -30,8 +30,8 @@
 
 @interface SynpushServer () {
     os_unfair_lock _lock;
-    LDEMutableASTUnit *_unit;
-    LDEMutableFile *_file;
+    CCKMutableASTUnit *_unit;
+    CCKMutableFile *_file;
 }
 @end
 
@@ -44,7 +44,7 @@
     
     /* initilizing step numero uno */
     NSURL *fileURL = [NSURL fileURLWithPath:filepath];
-    _file = [LDEMutableFile fileWithURL:fileURL];
+    _file = [CCKMutableFile fileWithURL:fileURL];
     _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
@@ -77,7 +77,7 @@
     os_unfair_lock_unlock(&_lock);
 }
 
-- (NSArray<LDEDiagnostic *> *)getDiagnostics
+- (NSArray<CCKDiagnostic *> *)getDiagnostics
 {
     os_unfair_lock_lock(&_lock);
 
@@ -89,7 +89,7 @@
         return @[];
     }
     
-    NSArray<LDEDiagnostic *> *items = [_unit diagnostics];
+    NSArray<CCKDiagnostic *> *items = [_unit diagnostics];
     os_unfair_lock_unlock(&_lock);
     return items;
 }
@@ -123,7 +123,7 @@
     os_unfair_lock_lock(&_lock);
     
     /* creating new synpush core and update all */
-    _unit = [LDEMutableASTUnit unit];
+    _unit = [CCKMutableASTUnit unit];
     if(_unit == nil)
     {
         os_unfair_lock_unlock(&_lock);
@@ -140,10 +140,10 @@
     return succeed;
 }
 
-- (LDEFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location
+- (CCKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location
 {
     os_unfair_lock_lock(&_lock);
-    LDEFileSourceLocation *fileSourceLocation = [_unit fileSourceLocationForDefinitionAtLocation:location];
+    CCKFileSourceLocation *fileSourceLocation = [_unit fileSourceLocationForDefinitionAtLocation:location];
     os_unfair_lock_unlock(&_lock);
     return fileSourceLocation;
 }

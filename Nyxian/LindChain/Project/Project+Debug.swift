@@ -21,6 +21,7 @@
 
 import Foundation
 import UIKit
+import CoreCompiler
 
 extension CCDiagnosticType: Codable {}
 extension CCDiagnosticLevel: Codable {}
@@ -119,7 +120,7 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func addDiagnosticMessages(title: String = "Internal", items: [LDEDiagnostic], clearPrevious: Bool = false) {
+    func addDiagnosticMessages(title: String = "Internal", items: [CCKDiagnostic], clearPrevious: Bool = false) {
         self.lock.lock()
         
         if items.count > 0 {
@@ -148,7 +149,7 @@ class DebugDatabase: Codable {
         self.lock.unlock()
     }
     
-    func setFileDebug(ofPath path: String, synItems: [LDEDiagnostic]) {
+    func setFileDebug(ofPath path: String, synItems: [CCKDiagnostic]) {
         guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
             return
         }

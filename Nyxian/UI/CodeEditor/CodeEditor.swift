@@ -28,6 +28,7 @@ import TreeSitterXML
 import TreeSitterCPP
 import TreeSitterSwift
 import GameController
+import CoreCompiler
 
 func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
     if UserDefaults.standard.object(forKey: key) == nil {
@@ -39,7 +40,7 @@ func booleanDefaults(key: String, defaultValue: Bool) -> Bool {
 // MARK: - OnDissapear Container
 class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var document: NXDocument?
-    private(set) var file: LDEFile
+    private(set) var file: CCKFile
     private(set) var textView: TextView
     private(set) var project: NXProject?
     private(set) var synpushServer: SynpushServer?
@@ -64,7 +65,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         column: CFIndex? = nil,
         isReadOnly: Bool = false
     ) {
-        guard let file = LDEFile(path: path) else {
+        guard let file = CCKFile(path: path) else {
             return nil
         }
         self.file = file
@@ -719,7 +720,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         return (line, column)
     }
     
-    private func openDefinition(_ def: LDEFileSourceLocation) {
+    private func openDefinition(_ def: CCKFileSourceLocation) {
         /* check if definition is in the same file */
         if def.fileURL == self.file.fileURL {
             self.goto(line: def.location.line, column: def.location.column)

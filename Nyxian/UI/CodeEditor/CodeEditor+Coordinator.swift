@@ -22,6 +22,7 @@
 import Foundation
 import UIKit
 import Runestone
+import CoreCompiler
 
 // MARK: - COORDINATOR
 class Coordinator: NSObject, TextViewDelegate {
@@ -33,7 +34,7 @@ class Coordinator: NSObject, TextViewDelegate {
     private(set) var needsAnotherProcess: Bool = false
 
     private(set) var debounce: LDEDebouncer?
-    private(set) var diag: [LDEDiagnostic] = []
+    private(set) var diag: [CCKDiagnostic] = []
     private let vtkey: [CCDiagnosticLevel:(String,UIColor)] = [
         .note: ("info.circle.fill", UIColor.blue.withAlphaComponent(0.3)),
         .warning: ("exclamationmark.triangle.fill", UIColor.orange.withAlphaComponent(0.3)),
