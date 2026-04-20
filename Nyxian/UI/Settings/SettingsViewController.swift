@@ -65,7 +65,7 @@ class SettingsViewController: UIThemedTableViewController {
             break
         case 3:
             cell.imageView?.image = UIImage(systemName: {
-                if #available(iOS 17.0, *) {
+                if #available(iOS 18.0, *) {
                     return "checkmark.seal.text.page.fill"
                 } else {
                     return "checkmark.seal.fill"

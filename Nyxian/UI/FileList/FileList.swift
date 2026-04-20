@@ -418,7 +418,7 @@ import UniformTypeIdentifiers
             guard let self = self else { return UIMenu() }
             
             let copyAction = UIAction(title: "Copy", image: UIImage(systemName: {
-                if #available(iOS 17.0, *) {
+                if #available(iOS 18.0, *) {
                     return "document.on.clipboard"
                 } else {
                     return "doc.on.doc.fill"

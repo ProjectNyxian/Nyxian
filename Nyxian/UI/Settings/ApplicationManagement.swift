@@ -238,7 +238,13 @@ class ApplicationManagementViewController: UIThemedTableViewController, UITextFi
                 self.present(navMachOViewController, animated: true)
             }
             
-            let clearContainerAction = UIAction(title: "Clear Data Container", image: UIImage(systemName: "arrow.up.trash.fill")) { _ in
+            let clearContainerAction = UIAction(title: "Clear Data Container", image: UIImage(systemName: {
+                if #available(iOS 17.0, *) {
+                    return "arrow.up.trash.fill"
+                } else {
+                    return "trash.fill"
+                }
+            }())) { _ in
                 guard let application = application else { return }
                 PEProcessManager.shared().closeIfRunning(usingBundleIdentifier: application.bundleIdentifier)
                 LDEApplicationWorkspace.shared().clearContainer(forBundleID: application.bundleIdentifier)
