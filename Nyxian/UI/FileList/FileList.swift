@@ -328,11 +328,10 @@ import UniformTypeIdentifiers
                     image: UIImage(systemName: "books.vertical.fill")
                 ) { [weak self] _ in
                     guard let self = self else { return }
-                    let sdkPath = Bootstrap.shared.bootstrapPath("/SDK/iPhoneOS26.4.sdk")
                     let fileVC = FileListViewController(
                         isSublink: true,
                         project: project,
-                        path: sdkPath,
+                        path: Bootstrap.shared.sdkPath,
                         isReadOnly: true
                     )
                     self.navigationController?.pushViewController(fileVC, animated: true)
