@@ -36,12 +36,15 @@ class Builder: NSObject, CCKDriverDelegate {
     private var compilerJobs: [CCKJob] = []
     private var linkerJobs: [CCKJob] = []
     
-    let database: DebugDatabase
+    private let database: DebugDatabase
     
-    let driver: CCKDriver
-    let dependencyScanner: CCKDependencyScanner
+    private let driver: CCKDriver
+    private let dependencyScanner: CCKDependencyScanner
     
-    let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
+    private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
+    private let projectDirty: Bool
+    
+    private let argsString: String
     
     init?(project: NXProject) {
         self.project = project
@@ -62,6 +65,15 @@ class Builder: NSObject, CCKDriverDelegate {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoPath)
         driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
+        
+        self.argsString = driverFlags.joined(separator: " ")
+        
+        // Check if the args string matches up
+        if let args: String = (try? String(contentsOf: URL(fileURLWithPath: "\(self.project.cachePath!)/args.txt"), encoding: .utf8)) {
+            self.projectDirty = args != self.argsString
+        } else {
+            self.projectDirty = true
+        }
         
         self.driver = CCKDriver(arguments: driverFlags)
         self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
@@ -91,6 +103,10 @@ class Builder: NSObject, CCKDriverDelegate {
     
     func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
         if self.incrementalBuild {
+            if self.projectDirty {
+                return false
+            }
+            
             let path: String = file.fileURL.path
             let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
             
@@ -242,6 +258,12 @@ class Builder: NSObject, CCKDriverDelegate {
             
             if threader.lockdown {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+            }
+            
+            do {
+                try self.argsString.write(to: URL(fileURLWithPath: "\(project.cachePath!)/args.txt"), atomically: false, encoding: .utf8)
+            } catch {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
             }
         }
     }
