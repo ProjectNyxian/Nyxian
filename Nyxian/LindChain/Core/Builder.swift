@@ -83,36 +83,42 @@ class Builder: NSObject, CCKDriverDelegate {
         }
     }
     
-    func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!, skipCompile skip: UnsafeMutablePointer<ObjCBool>!) -> String! {
+    func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!) -> String! {
         let path: String = file.fileURL.path
         let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
-        
+        return objectPath
+    }
+    
+    func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
         if self.incrementalBuild {
+            let path: String = file.fileURL.path
+            let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: path))))"
+            
             // Checking if the source file is newer than the compiled object file
             guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
                   let objectDate = try? FileManager.default.attributesOfItem(atPath: objectPath)[.modificationDate] as? Date,
                   objectDate > sourceDate else {
-                return objectPath
+                return false
             }
             
             // Checking if the header files included by the source code are newer than the object file
-            if let headers = self.dependencyScanner.headerFiles(for: file) {
-                for header in headers {
-                    let headerPath = header.fileURL.path
-                    guard FileManager.default.fileExists(atPath: headerPath),
-                          let headerDate = try? FileManager.default.attributesOfItem(atPath: headerPath)[.modificationDate] as? Date,
-                          objectDate > headerDate else {
-                        return objectPath
-                    }
-                }
-            } else {
-                return objectPath
+            guard let headers = self.dependencyScanner.headerFiles(for: file) else {
+                return false
             }
             
-            skip?.pointee = ObjCBool(true)
+            for header in headers {
+                guard let fileURL = header.fileURL,
+                      FileManager.default.fileExists(atPath: fileURL.path),
+                      let headerDate = try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.modificationDate] as? Date,
+                      objectDate > headerDate else {
+                    return false
+                }
+            }
+            
+            return true
+        } else {
+            return false
         }
-        
-        return objectPath
     }
     
     func headsup() throws {
