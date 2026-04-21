@@ -39,7 +39,7 @@
 @property (nonatomic,strong,readonly) NSDictionary *infoDictionary;
 @property (nonatomic,strong,readonly) NSArray<NSString*> *compilerFlags;
 @property (nonatomic,strong,readonly) NSArray<NSString*> *linkerFlags;
-@property (nonatomic,strong,readonly) NSString *platformMinimumVersion;
+@property (nonatomic,strong,readonly) NSString *deploymentTarget;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 
 + (NSArray*)sdkCompilerFlags;

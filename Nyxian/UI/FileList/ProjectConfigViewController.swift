@@ -213,8 +213,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
     private var pendingBundleIdentifier: String
     private var pendingBundleVersion: String
     private var pendingBundleShortVersion: String
-    private var pendingMinVersion: String
-    private var pendingMaxVersion: String
+    private var pendingDeployVersion: String
     private var pendingCompilerFlags: [String]
     private var pendingLinkerFlags: [String]
     private var isDirty = false {
@@ -232,8 +231,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         self.pendingBundleShortVersion = project.projectConfig.dictionary["LDEBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
         self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
         self.pendingExecutable = project.projectConfig.dictionary["LDEExecutable"] as? String ?? ""
-        self.pendingMinVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
-        self.pendingMaxVersion = project.projectConfig.dictionary["LDEVersion"] as? String ?? NXOSVersionSupportedBuildVersions.last  ?? "26.4"
+        self.pendingDeployVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
         self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         super.init(style: .insetGrouped)
@@ -295,13 +293,11 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
     
     private enum DeploymentRow: Int, CaseIterable {
-        case minimumVersion
-        case maximumVersion
+        case deployVersion
 
         var title: String {
             switch self {
-                case .minimumVersion: return "Deployment Target"
-                case .maximumVersion: return "API Target"
+                case .deployVersion: return "Deployment Target"
             }
         }
     }
@@ -313,7 +309,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         var title: String {
             switch self {
                 case .compilerFlags: return "Compiler Flags"
-                case .linkerFlags: return "Linker Flags"
+                case .linkerFlags: return "Other Linker Flags"
             }
         }
     }
@@ -356,8 +352,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 let row = DeploymentRow(rawValue: indexPath.row)!
                 cell.textLabel?.text = row.title
                 switch row {
-                    case .minimumVersion: cell.detailTextLabel?.text = "iOS \(pendingMinVersion)"
-                    case .maximumVersion: cell.detailTextLabel?.text = "iOS \(pendingMaxVersion)"
+                    case .deployVersion: cell.detailTextLabel?.text = "iOS \(pendingDeployVersion)"
                 }
             case .buildFlags:
                 let row = BuildFlagRow(rawValue: indexPath.row)!
@@ -409,8 +404,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 }
             case .deplyment:
                 switch DeploymentRow(rawValue: indexPath.row)! {
-                    case .minimumVersion: pushVersionPicker(title: "Deployment Target",  current: pendingMinVersion) { self.pendingMinVersion = $0; self.markDirty() }
-                    case .maximumVersion: pushVersionPicker(title: "API Target",    current: pendingMaxVersion) { self.pendingMaxVersion = $0; self.markDirty() }
+                    case .deployVersion: pushVersionPicker(title: "Deployment Target",  current: pendingDeployVersion) { self.pendingDeployVersion = $0; self.markDirty() }
                 }
             case .buildFlags:
                 switch BuildFlagRow(rawValue: indexPath.row)! {
@@ -468,8 +462,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         project.projectConfig.dictionary["LDEDisplayName"] = pendingDisplayName
         project.projectConfig.dictionary["LDEExecutable"] = pendingExecutable
         project.projectConfig.dictionary["LDEBundleIdentifier"] = pendingBundleIdentifier
-        project.projectConfig.dictionary["LDEMinimumVersion"] = pendingMinVersion
-        project.projectConfig.dictionary["LDEVersion"] = pendingMaxVersion
+        project.projectConfig.dictionary["LDEMinimumVersion"] = pendingDeployVersion
         project.projectConfig.dictionary["LDECompilerFlags"] = pendingCompilerFlags
         project.projectConfig.dictionary["LDELinkerFlags"] = pendingLinkerFlags
         project.projectConfig.dictionary["LDEBundleVersion"] = pendingBundleVersion

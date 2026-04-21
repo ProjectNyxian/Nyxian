@@ -127,8 +127,8 @@ class Builder: NSObject, CCKDriverDelegate {
             throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
         }
         
-        guard let osVersionNeeded: NXOSVersion = NXOSVersion(versionString: project.projectConfig.platformMinimumVersion) else {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"App cannot be build, host version cannot be compared. Version \(project.projectConfig.platformMinimumVersion!) is not valid."])
+        guard let osVersionNeeded: NXOSVersion = NXOSVersion(versionString: project.projectConfig.deploymentTarget) else {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"App cannot be build, host version cannot be compared. Version \(project.projectConfig.deploymentTarget!) is not valid."])
         }
         
         // Nyxian requirement checks
@@ -187,7 +187,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 "CFBundleName": self.project.projectConfig.displayName!,
                 "CFBundleShortVersionString": self.project.projectConfig.version!,
                 "CFBundleVersion": self.project.projectConfig.shortVersion!,
-                "MinimumOSVersion": self.project.projectConfig.platformMinimumVersion!,
+                "MinimumOSVersion": self.project.projectConfig.deploymentTarget!,
                 "UIDeviceFamily": [1, 2],
                 "UIRequiresFullScreen": false,
                 "UISupportedInterfaceOrientations~ipad": [
@@ -254,6 +254,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
                 throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
             }
+            
             self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
         }
     }
