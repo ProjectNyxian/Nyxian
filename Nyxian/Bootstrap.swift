@@ -24,10 +24,12 @@ import Foundation
 @objc class Bootstrap: NSObject {
     var semaphore: DispatchSemaphore?
 #if !JAILBREAK_ENV
-    let rootPath: String = "\(NSHomeDirectory())/Documents"
+    static let rootPath: String = "\(NSHomeDirectory())/Documents"
 #else
-    let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
+    static let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
+    
+    static let rootURL: URL = URL(fileURLWithPath: Bootstrap.rootPath)
     let newestBootstrapVersion: Int = 17
     
     @objc var sdkPath: String {
@@ -62,7 +64,7 @@ import Foundation
     @objc func bootstrapPath(_ path: String) -> String {
         var path: String = path
         if path.hasPrefix("/") { path.removeFirst() }
-        return URL(fileURLWithPath: path, relativeTo: URL(fileURLWithPath: rootPath)).path
+        return URL(fileURLWithPath: path, relativeTo: Bootstrap.rootURL).path
     }
     
     @objc func sdkPath(_ path: String) -> String {
@@ -72,7 +74,7 @@ import Foundation
     }
     
     @objc func relativeToBootstrapSafe(_ absolutePath: String) -> String? {
-        let rootURL = URL(fileURLWithPath: rootPath)
+        let rootURL = Bootstrap.rootURL
         let absoluteURL = URL(fileURLWithPath: absolutePath)
         guard absoluteURL.path.hasPrefix(rootURL.path + "/") || absoluteURL.path == rootURL.path else {
             return nil
@@ -102,9 +104,9 @@ import Foundation
         print("[*] checking upon nyxian bootstrap")
         
         LDEPthreadDispatch {
-            if(!FileManager.default.fileExists(atPath: self.rootPath)) {
+            if(!FileManager.default.fileExists(atPath: Bootstrap.rootPath)) {
                 do {
-                    try FileManager.default.createDirectory(atPath: self.rootPath, withIntermediateDirectories: true)
+                    try FileManager.default.createDirectory(at: Bootstrap.rootURL, withIntermediateDirectories: true)
                 } catch {
                     // Something terrible has happened
                     exit(0)
