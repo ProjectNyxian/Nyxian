@@ -376,7 +376,7 @@ class Builder: NSObject, CCKDriverDelegate {
           self.project.projectConfig.type == .app {
             // installing app
             var output: NSString?
-            if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packagePath ?? ""], 0, nil, &output) != 0 {
+            if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packageURL.path], 0, nil, &output) != 0 {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:output ?? "Unknown error happened installing application"])
             }
             
@@ -422,11 +422,11 @@ class Builder: NSObject, CCKDriverDelegate {
     
     func package() throws {
 #if JAILBREAK_ENV
-        let entitlementsPath: String = "\(self.project.path ?? "")/Config/Entitlements.plist"
+        let entitlementsPath: String = "\(self.project.url.path)/Config/Entitlements.plist"
         if FileManager.default.fileExists(atPath: entitlementsPath),
            self.project.projectConfig.type == .app {
             // pseudo signing executable
-            if !ZSigner.adhocSignMachO(atPath: self.project.machoPath!, bundleId: self.project.projectConfig.bundleid!, entitlementData: try Data(contentsOf: URL(fileURLWithPath: entitlementsPath))) {
+            if !ZSigner.adhocSignMachO(atPath: self.project.machoURL!.path, bundleId: self.project.projectConfig.bundleid!, entitlementData: try Data(contentsOf: URL(fileURLWithPath: entitlementsPath))) {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Unknown error happened pseudo signing application with entitlements"])
             }
         }
