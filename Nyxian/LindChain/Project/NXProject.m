@@ -111,6 +111,23 @@
             _compilerFlags = @[];
         }
         
+        /* FIXME: as soon as switching to Swift LLVM this will not be necessary anymore */
+        NSString *sysroot = nil;
+        for(CFIndex i = 0; i < _compilerFlags.count; i++)
+        {
+            NSString *flag = _compilerFlags[i];
+            if([flag isEqualToString:@"-isysroot"])
+            {
+                sysroot = _compilerFlags[i + 1];
+                break;
+            }
+        }
+        
+        if(sysroot != nil)
+        {
+            _compilerFlags = [_compilerFlags arrayByAddingObject:[NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", sysroot]];
+        }
+        
         /* MARK: linker flags */
         _linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
     }
