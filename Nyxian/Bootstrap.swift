@@ -114,14 +114,13 @@ import Foundation
             
             do {
                 
-                if !self.isBootstrapInstalled ||
-                    self.bootstrapVersion != self.newestBootstrapVersion {
+                if !self.isBootstrapInstalled || self.bootstrapVersion != self.newestBootstrapVersion {
                     
                     // need to clear the entire path if its not installed
                     // to make sure it can be safely installed in the first
                     // place.
-                    if !self.isBootstrapInstalled {
-                        print("[*] Bootstrap is not installed, clearing")
+                    if !self.isBootstrapInstalled || self.bootstrapVersion > self.newestBootstrapVersion {
+                        print("[*] Bootstrap is not installed or too new, clearing")
                         self.clearPath(path: "/")
                     }
                     
