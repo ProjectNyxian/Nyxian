@@ -64,7 +64,10 @@ class Builder: NSObject, CCKDriverDelegate {
         driverFlags.append(contentsOf: codeFiles)
         driverFlags.append("-o")
         driverFlags.append(self.project.machoPath)
-        driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
+        
+        if !self.project.projectConfig.linkerFlags.isEmpty {
+            driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
+        }
         
         self.argsString = driverFlags.joined(separator: " ")
         
