@@ -140,7 +140,6 @@ static void *getAppEntryPoint(void *handle)
 void InsertLibrariesIfNeeded(void)
 {
     const char *librariesToInsert = getenv("DYLD_INSERT_LIBRARIES");
-    
     if(librariesToInsert == NULL)
     {
         return;
