@@ -76,6 +76,7 @@ class Builder: NSObject, CCKDriverDelegate {
             self.projectDirty = args != self.argsString
         } else {
             self.projectDirty = true
+            self.database.clearDatabase() /* nothing valid anymore */
         }
         
         self.driver = CCKDriver(arguments: driverFlags)

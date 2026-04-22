@@ -100,6 +100,7 @@
                 [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
                 @"-isysroot",
                 [[Bootstrap shared] sdkPath],
+                [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]],
                 @"-resource-dir",
                 [[Bootstrap shared] bootstrapPath:@"/Include"]
             ]];
