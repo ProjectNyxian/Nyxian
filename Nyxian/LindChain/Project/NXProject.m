@@ -33,9 +33,9 @@
         @"-target",
         @"apple-arm64-ios26.4",
         @"-isysroot",
-        [[Bootstrap shared] sdkPath],
+        Bootstrap.sdkURL.path,
         @"-resource-dir",
-        [[Bootstrap shared] bootstrapPath:@"/Include"]
+        [Bootstrap.rootURL URLByAppendingPathComponent:@"Include"].path
     ];
 }
 
@@ -100,10 +100,10 @@
                 @"-target",
                 [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
                 @"-isysroot",
-                [[Bootstrap shared] sdkPath],
-                [@"-L" stringByAppendingString:[[Bootstrap shared] bootstrapPath:@"/lib"]],
+                Bootstrap.sdkURL.path,
+                [@"-L" stringByAppendingString:[Bootstrap.rootURL URLByAppendingPathComponent:@"lib"].path],
                 @"-resource-dir",
-                [[Bootstrap shared] bootstrapPath:@"/Include"]
+                [Bootstrap.rootURL URLByAppendingPathComponent:@"Include"].path
             ]];
             
             _compilerFlags = array;
@@ -177,11 +177,11 @@
 {
     self = [super init];
     _url = [NSURL fileURLWithPath:path];
-    _cacheURL = [NSURL fileURLWithPath:[[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]]];
+    _cacheURL = [Bootstrap.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.url.path] withVariables:@{
         @"SRCROOT": path,
-        @"SDKROOT": [[Bootstrap shared] sdkPath],
-        @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"],
+        @"SDKROOT": Bootstrap.sdkURL.path,
+        @"BSROOT": Bootstrap.rootPath,
         @"CACHEROOT": _cacheURL.path
     }];
     _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.url.path] withVariables:nil];

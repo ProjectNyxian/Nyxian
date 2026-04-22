@@ -24,26 +24,21 @@ import Foundation
 @objc class Bootstrap: NSObject {
     var semaphore: DispatchSemaphore?
 #if !JAILBREAK_ENV
-    static let rootPath: String = "\(NSHomeDirectory())/Documents"
+    @objc static let rootPath: String = "\(NSHomeDirectory())/Documents"
 #else
-    static let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
+    @objc static let rootPath: String = "\(NSHomeDirectory())/Documents/com.cr4zy.nyxian.root"
 #endif // !JAILBREAK_ENV
     
-    static let rootURL: URL = URL(fileURLWithPath: Bootstrap.rootPath)
-    let newestBootstrapVersion: Int = 17
+    @objc static let rootURL: URL = URL(fileURLWithPath: Bootstrap.rootPath)
+    @objc let newestBootstrapVersion: Int = 17
     
-    @objc var sdkPath: String {
-        self.bootstrapPath("/SDK/iPhoneOS26.4.1.sdk")
-    }
+    @objc static var sdkURL: URL = Bootstrap.rootURL.appendingPathComponent("/SDK/iPhoneOS26.4.1.sdk")
     
-    @objc var bootstrapPlistPath: String {
-        bootstrapPath("/bootstrap.plist")
-    }
+    @objc static var bootstrapPlistURL: URL = Bootstrap.rootURL.appendingPathComponent("/bootstrap.plist")
     
     @objc var bootstrapVersion: Int {
         get {
-            guard FileManager.default.fileExists(atPath: bootstrapPlistPath),
-                  let dict = NSDictionary(contentsOfFile: bootstrapPlistPath),
+            guard let dict = NSDictionary(contentsOf: Bootstrap.bootstrapPlistURL),
                   let version = dict["BootstrapVersion"] as? Int else {
                 return 0
             }
@@ -53,24 +48,12 @@ import Foundation
             let cstep = 1.0 / Double(self.newestBootstrapVersion)
             XCButton.updateProgress(withValue: cstep * Double(newValue))
             let dict: NSDictionary = ["BootstrapVersion": newValue]
-            dict.write(to: URL(fileURLWithPath: bootstrapPlistPath), atomically: true)
+            dict.write(to: Bootstrap.bootstrapPlistURL, atomically: true)
         }
     }
     
     @objc var isBootstrapInstalled: Bool {
-        return FileManager.default.fileExists(atPath: bootstrapPlistPath) && bootstrapVersion > 0
-    }
-    
-    @objc func bootstrapPath(_ path: String) -> String {
-        var path: String = path
-        if path.hasPrefix("/") { path.removeFirst() }
-        return URL(fileURLWithPath: path, relativeTo: Bootstrap.rootURL).path
-    }
-    
-    @objc func sdkPath(_ path: String) -> String {
-        var path: String = path
-        if path.hasPrefix("/") { path.removeFirst() }
-        return URL(fileURLWithPath: path, relativeTo: URL(fileURLWithPath: sdkPath)).path
+        return bootstrapVersion > 0
     }
     
     @objc func relativeToBootstrapSafe(_ absolutePath: String) -> String? {
@@ -83,14 +66,14 @@ import Foundation
         return relativePath
     }
     
-    func clearPath(path: String) {
+    @objc func clearPath(path: String) {
         let fileManager = FileManager.default
-        let target = bootstrapPath(path)
+        let target = Bootstrap.rootURL.appendingPathComponent(path)
 
-        if let files = try? fileManager.contentsOfDirectory(atPath: target) {
+        if let files = try? fileManager.contentsOfDirectory(at: target, includingPropertiesForKeys: nil) {
             for file in files {
-                if !(path == "/" && file == "Projects") {
-                    try? fileManager.removeItem(atPath: "\(target)/\(file)")
+                if !(path == "/" && file.lastPathComponent == "Projects") {
+                    try? fileManager.removeItem(at: file)
                 }
             }
         }
@@ -133,15 +116,12 @@ import Foundation
                         print("[*] Creating folder structures")
                         
                         // We need include to put clangs includations into
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/SDK"), withIntermediateDirectories: false)
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Projects"), withIntermediateDirectories: false)
+                        try FileManager.default.createDirectory(at: Bootstrap.rootURL.appendingPathComponent("Projects"), withIntermediateDirectories: false)
                         
                         print("[*] creating bootstrap cache")
-                        try FileManager.default.createDirectory(atPath: self.bootstrapPath("/Cache"), withIntermediateDirectories: false)
+                        try FileManager.default.createDirectory(at: Bootstrap.rootURL.appendingPathComponent("Cache"), withIntermediateDirectories: false)
                         
-                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/Include")) {
-                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/Include"))
-                        }
+                        try? FileManager.default.removeItem(at: Bootstrap.rootURL.appendingPathComponent("Include"))
                         
                         print("[*] bootstrapping clang includes")
                         
@@ -151,18 +131,16 @@ import Foundation
                         }
                         
                         print("[*] extracting include.zip")
-                        unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", self.bootstrapPath("/Include"))
+                        unzipArchiveAtPath("\(NSTemporaryDirectory())/include.zip", Bootstrap.rootURL.appendingPathComponent("Include").path)
                         self.bootstrapVersion = 9
                     }
                     
                     if self.bootstrapVersion < 10 {
-                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/lib")) {
-                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/lib"))
-                        }
+                        try? FileManager.default.removeItem(at: Bootstrap.rootURL.appendingPathComponent("lib"))
                         
                         print("[*] bootstrapping libraries")
                         
-                        unzipArchiveAtPath("\(Bundle.main.bundlePath)/Shared/lib.zip", self.bootstrapPath("/"))
+                        unzipArchiveAtPath("\(Bundle.main.bundlePath)/Shared/lib.zip", Bootstrap.rootURL.path)
                         
                         self.bootstrapVersion = 10
                     }
@@ -185,22 +163,8 @@ import Foundation
                         self.bootstrapVersion = 15
                     }
                     
-                    if self.bootstrapVersion < 16 {
-                        for deleteItem in ["/Config", "/Certificates"] {
-                            let bootstrapDeleteItem = self.bootstrapPath(deleteItem)
-                            if FileManager.default.fileExists(atPath: bootstrapDeleteItem) {
-                                try? FileManager.default.removeItem(atPath: bootstrapDeleteItem)
-                            }
-                        }
-                        
-                        self.bootstrapVersion = 16
-                    }
-                    
                     if self.bootstrapVersion < 17 {
-                        if FileManager.default.fileExists(atPath: self.bootstrapPath("/SDK")) {
-                            print("[*] removing deprecated sdk")
-                            try FileManager.default.removeItem(atPath: self.bootstrapPath("/SDK"))
-                        }
+                        try? FileManager.default.removeItem(at: Bootstrap.rootURL.appendingPathComponent("SDK"))
                         
                         print("[*] downloading sdk")
                         
@@ -210,22 +174,17 @@ import Foundation
                         }
                         
                         print("[*] extracting sdk.zip")
-                        unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", self.bootstrapPath("/SDK"))
+                        unzipArchiveAtPath("\(NSTemporaryDirectory())/sdk.zip", Bootstrap.rootURL.appendingPathComponent("SDK").path)
 
                         // create compatibility symlink for projects still using the iPhoneOS26.2.sdk SDK
-                        let realSDK = self.bootstrapPath("/SDK/iPhoneOS26.4.1.sdk")
-                        let symlinkSDKs: [String] = [
-                            self.bootstrapPath("/SDK/iPhoneOS26.2.sdk"),
-                            self.bootstrapPath("/SDK/iPhoneOS26.4.sdk")
+                        let realSDK: URL = Bootstrap.rootURL.appendingPathComponent("/SDK/iPhoneOS26.4.1.sdk")
+                        let symlinkSDKs: [URL] = [
+                            Bootstrap.rootURL.appendingPathComponent("/SDK/iPhoneOS26.2.sdk"),
+                            Bootstrap.rootURL.appendingPathComponent("/SDK/iPhoneOS26.4.sdk")
                         ]
                         
                         for symlinkSDK in symlinkSDKs {
-                            if !FileManager.default.fileExists(atPath: symlinkSDK) {
-                                try FileManager.default.createSymbolicLink(
-                                    atPath: symlinkSDK,
-                                    withDestinationPath: realSDK
-                                )
-                            }
+                            try FileManager.default.createSymbolicLink(at: symlinkSDK, withDestinationURL: realSDK)
                         }
                         
                         self.bootstrapVersion = 17

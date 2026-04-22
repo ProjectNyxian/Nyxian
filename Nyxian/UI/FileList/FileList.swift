@@ -331,7 +331,7 @@ import UniformTypeIdentifiers
                     let fileVC = FileListViewController(
                         isSublink: true,
                         project: project,
-                        path: Bootstrap.shared.sdkPath,
+                        path: Bootstrap.sdkURL.path,
                         isReadOnly: true
                     )
                     self.navigationController?.pushViewController(fileVC, animated: true)

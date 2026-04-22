@@ -23,8 +23,8 @@ import Foundation
 import UIKit
 import CoreCompiler
 
-extension CCDiagnosticType: Codable {}
-extension CCDiagnosticLevel: Codable {}
+extension CCDiagnosticType: @retroactive Codable {}
+extension CCDiagnosticLevel: @retroactive Codable {}
 
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
@@ -343,7 +343,7 @@ class UIDebugViewController: UITableViewController {
             return
         }
         
-        let path: String = Bootstrap.shared.bootstrapPath(object.title)
+        let path: String = Bootstrap.rootURL.appendingPathComponent(object.title).path
         
         if UIDevice.current.userInterfaceIdiom == .pad {
             NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",path,"\(item.sourceLocation.line)","\(item.sourceLocation.column)"])

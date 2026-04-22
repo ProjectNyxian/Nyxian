@@ -81,7 +81,7 @@
     
     UIThemedTabViewController *themedTabViewController = [[UIThemedTabViewController alloc] init];
     
-    ContentViewController *contentViewController = [[ContentViewController alloc] initWithPath: [[Bootstrap shared] bootstrapPath:@"/Projects"]];
+    ContentViewController *contentViewController = [[ContentViewController alloc] init];
     SettingsViewController *settingsViewController = [[SettingsViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
     
     UINavigationController *contentNavigationController = [[UINavigationController alloc] initWithRootViewController:contentViewController];

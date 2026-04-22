@@ -25,11 +25,9 @@ import UIKit
 @objc class ContentViewController: UIThemedTableViewController, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
     var sessionIndex: IndexPath? = nil
     var projectsList: [String:[NXProject]] = [:]
-    var path: String
     
-    @objc init(path: String) {
+    @objc init() {
         RevertUI()
-        self.path = path
         super.init(style: .insetGrouped)
     }
     
@@ -88,7 +86,7 @@ import UIKit
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
-        let rawProjectsList = NXProject.listProjects(atPath: self.path) as! [String:[NXProject]]
+        let rawProjectsList = NXProject.listProjects(atPath: Bootstrap.rootURL.appendingPathComponent("Projects").path) as! [String:[NXProject]]
         let filtered = rawProjectsList.filter { !$0.value.isEmpty }
 
         let sorted = filtered.sorted { a, b in
@@ -249,7 +247,7 @@ import UIKit
             }
             
             if let project = NXProject.createProject(
-                atPath: self.path,
+                atPath: Bootstrap.rootURL.appendingPathComponent("Projects").path,
                 withName: name,
                 withBundleIdentifier: bundleid,
                 withType: mode,
@@ -390,7 +388,7 @@ import UIKit
                 throw CocoaError(.fileReadNoSuchFile)
             }
 
-            let projectPath = "\(Bootstrap.shared.bootstrapPath("/Projects"))/\(UUID().uuidString)"
+            let projectPath = "\(Bootstrap.rootURL.appendingPathComponent("/Projects").path)/\(UUID().uuidString)"
 
             do {
                 try FileManager.default.moveItem(
