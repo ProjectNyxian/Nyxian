@@ -252,5 +252,9 @@ import Foundation
         XCButton.switchImage(withSystemName: "hammer.fill", animated: true)
     }
     
+    @objc func isNewest() -> Bool {
+        return Bootstrap.shared.bootstrapVersion == Bootstrap.shared.newestBootstrapVersion
+    }
+    
     @objc static var shared: Bootstrap = Bootstrap()
 }

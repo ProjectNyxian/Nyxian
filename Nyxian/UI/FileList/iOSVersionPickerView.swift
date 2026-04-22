@@ -21,17 +21,34 @@
 
 import UIKit
 
-let NXOSVersionSupportedBuildVersions: [String] = [
-    // Works perfectly fine
-    "12.0", "12.1", "12.2", "12.3", "12.4",
-    "13.0", "13.1", "13.2", "13.3", "13.4", "13.5", "13.6",
-    "14.0", "14.1", "14.2", "14.3", "14.4", "14.5", "14.6", "14.7",
-    "15.0", "15.1", "15.2", "15.3", "15.4", "15.5", "15.6",
-    "16.0", "16.1", "16.2", "16.3", "16.4", "16.5", "16.6",
-    "17.0", "17.1", "17.2", "17.3", "17.4", "17.5", "17.6",
-    "18.0", "18.1", "18.2", "18.3", "18.4", "18.5", "18.6",
-    "26.0", "26.1", "26.2", "26.3", "26.4"
-]
+fileprivate var _NXOSVersionSupportedBuildVersions: [String] = []
+var NXOSVersionSupportedBuildVersions: [String] {
+    get {
+        if !_NXOSVersionSupportedBuildVersions.isEmpty {
+            return _NXOSVersionSupportedBuildVersions
+        }
+        
+        let sdkURL = URL(fileURLWithPath: Bootstrap.shared.sdkPath)
+        let settingsURL = sdkURL.appendingPathComponent("SDKSettings.plist")
+        if let root: [String:Any] = NSDictionary(contentsOf: settingsURL) as? [String:Any] {
+            /* modern SDK handling */
+            if let supported: [String:Any] = root["SupportedTargets"] as? [String:Any],
+               let platformEntry: [String:Any] = supported["iphoneos"] as? [String:Any],
+               let validDeploymentTargets: [String] = platformEntry["ValidDeploymentTargets"] as? [String] {
+                _NXOSVersionSupportedBuildVersions = validDeploymentTargets
+                return _NXOSVersionSupportedBuildVersions
+            }
+            
+            /* legacy SDK handling */
+            if let validDeploymentTargets: [String] = root["ValidDeploymentTargets"] as? [String] {
+                _NXOSVersionSupportedBuildVersions = validDeploymentTargets
+                return _NXOSVersionSupportedBuildVersions
+            }
+        }
+        
+        return ["26.4"]
+    }
+}
 
 fileprivate func numericValue(_ version: String) -> Double {
     let parts = version.split(separator: ".").compactMap { Double($0) }
@@ -48,8 +65,16 @@ fileprivate func numericValue(_ version: String) -> Double {
     @objc private(set) var pickerVersionString: String
     
     @objc static let hostVersion: NXOSVersion = NXOSVersion()
-    @objc static let minimumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.first)!
-    @objc static let maximumBuildVersion: NXOSVersion = NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
+    @objc static var minimumBuildVersion: NXOSVersion {
+        get {
+            return NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.first)!
+        }
+    }
+    @objc static var maximumBuildVersion: NXOSVersion {
+        get {
+            NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
+        }
+    }
     
     @objc init?(versionString inputString: String?) {
         var inputString = inputString ?? "9.0"
