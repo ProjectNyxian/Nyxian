@@ -87,7 +87,9 @@ import Foundation
 
         if let files = try? fileManager.contentsOfDirectory(atPath: target) {
             for file in files {
-                try? fileManager.removeItem(atPath: "\(target)/\(file)")
+                if !(path == "/" && file == "Projects") {
+                    try? fileManager.removeItem(atPath: "\(target)/\(file)")
+                }
             }
         }
     }
