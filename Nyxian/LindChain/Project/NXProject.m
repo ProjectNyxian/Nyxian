@@ -27,7 +27,7 @@
 
 @implementation NXProjectConfig
 
-+ (NSArray*)sdkCompilerFlags
++ (NSArray<NSString*>*)sdkCompilerFlags
 {
     return @[
         @"-target",
@@ -176,15 +176,15 @@
 - (instancetype)initWithPath:(NSString*)path
 {
     self = [super init];
-    _path = path;
-    _cachePath = [[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
-    _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.path] withVariables:@{
+    _url = [NSURL fileURLWithPath:path];
+    _cacheURL = [NSURL fileURLWithPath:[[Bootstrap shared] bootstrapPath:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]]];
+    _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.url.path] withVariables:@{
         @"SRCROOT": path,
         @"SDKROOT": [[Bootstrap shared] sdkPath],
         @"BSROOT": [[Bootstrap shared] bootstrapPath:@"/"],
-        @"CACHEROOT": _cachePath
+        @"CACHEROOT": _cacheURL.path
     }];
-    _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.path] withVariables:nil];
+    _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.url.path] withVariables:nil];
     return self;
 }
 
@@ -231,7 +231,7 @@
         @"com.nyxian.pe.host_manager": @(NO),
         @"com.nyxian.pe.launch_services_get_endpoint": @(NO),
         @"com.nyxian.pe.launch_services_set_endpoint": @(NO),
-        @"com.nyxian.pe.dyld_hide_liveprocess": @(YES),
+        @"com.nyxian.pe.dyld_hide_liveprocess": @(NO),
         @"com.nyxian.pe.platform": @(NO),
         @"com.nyxian.pe.platform_root": @(NO)
 #else
@@ -378,24 +378,25 @@
 - (void)removeProject
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    [fileManager removeItemAtPath:self.cachePath error:nil];
-    [fileManager removeItemAtPath:self.path error:nil];
+    [fileManager removeItemAtURL:self.cacheURL error:nil];
+    [fileManager removeItemAtURL:self.url error:nil];
 }
 
-- (NSString*)resourcesPath { return [NSString stringWithFormat:@"%@/Resources", self.path]; }
-- (NSString*)payloadPath { return [NSString stringWithFormat:@"%@/Payload", self.cachePath]; }
-- (NSString*)bundlePath { return [NSString stringWithFormat:@"%@/%@.app", [self payloadPath], [[self projectConfig] executable]]; }
-- (NSString*)machoPath {
+- (NSURL*)resourcesURL { return [self.url URLByAppendingPathComponent:@"Resources"]; }
+- (NSURL*)payloadURL { return [self.cacheURL URLByAppendingPathComponent:@"Payload"]; }
+- (NSURL*)bundleURL { return [self.payloadURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"app"]]; }
+- (NSURL*)machoURL
+{
     if(self.projectConfig.projectFormat == NXProjectFormatKate)
     {
     kate_handling:
         if(self.projectConfig.type == NXProjectTypeApp)
         {
-            return [NSString stringWithFormat:@"%@/%@", [self bundlePath], [[self projectConfig] executable]];
+            return [self.bundleURL URLByAppendingPathComponent:self.projectConfig.executable];
         }
         else
         {
-            return [NSString stringWithFormat:@"%@/%@", [self cachePath], [[self projectConfig] executable]];
+            return [self.cacheURL URLByAppendingPathComponent:self.projectConfig.executable];
         }
     }
     else
@@ -405,11 +406,11 @@
         {
             goto kate_handling;
         }
-        return outputPath;
+        return [NSURL fileURLWithPath:outputPath];
     }
 }
-- (NSString*)packagePath { return [NSString stringWithFormat:@"%@/%@.ipa", self.cachePath, [[self projectConfig] executable]]; }
-- (NSString*)uuid { return [[NSURL fileURLWithPath:self.path] lastPathComponent]; }
+- (NSURL*)packageURL { return [self.cacheURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"ipa"]]; }
+- (NSString*)uuid { return [self.url lastPathComponent]; }
 
 - (BOOL)reload
 {

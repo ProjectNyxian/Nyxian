@@ -50,20 +50,20 @@ class Builder: NSObject, CCKDriverDelegate {
         self.project = project
         self.project.reload()
         
-        self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cachePath!)/debug.json")
+        self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
         var driverFlags: [String] = self.project.projectConfig.compilerFlags
         
-        try? syncFolderStructure(from: URL(fileURLWithPath: self.project.path), to: URL(fileURLWithPath: self.project.cachePath))
+        try? syncFolderStructure(from: self.project.url, to: self.project.cacheURL)
         
-        guard let codeFiles = LDEFilesFinder(self.project.path, ["c","cpp","m","mm"], ["Resources"]) else {
+        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources"]) else {
             return nil
         }
         
         driverFlags.append(contentsOf: codeFiles)
         driverFlags.append("-o")
-        driverFlags.append(self.project.machoPath)
+        driverFlags.append(self.project.machoURL.path)
         
         if !self.project.projectConfig.linkerFlags.isEmpty {
             driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
@@ -72,7 +72,7 @@ class Builder: NSObject, CCKDriverDelegate {
         self.argsString = driverFlags.joined(separator: " ")
         
         // Check if the args string matches up
-        if let args: String = (try? String(contentsOf: URL(fileURLWithPath: "\(self.project.cachePath!)/args.txt"), encoding: .utf8)) {
+        if let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
             self.projectDirty = args != self.argsString
         } else {
             self.projectDirty = true
@@ -100,7 +100,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!) -> String! {
-        return "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: file.fileURL)))"
+        return "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: file.fileURL)))"
     }
     
     func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
@@ -110,7 +110,7 @@ class Builder: NSObject, CCKDriverDelegate {
             }
             
             let path: String = file.fileURL.path
-            let objectPath = "\(self.project.cachePath!)/\(expectedObjectFile(forPath: relativePath(from: URL(fileURLWithPath: self.project.path), to: file.fileURL)))"
+            let objectPath = "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: file.fileURL)))"
             
             // Checking if the source file is newer than the compiled object file
             guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
@@ -169,7 +169,7 @@ class Builder: NSObject, CCKDriverDelegate {
     func clean() throws {
         // now remove what was find
         for file in LDEFilesFinder(
-            self.project.path,
+            self.project.url.path,
             ["o","tmp"],
             ["Resources","Config"]
         ) {
@@ -178,12 +178,12 @@ class Builder: NSObject, CCKDriverDelegate {
         
         // if payload exists remove it
         if self.project.projectConfig.type == .app {
-            let payloadPath: String = self.project.payloadPath
+            let payloadPath: String = self.project.payloadURL.path
             if FileManager.default.fileExists(atPath: payloadPath) {
                 try? FileManager.default.removeItem(atPath: payloadPath)
             }
             
-            let packagedApp: String = self.project.packagePath
+            let packagedApp: String = self.project.packageURL.path
             if FileManager.default.fileExists(atPath: packagedApp) {
                 try? FileManager.default.removeItem(atPath: packagedApp)
             }
@@ -192,11 +192,8 @@ class Builder: NSObject, CCKDriverDelegate {
     
     func prepare() throws {
         if project.projectConfig.type == .app {
-            let bundlePath: String = self.project.bundlePath
-            let resourcesPath: String = self.project.resourcesPath
-            
-            try FileManager.default.createDirectory(atPath: self.project.payloadPath, withIntermediateDirectories: true)
-            try FileManager.default.copyItem(atPath: resourcesPath, toPath: bundlePath)
+            try FileManager.default.createDirectory(at: self.project.payloadURL, withIntermediateDirectories: true)
+            try FileManager.default.copyItem(at: self.project.resourcesURL, to: self.project.bundleURL)
             
             var infoPlistData: [String: Any] = [
                 "CFBundleExecutable": self.project.projectConfig.executable!,
@@ -220,7 +217,7 @@ class Builder: NSObject, CCKDriverDelegate {
             }
             
             let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: infoPlistData, format: .xml, options: 0)
-            FileManager.default.createFile(atPath:"\(bundlePath)/Info.plist", contents: infoPlistDataSerialized, attributes: nil)
+            FileManager.default.createFile(atPath: self.project.bundleURL.appendingPathComponent("Info.plist").path, contents: infoPlistDataSerialized)
         }
     }
     
@@ -262,7 +259,7 @@ class Builder: NSObject, CCKDriverDelegate {
             }
             
             do {
-                try self.argsString.write(to: URL(fileURLWithPath: "\(project.cachePath!)/args.txt"), atomically: false, encoding: .utf8)
+                try self.argsString.write(to: self.project.cacheURL.appendingPathComponent("args.txt"), atomically: false, encoding: .utf8)
             } catch {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
             }
@@ -293,12 +290,12 @@ class Builder: NSObject, CCKDriverDelegate {
                 let semaphore = DispatchSemaphore(value: 0)
                 var nsError: NSError? = nil
                 
-                LCUtils.signAppBundle(withZSign: URL(fileURLWithPath: project.bundlePath)) { [weak self] result, error in
+                LCUtils.signAppBundle(withZSign: self.project.bundleURL) { [weak self] result, error in
                     guard let self = self else { return }
                     
                     if(self.project.projectConfig.signMachOWithNyxianEntitlements)
                     {
-                        macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
+                        macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
                     }
                     
                     guard result else {
@@ -307,7 +304,7 @@ class Builder: NSObject, CCKDriverDelegate {
                         return
                     }
                     
-                    guard LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundlePath) else {
+                    guard LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundleURL.path) else {
                         nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:error?.localizedDescription ?? "Unknown error happened installing application"])
                         semaphore.signal()
                         return
@@ -355,10 +352,10 @@ class Builder: NSObject, CCKDriverDelegate {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
                 }
                 
-                MachOObject.signBinary(atPath: self.project.machoPath)
-                macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
+                MachOObject.signBinary(atPath: self.project.machoURL.path)
+                macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
                 
-                if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoPath) {
+                if let path: String = LDEApplicationWorkspace.shared().fastpathUtility(self.project.machoURL.path) {
                     DispatchQueue.main.sync {
                         let TerminalSession: NXWindowSessionTerminal = NXWindowSessionTerminal(utilityPath: path)
                         NXWindowServer.shared().openWindow(with: TerminalSession, withCompletion: nil)
@@ -368,7 +365,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 }
             }
         } else {
-            macho_after_sign(self.project.machoPath, self.project.entitlementsConfig.entitlement)
+            macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
             try self.package()
         }
 #else
@@ -435,7 +432,7 @@ class Builder: NSObject, CCKDriverDelegate {
         }
 #endif // JAILBREAK_ENV
         
-        zipDirectoryAtPath(project.payloadPath, project.packagePath, true)
+        zipDirectoryAtPath(project.payloadURL.path, project.packageURL.path, true)
     }
     
     ///
@@ -503,7 +500,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 builder.database.addMessage(message: error.localizedDescription, severity: .error)
             }
             
-            builder.database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+            builder.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
             
             completion(result)
         }
@@ -537,7 +534,7 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
                 loggerView.modalPresentationStyle = .formSheet
                 targetViewController.present(loggerView, animated: true)
             } else if buildType == .InstallPackagedApp {
-                share(url: URL(fileURLWithPath: project.packagePath), remove: true)
+                share(url: project.packageURL, remove: true)
             }
             
             completion()

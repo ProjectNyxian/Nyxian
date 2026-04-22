@@ -79,9 +79,8 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         if [CCFileType.C, CCFileType.CXX, CCFileType.objC, CCFileType.objCXX, CCFileType.cHeader, CCFileType.cxxHeader, CCFileType.objCHeader, CCFileType.objCXXHeader].contains(self.file.type) {
             self.synpushServer = SynpushServer(self.file.fileURL.path)
                 
-            if let project = project,
-               let cachePath = project.cachePath {
-                self.database = DebugDatabase.getDatabase(ofPath: "\(cachePath)/debug.json")
+            if let project = project {
+                self.database = DebugDatabase.getDatabase(ofPath: project.cacheURL.appendingPathComponent("debug.json").path)
             }
         }
         
@@ -257,7 +256,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
               let coordinator = self.coordinator else { return self.textView.text }
         
         database.setFileDebug(ofPath: self.file.fileURL.path, synItems: coordinator.diag)
-        database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+        database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
         
         return self.textView.text
     }
@@ -581,7 +580,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                   let coordinator = self.coordinator else { return }
             
             database.setFileDebug(ofPath: self.file.fileURL.path, synItems: coordinator.diag)
-            database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+            database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
         }
     }
     
@@ -675,7 +674,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         guard let selectedRange = textView.selectedTextRange else { return }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            let flags: [String] = self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() as! [String] : self.project?.projectConfig.compilerFlags as! [String]
+            let flags: [String] = (self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() : self.project?.projectConfig.compilerFlags)!
             server.reparseFile(self.textView.text, withArgs: flags)
             
             DispatchQueue.main.async {
@@ -737,8 +736,8 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         
         /* open in a new read-only editor if its a system header, writable if its in the project */
         let isInsideProject: Bool
-        if let project = self.project, let projectPath = project.path {
-            isInsideProject = def.fileURL.path.hasPrefix(projectPath)
+        if let project = self.project {
+            isInsideProject = def.fileURL.path.hasPrefix(project.url.path)
         } else {
             isInsideProject = false
         }

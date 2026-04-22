@@ -159,9 +159,9 @@ import UIKit
         
         let oldSections = projectsList.keys.sorted { sortKeys($0, $1) }
         let oldSectionForKey = oldSections.firstIndex(of: key)
-        let oldRow = list.firstIndex { $0.path == project.path }
+        let oldRow = list.firstIndex { $0.url == project.url }
         
-        list.removeAll { $0.path == project.path }
+        list.removeAll { $0.url == project.url }
         
         if list.isEmpty {
             self.projectsList.removeValue(forKey: key)
@@ -337,10 +337,11 @@ import UIKit
                     let keys = Array(self.projectsList.keys).sorted()
                     let key = keys[indexPath.section]
                     let sectionProjects = self.projectsList[key] ?? []
-                    let project = sectionProjects[indexPath.row]
+                    let project: NXProject = sectionProjects[indexPath.row]
                     
-                    zipDirectoryAtPath(project.path, "\(NSTemporaryDirectory())/\(project.projectConfig.displayName!).zip", true)
-                    share(url: URL(fileURLWithPath: "\(NSTemporaryDirectory())/\(project.projectConfig.displayName!).zip"), remove: true)
+                    let zipPath: String = "\(NSTemporaryDirectory())/\(project.projectConfig.displayName!).zip"
+                    zipDirectoryAtPath(project.url.path, zipPath, true)
+                    share(url: URL(fileURLWithPath: zipPath), remove: true)
                 }
             }
             

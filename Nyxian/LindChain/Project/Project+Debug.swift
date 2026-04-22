@@ -190,7 +190,7 @@ class UIDebugViewController: UITableViewController {
     
     init(project: NXProject) {
         self.project = project
-        self.file = "\(project.cachePath!)/debug.json"
+        self.file = project.cacheURL.appendingPathComponent("debug.json").path
         self.debugDatabase = DebugDatabase.getDatabase(ofPath: self.file)
         super.init(style: .insetGrouped)
         self.reloadTableData()

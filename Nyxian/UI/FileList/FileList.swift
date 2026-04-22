@@ -44,7 +44,7 @@ import UniformTypeIdentifiers
         
         if let project = project {
             NXUser.shared().projectName = project.projectConfig.displayName
-            self.path = path ?? project.path
+            self.path = path ?? project.url.path
         } else {
             self.path = path ?? ""
         }
@@ -209,10 +209,10 @@ import UniformTypeIdentifiers
             for path in self.selectedPaths {
                 let fileUrl = URL(fileURLWithPath: path)
                 if ((try? FileManager.default.removeItem(at: fileUrl)) != nil), let project = self.project {
-                    let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: "\(project.cachePath!))/debug.json")
+                    let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: project.cacheURL.appendingPathComponent("debug.json").path)
                     NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close", fileUrl.path])
                     database.removeFileDebug(ofPath: fileUrl.path)
-                    database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+                    database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
                 } else {
                     try? FileManager.default.removeItem(atPath: path)
                 }
@@ -475,10 +475,10 @@ import UniformTypeIdentifiers
                 let entry = self.entries[indexPath.row]
                 let fileUrl: URL = URL(fileURLWithPath: "\(self.path)/\(entry.name)")
                 if ((try? FileManager.default.removeItem(at: fileUrl)) != nil), let project = self.project {
-                    let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: "\(project.cachePath!))/debug.json")
+                    let database: DebugDatabase = DebugDatabase.getDatabase(ofPath: project.cacheURL.appendingPathComponent("debug.json").path)
                     NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close",fileUrl.path])
                     database.removeFileDebug(ofPath: fileUrl.path)
-                    database.saveDatabase(toPath: "\(project.cachePath!)/debug.json")
+                    database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
                     if let masterIndex = self.entries.firstIndex(where: { $0.path == entry.path }) {
                         self.entries.remove(at: masterIndex)
                     }

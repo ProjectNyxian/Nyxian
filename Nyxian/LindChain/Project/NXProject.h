@@ -43,7 +43,7 @@
 @property (nonatomic,strong,readonly) NSString *outputPath;
 @property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
 
-+ (NSArray*)sdkCompilerFlags;
++ (NSArray<NSString*>*)sdkCompilerFlags;
 
 @end
 
@@ -58,13 +58,13 @@
 @property (nonatomic,strong,readonly) NXProjectConfig *projectConfig;
 @property (nonatomic,strong,readonly) NXEntitlementsConfig *entitlementsConfig;
 
-@property (nonatomic,strong,readonly) NSString *path;
-@property (nonatomic,strong,readonly) NSString *cachePath;
-@property (nonatomic,strong,readonly) NSString *resourcesPath;
-@property (nonatomic,strong,readonly) NSString *payloadPath;
-@property (nonatomic,strong,readonly) NSString *bundlePath;
-@property (nonatomic,strong,readonly) NSString *machoPath;
-@property (nonatomic,strong,readonly) NSString *packagePath;
+@property (nonatomic,strong,readonly) NSURL *url;
+@property (nonatomic,strong,readonly) NSURL *cacheURL;
+@property (nonatomic,strong,readonly) NSURL *resourcesURL;
+@property (nonatomic,strong,readonly) NSURL *payloadURL;
+@property (nonatomic,strong,readonly) NSURL *bundleURL;
+@property (nonatomic,strong,readonly) NSURL *machoURL;
+@property (nonatomic,strong,readonly) NSURL *packageURL;
 @property (nonatomic,strong,readonly) NSString *uuid;
 
 - (instancetype)initWithPath:(NSString*)path;
