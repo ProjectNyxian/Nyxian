@@ -41,6 +41,7 @@
 @property (nonatomic,strong,readonly) NSArray<NSString*> *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *deploymentTarget;
 @property (nonatomic,strong,readonly) NSString *outputPath;
+@property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
 
 + (NSArray*)sdkCompilerFlags;
 

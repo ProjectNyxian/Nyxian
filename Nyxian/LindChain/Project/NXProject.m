@@ -83,6 +83,7 @@
         _infoDictionary = [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}];
         _deploymentTarget = [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:NXOSVersion.maximumBuildVersion.pickerVersionString];
         _outputPath = [self readKey:@"LDEOutputPath"];
+        _signMachOWithNyxianEntitlements = [self readBooleanForKey:@"LDESignMachOWithNyxianEntitlements" withDefaultValue:true];
         
         /* MARK: compiler flags */
         NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
