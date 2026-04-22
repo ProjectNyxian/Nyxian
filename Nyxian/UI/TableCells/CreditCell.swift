@@ -150,5 +150,89 @@ class CreditCell: UITableViewCell {
         profileImageView.image = nil
         nameLabel.text = nil
         roleLabel.text = nil
+        profileImageView.layer.borderColor = UIColor.white.withAlphaComponent(0.5).cgColor
+        profileImageView.layer.borderWidth = 1
+        imageShadowContainer.layer.shadowColor = UIColor.black.cgColor
+        imageShadowContainer.layer.shadowOpacity = 0.3
+        imageShadowContainer.layer.shadowRadius = 12
+    }
+    
+    func configureImage(_ image: UIImage?) {
+        profileImageView.image = image
+        
+        guard let image = image else {
+            profileImageView.layer.borderColor = UIColor.white.withAlphaComponent(0.0).cgColor
+            imageShadowContainer.layer.shadowColor = UIColor.black.cgColor
+            imageShadowContainer.layer.shadowOpacity = 0.3
+            return
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let accent = image.dominantAccentColor() else { return }
+            DispatchQueue.main.async {
+                guard let self, self.profileImageView.image === image else { return }
+                let border = accent.withAlphaComponent(0.4)
+                self.profileImageView.layer.borderColor = border.cgColor
+                self.profileImageView.layer.borderWidth = 1.5
+            }
+        }
+    }
+}
+
+extension UIImage {
+    func dominantAccentColor(sampleSize: Int = 24) -> UIColor? {
+        guard let cgImage = cgImage else { return nil }
+        let w = sampleSize, h = sampleSize
+        var pixels = [UInt8](repeating: 0, count: w * h * 4)
+        
+        guard let ctx = CGContext(
+            data: &pixels, width: w, height: h,
+            bitsPerComponent: 8, bytesPerRow: w * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        
+        ctx.interpolationQuality = .medium
+        ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: w, height: h))
+        
+        let cx = CGFloat(w - 1) / 2
+        let cy = CGFloat(h - 1) / 2
+        let maxDist = sqrt(cx * cx + cy * cy)
+        
+        var bestScore: CGFloat = -1
+        var best = UIColor.gray
+        
+        for y in 0..<h {
+            for x in 0..<w {
+                let i = (y * w + x) * 4
+                let a = CGFloat(pixels[i + 3]) / 255
+                guard a > 0.5 else { continue }
+                
+                let r = CGFloat(pixels[i])     / 255
+                let g = CGFloat(pixels[i + 1]) / 255
+                let b = CGFloat(pixels[i + 2]) / 255
+                
+                let c = UIColor(red: r, green: g, blue: b, alpha: 1)
+                var hue: CGFloat = 0, sat: CGFloat = 0, bri: CGFloat = 0, al: CGFloat = 0
+                c.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &al)
+                
+                let brightnessWeight = max(0, 1 - abs(bri - 0.55) * 1.5)
+                
+                let dx = CGFloat(x) - cx
+                let dy = CGFloat(y) - cy
+                let edgeWeight = sqrt(dx * dx + dy * dy) / maxDist
+                
+                let score = sat * brightnessWeight * edgeWeight
+                
+                if score > bestScore {
+                    bestScore = score
+                    best = c
+                }
+            }
+        }
+        
+        var hue: CGFloat = 0, sat: CGFloat = 0, bri: CGFloat = 0, al: CGFloat = 0
+        best.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &al)
+        return UIColor(hue: hue, saturation: min(1, max(sat, 0.4)), brightness: min(max(bri, 0.5), 0.85), alpha: 1)
     }
 }

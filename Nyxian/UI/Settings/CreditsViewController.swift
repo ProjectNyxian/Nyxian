@@ -92,7 +92,7 @@ class CreditsViewController: UIThemedTableViewController {
         cell.roleLabel.text = credit.role
         
         downloadImage(from: "\(credit.githubURL).png") { image in
-            cell.profileImageView.image = image ?? UIImage(systemName: "person.circle")
+            cell.configureImage(image ?? UIImage(systemName: "person.circle"))
         }
         
         return cell
