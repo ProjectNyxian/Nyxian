@@ -409,8 +409,6 @@
     }
 }
 - (NSString*)packagePath { return [NSString stringWithFormat:@"%@/%@.ipa", self.cachePath, [[self projectConfig] executable]]; }
-- (NSString*)homePath { return [NSString stringWithFormat:@"%@/data", self.cachePath]; }
-- (NSString*)temporaryPath { return [NSString stringWithFormat:@"%@/data/tmp", self.cachePath]; }
 - (NSString*)uuid { return [[NSURL fileURLWithPath:self.path] lastPathComponent]; }
 
 - (BOOL)reload

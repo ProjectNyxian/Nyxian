@@ -65,8 +65,6 @@
 @property (nonatomic,strong,readonly) NSString *bundlePath;
 @property (nonatomic,strong,readonly) NSString *machoPath;
 @property (nonatomic,strong,readonly) NSString *packagePath;
-@property (nonatomic,strong,readonly) NSString *homePath;
-@property (nonatomic,strong,readonly) NSString *temporaryPath;
 @property (nonatomic,strong,readonly) NSString *uuid;
 
 - (instancetype)initWithPath:(NSString*)path;
