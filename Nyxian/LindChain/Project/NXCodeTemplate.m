@@ -25,36 +25,31 @@
 BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
                                         NXCodeTemplateLanguage language,
                                         NSString *projectName,
-                                        NSString *projectPath)
+                                        NSURL *projectURL)
 {
     NSFileManager *defaultManager = [NSFileManager defaultManager];
-    if(![defaultManager fileExistsAtPath:projectPath])
-    {
-        return NO;
-    }
     [NXUser shared].projectName = projectName;
-    NSString *templatePath = [[[NSString stringWithFormat:@"%@/Shared/Templates", [[NSBundle mainBundle] bundlePath]] stringByAppendingPathComponent:scheme] stringByAppendingPathComponent:language];
+    NSURL *templateURL = [[[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/Templates"] URLByAppendingPathComponent:scheme] URLByAppendingPathComponent:language];
     
     NSError *error = NULL;
-    NSArray *folderEntries = [defaultManager contentsOfDirectoryAtPath:templatePath error:&error];
+    NSArray<NSURL*> *folderEntries = [defaultManager contentsOfDirectoryAtURL:templateURL includingPropertiesForKeys:nil options:0 error:&error];
     if(error)
     {
         return NO;
     }
     
-    for(NSString *folderEntry in folderEntries)
+    for(NSURL *srcURL in folderEntries)
     {
-        NSString *srcPath = [templatePath stringByAppendingFormat:@"/%@", folderEntry];
-        NSString *dstPath = [projectPath stringByAppendingFormat:@"/%@", folderEntry];
+        NSURL *dstURL = [projectURL URLByAppendingPathComponent:[srcURL lastPathComponent]];
         
         NSError *error = NULL;
-        NSString *codeFileContent = [NSString stringWithContentsOfFile:srcPath encoding:NSUTF8StringEncoding error:&error];
+        NSString *codeFileContent = [NSString stringWithContentsOfURL:srcURL encoding:NSUTF8StringEncoding error:&error];
         if(error)
         {
             return NO;
         }
-        NSString *authoredCodeFileContent = [[[NXUser shared] generateHeaderForFileName: [[NSURL URLWithString:dstPath] lastPathComponent]] stringByAppendingString:codeFileContent];
-        [authoredCodeFileContent writeToFile:dstPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
+        NSString *authoredCodeFileContent = [[[NXUser shared] generateHeaderForFileName: [dstURL lastPathComponent]] stringByAppendingString:codeFileContent];
+        [authoredCodeFileContent writeToURL:dstURL atomically:YES encoding:NSUTF8StringEncoding error:&error];
     }
     
     return YES;

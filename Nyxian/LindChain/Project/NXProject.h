@@ -65,13 +65,12 @@
 @property (nonatomic,strong,readonly) NSURL *bundleURL;
 @property (nonatomic,strong,readonly) NSURL *machoURL;
 @property (nonatomic,strong,readonly) NSURL *packageURL;
-@property (nonatomic,strong,readonly) NSString *uuid;
 
-- (instancetype)initWithPath:(NSString*)path;
+- (instancetype)initWithURL:(NSURL*)url;
++ (instancetype)projectWithURL:(NSURL*)url;
 
-+ (instancetype)projectWithPath:(NSString*)path;
-+ (instancetype)createProjectAtPath:(NSString*)path withName:(NSString*)name withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language;
-+ (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtPath:(NSString*)path;
++ (instancetype)createProjectAtURL:(NSURL*)url withName:(NSString*)name withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language;
++ (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtURL:(NSURL*)url;
 
 - (void)removeProject;
 - (BOOL)reload;

@@ -86,7 +86,7 @@ import UIKit
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
-        let rawProjectsList = NXProject.listProjects(atPath: Bootstrap.rootURL.appendingPathComponent("Projects").path) as! [String:[NXProject]]
+        let rawProjectsList = NXProject.listProjects(at: Bootstrap.rootURL.appendingPathComponent("Projects")) as! [String:[NXProject]]
         let filtered = rawProjectsList.filter { !$0.value.isEmpty }
 
         let sorted = filtered.sorted { a, b in
@@ -247,7 +247,7 @@ import UIKit
             }
             
             if let project = NXProject.createProject(
-                atPath: Bootstrap.rootURL.appendingPathComponent("Projects").path,
+                at: Bootstrap.rootURL.appendingPathComponent("Projects"),
                 withName: name,
                 withBundleIdentifier: bundleid,
                 withType: mode,
@@ -402,7 +402,7 @@ import UIKit
 
             try? FileManager.default.removeItem(at: extractFirst)
 
-            if let project = NXProject(path: projectPath) {
+            if let project = NXProject(url: URL(fileURLWithPath: projectPath)) {
                 addProject(project)
             }
         } catch {

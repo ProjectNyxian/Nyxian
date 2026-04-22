@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/Project/NXType.h>
 
-BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme, NXCodeTemplateLanguage language, NSString *projectName, NSString *projectPath);
+BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme, NXCodeTemplateLanguage language, NSString *projectName, NSURL *projectURL);
 NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
 
 #endif /* NXCODETEMPLATE_H */

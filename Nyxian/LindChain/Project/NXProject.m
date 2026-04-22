@@ -173,13 +173,13 @@
 
 @implementation NXProject
 
-- (instancetype)initWithPath:(NSString*)path
+- (instancetype)initWithURL:(NSURL*)url
 {
     self = [super init];
-    _url = [NSURL fileURLWithPath:path];
-    _cacheURL = [Bootstrap.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [self uuid]]];
+    _url = url;
+    _cacheURL = [Bootstrap.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [_url lastPathComponent]]];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.url.path] withVariables:@{
-        @"SRCROOT": path,
+        @"SRCROOT": url.path,
         @"SDKROOT": Bootstrap.sdkURL.path,
         @"BSROOT": Bootstrap.rootPath,
         @"CACHEROOT": _cacheURL.path
@@ -188,18 +188,18 @@
     return self;
 }
 
-+ (instancetype)projectWithPath:(NSString*)path
++ (instancetype)projectWithURL:(NSURL*)url
 {
-    return [[NXProject alloc] initWithPath:path];
+    return [[NXProject alloc] initWithURL:url];
 }
 
-+ (instancetype)createProjectAtPath:(NSString*)path
-                           withName:(NSString*)name
-               withBundleIdentifier:(NSString*)bundleid
-                           withType:(NXProjectType)type
-                       withLanguage:(NXCodeTemplateLanguage)language
++ (instancetype)createProjectAtURL:(NSURL*)url
+                          withName:(NSString*)name
+              withBundleIdentifier:(NSString*)bundleid
+                          withType:(NXProjectType)type
+                      withLanguage:(NXCodeTemplateLanguage)language
 {
-    NSString *projectPath = [NSString stringWithFormat:@"%@/%@", path, [[NSUUID UUID] UUIDString]];
+    NSURL *projectURL = [url URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
     
     NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
@@ -210,10 +210,10 @@
     for(NSString *directory in directoryList)
     {
         NSError *error = nil;
-        [defaultFileManager createDirectoryAtPath:[NSString stringWithFormat:@"%@%@", projectPath, directory] withIntermediateDirectories:NO attributes:NULL error:&error];
+        [defaultFileManager createDirectoryAtURL:[projectURL URLByAppendingPathComponent:directory] withIntermediateDirectories:YES attributes:nil error:&error];
         if(error)
         {
-            [defaultFileManager removeItemAtPath:projectPath error:nil];
+            [defaultFileManager removeItemAtURL:projectURL error:nil];
             return nil;
         }
     }
@@ -314,11 +314,11 @@
         NSError *error;
         NSDictionary *plistItem = plistList[key];
         NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistItem format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
-        [plistData writeToFile:[NSString stringWithFormat:@"%@%@", projectPath, key] atomically:YES];
+        [plistData writeToURL:[projectURL URLByAppendingPathComponent:key] atomically:YES];
         
         if(error)
         {
-            [defaultFileManager removeItemAtPath:projectPath error:nil];
+            [defaultFileManager removeItemAtURL:projectURL error:nil];
             return nil;
         }
     }
@@ -326,20 +326,20 @@
     NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
     if(scheme == NXCodeTemplateSchemeInvalid)
     {
-        [[NSFileManager defaultManager] removeItemAtPath:projectPath error:nil];
+        [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
         return nil;
     }
     
-    if(!NXCodeTemplateMakeProjectStructure(scheme, language, name, projectPath))
+    if(!NXCodeTemplateMakeProjectStructure(scheme, language, name, projectURL))
     {
-        [[NSFileManager defaultManager] removeItemAtPath:projectPath error:nil];
+        [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
         return nil;
     }
     
-    return [NXProject projectWithPath:projectPath];
+    return [NXProject projectWithURL:projectURL];
 }
 
-+ (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtPath:(NSString*)path
++ (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtURL:(NSURL*)url
 {
     NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*> *projectList = [[NSMutableDictionary alloc] init];
     
@@ -352,11 +352,15 @@
     projectList[@"unknown"] = unknownProjects;
     
     NSError *error;
-    NSArray *pathEntries = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error];
-    if(error) return projectList;
-    for(NSString *entry in pathEntries)
+    NSArray<NSURL*> *urlEntries = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:url includingPropertiesForKeys:nil options:0 error:&error];
+    if(error)
     {
-        NXProject *project = [[NXProject alloc] initWithPath:[NSString stringWithFormat:@"%@/%@",path,entry]];
+        return projectList;
+    }
+    
+    for(NSURL *entry in urlEntries)
+    {
+        NXProject *project = [NXProject projectWithURL:entry];
         
         if(project.projectConfig.type == NXProjectTypeApp)
         {
@@ -410,7 +414,6 @@
     }
 }
 - (NSURL*)packageURL { return [self.cacheURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"ipa"]]; }
-- (NSString*)uuid { return [self.url lastPathComponent]; }
 
 - (BOOL)reload
 {
