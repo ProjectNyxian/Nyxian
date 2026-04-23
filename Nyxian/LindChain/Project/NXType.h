@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
 
@@ -48,6 +49,7 @@ static NXCodeTemplateLanguage const NXCodeTemplateLanguageSelf = @"Self";       
 static NXCodeTemplateLanguage const NXCodeTemplateLanguageObjC = @"ObjC";
 static NXCodeTemplateLanguage const NXCodeTemplateLanguageC = @"C";
 static NXCodeTemplateLanguage const NXCodeTemplateLanguageCpp = @"C++";
+static NXCodeTemplateLanguage const NXCodeTemplateLanguageSwift = @"Swift";
 
 NXCodeTemplateScheme NXCodeTemplateSchemeFromProjectType(NXProjectType type);
 

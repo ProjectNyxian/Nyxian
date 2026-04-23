@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
 
@@ -86,6 +87,10 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
             @"-lc++"
         ];
     }
+    else if([language isEqualToString:NXCodeTemplateLanguageSwift])
+    {
+        return @[];
+    }
     else
     {
         return @[
@@ -101,4 +106,9 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
             @"Foundation"
         ];
     }
+}
+
+NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+{
+    return @[];
 }

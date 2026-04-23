@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
 
@@ -40,6 +41,10 @@
 @property (nonatomic,strong,readonly) NSArray<NSString*> *compilerFlags;
 @property (nonatomic,strong,readonly) NSArray<NSString*> *linkerFlags;
 @property (nonatomic,strong,readonly) NSString *deploymentTarget;
+@property (nonatomic,strong,readonly) NSString *swiftCompilerPath;
+@property (nonatomic,strong,readonly) NSArray<NSString*> *swiftCompilerFlags;
+@property (nonatomic,strong,readonly) NSString *swiftModuleName;
+@property (nonatomic,strong,readonly) NSString *swiftBridgingHeader;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 @property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
 

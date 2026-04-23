@@ -23,6 +23,7 @@
 #import <Foundation/Foundation.h>
 #import <sys/stat.h>
 #import <libgen.h>
+#import <mach-o/getsect.h>
 #import <LindChain/litehook/litehook.h>
 #import <LindChain/LiveContainer/LCUtils.h>
 

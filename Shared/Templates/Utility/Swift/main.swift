@@ -1,7 +1,6 @@
 /*
  SPDX-License-Identifier: AGPL-3.0-or-later
 
- Copyright (C) 2025 - 2026 cr4zyengineer
  Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
@@ -20,14 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef NXCODETEMPLATE_H
-#define NXCODETEMPLATE_H
+import Foundation
+import UIKit
 
-#import <Foundation/Foundation.h>
-#import <LindChain/Project/NXType.h>
-
-BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme, NXCodeTemplateLanguage language, NSString *projectName, NSURL *projectURL);
-NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
-NSArray *NXLinkerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language);
-
-#endif /* NXCODETEMPLATE_H */
+print("hello Nyxian build from \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)")

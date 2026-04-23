@@ -527,6 +527,7 @@
 				AF9916D72DC8C42200DDF895 /* Resources */,
 				AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */,
 				7952278A2F45B52000D1C3CC /* Embed Foundation Extensions */,
+				79E6C0012F96F00100F00CC1 /* Sign CoreCompiler Nested Dylibs */,
 			);
 			buildRules = (
 			);
@@ -633,6 +634,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		79E6C0012F96F00100F00CC1 /* Sign CoreCompiler Nested Dylibs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(CODESIGNING_FOLDER_PATH)/Frameworks/CoreCompiler.framework",
+			);
+			name = "Sign CoreCompiler Nested Dylibs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/CoreCompilerNestedDylibsSigned.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n\nif [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"NO\" ]; then\n    exit 0\nfi\n\nframework=\"${CODESIGNING_FOLDER_PATH}/Frameworks/CoreCompiler.framework\"\nif [ ! -d \"$framework\" ]; then\n    exit 0\nfi\n\nidentity=\"${EXPANDED_CODE_SIGN_IDENTITY:-}\"\nif [ -z \"$identity\" ]; then\n    identity=\"${CODE_SIGN_IDENTITY:-}\"\nfi\nif [ -z \"$identity\" ]; then\n    identity=\"-\"\nfi\n\nfind \"$framework\" -maxdepth 1 -type f -name 'lib_Compiler*.dylib' | while IFS= read -r dylib; do\n    /usr/bin/codesign --force --sign \"$identity\" --timestamp=none \"$dylib\"\ndone\n\n/usr/bin/codesign --force --sign \"$identity\" --timestamp=none \"$framework\"\ntouch \"${DERIVED_FILE_DIR}/CoreCompilerNestedDylibsSigned.stamp\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		79AA11B82F7FFE24002FEAF2 /* Sources */ = {
@@ -1183,6 +1208,7 @@
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_ENHANCED_SECURITY = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
@@ -1305,6 +1331,7 @@
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
 				ENABLE_ENHANCED_SECURITY = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",

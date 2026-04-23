@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
 
@@ -65,8 +66,13 @@ import UIKit
             guard let self = self else { return }
             self.createProject(mode: .utility, withLanguage: .objC)
         }
+
+        let SwiftUtility: UIAction = UIAction(title: "Swift") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .utility, withLanguage: .swift)
+        }
         
-        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [CUtility, CPPCUtility, ObjCCUtility])
+        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [CUtility, CPPCUtility, ObjCCUtility, SwiftUtility])
         
         let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [applicationMenu, utilityMenu])
         

@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2026 Kyle-Ye
 
  This file is part of Nyxian.
 
@@ -112,6 +113,16 @@
         {
             _compilerFlags = @[];
         }
+        /* MARK: Swift compiler */
+        _swiftCompilerPath = [self readSecureFromKey:@"LDESwiftCompilerPath" withDefaultValue:@"$(BSROOT)/Toolchains/Swift/usr/bin/swiftc"];
+        _swiftModuleName = [self readSecureFromKey:@"LDESwiftModuleName" withDefaultValue:[self executable]];
+        _swiftBridgingHeader = [self readSecureFromKey:@"LDESwiftBridgingHeader" withDefaultValue:@""];
+
+        NSArray *swiftCompilerFlags = [self readSecureFromKey:@"LDESwiftCompilerFlags" withDefaultValue:@[
+            @"-swift-version",
+            @"5"
+        ]];
+        _swiftCompilerFlags = swiftCompilerFlags;
         
         /* FIXME: as soon as switching to Swift LLVM this will not be necessary anymore */
         NSString *sysroot = nil;
@@ -129,7 +140,7 @@
         {
             _compilerFlags = [_compilerFlags arrayByAddingObject:[NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", sysroot]];
         }
-        
+
         /* MARK: linker flags */
         _linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
     }
@@ -281,6 +292,13 @@
                     @"UIKit"
                 ],
                 @"LDELinkerFlags": @[],
+                @"LDESwiftCompilerPath": @"$(BSROOT)/Toolchains/Swift/usr/bin/swiftc",
+                @"LDESwiftCompilerFlags": @[
+                    @"-swift-version",
+                    @"5"
+                ],
+                @"LDESwiftModuleName": name,
+                @"LDESwiftBridgingHeader": @"",
                 @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
             };
             break;
@@ -292,7 +310,14 @@
                 @"LDEProjectType": @(type),
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
-                @"LDELinkerFlags": @[],
+                @"LDELinkerFlags": NXLinkerFlagsForCodeTemplateLanguage(language),
+                @"LDESwiftCompilerPath": @"$(BSROOT)/Toolchains/Swift/usr/bin/swiftc",
+                @"LDESwiftCompilerFlags": @[
+                    @"-swift-version",
+                    @"5"
+                ],
+                @"LDESwiftModuleName": name,
+                @"LDESwiftBridgingHeader": @"",
                 @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;
