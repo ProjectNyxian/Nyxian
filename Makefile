@@ -34,6 +34,9 @@ Nyxian/LindChain/CoreCompiler.framework:
 	rm -rf Nyxian/LindChain/CoreCompiler.framework
 	mv LLVM-On-iOS/CoreCompiler.framework Nyxian/LindChain/CoreCompiler.framework
 
+Nyxian/LindChain/CoreCompilerSupportLibs: Nyxian/LindChain/CoreCompiler.framework
+	mv LLVM-On-iOS/CoreCompilerSupportLibs Nyxian/LindChain/CoreCompilerSupportLibs
+
 # Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:
 	$(MAKE) -C TrollStore pre_build
@@ -49,7 +52,7 @@ update-config:
 	./version.sh
 
 # Methods
-compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/CoreCompiler.framework
+compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/CoreCompiler.framework Nyxian/LindChain/CoreCompilerSupportLibs
 	chmod +x version.sh
 	./version.sh
 	xcodebuild \

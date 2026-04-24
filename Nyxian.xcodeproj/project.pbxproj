@@ -308,11 +308,37 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				LindChain/CoreCompiler.framework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib = (CodeSignOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
 				LindChain/CoreCompiler.framework,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib,
 				LindChain/OpenSSL.xcframework,
 			);
 		};
@@ -320,11 +346,37 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				LindChain/CoreCompiler.framework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib = (CodeSignOnCopy, );
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib = (CodeSignOnCopy, );
 				LindChain/OpenSSL.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
 			};
 			buildPhase = AFF4DB332DCA57EC00B1B5F9 /* Embed Libraries */;
 			membershipExceptions = (
 				LindChain/CoreCompiler.framework,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib,
+				LindChain/CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib,
 				LindChain/OpenSSL.xcframework,
 			);
 		};
@@ -796,6 +848,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -918,6 +971,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -1265,6 +1319,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
@@ -1388,6 +1443,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain/Synpush",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				ONLY_ACTIVE_ARCH = YES;
