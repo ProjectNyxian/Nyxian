@@ -284,6 +284,7 @@
                     @"UIKit"
                 ],
                 @"LDELinkerFlags": @[],
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(language),
                 @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
             };
             break;
@@ -296,6 +297,7 @@
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
                 @"LDELinkerFlags": @[],
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(language),
                 @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;

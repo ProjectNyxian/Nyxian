@@ -43,22 +43,20 @@ import UIKit
         self.title = "Projects"
         
         /* application menu */
+        let swiftApp: UIAction = UIAction(title: "Swift") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .app, withLanguage: .swift)
+        }
+        
         let ObjCApp: UIAction = UIAction(title: "Objc") { [weak self] _ in
             guard let self = self else { return }
             self.createProject(mode: .app, withLanguage: .objC)
         }
         
-        let applicationMenu: UIMenu = UIMenu(title: "App", image: UIImage(systemName: "app.gift.fill"), children: [ObjCApp])
-        
         /* utility menu */
-        let CUtility: UIAction = UIAction(title: "C") { [weak self] _ in
+        let swiftUtility: UIAction = UIAction(title: "Swift") { [weak self] _ in
             guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .C)
-        }
-        
-        let CPPCUtility: UIAction = UIAction(title: "C++") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .cpp)
+            self.createProject(mode: .utility, withLanguage: .swift)
         }
         
         let ObjCCUtility: UIAction = UIAction(title: "ObjC") { [weak self] _ in
@@ -66,7 +64,18 @@ import UIKit
             self.createProject(mode: .utility, withLanguage: .objC)
         }
         
-        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [CUtility, CPPCUtility, ObjCCUtility])
+        let CPPCUtility: UIAction = UIAction(title: "C++") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .utility, withLanguage: .cpp)
+        }
+        
+        let CUtility: UIAction = UIAction(title: "C") { [weak self] _ in
+            guard let self = self else { return }
+            self.createProject(mode: .utility, withLanguage: .C)
+        }
+        
+        let applicationMenu: UIMenu = UIMenu(title: "App", image: UIImage(systemName: "app.gift.fill"), children: [swiftApp, ObjCApp])
+        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [swiftUtility, ObjCCUtility, CPPCUtility, CUtility])
         
         let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [applicationMenu, utilityMenu])
         

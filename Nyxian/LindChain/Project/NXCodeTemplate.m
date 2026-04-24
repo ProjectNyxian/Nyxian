@@ -102,3 +102,31 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
         ];
     }
 }
+
+NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+{
+    if([language isEqualToString:NXCodeTemplateLanguageSwift])
+    {
+        return @[
+            @"-target",
+            @"arm64-apple-ios$(LDEMinimumVersion)",
+            @"-parse-as-library",
+            @"-Xllvm",
+            @"-aarch64-use-tbi",
+            @"-enable-objc-interop",
+            @"-sdk",
+            @"$(SDKROOT)",
+            @"-resource-dir",
+            @"$(BSROOT)/swift",
+            @"-module-cache-path",
+            @"$(CACHEROOT)/SwiftModuleCache",
+            @"-no-color-diagnostics",
+            @"-Xcc",
+            @"-fno-color-diagnostics"
+        ];
+    }
+    else
+    {
+        return @[];
+    }
+}
