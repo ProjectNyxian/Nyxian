@@ -185,10 +185,7 @@
                  */
                 NSLog(@"bootstrapping directory structure");
                 
-                if(![[NSFileManager defaultManager] createDirectoryAtURL:self.projectsURL withIntermediateDirectories:NO attributes:nil error:&error])
-                {
-                    goto report_error;
-                }
+                [[NSFileManager defaultManager] createDirectoryAtURL:self.projectsURL withIntermediateDirectories:NO attributes:nil error:&error];
                 
                 if(![[NSFileManager defaultManager] createDirectoryAtURL:self.cacheURL withIntermediateDirectories:NO attributes:nil error:&error])
                 {
