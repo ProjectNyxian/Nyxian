@@ -849,6 +849,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
 					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -972,6 +973,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
 					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = (
@@ -1320,6 +1322,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
 					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
@@ -1444,6 +1447,7 @@
 					"$(PROJECT_DIR)/Nyxian/LindChain",
 					"$(PROJECT_DIR)/Nyxian/LindChain/JBSupport",
 					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs",
+					"$(PROJECT_DIR)/Nyxian/LindChain/CoreCompilerSupportLibs/CoreCompilerSupportLibs",
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				ONLY_ACTIVE_ARCH = YES;
