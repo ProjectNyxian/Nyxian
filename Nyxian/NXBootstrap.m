@@ -59,9 +59,9 @@
 {
     dispatch_once(&_gatherRootURLOnce, ^{
 #if !JAILBREAK_ENV
-        _rootURL = [NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@"/Documents"]];
+        _rootURL = [NSURL fileURLWithPath:[[@"/private" stringByAppendingPathComponent:NSHomeDirectory()] stringByAppendingPathComponent:@"/Documents"]];
 #else
-        _rootURL = [NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@"/Documents/com.cr4zy.nyxian.root"]];
+        _rootURL = [NSURL fileURLWithPath:[[@"/private" stringByAppendingPathComponent:NSHomeDirectory()] stringByAppendingPathComponent:@"/Documents/com.cr4zy.nyxian.root"]];
 #endif /* !JAILBREAK_ENV */
     });
     return _rootURL;
