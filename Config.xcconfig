@@ -3,6 +3,7 @@
 //  Nyxian
 //
 //  Created by FridaDEV on 09.12.25.
+//  Updated by Kyle-Ye on 25.04.26.
 //
 
 // Configuration settings file format documentation can be found at:
@@ -10,3 +11,12 @@
 
 VERSION = 0.10.0
 BUILD_NUMBER = 20260424.57.US.seanistethered
+
+NYXIAN_DEVELOPMENT_TEAM = L4A6CKH3TV
+DEVELOPMENT_TEAM = $(NYXIAN_DEVELOPMENT_TEAM)
+
+NYXIAN_PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian
+NYXIAN_LIVEPROCESS_PRODUCT_BUNDLE_IDENTIFIER = $(NYXIAN_PRODUCT_BUNDLE_IDENTIFIER).LiveProcess
+
+NYXIAN_CODE_SIGN_ENTITLEMENTS = Nyxian/Nyxian.entitlements
+NYXIAN_LIVEPROCESS_CODE_SIGN_ENTITLEMENTS = LiveProcess/LiveProcess.entitlements
