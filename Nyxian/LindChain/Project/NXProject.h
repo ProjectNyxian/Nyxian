@@ -70,7 +70,7 @@
 - (instancetype)initWithURL:(NSURL*)url;
 + (instancetype)projectWithURL:(NSURL*)url;
 
-+ (instancetype)createProjectAtURL:(NSURL*)url withName:(NSString*)name withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language;
++ (instancetype)createProjectAtURL:(NSURL*)url withName:(NSString*)name withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language withInterface:(NXCodeTemplateInterface)interface;
 + (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtURL:(NSURL*)url;
 
 - (void)removeProject;

@@ -24,12 +24,17 @@
 
 BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
                                         NXCodeTemplateLanguage language,
+                                        NXCodeTemplateInterface interface,
                                         NSString *projectName,
                                         NSURL *projectURL)
 {
     NSFileManager *defaultManager = [NSFileManager defaultManager];
     [NXUser shared].projectName = projectName;
     NSURL *templateURL = [[[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/Templates"] URLByAppendingPathComponent:scheme] URLByAppendingPathComponent:language];
+    if([scheme isEqualToString:NXCodeTemplateSchemeApp])
+    {
+        templateURL = [templateURL URLByAppendingPathComponent:interface];
+    }
     
     NSError *error = NULL;
     NSArray<NSURL*> *folderEntries = [defaultManager contentsOfDirectoryAtURL:templateURL includingPropertiesForKeys:nil options:0 error:&error];

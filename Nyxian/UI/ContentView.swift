@@ -20,6 +20,7 @@
 */
 
 import Foundation
+import SwiftUI
 import UIKit
 
 @objc class ContentViewController: UIThemedTableViewController, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
@@ -42,15 +43,9 @@ import UIKit
         
         self.title = "Projects"
         
-        /* application menu */
-        let swiftApp: UIAction = UIAction(title: "Swift") { [weak self] _ in
+        let application: UIAction = UIAction(title: "App", image: UIImage(systemName: "app.gift.fill")) { [weak self] _ in
             guard let self = self else { return }
-            self.createProject(mode: .app, withLanguage: .swift)
-        }
-        
-        let ObjCApp: UIAction = UIAction(title: "ObjC") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .app, withLanguage: .objC)
+            self.createProject(mode: .app)
         }
         
         /* utility menu */
@@ -74,10 +69,9 @@ import UIKit
             self.createProject(mode: .utility, withLanguage: .C)
         }
         
-        let applicationMenu: UIMenu = UIMenu(title: "App", image: UIImage(systemName: "app.gift.fill"), children: [swiftApp, ObjCApp])
         let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [swiftUtility, ObjCCUtility, CPPCUtility, CUtility])
         
-        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [applicationMenu, utilityMenu])
+        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [application, utilityMenu])
         
         let importItem: UIAction = UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
             guard let self = self else { return }
@@ -214,7 +208,7 @@ import UIKit
         return keyA < keyB
     }
     
-    func createProject(mode: NXProjectType, withLanguage language: NXCodeTemplateLanguage) {
+    func createProject(mode: NXProjectType, withLanguage language: NXCodeTemplateLanguage? = nil) {
         let projectString: String
         
         switch(mode)
@@ -231,16 +225,19 @@ import UIKit
         }
         
         let alert = UIAlertController(title: "Create \(projectString) Project",
-                                      message: "",
+                                      message: nil,
                                       preferredStyle: .alert)
-        
-        alert.addTextField { (textField) -> Void in
-            textField.placeholder = "Name"
-        }
-        
+        let appTemplateOptionsModel: AppTemplateOptionsModel?
+
         if mode == .app {
+            let optionsModel = AppTemplateOptionsModel()
+            let optionsController = AppTemplateOptionsHostingController(model: optionsModel)
+            appTemplateOptionsModel = optionsModel
+            alert.setValue(optionsController, forKey: "contentViewController")
+        } else {
+            appTemplateOptionsModel = nil
             alert.addTextField { (textField) -> Void in
-                textField.placeholder = "Bundle Identifier"
+                textField.placeholder = "Name"
             }
         }
         
@@ -248,19 +245,32 @@ import UIKit
         
         let createAction: UIAlertAction = UIAlertAction(title: "Create", style: .default) { [weak self] action -> Void in
             guard let self = self else { return }
-            let name = (alert.textFields![0]).text!
-            var bundleid = ""
-            if let textFieldArray = alert.textFields,
-               textFieldArray.count > 1 {
-                bundleid = textFieldArray[1].text!
+            let name: String
+            let bundleid: String
+            let projectLanguage: NXCodeTemplateLanguage
+            let projectInterface: NXCodeTemplateInterface
+
+            if mode == .app, let appTemplateOptionsModel {
+                name = appTemplateOptionsModel.projectName
+                bundleid = appTemplateOptionsModel.bundleIdentifier
+                projectLanguage = appTemplateOptionsModel.selectedLanguage
+                projectInterface = appTemplateOptionsModel.selectedInterface
+            } else if let language = language {
+                name = alert.textFields?.first?.text ?? ""
+                bundleid = ""
+                projectLanguage = language
+                projectInterface = .invalid
+            } else {
+                return
             }
-            
+
             if let project = NXProject.createProject(
                 at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
                 withName: name,
                 withBundleIdentifier: bundleid,
                 withType: mode,
-                withLanguage: language
+                withLanguage: projectLanguage,
+                withInterface: projectInterface
             ) {
                 addProject(project)
             }
@@ -427,5 +437,180 @@ import UIKit
         } else {
             return (key == "applications") ? 70 : UITableView.automaticDimension
         }
+    }
+}
+
+private final class AppTemplateOptionsModel: ObservableObject {
+    private struct Option: Identifiable {
+        let id: String
+        let title: String
+    }
+
+    private let languages: [Option] = [
+        Option(id: "Swift", title: "Swift"),
+        Option(id: "ObjC", title: "ObjC")
+    ]
+    private let interfaces: [Option] = [
+        Option(id: "SwiftUI", title: "SwiftUI"),
+        Option(id: "UIKit", title: "UIKit")
+    ]
+
+    @Published var projectName = ""
+    @Published var bundleIdentifier = ""
+    @Published private var selectedLanguageID = "Swift"
+    @Published private var selectedInterfaceID = "UIKit"
+
+    var selectedLanguage: NXCodeTemplateLanguage {
+        return selectedLanguageID == "ObjC" ? .objC : .swift
+    }
+
+    var selectedInterface: NXCodeTemplateInterface {
+        return selectedInterfaceID == "SwiftUI" ? .swiftUI : .uiKit
+    }
+
+    var languageSelection: String {
+        get { selectedLanguageID }
+        set { selectLanguage(id: newValue) }
+    }
+
+    var interfaceSelection: String {
+        get { selectedInterfaceID }
+        set { selectInterface(id: newValue) }
+    }
+
+    var languageOptions: [(id: String, title: String)] {
+        let options = selectedInterfaceID == "SwiftUI" ? [languages[0]] : languages
+        return options.map { (id: $0.id, title: $0.title) }
+    }
+
+    var interfaceOptions: [(id: String, title: String)] {
+        return interfaces.map { (id: $0.id, title: $0.title) }
+    }
+
+    private func selectLanguage(id: String) {
+        selectedLanguageID = id
+        if selectedLanguageID == "ObjC" {
+            selectedInterfaceID = "UIKit"
+        }
+    }
+
+    private func selectInterface(id: String) {
+        selectedInterfaceID = id
+        if selectedInterfaceID == "SwiftUI" {
+            selectedLanguageID = "Swift"
+        }
+    }
+}
+
+private struct AppTemplateOptionsView: View {
+    @ObservedObject var model: AppTemplateOptionsModel
+
+    var body: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 0) {
+                templateTextField("Name", text: $model.projectName)
+                Divider()
+                    .padding(.leading, 12)
+                templateTextField("Bundle Identifier", text: $model.bundleIdentifier)
+                    .keyboardType(.URL)
+            }
+            .background(Color(uiColor: .secondarySystemFill))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(spacing: 8) {
+                optionRow(
+                    title: "Interface:",
+                    value: title(for: model.interfaceSelection, in: model.interfaceOptions),
+                    options: model.interfaceOptions,
+                    selection: Binding(
+                        get: { model.interfaceSelection },
+                        set: { model.interfaceSelection = $0 }
+                    )
+                )
+
+                optionRow(
+                    title: "Language:",
+                    value: title(for: model.languageSelection, in: model.languageOptions),
+                    options: model.languageOptions,
+                    selection: Binding(
+                        get: { model.languageSelection },
+                        set: { model.languageSelection = $0 }
+                    )
+                )
+            }
+            .font(.body)
+        }
+        .padding(.top, 2)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 6)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func templateTextField(_ placeholder: String, text: Binding<String>) -> some View {
+        TextField(placeholder, text: text)
+            .textFieldStyle(.plain)
+            .font(.body)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .padding(.horizontal, 12)
+            .frame(height: 40)
+    }
+
+    private func optionRow(title: String,
+                           value: String,
+                           options: [(id: String, title: String)],
+                           selection: Binding<String>) -> some View {
+        HStack {
+            Text(title)
+                .font(.body)
+                .foregroundStyle(.primary)
+            Spacer(minLength: 12)
+            Menu {
+                ForEach(options, id: \.id) { option in
+                    Button {
+                        selection.wrappedValue = option.id
+                    } label: {
+                        if option.id == selection.wrappedValue {
+                            Label(option.title, systemImage: "checkmark")
+                        } else {
+                            Text(option.title)
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(value)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption.weight(.semibold))
+                }
+                .font(.body)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 10)
+                .frame(minHeight: 32)
+                .background(Color(uiColor: .secondarySystemFill))
+                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            }
+        }
+    }
+
+    private func title(for id: String, in options: [(id: String, title: String)]) -> String {
+        return options.first { $0.id == id }?.title ?? id
+    }
+}
+
+private final class AppTemplateOptionsHostingController: UIHostingController<AppTemplateOptionsView> {
+    let model: AppTemplateOptionsModel
+
+    init(model: AppTemplateOptionsModel) {
+        self.model = model
+        super.init(rootView: AppTemplateOptionsView(model: model))
+        sizingOptions = [.preferredContentSize]
+    }
+
+    @MainActor @objc required dynamic init?(coder aDecoder: NSCoder) {
+        let model = AppTemplateOptionsModel()
+        self.model = model
+        super.init(coder: aDecoder, rootView: AppTemplateOptionsView(model: model))
+        sizingOptions = [.preferredContentSize]
     }
 }

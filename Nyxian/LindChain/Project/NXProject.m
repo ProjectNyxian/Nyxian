@@ -201,10 +201,11 @@
               withBundleIdentifier:(NSString*)bundleid
                           withType:(NXProjectType)type
                       withLanguage:(NXCodeTemplateLanguage)language
+                     withInterface:(NXCodeTemplateInterface)interface
 {
     NSURL *projectURL = [url URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
-    
+
     NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
     if(type == NXProjectTypeApp)
     {
@@ -220,7 +221,7 @@
             return nil;
         }
     }
-    
+
     NSDictionary *entitlementsPlist = @{
 #if !JAILBREAK_ENV
         @"com.nyxian.pe.get_task_allowed": @(YES),
@@ -243,6 +244,40 @@
     };
     
     NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
+    NXCodeTemplateInterface templateInterface = type == NXProjectTypeApp ? interface : NXCodeTemplateInterfaceInvalid;
+    if(type == NXProjectTypeApp)
+    {
+        if(![templateInterface isEqualToString:NXCodeTemplateInterfaceSwiftUI] &&
+           ![templateInterface isEqualToString:NXCodeTemplateInterfaceUIKit])
+        {
+            templateInterface = NXCodeTemplateInterfaceUIKit;
+        }
+
+        if([templateInterface isEqualToString:NXCodeTemplateInterfaceSwiftUI] &&
+           ![language isEqualToString:NXCodeTemplateLanguageSwift])
+        {
+            [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
+            return nil;
+        }
+    }
+
+    NSDictionary *appBundleInfo = @{};
+    if([templateInterface isEqualToString:NXCodeTemplateInterfaceUIKit])
+    {
+        appBundleInfo = @{
+            @"UIApplicationSceneManifest": @{
+                @"UIApplicationSupportsMultipleScenes": @(NO),
+                @"UISceneConfigurations": @{
+                    @"UIWindowSceneSessionRoleApplication": @[
+                        @{
+                            @"UISceneConfigurationName": @"Default Configuration",
+                            @"UISceneDelegateClassName": @"SceneDelegate"
+                        }
+                    ]
+                }
+            }
+        };
+    }
     
     NSDictionary *projConfigPlist = nil;
     switch(type)
@@ -253,19 +288,7 @@
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
                 @"LDEBundleIdentifier": bundleid,
-                @"LDEBundleInfo": @{
-                    @"UIApplicationSceneManifest": @{
-                        @"UIApplicationSupportsMultipleScenes": @(NO),
-                        @"UISceneConfigurations": @{
-                            @"UIWindowSceneSessionRoleApplication": @[
-                                @{
-                                    @"UISceneConfigurationName": @"Default Configuration",
-                                    @"UISceneDelegateClassName": @"SceneDelegate"
-                                }
-                            ]
-                        }
-                    }
-                },
+                @"LDEBundleInfo": appBundleInfo,
                 @"LDEBundleVersion": @"1.0",
                 @"LDEBundleShortVersion": @"1.0",
                 @"LDEProjectType": @(type),
@@ -336,7 +359,7 @@
         return nil;
     }
     
-    if(!NXCodeTemplateMakeProjectStructure(scheme, language, name, projectURL))
+    if(!NXCodeTemplateMakeProjectStructure(scheme, language, templateInterface, name, projectURL))
     {
         [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
         return nil;
