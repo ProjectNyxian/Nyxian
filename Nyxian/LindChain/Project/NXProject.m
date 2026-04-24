@@ -132,6 +132,9 @@
         
         /* MARK: linker flags */
         _linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
+        
+        /* MARK: swift flags */
+        _swiftFlags = [self readSecureFromKey:@"LDESwiftFlags" withDefaultValue:@[]];
     }
     return reloaded;
 }
