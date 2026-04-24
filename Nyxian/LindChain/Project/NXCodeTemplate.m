@@ -103,14 +103,14 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
     }
 }
 
-NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateScheme scheme,
+                                             NXCodeTemplateLanguage language)
 {
     if([language isEqualToString:NXCodeTemplateLanguageSwift])
     {
-        return @[
+        NSArray *baseFlags = @[
             @"-target",
             @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-parse-as-library",
             @"-Xllvm",
             @"-aarch64-use-tbi",
             @"-enable-objc-interop",
@@ -124,6 +124,15 @@ NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
             @"-Xcc",
             @"-fno-color-diagnostics"
         ];
+        
+        if([scheme isEqualToString:NXCodeTemplateSchemeApp])
+        {
+            return [baseFlags arrayByAddingObject:@"-parse-as-library"];
+        }
+        else
+        {
+            return baseFlags;
+        }
     }
     else
     {

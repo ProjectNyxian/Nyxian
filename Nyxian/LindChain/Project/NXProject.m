@@ -242,6 +242,8 @@
 #endif // !JAILBREAK_ENV
     };
     
+    NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
+    
     NSDictionary *projConfigPlist = nil;
     switch(type)
     {
@@ -284,7 +286,7 @@
                     @"UIKit"
                 ],
                 @"LDELinkerFlags": @[],
-                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(language),
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(scheme, language),
                 @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
             };
             break;
@@ -297,7 +299,7 @@
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
                 @"LDELinkerFlags": @[],
-                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(language),
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(scheme, language),
                 @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;
@@ -328,7 +330,6 @@
         }
     }
     
-    NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
     if(scheme == NXCodeTemplateSchemeInvalid)
     {
         [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
