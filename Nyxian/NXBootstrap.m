@@ -92,6 +92,11 @@
     return [self.rootURL URLByAppendingPathComponent:@"/bootstrap.plist"];
 }
 
+- (NSURL*)swiftURL
+{
+    return [self.rootURL URLByAppendingPathComponent:@"/swift"];
+}
+
 - (UInt64)version
 {
     NSDictionary *bootstrapPlist = [NSDictionary dictionaryWithContentsOfURL:self.bootstrapPlistURL];
@@ -292,22 +297,32 @@
                 self.version = 17;
             }
             
-            if(self.version < 18)
+            /* has to be copy because those paths might be unstable */
+            if(self.version < 20)
             {
                 /*
                  * this is necessary so simd and normal
                  * c code work perfectly.
                  */
-                NSLog(@"bootstrapping clang include resources");
+                NSLog(@"bootstrapping clang include and swift resources");
                 [[NSFileManager defaultManager] removeItemAtURL:self.includeURL error:nil];
+                [[NSFileManager defaultManager] removeItemAtURL:self.swiftURL error:nil];
                 
-                if(![[NSFileManager defaultManager] createSymbolicLinkAtURL:self.includeURL withDestinationURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/clang/21"] error:&error])
+                if(![[NSFileManager defaultManager] copyItemAtURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/clang/21"] toURL:self.includeURL error:&error])
+                {
+                    goto report_error;
+                }
+                
+                /*
+                 * this is necessary so swift works
+                 */
+                if(![[NSFileManager defaultManager] copyItemAtURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/swift"] toURL:self.swiftURL error:&error])
                 {
                     goto report_error;
                 }
             }
             
-            self.version = 18;
+            self.version = 20;
         }
         
         NSLog(@"done");
