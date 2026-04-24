@@ -299,19 +299,31 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func compileSwift() throws {
-        if !self.compilerSwiftJobs.isEmpty {
-            let pstep: Double = 1.00 / Double(self.compilerSwiftJobs.count)
+        guard !self.compilerSwiftJobs.isEmpty else { return }
+        
+        let pstep: Double = 1.00 / Double(self.compilerSwiftJobs.count + 1)
+        
+        let baseArguments: [String] = self.project.projectConfig.swiftFlags
+        let moduleName: String = self.project.projectConfig.displayName
+        let modulePath: String = self.project.cacheURL.appendingPathComponent(moduleName).path
+        let allSources: [String] = self.compilerSwiftJobs.map { $0.0 }
+        
+        let emitArgs: [String] = baseArguments + ["-emit-module", "-emit-module-path", modulePath, "-module-name", moduleName] + allSources
+        if !CCKSwiftCompiler.execute(withArguments: emitArgs, output: nil) {
+            XCButton.incrementProgress(withValue: pstep)
+            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to emit Swift module"])
+        }
+        XCButton.incrementProgress(withValue: pstep)
+        
+        for job in self.compilerSwiftJobs {
+            let others = allSources.filter { $0 != job.0 }
+            let jobArguments: [String] = baseArguments + ["-module-name", moduleName, "-c", "-primary-file", job.0] + others + ["-o", job.1]
             
-            let baseArguments: [String] = self.project.projectConfig.swiftFlags
-            
-            for job in self.compilerSwiftJobs {
-                let jobArguments: [String] = baseArguments + ["-c", job.0, "-o", job.1]
-                if !CCKSwiftCompiler.execute(withArguments: jobArguments, output: nil) {    // TODO: we need error output later on, but using Swift compiler invocation instead of stderr, the implementation of swift support is still very weak, very unintegrated
-                    XCButton.incrementProgress(withValue: pstep)
-                    throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile swift source code"])
-                }
+            if !CCKSwiftCompiler.execute(withArguments: jobArguments, output: nil) {
                 XCButton.incrementProgress(withValue: pstep)
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to compile swift source code"])
             }
+            XCButton.incrementProgress(withValue: pstep)
         }
     }
     
