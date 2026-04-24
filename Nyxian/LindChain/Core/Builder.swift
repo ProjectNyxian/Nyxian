@@ -36,6 +36,8 @@ class Builder: NSObject, CCKDriverDelegate {
     private var compilerJobs: [CCKJob] = []
     private var linkerJobs: [CCKJob] = []
     
+    private var compilerSwiftJobs: [(String,String)] = []
+    
     private let database: DebugDatabase
     
     private let driver: CCKDriver
@@ -59,6 +61,16 @@ class Builder: NSObject, CCKDriverDelegate {
         
         guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources"]) else {
             return nil
+        }
+        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
+            return nil
+        }
+        
+        for file in swiftFiles {
+            let swiftObject: String = "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: URL(fileURLWithPath: file))))"
+            
+            /* TODO: add incremental build to swift files */
+            self.compilerSwiftJobs.append((file,swiftObject))
         }
         
         driverFlags.append(contentsOf: codeFiles)
@@ -96,6 +108,26 @@ class Builder: NSObject, CCKDriverDelegate {
             default:
                 break
             }
+        }
+        
+        if !self.compilerSwiftJobs.isEmpty {
+            // Have to patch link job
+            let linkerJob: CCKJob = self.linkerJobs[0]
+            let type: CCJobType = linkerJob.type
+            var arguments: [String] = linkerJob.arguments
+            
+            // Adding swift object files
+            for job in self.compilerSwiftJobs {
+                arguments.append(job.1)
+            }
+            
+            // Adding swift related linker flags
+            // TODO: let the user add those manually in Other linker flags
+            arguments.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
+            arguments.append("-L\(NXBootstrap.shared().swiftURL.path)")
+            arguments.append("-rpath")
+            arguments.append("/usr/lib/swift")
+            self.linkerJobs[0] = CCKJob(type: type, withArguments: arguments)
         }
     }
     
@@ -222,7 +254,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func compile() throws {
-        if self.compilerJobs.count > 0 {
+        if !self.compilerJobs.isEmpty {
             let pstep: Double = 1.00 / Double(self.compilerJobs.count)
             guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
@@ -262,6 +294,23 @@ class Builder: NSObject, CCKDriverDelegate {
                 try self.argsString.write(to: self.project.cacheURL.appendingPathComponent("args.txt"), atomically: false, encoding: .utf8)
             } catch {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
+            }
+        }
+    }
+    
+    func compileSwift() throws {
+        if !self.compilerSwiftJobs.isEmpty {
+            let pstep: Double = 1.00 / Double(self.compilerSwiftJobs.count)
+            
+            let baseArguments: [String] = self.project.projectConfig.swiftFlags
+            
+            for job in self.compilerSwiftJobs {
+                let jobArguments: [String] = baseArguments + ["-c", job.0, "-o", job.1]
+                if !CCKSwiftCompiler.execute(withArguments: jobArguments, output: nil) {    // TODO: we need error output later on, but using Swift compiler invocation instead of stderr, the implementation of swift support is still very weak, very unintegrated
+                    XCButton.incrementProgress(withValue: pstep)
+                    throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile swift source code"])
+                }
+                XCButton.incrementProgress(withValue: pstep)
             }
         }
     }
@@ -487,6 +536,7 @@ class Builder: NSObject, CCKDriverDelegate {
                     (nil,nil,{ try builder.headsup() }),
                     (nil,nil,{ try builder.clean() }),
                     (nil,nil,{ try builder.prepare() }),
+                    (nil,nil,{ try builder.compileSwift() }),
                     (nil,nil,{ try builder.compile() }),
                     ("link",0.3,{ try builder.link() }),
                     ("arrow.down.app.fill",nil,{try builder.install(buildType: buildType, outPipe: outPipe, inPipe: inPipe) })
