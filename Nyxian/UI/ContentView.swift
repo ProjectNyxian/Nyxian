@@ -48,7 +48,7 @@ import UIKit
             self.createProject(mode: .app, withLanguage: .swift)
         }
         
-        let ObjCApp: UIAction = UIAction(title: "Objc") { [weak self] _ in
+        let ObjCApp: UIAction = UIAction(title: "ObjC") { [weak self] _ in
             guard let self = self else { return }
             self.createProject(mode: .app, withLanguage: .objC)
         }
