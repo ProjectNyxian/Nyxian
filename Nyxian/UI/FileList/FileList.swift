@@ -331,7 +331,7 @@ import UniformTypeIdentifiers
                     let fileVC = FileListViewController(
                         isSublink: true,
                         project: project,
-                        path: Bootstrap.sdkURL.path,
+                        path: NXBootstrap.shared().sdkURL.path,
                         isReadOnly: true
                     )
                     self.navigationController?.pushViewController(fileVC, animated: true)
@@ -532,7 +532,7 @@ import UniformTypeIdentifiers
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
                     } else {
-                        guard let codeEditor = CodeEditorViewController(project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly) else {
+                        guard let codeEditor = CodeEditorViewController(project: project, url: URL(fileURLWithPath: fileListEntry.path), isReadOnly: self.isReadOnly) else {
                             return
                         }
                         let fileVC = UINavigationController(rootViewController: codeEditor)

@@ -45,6 +45,7 @@
 #import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXProject.h>
 #import <LindChain/Project/NXDocumentManager.h>
+#import <NXBootstrap.h>
 
 /* UI Headers */
 #import <UI/TableCells/NXProjectTableCell.h>

@@ -60,12 +60,12 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     
     init?(
         project: NXProject?,
-        path: String,
+        url: URL,
         line: CFIndex? = nil,
         column: CFIndex? = nil,
         isReadOnly: Bool = false
     ) {
-        guard let file = CCKFile(path: path) else {
+        guard let file = CCKFile(url: url) else {
             return nil
         }
         self.file = file
@@ -743,7 +743,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         
         if UIDevice.current.userInterfaceIdiom != .pad {
-            guard let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, path: def.fileURL.path, line: def.location.line, column: def.location.column, isReadOnly: !isInsideProject) else {
+            guard let destEditor = CodeEditorViewController(project: isInsideProject ? self.project : nil, url: def.fileURL, line: def.location.line, column: def.location.column, isReadOnly: !isInsideProject) else {
                 return
             }
             let destEditorNav = UINavigationController(rootViewController: destEditor)

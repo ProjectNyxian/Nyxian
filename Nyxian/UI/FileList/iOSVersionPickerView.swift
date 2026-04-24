@@ -28,7 +28,7 @@ var NXOSVersionSupportedBuildVersions: [String] {
             return _NXOSVersionSupportedBuildVersions
         }
         
-        let sdkURL = Bootstrap.sdkURL
+        let sdkURL = NXBootstrap.shared().sdkURL
         let settingsURL = sdkURL.appendingPathComponent("SDKSettings.plist")
         if let root: [String:Any] = NSDictionary(contentsOf: settingsURL) as? [String:Any] {
             /* modern SDK handling */

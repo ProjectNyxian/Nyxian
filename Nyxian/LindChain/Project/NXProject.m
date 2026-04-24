@@ -33,9 +33,9 @@
         @"-target",
         @"apple-arm64-ios26.4",
         @"-isysroot",
-        Bootstrap.sdkURL.path,
+        NXBootstrap.shared.sdkURL.path,
         @"-resource-dir",
-        [Bootstrap.rootURL URLByAppendingPathComponent:@"Include"].path
+        [NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"Include"].path
     ];
 }
 
@@ -100,10 +100,10 @@
                 @"-target",
                 [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
                 @"-isysroot",
-                Bootstrap.sdkURL.path,
-                [@"-L" stringByAppendingString:[Bootstrap.rootURL URLByAppendingPathComponent:@"lib"].path],
+                NXBootstrap.shared.sdkURL.path,
+                [@"-L" stringByAppendingString:[NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"lib"].path],
                 @"-resource-dir",
-                [Bootstrap.rootURL URLByAppendingPathComponent:@"Include"].path
+                [NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"Include"].path
             ]];
             
             _compilerFlags = array;
@@ -177,11 +177,11 @@
 {
     self = [super init];
     _url = url;
-    _cacheURL = [Bootstrap.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [_url lastPathComponent]]];
+    _cacheURL = [NXBootstrap.shared.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [_url lastPathComponent]]];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.url.path] withVariables:@{
         @"SRCROOT": url.path,
-        @"SDKROOT": Bootstrap.sdkURL.path,
-        @"BSROOT": Bootstrap.rootPath,
+        @"SDKROOT": NXBootstrap.shared.sdkURL.path,
+        @"BSROOT": NXBootstrap.shared.rootURL.path,
         @"CACHEROOT": _cacheURL.path
     }];
     _entitlementsConfig = [[NXEntitlementsConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Entitlements.plist", self.url.path] withVariables:nil];

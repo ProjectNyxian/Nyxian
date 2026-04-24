@@ -453,7 +453,7 @@ class Builder: NSObject, CCKDriverDelegate {
         XCButton.resetProgress()
         
         LDEPthreadDispatch {
-            Bootstrap.shared.waitTillDone()
+            NXBootstrap.shared().waitTillDone()
             
             var result: Bool = true
             guard let builder: Builder = Builder(

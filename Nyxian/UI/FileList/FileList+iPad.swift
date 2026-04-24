@@ -223,8 +223,8 @@ class SplitScreenDetailViewController: UIViewController {
     }
     private var tabs: [UIButtonTab] = []
     
-    func openPath(path: String, line: CFIndex, column: CFIndex, isReadOnly: Bool) {
-        if let existingTab = tabs.first(where: { $0.path == path }) {
+    func openPath(url: URL, line: CFIndex, column: CFIndex, isReadOnly: Bool) {
+        if let existingTab = tabs.first(where: { $0.url == url }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
             (self.childVC as! CodeEditorViewController).goto(line: line, column: column)
@@ -281,7 +281,7 @@ class SplitScreenDetailViewController: UIViewController {
         
         guard let button = UIButtonTab(frame: CGRect(x: 0, y: 0, width: 100, height: 100),
                                        project: self.project,
-                                       path: path,
+                                       url: url,
                                        line: line,
                                        column: column,
                                        openAction: open,
@@ -296,8 +296,8 @@ class SplitScreenDetailViewController: UIViewController {
         self.updateTabSelection(selectedTab: button)
     }
     
-    func closeTab(path: String) {
-        guard let button = tabs.first(where: { $0.path == path }) else { return }
+    func closeTab(url: URL) {
+        guard let button = tabs.first(where: { $0.url == url }) else { return }
         guard let index = tabs.firstIndex(of: button) else { return }
         
         button.removeTarget(nil, action: nil, for: .allEvents)
@@ -437,10 +437,10 @@ class SplitScreenDetailViewController: UIViewController {
         if args.count > 1 {
             switch(args[0]) {
             case "open":
-                self.openPath(path: args[1], line: CFIndex(args[2]) ?? 0, column: CFIndex(args[3]) ?? 0, isReadOnly: (args.count >= 5 && args[4] == "1"))
+                self.openPath(url: URL(fileURLWithPath: args[1]), line: CFIndex(args[2]) ?? 0, column: CFIndex(args[3]) ?? 0, isReadOnly: (args.count >= 5 && args[4] == "1"))
                 break
             case "close":
-                self.closeTab(path: args[1])
+                self.closeTab(url: URL(fileURLWithPath: args[1]))
                 break
             default:
                 break
@@ -485,7 +485,11 @@ class SplitScreenDetailViewController: UIViewController {
 }
 
 class UIButtonTab: UIButton {
-    let path: String
+    var url: URL {
+        get {
+            self.vc.file.fileURL
+        }
+    }
     let vc: CodeEditorViewController
     let closeAction: (UIButtonTab) -> Void
     
@@ -493,17 +497,15 @@ class UIButtonTab: UIButton {
     private let fileIcon: FileIcon
     
     init?(frame: CGRect,
-         project: NXProject,
-         path: String,
-         line: CFIndex,
-         column: CFIndex,
-         openAction: @escaping (UIButtonTab) -> Void,
-         closeAction: @escaping (UIButtonTab) -> Void,
-         isReadOnly: Bool) {
+          project: NXProject,
+          url: URL,
+          line: CFIndex,
+          column: CFIndex,
+          openAction: @escaping (UIButtonTab) -> Void,
+          closeAction: @escaping (UIButtonTab) -> Void,
+          isReadOnly: Bool) {
         
-        self.path = path
-        
-        guard let codeEditor = CodeEditorViewController(project: project, path: path, line: line, column: column, isReadOnly: isReadOnly) else {
+        guard let codeEditor = CodeEditorViewController(project: project, url: url, line: line, column: column, isReadOnly: isReadOnly) else {
             return nil
         }
         
@@ -520,7 +522,7 @@ class UIButtonTab: UIButton {
             self.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        self.setTitle((path as NSString).lastPathComponent, for: .normal)
+        self.setTitle(self.url.lastPathComponent, for: .normal)
         self.setTitleColor(currentTheme?.textColor, for: .normal)
         self.titleLabel?.font = .systemFont(ofSize: 13)
         self.contentHorizontalAlignment = .center
@@ -546,7 +548,7 @@ class UIButtonTab: UIButton {
             fileIcon.widthAnchor.constraint(equalTo: fileIcon.heightAnchor)
         ])
         
-        fileIcon.configure(with: FileListEntry(name: (path as NSString).lastPathComponent, path: path, isLink: false, type: .file))
+        fileIcon.configure(with: FileListEntry(name: self.url.lastPathComponent, path: self.url.path, isLink: false, type: .file))
         
         self.addAction(UIAction { [weak self] _ in
             guard let s = self else { return }

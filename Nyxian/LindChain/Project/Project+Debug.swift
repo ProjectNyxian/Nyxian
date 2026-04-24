@@ -150,7 +150,7 @@ class DebugDatabase: Codable {
     }
     
     func setFileDebug(ofPath path: String, synItems: [CCKDiagnostic]) {
-        guard let relPath: String = Bootstrap.shared.relativeToBootstrapSafe(path) else {
+        guard let relPath: String = NXBootstrap.shared().relativeToBootstrap(withAbsolutePath: path) else {
             return
         }
         
@@ -343,15 +343,15 @@ class UIDebugViewController: UITableViewController {
             return
         }
         
-        let path: String = Bootstrap.rootURL.appendingPathComponent(object.title).path
+        let fileURL: URL = NXBootstrap.shared().rootURL.appendingPathComponent(object.title)
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",path,"\(item.sourceLocation.line)","\(item.sourceLocation.column)"])
+            NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileURL.path,"\(item.sourceLocation.line)","\(item.sourceLocation.column)"])
             self.dismiss(animated: true)
         } else {
             guard let codeEditor = CodeEditorViewController(
                 project: project,
-                path: path,
+                url: fileURL,
                 line: item.sourceLocation.line,
                 column: item.sourceLocation.column
             ) else {

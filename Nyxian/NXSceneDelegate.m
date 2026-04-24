@@ -77,7 +77,7 @@
     }
 #endif /* JAILBREAK_ENV */
     
-    [[Bootstrap shared] bootstrap];
+    [[NXBootstrap shared] bootstrap];
     
     UIThemedTabViewController *themedTabViewController = [[UIThemedTabViewController alloc] init];
     
