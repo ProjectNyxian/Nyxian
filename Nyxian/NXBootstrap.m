@@ -192,25 +192,6 @@
                     goto report_error;
                 }
                 
-                /*
-                 * this is necessary so simd and normal
-                 * c code work perfectly.
-                 */
-                NSLog(@"bootstrapping clang include resources");
-                [[NSFileManager defaultManager] removeItemAtURL:self.includeURL error:nil];
-                
-                if(!fdownload(@"https://nyxian.app/bootstrap/include.zip", @"include.zip"))
-                {
-                    error = [NSError errorWithDomain:@"" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"downloading \"https://nyxian.app/bootstrap/include.zip\" failed" }];
-                    goto report_error;
-                }
-                
-                if(!unzipArchiveAtPath([NSTemporaryDirectory() stringByAppendingPathComponent:@"include.zip"], self.includeURL.path))
-                {
-                    error = [NSError errorWithDomain:@"" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"extracting \"include.zip\" failed" }];
-                    goto report_error;
-                }
-                
                 self.version = 9;
             }
             
@@ -310,6 +291,23 @@
                 
                 self.version = 17;
             }
+            
+            if(self.version < 18)
+            {
+                /*
+                 * this is necessary so simd and normal
+                 * c code work perfectly.
+                 */
+                NSLog(@"bootstrapping clang include resources");
+                [[NSFileManager defaultManager] removeItemAtURL:self.includeURL error:nil];
+                
+                if(![[NSFileManager defaultManager] createSymbolicLinkAtURL:self.includeURL withDestinationURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/clang/21"] error:&error])
+                {
+                    goto report_error;
+                }
+            }
+            
+            self.version = 18;
         }
         
         NSLog(@"done");

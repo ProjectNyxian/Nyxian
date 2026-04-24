@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 
-#define NXBOOTSTRAP_NEWEST_VERSION  17
+#define NXBOOTSTRAP_NEWEST_VERSION  18
 #define NXBOOTSTRAP_CSTEP           (double)(1.0 / NXBOOTSTRAP_NEWEST_VERSION)
 
 @interface NXBootstrap : NSObject
