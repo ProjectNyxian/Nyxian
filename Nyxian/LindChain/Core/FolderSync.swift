@@ -65,14 +65,13 @@ func syncFolderStructure(from sourceURL: URL,
         }
 
     // Remove extra directories in destination that don't exist in source
-    /* FIXME: need to comment this out otherwise swift module cache gets removed */
-    /*for destDir in destinationDirectories {
+    for destDir in destinationDirectories {
         let relativePath = destDir.path.replacingOccurrences(of: destinationURL.path, with: "")
         let sourceDir = sourceURL.appendingPathComponent(relativePath)
         if !fileManager.fileExists(atPath: sourceDir.path) {
             try fileManager.removeItem(at: destDir)
         }
-    }*/
+    }
     
     ///
     /// This is a early code of fixing the issue where object and source files are out of sync when removing source code files
