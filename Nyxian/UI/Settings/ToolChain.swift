@@ -39,12 +39,7 @@ class ToolChainController: UIThemedTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(section <= 1)
-        {
-            return 1
-        } else {
-            return 2
-        }
+        return 1
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -54,7 +49,7 @@ class ToolChainController: UIThemedTableViewController {
         case 1:
             return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
         case 2:
-            return "This feature allows apps to be opened inside of nyxian instead of invoking the LSApplicationWorkspace API."
+            return "This clears caches that were created for performance."
         default:
             return nil
         }
@@ -64,6 +59,8 @@ class ToolChainController: UIThemedTableViewController {
         switch section {
         case 0:
             return "Features"
+        case 2:
+            return "Actions"
         default:
             return nil
         }
@@ -82,12 +79,37 @@ class ToolChainController: UIThemedTableViewController {
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
         case 2:
-            cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
-            (cell as! ToggleTableCell).configure(title: "Open app inside Nyxian", key: "LDEOpenAppInsideNyxian", defaultValue: true)
+            switch indexPath.row {
+            default:
+                cell = ButtonTableCell(title: "Clear ModuleCache")
+                break
+            /*default:
+                cell = ButtonTableCell(title: "Clear Project Cache's")
+                break*/
+            }
         default:
             cell = UITableViewCell()
         }
         
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if(indexPath.section == 2)
+        {
+            switch(indexPath.row)
+            {
+            case 0:
+                try? FileManager.default.removeItem(at: NXBootstrap.shared().swiftModuleCacheURL)
+                break
+            /*case 1:
+                try? FileManager.default.removeItem(at: NXBootstrap.shared().cacheURL)
+                try? FileManager.default.createDirectory(at: NXBootstrap.shared().cacheURL, withIntermediateDirectories: true)
+                break*/
+            default:
+                break
+            }
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
