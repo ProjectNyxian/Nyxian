@@ -22,12 +22,13 @@
 import UIKit
 
 enum FlagType {
-    case compiler, linker
+    case clang, swift, linker
     
     var title: String {
         switch self {
-            case .compiler: return "Compiler Flags"
-            case .linker: return "Linker Flags"
+            case .clang: return "Clang Flags"
+            case .swift: return "Swift Flags"
+            case .linker: return "Other Linker Flags"
         }
     }
 }
@@ -214,7 +215,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
     private var pendingBundleVersion: String
     private var pendingBundleShortVersion: String
     private var pendingDeployVersion: String
-    private var pendingCompilerFlags: [String]
+    private var pendingClangFlags: [String]
+    private var pendingSwiftFlags: [String]
     private var pendingLinkerFlags: [String]
     private var isDirty = false {
         didSet { navigationItem.rightBarButtonItem?.isEnabled = isDirty }
@@ -223,7 +225,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
     init(project: NXProject) {
         self.project = project
         self.project.reload()
-        self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
+        self.pendingClangFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
+        self.pendingSwiftFlags = project.projectConfig.dictionary["LDESwiftFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         self.pendingDisplayName = project.projectConfig.dictionary["LDEDisplayName"] as? String ?? project.projectConfig.displayName
         self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
@@ -232,7 +235,6 @@ class ProjectConfigViewController: UIThemedTableViewController {
         self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
         self.pendingExecutable = project.projectConfig.dictionary["LDEExecutable"] as? String ?? ""
         self.pendingDeployVersion = project.projectConfig.dictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
-        self.pendingCompilerFlags = project.projectConfig.dictionary["LDECompilerFlags"] as? [String] ?? []
         self.pendingLinkerFlags = project.projectConfig.dictionary["LDELinkerFlags"] as? [String] ?? []
         super.init(style: .insetGrouped)
     }
@@ -303,12 +305,14 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
 
     private enum BuildFlagRow: Int, CaseIterable {
-        case compilerFlags
+        case clangFlags
+        case swiftFlags
         case linkerFlags
 
         var title: String {
             switch self {
-                case .compilerFlags: return "Compiler Flags"
+                case .clangFlags: return "Clang Flags"
+                case .swiftFlags: return "Swift Flags"
                 case .linkerFlags: return "Other Linker Flags"
             }
         }
@@ -358,7 +362,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 let row = BuildFlagRow(rawValue: indexPath.row)!
                 cell.textLabel?.text        = row.title
                 switch row {
-                    case .compilerFlags: cell.detailTextLabel?.text = subtitle(for: pendingCompilerFlags)
+                    case .clangFlags: cell.detailTextLabel?.text = subtitle(for: pendingClangFlags)
+                    case .swiftFlags: cell.detailTextLabel?.text = subtitle(for: pendingSwiftFlags)
                     case .linkerFlags: cell.detailTextLabel?.text = subtitle(for: pendingLinkerFlags)
                 }
         }
@@ -408,8 +413,9 @@ class ProjectConfigViewController: UIThemedTableViewController {
                 }
             case .buildFlags:
                 switch BuildFlagRow(rawValue: indexPath.row)! {
-                    case .compilerFlags: pushFlagsEditor(type: .compiler)
-                    case .linkerFlags:   pushFlagsEditor(type: .linker)
+                    case .clangFlags: pushFlagsEditor(type: .clang)
+                    case .swiftFlags: pushFlagsEditor(type: .swift)
+                    case .linkerFlags: pushFlagsEditor(type: .linker)
                 }
         }
     }
@@ -424,13 +430,24 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
 
     private func pushFlagsEditor(type: FlagType) {
-        let flags = type == .compiler ? pendingCompilerFlags : pendingLinkerFlags
-        let vc    = FlagsEditViewController(flagType: type, flags: flags)
+        let flags: [String] = {
+            switch type {
+                case .clang:
+                    return self.pendingClangFlags
+                case .swift:
+                    return self.pendingSwiftFlags
+                case .linker:
+                    return self.pendingLinkerFlags
+            }
+        }()
+        
+        let vc = FlagsEditViewController(flagType: type, flags: flags)
         vc.onFlagsChanged = { [weak self] updated in
             guard let self else { return }
             switch type {
-                case .compiler: self.pendingCompilerFlags = updated
-                case .linker:   self.pendingLinkerFlags   = updated
+                case .clang: self.pendingClangFlags = updated
+                case .swift: self.pendingSwiftFlags = updated
+                case .linker: self.pendingLinkerFlags = updated
             }
             self.markDirty()
         }
@@ -463,7 +480,8 @@ class ProjectConfigViewController: UIThemedTableViewController {
         project.projectConfig.dictionary["LDEExecutable"] = pendingExecutable
         project.projectConfig.dictionary["LDEBundleIdentifier"] = pendingBundleIdentifier
         project.projectConfig.dictionary["LDEMinimumVersion"] = pendingDeployVersion
-        project.projectConfig.dictionary["LDECompilerFlags"] = pendingCompilerFlags
+        project.projectConfig.dictionary["LDECompilerFlags"] = pendingClangFlags
+        project.projectConfig.dictionary["LDESwiftFlags"] = pendingSwiftFlags
         project.projectConfig.dictionary["LDELinkerFlags"] = pendingLinkerFlags
         project.projectConfig.dictionary["LDEBundleVersion"] = pendingBundleVersion
         project.projectConfig.dictionary["LDEBundleShortVersion"] = pendingBundleShortVersion
