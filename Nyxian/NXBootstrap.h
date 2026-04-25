@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 
-#define NXBOOTSTRAP_NEWEST_VERSION  20
+#define NXBOOTSTRAP_NEWEST_VERSION  21
 #define NXBOOTSTRAP_CSTEP           (double)(1.0 / NXBOOTSTRAP_NEWEST_VERSION)
 
 @interface NXBootstrap : NSObject
@@ -36,6 +36,7 @@
 @property (nonatomic, readonly, strong, nonnull) NSURL *cacheURL;
 @property (nonatomic, readonly, strong, nonnull) NSURL *bootstrapPlistURL;
 @property (nonatomic, readonly, strong, nonnull) NSURL *swiftURL;
+@property (nonatomic, readonly, strong, nonnull) NSURL *swiftModuleCacheURL;
 
 @property (atomic, readonly) UInt64 version;
 @property (atomic, readonly) BOOL isInstalled;

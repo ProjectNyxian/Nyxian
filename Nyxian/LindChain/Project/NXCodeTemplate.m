@@ -119,7 +119,7 @@ NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateScheme scheme,
             @"-resource-dir",
             @"$(BSROOT)/swift",
             @"-module-cache-path",
-            @"$(CACHEROOT)/SwiftModuleCache",
+            @"$(BSROOT)/ModuleCache",
             @"-no-color-diagnostics",
             @"-Xcc",
             @"-fno-color-diagnostics"
