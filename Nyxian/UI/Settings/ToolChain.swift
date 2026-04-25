@@ -35,20 +35,16 @@ class ToolChainController: UIThemedTableViewController {
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        #if !JAILBREAK_ENV
-        return 2
-        #else // !JAILBREAK_ENV
-        /*if #available(iOS 16.0, *) {
-            return 3
-        } else {
-            return 2
-        }*/
-        return 2
-        #endif
+        return 3
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        if(section <= 1)
+        {
+            return 1
+        } else {
+            return 2
+        }
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
