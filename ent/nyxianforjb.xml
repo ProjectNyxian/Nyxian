@@ -31,8 +31,6 @@
 	<true/>
 	<key>com.apple.frontboard.launchapplications</key>
 	<true/>
-	<key>com.apple.private.security.no-sandbox</key>
-	<true/>
 	<key>com.apple.private.security.storage.AppBundles</key>
 	<true/>
 	<key>com.apple.private.security.storage.AppDataContainers</key>
@@ -52,9 +50,14 @@
 	<key>com.apple.runningboard.terminateprocess</key>
 	<true/>
 	<key>com.apple.security.exception.mach-lookup.global-name</key>
-    <true/>
+	<array>
+		<string>*</string>
+	</array>
 	<key>com.apple.security.iokit-user-client-class</key>
-    <true/>
+	<array>
+		<string>IOSurfaceRootUserClient</string>
+		<string>AGXDeviceUserClient</string>
+	</array>
 	<key>com.apple.springboard-ui.client</key>
 	<true/>
 	<key>com.apple.springboard.statusbarstyleoverrides</key>

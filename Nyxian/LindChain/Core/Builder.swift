@@ -125,6 +125,7 @@ class Builder: NSObject, CCKDriverDelegate {
             // TODO: let the user add those manually in Other linker flags
             arguments.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
             arguments.append("-L\(NXBootstrap.shared().swiftURL.path)")
+            arguments.append("-L\(NXBootstrap.shared().rootURL.path)/swift/iphoneos")
             arguments.append("-rpath")
             arguments.append("/usr/lib/swift")
             self.linkerJobs[0] = CCKJob(type: type, withArguments: arguments)

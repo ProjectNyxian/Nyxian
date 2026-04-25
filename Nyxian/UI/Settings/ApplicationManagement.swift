@@ -181,7 +181,6 @@ extension PEEntitlement {
 class ApplicationManagementViewController: UIThemedTableViewController, UITextFieldDelegate, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
     @objc static var shared: ApplicationManagementViewController = ApplicationManagementViewController(style: .insetGrouped)
     var applications: [LDEApplicationObject] = []
-    static let lock: NSLock = NSLock()
     
     override init(style: UITableView.Style) {
         super.init(style: style)

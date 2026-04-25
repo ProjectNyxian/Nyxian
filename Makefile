@@ -35,7 +35,7 @@ Nyxian/LindChain/CoreCompiler.framework:
 	mv LLVM-On-iOS/CoreCompiler.framework Nyxian/LindChain/CoreCompiler.framework
 
 Nyxian/LindChain/CoreCompilerSupportLibs: Nyxian/LindChain/CoreCompiler.framework
-	mv LLVM-On-iOS/CoreCompilerSupportLibs Nyxian/LindChain/CoreCompilerSupportLibs
+	-mv LLVM-On-iOS/CoreCompilerSupportLibs Nyxian/LindChain/CoreCompilerSupportLibs
 
 # Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:

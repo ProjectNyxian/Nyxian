@@ -25,7 +25,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
     let project: NXProject
     var masterVC: FileListViewController?
     var detailVC: SplitScreenDetailViewController?
-    var lock: NSLock = NSLock()
+    var lock: os_unfair_lock = os_unfair_lock()
     
     init(project: NXProject) {
         self.project = project
@@ -89,7 +89,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
             if let self = self,
                let masterVC = masterVC,
                let detailVC = detailVC,
-               lock.try() {
+               os_unfair_lock_trylock(&self.lock) {
                 
                 masterVC.navigationItem.leftBarButtonItem?.isEnabled = false
                 self.detailVC?.logView?.clearConsole()
@@ -97,7 +97,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
                 buildProjectWithArgumentUI(targetViewController: detailVC, project: detailVC.project, buildType: .RunningApp, outPipe: self.detailVC?.logView?.pipe, inPipe: self.detailVC?.logView?.stdinPipe) { [weak self] in
                     guard let self = self else { return }
                     masterVC.navigationItem.leftBarButtonItem?.isEnabled = true
-                    self.lock.unlock()
+                    os_unfair_lock_unlock(&self.lock)
                 }
             }
         }
@@ -107,7 +107,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
 class SplitScreenDetailViewController: UIViewController {
     let project: NXProject
     
-    var lock: NSLock = NSLock()
+    var lock: os_unfair_lock = os_unfair_lock()
     
     var logViewTopConstraint: NSLayoutConstraint? = nil
     var logView: LogTextView?
@@ -122,8 +122,8 @@ class SplitScreenDetailViewController: UIViewController {
             childVCMaster
         }
         set {
-            self.lock.lock()
-            defer { self.lock.unlock() }
+            os_unfair_lock_lock(&self.lock)
+            defer { os_unfair_lock_unlock(&self.lock) }
             
             if let oldVC = childVCMaster {
                 if oldVC == newValue {

@@ -23,7 +23,6 @@
 #import <UI/XCodeButton.h>
 #import <LindChain/Utils/LDEThreadController.h>
 #import <LindChain/Utils/Zip.h>
-#import <LindChain/ProcEnvironment/panic.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <Nyxian-Swift.h>
@@ -161,7 +160,7 @@
             [[NSFileManager defaultManager] createDirectoryAtURL:self.rootURL withIntermediateDirectories:YES attributes:nil error:&error];
             if(error != nil)
             {
-                environment_panic("couldn't create root of bootstrap");
+                abort();
             }
         }
         
@@ -265,33 +264,6 @@
                 self.version = 15;
             }
             
-            /* has to be copy because those paths might be unstable */
-            if(self.version < 20)
-            {
-                /*
-                 * this is necessary so simd and normal
-                 * c code work perfectly.
-                 */
-                NSLog(@"bootstrapping clang include and swift resources");
-                [[NSFileManager defaultManager] removeItemAtURL:self.includeURL error:nil];
-                [[NSFileManager defaultManager] removeItemAtURL:self.swiftURL error:nil];
-                
-                if(![[NSFileManager defaultManager] copyItemAtURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/clang/21"] toURL:self.includeURL error:&error])
-                {
-                    goto report_error;
-                }
-                
-                /*
-                 * this is necessary so swift works
-                 */
-                if(![[NSFileManager defaultManager] copyItemAtURL:[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/SwiftToolchain/usr/lib/swift"] toURL:self.swiftURL error:&error])
-                {
-                    goto report_error;
-                }
-                
-                self.version = 20;
-            }
-            
             if(self.version < 21)
             {
                 /*
@@ -328,6 +300,34 @@
                 }
                 
                 self.version = 21;
+            }
+            
+            if(self.version < 22)
+            {
+                /*
+                 * this is necessary so simd and normal
+                 * c code work perfectly.
+                 */
+                NSLog(@"bootstrapping clang include and swift resources");
+                [[NSFileManager defaultManager] removeItemAtURL:self.includeURL error:nil];
+                [[NSFileManager defaultManager] removeItemAtURL:self.swiftURL error:nil];
+                
+                if(!unzipArchiveAtPath([NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/include.zip"].path, [self.rootURL URLByAppendingPathComponent:@"Include"].path))
+                {
+                    error = [NSError errorWithDomain:@"" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"extracting \"include.zip\" failed" }];
+                    goto report_error;
+                }
+                
+                /*
+                 * this is necessary so swift works
+                 */
+                if(!unzipArchiveAtPath([NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/swift.zip"].path, self.rootURL.path))
+                {
+                    error = [NSError errorWithDomain:@"" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"extracting \"swift.zip\" failed" }];
+                    goto report_error;
+                }
+                
+                self.version = 22;
             }
         }
         

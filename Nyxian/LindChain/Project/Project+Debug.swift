@@ -71,7 +71,7 @@ class DebugObject: Codable {
 
 class DebugDatabase: Codable {
     var debugObjects: [String:DebugObject] = [:]
-    let lock = NSLock()
+    var lock: os_unfair_lock = os_unfair_lock()
     
     enum CodingKeys: String, CodingKey {
         case debugObjects
@@ -104,24 +104,24 @@ class DebugDatabase: Codable {
     }
     
     func addMessage(message: String, title: String = "Internal", severity: CCDiagnosticLevel) {
-        self.lock.lock()
+        os_unfair_lock_lock(&self.lock)
         let item = DebugItem(severity: severity, message: message)
         
         guard let internalObject = self.debugObjects[title] else {
             let object = DebugObject(title: title, flavour: .Message)
             object.debugItems.append(item)
             self.debugObjects[title] = object
-            self.lock.unlock()
+            os_unfair_lock_unlock(&self.lock)
             return
         }
         
         internalObject.debugItems.append(item)
         
-        self.lock.unlock()
+        os_unfair_lock_unlock(&self.lock)
     }
     
     func addDiagnosticMessages(title: String = "Internal", items: [CCKDiagnostic], clearPrevious: Bool = false) {
-        self.lock.lock()
+        os_unfair_lock_lock(&self.lock)
         
         if items.count > 0 {
             var debugItems: [DebugItem] = []
@@ -133,7 +133,7 @@ class DebugDatabase: Codable {
                 let object = DebugObject(title: title, flavour: .Message)
                 object.debugItems.append(contentsOf: debugItems)
                 self.debugObjects[title] = object
-                self.lock.unlock()
+                os_unfair_lock_unlock(&self.lock)
                 return
             }
             
@@ -146,7 +146,7 @@ class DebugDatabase: Codable {
             self.debugObjects.removeValue(forKey: title)
         }
         
-        self.lock.unlock()
+        os_unfair_lock_unlock(&self.lock)
     }
     
     func setFileDebug(ofPath path: String, synItems: [CCKDiagnostic]) {
@@ -154,7 +154,7 @@ class DebugDatabase: Codable {
             return
         }
         
-        self.lock.lock()
+        os_unfair_lock_lock(&self.lock)
         let fileObject: DebugObject = DebugObject(title: relPath, flavour: .File)
         
         for item in synItems {
@@ -163,7 +163,7 @@ class DebugDatabase: Codable {
         }
         
         self.debugObjects[relPath] = (synItems.count > 0) ? fileObject : nil
-        self.lock.unlock()
+        os_unfair_lock_unlock(&self.lock)
     }
     
     func removeFileDebug(ofPath path: String) {
@@ -365,7 +365,7 @@ class UIDebugViewController: UITableViewController {
     }
     
     @objc func reloadTableData() {
-        debugDatabase.lock.lock()
+        os_unfair_lock_lock(&debugDatabase.lock)
         self.sortedDebugObjects = debugDatabase.debugObjects.values.sorted {
             if $0.title == "Internal" && $1.title != "Internal" {
                 return true
@@ -381,7 +381,7 @@ class UIDebugViewController: UITableViewController {
             }
             return $0.title > $1.title
         }
-        debugDatabase.lock.unlock()
+        os_unfair_lock_unlock(&debugDatabase.lock)
         tableView.reloadData()
     }
     

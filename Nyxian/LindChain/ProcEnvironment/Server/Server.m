@@ -23,16 +23,17 @@
 #import <LindChain/ProcEnvironment/Server/ServerSession.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
+#import <os/lock.h>
 
 @implementation Server {
-    NSLock *_lock;
+    os_unfair_lock _lock;
 }
 
 - (instancetype)init
 {
     self = [super init];
     _canConnectTable = [[NSMutableSet alloc] init];
-    _lock = [[NSLock alloc] init];
+    _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
 
@@ -58,7 +59,7 @@
 
 - (BOOL)endpointUnregisterAndValidate:(xpc_endpoint_t)endpoint
 {
-    [_lock lock];
+    os_unfair_lock_lock(&_lock);
     
     xpc_endpoint_t catchedEndpoint = nil;
     for(xpc_endpoint_t allowedEndpoint in _canConnectTable)
@@ -73,11 +74,11 @@
     if(catchedEndpoint != nil)
     {
         [_canConnectTable removeObject:catchedEndpoint];
-        [_lock unlock];
+        os_unfair_lock_unlock(&_lock);
         return YES;
     }
 
-    [_lock unlock];
+    os_unfair_lock_unlock(&_lock);
     return NO;
 }
 
@@ -87,9 +88,9 @@
     listener.delegate = self;
     [listener resume];
     
-    [_lock lock];
+    os_unfair_lock_lock(&_lock);
     [_canConnectTable addObject:[listener.endpoint _endpoint]];
-    [_lock unlock];
+    os_unfair_lock_unlock(&_lock);
     
     return listener;
 }
