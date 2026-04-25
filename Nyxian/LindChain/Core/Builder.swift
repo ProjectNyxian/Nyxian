@@ -309,21 +309,48 @@ class Builder: NSObject, CCKDriverDelegate {
         let allSources: [String] = self.compilerSwiftJobs.map { $0.0 }
         
         let emitArgs: [String] = baseArguments + ["-emit-module", "-emit-module-path", modulePath, "-module-name", moduleName] + allSources
-        if !CCKSwiftCompiler.execute(withArguments: emitArgs, output: nil) {
-            XCButton.incrementProgress(withValue: pstep)
+        var issues: NSArray?
+        let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: emitArgs, outDiagnostic:&issues)
+        
+        XCButton.incrementProgress(withValue: pstep)
+        
+        if let issues = issues as? [CCKDiagnostic] {
+            var sortedIssues: [URL:[CCKDiagnostic]] = [:]
+            for issue in issues {
+                if var fileIssueArray: [CCKDiagnostic] = sortedIssues[issue.fileSourceLocation.fileURL] {
+                    fileIssueArray.append(issue)
+                    sortedIssues[issue.fileSourceLocation.fileURL] = fileIssueArray
+                } else {
+                    let fileIssueArray: [CCKDiagnostic] = [issue]
+                    sortedIssues[issue.fileSourceLocation.fileURL] = fileIssueArray
+                }
+            }
+            
+            for key in sortedIssues.keys {
+                if let fileIssueArray: [CCKDiagnostic] = sortedIssues[key] {
+                    self.database.setFileDebug(ofPath: key.path, synItems: fileIssueArray)
+                }
+            }
+        }
+        
+        if !succeeded {
             throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to emit Swift module"])
         }
-        XCButton.incrementProgress(withValue: pstep)
         
         for job in self.compilerSwiftJobs {
             let others = allSources.filter { $0 != job.0 }
             let jobArguments: [String] = baseArguments + ["-module-name", moduleName, "-c", "-primary-file", job.0] + others + ["-o", job.1]
             
-            if !CCKSwiftCompiler.execute(withArguments: jobArguments, output: nil) {
-                XCButton.incrementProgress(withValue: pstep)
+            var issues: NSArray?
+            let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: jobArguments, outDiagnostic:&issues)
+            XCButton.incrementProgress(withValue: pstep)
+            
+            let swiftIssues: [CCKDiagnostic] = issues as! [CCKDiagnostic]
+            self.database.setFileDebug(ofPath: job.0, synItems: swiftIssues)
+            
+            if !succeeded {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to compile swift source code"])
             }
-            XCButton.incrementProgress(withValue: pstep)
         }
     }
     
