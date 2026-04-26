@@ -42,50 +42,19 @@ import UIKit
         self.tableView.register(NXProjectTableCell.self, forCellReuseIdentifier: NXProjectTableCell.reuseIdentifier())
         
         self.title = "Projects"
-        
-        let application: UIAction = UIAction(title: "App", image: UIImage(systemName: "app.gift.fill")) { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .app)
-        }
-        
-        /* utility menu */
-        let swiftUtility: UIAction = UIAction(title: "Swift") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .swift)
-        }
-        
-        let ObjCCUtility: UIAction = UIAction(title: "ObjC") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .objC)
-        }
-        
-        let CPPCUtility: UIAction = UIAction(title: "C++") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .cpp)
-        }
-        
-        let CUtility: UIAction = UIAction(title: "C") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .C)
-        }
-        
-        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [swiftUtility, ObjCCUtility, CPPCUtility, CUtility])
-        
-        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [application, utilityMenu])
-        
-        let importItem: UIAction = UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
-            guard let self = self else { return }
-            let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.zip], asCopy: true)
-            documentPicker.delegate = self
-            documentPicker.modalPresentationStyle = .formSheet
-            self.present(documentPicker, animated: true)
-        }
-        let menu: UIMenu = UIMenu(children: [createMenu, importItem])
-        
-        let barbutton: UIBarButtonItem = UIBarButtonItem()
-        barbutton.menu = menu
-        barbutton.image = UIImage(systemName: "plus")
-        self.navigationItem.setRightBarButton(barbutton, animated: false)
+
+        let createItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(presentProjectCreationSheet)
+        )
+        let importItem = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.down.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(presentImportPicker)
+        )
+        self.navigationItem.setRightBarButtonItems([createItem, importItem], animated: false)
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
@@ -101,6 +70,37 @@ import UIKit
         self.projectsList = Dictionary(uniqueKeysWithValues: sorted)
         
         self.tableView.reloadData()
+    }
+
+    @objc private func presentProjectCreationSheet() {
+        let model = ProjectTemplateOptionsModel(projectType: .app)
+        let view = ProjectCreationSheetView(
+            model: model,
+            onCancel: { [weak self] in
+                self?.dismiss(animated: true)
+            },
+            onCreate: { [weak self] in
+                guard let self = self else { return }
+                if self.createProject(from: model) {
+                    self.dismiss(animated: true)
+                }
+            }
+        )
+        let hostingController = UIHostingController(rootView: view)
+        hostingController.modalPresentationStyle = .pageSheet
+        if let sheet = hostingController.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 24
+        }
+        present(hostingController, animated: true)
+    }
+
+    @objc private func presentImportPicker() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.zip], asCopy: true)
+        documentPicker.delegate = self
+        documentPicker.modalPresentationStyle = .formSheet
+        self.present(documentPicker, animated: true)
     }
     
     func addProject(_ project: NXProject) {
@@ -208,78 +208,30 @@ import UIKit
         return keyA < keyB
     }
     
-    func createProject(mode: NXProjectType, withLanguage language: NXCodeTemplateLanguage? = nil) {
-        let projectString: String
-        
-        switch(mode)
-        {
-        case .app:
-            projectString = "App"
-            break
-        case .utility:
-            projectString = "Utility"
-            break
-        default:
-            projectString = "Unknown"
-            break
+    private func createProject(from optionsModel: ProjectTemplateOptionsModel) -> Bool {
+        let name = optionsModel.productName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else {
+            NotificationServer.NotifyUser(level: .error, notification: "Product name is required")
+            return false
         }
-        
-        let alert = UIAlertController(title: "Create \(projectString) Project",
-                                      message: nil,
-                                      preferredStyle: .alert)
-        let appTemplateOptionsModel: AppTemplateOptionsModel?
 
-        if mode == .app {
-            let optionsModel = AppTemplateOptionsModel()
-            let optionsController = AppTemplateOptionsHostingController(model: optionsModel)
-            appTemplateOptionsModel = optionsModel
-            alert.setValue(optionsController, forKey: "contentViewController")
-        } else {
-            appTemplateOptionsModel = nil
-            alert.addTextField { (textField) -> Void in
-                textField.placeholder = "Name"
-            }
+        optionsModel.saveOrganizationIdentifier()
+
+        guard let project = NXProject.createProject(
+            at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
+            withName: name,
+            withOrganizationIdentifier: optionsModel.normalizedOrganizationIdentifier,
+            withBundleIdentifier: optionsModel.bundleIdentifier,
+            withType: optionsModel.projectType,
+            withLanguage: optionsModel.selectedLanguage,
+            withInterface: optionsModel.selectedInterface
+        ) else {
+            NotificationServer.NotifyUser(level: .error, notification: "Failed to create project")
+            return false
         }
-        
-        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel)
-        
-        let createAction: UIAlertAction = UIAlertAction(title: "Create", style: .default) { [weak self] action -> Void in
-            guard let self = self else { return }
-            let name: String
-            let bundleid: String
-            let projectLanguage: NXCodeTemplateLanguage
-            let projectInterface: NXCodeTemplateInterface
 
-            if mode == .app, let appTemplateOptionsModel {
-                name = appTemplateOptionsModel.projectName
-                bundleid = appTemplateOptionsModel.bundleIdentifier
-                projectLanguage = appTemplateOptionsModel.selectedLanguage
-                projectInterface = appTemplateOptionsModel.selectedInterface
-            } else if let language = language {
-                name = alert.textFields?.first?.text ?? ""
-                bundleid = ""
-                projectLanguage = language
-                projectInterface = .invalid
-            } else {
-                return
-            }
-
-            if let project = NXProject.createProject(
-                at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
-                withName: name,
-                withBundleIdentifier: bundleid,
-                withType: mode,
-                withLanguage: projectLanguage,
-                withInterface: projectInterface
-            ) {
-                addProject(project)
-            }
-        }
-        
-        alert.addAction(cancelAction)
-        alert.addAction(createAction)
-        
-        self.present(alert, animated: true)
+        addProject(project)
+        return true
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -440,31 +392,210 @@ import UIKit
     }
 }
 
-private final class AppTemplateOptionsModel: ObservableObject {
-    private struct Option: Identifiable {
-        let id: String
-        let title: String
+private enum ProjectCreationStep {
+    case template
+    case options
+}
+
+private struct ProjectCreationSheetView: View {
+    @ObservedObject var model: ProjectTemplateOptionsModel
+    let onCancel: () -> Void
+    let onCreate: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            Divider()
+            ScrollView {
+                Group {
+                    if model.step == .template {
+                        ProjectTemplateSelectionView(model: model)
+                    } else {
+                        ProjectTemplateOptionsView(model: model)
+                    }
+                }
+                .padding(.vertical, 16)
+            }
+            Divider()
+            controls
+        }
+        .background(Color(uiColor: .systemBackground))
     }
 
-    private let languages: [Option] = [
-        Option(id: "Swift", title: "Swift"),
-        Option(id: "ObjC", title: "ObjC")
+    private var header: some View {
+        Text(model.step == .template ? "Choose a template for your new project:" : "Choose options for your new project:")
+            .font(.title3.weight(.semibold))
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 14)
+    }
+
+    private var controls: some View {
+        HStack(spacing: 12) {
+            Button("Cancel", action: onCancel)
+                .buttonStyle(.bordered)
+
+            Spacer(minLength: 12)
+
+            if model.step == .options {
+                Button("Previous") {
+                    withAnimation(.snappy) {
+                        model.step = .template
+                    }
+                }
+                .buttonStyle(.bordered)
+            }
+
+            Button(model.step == .template ? "Next" : "Create") {
+                if model.step == .template {
+                    withAnimation(.snappy) {
+                        model.step = .options
+                    }
+                } else {
+                    onCreate()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .controlSize(.large)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+    }
+}
+
+private struct ProjectTemplateSelectionView: View {
+    @ObservedObject var model: ProjectTemplateOptionsModel
+
+    var body: some View {
+        VStack(spacing: 8) {
+            templateRow(
+                title: "App",
+                subtitle: "Application project",
+                systemImage: "app.badge",
+                projectType: .app
+            )
+
+            templateRow(
+                title: "Utility",
+                subtitle: "Command line tool",
+                systemImage: "terminal",
+                projectType: .utility
+            )
+        }
+        .padding(.top, 2)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 6)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func templateRow(title: String,
+                             subtitle: String,
+                             systemImage: String,
+                             projectType: NXProjectType) -> some View {
+        let isSelected = model.projectType == projectType
+
+        return Button {
+            model.selectProjectType(projectType)
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(isSelected ? Color.accentColor : Color(uiColor: .tertiarySystemFill))
+                    Image(systemName: systemImage)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(isSelected ? Color.white : Color.accentColor)
+                }
+                .frame(width: 42, height: 42)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.accentColor : Color(uiColor: .tertiaryLabel))
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemFill))
+            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1.5)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+private final class ProjectTemplateOptionsModel: ObservableObject {
+    private static let organizationIdentifierDefaultsKey = "LDEOrganizationPrefix"
+    private static let defaultOrganizationIdentifier = "com.example"
+    private static let allowedIdentifierCharacters = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
+
+    @Published var step: ProjectCreationStep = .template
+    @Published private(set) var projectType: NXProjectType
+    private let appLanguages: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
+        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC")
     ]
-    private let interfaces: [Option] = [
-        Option(id: "SwiftUI", title: "SwiftUI"),
-        Option(id: "UIKit", title: "UIKit")
+    private let utilityLanguages: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
+        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC"),
+        ProjectTemplatePickerOption(id: "C++", title: "C++"),
+        ProjectTemplatePickerOption(id: "C", title: "C")
+    ]
+    private let interfaces: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "SwiftUI", title: "SwiftUI"),
+        ProjectTemplatePickerOption(id: "UIKit", title: "UIKit")
     ]
 
-    @Published var projectName = ""
-    @Published var bundleIdentifier = ""
+    @Published var productName = ""
+    @Published var organizationIdentifier: String
     @Published private var selectedLanguageID = "Swift"
     @Published private var selectedInterfaceID = "UIKit"
 
+    init(projectType: NXProjectType) {
+        self.projectType = projectType
+        self.organizationIdentifier = UserDefaults.standard.string(forKey: Self.organizationIdentifierDefaultsKey) ?? Self.defaultOrganizationIdentifier
+    }
+
+    var showsAppOptions: Bool {
+        return projectType == .app
+    }
+
+    var normalizedOrganizationIdentifier: String {
+        return Self.organizationIdentifier(from: organizationIdentifier)
+    }
+
+    var bundleIdentifier: String {
+        let productIdentifier = Self.productIdentifier(from: productName)
+        return [normalizedOrganizationIdentifier, productIdentifier]
+            .filter { !$0.isEmpty }
+            .joined(separator: ".")
+    }
+
     var selectedLanguage: NXCodeTemplateLanguage {
-        return selectedLanguageID == "ObjC" ? .objC : .swift
+        switch selectedLanguageID {
+        case "ObjC": return .objC
+        case "C++": return .cpp
+        case "C": return .C
+        default: return .swift
+        }
     }
 
     var selectedInterface: NXCodeTemplateInterface {
+        guard projectType == .app else { return .invalid }
         return selectedInterfaceID == "SwiftUI" ? .swiftUI : .uiKit
     }
 
@@ -478,13 +609,39 @@ private final class AppTemplateOptionsModel: ObservableObject {
         set { selectInterface(id: newValue) }
     }
 
-    var languageOptions: [(id: String, title: String)] {
-        let options = selectedInterfaceID == "SwiftUI" ? [languages[0]] : languages
-        return options.map { (id: $0.id, title: $0.title) }
+    var languageOptions: [ProjectTemplatePickerOption] {
+        if projectType == .utility {
+            return utilityLanguages
+        }
+
+        return selectedInterfaceID == "SwiftUI" ? [appLanguages[0]] : appLanguages
     }
 
-    var interfaceOptions: [(id: String, title: String)] {
-        return interfaces.map { (id: $0.id, title: $0.title) }
+    var interfaceOptions: [ProjectTemplatePickerOption] {
+        return interfaces
+    }
+
+    func selectProjectType(_ projectType: NXProjectType) {
+        self.projectType = projectType
+        if projectType == .app {
+            switch selectedLanguageID {
+            case "Swift", "ObjC":
+                break
+            default:
+                selectedLanguageID = "Swift"
+            }
+        }
+
+        if selectedInterfaceID == "SwiftUI" {
+            selectedLanguageID = "Swift"
+        }
+    }
+
+    func saveOrganizationIdentifier() {
+        let value = normalizedOrganizationIdentifier
+        guard !value.isEmpty else { return }
+        organizationIdentifier = value
+        UserDefaults.standard.set(value, forKey: Self.organizationIdentifierDefaultsKey)
     }
 
     private func selectLanguage(id: String) {
@@ -500,45 +657,81 @@ private final class AppTemplateOptionsModel: ObservableObject {
             selectedLanguageID = "Swift"
         }
     }
+
+    private static func organizationIdentifier(from value: String) -> String {
+        return value
+            .split(separator: ".", omittingEmptySubsequences: true)
+            .map { productIdentifier(from: String($0).lowercased()) }
+            .filter { !$0.isEmpty }
+            .joined(separator: ".")
+    }
+
+    private static func productIdentifier(from value: String) -> String {
+        let source = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        var output = ""
+        var lastWasReplacement = false
+
+        for scalar in source.unicodeScalars {
+            if allowedIdentifierCharacters.contains(scalar) {
+                output.unicodeScalars.append(scalar)
+                lastWasReplacement = false
+            } else if !lastWasReplacement {
+                output.append("-")
+                lastWasReplacement = true
+            }
+        }
+
+        return output.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+    }
 }
 
-private struct AppTemplateOptionsView: View {
-    @ObservedObject var model: AppTemplateOptionsModel
+private struct ProjectTemplateOptionsView: View {
+    @ObservedObject var model: ProjectTemplateOptionsModel
 
     var body: some View {
         VStack(spacing: 12) {
             VStack(spacing: 0) {
-                templateTextField("Name", text: $model.projectName)
+                templateTextField(
+                    label: "Product Name",
+                    placeholder: "Product Name",
+                    text: $model.productName
+                )
                 Divider()
                     .padding(.leading, 12)
-                templateTextField("Bundle Identifier", text: $model.bundleIdentifier)
-                    .keyboardType(.URL)
+                templateTextField(
+                    label: "Organization Identifier",
+                    placeholder: "com.example",
+                    text: $model.organizationIdentifier,
+                    keyboardType: .URL
+                )
+                Divider()
+                    .padding(.leading, 12)
+                generatedIdentifierRow
             }
             .background(Color(uiColor: .secondarySystemFill))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(spacing: 8) {
-                optionRow(
-                    title: "Interface:",
-                    value: title(for: model.interfaceSelection, in: model.interfaceOptions),
-                    options: model.interfaceOptions,
-                    selection: Binding(
-                        get: { model.interfaceSelection },
-                        set: { model.interfaceSelection = $0 }
+                if model.showsAppOptions {
+                    ProjectTemplatePickerRow(
+                        title: "Interface:",
+                        options: model.interfaceOptions,
+                        selectionID: Binding(
+                            get: { model.interfaceSelection },
+                            set: { model.interfaceSelection = $0 }
+                        )
                     )
-                )
+                }
 
-                optionRow(
+                ProjectTemplatePickerRow(
                     title: "Language:",
-                    value: title(for: model.languageSelection, in: model.languageOptions),
                     options: model.languageOptions,
-                    selection: Binding(
+                    selectionID: Binding(
                         get: { model.languageSelection },
                         set: { model.languageSelection = $0 }
                     )
                 )
             }
-            .font(.body)
         }
         .padding(.top, 2)
         .padding(.horizontal, 18)
@@ -546,71 +739,38 @@ private struct AppTemplateOptionsView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func templateTextField(_ placeholder: String, text: Binding<String>) -> some View {
-        TextField(placeholder, text: text)
-            .textFieldStyle(.plain)
-            .font(.body)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            .padding(.horizontal, 12)
-            .frame(height: 40)
-    }
-
-    private func optionRow(title: String,
-                           value: String,
-                           options: [(id: String, title: String)],
-                           selection: Binding<String>) -> some View {
-        HStack {
-            Text(title)
-                .font(.body)
-                .foregroundStyle(.primary)
-            Spacer(minLength: 12)
-            Menu {
-                ForEach(options, id: \.id) { option in
-                    Button {
-                        selection.wrappedValue = option.id
-                    } label: {
-                        if option.id == selection.wrappedValue {
-                            Label(option.title, systemImage: "checkmark")
-                        } else {
-                            Text(option.title)
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Text(value)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption.weight(.semibold))
-                }
-                .font(.body)
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 10)
-                .frame(minHeight: 32)
-                .background(Color(uiColor: .secondarySystemFill))
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-            }
+    private var generatedIdentifierRow: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Bundle Identifier")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(model.bundleIdentifier.isEmpty ? " " : model.bundleIdentifier)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func title(for id: String, in options: [(id: String, title: String)]) -> String {
-        return options.first { $0.id == id }?.title ?? id
-    }
-}
-
-private final class AppTemplateOptionsHostingController: UIHostingController<AppTemplateOptionsView> {
-    let model: AppTemplateOptionsModel
-
-    init(model: AppTemplateOptionsModel) {
-        self.model = model
-        super.init(rootView: AppTemplateOptionsView(model: model))
-        sizingOptions = [.preferredContentSize]
-    }
-
-    @MainActor @objc required dynamic init?(coder aDecoder: NSCoder) {
-        let model = AppTemplateOptionsModel()
-        self.model = model
-        super.init(coder: aDecoder, rootView: AppTemplateOptionsView(model: model))
-        sizingOptions = [.preferredContentSize]
+    private func templateTextField(label: String,
+                                   placeholder: String,
+                                   text: Binding<String>,
+                                   keyboardType: UIKeyboardType = .default) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextField(placeholder, text: text)
+                .textFieldStyle(.plain)
+                .font(.callout)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(keyboardType)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 }

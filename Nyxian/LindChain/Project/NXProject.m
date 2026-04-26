@@ -77,6 +77,7 @@
         _type = (NXProjectType)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
         _executable = [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"];
         _displayName = [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]];
+        _organizationPrefix = [self readSecureFromKey:@"LDEOrganizationPrefix" withDefaultValue:@"com.example"];
         _bundleid = [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
         _version = [self readSecureFromKey:@"LDEBundleVersion" withDefaultValue:@"1.0"];
         _shortVersion = [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]];
@@ -198,6 +199,7 @@
 
 + (instancetype)createProjectAtURL:(NSURL*)url
                           withName:(NSString*)name
+        withOrganizationIdentifier:(NSString*)organizationIdentifier
               withBundleIdentifier:(NSString*)bundleid
                           withType:(NXProjectType)type
                       withLanguage:(NXCodeTemplateLanguage)language
@@ -205,6 +207,8 @@
 {
     NSURL *projectURL = [url URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
+    NSString *organizationIdentifierValue = organizationIdentifier ?: @"";
+    NSString *bundleIdentifierValue = bundleid ?: @"";
 
     NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
     if(type == NXProjectTypeApp)
@@ -287,7 +291,8 @@
                 @"NXProjectFormat": @"NXFalcon",
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
-                @"LDEBundleIdentifier": bundleid,
+                @"LDEOrganizationPrefix": organizationIdentifierValue,
+                @"LDEBundleIdentifier": bundleIdentifierValue,
                 @"LDEBundleInfo": appBundleInfo,
                 @"LDEBundleVersion": @"1.0",
                 @"LDEBundleShortVersion": @"1.0",
@@ -318,6 +323,8 @@
                 @"NXProjectFormat": @"NXFalcon",
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
+                @"LDEOrganizationPrefix": organizationIdentifierValue,
+                @"LDEBundleIdentifier": bundleIdentifierValue,
                 @"LDEProjectType": @(type),
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
