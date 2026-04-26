@@ -19,15 +19,15 @@ jobs:
     runs-on: macos-26
 
     steps:
-      - name: Extract version
-        run: |
-          VERSION=$(awk -F'=' '/^[[:space:]]*VERSION[[:space:]]*=/ {gsub(/[[:space:]]/,"",$2); print $2; exit}' Config.xcconfig)
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Extract version
+        run: |
+          VERSION=$(awk -F'=' '/^[[:space:]]*VERSION[[:space:]]*=/ {gsub(/[[:space:]]/,"",$2); print $2; exit}' Config.xcconfig)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install Dependencies
         run: |
