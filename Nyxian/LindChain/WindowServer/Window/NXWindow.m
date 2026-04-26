@@ -573,19 +573,22 @@
 - (void)refreshEffects
 {
     _contentStack.layer.borderColor = UIColor.systemGray3Color.CGColor;
-    if(UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark)
+    if(!self.isMaximized)
     {
-        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
-        self.view.layer.shadowOpacity = 0.8;
-        self.view.layer.shadowRadius = 20;
-        self.view.layer.shadowOffset = CGSizeMake(0, 0);
-    }
-    else
-    {
-        self.view.layer.shadowColor = UIColor.blackColor.CGColor;
-        self.view.layer.shadowOpacity = 0.4;
-        self.view.layer.shadowRadius = 10;
-        self.view.layer.shadowOffset = CGSizeMake(0, 0);
+        if(UITraitCollection.currentTraitCollection.userInterfaceStyle == UIUserInterfaceStyleDark)
+        {
+            self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+            self.view.layer.shadowOpacity = 0.8;
+            self.view.layer.shadowRadius = 20;
+            self.view.layer.shadowOffset = CGSizeMake(0, 0);
+        }
+        else
+        {
+            self.view.layer.shadowColor = UIColor.blackColor.CGColor;
+            self.view.layer.shadowOpacity = 0.4;
+            self.view.layer.shadowRadius = 10;
+            self.view.layer.shadowOffset = CGSizeMake(0, 0);
+        }
     }
 }
 
