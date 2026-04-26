@@ -42,6 +42,8 @@
     }
     UIWindowScene *windowScene = (UIWindowScene*)scene;
     
+    [ObjCExposedSwizzle swizzle];
+    
     _window = [NXWindowServer sharedWithWindowScene:windowScene];
     if(_window == nil)
     {
