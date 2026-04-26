@@ -79,14 +79,9 @@ class ToolChainController: UIThemedTableViewController {
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
         case 2:
-            switch indexPath.row {
-            default:
-                cell = ButtonTableCell(title: "Clear ModuleCache")
-                break
-            /*default:
-                cell = ButtonTableCell(title: "Clear Project Cache's")
-                break*/
-            }
+            cell = UITableViewCell()
+            cell.textLabel?.text = "Clear ModuleCache"
+            break
         default:
             cell = UITableViewCell()
         }
@@ -97,17 +92,10 @@ class ToolChainController: UIThemedTableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if(indexPath.section == 2)
         {
-            switch(indexPath.row)
-            {
-            case 0:
-                try? FileManager.default.removeItem(at: NXBootstrap.shared().swiftModuleCacheURL)
-                break
-            /*case 1:
-                try? FileManager.default.removeItem(at: NXBootstrap.shared().cacheURL)
-                try? FileManager.default.createDirectory(at: NXBootstrap.shared().cacheURL, withIntermediateDirectories: true)
-                break*/
-            default:
-                break
+            do {
+                try FileManager.default.removeItem(at: NXBootstrap.shared().swiftModuleCacheURL)
+            } catch {
+                NotificationServer.NotifyUser(level: .error, notification: "failed to remove module cache: \(error.localizedDescription)")
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
