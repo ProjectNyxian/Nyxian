@@ -148,7 +148,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         self.textView.showLineBreaks = booleanDefaults(key: "LDEShowLineBreaks", defaultValue: true)
         self.textView.indentStrategy = .tab(length: 4)
         
-        if synpushServer != nil {
+        if synpushServer != nil || self.file.type == .swift {
             self.autoindent = booleanDefaults(key: "LDEAutoindent", defaultValue: true)
         }
         
