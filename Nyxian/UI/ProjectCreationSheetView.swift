@@ -86,10 +86,35 @@ struct ProjectCreationSheetView: View {
                     onCreate()
                 }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(ProjectCreationPrimaryButtonStyle())
         }
         .controlSize(.large)
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
+    }
+}
+
+private struct ProjectCreationPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .padding(.horizontal, 22)
+            .frame(minHeight: 44)
+            .foregroundStyle(Color(uiColor: .systemBackground))
+            .background {
+                Capsule(style: .continuous)
+                    .fill(Color(uiColor: .label))
+                    .opacity(buttonOpacity(isPressed: configuration.isPressed))
+            }
+    }
+
+    private func buttonOpacity(isPressed: Bool) -> Double {
+        if !isEnabled {
+            return 0.25
+        }
+
+        return isPressed ? 0.72 : 1
     }
 }

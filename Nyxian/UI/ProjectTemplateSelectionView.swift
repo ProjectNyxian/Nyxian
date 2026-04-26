@@ -24,6 +24,18 @@ import SwiftUI
 struct ProjectTemplateSelectionView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
 
+    private var selectedAccentColor: Color {
+        Color(uiColor: .label)
+    }
+
+    private var selectedIconForegroundColor: Color {
+        Color(uiColor: .systemBackground)
+    }
+
+    private var unselectedIconForegroundColor: Color {
+        Color(uiColor: .secondaryLabel)
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             templateRow(
@@ -58,10 +70,11 @@ struct ProjectTemplateSelectionView: View {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color.accentColor : Color(uiColor: .tertiarySystemFill))
+                        .fill(isSelected ? selectedAccentColor : Color(uiColor: .tertiarySystemFill))
                     Image(systemName: systemImage)
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(isSelected ? Color.white : Color.accentColor)
+                        .symbolRenderingMode(.monochrome)
+                        .foregroundStyle(isSelected ? selectedIconForegroundColor : unselectedIconForegroundColor)
                 }
                 .frame(width: 42, height: 42)
 
@@ -78,7 +91,7 @@ struct ProjectTemplateSelectionView: View {
 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.accentColor : Color(uiColor: .tertiaryLabel))
+                    .foregroundStyle(isSelected ? selectedAccentColor : Color(uiColor: .tertiaryLabel))
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -86,7 +99,7 @@ struct ProjectTemplateSelectionView: View {
             .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1.5)
+                    .stroke(isSelected ? selectedAccentColor : Color.clear, lineWidth: 1.5)
             }
         }
         .buttonStyle(.plain)
