@@ -153,14 +153,14 @@ void UIKitFixesInit(void)
     [self.presenter activate];
     
     /* invalidate background enforcement timer if applicable */
-    if(self.backgroundEnforcementTimer)
+    /*if(self.backgroundEnforcementTimer)
     {
         [self.backgroundEnforcementTimer invalidate];
         self.backgroundEnforcementTimer = nil;
-    }
+    }*/
     
     /* resume process */
-    [self.process resume];
+    /* [self.process resume]; */
     
     os_unfair_lock_unlock(&_lock);
     
@@ -184,8 +184,9 @@ void UIKitFixesInit(void)
     /* deactivate the presenter */
     [self.presenter deactivate];
     
+    /* FIXME: likely bug in apples lifetime watchdog that can randomly freeze up your entire idevice */
     // Do it like on iOS, give application time window for background tasks
-    __weak typeof(self) weakSelf = self;
+    /*__weak typeof(self) weakSelf = self;
     self.backgroundEnforcementTimer = [NSTimer scheduledTimerWithTimeInterval:15.0 repeats:NO block:^(NSTimer *sender){
         __strong typeof(self) innerSelf = weakSelf;
         if(innerSelf == nil)
@@ -195,7 +196,7 @@ void UIKitFixesInit(void)
         
         if(!innerSelf.backgroundEnforcementTimer) return;
         [innerSelf.process suspend];
-    }];
+    }];*/
     
     os_unfair_lock_unlock(&_lock);
     

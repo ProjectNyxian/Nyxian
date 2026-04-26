@@ -207,7 +207,7 @@
 {
     [super activateWindow];
     
-    [_process resume];
+    //[_process resume];
     self.focused = YES;
     (void)[_terminal becomeFirstResponder];
     return YES;
@@ -225,7 +225,7 @@
         return YES;
     }
     
-    [_process suspend];
+    //[_process suspend];
     return YES;
 }
 
