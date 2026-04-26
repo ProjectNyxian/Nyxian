@@ -268,6 +268,12 @@
     NSDictionary *appBundleInfo = @{};
     if([templateInterface isEqualToString:NXCodeTemplateInterfaceUIKit])
     {
+        NSString *sceneDelegateClassName = @"SceneDelegate";
+        if([language isEqualToString:NXCodeTemplateLanguageSwift])
+        {
+            sceneDelegateClassName = [@"$(LDEExecutable)." stringByAppendingString:sceneDelegateClassName];
+        }
+        
         appBundleInfo = @{
             @"UIApplicationSceneManifest": @{
                 @"UIApplicationSupportsMultipleScenes": @(NO),
@@ -275,7 +281,7 @@
                     @"UIWindowSceneSessionRoleApplication": @[
                         @{
                             @"UISceneConfigurationName": @"Default Configuration",
-                            @"UISceneDelegateClassName": @"SceneDelegate"
+                            @"UISceneDelegateClassName": sceneDelegateClassName
                         }
                     ]
                 }
