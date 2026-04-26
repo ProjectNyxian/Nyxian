@@ -20,6 +20,7 @@
 */
 
 import Foundation
+import SwiftUI
 import UIKit
 
 @objc class ContentViewController: UIThemedTableViewController, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
@@ -41,57 +42,19 @@ import UIKit
         self.tableView.register(NXProjectTableCell.self, forCellReuseIdentifier: NXProjectTableCell.reuseIdentifier())
         
         self.title = "Projects"
-        
-        /* application menu */
-        let swiftApp: UIAction = UIAction(title: "Swift") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .app, withLanguage: .swift)
-        }
-        
-        let ObjCApp: UIAction = UIAction(title: "ObjC") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .app, withLanguage: .objC)
-        }
-        
-        /* utility menu */
-        let swiftUtility: UIAction = UIAction(title: "Swift") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .swift)
-        }
-        
-        let ObjCCUtility: UIAction = UIAction(title: "ObjC") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .objC)
-        }
-        
-        let CPPCUtility: UIAction = UIAction(title: "C++") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .cpp)
-        }
-        
-        let CUtility: UIAction = UIAction(title: "C") { [weak self] _ in
-            guard let self = self else { return }
-            self.createProject(mode: .utility, withLanguage: .C)
-        }
-        
-        let applicationMenu: UIMenu = UIMenu(title: "App", image: UIImage(systemName: "app.gift.fill"), children: [swiftApp, ObjCApp])
-        let utilityMenu: UIMenu = UIMenu(title: "Utility", image: UIImage(systemName: "wrench.adjustable.fill"), children: [swiftUtility, ObjCCUtility, CPPCUtility, CUtility])
-        
-        let createMenu: UIMenu = UIMenu(title: "Create Project", image: UIImage(systemName: "folder.fill"), children: [applicationMenu, utilityMenu])
-        
-        let importItem: UIAction = UIAction(title: "Import", image: UIImage(systemName: "square.and.arrow.down.fill")) { [weak self] _ in
-            guard let self = self else { return }
-            let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.zip], asCopy: true)
-            documentPicker.delegate = self
-            documentPicker.modalPresentationStyle = .formSheet
-            self.present(documentPicker, animated: true)
-        }
-        let menu: UIMenu = UIMenu(children: [createMenu, importItem])
-        
-        let barbutton: UIBarButtonItem = UIBarButtonItem()
-        barbutton.menu = menu
-        barbutton.image = UIImage(systemName: "plus")
-        self.navigationItem.setRightBarButton(barbutton, animated: false)
+
+        let createItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(presentProjectCreationSheet)
+        )
+        let importItem = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.down.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(presentImportPicker)
+        )
+        self.navigationItem.setRightBarButtonItems([createItem, importItem], animated: false)
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
@@ -107,6 +70,37 @@ import UIKit
         self.projectsList = Dictionary(uniqueKeysWithValues: sorted)
         
         self.tableView.reloadData()
+    }
+
+    @objc private func presentProjectCreationSheet() {
+        let model = ProjectTemplateOptionsModel(projectType: .app)
+        let view = ProjectCreationSheetView(
+            model: model,
+            onCancel: { [weak self] in
+                self?.dismiss(animated: true)
+            },
+            onCreate: { [weak self] in
+                guard let self = self else { return }
+                if self.createProject(from: model) {
+                    self.dismiss(animated: true)
+                }
+            }
+        )
+        let hostingController = UIHostingController(rootView: view)
+        hostingController.modalPresentationStyle = .pageSheet
+        if let sheet = hostingController.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 24
+        }
+        present(hostingController, animated: true)
+    }
+
+    @objc private func presentImportPicker() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.zip], asCopy: true)
+        documentPicker.delegate = self
+        documentPicker.modalPresentationStyle = .formSheet
+        self.present(documentPicker, animated: true)
     }
     
     func addProject(_ project: NXProject) {
@@ -214,62 +208,30 @@ import UIKit
         return keyA < keyB
     }
     
-    func createProject(mode: NXProjectType, withLanguage language: NXCodeTemplateLanguage) {
-        let projectString: String
-        
-        switch(mode)
-        {
-        case .app:
-            projectString = "App"
-            break
-        case .utility:
-            projectString = "Utility"
-            break
-        default:
-            projectString = "Unknown"
-            break
+    private func createProject(from optionsModel: ProjectTemplateOptionsModel) -> Bool {
+        let name = optionsModel.productName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else {
+            NotificationServer.NotifyUser(level: .error, notification: "Product name is required")
+            return false
         }
-        
-        let alert = UIAlertController(title: "Create \(projectString) Project",
-                                      message: "",
-                                      preferredStyle: .alert)
-        
-        alert.addTextField { (textField) -> Void in
-            textField.placeholder = "Name"
+
+        optionsModel.saveOrganizationIdentifier()
+
+        guard let project = NXProject.createProject(
+            at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
+            withName: name,
+            withOrganizationIdentifier: optionsModel.normalizedOrganizationIdentifier,
+            withBundleIdentifier: optionsModel.bundleIdentifier,
+            withType: optionsModel.projectType,
+            withLanguage: optionsModel.selectedLanguage,
+            withInterface: optionsModel.selectedInterface
+        ) else {
+            NotificationServer.NotifyUser(level: .error, notification: "Failed to create project")
+            return false
         }
-        
-        if mode == .app {
-            alert.addTextField { (textField) -> Void in
-                textField.placeholder = "Bundle Identifier"
-            }
-        }
-        
-        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel)
-        
-        let createAction: UIAlertAction = UIAlertAction(title: "Create", style: .default) { [weak self] action -> Void in
-            guard let self = self else { return }
-            let name = (alert.textFields![0]).text!
-            var bundleid = ""
-            if let textFieldArray = alert.textFields,
-               textFieldArray.count > 1 {
-                bundleid = textFieldArray[1].text!
-            }
-            
-            if let project = NXProject.createProject(
-                at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
-                withName: name,
-                withBundleIdentifier: bundleid,
-                withType: mode,
-                withLanguage: language
-            ) {
-                addProject(project)
-            }
-        }
-        
-        alert.addAction(cancelAction)
-        alert.addAction(createAction)
-        
-        self.present(alert, animated: true)
+
+        addProject(project)
+        return true
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -427,5 +389,242 @@ import UIKit
         } else {
             return (key == "applications") ? 70 : UITableView.automaticDimension
         }
+    }
+}
+
+final class ProjectTemplateOptionsModel: ObservableObject {
+    private static let organizationIdentifierDefaultsKey = "LDEOrganizationPrefix"
+    private static let defaultOrganizationIdentifier = "com.example"
+    private static let allowedIdentifierCharacters = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
+
+    @Published var step: ProjectCreationStep = .template
+    @Published private(set) var projectType: NXProjectType
+    private let appLanguages: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
+        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC")
+    ]
+    private let utilityLanguages: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
+        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC"),
+        ProjectTemplatePickerOption(id: "C++", title: "C++"),
+        ProjectTemplatePickerOption(id: "C", title: "C")
+    ]
+    private let interfaces: [ProjectTemplatePickerOption] = [
+        ProjectTemplatePickerOption(id: "SwiftUI", title: "SwiftUI"),
+        ProjectTemplatePickerOption(id: "UIKit", title: "UIKit")
+    ]
+
+    @Published var productName = ""
+    @Published var organizationIdentifier: String
+    @Published private var selectedLanguageID = "Swift"
+    @Published private var selectedInterfaceID = "UIKit"
+
+    init(projectType: NXProjectType) {
+        self.projectType = projectType
+        self.organizationIdentifier = UserDefaults.standard.string(forKey: Self.organizationIdentifierDefaultsKey) ?? Self.defaultOrganizationIdentifier
+    }
+
+    var showsAppOptions: Bool {
+        return projectType == .app
+    }
+
+    var normalizedOrganizationIdentifier: String {
+        return Self.organizationIdentifier(from: organizationIdentifier)
+    }
+
+    var bundleIdentifier: String {
+        let productIdentifier = Self.productIdentifier(from: productName)
+        return [normalizedOrganizationIdentifier, productIdentifier]
+            .filter { !$0.isEmpty }
+            .joined(separator: ".")
+    }
+
+    var selectedLanguage: NXCodeTemplateLanguage {
+        switch selectedLanguageID {
+        case "ObjC": return .objC
+        case "C++": return .cpp
+        case "C": return .C
+        default: return .swift
+        }
+    }
+
+    var selectedInterface: NXCodeTemplateInterface {
+        guard projectType == .app else { return .invalid }
+        return selectedInterfaceID == "SwiftUI" ? .swiftUI : .uiKit
+    }
+
+    var languageSelection: String {
+        get { selectedLanguageID }
+        set { selectLanguage(id: newValue) }
+    }
+
+    var interfaceSelection: String {
+        get { selectedInterfaceID }
+        set { selectInterface(id: newValue) }
+    }
+
+    var languageOptions: [ProjectTemplatePickerOption] {
+        if projectType == .utility {
+            return utilityLanguages
+        }
+
+        return selectedInterfaceID == "SwiftUI" ? [appLanguages[0]] : appLanguages
+    }
+
+    var interfaceOptions: [ProjectTemplatePickerOption] {
+        return interfaces
+    }
+
+    func selectProjectType(_ projectType: NXProjectType) {
+        self.projectType = projectType
+        if projectType == .app {
+            switch selectedLanguageID {
+            case "Swift", "ObjC":
+                break
+            default:
+                selectedLanguageID = "Swift"
+            }
+        }
+
+        if selectedInterfaceID == "SwiftUI" {
+            selectedLanguageID = "Swift"
+        }
+    }
+
+    func saveOrganizationIdentifier() {
+        let value = normalizedOrganizationIdentifier
+        guard !value.isEmpty else { return }
+        organizationIdentifier = value
+        UserDefaults.standard.set(value, forKey: Self.organizationIdentifierDefaultsKey)
+    }
+
+    private func selectLanguage(id: String) {
+        selectedLanguageID = id
+        if selectedLanguageID == "ObjC" {
+            selectedInterfaceID = "UIKit"
+        }
+    }
+
+    private func selectInterface(id: String) {
+        selectedInterfaceID = id
+        if selectedInterfaceID == "SwiftUI" {
+            selectedLanguageID = "Swift"
+        }
+    }
+
+    private static func organizationIdentifier(from value: String) -> String {
+        return value
+            .split(separator: ".", omittingEmptySubsequences: true)
+            .map { productIdentifier(from: String($0).lowercased()) }
+            .filter { !$0.isEmpty }
+            .joined(separator: ".")
+    }
+
+    private static func productIdentifier(from value: String) -> String {
+        let source = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        var output = ""
+        var lastWasReplacement = false
+
+        for scalar in source.unicodeScalars {
+            if allowedIdentifierCharacters.contains(scalar) {
+                output.unicodeScalars.append(scalar)
+                lastWasReplacement = false
+            } else if !lastWasReplacement {
+                output.append("-")
+                lastWasReplacement = true
+            }
+        }
+
+        return output.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+    }
+}
+
+struct ProjectTemplateOptionsView: View {
+    @ObservedObject var model: ProjectTemplateOptionsModel
+
+    var body: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 0) {
+                templateTextField(
+                    label: "Product Name",
+                    placeholder: "Product Name",
+                    text: $model.productName
+                )
+                Divider()
+                    .padding(.leading, 12)
+                templateTextField(
+                    label: "Organization Identifier",
+                    placeholder: "com.example",
+                    text: $model.organizationIdentifier,
+                    keyboardType: .URL
+                )
+                Divider()
+                    .padding(.leading, 12)
+                generatedIdentifierRow
+            }
+            .background(Color(uiColor: .secondarySystemFill))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(spacing: 8) {
+                if model.showsAppOptions {
+                    ProjectTemplatePickerRow(
+                        title: "Interface:",
+                        options: model.interfaceOptions,
+                        selectionID: Binding(
+                            get: { model.interfaceSelection },
+                            set: { model.interfaceSelection = $0 }
+                        )
+                    )
+                }
+
+                ProjectTemplatePickerRow(
+                    title: "Language:",
+                    options: model.languageOptions,
+                    selectionID: Binding(
+                        get: { model.languageSelection },
+                        set: { model.languageSelection = $0 }
+                    )
+                )
+            }
+        }
+        .padding(.top, 2)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 6)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var generatedIdentifierRow: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Bundle Identifier")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(model.bundleIdentifier.isEmpty ? " " : model.bundleIdentifier)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func templateTextField(label: String,
+                                   placeholder: String,
+                                   text: Binding<String>,
+                                   keyboardType: UIKeyboardType = .default) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextField(placeholder, text: text)
+                .textFieldStyle(.plain)
+                .font(.callout)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(keyboardType)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 }

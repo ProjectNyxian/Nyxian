@@ -45,6 +45,11 @@ static NXCodeTemplateLanguage const NXCodeTemplateLanguageC = @"C";
 static NXCodeTemplateLanguage const NXCodeTemplateLanguageCpp = @"C++";
 static NXCodeTemplateLanguage const NXCodeTemplateLanguageSwift = @"Swift";
 
+typedef NSString * NXCodeTemplateInterface NS_TYPED_ENUM;
+static NXCodeTemplateInterface const NXCodeTemplateInterfaceInvalid = @"";
+static NXCodeTemplateInterface const NXCodeTemplateInterfaceSwiftUI = @"SwiftUI";
+static NXCodeTemplateInterface const NXCodeTemplateInterfaceUIKit = @"UIKit";
+
 NXCodeTemplateScheme NXCodeTemplateSchemeFromProjectType(NXProjectType type);
 
 #endif /* NXTYPE_H */
