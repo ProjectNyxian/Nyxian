@@ -392,80 +392,7 @@ import UIKit
     }
 }
 
-private enum ProjectCreationStep {
-    case template
-    case options
-}
-
-private struct ProjectCreationSheetView: View {
-    @ObservedObject var model: ProjectTemplateOptionsModel
-    let onCancel: () -> Void
-    let onCreate: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            ScrollView {
-                Group {
-                    if model.step == .template {
-                        ProjectTemplateSelectionView(model: model)
-                    } else {
-                        ProjectTemplateOptionsView(model: model)
-                    }
-                }
-                .padding(.vertical, 16)
-            }
-            Divider()
-            controls
-        }
-        .background(Color(uiColor: .systemBackground))
-    }
-
-    private var header: some View {
-        Text(model.step == .template ? "Choose a template for your new project:" : "Choose options for your new project:")
-            .font(.title3.weight(.semibold))
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 14)
-    }
-
-    private var controls: some View {
-        HStack(spacing: 12) {
-            Button("Cancel", action: onCancel)
-                .buttonStyle(.bordered)
-
-            Spacer(minLength: 12)
-
-            if model.step == .options {
-                Button("Previous") {
-                    withAnimation(.snappy) {
-                        model.step = .template
-                    }
-                }
-                .buttonStyle(.bordered)
-            }
-
-            Button(model.step == .template ? "Next" : "Create") {
-                if model.step == .template {
-                    withAnimation(.snappy) {
-                        model.step = .options
-                    }
-                } else {
-                    onCreate()
-                }
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .controlSize(.large)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-    }
-}
-
-private struct ProjectTemplateSelectionView: View {
+struct ProjectTemplateSelectionView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
 
     var body: some View {
@@ -538,7 +465,7 @@ private struct ProjectTemplateSelectionView: View {
     }
 }
 
-private final class ProjectTemplateOptionsModel: ObservableObject {
+final class ProjectTemplateOptionsModel: ObservableObject {
     private static let organizationIdentifierDefaultsKey = "LDEOrganizationPrefix"
     private static let defaultOrganizationIdentifier = "com.example"
     private static let allowedIdentifierCharacters = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
@@ -685,7 +612,7 @@ private final class ProjectTemplateOptionsModel: ObservableObject {
     }
 }
 
-private struct ProjectTemplateOptionsView: View {
+struct ProjectTemplateOptionsView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
 
     var body: some View {
