@@ -80,7 +80,7 @@
     
     NSString *pathExtension = [[NSURL fileURLWithPath:fileName] pathExtension];
     
-    if([@[@"c",@"cpp",@"m",@"mm"] containsObject:pathExtension])
+    if([@[@"c",@"cpp",@"m",@"mm",@"swift"] containsObject:pathExtension])
     {
         authgen = YES;
     }
