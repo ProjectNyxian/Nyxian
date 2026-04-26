@@ -302,7 +302,7 @@
                 self.version = 21;
             }
             
-            if(self.version < 22)
+            if(self.version < 23)
             {
                 /*
                  * this is necessary so simd and normal
@@ -327,7 +327,7 @@
                     goto report_error;
                 }
                 
-                self.version = 22;
+                self.version = 23;
             }
         }
         

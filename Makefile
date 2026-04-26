@@ -1,6 +1,6 @@
 # Configuration
 NXNAME := Nyxian
-NXVERSION := 0.9.2
+NXVERSION := $(shell awk -F= '/^VERSION/ {gsub(/[ \t]/,"",$$2); print $$2}' Config.xcconfig)
 NXBUNDLE := com.cr4zy.nyxian
 
 # Targets
@@ -102,6 +102,7 @@ clean-artifacts:
 
 clean-all: clean clean-artifacts
 	rm -rf Nyxian/LindChain/CoreCompiler.framework
+	rm -rf Nyxian/LindChain/CoreCompilerSupportLibs
 	-rm Nyxian/LindChain/JBSupport/tshelper
 	cd LLVM-On-iOS; make clean; git reset --hard
 	cd TrollStore; make clean; git reset --hard
