@@ -32,10 +32,12 @@ trollstore: compile pseudo-sign package_tipa clean
 Nyxian/LindChain/CoreCompiler.framework:
 	cd LLVM-On-iOS; $(MAKE)
 	rm -rf Nyxian/LindChain/CoreCompiler.framework
-	mv LLVM-On-iOS/CoreCompiler.framework Nyxian/LindChain/CoreCompiler.framework
+	cp -r LLVM-On-iOS/CoreCompiler.framework Nyxian/LindChain/CoreCompiler.framework
 
-Nyxian/LindChain/CoreCompilerSupportLibs: Nyxian/LindChain/CoreCompiler.framework
-	-mv LLVM-On-iOS/CoreCompilerSupportLibs Nyxian/LindChain/CoreCompilerSupportLibs
+Nyxian/LindChain/CoreCompilerSupportLibs:
+	cd LLVM-On-iOS; $(MAKE)
+	rm -rf Nyxian/LindChain/CoreCompilerSupportLibs
+	cp -r LLVM-On-iOS/CoreCompilerSupportLibs Nyxian/LindChain/CoreCompilerSupportLibs
 
 # Needed for jailbroken version for permasigned apps
 Nyxian/LindChain/JBSupport/tshelper:
