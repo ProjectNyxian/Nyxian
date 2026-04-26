@@ -31,6 +31,9 @@
 
 - (void)setProgress:(CGFloat)value;
 - (void)resetProgress;
+- (void)startSpinningWithArcFraction:(CGFloat)fraction duration:(CFTimeInterval)duration;
+- (void)startSpinning;
+- (void)stopSpinning;
 
 @end
 
@@ -52,6 +55,9 @@
 + (void)switchImageSyncWithSystemName:(NSString*)systemName animated:(BOOL)animated withDuration:(double)duration;
 + (void)switchImageWithSystemName:(NSString*)systemName animated:(BOOL)animated;
 + (void)switchImageSyncWithSystemName:(NSString*)systemName animated:(BOOL)animated;
++ (void)startSpinning;
++ (void)startSpinningWithArcFraction:(CGFloat)fraction duration:(CFTimeInterval)duration;
++ (void)stopSpinning;
 
 @end
 

@@ -311,7 +311,12 @@ class Builder: NSObject, CCKDriverDelegate {
         
         let emitArgs: [String] = baseArguments + ["-emit-module", "-emit-module-path", modulePath, "-module-name", moduleName] + allSources
         var issues: NSArray?
-        let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: emitArgs, outDiagnostic:&issues)
+        
+        let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
+        let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: emitArgs, outDiagnostic: &issues)
+        spinnerStart.cancel()
+        XCButton.stopSpinning()
         
         XCButton.incrementProgress(withValue: pstep)
         
@@ -369,6 +374,13 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
+        let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
+        defer {
+            spinnerStart.cancel()
+            XCButton.stopSpinning()
+        }
+        
 #if !JAILBREAK_ENV
         if(buildType == .RunningApp) {
             if LCUtils.certificateData() == nil {
