@@ -29,20 +29,21 @@ struct ProjectTemplatePickerOption: Identifiable, Equatable {
 struct ProjectTemplatePickerRow: View {
     let title: String
     let options: [ProjectTemplatePickerOption]
+    var disabledIDs: Set<String> = []
     @Binding var selectionID: String
-
+    
     private var selectedTitle: String {
         return options.first { $0.id == selectionID }?.title ?? selectionID
     }
-
+    
     var body: some View {
         HStack {
             Text(title)
                 .font(.body)
                 .foregroundStyle(.primary)
-
+            
             Spacer(minLength: 12)
-
+            
             Menu {
                 ForEach(options) { option in
                     Button {
@@ -54,12 +55,13 @@ struct ProjectTemplatePickerRow: View {
                             Text(option.title)
                         }
                     }
+                    .disabled(disabledIDs.contains(option.id))
                 }
             } label: {
                 HStack(spacing: 6) {
                     Text(selectedTitle)
                         .lineLimit(1)
-
+                    
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.semibold))
                 }

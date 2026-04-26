@@ -417,7 +417,7 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     @Published var productName = ""
     @Published var organizationIdentifier: String
     @Published private var selectedLanguageID = "Swift"
-    @Published private var selectedInterfaceID = "UIKit"
+    @Published private var selectedInterfaceID = "SwiftUI"
 
     init(projectType: NXProjectType) {
         self.projectType = projectType
@@ -467,8 +467,11 @@ final class ProjectTemplateOptionsModel: ObservableObject {
         if projectType == .utility {
             return utilityLanguages
         }
-
-        return selectedInterfaceID == "SwiftUI" ? [appLanguages[0]] : appLanguages
+        return appLanguages
+    }
+    
+    var interfaceDisabledIDs: Set<String> {
+        selectedLanguageID == "ObjC" ? ["SwiftUI"] : []
     }
 
     var interfaceOptions: [ProjectTemplatePickerOption] {
@@ -570,6 +573,7 @@ struct ProjectTemplateOptionsView: View {
                     ProjectTemplatePickerRow(
                         title: "Interface:",
                         options: model.interfaceOptions,
+                        disabledIDs: model.interfaceDisabledIDs,
                         selectionID: Binding(
                             get: { model.interfaceSelection },
                             set: { model.interfaceSelection = $0 }
