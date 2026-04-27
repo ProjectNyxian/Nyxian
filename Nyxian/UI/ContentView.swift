@@ -406,11 +406,11 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     @Published private(set) var projectType: NXProjectType
     private let appLanguages: [ProjectTemplatePickerOption] = [
         ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
-        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC")
+        ProjectTemplatePickerOption(id: "ObjC", title: "Objective-C")
     ]
     private let utilityLanguages: [ProjectTemplatePickerOption] = [
         ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
-        ProjectTemplatePickerOption(id: "ObjC", title: "ObjC"),
+        ProjectTemplatePickerOption(id: "ObjC", title: "Objective-C"),
         ProjectTemplatePickerOption(id: "C++", title: "C++"),
         ProjectTemplatePickerOption(id: "C", title: "C")
     ]
