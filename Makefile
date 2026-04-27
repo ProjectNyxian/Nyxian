@@ -7,25 +7,27 @@ NXBUNDLE := com.cr4zy.nyxian
 all: jailed
 
 jailed: SCHEME := Nyxian
-jailed: compile package clean
+jailed: FILE := Nyxian.ipa
+jailed: clean compile package-app clean
 
 rootless: SCHEME := NyxianForJB
 rootless: ARCH := iphoneos-arm64
 rootless: JB_PATH := /var/jb/
-rootless: compile pseudo-sign package-deb clean
+rootless: clean compile pseudo-sign package-deb clean
 
 roothide: SCHEME := NyxianForJB
 roothide: ARCH := iphoneos-arm64e
 roothide: JB_PATH := /
-roothide: compile pseudo-sign package-deb clean
+roothide: clean compile pseudo-sign package-deb clean
 
 rootful: SCHEME := NyxianForJB
 rootful: ARCH := iphoneos-arm
 rootful: JB_PATH := /
-rootful: compile pseudo-sign package-deb clean
+rootful: clean compile pseudo-sign package-deb clean
 
 trollstore: SCHEME := NyxianForJB
-trollstore: compile pseudo-sign package_tipa clean
+trollstore: FILE := Nyxian.tipa
+trollstore: clean compile pseudo-sign package-app clean
 
 # Dependencies
 # Addressing: https://www.reddit.com/r/osdev/comments/1qknfa1/comment/o1b0gsm (Only workflows can and will use LazySetup)
@@ -69,16 +71,12 @@ compile: Nyxian/LindChain/JBSupport/tshelper Nyxian/LindChain/CoreCompiler.frame
 		CODE_SIGNING_ALLOWED=NO
 
 pseudo-sign:
-	ldid -Sent/nyxianforjb.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
-	ldid -Sent/tshelper.xml build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app/tshelper
+	codesign --sign - --entitlements ent/nyxianforjb.xml --force --timestamp=none build/Nyxian.xcarchive/Products/Applications/NyxianForJB.app
 
-package:
+package-app:
 	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
-	zip -r Nyxian.ipa ./Payload
-
-package_tipa:
-	cp -r  build/Nyxian.xcarchive/Products/Applications Payload
-	zip -r Nyxian.tipa ./Payload
+	-rm $(FILE)
+	zip -r $(FILE) ./Payload
 
 package-deb:
 	mkdir -p .package$(JB_PATH)
@@ -93,7 +91,7 @@ clean:
 	rm -rf build
 	rm -rf .package
 	rm -rf tmp
-	-rm -rf *.zip
+	-rm *.zip
 
 clean-artifacts:
 	-rm *.ipa
