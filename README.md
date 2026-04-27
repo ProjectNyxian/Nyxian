@@ -1,6 +1,6 @@
 <div align="center">
   <h1><b>Nyxian</b></h1>
-  <p><i>IDE to develop native code iOS apps and tools on unjailbroken iOS</i></p>
+  <p><i>IDE to develop native Swift, Objective-C, Objective-C++, C and C++ iOS apps and tools on unjailbroken iOS</i></p>
 </div>
 <h6 align="center">
   <a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
@@ -11,7 +11,7 @@
 </p>
 
 ## What is it?
-Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports C, ObjC, C++ and ObjC++ with Swift support announced(unlikely for now in 0.9.x, contribute please). It’s a powerful Xcode alternative that made the impossible possible, a fully On-device iOS IDE that doesn’t even need a cloud. It supports officially iOS 18 all the way up to the latest iOS version. You can compile and run iOS apps on the go without any problems, using the entire iOS 26.1 SDK.
+Nyxian is an iOS app that empowers developers with a full toolchain they can use while even being offline for iOS development on iPhone. It supports Swift, C, Objective-C, C++ and Objective-C++. It’s a powerful Xcode alternative that made the impossible possible, a fully on-device iOS IDE that doesn’t even need a cloud and can even be used with airplane mode enabled. It supports officially iOS 16 all the way up to the latest iOS version. You can compile and run iOS apps on the go with ease, using the entire iOS 26.4 SDK.
 
 ## Installation
 
@@ -26,8 +26,6 @@ Nyxian is an iOS app that empowers developers with a full toolchain they can use
 - [x] Signing executables
 - [x] Native iOS app development
 - [x] Native iOS utility development
+- [ ] Native iOS swift package development
+- [ ] Native iOS framework development
 - [ ] Native iOS tweak development
-- [ ] React Native development (IDK WHY??)
-- [ ] Web development (IDK WHY??)
-- [ ] Python development (IDK WHY??)
-- [ ] Lua development (IDK WHY??)
