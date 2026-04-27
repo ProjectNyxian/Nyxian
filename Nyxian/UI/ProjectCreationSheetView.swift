@@ -102,7 +102,9 @@ private struct ProjectCreationPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .padding(.horizontal, 22)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, 18)
             .frame(minHeight: 44)
             .foregroundStyle(Color(uiColor: currentTheme!.backgroundColor))
             .background {
@@ -127,7 +129,9 @@ private struct ProjectCreationSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
-            .padding(.horizontal, 22)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, 18)
             .frame(minHeight: 44)
             .foregroundStyle(Color(uiColor: currentTheme!.textColor))
             .background {
