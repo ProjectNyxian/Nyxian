@@ -34,14 +34,14 @@ struct ProjectTemplateSelectionView: View {
             templateRow(
                 title: "App",
                 subtitle: "Application project",
-                systemImage: "app.badge",
+                systemImage: "app.badge.fill",
                 projectType: .app
             )
             
             templateRow(
                 title: "Utility",
                 subtitle: "Command line tool",
-                systemImage: "terminal",
+                systemImage: "terminal.fill",
                 projectType: .utility
             )
         }
