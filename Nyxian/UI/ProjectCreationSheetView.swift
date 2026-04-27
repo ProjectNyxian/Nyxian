@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2026 Kyle-Ye
+ Copyright (C) 2026 cr4zyengineer
 
  This file is part of Nyxian.
 
@@ -30,11 +31,13 @@ struct ProjectCreationSheetView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
     let onCancel: () -> Void
     let onCreate: () -> Void
-
+    
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            Rectangle()
+                .fill(Color(uiColor: currentTheme!.gutterHairlineColor))
+                .frame(height: 1 / UIScreen.main.scale)
             ScrollView {
                 Group {
                     if model.step == .template {
@@ -45,43 +48,42 @@ struct ProjectCreationSheetView: View {
                 }
                 .padding(.vertical, 16)
             }
-            Divider()
+            Rectangle()
+                .fill(Color(uiColor: currentTheme!.gutterHairlineColor))
+                .frame(height: 1 / UIScreen.main.scale)
             controls
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(uiColor: currentTheme!.backgroundColor))
     }
-
+    
     private var header: some View {
-        Text(model.step == .template ? "Choose a template for your new project:" : "Choose options for your new project:")
+        Text(model.step == .template ? "Choose a template for your new project" : "Choose options for your new project")
             .font(.title3.weight(.semibold))
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
             .padding(.top, 20)
             .padding(.bottom, 14)
+            .foregroundColor(Color(currentTheme!.textColor))
     }
-
+    
     private var controls: some View {
         HStack(spacing: 12) {
             Button("Cancel", action: onCancel)
-                .buttonStyle(.bordered)
-
+                .buttonStyle(ProjectCreationSecondaryButtonStyle())
+            
             Spacer(minLength: 12)
-
+            
             if model.step == .options {
                 Button("Previous") {
-                    withAnimation(.snappy) {
-                        model.step = .template
-                    }
+                    withAnimation(.snappy) { model.step = .template }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(ProjectCreationSecondaryButtonStyle())
             }
-
+            
             Button(model.step == .template ? "Next" : "Create") {
                 if model.step == .template {
-                    withAnimation(.snappy) {
-                        model.step = .options
-                    }
+                    withAnimation(.snappy) { model.step = .options }
                 } else {
                     onCreate()
                 }
@@ -96,25 +98,54 @@ struct ProjectCreationSheetView: View {
 
 private struct ProjectCreationPrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
-
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.body.weight(.semibold))
             .padding(.horizontal, 22)
             .frame(minHeight: 44)
-            .foregroundStyle(Color(uiColor: .systemBackground))
+            .foregroundStyle(Color(uiColor: currentTheme!.backgroundColor))
             .background {
                 Capsule(style: .continuous)
-                    .fill(Color(uiColor: .label))
+                    .fill(Color(uiColor: currentTheme!.textColor))
                     .opacity(buttonOpacity(isPressed: configuration.isPressed))
             }
     }
-
+    
     private func buttonOpacity(isPressed: Bool) -> Double {
         if !isEnabled {
             return 0.25
         }
+        
+        return isPressed ? 0.72 : 1
+    }
+}
 
+private struct ProjectCreationSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .padding(.horizontal, 22)
+            .frame(minHeight: 44)
+            .foregroundStyle(Color(uiColor: currentTheme!.textColor))
+            .background {
+                Capsule(style: .continuous)
+                    .fill(Color(uiColor: currentTheme!.backgroundColor))
+                    .overlay {
+                        Capsule(style: .continuous)
+                            .strokeBorder(
+                                Color(uiColor: currentTheme!.gutterHairlineColor),
+                                lineWidth: 1
+                            )
+                    }
+                    .opacity(buttonOpacity(isPressed: configuration.isPressed))
+            }
+    }
+    
+    private func buttonOpacity(isPressed: Bool) -> Double {
+        if !isEnabled { return 0.25 }
         return isPressed ? 0.72 : 1
     }
 }

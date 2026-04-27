@@ -86,6 +86,11 @@ import UIKit
                 }
             }
         )
+        
+        if #available(iOS 16.4, *) {
+            _ = view.presentationBackground(Color(uiColor: currentTheme!.backgroundColor))
+        }
+
         let hostingController = UIHostingController(rootView: view)
         hostingController.modalPresentationStyle = .pageSheet
         if let sheet = hostingController.sheetPresentationController {
@@ -544,7 +549,12 @@ final class ProjectTemplateOptionsModel: ObservableObject {
 
 struct ProjectTemplateOptionsView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
-
+    
+    private var textColor: Color { Color(uiColor: currentTheme!.textColor) }
+    private var hairlineColor: Color { Color(uiColor: currentTheme!.gutterHairlineColor) }
+    private var groupBackground: Color { textColor.opacity(0.05) }
+    private var secondaryTextColor: Color { textColor.opacity(0.6) }
+    
     var body: some View {
         VStack(spacing: 12) {
             VStack(spacing: 0) {
@@ -553,21 +563,19 @@ struct ProjectTemplateOptionsView: View {
                     placeholder: "Product Name",
                     text: $model.productName
                 )
-                Divider()
-                    .padding(.leading, 12)
+                themedDivider
                 templateTextField(
                     label: "Organization Identifier",
                     placeholder: "com.example",
                     text: $model.organizationIdentifier,
                     keyboardType: .URL
                 )
-                Divider()
-                    .padding(.leading, 12)
+                themedDivider
                 generatedIdentifierRow
             }
-            .background(Color(uiColor: .secondarySystemFill))
+            .background(groupBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
+            
             VStack(spacing: 8) {
                 if model.showsAppOptions {
                     ProjectTemplatePickerRow(
@@ -580,7 +588,7 @@ struct ProjectTemplateOptionsView: View {
                         )
                     )
                 }
-
+                
                 ProjectTemplatePickerRow(
                     title: "Language:",
                     options: model.languageOptions,
@@ -596,15 +604,22 @@ struct ProjectTemplateOptionsView: View {
         .padding(.bottom, 6)
         .fixedSize(horizontal: false, vertical: true)
     }
-
+    
+    private var themedDivider: some View {
+        Rectangle()
+            .fill(hairlineColor)
+            .frame(height: 1 / UIScreen.main.scale)
+            .padding(.leading, 12)
+    }
+    
     private var generatedIdentifierRow: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text("Bundle Identifier")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryTextColor)
             Text(model.bundleIdentifier.isEmpty ? " " : model.bundleIdentifier)
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryTextColor)
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
         }
@@ -612,7 +627,7 @@ struct ProjectTemplateOptionsView: View {
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-
+    
     private func templateTextField(label: String,
                                    placeholder: String,
                                    text: Binding<String>,
@@ -620,10 +635,12 @@ struct ProjectTemplateOptionsView: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(label)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryTextColor)
             TextField(placeholder, text: text)
                 .textFieldStyle(.plain)
                 .font(.callout)
+                .foregroundStyle(textColor)
+                .tint(textColor)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(keyboardType)

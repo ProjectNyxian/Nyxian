@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2026 Kyle-Ye
+ Copyright (C) 2026 cr4zyengineer
 
  This file is part of Nyxian.
 
@@ -23,19 +24,11 @@ import SwiftUI
 
 struct ProjectTemplateSelectionView: View {
     @ObservedObject var model: ProjectTemplateOptionsModel
-
-    private var selectedAccentColor: Color {
-        Color(uiColor: .label)
-    }
-
-    private var selectedIconForegroundColor: Color {
-        Color(uiColor: .systemBackground)
-    }
-
-    private var unselectedIconForegroundColor: Color {
-        Color(uiColor: .secondaryLabel)
-    }
-
+    
+    private var textColor: Color { Color(uiColor: currentTheme!.textColor) }
+    private var backgroundColor: Color { Color(uiColor: currentTheme!.backgroundColor) }
+    private var hairlineColor: Color { Color(uiColor: currentTheme!.gutterHairlineColor) }
+    
     var body: some View {
         VStack(spacing: 8) {
             templateRow(
@@ -44,7 +37,7 @@ struct ProjectTemplateSelectionView: View {
                 systemImage: "app.badge",
                 projectType: .app
             )
-
+            
             templateRow(
                 title: "Utility",
                 subtitle: "Command line tool",
@@ -57,49 +50,49 @@ struct ProjectTemplateSelectionView: View {
         .padding(.bottom, 6)
         .fixedSize(horizontal: false, vertical: true)
     }
-
+    
     private func templateRow(title: String,
                              subtitle: String,
                              systemImage: String,
                              projectType: NXProjectType) -> some View {
         let isSelected = model.projectType == projectType
-
+        
         return Button {
             model.selectProjectType(projectType)
         } label: {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? selectedAccentColor : Color(uiColor: .tertiarySystemFill))
+                        .fill(isSelected ? textColor : textColor.opacity(0.08))
                     Image(systemName: systemImage)
                         .font(.system(size: 22, weight: .semibold))
                         .symbolRenderingMode(.monochrome)
-                        .foregroundStyle(isSelected ? selectedIconForegroundColor : unselectedIconForegroundColor)
+                        .foregroundStyle(isSelected ? backgroundColor : textColor.opacity(0.6))
                 }
                 .frame(width: 42, height: 42)
-
+                
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(textColor)
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(textColor.opacity(0.6))
                 }
-
+                
                 Spacer(minLength: 8)
-
+                
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(isSelected ? selectedAccentColor : Color(uiColor: .tertiaryLabel))
+                    .foregroundStyle(isSelected ? textColor : textColor.opacity(0.3))
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemFill))
+            .background(textColor.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(isSelected ? selectedAccentColor : Color.clear, lineWidth: 1.5)
+                    .stroke(isSelected ? textColor : hairlineColor.opacity(0.0), lineWidth: 1.5)
             }
         }
         .buttonStyle(.plain)

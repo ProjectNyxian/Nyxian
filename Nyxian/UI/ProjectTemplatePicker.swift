@@ -2,6 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2026 Kyle-Ye
+ Copyright (C) 2026 cr4zyengineer
 
  This file is part of Nyxian.
 
@@ -33,7 +34,7 @@ struct ProjectTemplatePickerRow: View {
     @Binding var selectionID: String
     
     private var selectedTitle: String {
-        return options.first { $0.id == selectionID }?.title ?? selectionID
+        options.first { $0.id == selectionID }?.title ?? selectionID
     }
     
     var body: some View {
@@ -61,17 +62,22 @@ struct ProjectTemplatePickerRow: View {
                 HStack(spacing: 6) {
                     Text(selectedTitle)
                         .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentTransition(.opacity)
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
                 }
-                .font(.body)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color(uiColor: .secondarySystemFill))
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .frame(width: 140)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Color(currentTheme!.textColor).opacity(0.05), in: .rect(cornerRadius: 10, style: .continuous))
             }
+            .animation(.snappy, value: selectionID)
             .accessibilityLabel(Text(title.trimmingCharacters(in: CharacterSet(charactersIn: ":"))))
         }
     }
