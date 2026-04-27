@@ -34,7 +34,7 @@ jobs:
           set -e
 
           # Packages we desperately need
-          brew install dpkg libarchive
+          brew install ldid dpkg libarchive
 
       - name: Cache Theos
         id: cache-theos
