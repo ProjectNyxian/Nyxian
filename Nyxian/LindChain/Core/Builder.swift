@@ -52,17 +52,19 @@ class Builder: NSObject, CCKDriverDelegate {
         self.project = project
         self.project.reload()
         
+        try? syncFolderStructure(from: self.project.url, to: self.project.cacheURL)
+        
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
         var driverFlags: [String] = self.project.projectConfig.compilerFlags
         
-        try? syncFolderStructure(from: self.project.url, to: self.project.cacheURL)
-        
         guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources"]) else {
+            self.database.addMessage(message: "A fatal error has happened finding clang code files.", severity: .error)
             return nil
         }
         guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
+            self.database.addMessage(message: "A fatal error has happened finding swift code files.", severity: .error)
             return nil
         }
         
@@ -77,6 +79,7 @@ class Builder: NSObject, CCKDriverDelegate {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoURL.path)
         
+        /* TODO: insert swift flags in here */
         if !self.project.projectConfig.linkerFlags.isEmpty {
             driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
         }
@@ -111,6 +114,11 @@ class Builder: NSObject, CCKDriverDelegate {
         }
         
         if !self.compilerSwiftJobs.isEmpty {
+            if self.linkerJobs.isEmpty {
+                self.database.addMessage(message: "Project is malformed or incompatible, please make sure you use the latest version of Nyxian, you can get it at https://nyxian.app.", severity: .error)
+                return nil
+            }
+            
             // Have to patch link job
             let linkerJob: CCKJob = self.linkerJobs[0]
             let type: CCJobType = linkerJob.type
@@ -172,7 +180,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func headsup() throws {
-        let type = project.projectConfig.type
+        let type = project.projectConfig.schemeKind
         if(type != .app && type != .utility) {
             throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
         }
@@ -210,7 +218,7 @@ class Builder: NSObject, CCKDriverDelegate {
         }
         
         // if payload exists remove it
-        if self.project.projectConfig.type == .app {
+        if self.project.projectConfig.schemeKind == .app {
             let payloadPath: String = self.project.payloadURL.path
             if FileManager.default.fileExists(atPath: payloadPath) {
                 try? FileManager.default.removeItem(atPath: payloadPath)
@@ -224,7 +232,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func prepare() throws {
-        if project.projectConfig.type == .app {
+        if project.projectConfig.schemeKind == .app {
             try FileManager.default.createDirectory(at: self.project.payloadURL, withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: self.project.resourcesURL, to: self.project.bundleURL)
             
@@ -387,7 +395,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
             }
             
-            if self.project.projectConfig.type == .app {
+            if self.project.projectConfig.schemeKind == .app {
                 let semaphore = DispatchSemaphore(value: 0)
                 var nsError: NSError? = nil
                 
@@ -448,7 +456,7 @@ class Builder: NSObject, CCKDriverDelegate {
                 if let nsError = nsError {
                     throw nsError
                 }
-            } else if self.project.projectConfig.type == .utility {
+            } else if self.project.projectConfig.schemeKind == .utility {
                 if LCUtils.certificateData() == nil {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
                 }
@@ -560,6 +568,7 @@ class Builder: NSObject, CCKDriverDelegate {
             guard let builder: Builder = Builder(
                 project: project
             ) else {
+                completion(false)
                 return
             }
             

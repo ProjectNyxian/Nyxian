@@ -35,14 +35,14 @@ struct ProjectTemplateSelectionView: View {
                 title: "App",
                 subtitle: "Application project",
                 systemImage: "app.badge.fill",
-                projectType: .app
+                schemeKind: .app
             )
             
             templateRow(
                 title: "Utility",
                 subtitle: "Command line tool",
                 systemImage: "terminal.fill",
-                projectType: .utility
+                schemeKind: .utility
             )
         }
         .padding(.top, 2)
@@ -54,11 +54,11 @@ struct ProjectTemplateSelectionView: View {
     private func templateRow(title: String,
                              subtitle: String,
                              systemImage: String,
-                             projectType: NXProjectType) -> some View {
-        let isSelected = model.projectType == projectType
+                             schemeKind: NXProjectSchemeKind) -> some View {
+        let isSelected = model.schemeKind == schemeKind
         
         return Button {
-            model.selectProjectType(projectType)
+            model.selectProjectType(schemeKind)
         } label: {
             HStack(spacing: 12) {
                 ZStack {

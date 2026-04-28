@@ -22,16 +22,18 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
 
-BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
-                                        NXCodeTemplateLanguage language,
-                                        NXCodeTemplateInterface interface,
+BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
+                                        NXProjectLanguage language,
+                                        NXProjectInterface interface,
                                         NSString *projectName,
                                         NSURL *projectURL)
 {
+    assert(scheme != nil && language != nil);
+    
     NSFileManager *defaultManager = [NSFileManager defaultManager];
     [NXUser shared].projectName = projectName;
     NSURL *templateURL = [[[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"/Shared/Templates"] URLByAppendingPathComponent:scheme] URLByAppendingPathComponent:language];
-    if([scheme isEqualToString:NXCodeTemplateSchemeApp])
+    if(interface != nil)
     {
         templateURL = [templateURL URLByAppendingPathComponent:interface];
     }
@@ -60,9 +62,9 @@ BOOL NXCodeTemplateMakeProjectStructure(NXCodeTemplateScheme scheme,
     return YES;
 }
 
-NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
+NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectLanguageKind languageKind)
 {
-    if([language isEqualToString:NXCodeTemplateLanguageObjC])
+    if(languageKind == NXProjectLanguageKindObjectiveC)
     {
         return @[
             @"-target",
@@ -76,7 +78,7 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
             @"-fobjc-arc"
         ];
     }
-    else if([language isEqualToString:NXCodeTemplateLanguageCpp])
+    else if(languageKind == NXProjectLanguageKindCXX)
     {
         return @[
             @"-target",
@@ -108,10 +110,10 @@ NSArray *NXCompilerFlagsForCodeTemplateLanguage(NXCodeTemplateLanguage language)
     }
 }
 
-NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateScheme scheme,
-                                             NXCodeTemplateLanguage language)
+NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
+                                                        NXProjectLanguageKind languageKind)
 {
-    if([language isEqualToString:NXCodeTemplateLanguageSwift])
+    if(languageKind == NXProjectLanguageKindSwift)
     {
         NSArray *baseFlags = @[
             @"-target",
@@ -125,12 +127,9 @@ NSArray *NXSwiftFlagsForCodeTemplateLanguage(NXCodeTemplateScheme scheme,
             @"$(BSROOT)/swift",
             @"-module-cache-path",
             @"$(BSROOT)/ModuleCache",
-            @"-no-color-diagnostics",
-            @"-Xcc",
-            @"-fno-color-diagnostics"
         ];
         
-        if([scheme isEqualToString:NXCodeTemplateSchemeApp])
+        if(schemeKind == NXProjectSchemeKindApp)
         {
             return [baseFlags arrayByAddingObject:@"-parse-as-library"];
         }

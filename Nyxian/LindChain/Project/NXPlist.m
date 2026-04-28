@@ -225,6 +225,18 @@
     return valueOfKey;
 }
 
+- (id _Nonnull)readSecureFromKey:(NSString * _Nonnull)key
+                withDefaultValue:(id _Nullable)value
+                        withType:(Class _Nonnull)type
+{
+    id valueOfKey = [self readKey:key];
+    if(!valueOfKey && ![valueOfKey isKindOfClass:type])
+    {
+        valueOfKey = value;
+    }
+    return valueOfKey;
+}
+
 - (NSInteger)readIntegerForKey:(NSString *)key
               withDefaultValue:(NSInteger)defaultValue
 {

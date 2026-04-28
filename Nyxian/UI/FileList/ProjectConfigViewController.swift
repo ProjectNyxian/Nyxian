@@ -325,7 +325,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
             case .general:
-                if project.projectConfig.type == .app {
+                if project.projectConfig.schemeKind == .app {
                     return GeneralRow.allCases.count
                 } else {
                     return GeneralRow.allCases.count - 3

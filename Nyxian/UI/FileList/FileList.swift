@@ -297,13 +297,13 @@ import UniformTypeIdentifiers
                 guard let self = self else { return }
                 buildProjectWithArgumentUI(targetViewController: self, project: project, buildType: .RunningApp)
             }))
-            if project.projectConfig.type == .app {
+            if project.projectConfig.schemeKind == .app {
                 projectMenuElements.append(UIAction(title: "Export", image: UIImage(systemName: "archivebox.fill"), handler: { [weak self] _ in
                     guard let self = self else { return }
                     buildProjectWithArgumentUI(targetViewController: self, project: project, buildType: .InstallPackagedApp)
                 }))
             }
-            if project.projectConfig.type == .app || project.projectConfig.type == .utility {
+            if project.projectConfig.schemeKind == .app || project.projectConfig.schemeKind == .utility {
                 projectMenuElements.append(UIAction(title: "Issue Navigator", image: UIImage(systemName: "exclamationmark.triangle.fill"), handler: { [weak self] _ in
                     guard let self = self else { return }
                     let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))

@@ -29,8 +29,8 @@
 
 @interface NXProjectConfig : NXPlist
 
-@property (nonatomic,readonly) NXProjectFormat projectFormat;
-@property (nonatomic,readonly) NXProjectType type;
+@property (nonatomic,readonly) NXProjectFormatKind formatKind;
+@property (nonatomic,readonly) NXProjectSchemeKind schemeKind;
 @property (nonatomic,strong,readonly) NSString *executable;
 @property (nonatomic,strong,readonly) NSString *displayName;
 @property (nonatomic,strong,readonly) NSString *organizationPrefix;
@@ -71,7 +71,7 @@
 - (instancetype)initWithURL:(NSURL*)url;
 + (instancetype)projectWithURL:(NSURL*)url;
 
-+ (instancetype)createProjectAtURL:(NSURL*)url withName:(NSString*)name withOrganizationIdentifier:(NSString*)organizationIdentifier withBundleIdentifier:(NSString*)bundleid withType:(NXProjectType)type withLanguage:(NXCodeTemplateLanguage)language withInterface:(NXCodeTemplateInterface)interface;
++ (instancetype)createProjectAtURL:(NSURL*)url withName:(NSString*)name withOrganizationIdentifier:(NSString*)organizationIdentifier withBundleIdentifier:(NSString*)bundleid withSchemeKind:(NXProjectSchemeKind)schemeKind withLanguageKind:(NXProjectLanguageKind)languageKind withInterfaceKind:(NXProjectInterfaceKind)interfaceKind;
 + (NSMutableDictionary<NSString*,NSMutableArray<NXProject*>*>*)listProjectsAtURL:(NSURL*)url;
 
 - (void)removeProject;

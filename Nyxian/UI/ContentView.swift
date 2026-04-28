@@ -73,7 +73,7 @@ import UIKit
     }
 
     @objc private func presentProjectCreationSheet() {
-        let model = ProjectTemplateOptionsModel(projectType: .app)
+        let model = ProjectTemplateOptionsModel(schemeKind: .app)
         let view = ProjectCreationSheetView(
             model: model,
             onCancel: { [weak self] in
@@ -110,7 +110,7 @@ import UIKit
     
     func addProject(_ project: NXProject) {
         let key = {
-            switch project.projectConfig.type {
+            switch project.projectConfig.schemeKind {
             case .app: return "applications"
             case .utility: return "utilities"
             default: return "unknown"
@@ -154,7 +154,7 @@ import UIKit
     func removeProject(_ project: NXProject) {
         project.remove()
         let key = {
-            switch project.projectConfig.type {
+            switch project.projectConfig.schemeKind {
             case .app: return "applications"
             case .utility: return "utilities"
             default: return "unknown"
@@ -221,16 +221,16 @@ import UIKit
         }
 
         optionsModel.saveOrganizationIdentifier()
-
+        
         guard let project = NXProject.createProject(
             at: NXBootstrap.shared().rootURL.appendingPathComponent("Projects"),
             withName: name,
             withOrganizationIdentifier: optionsModel.normalizedOrganizationIdentifier,
             withBundleIdentifier: optionsModel.bundleIdentifier,
-            withType: optionsModel.projectType,
-            withLanguage: optionsModel.selectedLanguage,
-            withInterface: optionsModel.selectedInterface
-        ) else {
+            withSchemeKind: optionsModel.schemeKind,
+            withLanguageKind: optionsModel.selectedLanguage,
+            withInterfaceKind: optionsModel.selectedInterface) else
+        {
             NotificationServer.NotifyUser(level: .error, notification: "Failed to create project")
             return false
         }
@@ -277,7 +277,7 @@ import UIKit
         let sectionProjects = self.projectsList[key] ?? []
         let project: NXProject = sectionProjects[indexPath.row];
         let cell: NXProjectTableCell = self.tableView.dequeueReusableCell(withIdentifier: NXProjectTableCell.reuseIdentifier()) as! NXProjectTableCell
-        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.type == .app, showBundleID: project.projectConfig.type == .app, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
+        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.schemeKind == .app, showBundleID: project.projectConfig.schemeKind == .app, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
         return cell
     }
     
@@ -403,7 +403,7 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     private static let allowedIdentifierCharacters = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
 
     @Published var step: ProjectCreationStep = .template
-    @Published private(set) var projectType: NXProjectType
+    @Published private(set) var schemeKind: NXProjectSchemeKind
     private let appLanguages: [ProjectTemplatePickerOption] = [
         ProjectTemplatePickerOption(id: "Swift", title: "Swift"),
         ProjectTemplatePickerOption(id: "ObjC", title: "Objective-C")
@@ -424,13 +424,13 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     @Published private var selectedLanguageID = "Swift"
     @Published private var selectedInterfaceID = "SwiftUI"
 
-    init(projectType: NXProjectType) {
-        self.projectType = projectType
+    init(schemeKind: NXProjectSchemeKind) {
+        self.schemeKind = schemeKind
         self.organizationIdentifier = UserDefaults.standard.string(forKey: Self.organizationIdentifierDefaultsKey) ?? Self.defaultOrganizationIdentifier
     }
 
     var showsAppOptions: Bool {
-        return projectType == .app
+        return schemeKind == .app
     }
 
     var normalizedOrganizationIdentifier: String {
@@ -444,17 +444,17 @@ final class ProjectTemplateOptionsModel: ObservableObject {
             .joined(separator: ".")
     }
 
-    var selectedLanguage: NXCodeTemplateLanguage {
+    var selectedLanguage: NXProjectLanguageKind {
         switch selectedLanguageID {
-        case "ObjC": return .objC
-        case "C++": return .cpp
+        case "ObjC": return .objectiveC
+        case "C++": return .CXX
         case "C": return .C
         default: return .swift
         }
     }
 
-    var selectedInterface: NXCodeTemplateInterface {
-        guard projectType == .app else { return .invalid }
+    var selectedInterface: NXProjectInterfaceKind {
+        guard schemeKind == .app else { return .unknown }
         return selectedInterfaceID == "SwiftUI" ? .swiftUI : .uiKit
     }
 
@@ -469,7 +469,7 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     }
 
     var languageOptions: [ProjectTemplatePickerOption] {
-        if projectType == .utility {
+        if schemeKind == .utility {
             return utilityLanguages
         }
         return appLanguages
@@ -483,9 +483,9 @@ final class ProjectTemplateOptionsModel: ObservableObject {
         return interfaces
     }
 
-    func selectProjectType(_ projectType: NXProjectType) {
-        self.projectType = projectType
-        if projectType == .app {
+    func selectProjectType(_ schemeKind: NXProjectSchemeKind) {
+        self.schemeKind = schemeKind
+        if schemeKind == .app {
             switch selectedLanguageID {
             case "Swift", "ObjC":
                 break

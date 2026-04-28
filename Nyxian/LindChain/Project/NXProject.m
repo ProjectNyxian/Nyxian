@@ -46,36 +46,16 @@
     if(reloaded)
     {
         /* MARK: projectFormat */
-        NSString *projectFormat = [self readSecureFromKey:@"NXProjectFormat" withDefaultValue:@"NXKate"];
+        _formatKind = NXProjectFormatKindFromFormat([self readSecureFromKey:@"NXProjectFormat" withDefaultValue:NXProjectFormatKate]);
+        _schemeKind = NXProjectSchemeKindFromScheme([self readSecureFromKey:@"NXProjectScheme" withDefaultValue:NXProjectSchemeUnknown withType:[NSString class]]);
         
-        if([projectFormat isEqualToString:@"NXKate"])
+        /* MARK: NXFalcon and below compatibility */
+        if(_schemeKind == NXProjectSchemeKindUnknown)
         {
-            /*
-             * TODO: add deprecation message to project issue navigator
-             * this wont exist for ever, i plan on removing compat
-             * for older project types after each 5th newest project
-             * format, meaning NXKate will be removed
-             * after 4 new project formats being released.
-             * there can also be formats like NXProjectFormatFalconR1
-             * the R would stand for revision, but revisions will be
-             * safe from this rule... only major project formats..
-             * so for NXProjectFormatFalconR1 to be removed for example
-             * NXProjectFormatFalcon needs to be removed, revisions
-             * compatibility will die together with the original.
-             */
-            _projectFormat = NXProjectFormatKate;
-        }
-        else if([projectFormat isEqualToString:@"NXFalcon"])
-        {
-            _projectFormat = NXProjectFormatFalcon;
-        }
-        else
-        {
-            _projectFormat = NXProjectFormatDefault;
+            _schemeKind = (NXProjectSchemeKind)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectSchemeKindApp];
         }
         
         /* MARK: keys */
-        _type = (NXProjectType)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectTypeApp];
         _executable = [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"];
         _displayName = [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]];
         _organizationPrefix = [self readSecureFromKey:@"LDEOrganizationPrefix" withDefaultValue:@"com.example"];
@@ -90,11 +70,12 @@
         /* MARK: compiler flags */
         NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
         
-        if([self projectFormat] == NXProjectFormatFalcon)
+        if(_formatKind == NXProjectFormatKindFalcon ||
+           _formatKind == NXProjectFormatKindAvis)
         {
             _compilerFlags = compilerFlags;
         }
-        else if([self projectFormat] == NXProjectFormatKate)
+        else if(_formatKind == NXProjectFormatKindKate)
         {
             NSMutableArray *array = [compilerFlags mutableCopy];
             
@@ -202,17 +183,20 @@
                           withName:(NSString*)name
         withOrganizationIdentifier:(NSString*)organizationIdentifier
               withBundleIdentifier:(NSString*)bundleid
-                          withType:(NXProjectType)type
-                      withLanguage:(NXCodeTemplateLanguage)language
-                     withInterface:(NXCodeTemplateInterface)interface
+                    withSchemeKind:(NXProjectSchemeKind)schemeKind
+                  withLanguageKind:(NXProjectLanguageKind)languageKind
+                 withInterfaceKind:(NXProjectInterfaceKind)interfaceKind
 {
+    /* must always be valid */
+    assert(NXProjectConfigurationIsValid(schemeKind, interfaceKind, languageKind));
+    
     NSURL *projectURL = [url URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
     NSString *organizationIdentifierValue = organizationIdentifier ?: @"";
     NSString *bundleIdentifierValue = bundleid ?: @"";
 
     NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
-    if(type == NXProjectTypeApp)
+    if(schemeKind == NXProjectSchemeKindApp)
     {
         [directoryList addObject:@"/Resources"];
     }
@@ -247,30 +231,12 @@
         @"platform-application": @(YES)
 #endif // !JAILBREAK_ENV
     };
-    
-    NXCodeTemplateScheme scheme = NXCodeTemplateSchemeFromProjectType(type);
-    NXCodeTemplateInterface templateInterface = type == NXProjectTypeApp ? interface : NXCodeTemplateInterfaceInvalid;
-    if(type == NXProjectTypeApp)
-    {
-        if(![templateInterface isEqualToString:NXCodeTemplateInterfaceSwiftUI] &&
-           ![templateInterface isEqualToString:NXCodeTemplateInterfaceUIKit])
-        {
-            templateInterface = NXCodeTemplateInterfaceUIKit;
-        }
-
-        if([templateInterface isEqualToString:NXCodeTemplateInterfaceSwiftUI] &&
-           ![language isEqualToString:NXCodeTemplateLanguageSwift])
-        {
-            [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
-            return nil;
-        }
-    }
 
     NSDictionary *appBundleInfo = @{};
-    if([templateInterface isEqualToString:NXCodeTemplateInterfaceUIKit])
+    if(interfaceKind == NXProjectInterfaceKindUIKit)
     {
         NSString *sceneDelegateClassName = @"SceneDelegate";
-        if([language isEqualToString:NXCodeTemplateLanguageSwift])
+        if(languageKind == NXProjectLanguageKindSwift)
         {
             sceneDelegateClassName = [@"$(LDEExecutable)." stringByAppendingString:sceneDelegateClassName];
         }
@@ -291,11 +257,12 @@
     }
     
     NSDictionary *projConfigPlist = nil;
-    switch(type)
+    switch(schemeKind)
     {
-        case NXProjectTypeApp:
+        case NXProjectSchemeKindApp:
             projConfigPlist = @{
-                @"NXProjectFormat": @"NXFalcon",
+                @"NXProjectFormat": NXProjectFormatAvis,
+                @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
                 @"LDEOrganizationPrefix": organizationIdentifierValue,
@@ -303,7 +270,6 @@
                 @"LDEBundleInfo": appBundleInfo,
                 @"LDEBundleVersion": @"1.0",
                 @"LDEBundleShortVersion": @"1.0",
-                @"LDEProjectType": @(type),
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
                 @"LDECompilerFlags": @[
                     @"-target",
@@ -321,29 +287,29 @@
                     @"UIKit"
                 ],
                 @"LDELinkerFlags": @[],
-                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(scheme, language),
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
                 @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)",
             };
             break;
-        case NXProjectTypeUtility:
+        case NXProjectSchemeKindUtility:
             projConfigPlist = @{
-                @"NXProjectFormat": @"NXFalcon",
+                @"NXProjectFormat": NXProjectFormatAvis,
+                @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
                 @"LDEExecutable": name,
                 @"LDEDisplayName": name,
                 @"LDEOrganizationPrefix": organizationIdentifierValue,
                 @"LDEBundleIdentifier": bundleIdentifierValue,
-                @"LDEProjectType": @(type),
                 @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
-                @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(language),
+                @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(languageKind),
                 @"LDELinkerFlags": @[],
-                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(scheme, language),
+                @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
                 @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)",
             };
             break;
         default:
             projConfigPlist = @{
                 @"LDEDisplayName": name,
-                @"LDEProjectType": @(type)
+                @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
             };
             break;
     }
@@ -367,13 +333,11 @@
         }
     }
     
-    if(scheme == NXCodeTemplateSchemeInvalid)
-    {
-        [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
-        return nil;
-    }
+    NXProjectScheme scheme = NXProjectSchemeFromSchemeKind(schemeKind);
+    NXProjectLanguage language = NXProjectLanguageFromLanguageKind(languageKind);
+    NXProjectInterface interface = NXProjectInterfaceFromInterfaceKind(interfaceKind);
     
-    if(!NXCodeTemplateMakeProjectStructure(scheme, language, templateInterface, name, projectURL))
+    if(!NXCodeTemplateMakeProjectStructure(scheme, language, interface, name, projectURL))
     {
         [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
         return nil;
@@ -405,11 +369,11 @@
     {
         NXProject *project = [NXProject projectWithURL:entry];
         
-        if(project.projectConfig.type == NXProjectTypeApp)
+        if(project.projectConfig.schemeKind == NXProjectSchemeKindApp)
         {
             [applicationProjects addObject:project];
         }
-        else if(project.projectConfig.type == NXProjectTypeUtility)
+        else if(project.projectConfig.schemeKind == NXProjectSchemeKindUtility)
         {
             [utilityProjects addObject:project];
         }
@@ -434,10 +398,10 @@
 - (NSURL*)bundleURL { return [self.payloadURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"app"]]; }
 - (NSURL*)machoURL
 {
-    if(self.projectConfig.projectFormat == NXProjectFormatKate)
+    if(self.projectConfig.formatKind == NXProjectFormatKindKate)
     {
     kate_handling:
-        if(self.projectConfig.type == NXProjectTypeApp)
+        if(self.projectConfig.schemeKind == NXProjectSchemeKindApp)
         {
             return [self.bundleURL URLByAppendingPathComponent:self.projectConfig.executable];
         }

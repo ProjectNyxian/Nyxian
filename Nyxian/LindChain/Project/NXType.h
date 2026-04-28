@@ -25,32 +25,68 @@
 
 #import <Foundation/Foundation.h>
 
-typedef int NXProjectType NS_TYPED_ENUM;
-static NXProjectType const NXProjectTypeAny = 0;
-static NXProjectType const NXProjectTypeApp = 1;
-static NXProjectType const NXProjectTypeUtility = 2;
+typedef NSString * NXProjectFormat NS_TYPED_ENUM;
+static NXProjectFormat const NXProjectFormatUnknown = nil;
+static NXProjectFormat const NXProjectFormatKate = @"NXKate";
+static NXProjectFormat const NXProjectFormatFalcon = @"NXFalcon";
+static NXProjectFormat const NXProjectFormatAvis = @"NSAvix";
 
-typedef int NXProjectFormat NS_TYPED_ENUM;
-static NXProjectFormat const NXProjectFormatKate = 0;
-static NXProjectFormat const NXProjectFormatFalcon = 1;
-static NXProjectFormat const NXProjectFormatDefault = NXProjectFormatKate;
+typedef UInt64 NXProjectFormatKind NS_TYPED_ENUM;
+static NXProjectFormatKind const NXProjectFormatKindUnknown = 0;
+static NXProjectFormatKind const NXProjectFormatKindKate = 1;
+static NXProjectFormatKind const NXProjectFormatKindFalcon = 2;
+static NXProjectFormatKind const NXProjectFormatKindAvis = 3;
 
-typedef NSString * NXCodeTemplateScheme NS_TYPED_ENUM;
-static NXCodeTemplateScheme const NXCodeTemplateSchemeInvalid = @"";
-static NXCodeTemplateScheme const NXCodeTemplateSchemeApp = @"Application";
-static NXCodeTemplateScheme const NXCodeTemplateSchemeUtility = @"Utility";
+typedef NSString * NXProjectScheme NS_TYPED_ENUM;
+static NXProjectScheme const NXProjectSchemeUnknown = nil;
+static NXProjectScheme const NXProjectSchemeApp = @"Application";
+static NXProjectScheme const NXProjectSchemeUtility = @"Utility";
+static NXProjectScheme const NXProjectSchemeLibrary = @"Library";
+static NXProjectScheme const NXProjectSchemeFramework = @"Framework";
 
-typedef NSString * NXCodeTemplateLanguage NS_TYPED_ENUM;
-static NXCodeTemplateLanguage const NXCodeTemplateLanguageObjC = @"ObjC";
-static NXCodeTemplateLanguage const NXCodeTemplateLanguageC = @"C";
-static NXCodeTemplateLanguage const NXCodeTemplateLanguageCpp = @"C++";
-static NXCodeTemplateLanguage const NXCodeTemplateLanguageSwift = @"Swift";
+typedef UInt64 NXProjectSchemeKind NS_TYPED_ENUM;
+static NXProjectSchemeKind const NXProjectSchemeKindUnknown = 0;
+static NXProjectSchemeKind const NXProjectSchemeKindApp = 1;
+static NXProjectSchemeKind const NXProjectSchemeKindUtility = 2;
+static NXProjectSchemeKind const NXProjectSchemeKindLibrary = 3;
+static NXProjectSchemeKind const NXProjectSchemeKindFramework = 4;
 
-typedef NSString * NXCodeTemplateInterface NS_TYPED_ENUM;
-static NXCodeTemplateInterface const NXCodeTemplateInterfaceInvalid = @"";
-static NXCodeTemplateInterface const NXCodeTemplateInterfaceSwiftUI = @"SwiftUI";
-static NXCodeTemplateInterface const NXCodeTemplateInterfaceUIKit = @"UIKit";
+typedef NSString * NXProjectLanguage NS_TYPED_ENUM;
+static NXProjectLanguage const NXProjectLanguageUnknown = nil;
+static NXProjectLanguage const NXProjectLanguageObjectiveC = @"ObjC";
+static NXProjectLanguage const NXProjectLanguageC = @"C";
+static NXProjectLanguage const NXProjectLanguageCXX = @"C++";
+static NXProjectLanguage const NXProjectLanguageSwift = @"Swift";
 
-NXCodeTemplateScheme NXCodeTemplateSchemeFromProjectType(NXProjectType type);
+typedef UInt64 NXProjectLanguageKind NS_TYPED_ENUM;
+static NXProjectLanguageKind const NXProjectLanguageKindUnknown = 0;
+static NXProjectLanguageKind const NXProjectLanguageKindObjectiveC = 1;
+static NXProjectLanguageKind const NXProjectLanguageKindC = 2;
+static NXProjectLanguageKind const NXProjectLanguageKindCXX = 3;
+static NXProjectLanguageKind const NXProjectLanguageKindSwift = 4;
+
+typedef NSString * NXProjectInterface NS_TYPED_ENUM;
+static NXProjectInterface const NXProjectInterfaceUnknown = nil;
+static NXProjectInterface const NXProjectInterfaceSwiftUI = @"SwiftUI";
+static NXProjectInterface const NXProjectInterfaceUIKit = @"UIKit";
+
+typedef UInt64 NXProjectInterfaceKind NS_TYPED_ENUM;
+static NXProjectInterfaceKind const NXProjectInterfaceKindUnknown = 0;
+static NXProjectInterfaceKind const NXProjectInterfaceKindSwiftUI = 1;
+static NXProjectInterfaceKind const NXProjectInterfaceKindUIKit = 2;
+
+NXProjectFormat NXProjectFormatFromFormatKind(NXProjectFormatKind kind);
+NXProjectFormatKind NXProjectFormatKindFromFormat(NXProjectFormat format);
+
+NXProjectScheme NXProjectSchemeFromSchemeKind(NXProjectSchemeKind kind);
+NXProjectSchemeKind NXProjectSchemeKindFromScheme(NXProjectScheme scheme);
+
+NXProjectInterface NXProjectInterfaceFromInterfaceKind(NXProjectInterfaceKind kind);
+NXProjectInterfaceKind NXProjectInterfaceKindFromInterface(NXProjectInterface interface);
+
+NXProjectLanguage NXProjectLanguageFromLanguageKind(NXProjectLanguageKind kind);
+NXProjectLanguageKind NXProjectLanguageKindFromLanguage(NXProjectLanguage language);
+
+BOOL NXProjectConfigurationIsValid(NXProjectSchemeKind schemeKind, NXProjectInterfaceKind interfaceKind, NXProjectLanguageKind languageKind);
 
 #endif /* NXTYPE_H */
