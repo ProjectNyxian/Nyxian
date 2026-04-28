@@ -506,39 +506,42 @@ import UniformTypeIdentifiers
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
             return
         }
-
+        
         self.tableView.deselectRow(at: indexPath, animated: true)
         
-        if !self.navigationItem.hidesBackButton {
-            let fileListEntry: FileListEntry = entries[indexPath.row]
-            
-            switch(fileListEntry.type) {
-            case .dir:
-                let fileVC = FileListViewController(isSublink: true, project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly)
-                self.navigationController?.pushViewController(fileVC, animated: true)
-                break
-            case .file:
-                if ["zip","ipa"].contains(URL(fileURLWithPath: fileListEntry.path).pathExtension)  {
-                    let folder: URL = PasteBoardServices.resolvedDestinationURL(for: (fileListEntry.path as NSString).lastPathComponent, inDirectory: self.path)
-                    if ((try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil) {
-                        if(unzipArchiveAtPath(fileListEntry.path, folder.path)) {
-                            self.entries.append(FileListEntry.getEntry(ofPath: folder.path))
-                            self.tableView.reloadData()
-                        } else {
-                            NotificationServer.NotifyUser(level: .error, notification: "Failed to unzip \(fileListEntry.path)")
-                        }
-                    }
-                } else {
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
+        guard !self.navigationItem.hidesBackButton,
+              self.navigationItem.leftBarButtonItem?.isEnabled ?? true else {
+            return
+        }
+        
+        let fileListEntry: FileListEntry = entries[indexPath.row]
+        
+        switch(fileListEntry.type) {
+        case .dir:
+            let fileVC = FileListViewController(isSublink: true, project: project, path: fileListEntry.path, isReadOnly: self.isReadOnly)
+            self.navigationController?.pushViewController(fileVC, animated: true)
+            break
+        case .file:
+            if ["zip","ipa"].contains(URL(fileURLWithPath: fileListEntry.path).pathExtension)  {
+                let folder: URL = PasteBoardServices.resolvedDestinationURL(for: (fileListEntry.path as NSString).lastPathComponent, inDirectory: self.path)
+                if ((try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil) {
+                    if(unzipArchiveAtPath(fileListEntry.path, folder.path)) {
+                        self.entries.append(FileListEntry.getEntry(ofPath: folder.path))
+                        self.tableView.reloadData()
                     } else {
-                        guard let codeEditor = CodeEditorViewController(project: project, url: URL(fileURLWithPath: fileListEntry.path), isReadOnly: self.isReadOnly) else {
-                            return
-                        }
-                        let fileVC = UINavigationController(rootViewController: codeEditor)
-                        fileVC.modalPresentationStyle = .overFullScreen
-                        self.present(fileVC, animated: true)
+                        NotificationServer.NotifyUser(level: .error, notification: "Failed to unzip \(fileListEntry.path)")
                     }
+                }
+            } else {
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["open",fileListEntry.path,"0","0",self.isReadOnly ? "1" : "0"])
+                } else {
+                    guard let codeEditor = CodeEditorViewController(project: project, url: URL(fileURLWithPath: fileListEntry.path), isReadOnly: self.isReadOnly) else {
+                        return
+                    }
+                    let fileVC = UINavigationController(rootViewController: codeEditor)
+                    fileVC.modalPresentationStyle = .overFullScreen
+                    self.present(fileVC, animated: true)
                 }
             }
         }
