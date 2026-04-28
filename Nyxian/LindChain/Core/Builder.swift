@@ -79,9 +79,19 @@ class Builder: NSObject, CCKDriverDelegate {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoURL.path)
         
-        /* TODO: insert swift flags in here */
-        if !self.project.projectConfig.linkerFlags.isEmpty {
-            driverFlags.append("-Wl,\(self.project.projectConfig.linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
+        if !self.project.projectConfig.linkerFlags.isEmpty || !self.compilerSwiftJobs.isEmpty {
+            var linkerFlags: [String] = self.project.projectConfig.linkerFlags
+            
+            if !self.compilerSwiftJobs.isEmpty {
+                linkerFlags.append(contentsOf: self.compilerSwiftJobs.map{ $0.1 })
+                linkerFlags.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
+                linkerFlags.append("-L\(NXBootstrap.shared().swiftURL.path)")
+                linkerFlags.append("-L\(NXBootstrap.shared().rootURL.path)/swift/iphoneos")
+                linkerFlags.append("-rpath")
+                linkerFlags.append("/usr/lib/swift")
+            }
+            
+            driverFlags.append("-Wl,\(linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
         }
         
         self.argsString = driverFlags.joined(separator: " ")
@@ -111,32 +121,6 @@ class Builder: NSObject, CCKDriverDelegate {
             default:
                 break
             }
-        }
-        
-        if !self.compilerSwiftJobs.isEmpty {
-            if self.linkerJobs.isEmpty {
-                self.database.addMessage(message: "Project is malformed or incompatible, please make sure you use the latest version of Nyxian, you can get it at https://nyxian.app.", severity: .error)
-                return nil
-            }
-            
-            // Have to patch link job
-            let linkerJob: CCKJob = self.linkerJobs[0]
-            let type: CCJobType = linkerJob.type
-            var arguments: [String] = linkerJob.arguments
-            
-            // Adding swift object files
-            for job in self.compilerSwiftJobs {
-                arguments.append(job.1)
-            }
-            
-            // Adding swift related linker flags
-            // TODO: let the user add those manually in Other linker flags
-            arguments.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
-            arguments.append("-L\(NXBootstrap.shared().swiftURL.path)")
-            arguments.append("-L\(NXBootstrap.shared().rootURL.path)/swift/iphoneos")
-            arguments.append("-rpath")
-            arguments.append("/usr/lib/swift")
-            self.linkerJobs[0] = CCKJob(type: type, withArguments: arguments)
         }
     }
     
