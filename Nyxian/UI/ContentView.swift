@@ -98,6 +98,7 @@ import UIKit
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 24
         }
+        hostingController.view.backgroundColor = currentTheme!.backgroundColor;
         present(hostingController, animated: true)
     }
 
