@@ -306,6 +306,7 @@ class Builder: NSObject, CCKDriverDelegate {
         
         let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
+        // FIXME: On the first run memory usage can be insane due to module cache rebuild, the problem is that iOS does not have a swap so it might kill Nyxian while caching modules, if you know how to fix it please do so, this issue will only be present on older devices as we already added a memory increase entitlement in hope to resolve this issue as much as possible.
         let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: emitArgs, outDiagnostic: &issues)
         spinnerStart.cancel()
         XCButton.stopSpinning()
