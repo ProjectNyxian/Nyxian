@@ -467,7 +467,7 @@ class Builder: NSObject, CCKDriverDelegate {
         try self.package()
         
         if buildType == .RunningApp,
-          self.project.projectConfig.type == .app {
+          self.project.projectConfig.schemeKind == .app {
             // installing app
             var output: NSString?
             if shell(["\(Bundle.main.bundlePath)/tshelper","install",self.project.packageURL.path], 0, nil, &output) != 0 {
@@ -518,7 +518,7 @@ class Builder: NSObject, CCKDriverDelegate {
 #if JAILBREAK_ENV
         let entitlementsPath: String = "\(self.project.url.path)/Config/Entitlements.plist"
         if FileManager.default.fileExists(atPath: entitlementsPath),
-           self.project.projectConfig.type == .app {
+           self.project.projectConfig.schemeKind == .app {
             // pseudo signing executable
             if !ZSigner.adhocSignMachO(atPath: self.project.machoURL!.path, bundleId: self.project.projectConfig.bundleid!, entitlementData: try Data(contentsOf: URL(fileURLWithPath: entitlementsPath))) {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Unknown error happened pseudo signing application with entitlements"])
