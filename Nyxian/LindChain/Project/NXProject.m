@@ -307,11 +307,8 @@
             };
             break;
         default:
-            projConfigPlist = @{
-                @"LDEDisplayName": name,
-                @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
-            };
-            break;
+            [defaultFileManager removeItemAtURL:projectURL error:nil];
+            return nil;
     }
     
     NSDictionary *plistList = @{
