@@ -35,12 +35,14 @@
 
 @implementation PEProcessManager {
     NSMutableDictionary<NSNumber*,PEProcess*> *_processes;
+    os_unfair_lock _lock;
 }
 
 - (instancetype)init
 {
     self = [super init];
     _processes = [[NSMutableDictionary alloc] init];
+    _lock = OS_UNFAIR_LOCK_INIT;
     return self;
 }
 
@@ -74,10 +76,9 @@
     }
     
     /* inserting process */
-    @synchronized(_processes)
-    {
-        [_processes setObject:process forKey:@(pid)];
-    }
+    os_unfair_lock_lock(&_lock);
+    [_processes setObject:process forKey:@(pid)];
+    os_unfair_lock_unlock(&_lock);
     
     /* returning pid */
     return pid;
@@ -174,10 +175,9 @@
     }
     
     /* setting process */
-    @synchronized(_processes)
-    {
-        [_processes setObject:process forKey:@(pid)];
-    }
+    os_unfair_lock_lock(&_lock);
+    [_processes setObject:process forKey:@(pid)];
+    os_unfair_lock_unlock(&_lock);
 
     return pid;
 }
@@ -191,34 +191,32 @@
 - (PEProcess*)processForProcessIdentifier:(pid_t)pid
 {
     PEProcess *process = nil;
-    @synchronized(_processes)
-    {
-        process = [_processes objectForKey:@(pid)];
-    }
+    os_unfair_lock_lock(&_lock);
+    process = [_processes objectForKey:@(pid)];
+    os_unfair_lock_unlock(&_lock);
     return process;
 }
 
 - (PEProcess*)processForBundleIdentifier:(NSString*)bundleIdentifier
 {
-    @synchronized(_processes)
+    os_unfair_lock_lock(&_lock);
+    for(PEProcess *process in _processes.allValues)
     {
-        for(PEProcess *process in _processes.allValues)
+        if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
         {
-            if(process && [process.bundleIdentifier isEqualToString:bundleIdentifier])
-            {
-                return process;
-            }
+            os_unfair_lock_unlock(&_lock);
+            return process;
         }
     }
+    os_unfair_lock_unlock(&_lock);
     return nil;
 }
 
 - (void)unregisterProcessWithProcessIdentifier:(pid_t)pid
 {
-    @synchronized(_processes)
-    {
-        [_processes removeObjectForKey:@(pid)];
-    }
+    os_unfair_lock_lock(&_lock);
+    [_processes removeObjectForKey:@(pid)];
+    os_unfair_lock_unlock(&_lock);
 }
 
 - (void)closeIfRunningUsingBundleIdentifier:(NSString*)bundleIdentifier
