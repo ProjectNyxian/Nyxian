@@ -32,6 +32,7 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_client.h>
 #import <LindChain/ProcEnvironment/Object/PEMachPort.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
+#import <LindChain/ProcEnvironment/Surface/proc/counter.h>
 #else
 #import <LindChain/JBSupport/Shell.h>
 #endif /* !JAILBREAK_ENV */
@@ -46,6 +47,11 @@
 
 - (instancetype)initWithItems:(NSDictionary*)items withKernelSurfaceProcess:(ksurface_proc_t*)proc withSession:(NXWindowSessionApplication*)session
 {
+    if(!proc_count())
+    {
+        return nil;
+    }
+    
     self = [super init];
     
     self.session = session;
@@ -336,6 +342,7 @@
     {
         kvo_release(_proc);
     }
+    proc_uncount();
 }
 
 #endif /* !JAILBREAK_ENV */

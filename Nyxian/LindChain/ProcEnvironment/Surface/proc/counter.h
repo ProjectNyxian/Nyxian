@@ -19,33 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_LIMITS_H
-#define PROCENVIRONMENT_LIMITS_H
+#ifndef PROC_COUNTER_H
+#define PROC_COUNTER_H
 
-#include <stdint.h>
+#include <stdbool.h>
 
-/*
- * im sorry if you complain about the
- * amount of maximum processes, dont
- * complain about this to me, complain
- * about this to apple, their the reason
- * why, launchd doesnt let us spawn more.
- *
- * and jetsam is involved, which means
- * we can only set a soft limit for now.
- */
-#define PROC_MAX 500   /* MARK: jetsam is involved, meaning hard no by apple */
+bool proc_count(void);
+void proc_uncount(void);
 
-/*
- * why would a process need more than 128
- * childs?
- */
-#define CHILD_PROC_MAX 128
-
-/*
- * the maximum count of pid that the
- * radix tree supports.
- */
-#define PID_MAX INT32_MAX
-
-#endif /* PROCENVIRONMENT_LIMITS_H */
+#endif /* PROC_COUNTER_H */

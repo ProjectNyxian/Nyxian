@@ -227,7 +227,7 @@ class SplitScreenDetailViewController: UIViewController {
         if let existingTab = tabs.first(where: { $0.url == url }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
-            (self.childVC as! CodeEditorViewController).goto(line: line, column: column)
+            (self.childVC as! CodeEditorViewController).goto(location: CCSourceLocationMake(line, column))
             updateTabSelection(selectedTab: existingTab)
             return
         }

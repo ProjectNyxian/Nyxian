@@ -186,6 +186,7 @@
 				LindChain/ProcEnvironment/Surface/obj/rcu.c,
 				LindChain/ProcEnvironment/Surface/obj/reference.c,
 				LindChain/ProcEnvironment/Surface/permit.c,
+				LindChain/ProcEnvironment/Surface/proc/counter.c,
 				LindChain/ProcEnvironment/Surface/proc/fork.m,
 				LindChain/ProcEnvironment/Surface/proc/insert.c,
 				LindChain/ProcEnvironment/Surface/proc/list.c,

@@ -46,8 +46,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var synpushServer: SynpushServer?
     private(set) var coordinator: Coordinator?
     private(set) var database: DebugDatabase?
-    private(set) var line: CFIndex?
-    private(set) var column: CFIndex?
+    private(set) var location: CCSourceLocation?
     private(set) var floatingToolbar: UIToolbar?
     private(set) var floatingToolbarBottomConstraint: NSLayoutConstraint?
     
@@ -72,8 +71,11 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         self.textView = TextView()
         
         self.project = project
-        self.line = line
-        self.column = column
+        
+        if let line = line,
+           let column = column {
+            self.location = CCSourceLocationMake(line, column)
+        }
         self.isReadOnly = isReadOnly
         
         if [CCFileType.C, CCFileType.CXX, CCFileType.objC, CCFileType.objCXX, CCFileType.cHeader, CCFileType.cxxHeader, CCFileType.objCHeader, CCFileType.objCXXHeader].contains(self.file.type) {
@@ -246,7 +248,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         self.coordinator = Coordinator(parent: self)
         self.textView.editorDelegate = self.coordinator
         
-        self.goto(line: line, column: column)
+        self.goto(location: self.location)
     }
     
     func documentRequestsText(_ document: NXDocument!) -> String! {
@@ -261,7 +263,10 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         return self.textView.text
     }
     
-    func goto(line: CFIndex?, column: CFIndex?) {
+    func goto(location: CCSourceLocation?) {
+        let line = location?.line
+        let column = location?.column
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard let line = line, line > 0 else { return }
             let column = column.map { $0 > 0 ? $0 - 1 : 0 } ?? 0
@@ -722,7 +727,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private func openDefinition(_ def: CCKFileSourceLocation) {
         /* check if definition is in the same file */
         if def.fileURL == self.file.fileURL {
-            self.goto(line: def.location.line, column: def.location.column)
+            self.goto(location: def.location)
             return
         }
         

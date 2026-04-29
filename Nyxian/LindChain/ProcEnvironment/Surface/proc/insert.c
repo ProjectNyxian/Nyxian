@@ -34,12 +34,6 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
      * has been reached already, because first of
      * all launchd has a limitation and second
      * of all we also should.
-     *
-     * fixme: the limitation is ignored and
-     *        ksurface can crash due to the
-     *        limitation of launchd, as
-     *        the PEProcess API is independent
-     *        from the proc API in ksurface.
      */
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
