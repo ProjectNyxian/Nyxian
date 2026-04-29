@@ -132,4 +132,14 @@ out_complete:
     });
 }
 
+- (void)changeAllLockStateToBoolean:(BOOL)isLocked
+{
+    os_unfair_lock_lock(&_lock);
+    for(NXDocument *document in _documents.allValues)
+    {
+        [document setIsLocked:isLocked];
+    }
+    os_unfair_lock_unlock(&_lock);
+}
+
 @end

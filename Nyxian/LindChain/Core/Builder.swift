@@ -618,22 +618,26 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
     targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
     targetViewController.navigationItem.setHidesBackButton(true, animated: true)
     
-    Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
-        DispatchQueue.main.async {
-            targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
-            targetViewController.navigationItem.setHidesBackButton(false, animated: true)
-            targetViewController.navigationController?.navigationBar.isUserInteractionEnabled = true
-            targetViewController.navigationItem.titleView?.isUserInteractionEnabled = true
-            
-            if !result {
-                let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))
-                loggerView.modalPresentationStyle = .formSheet
-                targetViewController.present(loggerView, animated: true)
-            } else if buildType == .InstallPackagedApp {
-                share(url: project.packageURL, remove: true)
+    NXDocumentManager.shared().saveAll {
+        NXDocumentManager.shared().changeAllLockState(toBoolean: true)
+        Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
+            NXDocumentManager.shared().changeAllLockState(toBoolean: false)
+            DispatchQueue.main.async {
+                targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
+                targetViewController.navigationItem.setHidesBackButton(false, animated: true)
+                targetViewController.navigationController?.navigationBar.isUserInteractionEnabled = true
+                targetViewController.navigationItem.titleView?.isUserInteractionEnabled = true
+                
+                if !result {
+                    let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))
+                    loggerView.modalPresentationStyle = .formSheet
+                    targetViewController.present(loggerView, animated: true)
+                } else if buildType == .InstallPackagedApp {
+                    share(url: project.packageURL, remove: true)
+                }
+                
+                completion()
             }
-            
-            completion()
         }
     }
 }

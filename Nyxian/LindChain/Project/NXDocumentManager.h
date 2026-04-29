@@ -34,6 +34,7 @@
 - (void)open:(NSURL*)url completion:(void (^)(NXDocument*))completion;
 - (void)close:(NSURL*)url completion:(void (^)(void))completion;
 - (void)saveAllWithCompletion:(void (^)(void))completion;
+- (void)changeAllLockStateToBoolean:(BOOL)isLocked;
 
 @end
 

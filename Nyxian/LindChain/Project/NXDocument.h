@@ -37,6 +37,7 @@
 
 @property (nonatomic, weak) id<NXDocumentDelegate> delegate;
 @property (nonatomic,strong) NSString *text;
+@property (nonatomic) BOOL isLocked;
 
 - (BOOL)loadFromContents:(id)contents ofType:(NSString *)typeName error:(NSError **)outError;
 - (id)contentsForType:(NSString *)typeName error:(NSError **)outError;

@@ -21,12 +21,29 @@
 
 
 #import <LindChain/Project/NXDocument.h>
+#include <stdatomic.h>
 
-@implementation NXDocument
+@implementation NXDocument {
+    atomic_bool _isLocked;
+}
+
+@dynamic isLocked;
+
+- (instancetype)init
+{
+    self = [super init];
+    atomic_store(&_isLocked, false);
+    return self;
+}
 
 - (void)autosaveWithCompletionHandler:(void (^)(BOOL))completionHandler
 {
     /* REQUIRED, OTHERWISE YOUR CODE IS GONE AFTER CLOSING PROJECT */
+    if(self.isLocked)
+    {
+        if (completionHandler) completionHandler(YES);
+        return;
+    }
     if(!self.hasUnsavedChanges)
     {
         if (completionHandler) completionHandler(YES);
@@ -102,6 +119,50 @@
     }
     
     return data;
+}
+
+- (void)saveToURL:(NSURL *)url
+ forSaveOperation:(UIDocumentSaveOperation)saveOperation
+completionHandler:(void (^)(BOOL))completionHandler
+{
+    if(self.isLocked)
+    {
+        completionHandler(false);
+        return;
+    }
+    [super saveToURL:url forSaveOperation:saveOperation completionHandler:completionHandler];
+}
+
+- (BOOL)hasUnsavedChanges
+{
+    if(self.isLocked)
+    {
+        return false;
+    }
+    return [super hasUnsavedChanges];
+}
+
+- (void)handleError:(NSError *)error userInteractionPermitted:(BOOL)userInteractionPermitted
+{
+    if(self.isLocked)
+    {
+        return;
+    }
+    [super handleError:error userInteractionPermitted:userInteractionPermitted];
+}
+
+- (void)setIsLocked:(BOOL)isLocked
+{
+    bool wasLocked = atomic_exchange(&_isLocked, isLocked);
+    if(wasLocked && !isLocked)
+    {
+        [self updateChangeCount:UIDocumentChangeDone];
+    }
+}
+
+- (BOOL)isLocked
+{
+    return atomic_load(&_isLocked);
 }
 
 @end
