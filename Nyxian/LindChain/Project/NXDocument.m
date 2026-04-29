@@ -25,6 +25,7 @@
 
 @implementation NXDocument {
     atomic_bool _isLocked;
+    atomic_bool _pendingLockedSave;
 }
 
 @dynamic isLocked;
@@ -154,8 +155,9 @@ completionHandler:(void (^)(BOOL))completionHandler
 - (void)setIsLocked:(BOOL)isLocked
 {
     bool wasLocked = atomic_exchange(&_isLocked, isLocked);
-    if(wasLocked && !isLocked)
+    if(wasLocked && !isLocked && atomic_load(&_pendingLockedSave))
     {
+        
         [self updateChangeCount:UIDocumentChangeDone];
     }
 }
@@ -163,6 +165,18 @@ completionHandler:(void (^)(BOOL))completionHandler
 - (BOOL)isLocked
 {
     return atomic_load(&_isLocked);
+}
+
+- (void)updateChangeCount:(UIDocumentChangeKind)change
+{
+    if(self.isLocked)
+    {
+        atomic_store(&_pendingLockedSave, true);
+    }
+    else
+    {
+        [super updateChangeCount:change];
+    }
 }
 
 @end
