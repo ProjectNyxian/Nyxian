@@ -105,10 +105,8 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
             guard let doc = doc else {
                 if UIDevice.current.userInterfaceIdiom != .pad {
                     self?.dismiss(animated: true)
-                }
-                else
-                {
-                    // TODO: implement fallback
+                } else {
+                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close", self?.file.fileURL.path ?? ""])
                 }
                 return
             }
