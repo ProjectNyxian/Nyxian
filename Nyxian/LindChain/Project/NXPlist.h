@@ -26,18 +26,17 @@
 
 @interface NXPlist : NSObject
 
-@property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull variables;
-@property (nonatomic,strong,readwrite) NSDictionary<NSString*,NSString*> * _Nonnull finalVariables;
-@property (nonatomic,strong,readonly) NSString * _Nonnull plistPath;
-@property (nonatomic,strong,readwrite) NSMutableDictionary * _Nonnull dictionary;
+@property (nonatomic,strong,readwrite,nonnull) NSDictionary<NSString*,NSString*> *variables;
+@property (nonatomic,strong,readwrite,nonnull) NSDictionary<NSString*,NSString*> *finalVariables;
+@property (nonatomic,strong,readonly,nonnull) NSString *plistPath;
+@property (nonatomic,strong,readwrite,nonnull) NSMutableDictionary * dictionary;
+@property (nonatomic,strong,readonly,nullable) NSString *dataHash;
 
 - (instancetype _Nullable)initWithPlistPath:(NSString * _Nonnull)plistPath withVariables:(NSDictionary<NSString*,NSString*> * _Nullable)variables;
 
 - (BOOL)reloadIfNeeded;
 - (void)reloadData;
 
-- (NSString * _Nonnull)reloadHash;
-- (BOOL)reloadIfNeededWithHash:(NSString * _Nonnull)reloadHash;
 - (BOOL)save;
 
 - (id _Nullable)objectForKey:(NSString * _Nonnull)key;

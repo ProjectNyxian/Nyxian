@@ -25,7 +25,6 @@
 
 @implementation NXPlist {
     os_unfair_lock _lock;
-    __strong NSString *_savedHash;
 }
 
 - (instancetype)initWithPlistPath:(NSString * _Nonnull)plistPath
@@ -41,7 +40,7 @@
     {
         _lock = OS_UNFAIR_LOCK_INIT;
         _plistPath = plistPath;
-        _savedHash = [self currentHash];
+        _dataHash = [self currentHash];
         _variables = variables;
         [self reloadData];
     }
@@ -51,13 +50,17 @@
 - (NSString *)currentHash
 {
     NSData *fileData = [NSData dataWithContentsOfFile:_plistPath];
-    if (!fileData) return nil;
+    if(fileData == nil)
+    {
+        return nil;
+    }
 
     unsigned char hash[CC_SHA256_DIGEST_LENGTH];
     CC_SHA256(fileData.bytes, (CC_LONG)fileData.length, hash);
 
     NSMutableString *hashString = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
-    for (int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++) {
+    for(int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++)
+    {
         [hashString appendFormat:@"%02x", hash[i]];
     }
     return hashString;
@@ -70,11 +73,11 @@
     [self willChangeValueForKey:@"dictionary"];
     
     os_unfair_lock_lock(&_lock);
-    BOOL needsReload = ![hash isEqualToString:_savedHash];
+    BOOL needsReload = ![hash isEqualToString:_dataHash];
     if(needsReload)
     {
         _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:_plistPath];
-        _savedHash = hash;
+        _dataHash = hash;
         
         NSDictionary<NSString*,NSString*> *userDef = _dictionary;
         
@@ -107,13 +110,8 @@
 
 - (void)reloadData
 {
-    _savedHash = @"";
+    _dataHash = nil;
     [self reloadIfNeeded];
-}
-
-- (NSString*)reloadHash
-{
-    return _savedHash;
 }
 
 - (BOOL)save
@@ -122,17 +120,6 @@
     [self.dictionary writeToFile:self.plistPath atomically:YES];
     os_unfair_lock_unlock(&_lock);
     return [self reloadIfNeeded];
-}
-
-- (BOOL)reloadIfNeededWithHash:(NSString*)reloadHash
-{
-    if([[self currentHash] isEqualToString:reloadHash])
-    {
-        return NO;
-    }
-    
-    [self reloadIfNeeded];
-    return YES;
 }
 
 - (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth
