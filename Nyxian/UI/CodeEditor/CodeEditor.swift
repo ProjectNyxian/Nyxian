@@ -106,7 +106,9 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                 if UIDevice.current.userInterfaceIdiom != .pad {
                     self?.dismiss(animated: true)
                 } else {
-                    NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close", self?.file.fileURL.path ?? ""])
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                        NotificationCenter.default.post(name: Notification.Name("FileListAct"), object: ["close", self?.file.fileURL.path ?? ""])
+                    })
                 }
                 return
             }
