@@ -195,18 +195,7 @@
     return obj;
 }
 
-- (void)writeKey:(NSString*)key
-       withValue:(id)value
-{
-    os_unfair_lock_lock(&_lock);
-    [_dictionary setObject:value forKey:key];
-    [_dictionary writeToFile:_plistPath atomically:YES];
-    _savedHash = [self currentHash];
-    os_unfair_lock_unlock(&_lock);
-    [self didChangeValueForKey:@"dictionary"];
-}
-
-- (id)readKey:(NSString*)key
+- (id)objectForKey:(NSString*)key
 {
     os_unfair_lock_lock(&_lock);
     id obj = [self expandObject:[_dictionary objectForKey:key]];
@@ -214,10 +203,10 @@
     return obj;
 }
 
-- (id)readSecureFromKey:(NSString*)key
-       withDefaultValue:(id)value
+- (id)objectForKey:(NSString*)key
+ withDefaultObject:(id)value
 {
-    id valueOfKey = [self readKey:key];
+    id valueOfKey = [self objectForKey:key];
     if(!valueOfKey && ![valueOfKey isKindOfClass:[value class]])
     {
         valueOfKey = value;
@@ -225,11 +214,11 @@
     return valueOfKey;
 }
 
-- (id _Nonnull)readSecureFromKey:(NSString * _Nonnull)key
-                withDefaultValue:(id _Nullable)value
-                        withType:(Class _Nonnull)type
+- (id _Nonnull)objectForKey:(NSString * _Nonnull)key
+          withDefaultObject:(id _Nullable)value
+                  withClass:(Class _Nonnull)type
 {
-    id valueOfKey = [self readKey:key];
+    id valueOfKey = [self objectForKey:key];
     if(!valueOfKey && ![valueOfKey isKindOfClass:type])
     {
         valueOfKey = value;
@@ -237,22 +226,22 @@
     return valueOfKey;
 }
 
-- (NSInteger)readIntegerForKey:(NSString *)key
-              withDefaultValue:(NSInteger)defaultValue
+- (NSInteger)integerForKey:(NSString *)key
+          withDefaultValue:(NSInteger)defaultValue
 {
-    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] integerValue];
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] integerValue];
 }
 
-- (BOOL)readBooleanForKey:(NSString *)key
-         withDefaultValue:(BOOL)defaultValue
+- (BOOL)booleanForKey:(NSString *)key
+     withDefaultValue:(BOOL)defaultValue
 {
-    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] boolValue];
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] boolValue];
 }
 
-- (double)readDoubleForKey:(NSString *)key
-          withDefaultValue:(double)defaultValue
+- (double)doubleForKey:(NSString *)key
+      withDefaultValue:(double)defaultValue
 {
-    return [[self readSecureFromKey:key withDefaultValue:@(defaultValue)] doubleValue];
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] doubleValue];
 }
 
 @end

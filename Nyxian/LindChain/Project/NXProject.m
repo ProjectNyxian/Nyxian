@@ -46,29 +46,29 @@
     if(reloaded)
     {
         /* MARK: projectFormat */
-        _formatKind = NXProjectFormatKindFromFormat([self readSecureFromKey:@"NXProjectFormat" withDefaultValue:NXProjectFormatKate]);
-        _schemeKind = NXProjectSchemeKindFromScheme([self readSecureFromKey:@"NXProjectScheme" withDefaultValue:NXProjectSchemeUnknown withType:[NSString class]]);
+        _formatKind = NXProjectFormatKindFromFormat([self objectForKey:@"NXProjectFormat" withDefaultObject:NXProjectFormatKate]);
+        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withDefaultObject:NXProjectSchemeUnknown withClass:[NSString class]]);
         
         /* MARK: NXFalcon and below compatibility */
         if(_schemeKind == NXProjectSchemeKindUnknown)
         {
-            _schemeKind = (NXProjectSchemeKind)[self readIntegerForKey:@"LDEProjectType" withDefaultValue:NXProjectSchemeKindApp];
+            _schemeKind = (NXProjectSchemeKind)[self integerForKey:@"LDEProjectType" withDefaultValue:NXProjectSchemeKindApp];
         }
         
         /* MARK: keys */
-        _executable = [self readSecureFromKey:@"LDEExecutable" withDefaultValue:@"Unknown"];
-        _displayName = [self readSecureFromKey:@"LDEDisplayName" withDefaultValue:[self executable]];
-        _organizationPrefix = [self readSecureFromKey:@"LDEOrganizationPrefix" withDefaultValue:@"com.example"];
-        _bundleid = [self readSecureFromKey:@"LDEBundleIdentifier" withDefaultValue:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
-        _version = [self readSecureFromKey:@"LDEBundleVersion" withDefaultValue:@"1.0"];
-        _shortVersion = [self readSecureFromKey:@"LDEBundleShortVersion" withDefaultValue:[self version]];
-        _infoDictionary = [self readSecureFromKey:@"LDEBundleInfo" withDefaultValue:@{}];
-        _deploymentTarget = [self readSecureFromKey:@"LDEMinimumVersion" withDefaultValue:NXOSVersion.maximumBuildVersion.pickerVersionString];
-        _outputPath = [self readKey:@"LDEOutputPath"];
-        _signMachOWithNyxianEntitlements = [self readBooleanForKey:@"LDESignMachOWithNyxianEntitlements" withDefaultValue:true];
+        _executable = [self objectForKey:@"LDEExecutable" withDefaultObject:@"Unknown"];
+        _displayName = [self objectForKey:@"LDEDisplayName" withDefaultObject:[self executable]];
+        _organizationPrefix = [self objectForKey:@"LDEOrganizationPrefix" withDefaultObject:@"com.example"];
+        _bundleid = [self objectForKey:@"LDEBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
+        _version = [self objectForKey:@"LDEBundleVersion" withDefaultObject:@"1.0"];
+        _shortVersion = [self objectForKey:@"LDEBundleShortVersion" withDefaultObject:[self version]];
+        _infoDictionary = [self objectForKey:@"LDEBundleInfo" withDefaultObject:@{}];
+        _deploymentTarget = [self objectForKey:@"LDEMinimumVersion" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
+        _outputPath = [self objectForKey:@"LDEOutputPath"];
+        _signMachOWithNyxianEntitlements = [self booleanForKey:@"LDESignMachOWithNyxianEntitlements" withDefaultValue:true];
         
         /* MARK: compiler flags */
-        NSArray *compilerFlags = [self readSecureFromKey:@"LDECompilerFlags" withDefaultValue:@[]];
+        NSArray *compilerFlags = [self objectForKey:@"LDECompilerFlags" withDefaultObject:@[]];
         
         if(_formatKind == NXProjectFormatKindFalcon ||
            _formatKind == NXProjectFormatKindAvis)
@@ -81,7 +81,7 @@
             
             [array addObjectsFromArray:@[
                 @"-target",
-                [self readSecureFromKey:@"LDEOverwriteTriple" withDefaultValue:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
+                [self objectForKey:@"LDEOverwriteTriple" withDefaultObject:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
                 @"-isysroot",
                 NXBootstrap.shared.sdkURL.path,
                 [@"-L" stringByAppendingString:[NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"lib"].path],
@@ -114,10 +114,10 @@
         }
         
         /* MARK: linker flags */
-        _linkerFlags = [self readSecureFromKey:@"LDELinkerFlags" withDefaultValue:@[]];
+        _linkerFlags = [self objectForKey:@"LDELinkerFlags" withDefaultObject:@[]];
         
         /* MARK: swift flags */
-        _swiftFlags = [self readSecureFromKey:@"LDESwiftFlags" withDefaultValue:@[]];
+        _swiftFlags = [self objectForKey:@"LDESwiftFlags" withDefaultObject:@[]];
     }
     return reloaded;
 }
@@ -132,25 +132,25 @@
     if(reloaded)
     {
         _entitlement = PEEntitlementNone;
-        if([self readBooleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]) _entitlement |= PEEntitlementGetTaskAllowed;
-        if([self readBooleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]) _entitlement |= PEEntitlementTaskForPid;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessEnumeration;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessKill;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawn;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn_signed_only" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnSignedOnly;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_elevate" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessElevate;
-        if([self readBooleanForKey:@"com.nyxian.pe.host_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementHostManager;
-        if([self readBooleanForKey:@"com.nyxian.pe.credentials_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementCredentialsManager;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_start" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStart;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStop;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesToggle;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesGetEndpoint;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_set_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesSetEndpoint;
-        if([self readBooleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesManager;
-        if([self readBooleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:NO]) _entitlement |= PEEntitlementDyldHideLiveProcess;
-        if([self readBooleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnInheriteEntitlements;
-        if([self readBooleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatform;
-        if([self readBooleanForKey:@"com.nyxian.pe.platform_root" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatformRoot;
+        if([self booleanForKey:@"com.nyxian.pe.get_task_allowed" withDefaultValue:YES]) _entitlement |= PEEntitlementGetTaskAllowed;
+        if([self booleanForKey:@"com.nyxian.pe.task_for_pid" withDefaultValue:NO]) _entitlement |= PEEntitlementTaskForPid;
+        if([self booleanForKey:@"com.nyxian.pe.process_enumeration" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessEnumeration;
+        if([self booleanForKey:@"com.nyxian.pe.process_kill" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessKill;
+        if([self booleanForKey:@"com.nyxian.pe.process_spawn" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawn;
+        if([self booleanForKey:@"com.nyxian.pe.process_spawn_signed_only" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnSignedOnly;
+        if([self booleanForKey:@"com.nyxian.pe.process_elevate" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessElevate;
+        if([self booleanForKey:@"com.nyxian.pe.host_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementHostManager;
+        if([self booleanForKey:@"com.nyxian.pe.credentials_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementCredentialsManager;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_start" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStart;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_stop" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesStop;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_toggle" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesToggle;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_get_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesGetEndpoint;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_set_endpoint" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesSetEndpoint;
+        if([self booleanForKey:@"com.nyxian.pe.launch_services_manager" withDefaultValue:NO]) _entitlement |= PEEntitlementLaunchServicesManager;
+        if([self booleanForKey:@"com.nyxian.pe.dyld_hide_liveprocess" withDefaultValue:NO]) _entitlement |= PEEntitlementDyldHideLiveProcess;
+        if([self booleanForKey:@"com.nyxian.pe.process_spawn_inherite_entitlements" withDefaultValue:NO]) _entitlement |= PEEntitlementProcessSpawnInheriteEntitlements;
+        if([self booleanForKey:@"com.nyxian.pe.platform" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatform;
+        if([self booleanForKey:@"com.nyxian.pe.platform_root" withDefaultValue:NO]) _entitlement |= PEEntitlementPlatformRoot;
     }
     return reloaded;
 }

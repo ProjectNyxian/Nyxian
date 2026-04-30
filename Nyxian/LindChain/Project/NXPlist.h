@@ -40,18 +40,13 @@
 - (BOOL)reloadIfNeededWithHash:(NSString * _Nonnull)reloadHash;
 - (BOOL)save;
 
-- (NSString * _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth;
-- (id _Nonnull)expandObject:(id _Nonnull)obj;
+- (id _Nonnull)objectForKey:(NSString * _Nonnull)key;
+- (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
+- (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nullable)value withClass:(Class _Nonnull)type;
 
-- (void)writeKey:(NSString * _Nonnull)key withValue:(id _Nonnull)value;
-- (id _Nonnull)readKey:(NSString * _Nonnull)key;
-
-- (id _Nonnull)readSecureFromKey:(NSString * _Nonnull)key withDefaultValue:(id _Nonnull)value;
-- (id _Nonnull)readSecureFromKey:(NSString * _Nonnull)key withDefaultValue:(id _Nullable)value withType:(Class _Nonnull)type;
-
-- (NSInteger)readIntegerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
-- (BOOL)readBooleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
-- (double)readDoubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
+- (NSInteger)integerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
+- (BOOL)booleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
+- (double)doubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
 
 @end
 
