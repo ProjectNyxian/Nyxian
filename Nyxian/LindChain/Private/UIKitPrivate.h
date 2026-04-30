@@ -886,3 +886,22 @@
 @interface UIViewController(Private)
 - (void)viewDidMoveToWindow:(UIWindow *)window shouldAppearOrDisappear:(BOOL)appear;
 @end
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface SFSCoreGlyphsBundle: NSObject
+@property (nonatomic, class, readonly) NSBundle *private;
+@end
+
+@interface _UIAssetManager : NSObject
++ (instancetype)assetManagerForBundle:(NSBundle *)bundle;
+- (UIImage *)imageNamed:(NSString *)name;
+@end
+
+@interface UIImage (SFSCoreGlyphsBundle)
+
+- (instancetype)initWithPrivateSystemName:(NSString *)name;
+
+@end
+
+NS_ASSUME_NONNULL_END

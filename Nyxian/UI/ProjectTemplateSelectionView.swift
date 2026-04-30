@@ -34,15 +34,23 @@ struct ProjectTemplateSelectionView: View {
             templateRow(
                 title: "App",
                 subtitle: "Application project",
-                systemImage: "app.badge.fill",
-                schemeKind: .app
+                systemImage: "appstore.app.fill",
+                schemeKind: .app,
+                scale: .large
             )
             
             templateRow(
                 title: "Utility",
-                subtitle: "Command line tool",
+                subtitle: "Command line tool project",
                 systemImage: "terminal.fill",
                 schemeKind: .utility
+            )
+            
+            templateRow(
+                title: "Library",
+                subtitle: "Library project",
+                systemImage: "building.columns.fill",
+                schemeKind: .library
             )
         }
         .padding(.top, 2)
@@ -54,7 +62,8 @@ struct ProjectTemplateSelectionView: View {
     private func templateRow(title: String,
                              subtitle: String,
                              systemImage: String,
-                             schemeKind: NXProjectSchemeKind) -> some View {
+                             schemeKind: NXProjectSchemeKind,
+                             scale: UIImage.SymbolScale = .default) -> some View {
         let isSelected = model.schemeKind == schemeKind
         
         return Button {
@@ -64,7 +73,12 @@ struct ProjectTemplateSelectionView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(isSelected ? textColor : textColor.opacity(0.08))
-                    Image(systemName: systemImage)
+                    
+                    let base = UIImage(systemName: systemImage) ?? UIImage(privateSystemName: systemImage)
+                    let configuredBase: UIImage? = base.applyingSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold, scale: scale))
+                    let img = configuredBase?.withRenderingMode(.alwaysTemplate) ?? UIImage()
+                    
+                    Image(uiImage: img)
                         .font(.system(size: 22, weight: .semibold))
                         .symbolRenderingMode(.monochrome)
                         .foregroundStyle(isSelected ? backgroundColor : textColor.opacity(0.6))
