@@ -47,7 +47,7 @@
     {
         /* MARK: projectFormat */
         _formatKind = NXProjectFormatKindFromFormat([self objectForKey:@"NXProjectFormat" withDefaultObject:NXProjectFormatKate]);
-        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withDefaultObject:NXProjectSchemeUnknown withClass:[NSString class]]);
+        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withClass:[NSString class]]);
         
         /* MARK: NXFalcon and below compatibility */
         if(_schemeKind == NXProjectSchemeKindUnknown)

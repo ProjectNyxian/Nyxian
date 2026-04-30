@@ -198,7 +198,13 @@
 - (id)objectForKey:(NSString*)key
 {
     os_unfair_lock_lock(&_lock);
-    id obj = [self expandObject:[_dictionary objectForKey:key]];
+    id obj = [_dictionary objectForKey:key];
+    if(obj == nil)
+    {
+        os_unfair_lock_unlock(&_lock);
+        return nil;
+    }
+    obj = [self expandObject:obj];
     os_unfair_lock_unlock(&_lock);
     return obj;
 }
@@ -206,23 +212,46 @@
 - (id)objectForKey:(NSString*)key
  withDefaultObject:(id)value
 {
+    /*
+     * we have to check if its the same type
+     * as the default type, that is the upgrade
+     * to prior method signature were you needed
+     * the class type aswell, now you can pass
+     * the class type using the default value
+     * if you want a nullable
+     */
     id valueOfKey = [self objectForKey:key];
     if(!valueOfKey && ![valueOfKey isKindOfClass:[value class]])
     {
-        valueOfKey = value;
+        return value;
     }
+    
+    /*
+     * if everything matches up, we can safely
+     * return this.
+     */
     return valueOfKey;
 }
 
-- (id _Nonnull)objectForKey:(NSString * _Nonnull)key
-          withDefaultObject:(id _Nullable)value
-                  withClass:(Class _Nonnull)type
+- (id)objectForKey:(NSString * _Nonnull)key
+         withClass:(Class _Nonnull)cls
 {
+    /*
+     * this method is a bit different, it makes
+     * the return value nullable, as there is no
+     * defaultObject.
+     */
     id valueOfKey = [self objectForKey:key];
-    if(!valueOfKey && ![valueOfKey isKindOfClass:type])
+    if(!valueOfKey && ![valueOfKey isKindOfClass:cls])
     {
-        valueOfKey = value;
+        /* god damn */
+        return nil;
     }
+    
+    /*
+     * if everything matches up, we can safely
+     * return this.
+     */
     return valueOfKey;
 }
 

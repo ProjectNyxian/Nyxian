@@ -40,9 +40,9 @@
 - (BOOL)reloadIfNeededWithHash:(NSString * _Nonnull)reloadHash;
 - (BOOL)save;
 
-- (id _Nonnull)objectForKey:(NSString * _Nonnull)key;
+- (id _Nullable)objectForKey:(NSString * _Nonnull)key;
 - (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
-- (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nullable)value withClass:(Class _Nonnull)type;
+- (id _Nullable)objectForKey:(NSString * _Nonnull)key withClass:(Class _Nonnull)cls;
 
 - (NSInteger)integerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
 - (BOOL)booleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
