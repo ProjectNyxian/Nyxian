@@ -26,7 +26,7 @@
 #import <LindChain/Project/NXType.h>
 
 BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme, NXProjectLanguage language, NXProjectInterface interface, NSString *projectName, NSURL *projectURL);
-NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectLanguageKind languageKind);
+NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);
 NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);
 
 #endif /* NXCODETEMPLATE_H */

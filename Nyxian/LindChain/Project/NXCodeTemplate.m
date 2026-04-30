@@ -62,52 +62,57 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
     return YES;
 }
 
-NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectLanguageKind languageKind)
+NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
+                                                           NXProjectLanguageKind languageKind)
 {
-    if(languageKind == NXProjectLanguageKindObjectiveC)
+    NSArray *baseFlags = @[
+        @"-target",
+        @"arm64-apple-ios$(LDEMinimumVersion)",
+        @"-isysroot",
+        @"$(SDKROOT)",
+        @"-resource-dir",
+        @"$(BSROOT)/Include",
+        @"-L$(BSROOT)/lib",
+        @"-lclang_rt.ios",
+    ];
+    
+    if(schemeKind == NXProjectSchemeKindApp)
     {
-        return @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-isysroot",
-            @"$(SDKROOT)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
-            @"-L$(BSROOT)/lib",
-            @"-lclang_rt.ios",
-            @"-fobjc-arc"
-        ];
-    }
-    else if(languageKind == NXProjectLanguageKindCXX)
-    {
-        return @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-isysroot",
-            @"$(SDKROOT)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
-            @"-L$(BSROOT)/lib",
-            @"-lclang_rt.ios",
+        return [baseFlags arrayByAddingObjectsFromArray:@[
             @"-fobjc-arc",
-            @"-lc++"
-        ];
+            @"-framework",
+            @"Foundation",
+            @"-framework",
+            @"UIKit"
+        ]];
     }
     else
     {
-        return @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-isysroot",
-            @"$(SDKROOT)",
-            @"-resource-dir",
-            @"$(BSROOT)/Include",
-            @"-L$(BSROOT)/lib",
-            @"-lclang_rt.ios",
-            @"-framework",
-            @"Foundation"
-        ];
+        if(languageKind == NXProjectLanguageKindObjectiveC)
+        {
+            return [baseFlags arrayByAddingObjectsFromArray:@[
+                @"-fobjc-arc",
+                @"-framework",
+                @"Foundation"
+            ]];
+        }
+        else if(languageKind == NXProjectLanguageKindCXX)
+        {
+            return [baseFlags arrayByAddingObjectsFromArray:@[
+                @"-lc++"
+            ]];
+        }
+        else if(languageKind == NXProjectLanguageKindSwift)
+        {
+            /* so linker won't be confused */
+            return [baseFlags arrayByAddingObjectsFromArray:@[
+                @"-framework",
+                @"Foundation"
+            ]];
+        }
     }
+    
+    return baseFlags;
 }
 
 NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
