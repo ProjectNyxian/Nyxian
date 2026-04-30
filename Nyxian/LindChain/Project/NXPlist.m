@@ -25,23 +25,19 @@
 
 @implementation NXPlist {
     os_unfair_lock _lock;
+    __strong NSDictionary<NSString*,NSString*> *_finalVariables;
 }
 
 - (instancetype)initWithPlistPath:(NSString * _Nonnull)plistPath
                     withVariables:(NSDictionary<NSString*,NSString*> * _Nullable)variables
 {
-    if(variables == nil)
-    {
-        variables = @{};
-    }
-    
     self = [super init];
     if(self)
     {
         _lock = OS_UNFAIR_LOCK_INIT;
         _plistPath = plistPath;
         _dataHash = [self currentHash];
-        _variables = variables;
+        _variables = variables?: @{};
         [self reloadData];
     }
     return self;
@@ -135,7 +131,7 @@
         NSRange varRange = [match rangeAtIndex:1];
         NSString *varName = [result substringWithRange:varRange];
         
-        NSString *value = self.finalVariables[varName];
+        NSString *value = _finalVariables[varName];
         if(!value)
         {
             value = NSProcessInfo.processInfo.environment[varName];
