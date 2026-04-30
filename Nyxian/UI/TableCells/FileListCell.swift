@@ -88,6 +88,8 @@ class FileIcon: UIView {
                 configureImageIcon(name: "app.gift.fill")
             case "png", "jpg", "jpeg", "gif", "svg":
                 configureImageIcon(name: "photo.fill")
+            case "dylib":
+                configureImageIcon(name: "building.columns.fill")
             default:
                 if #unavailable(iOS 18.0) {
                     configureImageIcon(name: "text.alignleft")
