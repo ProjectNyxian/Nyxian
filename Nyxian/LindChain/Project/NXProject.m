@@ -421,6 +421,22 @@
 
 - (BOOL)reload
 {
+    /*
+     * having to check weither cacheURL exists or nah,
+     * if it doesn't we gonne have to create it.
+     */
+    BOOL isDirectory = YES;
+    if(![[NSFileManager defaultManager] fileExistsAtPath:_cacheURL.path isDirectory:&isDirectory] || !isDirectory)
+    {
+        if(!isDirectory)
+        {
+            [[NSFileManager defaultManager] removeItemAtURL:_cacheURL error:nil];
+        }
+        
+        [[NSFileManager defaultManager] createDirectoryAtURL:_cacheURL withIntermediateDirectories:YES attributes:nil error:nil];
+        
+    }
+    
     return [[self entitlementsConfig] reloadIfNeeded] | [[self projectConfig] reloadIfNeeded];
 }
 

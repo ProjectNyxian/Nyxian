@@ -39,7 +39,7 @@ class ToolChainController: UIThemedTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return (section == 2) ? 2 : 1
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -78,25 +78,35 @@ class ToolChainController: UIThemedTableViewController {
             let optimCpuCount: Int = (Int)(LDEGetOptimalThreadCount())
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
-        case 2:
-            cell = UITableViewCell()
-            cell.textLabel?.text = "Clear ModuleCache"
-            break
         default:
-            cell = UITableViewCell()
+            switch(indexPath.row) {
+            case 0:
+                cell = UITableViewCell()
+                cell.textLabel?.text = "Clear ModuleCache"
+                break
+            default:
+                cell = UITableViewCell()
+                cell.textLabel?.text = "Clear ProjectCache"
+                break
+            }
+            break
         }
         
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(indexPath.section == 2)
-        {
-            do {
-                try FileManager.default.removeItem(at: NXBootstrap.shared().swiftModuleCacheURL)
-            } catch {
-                NotificationServer.NotifyUser(level: .error, notification: "failed to remove module cache: \(error.localizedDescription)")
+        if(indexPath.section == 2) {
+            // TODO: use the indication popup for cache clearing
+            switch(indexPath.row) {
+            case 0:
+                NXBootstrap.shared().clear(NXBootstrap.shared().swiftModuleCacheURL)
+                break
+            default:
+                NXBootstrap.shared().clear(NXBootstrap.shared().cacheURL)
+                break
             }
+            try? FileManager.default.removeItem(at: NXBootstrap.shared().swiftModuleCacheURL)
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }

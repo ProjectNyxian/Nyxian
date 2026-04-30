@@ -301,6 +301,7 @@ class Builder: NSObject, CCKDriverDelegate {
         let modulePath: String = self.project.cacheURL.appendingPathComponent(moduleName).path
         let allSources: [String] = self.compilerSwiftJobs.map { $0.0 }
         
+        // emitting swift module
         let emitArgs: [String] = baseArguments + ["-emit-module", "-emit-module-path", modulePath, "-module-name", moduleName] + allSources
         var issues: NSArray?
         
