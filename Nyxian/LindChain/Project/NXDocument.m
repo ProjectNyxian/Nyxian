@@ -81,7 +81,7 @@
     
     if(!_text)
     {
-        _text = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+        return NO;
     }
     
     return YES;

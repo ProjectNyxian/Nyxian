@@ -103,7 +103,13 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         
         NXDocumentManager.shared().open(URL(fileURLWithPath: self.file.fileURL.path)) { [weak self] doc in
             guard let doc = doc else {
-                self?.dismiss(animated: true)
+                if UIDevice.current.userInterfaceIdiom != .pad {
+                    self?.dismiss(animated: true)
+                }
+                else
+                {
+                    // TODO: implement fallback
+                }
                 return
             }
             doc.delegate = self
