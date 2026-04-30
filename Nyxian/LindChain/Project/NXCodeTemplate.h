@@ -25,6 +25,9 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/Project/NXType.h>
 
+NSString *NXMakeContentCodeFriendly(NSString *content);
+NSString *NXSubstituteContent(NSString *content, NSDictionary<NSString *, NSString *> *variables, BOOL makeCodeFriendly);
+
 BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme, NXProjectLanguage language, NXProjectInterface interface, NSString *projectName, NSURL *projectURL);
 NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);
 NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);

@@ -22,6 +22,51 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
 
+NSString *NXMakeContentCodeFriendly(NSString *content)
+{
+    return [[content componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] componentsJoinedByString:@"_"];
+}
+
+NSString *NXSubstituteContent(NSString *content,
+                              NSDictionary<NSString *, NSString *> *variables,
+                              BOOL makeCodeFriendly)
+{
+    static NSRegularExpression *regex;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        regex = [NSRegularExpression regularExpressionWithPattern:@"\\$\\(([A-Za-z_][A-Za-z0-9_]*)\\)" options:0 error:NULL];
+    });
+
+    NSMutableString *result = [NSMutableString string];
+    __block NSUInteger cursor = 0;
+    NSRange full = NSMakeRange(0, content.length);
+
+    [regex enumerateMatchesInString:content options:0 range:full usingBlock:^(NSTextCheckingResult *m, NSMatchingFlags flags, BOOL *stop) {
+        NSRange matchRange = m.range;
+        [result appendString:[content substringWithRange:NSMakeRange(cursor, matchRange.location - cursor)]];
+
+        NSString *key = [content substringWithRange:[m rangeAtIndex:1]];
+        NSString *value = variables[key];
+        if(value)
+        {
+            if(!makeCodeFriendly)
+            {
+                value = NXMakeContentCodeFriendly(value);
+            }
+            [result appendString:value];
+        }
+        else
+        {
+            [result appendString:[content substringWithRange:matchRange]];
+        }
+
+        cursor = matchRange.location + matchRange.length;
+    }];
+
+    [result appendString:[content substringWithRange:NSMakeRange(cursor, content.length - cursor)]];
+    return result;
+}
+
 BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
                                         NXProjectLanguage language,
                                         NXProjectInterface interface,
@@ -45,9 +90,18 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
         return NO;
     }
     
+    NSDictionary<NSString*,NSString*> *variables = @{
+        @"LDEDisplayName": projectName
+    };
+    
     for(NSURL *srcURL in folderEntries)
     {
         NSURL *dstURL = [projectURL URLByAppendingPathComponent:[srcURL lastPathComponent]];
+        
+        NSString *fileName = [dstURL lastPathComponent];
+        fileName = NXSubstituteContent(fileName, variables, NO);
+        dstURL = [[dstURL URLByDeletingLastPathComponent] URLByAppendingPathComponent:fileName];
+        
         
         NSError *error = NULL;
         NSString *codeFileContent = [NSString stringWithContentsOfURL:srcURL encoding:NSUTF8StringEncoding error:&error];
@@ -55,6 +109,9 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
         {
             return NO;
         }
+        
+        codeFileContent = NXSubstituteContent(codeFileContent, variables, NO);
+        
         NSString *authoredCodeFileContent = [[[NXUser shared] generateHeaderForFileName: [dstURL lastPathComponent]] stringByAppendingString:codeFileContent];
         [authoredCodeFileContent writeToURL:dstURL atomically:YES encoding:NSUTF8StringEncoding error:&error];
     }

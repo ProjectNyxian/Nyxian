@@ -297,7 +297,7 @@ class Builder: NSObject, CCKDriverDelegate {
         let pstep: Double = 1.00 / Double(self.compilerSwiftJobs.count + 1)
         
         let baseArguments: [String] = self.project.projectConfig.swiftFlags
-        let moduleName: String = self.project.projectConfig.displayName
+        let moduleName: String = NXMakeContentCodeFriendly(self.project.projectConfig.displayName)
         let modulePath: String = self.project.cacheURL.appendingPathComponent(moduleName).path
         let allSources: [String] = self.compilerSwiftJobs.map { $0.0 }
         
