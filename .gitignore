@@ -1,6 +1,5 @@
 **/.DS_store
-Nyxian/LindChain/CoreCompiler.framework
-Nyxian/LindChain/CoreCompilerSupportLibs
+CoreCompiler/CoreCompilerSupportLibs/
 build/
 *.ipa
 *.deb

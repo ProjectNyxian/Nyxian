@@ -34,13 +34,13 @@ class Builder: NSObject, CCKDriverDelegate {
     private let project: NXProject
     
     private var compilerJobs: [CCKJob] = []
+    private var swiftCompilerJobs: [CCKJob] = []
     private var linkerJobs: [CCKJob] = []
-    
-    private var compilerSwiftJobs: [(String,String)] = []
     
     private let database: DebugDatabase
     
     private let driver: CCKDriver
+    private let swiftDriver: CCKDriver
     private let dependencyScanner: CCKDependencyScanner
     
     private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
@@ -65,27 +65,30 @@ class Builder: NSObject, CCKDriverDelegate {
             self.database.addMessage(message: "A fatal error has happened finding clang code files.", severity: .error)
             return nil
         }
-        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
-            self.database.addMessage(message: "A fatal error has happened finding swift code files.", severity: .error)
-            return nil
-        }
-        
-        for file in swiftFiles {
-            let swiftObject: String = "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, URL(fileURLWithPath: file))).path)"
-            
-            /* TODO: add incremental build to swift files */
-            self.compilerSwiftJobs.append((file,swiftObject))
-        }
         
         driverFlags.append(contentsOf: codeFiles)
         driverFlags.append("-o")
         driverFlags.append(self.project.machoURL.path)
         
-        if !self.project.projectConfig.linkerFlags.isEmpty || !self.compilerSwiftJobs.isEmpty {
+        var swiftDriverFlags: [String] = self.project.projectConfig.swiftFlags
+        
+        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
+            self.database.addMessage(message: "A fatal error has happened finding swift code files.", severity: .error)
+            return nil
+        }
+        
+        swiftDriverFlags.append("-module-name")
+        swiftDriverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
+        swiftDriverFlags.append("-c")
+        swiftDriverFlags.append(contentsOf: swiftFiles)
+        
+        if !self.project.projectConfig.linkerFlags.isEmpty || !swiftFiles.isEmpty {
             var linkerFlags: [String] = self.project.projectConfig.linkerFlags
             
-            if !self.compilerSwiftJobs.isEmpty {
-                linkerFlags.append(contentsOf: self.compilerSwiftJobs.map{ $0.1 })
+            if !swiftFiles.isEmpty {
+                for swiftFile in swiftFiles {
+                    linkerFlags.append("\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, URL(fileURLWithPath: swiftFile))).path)")
+                }
                 linkerFlags.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
                 linkerFlags.append("-L\(NXBootstrap.shared().swiftURL.path)")
                 linkerFlags.append("-L\(NXBootstrap.shared().rootURL.path)/swift/iphoneos")
@@ -106,22 +109,38 @@ class Builder: NSObject, CCKDriverDelegate {
             self.database.clearDatabase() /* nothing valid anymore */
         }
         
-        self.driver = CCKDriver(arguments: driverFlags)
+        self.driver = CCKDriver(arguments: driverFlags, with: .clang)
+        self.swiftDriver = CCKDriver(arguments: swiftDriverFlags, with: .swift)
         self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
         super.init()
         
-        driver.delegate = self
+        self.driver.delegate = self
+        self.swiftDriver.delegate = self
         
-        let jobs: [CCKJob] = self.driver.generateJobs()
-        for job in jobs {
-            switch(job.type) {
-            case .compiler:
-                self.compilerJobs.append(job)
-            case .linker:
-                self.linkerJobs.append(job)
-            default:
-                break
+        if let swiftJobs: [CCKJob] = self.swiftDriver.generateJobs() {
+            for job in swiftJobs {
+                switch(job.type) {
+                case .swiftCompiler:
+                    self.swiftCompilerJobs.append(job)
+                case .linker:
+                    self.linkerJobs.append(job)
+                default:
+                    break
+                }
+            }
+        }
+        
+        if let jobs: [CCKJob] = self.driver.generateJobs() {
+            for job in jobs {
+                switch(job.type) {
+                case .compiler:
+                    self.compilerJobs.append(job)
+                case .linker:
+                    self.linkerJobs.append(job)
+                default:
+                    break
+                }
             }
         }
     }
@@ -294,64 +313,14 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func compileSwift() throws {
-        guard !self.compilerSwiftJobs.isEmpty else { return }
+        guard !self.swiftCompilerJobs.isEmpty else { return }
+        let pstep: Double = 1.00 / Double(self.swiftCompilerJobs.count)
         
-        let pstep: Double = 1.00 / Double(self.compilerSwiftJobs.count + 1)
-        
-        let baseArguments: [String] = self.project.projectConfig.swiftFlags
-        let moduleName: String = NXMakeContentCodeFriendly(self.project.projectConfig.displayName)
-        let modulePath: String = self.project.cacheURL.appendingPathComponent(moduleName).path
-        let allSources: [String] = self.compilerSwiftJobs.map { $0.0 }
-        
-        // emitting swift module
-        let emitArgs: [String] = baseArguments + ["-emit-module", "-emit-module-path", modulePath, "-module-name", moduleName] + allSources
-        var issues: NSArray?
-        
-        let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
-        // FIXME: On the first run memory usage can be insane due to module cache rebuild, the problem is that iOS does not have a swap so it might kill Nyxian while caching modules, if you know how to fix it please do so, this issue will only be present on older devices as we already added a memory increase entitlement in hope to resolve this issue as much as possible.
-        let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: emitArgs, outDiagnostic: &issues)
-        spinnerStart.cancel()
-        XCButton.stopSpinning()
-        
-        XCButton.incrementProgress(withValue: pstep)
-        
-        if let issues = issues as? [CCKDiagnostic] {
-            var sortedIssues: [URL:[CCKDiagnostic]] = [:]
-            for issue in issues {
-                if var fileIssueArray: [CCKDiagnostic] = sortedIssues[issue.fileSourceLocation.fileURL] {
-                    fileIssueArray.append(issue)
-                    sortedIssues[issue.fileSourceLocation.fileURL] = fileIssueArray
-                } else {
-                    let fileIssueArray: [CCKDiagnostic] = [issue]
-                    sortedIssues[issue.fileSourceLocation.fileURL] = fileIssueArray
-                }
-            }
-            
-            for key in sortedIssues.keys {
-                if let fileIssueArray: [CCKDiagnostic] = sortedIssues[key] {
-                    self.database.setFileDebug(ofPath: key.path, synItems: fileIssueArray)
-                }
-            }
-        }
-        
-        if !succeeded {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to emit Swift module"])
-        }
-        
-        for job in self.compilerSwiftJobs {
-            let others = allSources.filter { $0 != job.0 }
-            let jobArguments: [String] = baseArguments + ["-module-name", moduleName, "-c", "-primary-file", job.0] + others + ["-o", job.1]
-            
-            var issues: NSArray?
-            let succeeded: Bool = CCKSwiftCompiler.execute(withArguments: jobArguments, outDiagnostic:&issues)
+        for job in self.swiftCompilerJobs {
+            let succeeded: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: nil)
             XCButton.incrementProgress(withValue: pstep)
-            
-            let swiftIssues: [CCKDiagnostic] = issues as! [CCKDiagnostic]
-            self.database.setFileDebug(ofPath: job.0, synItems: swiftIssues)
-            
             if !succeeded {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to compile swift source code"])
+                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile swift source code"])
             }
         }
     }
