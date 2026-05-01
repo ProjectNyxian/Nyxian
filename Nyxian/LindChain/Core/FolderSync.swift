@@ -22,7 +22,7 @@
 import Foundation
 
 func expectedObjectFile(forPath path: String) -> String {
-    let url = URL(fileURLWithPath: "/\(path)").deletingPathExtension().appendingPathExtension("o")
+    let url = URL(fileURLWithPath: "/\(path)").appendingPathExtension("o")
     return String(String(url.path).dropFirst())
 }
 
