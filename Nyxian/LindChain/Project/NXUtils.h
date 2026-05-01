@@ -19,14 +19,14 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef NXCODETEMPLATE_H
-#define NXCODETEMPLATE_H
+#ifndef NXUTILS_H
+#define NXUTILS_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/Project/NXType.h>
 
-BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme, NXProjectLanguage language, NXProjectInterface interface, NSString *projectName, NSURL *projectURL);
-NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);
-NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind, NXProjectLanguageKind languageKind);
+NSString *NXMakeContentCodeFriendly(NSString *content);
+NSString *NXSubstituteContent(NSString *content, NSDictionary<NSString *, NSString *> *variables, BOOL makeCodeFriendly);
+NSURL *NXExpectedObjectFileURLForFileURL(NSURL *fileURL);
+NSURL *NXRelativeURLFromBaseURLToFullURL(NSURL *baseURL, NSURL *fullURL);
 
-#endif /* NXCODETEMPLATE_H */
+#endif /* NXUTILS_H */

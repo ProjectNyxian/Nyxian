@@ -24,6 +24,7 @@
 #import <LindChain/Utils/LDEThreadController.h>
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
+#import <LindChain/Project/NXUtils.h>
 #import <Nyxian-Swift.h>
 
 @implementation NXProjectConfig
@@ -357,6 +358,71 @@
     }
     
     return projectList;
+}
+
+- (BOOL)syncFolderStructureToCache
+{
+    NSFileManager *defaultManager = [NSFileManager defaultManager];
+    
+    BOOL(^directoryEnumeratorErrorHandler)(NSURL *url, NSError *error) = ^BOOL(NSURL *url, NSError *error){
+        NSLog(@"skip %@: %@", url.path, error);
+        return YES;
+    };
+    
+    NSDirectoryEnumerator *sourceDirectoryEnumerator = [defaultManager enumeratorAtURL:self.url includingPropertiesForKeys:nil options:0 errorHandler:directoryEnumeratorErrorHandler];
+    NSDirectoryEnumerator *destinationDirectoryEnumerator = [defaultManager enumeratorAtURL:self.cacheURL includingPropertiesForKeys:nil options:0 errorHandler:directoryEnumeratorErrorHandler];
+    
+    if(sourceDirectoryEnumerator == nil || destinationDirectoryEnumerator == nil)
+    {
+        return NO;
+    }
+    
+    NSMutableSet<NSString*> *relativesShallExist = [NSMutableSet set];
+    NSMutableSet<NSString*> *relativeObjectShallExist = [NSMutableSet set];
+    
+    /* capturing synchronisation */
+    for(NSURL *url in sourceDirectoryEnumerator)
+    {
+        NSNumber *isDir;
+        [url getResourceValue:&isDir forKey:NSURLIsDirectoryKey error:NULL];
+        if(isDir.boolValue)
+        {
+            [relativesShallExist addObject:NXRelativeURLFromBaseURLToFullURL(self.url, url).path];
+        }
+        else if([@[@"c",@"cpp",@"m",@"mm",@"swift"] containsObject:[url pathExtension]])
+        {
+            NSURL *relativeURL = NXRelativeURLFromBaseURLToFullURL(self.url, url);
+            NSURL *objectFileURL = NXExpectedObjectFileURLForFileURL(relativeURL);
+            [relativeObjectShallExist addObject:objectFileURL.path];
+        }
+    }
+    
+    /* applying synchronisation */
+    for(NSURL *url in destinationDirectoryEnumerator)
+    {
+        NSNumber *isDir;
+        [url getResourceValue:&isDir forKey:NSURLIsDirectoryKey error:NULL];
+        if(isDir.boolValue && ![relativesShallExist containsObject:NXRelativeURLFromBaseURLToFullURL(self.cacheURL, url).path])
+        {
+            [defaultManager removeItemAtURL:url error:nil];
+        }
+        else if([@[@"o"] containsObject:[url pathExtension]])
+        {
+            NSURL *relativeURL = NXRelativeURLFromBaseURLToFullURL(self.cacheURL, url);
+            if(![relativeObjectShallExist containsObject:relativeURL.path])
+            {
+                [defaultManager removeItemAtURL:url error:nil];
+            }
+        }
+    }
+    
+    /* completing synchronisation */
+    for(NSString *relative in relativesShallExist)
+    {
+        [defaultManager createDirectoryAtURL:[self.cacheURL URLByAppendingPathComponent:relative] withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+
+    return YES;
 }
 
 - (void)removeProject

@@ -52,7 +52,9 @@ class Builder: NSObject, CCKDriverDelegate {
         self.project = project
         self.project.reload()
         
-        try? syncFolderStructure(from: self.project.url, to: self.project.cacheURL)
+        if !self.project.syncFolderStructureToCache() {
+            return nil
+        }
         
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
@@ -69,7 +71,7 @@ class Builder: NSObject, CCKDriverDelegate {
         }
         
         for file in swiftFiles {
-            let swiftObject: String = "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: URL(fileURLWithPath: file))))"
+            let swiftObject: String = "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, URL(fileURLWithPath: file))).path)"
             
             /* TODO: add incremental build to swift files */
             self.compilerSwiftJobs.append((file,swiftObject))
@@ -125,7 +127,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!) -> String! {
-        return "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: file.fileURL)))"
+        return "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
     }
     
     func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
@@ -135,7 +137,7 @@ class Builder: NSObject, CCKDriverDelegate {
             }
             
             let path: String = file.fileURL.path
-            let objectPath = "\(self.project.cacheURL.path)/\(expectedObjectFile(forPath: relativePath(from: self.project.url, to: file.fileURL)))"
+            let objectPath = "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
             
             // Checking if the source file is newer than the compiled object file
             guard let sourceDate = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,

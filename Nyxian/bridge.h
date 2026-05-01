@@ -64,6 +64,7 @@ bool liveProcessIsAvailable(void);
 #import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXProject.h>
 #import <LindChain/Project/NXDocumentManager.h>
+#import <LindChain/Project/NXUtils.h>
 #import <NXBootstrap.h>
 
 /* UI Headers */
