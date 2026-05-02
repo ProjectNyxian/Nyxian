@@ -78,4 +78,8 @@ typedef CF_ENUM(uint8_t, CCDriverType) {
     CCDriverTypeSwift,
 };
 
+CC_EXPORT Boolean CCFileTypeIsClangFile(CCFileType type);
+CC_EXPORT Boolean CCFileTypeIsSwiftFile(CCFileType type);
+CC_EXPORT Boolean CCFileTypeIsObjectFile(CCFileType type);
+
 #endif /* CCBASE_H */

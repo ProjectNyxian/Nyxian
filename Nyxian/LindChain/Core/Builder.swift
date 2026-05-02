@@ -150,10 +150,9 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
-        if self.incrementalBuild {
-            if self.projectDirty {
-                return false
-            }
+        if !CCFileTypeIsSwiftFile(file.type),
+           self.incrementalBuild,
+           !self.projectDirty {
             
             let path: String = file.fileURL.path
             let objectPath = "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
