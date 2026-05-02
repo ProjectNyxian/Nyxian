@@ -29,6 +29,8 @@
 		79D1DA672F92A6CE0020518A /* TreeSitterSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 79D1DA662F92A6CE0020518A /* TreeSitterSwift */; };
 		79D1DA6A2F92A98C0020518A /* TreeSitterSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 79D1DA692F92A98C0020518A /* TreeSitterSwift */; };
 		79D1DA6C2F92B4CA0020518A /* TreeSitterSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 79D1DA6B2F92B4CA0020518A /* TreeSitterSwift */; };
+		860AB8702FA5925200495EE4 /* CoreCompiler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; };
+		860AB8712FA5925200495EE4 /* CoreCompiler.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		86DCC2622FA5209600973169 /* CoreCompiler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; };
 		86DCC2632FA5209600973169 /* CoreCompiler.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		86DCC30A2FA521A600973169 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC3082FA5219900973169 /* libz.tbd */; };
@@ -52,6 +54,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
 			remoteInfo = LiveProcess;
+		};
+		860AB8722FA5925200495EE4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86DCC2592FA5209600973169;
+			remoteInfo = CoreCompiler;
 		};
 		86DCC2602FA5209600973169 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -89,6 +98,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				860AB8712FA5925200495EE4 /* CoreCompiler.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -380,25 +390,6 @@
 			);
 			target = 86DCC2592FA5209600973169 /* CoreCompiler */;
 		};
-		86DCC26A2FA520A900973169 /* Exceptions for "CoreCompiler" folder in "NyxianForJB" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib,
-			);
-			target = 79AF51072F1CBD110055004A /* NyxianForJB */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -410,40 +401,6 @@
 			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
 			membershipExceptions = (
 				LindChain/OpenSSL.xcframework,
-			);
-		};
-		86DCC26B2FA520A900973169 /* Exceptions for "CoreCompiler" folder in "Embed Frameworks" phase from "NyxianForJB" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib = (CodeSignOnCopy, );
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib = (CodeSignOnCopy, );
-			};
-			buildPhase = 79FDA8862F3F257900692496 /* Embed Frameworks */;
-			membershipExceptions = (
-				CoreCompilerSupportLibs/lib_CompilerSwiftBasicFormat.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftCompilerPluginMessageHandling.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftDiagnostics.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftIDEUtils.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftIfConfig.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftLexicalLookup.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftOperators.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftParser.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftParserDiagnostics.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntax.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxBuilder.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacroExpansion.dylib,
-				CoreCompilerSupportLibs/lib_CompilerSwiftSyntaxMacros.dylib,
 			);
 		};
 		86DCC2932FA520EF00973169 /* Exceptions for "CoreCompiler" folder in "Embed Libraries" phase from "CoreCompiler" target */ = {
@@ -510,8 +467,6 @@
 		86DCC25B2FA5209600973169 /* CoreCompiler */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				86DCC26A2FA520A900973169 /* Exceptions for "CoreCompiler" folder in "NyxianForJB" target */,
-				86DCC26B2FA520A900973169 /* Exceptions for "CoreCompiler" folder in "Embed Frameworks" phase from "NyxianForJB" target */,
 				86DCC2672FA5209600973169 /* Exceptions for "CoreCompiler" folder in "CoreCompiler" target */,
 				86DCC2932FA520EF00973169 /* Exceptions for "CoreCompiler" folder in "Embed Libraries" phase from "CoreCompiler" target */,
 			);
@@ -549,6 +504,7 @@
 				79AF51182F1CBD110055004A /* Runestone in Frameworks */,
 				79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */,
 				79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */,
+				860AB8702FA5925200495EE4 /* CoreCompiler.framework in Frameworks */,
 				79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */,
 				79B708BE2F731590000F38E7 /* TreeSitterCPP in Frameworks */,
 				79D1DA6C2F92B4CA0020518A /* TreeSitterSwift in Frameworks */,
@@ -677,6 +633,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				860AB8732FA5925200495EE4 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
@@ -914,6 +871,11 @@
 			isa = PBXTargetDependency;
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
 			targetProxy = 7952278B2F45B52600D1C3CC /* PBXContainerItemProxy */;
+		};
+		860AB8732FA5925200495EE4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86DCC2592FA5209600973169 /* CoreCompiler */;
+			targetProxy = 860AB8722FA5925200495EE4 /* PBXContainerItemProxy */;
 		};
 		86DCC2612FA5209600973169 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
