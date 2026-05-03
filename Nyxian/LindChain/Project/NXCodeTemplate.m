@@ -138,6 +138,7 @@ NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind sche
             @"arm64-apple-ios$(LDEMinimumVersion)",
             @"-Xllvm",
             @"-aarch64-use-tbi",
+            @"-Xfrontend",
             @"-enable-objc-interop",
             @"-sdk",
             @"$(SDKROOT)",
