@@ -260,7 +260,7 @@ static CCJobType _CCJobTypeGetFromSwiftJob(const swift::driver::Job *J)
             return CCJobTypeSwiftCompiler;
         case K::DynamicLinkJob:
         case K::StaticLinkJob:
-            return CCJobTypeLinker;
+            return CCJobTypeDriver;
         case K::InterpretJob:
         case K::REPLJob:
         default:
@@ -567,7 +567,45 @@ CFArrayRef CCDriverCreateJobs(CCDriverRef driver)
                 CFRelease(argsArray);
                 if(jobRef)
                 {
-                    CFArrayAppendValue(jobsArray, jobRef); CFRelease(jobRef);
+                    /* MARK: THIS CANT EXIST BECAUSE CCKPhaseEngine will do that automatically */
+                    /*if(type == CCJobTypeDriver)
+                    {
+                        CFArrayRef argsArray = CCJobGetArguments(jobRef);
+                        if(argsArray == nullptr)
+                        {
+                            CFRelease(jobRef);
+                            CFRelease(jobsArray);
+                            return nullptr;
+                        }
+                        
+                        CCDriverRef subDriverRef = CCDriverCreate(allocator, argsArray, CCDriverTypeClang);
+                        if(subDriverRef == nullptr)
+                        {
+                            CFRelease(jobRef);
+                            CFRelease(jobsArray);
+                            return nullptr;
+                        }
+                        
+                        CCDriverSetOutputPathCallback(subDriverRef, driver->callback, driver->outputPathCallbackContext);
+                        
+                        CFArrayRef subJobsArray = CCDriverCreateJobs(subDriverRef);
+                        if(subJobsArray == nullptr)
+                        {
+                            CFRelease(jobRef);
+                            CFRelease(jobsArray);
+                            return nullptr;
+                        }
+                        
+                        CFArrayAppendArray(jobsArray, subJobsArray, CFRangeMake(0, CFArrayGetCount(subJobsArray)));
+                        CFRelease(subJobsArray);
+                    }
+                    else
+                    {
+                        CFArrayAppendValue(jobsArray, jobRef);
+                    }*/
+                    
+                    CFArrayAppendValue(jobsArray, jobRef);
+                    CFRelease(jobRef);
                 }
             }
             break;

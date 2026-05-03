@@ -33,14 +33,9 @@ import CoreCompiler
 class Builder: NSObject, CCKDriverDelegate {
     private let project: NXProject
     
-    private var compilerJobs: [CCKJob] = []
-    private var swiftCompilerJobs: [CCKJob] = []
-    private var linkerJobs: [CCKJob] = []
-    
     private let database: DebugDatabase
     
-    private let driver: CCKDriver
-    private let swiftDriver: CCKDriver
+    private var phases: [CCKPhase] = []
     private let dependencyScanner: CCKDependencyScanner
     
     private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
@@ -79,25 +74,10 @@ class Builder: NSObject, CCKDriverDelegate {
         
         swiftDriverFlags.append("-module-name")
         swiftDriverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
-        swiftDriverFlags.append("-c")
         swiftDriverFlags.append(contentsOf: swiftFiles)
-        
-        if !self.project.projectConfig.linkerFlags.isEmpty || !swiftFiles.isEmpty {
-            var linkerFlags: [String] = self.project.projectConfig.linkerFlags
-            
-            if !swiftFiles.isEmpty {
-                for swiftFile in swiftFiles {
-                    linkerFlags.append("\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, URL(fileURLWithPath: swiftFile))).path)")
-                }
-                linkerFlags.append("-L\(NXBootstrap.shared().sdkURL.path)/usr/lib/swift")
-                linkerFlags.append("-L\(NXBootstrap.shared().swiftURL.path)")
-                linkerFlags.append("-L\(NXBootstrap.shared().rootURL.path)/swift/iphoneos")
-                linkerFlags.append("-rpath")
-                linkerFlags.append("/usr/lib/swift")
-            }
-            
-            driverFlags.append("-Wl,\(linkerFlags.joined(separator: " ").split(separator: " ").joined(separator: ","))")
-        }
+        swiftDriverFlags.append(contentsOf: codeFiles)
+        swiftDriverFlags.append("-o")
+        swiftDriverFlags.append(self.project.machoURL.path)
         
         self.argsString = driverFlags.joined(separator: " ")
         
@@ -109,37 +89,34 @@ class Builder: NSObject, CCKDriverDelegate {
             self.database.clearDatabase() /* nothing valid anymore */
         }
         
-        self.driver = CCKDriver(arguments: driverFlags, with: .clang)
-        self.swiftDriver = CCKDriver(arguments: swiftDriverFlags, with: .swift)
         self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
         super.init()
         
-        self.driver.delegate = self
-        self.swiftDriver.delegate = self
-        
-        if let swiftJobs: [CCKJob] = self.swiftDriver.generateJobs() {
-            for job in swiftJobs {
-                switch(job.type) {
-                case .swiftCompiler:
-                    self.swiftCompilerJobs.append(job)
-                case .linker:
-                    self.linkerJobs.append(job)
-                default:
-                    break
-                }
-            }
+        guard let phasesEngine = CCKPhaseEngine(swiftFlags: swiftDriverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags) else {
+            return nil
         }
         
-        if let jobs: [CCKJob] = self.driver.generateJobs() {
-            for job in jobs {
-                switch(job.type) {
-                case .compiler:
-                    self.compilerJobs.append(job)
-                case .linker:
-                    self.linkerJobs.append(job)
-                default:
-                    break
+        phasesEngine.delegate = self
+        self.phases = phasesEngine.generatePhases()
+        
+        for (index, phase) in phases.enumerated() {
+            let isLastPhase = index == phases.count - 1
+            print("phase_\(index)/")
+            print("├── type: \(phase.type)")
+            print("├── multithreading: \(phase.isMultithreadingSupported)")
+            print("\(isLastPhase ? "└──" : "├──") jobs/")
+            for (index, job) in phase.jobs.enumerated() {
+                let isLastJob = index == phase.jobs.count - 1
+                print("\(isLastPhase ? "   " : "│  ") \(isLastJob ? "└──" : "├──") job_\(index)/")
+                print("\(isLastPhase ? "   " : "│  ") \(isLastJob ? "   " : "│  ") ├── type: \(job.type)")
+                print("\(isLastPhase ? "   " : "│  ") \(isLastJob ? "   " : "│  ") └── arguments/")
+                for (index, argument) in job.arguments.enumerated() {
+                    if index == job.arguments.count - 1 {
+                        print("\(isLastPhase ? "   " : "│  ") \(isLastJob ? "   " : "│  ")     └── \(argument)")
+                    } else {
+                        print("\(isLastPhase ? "   " : "│  ") \(isLastJob ? "   " : "│  ")     ├── \(argument)")
+                    }
                 }
             }
         }
@@ -267,7 +244,7 @@ class Builder: NSObject, CCKDriverDelegate {
     }
     
     func compile() throws {
-        if !self.compilerJobs.isEmpty {
+        /*if !self.compilerJobs.isEmpty {
             let pstep: Double = 1.00 / Double(self.compilerJobs.count)
             guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
@@ -308,11 +285,11 @@ class Builder: NSObject, CCKDriverDelegate {
             } catch {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
             }
-        }
+        }*/
     }
     
     func compileSwift() throws {
-        guard !self.swiftCompilerJobs.isEmpty else { return }
+        /*guard !self.swiftCompilerJobs.isEmpty else { return }
         let pstep: Double = 1.00 / Double(self.swiftCompilerJobs.count)
         
         for job in self.swiftCompilerJobs {
@@ -321,11 +298,11 @@ class Builder: NSObject, CCKDriverDelegate {
             if !succeeded {
                 throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile swift source code"])
             }
-        }
+        }*/
     }
     
     func link() throws {
-        for job in linkerJobs {
+        /*for job in linkerJobs {
             var issues: NSArray?
             
             if !job.execute(withOutDiagnostics: &issues) {
@@ -334,7 +311,7 @@ class Builder: NSObject, CCKDriverDelegate {
             }
             
             self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
-        }
+        }*/
     }
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {

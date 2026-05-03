@@ -48,13 +48,6 @@
 			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
 			remoteInfo = LiveProcess;
 		};
-		7952278B2F45B52600D1C3CC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 79BF97F62E6291EE00C60D4C;
-			remoteInfo = LiveProcess;
-		};
 		860AB8722FA5925200495EE4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
@@ -376,6 +369,8 @@
 				CCKFileSourceLocation.h,
 				CCKJob.h,
 				CCKLinker.h,
+				CCKPhase.h,
+				CCKPhaseEngine.h,
 				CCKProgramCompiler.h,
 				CCKSDK.h,
 				CCKSwiftCompiler.h,
@@ -709,7 +704,6 @@
 			);
 			dependencies = (
 				795227892F45B52000D1C3CC /* PBXTargetDependency */,
-				7952278C2F45B52600D1C3CC /* PBXTargetDependency */,
 				86DCC2612FA5209600973169 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -866,11 +860,6 @@
 			isa = PBXTargetDependency;
 			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
 			targetProxy = 795227882F45B52000D1C3CC /* PBXContainerItemProxy */;
-		};
-		7952278C2F45B52600D1C3CC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 79BF97F62E6291EE00C60D4C /* LiveProcess */;
-			targetProxy = 7952278B2F45B52600D1C3CC /* PBXContainerItemProxy */;
 		};
 		860AB8732FA5925200495EE4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

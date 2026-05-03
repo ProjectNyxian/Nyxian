@@ -23,25 +23,21 @@
  * SOFTWARE.
  */
 
-#include <CoreCompiler/CCBase.h>
+#ifndef CCKPHASE_H
+#define CCKPHASE_H
 
-Boolean CCJobTypeSupportsMultithreading(CCJobType type)
-{
-    /* TODO: implement multithreading support for the swift compiler */
-    return (type == CCJobTypeCompiler);
-}
+#import <Foundation/Foundation.h>
+#import <CoreCompiler/CCKJob.h>
 
-Boolean CCFileTypeIsClangFile(CCFileType type)
-{
-    return (type < CCFileTypeSwift);
-}
+@interface CCKPhase : NSObject
 
-Boolean CCFileTypeIsSwiftFile(CCFileType type)
-{
-    return (type == CCFileTypeSwift);
-}
+@property (nonatomic, readonly) CCJobType type;
+@property (nonatomic, readonly) BOOL isMultithreadingSupported;
+@property (nonatomic, readonly) NSArray<CCKJob*> *jobs;
 
-Boolean CCFileTypeIsObjectFile(CCFileType type)
-{
-    return (type == CCFileTypeObject);
-}
++ (instancetype)phaseWithJobs:(NSArray<CCKJob*>*)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
+- (instancetype)initWithJobs:(NSArray<CCKJob*>*)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
+
+@end
+
+#endif /* CCKPHASE_H */

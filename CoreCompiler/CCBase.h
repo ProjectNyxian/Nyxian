@@ -54,7 +54,9 @@ typedef CF_ENUM(uint8_t, CCDiagnosticLevel) {
 
 typedef CF_ENUM(uint8_t, CCJobType) {
     CCJobTypeCompiler = 0,
+    CCJobTypeDriver,
     CCJobTypeSwiftCompiler,
+    CCJobTypeSwiftDriver,
     CCJobTypeLinker,
     CCJobTypeUnknown
 };
@@ -77,6 +79,8 @@ typedef CF_ENUM(uint8_t, CCDriverType) {
     CCDriverTypeClang = 0,
     CCDriverTypeSwift,
 };
+
+CC_EXPORT Boolean CCJobTypeSupportsMultithreading(CCJobType type);
 
 CC_EXPORT Boolean CCFileTypeIsClangFile(CCFileType type);
 CC_EXPORT Boolean CCFileTypeIsSwiftFile(CCFileType type);
