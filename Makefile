@@ -108,6 +108,7 @@ check:
 	$(call ensure_brew_package,libarchive)
 	$(call ensure_brew_package,dpkg)
 	$(call ensure_brew_package,openssl)
+	$(call ensure_brew_package,ninja)
 	$(call ensure_theos)
 	@$(call log_info,all dependencies are installed)
 
