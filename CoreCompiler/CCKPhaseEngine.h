@@ -42,7 +42,7 @@
 - (instancetype)initWithClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
 - (instancetype)initWithSwiftFlags:(NSArray<NSString*>*)swiftFlags withOtherClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
 
-- (NSArray<CCKPhase*>*)generatePhases;
+- (NSArray*)generatePhases;
 
 @end
 

@@ -40,7 +40,7 @@ static CCKJob *CCKPhaseGenerationJobByAppendingArgumentsHelper(CCKJob *job,
 
 static void CCKPhaseGenerationEndHelper(CCKPhaseEngine *engine,
                                         CCJobType *type,
-                                        NSMutableArray<CCKPhase*> *phases,
+                                        NSMutableArray *phases,
                                         NSMutableArray<CCKJob*> *jobs)
 {
     switch(*type)
@@ -63,7 +63,7 @@ static void CCKPhaseGenerationEndHelper(CCKPhaseEngine *engine,
 
 static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
                                            CCJobType *type,
-                                           NSMutableArray<CCKPhase*> *phases,
+                                           NSMutableArray *phases,
                                            NSMutableArray<CCKJob*> *jobs,
                                            CCKJob *job)
 {
@@ -88,20 +88,14 @@ static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
             break;
         case CCJobTypeDriver:
         {
-            if(*type != CCJobTypeUnknown)
-            {
-                CCKPhaseGenerationEndHelper(engine, type, phases, jobs);
-            }
-            
-            CCKDriver *subDriver = [CCKDriver driverWithArguments:[job.arguments arrayByAddingObjectsFromArray:engine.otherClangFlags] withType:CCDriverTypeClang];
-            subDriver.delegate = engine.delegate;
-            NSArray<CCKJob*> *generatedJobs = [subDriver generateJobs];
-            
-            for(CCKJob *job in generatedJobs)
-            {
-                CCKPhaseGenerationAppendHelper(engine, type, phases, jobs, job);
-            }
             CCKPhaseGenerationEndHelper(engine, type, phases, jobs);
+            
+            CCKPhaseEngine *subPhaseEngine = [CCKPhaseEngine engineWithClangFlags:[job.arguments arrayByAddingObjectsFromArray:engine.otherClangFlags] withOtherLinkerFlags:engine.otherLinkerFlags];
+            subPhaseEngine.delegate = engine.delegate;
+            [phases addObject:subPhaseEngine];
+            
+            CCKPhaseGenerationEndHelper(engine, type, phases, jobs);
+            
             break;
         }
         case CCJobTypeSwiftCompiler:
@@ -222,9 +216,9 @@ static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
     _driver.delegate = delegate;
 }
 
-- (NSArray<CCKPhase*>*)generatePhases
+- (NSArray*)generatePhases
 {
-    NSMutableArray<CCKPhase*> *phases = [NSMutableArray array];
+    NSMutableArray *phases = [NSMutableArray array];
     
     CCJobType currentPhasesType = CCJobTypeUnknown;
     NSMutableArray<CCKJob*> *currentPhasesJobs = [NSMutableArray array];
