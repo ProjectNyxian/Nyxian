@@ -167,15 +167,22 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator,
     {
         driverRef->argStorage.insert(driverRef->argStorage.begin(), "-fuse-ld=lld");
         driverRef->argStorage.insert(driverRef->argStorage.begin(), "clang");
+        
+        for(auto &s : driverRef->argStorage)
+        {
+            if(s == "-syslibroot")
+            {
+                s = "-isysroot";
+            }
+        }
     }
     else
     {
-        driverRef->argStorage.insert(driverRef->argStorage.begin(), "-use-ld=lld");
         driverRef->argStorage.insert(driverRef->argStorage.begin(), "swiftc");
     }
     
     new (&driverRef->argPtr) llvm::SmallVector<const char *, 64>();
-    for(std::string arg : driverRef->argStorage)
+    for(const std::string &arg : driverRef->argStorage)
     {
         driverRef->argPtr.push_back(arg.c_str());
     }
@@ -307,7 +314,8 @@ static void _AppendJob(CFMutableArrayRef out, CFAllocatorRef a,
     CFRelease(argsArray);
     if(jobRef)
     {
-        CFArrayAppendValue(out, jobRef); CFRelease(jobRef);
+        CFArrayAppendValue(out, jobRef);
+        CFRelease(jobRef);
     }
 }
 
