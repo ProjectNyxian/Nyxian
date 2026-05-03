@@ -54,32 +54,20 @@ class Builder: NSObject, CCKDriverDelegate {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
-        var driverFlags: [String] = self.project.projectConfig.compilerFlags
-        
-        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources"]) else {
+        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm","swift"], ["Resources"]) else {
             self.database.addMessage(message: "A fatal error has happened finding clang code files.", severity: .error)
             return nil
         }
         
-        driverFlags.append(contentsOf: codeFiles)
-        driverFlags.append("-o")
-        driverFlags.append(self.project.machoURL.path)
-        
         var swiftDriverFlags: [String] = self.project.projectConfig.swiftFlags
-        
-        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
-            self.database.addMessage(message: "A fatal error has happened finding swift code files.", severity: .error)
-            return nil
-        }
         
         swiftDriverFlags.append("-module-name")
         swiftDriverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
-        swiftDriverFlags.append(contentsOf: swiftFiles)
         swiftDriverFlags.append(contentsOf: codeFiles)
         swiftDriverFlags.append("-o")
         swiftDriverFlags.append(self.project.machoURL.path)
         
-        self.argsString = driverFlags.joined(separator: " ")
+        self.argsString = swiftDriverFlags.joined(separator: " ")
         
         // Check if the args string matches up
         if let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
@@ -243,75 +231,102 @@ class Builder: NSObject, CCKDriverDelegate {
         }
     }
     
-    func compile() throws {
-        /*if !self.compilerJobs.isEmpty {
-            let pstep: Double = 1.00 / Double(self.compilerJobs.count)
-            guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code, because threader creation failed"])
-            }
+    func executeProducedPhases() throws {
+        for phase in self.phases {
+            XCButton.resetProgress()
+            let jobs: [CCKJob] = phase.jobs
+            let pstep: Double = 1.00 / Double(jobs.count)
             
-            for _ in self.compilerJobs {
-                threader.enter();
-            }
-            
-            for job in self.compilerJobs {
-                threader.dispatchExecution( {
+            switch phase.type {
+            case .swiftCompiler:
+                fallthrough
+            case .compiler:
+                if phase.isMultithreadingSupported {
+                    guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because threader creation failed"])
+                    }
+                    
+                    for _ in jobs {
+                        threader.enter()
+                    }
+                    
+                    for job in jobs {
+                        threader.dispatchExecution( {
+                            defer { XCButton.incrementProgress(withValue: pstep) }
+                            
+                            if job.type == .compiler {
+                                guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
+                                      let file: CCKFile = astUnit.file else {
+                                    threader.lockdown = true
+                                    return
+                                }
+                                
+                                let issues: [CCKDiagnostic] = astUnit.diagnostics
+                                self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
+                                
+                                if astUnit.hasErrorOccured {
+                                    threader.lockdown = true
+                                    return
+                                }
+                            } else {
+                                if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
+                                    threader.lockdown = true
+                                }
+                            }
+                        }, withCompletion: nil)
+                    }
+                    
+                    threader.wait()
+                    
+                    if threader.lockdown {
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+                    }
+                } else {
+                    for job in jobs {
+                        defer { XCButton.incrementProgress(withValue: pstep) }
+                        
+                        if job.type == .compiler {
+                            guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
+                                  let file: CCKFile = astUnit.file else {
+                                throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+                            }
+                            
+                            let issues: [CCKDiagnostic] = astUnit.diagnostics
+                            self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
+                            
+                            if astUnit.hasErrorOccured {
+                                throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+                            }
+                        } else {
+                            // TODO: implement diagnostics
+                            if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
+                                throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
+                            }
+                        }
+                    }
+                }
+            case .linker:
+                for job in jobs {
                     defer { XCButton.incrementProgress(withValue: pstep) }
+                    var issues: NSArray?
                     
-                    guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
-                          let file: CCKFile = astUnit.file else {
-                        threader.lockdown = true
-                        return
+                    if !job.execute(withOutDiagnostics: &issues) {
+                        self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
                     }
                     
-                    let issues: [CCKDiagnostic] = astUnit.diagnostics
-                    self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
-                    
-                    if astUnit.hasErrorOccured {
-                        threader.lockdown = true
-                        return
-                    }
-                }, withCompletion: nil)
+                    self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
+                }
+            default:
+                throw NSError(domain: "com.cr4zy.nyxian.builder.phases", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because of a unknown phase type \(phase.type)"])
             }
-            
-            threader.wait()
-            
-            if threader.lockdown {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-            }
-            
-            do {
-                try self.argsString.write(to: self.project.cacheURL.appendingPathComponent("args.txt"), atomically: false, encoding: .utf8)
-            } catch {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
-            }
-        }*/
-    }
-    
-    func compileSwift() throws {
-        /*guard !self.swiftCompilerJobs.isEmpty else { return }
-        let pstep: Double = 1.00 / Double(self.swiftCompilerJobs.count)
+        }
         
-        for job in self.swiftCompilerJobs {
-            let succeeded: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: nil)
-            XCButton.incrementProgress(withValue: pstep)
-            if !succeeded {
-                throw NSError(domain: "com.cr4zy.nyxian.builder.compile", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile swift source code"])
-            }
-        }*/
-    }
-    
-    func link() throws {
-        /*for job in linkerJobs {
-            var issues: NSArray?
-            
-            if !job.execute(withOutDiagnostics: &issues) {
-                self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
-                throw NSError(domain: "com.cr4zy.nyxian.builder.link", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
-            }
-            
-            self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
-        }*/
+        do {
+            try self.argsString.write(to: self.project.cacheURL.appendingPathComponent("args.txt"), atomically: false, encoding: .utf8)
+        } catch {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
+        }
     }
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
@@ -530,9 +545,7 @@ class Builder: NSObject, CCKDriverDelegate {
                     (nil,nil,{ try builder.headsup() }),
                     (nil,nil,{ try builder.clean() }),
                     (nil,nil,{ try builder.prepare() }),
-                    (nil,nil,{ try builder.compileSwift() }),
-                    (nil,nil,{ try builder.compile() }),
-                    ("link",0.3,{ try builder.link() }),
+                    (nil,nil,{ try builder.executeProducedPhases() }),
                     ("arrow.down.app.fill",nil,{try builder.install(buildType: buildType, outPipe: outPipe, inPipe: inPipe) })
                 ];
                 
