@@ -98,6 +98,10 @@ define ensure_xcode
 	fi
 endef
 
+# For workflows
+CHECK_DEPS ?= 1
+
+ifeq ($(CHECK_DEPS),1)
 # Dependency Checks
 check:
 	$(call ensure_macos)
@@ -111,6 +115,10 @@ check:
 	$(call ensure_brew_package,ninja)
 	$(call ensure_theos)
 	@$(call log_info,all dependencies are installed)
+else
+check:
+	@$(call log_info,all dependency check was skipped)
+endif
 
 # Targets
 all: jailed

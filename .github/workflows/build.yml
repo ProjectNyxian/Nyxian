@@ -64,35 +64,35 @@ jobs:
           set -e
 
           # Build the project (jailed)
-          make jailed
+          CHECK_DEPS=0 make jailed
 
       - name: Build Rootless
         run: |
           set -e
 
           # Build the project (rootless)
-          make rootless
+          CHECK_DEPS=0 make rootless
 
       - name: Build Roothide
         run: |
           set -e
 
           # Build the project (roothide)
-          make roothide
+          CHECK_DEPS=0 make roothide
 
       - name: Build Rootful
         run: |
           set -e
 
           # Build the project (roothide)
-          make rootful
+          CHECK_DEPS=0 make rootful
 
       - name: Build TrollStore
         run: |
           set -e
 
           # Build the project (roothide)
-          make trollstore
+          CHECK_DEPS=0 make trollstore
 
       - name: Upload Jailed
         uses: actions/upload-artifact@v4
