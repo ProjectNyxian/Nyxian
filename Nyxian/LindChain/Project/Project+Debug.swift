@@ -23,9 +23,6 @@ import Foundation
 import UIKit
 import CoreCompiler
 
-extension CCDiagnosticType: @retroactive Codable {}
-extension CCDiagnosticLevel: @retroactive Codable {}
-
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
     let message: String
