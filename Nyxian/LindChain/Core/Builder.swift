@@ -223,7 +223,7 @@ class Builder: NSObject, CCKDriverDelegate {
                     fallthrough
                 case .compiler:
                     if phase.isMultithreadingSupported {
-                        guard let threader = LDEThreadGroupController(usersetThreadCount: ()) else {
+                        guard let threader = CCKThreadPoolGroup(threads: UInt32(LDEGetUserSetThreadCount())) else {
                             throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because threader creation failed"])
                         }
                         
@@ -497,7 +497,7 @@ class Builder: NSObject, CCKDriverDelegate {
         
         XCButton.resetProgress()
         
-        LDEPthreadDispatch {
+        CCKPthreadDispatch {
             NXBootstrap.shared().waitTillDone()
             
             var result: Bool = true

@@ -29,8 +29,6 @@
 #include <errno.h>
 #include <assert.h>
 
-extern int LDEGetOptimalThreadCount(void);
-
 #define MAX_SYSCALLS 1024
 
 struct syscall_server {
@@ -343,7 +341,8 @@ int syscall_server_start(syscall_server_t *server)
     }
     
     /* starting syscall server */
-    server->threads_cnt = LDEGetOptimalThreadCount();
+    extern int CCGetMaximumPerformanceCores(void);
+    server->threads_cnt = (int)CCGetMaximumPerformanceCores();
     if(server->threads_cnt == 0)
     {
         /* shall never happen */

@@ -20,6 +20,7 @@
 */
 
 import UIKit
+import CoreCompiler
 
 class ToolChainController: UIThemedTableViewController {
     
@@ -75,7 +76,7 @@ class ToolChainController: UIThemedTableViewController {
             (cell as! ToggleTableCell).configure(title: "Incremental Build", key: "LDEIncrementalBuild", defaultValue: true)
             break
         case 1:
-            let optimCpuCount: Int = (Int)(LDEGetOptimalThreadCount())
+            let optimCpuCount: Int = (Int)(CCGetMaximumPerformanceCores())
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
         default:

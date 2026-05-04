@@ -19,36 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETHREADCONTROL_H
-#define LDETHREADCONTROL_H
+#ifndef LDEUTILS_H
+#define LDEUTILS_H
 
-#import <Foundation/Foundation.h>
-
-void LDEPthreadDispatch(void (^code)(void));
-int LDEGetOptimalThreadCount(void);
 int LDEGetUserSetThreadCount(void);
 
-typedef struct {
-    pthread_t thread;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    void (^__strong currentBlock)(void);
-    void (^__strong completionBlock)(void);
-    int cpuIndex;
-    _Atomic(bool) shouldExit;
-    _Atomic(bool) hasWork;
-} LDEWorkerThread;
-
-@interface LDEThreadController : NSObject
-
-@property (atomic,readwrite) BOOL lockdown;
-
-- (instancetype)initWithThreads:(uint32_t)threads;
-- (instancetype)init;
-- (instancetype)initWithUsersetThreadCount;
-
-- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
-
-@end
-
-#endif /* LDETHREADCONTROL_H */
+#endif /* LDEUTILS_H */

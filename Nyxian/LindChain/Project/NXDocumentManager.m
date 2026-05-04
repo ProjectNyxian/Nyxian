@@ -21,7 +21,8 @@
 
 #import <LindChain/Project/NXDocumentManager.h>
 #import <os/lock.h>
-#import <LindChain/Utils/LDEThreadGroupController.h>
+#import <CoreCompiler/CCKThreadPoolGroup.h>
+#import <LindChain/Utils/Utils.h>
 
 @implementation NXDocumentManager {
     NSMutableDictionary<NSURL*,NXDocument*> *_documents;
@@ -107,17 +108,17 @@ out_complete:
     os_unfair_lock_unlock(&_lock);
     
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        LDEThreadGroupController *threadGroupController = [[LDEThreadGroupController alloc] initWithUsersetThreadCount];
+        CCKThreadPoolGroup *threadPoolGroup = [[CCKThreadPoolGroup alloc] initWithThreads:LDEGetUserSetThreadCount()];
 
         for(NXDocument *document in documents)
         {
             (void)document; /* compiler, ignore this ^^ */
-            [threadGroupController enter];
+            [threadPoolGroup enter];
         }
         
         for(NXDocument *document in documents)
         {
-            [threadGroupController dispatchExecution:^{
+            [threadPoolGroup dispatchExecution:^{
                 if(!document.hasUnsavedChanges) return;
                 dispatch_semaphore_t sema = dispatch_semaphore_create(0);
                 [document saveToURL:document.fileURL forSaveOperation:UIDocumentSaveForOverwriting completionHandler:^(BOOL success) {
@@ -127,7 +128,7 @@ out_complete:
             } withCompletion:nil];
         }
         
-        [threadGroupController wait];
+        [threadPoolGroup wait];
         if(completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(); });
     });
 }

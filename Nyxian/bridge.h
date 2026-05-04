@@ -28,7 +28,7 @@
 #import <LindChain/Core/LDEFilesFinder.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Utils/LDEDebouncer.h>
-#import <LindChain/Utils/LDEThreadGroupController.h>
+#import <LindChain/Utils/Utils.h>
 
 #if !JAILBREAK_ENV
 

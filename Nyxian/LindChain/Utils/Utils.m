@@ -19,22 +19,13 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LDETHREADGROUPE_H
-#define LDETHREADGROUPE_H
+#import <Foundation/Foundation.h>
+#import <LindChain/Utils/Utils.h>
+#import <CoreCompiler/CCUtils.h>
 
-#import <LindChain/Utils/LDEThreadController.h>
-
-@interface LDEThreadGroupController : LDEThreadController
-
-- (instancetype)initWithThreads:(uint32_t)threads;
-- (instancetype)init;
-- (instancetype)initWithUsersetThreadCount;
-
-- (void)enter;
-- (void)wait;
-
-- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
-
-@end
-
-#endif /* LDETHREADGROUPE_H */
+int LDEGetUserSetThreadCount(void)
+{
+    NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"cputhreads"];
+    int userSelected = (value && [value isKindOfClass:[NSNumber class]]) ? value.intValue : (int)CCGetMaximumPerformanceCores();
+    return (userSelected == 0) ? 1 : userSelected;
+}

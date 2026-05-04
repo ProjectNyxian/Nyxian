@@ -21,7 +21,7 @@
 */
 
 #import <LindChain/Project/NXProject.h>
-#import <LindChain/Utils/LDEThreadController.h>
+#import <LindChain/Utils/Utils.h>
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
 #import <LindChain/Project/NXUtils.h>

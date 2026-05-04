@@ -348,6 +348,7 @@
 			};
 			privateHeaders = (
 				CCUtilsPrivate.h,
+				Support/CCKThreadPoolPrivate.h,
 			);
 			publicHeaders = (
 				CCASTUnit.h,
@@ -382,6 +383,8 @@
 				CCUtils.h,
 				CFRuntime.h,
 				CoreCompiler.h,
+				Support/CCKThreadPool.h,
+				Support/CCKThreadPoolGroup.h,
 			);
 			target = 86DCC2592FA5209600973169 /* CoreCompiler */;
 		};

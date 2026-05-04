@@ -21,11 +21,11 @@
 
 #import <NXBootstrap.h>
 #import <UI/XCodeButton.h>
-#import <LindChain/Utils/LDEThreadController.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <Nyxian-Swift.h>
+#import <CoreCompiler/CCKThreadPool.h>
 
 @interface NXBootstrap ()
 
@@ -135,7 +135,7 @@
 {
     NSLog(@"checking upon nyxian bootstrap :3");
     
-    LDEPthreadDispatch(^{
+    CCKPthreadDispatch(^{
         NSError *error = nil;
         
         goto skip_error_report;

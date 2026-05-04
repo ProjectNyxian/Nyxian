@@ -1,26 +1,30 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ * MIT License
+ *
+ * Copyright (c) 2024 light-tech
+ * Copyright (c) 2026 cr4zyengineer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
- Copyright (C) 2025 - 2026 cr4zyengineer
-
- This file is part of Nyxian.
-
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
-*/
-
-#import <LindChain/Utils/LDEThreadController.h>
-#import <CoreCompiler/CCUtils.h>
+#import <CoreCompiler/CCKThreadPool.h>
+#import <CoreCompiler/CCKThreadPoolPrivate.h>
 #include <sys/sysctl.h>
 #include <mach/mach.h>
 #include <pthread.h>
@@ -33,7 +37,7 @@ static inline void *pthreadBlockTrampoline(void *ptr)
     return NULL;
 }
 
-void LDEPthreadDispatch(void (^code)(void))
+void CCKPthreadDispatch(void (^code)(void))
 {
     pthread_t thread;
     void *blockPointer = (__bridge_retained void *)code;
@@ -41,22 +45,10 @@ void LDEPthreadDispatch(void (^code)(void))
     pthread_detach(thread);
 }
 
-int LDEGetOptimalThreadCount(void)
-{
-    return (int)CCGetMaximumPerformanceCores();
-}
-
-int LDEGetUserSetThreadCount(void)
-{
-    NSNumber *value = [[NSUserDefaults standardUserDefaults] objectForKey:@"cputhreads"];
-    int userSelected = (value && [value isKindOfClass:[NSNumber class]]) ? value.intValue : LDEGetOptimalThreadCount();
-    return (userSelected == 0) ? 1 : userSelected;
-}
-
-static void *LDEWorkerThreadMain(void *arg)
+static void *CCKWorkerThreadMain(void *arg)
 {
     /* getting thread worker */
-    LDEWorkerThread *worker = (LDEWorkerThread *)arg;
+    CCKWorkerThread *worker = (CCKWorkerThread *)arg;
     
     /* pin current thread to a certain groups of CPUs */
     thread_affinity_policy_data_t policy = { .affinity_tag = worker->cpuIndex + 1 };
@@ -107,19 +99,29 @@ static void *LDEWorkerThreadMain(void *arg)
     return NULL;
 }
 
-@interface LDEThreadController ()
+@interface CCKThreadPool ()
 
 @property (nonatomic, strong, readonly) dispatch_semaphore_t semaphore;
 @property (nonatomic, readonly) int threads;
-@property (nonatomic, assign) LDEWorkerThread *workers;
+@property (nonatomic, assign) CCKWorkerThread *workers;
 @property (nonatomic, assign) int workerCount;
 
 @end
 
-@implementation LDEThreadController {
+@implementation CCKThreadPool {
     int _freeStack[64];
     int _freeTop;
     pthread_mutex_t _freeStackMutex;
+}
+
++ (instancetype)poolWithThreads:(uint32_t)threads
+{
+    return [[CCKThreadPool alloc] initWithThreads:threads];
+}
+
++ (instancetype)pool
+{
+    return [[CCKThreadPool alloc] init];
 }
 
 - (instancetype)initWithThreads:(uint32_t)threads
@@ -128,7 +130,7 @@ static void *LDEWorkerThreadMain(void *arg)
     _threads = (threads == 0) ? 1 : threads;
     _semaphore = dispatch_semaphore_create(threads);
     _workerCount = threads;
-    _workers = calloc(threads, sizeof(LDEWorkerThread));
+    _workers = calloc(threads, sizeof(CCKWorkerThread));
     pthread_mutex_init(&_freeStackMutex, NULL);
     for(int i = 0; i < threads; i++)
     {
@@ -137,24 +139,19 @@ static void *LDEWorkerThreadMain(void *arg)
     _freeTop = threads;
     for(int i = 0; i < threads; i++)
     {
-        _workers[i].cpuIndex = i % LDEGetOptimalThreadCount();
+        _workers[i].cpuIndex = i % CCGetMaximumPerformanceCores();
         _workers[i].shouldExit = false;
         _workers[i].hasWork = false;
         pthread_mutex_init(&_workers[i].mutex, NULL);
         pthread_cond_init(&_workers[i].cond, NULL);
-        pthread_create(&_workers[i].thread, NULL, LDEWorkerThreadMain, &_workers[i]);
+        pthread_create(&_workers[i].thread, NULL, CCKWorkerThreadMain, &_workers[i]);
     }
     return self;
 }
 
 - (instancetype)init
 {
-    return [self initWithThreads:LDEGetOptimalThreadCount()];
-}
-
-- (instancetype)initWithUsersetThreadCount
-{
-    return [self initWithThreads:LDEGetUserSetThreadCount()];
+    return [self initWithThreads:(uint32_t)CCGetMaximumPerformanceCores()];
 }
 
 - (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion
@@ -165,7 +162,7 @@ static void *LDEWorkerThreadMain(void *arg)
     int workerIndex = _freeStack[--_freeTop];
     pthread_mutex_unlock(&_freeStackMutex);
     
-    LDEWorkerThread *worker = &_workers[workerIndex];
+    CCKWorkerThread *worker = &_workers[workerIndex];
     dispatch_semaphore_t sem = self.semaphore;
     pthread_mutex_lock(&worker->mutex);
     worker->currentBlock = code;
