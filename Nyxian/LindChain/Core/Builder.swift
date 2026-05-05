@@ -231,11 +231,11 @@ class Builder: NSObject, CCKDriverDelegate {
                             threader.enter()
                         }
                         
-                        for job in jobs {
-                            threader.dispatchExecution( {
-                                defer { XCButton.incrementProgress(withValue: pstep) }
-                                
-                                if job.type == .compiler {
+                        if phase.type == .compiler {
+                            for job in jobs {
+                                threader.dispatchExecution( {
+                                    defer { XCButton.incrementProgress(withValue: pstep) }
+                                    
                                     guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
                                           let file: CCKFile = astUnit.file else {
                                         threader.lockdown = true
@@ -249,12 +249,18 @@ class Builder: NSObject, CCKDriverDelegate {
                                         threader.lockdown = true
                                         return
                                     }
-                                } else {
+                                }, withCompletion: nil)
+                            }
+                        } else {
+                            for job in jobs {
+                                threader.dispatchExecution( {
+                                    defer { XCButton.incrementProgress(withValue: pstep) }
+                                    
                                     if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
                                         threader.lockdown = true
                                     }
-                                }
-                            }, withCompletion: nil)
+                                }, withCompletion: nil)
+                            }
                         }
                         
                         threader.wait()
@@ -263,22 +269,25 @@ class Builder: NSObject, CCKDriverDelegate {
                             throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                         }
                     } else {
-                        for job in jobs {
-                            defer { XCButton.incrementProgress(withValue: pstep) }
-                            
-                            if job.type == .compiler {
+                        if phase.type == .compiler {
+                            for job in jobs {
+                                defer { XCButton.incrementProgress(withValue: pstep) }
+                                
                                 guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
-                                      let file: CCKFile = astUnit.file else {
+                                    let file: CCKFile = astUnit.file else {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                                 }
-                                
+                                    
                                 let issues: [CCKDiagnostic] = astUnit.diagnostics
                                 self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
-                                
+                                    
                                 if astUnit.hasErrorOccured {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                                 }
-                            } else {
+                            }
+                        } else {
+                            for job in jobs {
+                                defer { XCButton.incrementProgress(withValue: pstep) }
                                 // TODO: implement diagnostics
                                 if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
