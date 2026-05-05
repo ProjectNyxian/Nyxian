@@ -31,6 +31,6 @@
 #include <CoreCompiler/CCDiagnostic.h>
 #include <CoreCompiler/CCJob.h>
 
-CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job, CFArrayRef *outDiagnostics);
+CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job, CFArrayRef *outDiagnostics, CFStringRef *outMainSource);
 
 #endif /* CCSWIFTCOMPILER_H */

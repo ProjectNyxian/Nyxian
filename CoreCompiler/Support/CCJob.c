@@ -26,6 +26,7 @@
 #include <CoreCompiler/CCJob.h>
 #include <CoreCompiler/CCDriver.h>
 #include <CoreCompiler/CCCompiler.h>
+#include <CoreCompiler/CCSwiftCompiler.h>
 #include <CoreCompiler/CCLinker.h>
 
 static CFTypeID gCCJobTypeID = _kCFRuntimeNotATypeID;
@@ -103,8 +104,9 @@ CFArrayRef CCJobGetArguments(CCJobRef job)
     return job->arguments;
 }
 
-Boolean CCJobExecuteJob(CCJobRef job,
-                        CFArrayRef *outDiagnostic)
+CC_EXPORT Boolean CCJobExecuteJob(CCJobRef job,
+                                  CFArrayRef *outDiagnostic,
+                                  CFStringRef *outMainSource)
 {
     switch(job->type)
     {
@@ -114,6 +116,16 @@ Boolean CCJobExecuteJob(CCJobRef job,
             if(ASTUnit == nil)
             {
                 return false;
+            }
+            
+            CCFileRef file = CCASTUnitGetFile(ASTUnit);
+            if(file != nil)
+            {
+                CFStringRef mainSource = CFURLCopyFileSystemPath(CCFileGetFileURL(file), kCFURLPOSIXPathStyle);
+                if(mainSource != nil && outMainSource != nil)
+                {
+                    *outMainSource = mainSource;
+                }
             }
             
             CFArrayRef diagnostics = CCASTUnitCopyDiagnostics(ASTUnit);
@@ -128,8 +140,16 @@ Boolean CCJobExecuteJob(CCJobRef job,
             
             return !didErrorOccur;
         }
+        case CCJobTypeSwiftCompiler:
+        {
+            return CCSwiftCompilerJobExecute(job, outDiagnostic, outMainSource);
+        }
         case CCJobTypeLinker:
         {
+            if(outMainSource != nil)
+            {
+                *outMainSource = CFSTR("linker");
+            }
             return CCLinkerJobExecute(job, outDiagnostic);
         }
         case CCJobTypeUnknown:

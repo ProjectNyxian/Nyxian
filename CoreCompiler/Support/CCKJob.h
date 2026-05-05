@@ -37,7 +37,7 @@
 
 + (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments;
 
-- (BOOL)executeJobWithOutDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic;
+- (BOOL)executeJobWithOutDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic withOutMainSource:(NSString**)outMainSource;
 
 @end
 

@@ -144,7 +144,8 @@ static CFStringRef CCStringCreateWithFileDescriptor(CFAllocatorRef allocator, in
 }
 
 CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job,
-                                            CFArrayRef *outDiagnostics)
+                                            CFArrayRef *outDiagnostics,
+                                            CFStringRef *outMainSource)
 {
     assert(job != nullptr);
     assert(CCJobGetType(job) == CCJobTypeSwiftCompiler);
@@ -245,7 +246,14 @@ CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job,
         CFRelease(diagnostic);
     }
     
-    CFRelease(mainSource);
+    if(outMainSource == nullptr)
+    {
+        CFRelease(mainSource);
+    }
+    else
+    {
+        *outMainSource = mainSource;
+    }
     
     return status == 0;
 }

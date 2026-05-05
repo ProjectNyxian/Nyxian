@@ -31,7 +31,7 @@
 
 @interface CCKSwiftCompiler : NSObject
 
-+ (BOOL)executeJob:(CCKJob*)job outDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic;
++ (BOOL)executeJob:(CCKJob*)job outDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic outMainSource:(NSString**)outMainSource;
 
 @end
 

@@ -35,15 +35,9 @@
 
 + (BOOL)executeJob:(CCKJob*)job
     outDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic
+     outMainSource:(NSString**)outMainSource
 {
-    CCKASTUnit *unit = [self executeJob:job];
-    
-    if(outDiagnostic != nil)
-    {
-        *outDiagnostic = unit.diagnostics;
-    }
-    
-    return !unit.hasErrorOccured;
+    return [job executeJobWithOutDiagnostics:outDiagnostic withOutMainSource:outMainSource];
 }
 
 @end

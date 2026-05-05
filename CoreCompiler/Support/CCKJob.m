@@ -49,9 +49,11 @@
 }
 
 - (BOOL)executeJobWithOutDiagnostics:(NSArray<CCKDiagnostic*>**)outDiagnostic
+                   withOutMainSource:(NSString**)outMainSource
 {
     CFArrayRef array = nil;
-    BOOL success = CCJobExecuteJob((__bridge CCJobRef)self, &array);
+    CFStringRef string = nil;
+    BOOL success = CCJobExecuteJob((__bridge CCJobRef)self, &array, &string);
     
     if(array != nil)
     {
@@ -62,6 +64,18 @@
         else
         {
             CFRelease(array);
+        }
+    }
+    
+    if(string != nil)
+    {
+        if(outMainSource != nil)
+        {
+            *outMainSource = (__bridge_transfer NSString*)string;
+        }
+        else
+        {
+            CFRelease(string);
         }
     }
     

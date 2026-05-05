@@ -64,7 +64,7 @@ Boolean CCProgramCompilerExecuteWithArguments(CFArrayRef arguments,
 
         /* executing the job */
         CFArrayRef jobDiagnostic = nil;
-        Boolean success = CCJobExecuteJob(job, &jobDiagnostic);
+        Boolean success = CCJobExecuteJob(job, &jobDiagnostic, nil);
 
         /* checking for diagnostics to copy over */
         if(jobDiagnostic != nil)

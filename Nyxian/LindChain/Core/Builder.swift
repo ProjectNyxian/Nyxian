@@ -256,7 +256,7 @@ class Builder: NSObject, CCKDriverDelegate {
                                 threader.dispatchExecution( {
                                     defer { XCButton.incrementProgress(withValue: pstep) }
                                     
-                                    if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
+                                    if !CCKSwiftCompiler.execute(job, outDiagnostics: nil, outMainSource: nil) {
                                         threader.lockdown = true
                                     }
                                 }, withCompletion: nil)
@@ -291,11 +291,16 @@ class Builder: NSObject, CCKDriverDelegate {
                                 // TODO: implement diagnostics
                                 
                                 var issues: NSArray?
-                                let success: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: &issues)
+                                var mainSource: NSString?
+                                let success: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: &issues, outMainSource: &mainSource)
                                 
-                                if let issues = issues as? [CCKDiagnostic] {
+                                if let issues = issues as? [CCKDiagnostic],
+                                   let mainSource = mainSource as? String {
+                                    self.database.setFileDebug(ofPath: mainSource, synItems: issues)
                                     if let mainSource: String = issues.first?.mainSource {
                                         self.database.setFileDebug(ofPath: mainSource, synItems: issues)
+                                    } else {
+                                        self.database.setFileDebug(ofPath: mainSource, synItems: [])
                                     }
                                 }
                                 
@@ -310,7 +315,7 @@ class Builder: NSObject, CCKDriverDelegate {
                         defer { XCButton.incrementProgress(withValue: pstep) }
                         var issues: NSArray?
                         
-                        if !job.execute(withOutDiagnostics: &issues) {
+                        if !job.execute(withOutDiagnostics: &issues, withOutMainSource: nil) {
                             self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
                             throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
                         }
