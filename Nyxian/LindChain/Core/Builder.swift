@@ -55,20 +55,45 @@ class Builder: NSObject, CCKDriverDelegate {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
-        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm","swift"], ["Resources"]) else {
+        self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        
+        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources"]) else {
             self.database.addMessage(message: "A fatal error has happened finding clang code files.", severity: .error)
             return nil
         }
         
-        var swiftDriverFlags: [String] = self.project.projectConfig.swiftFlags
+        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources"]) else {
+            self.database.addMessage(message: "A fatal error has happened finding clang code files.", severity: .error)
+            return nil
+        }
         
-        swiftDriverFlags.append("-module-name")
-        swiftDriverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
-        swiftDriverFlags.append(contentsOf: codeFiles)
-        swiftDriverFlags.append("-o")
-        swiftDriverFlags.append(self.project.machoURL.path)
-        
-        self.argsString = swiftDriverFlags.joined(separator: " ")
+        if swiftFiles.isEmpty && codeFiles.isEmpty {
+            self.database.addMessage(message: "Nothing to build.", severity: .error)
+            return nil
+        } else if !swiftFiles.isEmpty {
+            var driverFlags: [String] = self.project.projectConfig.swiftFlags
+            
+            driverFlags.append("-module-name")
+            driverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
+            driverFlags.append(contentsOf: swiftFiles)
+            driverFlags.append(contentsOf: codeFiles)
+            driverFlags.append("-o")
+            driverFlags.append(self.project.machoURL.path)
+            
+            self.argsString = driverFlags.joined(separator: " ")
+            
+            self.phaseEngine = CCKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+        } else {
+            var driverFlags: [String] = self.project.projectConfig.compilerFlags
+            
+            driverFlags.append(contentsOf: codeFiles)
+            driverFlags.append("-o")
+            driverFlags.append(self.project.machoURL.path)
+            
+            self.argsString = driverFlags.joined(separator: " ")
+            
+            self.phaseEngine = CCKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+        }
         
         // Check if the args string matches up
         if let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
@@ -77,10 +102,6 @@ class Builder: NSObject, CCKDriverDelegate {
             self.projectDirty = true
             self.database.clearDatabase() /* nothing valid anymore */
         }
-        
-        self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
-        
-        self.phaseEngine = CCKPhaseEngine(swiftFlags: swiftDriverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
         
         super.init()
         
