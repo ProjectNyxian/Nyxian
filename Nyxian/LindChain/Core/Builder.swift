@@ -274,13 +274,13 @@ class Builder: NSObject, CCKDriverDelegate {
                                 defer { XCButton.incrementProgress(withValue: pstep) }
                                 
                                 guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
-                                    let file: CCKFile = astUnit.file else {
+                                      let file: CCKFile = astUnit.file else {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                                 }
-                                    
+                                
                                 let issues: [CCKDiagnostic] = astUnit.diagnostics
                                 self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
-                                    
+                                
                                 if astUnit.hasErrorOccured {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                                 }
@@ -289,7 +289,17 @@ class Builder: NSObject, CCKDriverDelegate {
                             for job in jobs {
                                 defer { XCButton.incrementProgress(withValue: pstep) }
                                 // TODO: implement diagnostics
-                                if !CCKSwiftCompiler.execute(job, outDiagnostics: nil) {
+                                
+                                var issues: NSArray?
+                                let success: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: &issues)
+                                
+                                if let issues = issues as? [CCKDiagnostic] {
+                                    if let mainSource: String = issues.first?.mainSource {
+                                        self.database.setFileDebug(ofPath: mainSource, synItems: issues)
+                                    }
+                                }
+                                
+                                if !success {
                                     throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
                                 }
                             }
