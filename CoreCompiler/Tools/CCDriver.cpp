@@ -320,7 +320,10 @@ static Boolean IsDriverInputArg(CFStringRef arg)
     };
     for(size_t i = 0; i < sizeof(kInputSuffixes)/sizeof(*kInputSuffixes); i++)
     {
-        if (CFStringHasSuffix(arg, kInputSuffixes[i])) return true;
+        if(CFStringHasSuffix(arg, kInputSuffixes[i]))
+        {
+            return true;
+        }
     }
     return false;
 }
@@ -637,6 +640,8 @@ CFArrayRef CCDriverCreateJobs(CCDriverRef driver)
                 if(type == CCJobTypeDriver)
                 {
                     CollapseArgsToWl(argsArray);
+                    
+                    /* TODO: translate some swift flags into clang driver flags */
                 }
             
             out_append_swift_job:

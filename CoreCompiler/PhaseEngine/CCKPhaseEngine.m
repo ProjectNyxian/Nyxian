@@ -185,7 +185,7 @@ static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
     self = [super init];
     if(self)
     {
-        _otherClangFlags = nil;
+        _otherClangFlags = clangFlags;
         _otherLinkerFlags = linkerFlags;
         _driver = [CCKDriver driverWithArguments:clangFlags withType:CCDriverTypeClang];
     }
