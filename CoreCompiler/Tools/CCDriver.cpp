@@ -167,14 +167,6 @@ CCDriverRef CCDriverCreate(CFAllocatorRef allocator,
     {
         driverRef->argStorage.insert(driverRef->argStorage.begin(), "-fuse-ld=lld");
         driverRef->argStorage.insert(driverRef->argStorage.begin(), "clang");
-        
-        for(auto &s : driverRef->argStorage)
-        {
-            if(s == "-syslibroot")
-            {
-                s = "-isysroot";
-            }
-        }
     }
     else
     {
@@ -317,6 +309,70 @@ static void _AppendJob(CFMutableArrayRef out, CFAllocatorRef a,
         CFArrayAppendValue(out, jobRef);
         CFRelease(jobRef);
     }
+}
+
+static Boolean IsDriverInputArg(CFStringRef arg)
+{
+    static const CFStringRef kInputSuffixes[] = {
+        CFSTR(".c"), CFSTR(".cc"), CFSTR(".cpp"), CFSTR(".cxx"),
+        CFSTR(".m"), CFSTR(".mm"), CFSTR(".S"), CFSTR(".s"),
+        CFSTR(".o"), CFSTR(".a"), CFSTR(".dylib"), CFSTR(".tbd"),
+    };
+    for(size_t i = 0; i < sizeof(kInputSuffixes)/sizeof(*kInputSuffixes); i++)
+    {
+        if (CFStringHasSuffix(arg, kInputSuffixes[i])) return true;
+    }
+    return false;
+}
+
+static void CollapseArgsToWl(CFMutableArrayRef argsArray)
+{
+    CFIndex count = CFArrayGetCount(argsArray);
+    if(count == 0)
+    {
+        return;
+    }
+
+    CFMutableArrayRef passthrough = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    CFMutableStringRef wl = CFStringCreateMutable(kCFAllocatorDefault, 0);
+    CFStringAppend(wl, CFSTR("-Wl"));
+    Boolean haveWlPayload = false;
+
+    for(CFIndex i = 0; i < count; i++)
+    {
+        CFStringRef arg = (CFStringRef)CFArrayGetValueAtIndex(argsArray, i);
+
+        if(CFEqual(arg, CFSTR("-o")))
+        {
+            CFArrayAppendValue(passthrough, arg);
+            if(i + 1 < count)
+            {
+                CFArrayAppendValue(passthrough, CFArrayGetValueAtIndex(argsArray, i + 1));
+                i++;
+            }
+            continue;
+        }
+
+        if(IsDriverInputArg(arg))
+        {
+            CFArrayAppendValue(passthrough, arg);
+            continue;
+        }
+
+        CFStringAppend(wl, CFSTR(","));
+        CFStringAppend(wl, arg);
+        haveWlPayload = true;
+    }
+
+    CFArrayRemoveAllValues(argsArray);
+    if(haveWlPayload)
+    {
+        CFArrayAppendValue(argsArray, wl);
+    }
+    CFArrayAppendArray(argsArray, passthrough, CFRangeMake(0, CFArrayGetCount(passthrough)));
+
+    CFRelease(wl);
+    CFRelease(passthrough);
 }
 
 CFArrayRef CCDriverCreateJobs(CCDriverRef driver)
@@ -571,12 +627,28 @@ CFArrayRef CCDriverCreateJobs(CCDriverRef driver)
                     _AppendCStr(argsArray, allocator, it != pathRemap.end() ? it->second.c_str() : arg);
                 }
                 
-                CCJobRef jobRef = CCJobCreate(allocator, type, argsArray);
-                CFRelease(argsArray);
-                if(jobRef)
+                /*
+                 * in-case the swift driver emits a clang driver job
+                 * we gonna have to convert all args to a linker flag
+                 * due to swiftc legacy driver creating a linker instead
+                 * of a clang driver arg, what is even funnier is that
+                 * it adds c and objc files to the linker flags lmfao.
+                 */
+                if(type == CCJobTypeDriver)
                 {
-                    CFArrayAppendValue(jobsArray, jobRef);
-                    CFRelease(jobRef);
+                    CollapseArgsToWl(argsArray);
+                }
+            
+            out_append_swift_job:
+                {
+                    
+                    CCJobRef jobRef = CCJobCreate(allocator, type, argsArray);
+                    CFRelease(argsArray);
+                    if(jobRef)
+                    {
+                        CFArrayAppendValue(jobsArray, jobRef);
+                        CFRelease(jobRef);
+                    }
                 }
             }
             break;
