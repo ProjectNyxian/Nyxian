@@ -81,7 +81,27 @@ public:
 
 class MyObserver : public swift::FrontendObserver {
 public:
+    std::string primaryFile;
     CapturingConsumer consumer;
+    
+    void parsedArgs(swift::CompilerInvocation &invocation) override
+    {
+        auto &io = invocation.getFrontendOptions().InputsAndOutputs;
+        if(io.hasPrimaryInputs())
+        {
+            io.forEachPrimaryInput([&](const swift::InputFile &f) -> bool
+            {
+                primaryFile = f.getFileName();
+                return true;
+            });
+        }
+        else
+        {
+            /* TODO: implement wmo support */
+            primaryFile = "wmo";
+        }
+    }
+    
     void configuredCompiler(swift::CompilerInstance &CI) override
     {
         CI.addDiagnosticConsumer(&consumer);
@@ -128,9 +148,9 @@ CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job,
 {
     assert(job != nullptr);
     assert(CCJobGetType(job) == CCJobTypeSwiftCompiler);
-
+    
     CFArrayRef argsArray = CCJobGetArguments(job);
-
+    
     llvm::SmallVector<std::string, 64> argStorage = CCArrayToStringVector(argsArray);
     llvm::SmallVector<const char *, 64> args = StringVectorToCStrings(argStorage);
     
@@ -143,27 +163,38 @@ CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job,
     std::call_once(SwiftModulesInitOnce, [] {
         initializeSwiftModules();
     });
-
+    
     MyObserver obs;
     llvm::remove_fatal_error_handler();
     int status = swift::performFrontend(args, "swift-frontend", nullptr, &obs);
     CCInstallLLVMFatalErrorHandler();
-
+    
     if(outDiagnostics == nullptr)
     {
-        goto out_status;
+        return status == 0;
     }
-
+    
     *outDiagnostics = CFArrayCreateMutable(kCFAllocatorSystemDefault, obs.consumer.diags.size(), &kCFTypeArrayCallBacks);
     if(*outDiagnostics == nullptr)
     {
-        goto out_status;
+        return status == 0;
     }
-
+    
+    if(obs.primaryFile.empty())
+    {
+        return status == 0;
+    }
+    
+    CFStringRef mainSource = CFStringCreateWithCString(kCFAllocatorSystemDefault, obs.primaryFile.c_str(), kCFStringEncodingUTF8);
+    if(mainSource == nullptr)
+    {
+        return status == 0;
+    }
+    
     for(auto &d : obs.consumer.diags)
     {
         CCDiagnosticLevel level = CCDiagnosticLevelUnknown;
-
+        
         switch(d.kind)
         {
             case swift::DiagnosticKind::Error:
@@ -181,48 +212,40 @@ CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job,
             default:
                 break;
         }
-
+        
         if(level == CCDiagnosticLevelUnknown)
         {
             continue;
         }
-
+        
         CFStringRef messageStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, d.message.c_str(), kCFStringEncodingUTF8);
         if(messageStr == nullptr)
         {
             continue;
         }
-
+        
+        CCFileSourceLocationRef fileSourceLocation = nullptr;
         CCFileRef file = CCFileCreateWithCString(kCFAllocatorSystemDefault, d.file.c_str(), kCFStringEncodingUTF8);
-        if(file == nullptr)
+        if(file != nullptr)
         {
-            CFRelease(messageStr);
-            continue;
+            CFURLRef fileURL = CCFileGetFileURL(file);
+            fileSourceLocation = CCFileSourceLocationCreate(kCFAllocatorSystemDefault, fileURL, CCSourceLocationMake(d.line, d.column));
+            CFRelease(file);
         }
-
-        CFURLRef fileURL = CCFileGetFileURL(file);
-        CCFileSourceLocationRef fileSourceLocation = CCFileSourceLocationCreate(kCFAllocatorSystemDefault, fileURL, CCSourceLocationMake(d.line, d.column));
-        CFRelease(file);
-
-        if(fileSourceLocation == nullptr)
-        {
-            CFRelease(messageStr);
-            continue;
-        }
-
-        /* TODO: support internal diagnostic's aswell */
-        CCDiagnosticRef diagnostic = CCDiagnosticCreate(kCFAllocatorSystemDefault, CCDiagnosticTypeFile, level, fileSourceLocation, messageStr);
+        
+        CCDiagnosticRef diagnostic = CCDiagnosticCreate(kCFAllocatorSystemDefault, CCDiagnosticTypeFile, level, mainSource, fileSourceLocation, messageStr);
         CFRelease(messageStr);
         CFRelease(fileSourceLocation);
         if(diagnostic == nullptr)
         {
             continue;
         }
-
+        
         CFArrayAppendValue((CFMutableArrayRef)*outDiagnostics, diagnostic);
         CFRelease(diagnostic);
     }
-
-out_status:
+    
+    CFRelease(mainSource);
+    
     return status == 0;
 }

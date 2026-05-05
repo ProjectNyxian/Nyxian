@@ -35,10 +35,11 @@
 
 @property (nonatomic, readonly) CCDiagnosticType type;
 @property (nonatomic, readonly) CCDiagnosticLevel level;
+@property (nonatomic, readonly) NSString *mainSource;
 @property (nonatomic, readonly) CCKFileSourceLocation *fileSourceLocation;
 @property (nonatomic, readonly) NSString *message;
 
-+ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level fileSourceLocation:(CCKFileSourceLocation *)fileSourceLocation message:(NSString *)message;
++ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level mainSource:(NSString*)mainSource fileSourceLocation:(CCKFileSourceLocation *)fileSourceLocation message:(NSString*)message;
 
 @end
 

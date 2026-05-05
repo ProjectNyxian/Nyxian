@@ -30,11 +30,12 @@
 
 + (instancetype)diagnosticWithType:(CCDiagnosticType)type
                              level:(CCDiagnosticLevel)level
+                        mainSource:(NSString*)mainSource
                 fileSourceLocation:(CCKFileSourceLocation *)fileSourceLocation
-                           message:(NSString *)message
+                           message:(NSString*)message
 {
     /* FIXME: will crash without message */
-    return (__bridge_transfer CCKDiagnostic*)CCDiagnosticCreate(kCFAllocatorSystemDefault, type, level, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
+    return (__bridge_transfer CCKDiagnostic*)CCDiagnosticCreate(kCFAllocatorSystemDefault, type, level, (__bridge CFStringRef)mainSource, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
 }
 
 - (CCDiagnosticType)type
@@ -45,6 +46,11 @@
 - (CCDiagnosticLevel)level
 {
     return CCDiagnosticGetLevel((__bridge void *)self);
+}
+
+- (NSString*)mainSource
+{
+    return (__bridge NSString*)CCDiagnosticGetMainSource((__bridge void *)self);
 }
 
 - (CCKFileSourceLocation*)fileSourceLocation

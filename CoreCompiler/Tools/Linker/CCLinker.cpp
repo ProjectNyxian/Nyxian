@@ -87,7 +87,7 @@ Boolean CCLinkerJobExecute(CCJobRef job,
 
         CCDiagnosticLevel level = (retCode == 0) ? CCDiagnosticLevelWarning : CCDiagnosticLevelError;
         CFStringRef message = CFStringCreateWithCString(allocator, errBuf.c_str(), kCFStringEncodingUTF8);
-        CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(allocator, CCDiagnosticTypeInternal, level, nullptr, message);
+        CCDiagnosticRef diagnosticRef = CCDiagnosticCreate(allocator, CCDiagnosticTypeInternal, level, CFSTR("linker"), nullptr, message);
         CFRelease(message);
         if(diagnosticRef != nullptr)
         {

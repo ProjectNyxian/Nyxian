@@ -31,6 +31,7 @@ struct opaque_ccdiag {
     CFRuntimeBase _base;
     CCDiagnosticType type;
     CCDiagnosticLevel level;
+    CFStringRef mainSource;
     CCFileSourceLocationRef fileSourceLocation;
     CFStringRef message;
 };
@@ -143,10 +144,11 @@ CFTypeID CCDiagnosticGetTypeID(void)
 CC_EXPORT CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
                                              CCDiagnosticType type,
                                              CCDiagnosticLevel level,
+                                             CFStringRef mainSource,
                                              CCFileSourceLocationRef fileSourceLocation,
                                              CFStringRef message)
 {
-    assert(message != nil);
+    assert(message != nil && mainSource != nil);
     
     CCDiagnosticRef diagnostic = (CCDiagnosticRef)_CFRuntimeCreateInstance(allocator, CCDiagnosticGetTypeID(), sizeof(struct opaque_ccdiag) - sizeof(CFRuntimeBase), NULL);
     if(diagnostic == nil)
@@ -156,6 +158,7 @@ CC_EXPORT CCDiagnosticRef CCDiagnosticCreate(CFAllocatorRef allocator,
     
     diagnostic->type = type;
     diagnostic->level = level;
+    diagnostic->mainSource = CFRetain(mainSource);
     
     if(fileSourceLocation != nil)
     {
@@ -174,6 +177,11 @@ CCDiagnosticType CCDiagnosticGetType(CCDiagnosticRef diagnostic)
 CCDiagnosticLevel CCDiagnosticGetLevel(CCDiagnosticRef diagnostic)
 {
     return diagnostic->level;
+}
+
+CC_EXPORT CFStringRef CCDiagnosticGetMainSource(CCDiagnosticRef diagnostic)
+{
+    return diagnostic->mainSource;
 }
 
 CCFileSourceLocationRef CCDiagnosticGetFileSourceLocation(CCDiagnosticRef diagnostic)
