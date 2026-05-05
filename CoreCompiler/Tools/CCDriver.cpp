@@ -316,7 +316,6 @@ static Boolean IsDriverInputArg(CFStringRef arg)
     static const CFStringRef kInputSuffixes[] = {
         CFSTR(".c"), CFSTR(".cc"), CFSTR(".cpp"), CFSTR(".cxx"),
         CFSTR(".m"), CFSTR(".mm"), CFSTR(".S"), CFSTR(".s"),
-        CFSTR(".o"), CFSTR(".a"), CFSTR(".dylib"), CFSTR(".tbd"),
     };
     for(size_t i = 0; i < sizeof(kInputSuffixes)/sizeof(*kInputSuffixes); i++)
     {
