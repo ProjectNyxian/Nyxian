@@ -75,6 +75,11 @@ fileprivate func numericValue(_ version: String) -> Double {
             NXOSVersion(versionString: NXOSVersionSupportedBuildVersions.last)!
         }
     }
+    @objc static var iPadOSMinimumValidityVersion: NXOSVersion {
+        get {
+            NXOSVersion(versionString: "13.0")!
+        }
+    }
     
     @objc init?(versionString inputString: String?) {
         var inputString = inputString ?? "9.0"
@@ -112,7 +117,24 @@ fileprivate func numericValue(_ version: String) -> Double {
     }
     
     @objc override var description: String {
-        return versionString
+        var osFlavour: String {
+            switch UIDevice.current.userInterfaceIdiom {
+                case .phone: return "iOS"
+                case .pad:
+                    if NXOSVersion.iPadOSMinimumValidityVersion <= self {
+                        return "iPadOS"
+                    } else {
+                        return "iOS"
+                    }
+                case .tv: return "tvOS"
+                case .mac: return ProcessInfo.processInfo.isiOSAppOnMac ? "iOS-on-Mac" : "macOS"
+                case .vision: return "visionOS"
+                case .carPlay: return "CarPlay"
+                default: return "Unknown"
+            }
+        }
+        
+        return "\(osFlavour) \(versionString)"
     }
     
     @objc override func isEqual(_ object: Any?) -> Bool {

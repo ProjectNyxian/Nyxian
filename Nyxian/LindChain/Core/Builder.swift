@@ -97,13 +97,13 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
             return nil
         }
         
-        let phaseEngine: CCKPhaseEngine
         var driverFlags: [String] = []
         driverFlags.append(contentsOf: swiftFiles)
         driverFlags.append(contentsOf: codeFiles)
         driverFlags.append("-o")
         driverFlags.append(self.project.machoURL.path)
         
+        let phaseEngine: CCKPhaseEngine
         if swiftFiles.isEmpty && codeFiles.isEmpty {
             self.database.addMessage(message: "Nothing to build. No code files were found, please create a code file.", severity: .error)
             self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
@@ -123,7 +123,8 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         self.argsString = driverFlags.joined(separator: " ")
         
         // Check if the args string matches up
-        if let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
+        if self.incrementalBuild,
+           let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
             self.projectDirty = args != self.argsString
         } else {
             self.projectDirty = true
@@ -149,7 +150,6 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
     func driver(_ driver: CCKDriver,
                 skipCompileForInputFile file: CCKFile) -> Bool {
         if !CCFileTypeIsSwiftFile(file.type),
-           self.incrementalBuild,
            !self.projectDirty {
             
             let path: String = file.fileURL.path
@@ -213,16 +213,16 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         
         // Nyxian requirement checks
         if osVersionNeeded < NXOSVersion.minimumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion) at a minimum."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion) at a minimum."])
         }
         
         if osVersionNeeded > NXOSVersion.maximumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion) at a maximum."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion) at a maximum."])
         }
         
         // Project requirement check
         if osVersionNeeded > NXOSVersion.hostVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"System version \(osVersionNeeded) is needed to build the app, but host version \(NXOSVersion.hostVersion) is present."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is needed to build the app, but host version iOS \(NXOSVersion.hostVersion) is present."])
         }
     }
     
