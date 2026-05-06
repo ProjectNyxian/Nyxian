@@ -83,11 +83,11 @@ class ToolChainController: UIThemedTableViewController {
             switch(indexPath.row) {
             case 0:
                 cell = UITableViewCell()
-                cell.textLabel?.text = "Clear ModuleCache"
+                cell.textLabel?.text = "Clear Module Cache"
                 break
             default:
                 cell = UITableViewCell()
-                cell.textLabel?.text = "Clear ProjectCache"
+                cell.textLabel?.text = "Clear Project Cache"
                 break
             }
             break
