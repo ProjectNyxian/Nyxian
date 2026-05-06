@@ -31,6 +31,8 @@
 		79D1DA6C2F92B4CA0020518A /* TreeSitterSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 79D1DA6B2F92B4CA0020518A /* TreeSitterSwift */; };
 		860AB8702FA5925200495EE4 /* CoreCompiler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; };
 		860AB8712FA5925200495EE4 /* CoreCompiler.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8630CBB52FABE19200C6EE6D /* UIOnboarding in Frameworks */ = {isa = PBXBuildFile; productRef = 8630CBB42FABE19200C6EE6D /* UIOnboarding */; };
+		8630CBB72FABE19E00C6EE6D /* UIOnboarding in Frameworks */ = {isa = PBXBuildFile; productRef = 8630CBB62FABE19E00C6EE6D /* UIOnboarding */; };
 		86DCC2622FA5209600973169 /* CoreCompiler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; };
 		86DCC2632FA5209600973169 /* CoreCompiler.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 86DCC25A2FA5209600973169 /* CoreCompiler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		86DCC30A2FA521A600973169 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 86DCC3082FA5219900973169 /* libz.tbd */; };
@@ -502,6 +504,7 @@
 			files = (
 				79AF51182F1CBD110055004A /* Runestone in Frameworks */,
 				79AF511A2F1CBD110055004A /* TreeSitterObjc in Frameworks */,
+				8630CBB72FABE19E00C6EE6D /* UIOnboarding in Frameworks */,
 				79AF511B2F1CBD110055004A /* libarchive.tbd in Frameworks */,
 				860AB8702FA5925200495EE4 /* CoreCompiler.framework in Frameworks */,
 				79AF511C2F1CBD110055004A /* TreeSitterC in Frameworks */,
@@ -544,6 +547,7 @@
 				79D1DA672F92A6CE0020518A /* TreeSitterSwift in Frameworks */,
 				AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */,
 				AFF4E3492DCCCE0F00B1B5F9 /* TreeSitterXML in Frameworks */,
+				8630CBB52FABE19200C6EE6D /* UIOnboarding in Frameworks */,
 				793A7E502EB5996A0044418E /* SwiftTerm in Frameworks */,
 				791C99502F87687C006AF674 /* Runestone in Frameworks */,
 			);
@@ -646,6 +650,7 @@
 				79AF51142F1CBD110055004A /* SwiftTerm */,
 				79B708BD2F731590000F38E7 /* TreeSitterCPP */,
 				79D1DA6B2F92B4CA0020518A /* TreeSitterSwift */,
+				8630CBB62FABE19E00C6EE6D /* UIOnboarding */,
 			);
 			productName = LindDE;
 			productReference = 79AF512B2F1CBD110055004A /* NyxianForJB.app */;
@@ -727,6 +732,7 @@
 				791C994F2F87687C006AF674 /* Runestone */,
 				79D1DA662F92A6CE0020518A /* TreeSitterSwift */,
 				79D1DA692F92A98C0020518A /* TreeSitterSwift */,
+				8630CBB42FABE19200C6EE6D /* UIOnboarding */,
 			);
 			productName = LindDE;
 			productReference = 7944B5652DEC74EA00834134 /* Nyxian.app */;
@@ -774,6 +780,7 @@
 				79B708BA2F73157F000F38E7 /* XCRemoteSwiftPackageReference "tree-sitter-cpp" */,
 				791C994E2F87687C006AF674 /* XCRemoteSwiftPackageReference "Runestone" */,
 				79D1DA682F92A98B0020518A /* XCRemoteSwiftPackageReference "tree-sitter-swift" */,
+				8630CBB32FABE19200C6EE6D /* XCRemoteSwiftPackageReference "UIOnboarding" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AF9916D02DC8C42200DDF895;
@@ -1837,6 +1844,14 @@
 				kind = branch;
 			};
 		};
+		8630CBB32FABE19200C6EE6D /* XCRemoteSwiftPackageReference "UIOnboarding" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lascic/UIOnboarding.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.5;
+			};
+		};
 		AF9919562DC9175A00DDF895 /* XCRemoteSwiftPackageReference "tree-sitter-objc" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/tree-sitter-grammars/tree-sitter-objc.git";
@@ -1938,6 +1953,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 79D1DA682F92A98B0020518A /* XCRemoteSwiftPackageReference "tree-sitter-swift" */;
 			productName = TreeSitterSwift;
+		};
+		8630CBB42FABE19200C6EE6D /* UIOnboarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8630CBB32FABE19200C6EE6D /* XCRemoteSwiftPackageReference "UIOnboarding" */;
+			productName = UIOnboarding;
+		};
+		8630CBB62FABE19E00C6EE6D /* UIOnboarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8630CBB32FABE19200C6EE6D /* XCRemoteSwiftPackageReference "UIOnboarding" */;
+			productName = UIOnboarding;
 		};
 		AF9919572DC9175A00DDF895 /* TreeSitterObjc */ = {
 			isa = XCSwiftPackageProductDependency;

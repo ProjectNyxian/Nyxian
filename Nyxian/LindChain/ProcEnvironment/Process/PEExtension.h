@@ -39,6 +39,7 @@
 
 @end
 
+bool liveProcessIsAvailable(void);
 NSExtension *PEGetNSExtension(void);
 void PESpawnTimeout(void);
 FBProcess *PESpawnFBProcess(NSDictionary *items);

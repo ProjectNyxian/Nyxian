@@ -1,5 +1,5 @@
 {
-  "originHash" : "770c8143f663bf2d9687ae93d0ddfb8cee5d24ac48558a8e6afe0be4533d105e",
+  "originHash" : "5fcceb76746199cfc898e33b20d3c88a3b504213ab01df818158a8a22f1d783d",
   "pins" : [
     {
       "identity" : "runestone",
@@ -80,6 +80,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "0d9a8099c963ed53e183425c1b47fa2622c8eaf7"
+      }
+    },
+    {
+      "identity" : "uionboarding",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lascic/UIOnboarding.git",
+      "state" : {
+        "revision" : "52b656c820cdb26e40a261bb2e79e60f847410de",
+        "version" : "2.0.5"
       }
     }
   ],

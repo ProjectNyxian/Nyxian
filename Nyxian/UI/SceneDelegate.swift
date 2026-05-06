@@ -1,0 +1,199 @@
+//
+//  SceneDelegate.swift
+//  Nyxian
+//
+//  Created by Frida on 06.05.26.
+//
+
+import UIKit
+import UIOnboarding
+
+struct UIOnboardingHelper {
+    static func setUpIcon() -> UIImage {
+        return Bundle.main.appIcon ?? .init(named: "IconPreviewDefaultOld")!
+    }
+    
+    static func setUpFirstTitleLine() -> NSMutableAttributedString {
+        .init(string: "Welcome to", attributes: [.foregroundColor: UIColor.label])
+    }
+    
+    static func setUpSecondTitleLine() -> NSMutableAttributedString {
+        .init(string: Bundle.main.displayName ?? "Nyxian", attributes: [
+            .foregroundColor: UIColor { trait in
+                trait.userInterfaceStyle == .dark
+                ? UIColor(red: 0.85, green: 0.74, blue: 0.93, alpha: 1.0)
+                : UIColor(red: 0.62, green: 0.48, blue: 0.78, alpha: 1.0)
+            }
+        ])
+    }
+    
+    static func setUpFeatures() -> Array<UIOnboardingFeature> {
+        return .init([
+            // I was lazy so I just wrapped them in like that
+            .init(icon: UIImage(systemName: "hammer.fill")!,
+                  iconTint: UIColor { trait in trait.userInterfaceStyle == .dark
+                      ? UIColor(red: 0.55, green: 0.78, blue: 0.98, alpha: 1.0)
+                      : UIColor(red: 0.30, green: 0.58, blue: 0.88, alpha: 1.0)
+                  },
+                  title: "Development",
+                  description: "A full fledged Xcode alternative supporting Swift, C, C++, Objective-C and Objective-C++ that runs on any iOS 16.0+ iPhone or iPad."),
+            
+                .init(icon: UIImage(systemName: "swift")!,
+                      iconTint: UIColor { trait in
+                          trait.userInterfaceStyle == .dark
+                          ? UIColor(red: 0.99, green: 0.70, blue: 0.55, alpha: 1.0)
+                          : UIColor(red: 0.92, green: 0.50, blue: 0.30, alpha: 1.0)
+                      },
+                      title: "Swift",
+                      description: "Write, compile, and run Swift code on-device with a full integrated Swift frontend."),
+            
+                .init(icon: UIImage(systemName: "wrench.and.screwdriver.fill")!,
+                      iconTint: UIColor { trait in
+                          trait.userInterfaceStyle == .dark
+                          ? UIColor(red: 0.78, green: 0.71, blue: 0.95, alpha: 1.0)
+                          : UIColor(red: 0.55, green: 0.45, blue: 0.85, alpha: 1.0)
+                      },
+                      title: "CoreCompiler",
+                      description: "A complete LLVM, Swift, Clang, and LLD toolchain running natively on iOS, powering compilation and linking completely on-device without any overpriced cloud services or subscriptions."),
+            
+                .init(icon: UIImage(systemName: "cpu.fill")!,
+                      iconTint: UIColor { trait in
+                          trait.userInterfaceStyle == .dark
+                          ? UIColor(red: 0.60, green: 0.88, blue: 0.80, alpha: 1.0)
+                          : UIColor(red: 0.30, green: 0.68, blue: 0.58, alpha: 1.0)
+                      },
+                      title: "Native Performance",
+                      description: "A custom kernel virtualization layer providing real process management, Mach IPC, and POSIX semantics directly on-device."),
+        ])
+    }
+    
+    static func setUpNotice() -> UIOnboardingTextViewConfiguration {
+        return .init(icon: UIImage(systemName: "heart.fill")!,
+                     text: "Contributions, feedback, and stars keep the project alive.",
+                     linkTitle: "Contribute on GitHub",
+                     link: "https://github.com/ProjectNyxian/Nyxian",
+                     linkColor: UIColor { trait in
+                         trait.userInterfaceStyle == .dark
+                             ? UIColor(red: 0.85, green: 0.74, blue: 0.93, alpha: 1.0)
+                             : UIColor(red: 0.62, green: 0.48, blue: 0.78, alpha: 1.0)
+                     })
+    }
+    
+    static func setUpButton() -> UIOnboardingButtonConfiguration {
+        return .init(title: "Continue", titleColor: currentTheme!.backgroundColor, backgroundColor: UIColor { trait in
+            trait.userInterfaceStyle == .dark
+            ? UIColor(red: 0.85, green: 0.74, blue: 0.93, alpha: 1.0)
+            : UIColor(red: 0.62, green: 0.48, blue: 0.78, alpha: 1.0)
+        })
+    }
+}
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDelegate, UIOnboardingViewControllerDelegate {
+    var window: NXWindowServer?
+    
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        
+        // swizzle swizzle swizzle :3
+        UIViewController.swizzlePresentOnce
+        UIBarButtonItem.swizzleBarButtonitem
+        
+        self.window = NXWindowServer.shared(with: windowScene)
+        if(self.window == nil)
+        {
+            return;
+        }
+        
+#if JAILBREAK_ENV
+        let ret = shell([[Bundle.main.executablePath]], 0, nil, nil)
+        if(ret != 0)
+        {
+            let label = UILabel()
+            label.text = "NyxianForJB is incorrectly entitled\n\n\ntest exec ret: \(ret)"
+            label.frame = UIScreen.main.bounds
+            label.numberOfLines = 0
+            self.window?.addSubview(label)
+            self.window?.makeKeyAndVisible()
+            self.window?.bringSubviewToFront(label)
+            return
+        }
+#else
+        if(!liveProcessIsAvailable())
+        {
+            let label = UILabel()
+            label.text = "NSExtension missing, make sure you keep the extension when installing."
+            label.frame = UIScreen.main.bounds
+            label.numberOfLines = 0
+            self.window?.addSubview(label)
+            self.window?.makeKeyAndVisible()
+            self.window?.bringSubviewToFront(label)
+            return
+        }
+#endif // JAILBREAK_ENV
+        
+        NXBootstrap.shared().bootstrap()
+        
+        let themedTabViewController: UIThemedTabViewController = UIThemedTabViewController()
+        
+        let contentViewController: ContentViewController = ContentViewController()
+        let settingsViewController: SettingsViewController = SettingsViewController()
+        
+        let contentNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
+        let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
+        
+        contentNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
+        settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
+        
+        var viewControllers: [UIViewController] = [contentNavigationController, settingsNavigationController]
+        
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if #available(iOS 26.0, *) {
+                let fakeViewController: UIViewController = UIViewController()
+                fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
+                fakeViewController.tabBarItem.title = "Switcher"
+                fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+                viewControllers.append(fakeViewController)
+            }
+        }
+        
+        themedTabViewController.viewControllers = viewControllers
+        themedTabViewController.delegate = self
+        
+        self.window?.rootViewController = themedTabViewController
+        self.window?.makeKeyAndVisible()
+        
+        if let _: NSNumber = UserDefaults.standard.object(forKey: "NXOnboardingSentinel") as? NSNumber {
+            return
+        }
+        
+        let onboardingConfiguration = UIOnboardingViewConfiguration(appIcon: UIOnboardingHelper.setUpIcon(), firstTitleLine: UIOnboardingHelper.setUpFirstTitleLine(), secondTitleLine: UIOnboardingHelper.setUpSecondTitleLine(), features: UIOnboardingHelper.setUpFeatures(), textViewConfiguration: UIOnboardingHelper.setUpNotice(), buttonConfiguration: UIOnboardingHelper.setUpButton())
+        let onboardingController: UIOnboardingViewController = UIOnboardingViewController(withConfiguration: onboardingConfiguration)
+        onboardingController.delegate = self
+        onboardingController.loadViewIfNeeded()
+        DispatchQueue.main.async {
+            for subview in onboardingController.view.subviews {
+                if let scrollView = subview as? UIScrollView {
+                    scrollView.backgroundColor = currentTheme!.backgroundColor
+                }
+            }
+        }
+        
+        self.window?.rootViewController?.present(onboardingController, animated: false)
+    }
+    
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        if viewController.tabBarItem.tag == 2 {
+            self.window?.showAppSwitcherExternal()
+            return false
+        }
+        return true
+    }
+    
+    func didFinishOnboarding(onboardingViewController: UIOnboarding.UIOnboardingViewController) {
+        onboardingViewController.modalTransitionStyle = .crossDissolve
+        onboardingViewController.dismiss(animated: true, completion: nil)
+        
+        // storing sentinel so it will not appear again
+        UserDefaults.standard.set(NSNumber(booleanLiteral: true), forKey: "NXOnboardingSentinel")
+    }
+}

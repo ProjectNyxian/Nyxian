@@ -25,6 +25,21 @@
 #import <LindChain/ProcEnvironment/Syscall/mach_syscall_server.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <objc/runtime.h>
+#import <LindChain/ProcEnvironment/environment.h>
+#import <LindChain/ProcEnvironment/Process/PELaunchServiceRegistry.h>
+
+bool liveProcessIsAvailable(void)
+{
+    static bool available = false;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
+        available = (liveProcessBundle != NULL);
+    });
+    
+    return available;
+}
 
 static const char kNSExtensionKey;
 static const char kIdentifierKey;
@@ -174,4 +189,21 @@ FBProcess *PESpawnFBProcess(NSDictionary *items)
     process.identifier = identifier;
     
     return process;
+}
+
+__attribute__((constructor))
+static void start_environment(int argc, char *argv[])
+{
+#if !JAILBREAK_ENV
+    if(liveProcessIsAvailable())
+    {
+        environment_init(EnvironmentExecCustom, NSBundle.mainBundle.executablePath, argc, argv);
+        [PELaunchServiceRegistry shared]; /* invokes launch services startup*/
+    }
+#else
+    if(getsid(getpid()) != getpid())
+    {
+        return 0;
+    }
+#endif /* !JAILBREAK_ENV */
 }

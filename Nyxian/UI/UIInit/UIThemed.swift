@@ -291,10 +291,3 @@ extension UIViewController {
         swizzled_present(viewControllerToPresent, animated: animated, completion: completion)
     }
 }
-
-@objc class ObjCExposedSwizzle: NSObject {
-    @objc static func swizzle() {
-        UIViewController.swizzlePresentOnce
-        UIBarButtonItem.swizzleBarButtonitem
-    }
-}
