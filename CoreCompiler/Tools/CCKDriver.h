@@ -37,19 +37,19 @@
 
 @protocol CCKDriverDelegate <NSObject>
 @optional
-- (NSString*)driver:(CCKDriver*)driver outputPathForInputFile:(CCKFile*)file;
-- (BOOL)driver:(CCKDriver*)driver skipCompileForInputFile:(CCKFile*)file;
+- (NSString * _Nullable)driver:(CCKDriver * _Nonnull)driver outputPathForInputFile:(CCKFile * _Nonnull)file;
+- (BOOL)driver:(CCKDriver * _Nonnull)driver skipCompileForInputFile:(CCKFile * _Nonnull)file;
 @end
 
 @interface CCKDriver : CCKCFType
 
-@property (nonatomic, readonly, copy) NSURL *sysrootURL;
-@property (nonatomic, readonly, copy) CCKSDK *sdk;
+@property (nonatomic, readonly, copy, nullable) NSURL *sysrootURL;
+@property (nonatomic, readonly, copy, nullable) CCKSDK *sdk;
 
 @property (nonatomic, readwrite, weak) id<CCKDriverDelegate> delegate;
 
-+ (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments withType:(CCDriverType)type;
-- (NSArray<CCKJob*>*)generateJobs;
++ (instancetype _Nullable)driverWithArguments:(NSArray<NSString*> * _Nonnull)arguments withType:(CCDriverType)type;
+- (NSArray<CCKJob*> * _Nullable)generateJobs;
 
 @end
 

@@ -33,10 +33,10 @@
 
 @property (nonatomic, readonly) CCJobType type;
 @property (nonatomic, readonly) BOOL isMultithreadingSupported;
-@property (nonatomic, readonly) NSArray<CCKJob*> *jobs;
+@property (nonatomic, readonly, nonnull) NSArray<CCKJob*> *jobs;
 
-+ (instancetype)phaseWithJobs:(NSArray<CCKJob*>*)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
-- (instancetype)initWithJobs:(NSArray<CCKJob*>*)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
++ (instancetype _Nonnull)phaseWithJobs:(NSArray<CCKJob*> * _Nonnull)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
+- (instancetype _Nonnull)initWithJobs:(NSArray<CCKJob*> * _Nonnull)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
 
 @end
 

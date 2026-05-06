@@ -104,14 +104,17 @@ class Builder: NSObject, CCKDriverDelegate {
         super.init()
         
         self.phaseEngine.delegate = self
-        self.phases = self.phaseEngine.generatePhases()
+        guard let phases = self.phaseEngine.generatePhases() else {
+            return nil;
+        }
+        self.phases = phases
     }
     
-    func driver(_ driver: CCKDriver!, outputPathForInputFile file: CCKFile!) -> String! {
+    func driver(_ driver: CCKDriver, outputPathForInputFile file: CCKFile) -> String? {
         return "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
     }
     
-    func driver(_ driver: CCKDriver!, skipCompileForInputFile file: CCKFile!) -> Bool {
+    func driver(_ driver: CCKDriver, skipCompileForInputFile file: CCKFile) -> Bool {
         if !CCFileTypeIsSwiftFile(file.type),
            self.incrementalBuild,
            !self.projectDirty {

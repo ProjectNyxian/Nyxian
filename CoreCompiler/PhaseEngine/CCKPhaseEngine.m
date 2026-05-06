@@ -224,6 +224,11 @@ static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
     NSMutableArray<CCKJob*> *currentPhasesJobs = [NSMutableArray array];
     
     NSArray<CCKJob*> *mainDriverJobs = [_driver generateJobs];
+    if(mainDriverJobs == nil)
+    {
+        /* phase creation failed */
+        return nil;
+    }
     for(CCKJob *job in mainDriverJobs)
     {
         CCKPhaseGenerationAppendHelper(self, &currentPhasesType, phases, currentPhasesJobs, job);

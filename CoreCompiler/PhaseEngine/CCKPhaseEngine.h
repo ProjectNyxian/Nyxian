@@ -32,17 +32,17 @@
 
 @interface CCKPhaseEngine : NSObject
 
-@property (nonatomic, weak, readwrite) id<CCKDriverDelegate> delegate;
+@property (nonatomic, weak, readwrite, nullable) id<CCKDriverDelegate> delegate;
 
-+ (instancetype)engineWithDriver:(CCKDriver*)driver withOtherClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
-+ (instancetype)engineWithClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
-+ (instancetype)engineWithSwiftFlags:(NSArray<NSString*>*)swiftFlags withOtherClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
++ (instancetype _Nonnull)engineWithDriver:(CCKDriver * _Nonnull)driver withOtherClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
++ (instancetype _Nonnull)engineWithClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
++ (instancetype _Nonnull)engineWithSwiftFlags:(NSArray<NSString*> * _Nonnull)swiftFlags withOtherClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
 
-- (instancetype)initWithDriver:(CCKDriver*)driver withOtherClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
-- (instancetype)initWithClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
-- (instancetype)initWithSwiftFlags:(NSArray<NSString*>*)swiftFlags withOtherClangFlags:(NSArray<NSString*>*)clangFlags withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags;
+- (instancetype _Nonnull)initWithDriver:(CCKDriver * _Nonnull)driver withOtherClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
+- (instancetype _Nonnull)initWithClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
+- (instancetype _Nonnull)initWithSwiftFlags:(NSArray<NSString*> * _Nonnull)swiftFlags withOtherClangFlags:(NSArray<NSString*> * _Nonnull)clangFlags withOtherLinkerFlags:(NSArray<NSString*> * _Nonnull)linkerFlags;
 
-- (NSArray*)generatePhases;
+- (NSArray * _Nullable)generatePhases;
 
 @end
 
