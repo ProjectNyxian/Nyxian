@@ -29,7 +29,7 @@
     dispatch_group_t _group;
 }
 
-- (instancetype)initWithThreads:(uint32_t)threads
+- (instancetype)initWithThreads:(CFIndex)threads
 {
     self = [super initWithThreads:threads];
     _group = dispatch_group_create();

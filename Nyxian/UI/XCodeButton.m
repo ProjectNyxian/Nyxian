@@ -304,43 +304,56 @@
                              animated:(BOOL)animated
                          withDuration:(double)duration
 {
-    UIImageView *imageView = [self shared].XCImageView;
-    if(!imageView)
-    {
-        return;
-    }
-    
-    if(animated)
-    {
-        CGFloat currentAlpha;
-        if(imageView.layer.presentationLayer)
+    void (^block)(NSString *systemName, BOOL animated, double duration) = ^(NSString *systemName, BOOL animated, double duration){
+        UIImageView *imageView = [self shared].XCImageView;
+        if(!imageView)
         {
-            currentAlpha = ((CALayer *)imageView.layer.presentationLayer).opacity;
+            return;
+        }
+        
+        if(animated)
+        {
+            CGFloat currentAlpha;
+            if(imageView.layer.presentationLayer)
+            {
+                currentAlpha = ((CALayer *)imageView.layer.presentationLayer).opacity;
+            }
+            else
+            {
+                currentAlpha = imageView.alpha;
+            }
+            
+            [imageView.layer removeAllAnimations];
+            imageView.alpha = currentAlpha;
+            
+            [UIView animateWithDuration:duration / 2.0 animations:^{
+                imageView.alpha = 0.0;
+            } completion:^(BOOL finished) {
+                imageView.image = [UIImage systemImageNamed:systemName];
+                [UIView animateWithDuration:duration / 2.0 animations:^{
+                    imageView.alpha = 1.0;
+                }];
+            }];
+            
         }
         else
         {
-            currentAlpha = imageView.alpha;
-        }
-        
-        [imageView.layer removeAllAnimations];
-        imageView.alpha = currentAlpha;
-        
-        [UIView animateWithDuration:duration / 2.0 animations:^{
-            imageView.alpha = 0.0;
-        } completion:^(BOOL finished) {
+            UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:15.0 weight:UIImageSymbolWeightBold scale:UIImageSymbolScaleSmall];
+            imageView.preferredSymbolConfiguration = cfg;
+            imageView.image = [UIImage systemImageNamed:systemName withConfiguration:cfg];
             imageView.image = [UIImage systemImageNamed:systemName];
-            [UIView animateWithDuration:duration / 2.0 animations:^{
-                imageView.alpha = 1.0;
-            }];
-        }];
-        
+        }
+    };
+    
+    if([NSThread isMainThread])
+    {
+        block(systemName, animated, duration);
     }
     else
     {
-        UIImageSymbolConfiguration *cfg = [UIImageSymbolConfiguration configurationWithPointSize:15.0 weight:UIImageSymbolWeightBold scale:UIImageSymbolScaleSmall];
-        imageView.preferredSymbolConfiguration = cfg;
-        imageView.image = [UIImage systemImageNamed:systemName withConfiguration:cfg];
-        imageView.image = [UIImage systemImageNamed:systemName];
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            block(systemName, animated, duration);
+        });
     }
 }
 

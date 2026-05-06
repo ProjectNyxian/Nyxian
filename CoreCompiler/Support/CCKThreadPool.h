@@ -35,10 +35,10 @@ void CCKPthreadDispatch(void (^code)(void));
 
 @property (atomic,readwrite) BOOL lockdown;
 
-+ (instancetype)poolWithThreads:(uint32_t)threads;
++ (instancetype)poolWithThreads:(CFIndex)threads;
 + (instancetype)pool;
 
-- (instancetype)initWithThreads:(uint32_t)threads;
+- (instancetype)initWithThreads:(CFIndex)threads;
 - (instancetype)init;
 
 - (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;

@@ -44,6 +44,7 @@ FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
 #import <CoreCompiler/CCKProgramCompiler.h>
 #import <CoreCompiler/CCKPhase.h>
 #import <CoreCompiler/CCKPhaseEngine.h>
+#import <CoreCompiler/CCKPhaseRunner.h>
 #import <CoreCompiler/CCKThreadPool.h>
 #import <CoreCompiler/CCKThreadPoolGroup.h>
 #endif /* __OBJC__ */

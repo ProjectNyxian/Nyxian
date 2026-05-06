@@ -357,6 +357,7 @@
 				CoreCompiler.h,
 				PhaseEngine/CCKPhase.h,
 				PhaseEngine/CCKPhaseEngine.h,
+				PhaseEngine/CCKPhaseRunner.h,
 				Support/CCDiagnostic.h,
 				Support/CCFile.h,
 				Support/CCFileSourceLocation.h,

@@ -102,19 +102,19 @@ static void *CCKWorkerThreadMain(void *arg)
 @interface CCKThreadPool ()
 
 @property (nonatomic, strong, readonly) dispatch_semaphore_t semaphore;
-@property (nonatomic, readonly) int threads;
+@property (nonatomic, readonly) CFIndex threads;
 @property (nonatomic, assign) CCKWorkerThread *workers;
-@property (nonatomic, assign) int workerCount;
+@property (nonatomic, assign) CFIndex workerCount;
 
 @end
 
 @implementation CCKThreadPool {
     int _freeStack[64];
-    int _freeTop;
+    CFIndex _freeTop;
     pthread_mutex_t _freeStackMutex;
 }
 
-+ (instancetype)poolWithThreads:(uint32_t)threads
++ (instancetype)poolWithThreads:(CFIndex)threads
 {
     return [[CCKThreadPool alloc] initWithThreads:threads];
 }
@@ -124,7 +124,7 @@ static void *CCKWorkerThreadMain(void *arg)
     return [[CCKThreadPool alloc] init];
 }
 
-- (instancetype)initWithThreads:(uint32_t)threads
+- (instancetype)initWithThreads:(CFIndex)threads
 {
     self = [super init];
     _threads = (threads == 0) ? 1 : threads;

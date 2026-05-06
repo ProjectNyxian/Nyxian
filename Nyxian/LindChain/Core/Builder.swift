@@ -30,13 +30,46 @@ import CoreCompiler
 
 #endif // JAILBREAK_ENV
 
-class Builder: NSObject, CCKDriverDelegate {
+class LDEPhaseRunner: CCKPhaseRunner {
+    var pstep: Double = 0.0
+    
+    override func run(_ job: CCKJob, within phase: CCKPhase) -> Bool {
+        let success: Bool = super.run(job, within: phase)
+        XCButton.incrementProgress(withValue: pstep)
+        return success
+    }
+    
+    override func run(_ phase: CCKPhase) -> Bool {
+        switch phase.type {
+        case .compiler:
+            fallthrough
+        case .swiftCompiler:
+            XCButton.switchImageSync(withSystemName: "hammer.fill", animated: true, withDuration: 0.5)
+            usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
+        case .linker:
+            XCButton.switchImageSync(withSystemName: "link", animated: true, withDuration: 0.5)
+            usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
+        default:
+            break
+        }
+        pstep = 1.0 / Double(phase.jobs.count)
+        let success: Bool = super.run(phase)
+        usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
+        XCButton.resetProgress()
+        return success
+    }
+    
+    override func runPhases(withPhases phases: [Any]) -> Bool {
+        super.runPhases(withPhases: phases)
+    }
+}
+
+class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
     private let project: NXProject
     
     private let database: DebugDatabase
     
-    private var phaseEngine: CCKPhaseEngine
-    private var phases: [Any] = []
+    private var phaseRunner: LDEPhaseRunner
     private let dependencyScanner: CCKDependencyScanner
     
     private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
@@ -69,6 +102,7 @@ class Builder: NSObject, CCKDriverDelegate {
             return nil
         }
         
+        let phaseEngine: CCKPhaseEngine
         var driverFlags: [String] = []
         driverFlags.append(contentsOf: swiftFiles)
         driverFlags.append(contentsOf: codeFiles)
@@ -84,11 +118,11 @@ class Builder: NSObject, CCKDriverDelegate {
             driverFlags.append("-module-name")
             driverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
             
-            self.phaseEngine = CCKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+            phaseEngine = CCKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
         } else {
             driverFlags.append(contentsOf: self.project.projectConfig.compilerFlags)
             
-            self.phaseEngine = CCKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+            phaseEngine = CCKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
         }
         
         self.argsString = driverFlags.joined(separator: " ")
@@ -101,20 +135,24 @@ class Builder: NSObject, CCKDriverDelegate {
             self.database.clearDatabase() /* nothing valid anymore */
         }
         
+        guard let phaseRunner = LDEPhaseRunner(engine: phaseEngine) else {
+            return nil
+        }
+        self.phaseRunner = phaseRunner
+        
         super.init()
         
-        self.phaseEngine.delegate = self
-        guard let phases = self.phaseEngine.generatePhases() else {
-            return nil;
-        }
-        self.phases = phases
+        phaseEngine.delegate = self
+        self.phaseRunner.delegate = self
     }
     
-    func driver(_ driver: CCKDriver, outputPathForInputFile file: CCKFile) -> String? {
+    func driver(_ driver: CCKDriver,
+                outputPathForInputFile file: CCKFile) -> String? {
         return "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
     }
     
-    func driver(_ driver: CCKDriver, skipCompileForInputFile file: CCKFile) -> Bool {
+    func driver(_ driver: CCKDriver,
+                skipCompileForInputFile file: CCKFile) -> Bool {
         if !CCFileTypeIsSwiftFile(file.type),
            self.incrementalBuild,
            !self.projectDirty {
@@ -145,6 +183,26 @@ class Builder: NSObject, CCKDriverDelegate {
             return true
         } else {
             return false
+        }
+    }
+    
+    func runner(_ runner: CCKPhaseRunner,
+                multithreadingThreadCountFor phase: CCKPhase) -> CFIndex {
+        return CFIndex(LDEGetUserSetThreadCount())
+    }
+    
+    func runner(_ runner: CCKPhaseRunner,
+                phase: CCKPhase,
+                finishedRunning job: CCKJob,
+                withResultingDiagnostics diagnostics: [CCKDiagnostic]?,
+                withMainSource mainSource: String?,
+                wasSuccessful success: Bool) {
+        if let diagnostics = diagnostics {
+            if job.type == .linker {
+                self.database.addDiagnosticMessages(title: "Linker", items: diagnostics, clearPrevious: true)
+            } else if let mainSource = mainSource {
+                self.database.setFileDebug(ofPath: mainSource, synItems: diagnostics)
+            }
         }
     }
     
@@ -224,76 +282,15 @@ class Builder: NSObject, CCKDriverDelegate {
         }
     }
     
-    private func executeProducedPhasesJob(pstep: Double,
-                                          job: CCKJob) -> Bool {
-        defer { XCButton.incrementProgress(withValue: pstep) }
-        
-        var issues: NSArray?
-        var mainSource: NSString?
-        let success: Bool = job.execute(withOutDiagnostics: &issues, withOutMainSource: &mainSource)
-        
-        if let issues = issues as? [CCKDiagnostic] {
-            if job.type == .linker {
-                self.database.addDiagnosticMessages(title: "Linker", items: issues, clearPrevious: true)
-            } else if let mainSource = mainSource as? String {
-                self.database.setFileDebug(ofPath: mainSource, synItems: issues)
-            }
-        }
-        
-        return success
-    }
-    
-    func executeProducedPhases(phases: [Any]? = nil) throws {
-        let truePhases: [Any] = phases ?? self.phases
-        for phase in truePhases {
-            XCButton.resetProgress()
-            
-            if let phase = phase as? CCKPhase {
-                let jobs: [CCKJob] = phase.jobs
-                let pstep: Double = 1.00 / Double(jobs.count)
-                
-                if phase.isMultithreadingSupported {
-                    guard let threader = CCKThreadPoolGroup(threads: UInt32(LDEGetUserSetThreadCount())) else {
-                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because threader creation failed"])
-                    }
-                    
-                    for _ in jobs {
-                        threader.enter()
-                    }
-                    
-                    for job in jobs {
-                        threader.dispatchExecution({
-                            if !self.executeProducedPhasesJob(pstep: pstep, job: job) {
-                                threader.lockdown = true
-                            }
-                        }, withCompletion: nil)
-                    }
-                    
-                    threader.wait()
-                    
-                    if threader.lockdown {
-                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase of type \(phase.type)."])
-                    }
-                } else {
-                    for job in jobs {
-                        if !self.executeProducedPhasesJob(pstep: pstep, job: job) {
-                            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase of type \(phase.type)."])
-                        }
-                    }
-                }
-            } else if let phaseEngine = phase as? CCKPhaseEngine {
-                if let phases: [Any] = phaseEngine.generatePhases() {
-                    try self.executeProducedPhases(phases: phases)
-                } else {
-                    throw NSError(domain: "com.cr4zy.nyxian.builder.phases", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, subphase engine failed execution"])
-                }
-            }
+    func executeRunner() throws {
+        if !self.phaseRunner.runPhases() {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.runner", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to run project."])
         }
         
         do {
             try self.argsString.write(to: self.project.cacheURL.appendingPathComponent("args.txt"), atomically: false, encoding: .utf8)
         } catch {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.runner", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
         }
     }
     
@@ -513,7 +510,7 @@ class Builder: NSObject, CCKDriverDelegate {
                     (nil,nil,{ try builder.headsup() }),
                     (nil,nil,{ try builder.clean() }),
                     (nil,nil,{ try builder.prepare() }),
-                    (nil,nil,{ try builder.executeProducedPhases() }),
+                    (nil,nil,{ try builder.executeRunner() }),
                     ("arrow.down.app.fill",nil,{try builder.install(buildType: buildType, outPipe: outPipe, inPipe: inPipe) })
                 ];
                 

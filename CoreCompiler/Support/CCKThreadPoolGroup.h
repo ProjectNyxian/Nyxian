@@ -31,7 +31,7 @@
 
 @interface CCKThreadPoolGroup: CCKThreadPool
 
-- (instancetype)initWithThreads:(uint32_t)threads;
+- (instancetype)initWithThreads:(CFIndex)threads;
 
 - (void)enter;
 - (void)wait;
