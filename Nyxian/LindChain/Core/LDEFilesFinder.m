@@ -21,6 +21,24 @@
 
 #import <LindChain/Core/LDEFilesFinder.h>
 
+static BOOL LDEPathIsIgnored(NSString *relativePath,
+                             NSSet<NSString *> *ignorePaths)
+{
+    for(NSString *ignore in ignorePaths)
+    {
+        if([relativePath isEqualToString:ignore])
+        {
+            return YES;
+        }
+        NSString *prefix = [ignore hasSuffix:@"/"] ? ignore : [ignore stringByAppendingString:@"/"];
+        if([relativePath hasPrefix:prefix])
+        {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 NSArray<NSString*> *LDEFilesFinder(NSString *searchPath,
                                    NSSet<NSString*> *searchExtensions,
                                    NSSet<NSString*> *ignorePaths)
@@ -39,7 +57,7 @@ NSArray<NSString*> *LDEFilesFinder(NSString *searchPath,
         if([[NSFileManager defaultManager] fileExistsAtPath:fullPath isDirectory:&isDir] &&
             !isDir  &&
             [searchExtensions containsObject: [relativePath pathExtension]] &&
-           ![ignorePaths containsObject:relativePath])
+            !LDEPathIsIgnored(relativePath, ignorePaths))
         {
             [foundFiles addObject:fullPath];
         }
