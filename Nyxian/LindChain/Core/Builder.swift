@@ -90,13 +90,8 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         
         self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
-        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources","Config"]) else {
-            self.database.addMessage(message: "A fatal error has happened finding code files.", severity: .error)
-            self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
-            return nil
-        }
-        
-        guard let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources","Config"]) else {
+        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources","Config"]),
+              let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources","Config"]) else {
             self.database.addMessage(message: "A fatal error has happened finding code files.", severity: .error)
             self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
             return nil
