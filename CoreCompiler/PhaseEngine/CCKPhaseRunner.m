@@ -154,7 +154,10 @@ fallback_no_multithreading:
         if([rawPhase isKindOfClass:[CCKPhase class]])
         {
             CCKPhase *phase = rawPhase;
-            [self runPhase:phase];
+            if(![self runPhase:phase])
+            {
+                return NO;
+            }
         }
         else if([rawPhase isKindOfClass:[CCKPhaseEngine class]])
         {
