@@ -50,7 +50,8 @@ struct ProjectTemplateSelectionView: View {
                 title: "Library",
                 subtitle: "Library project",
                 systemImage: "building.columns.fill",
-                schemeKind: .library
+                schemeKind: .library,
+                isEnabled: false
             )
         }
         .padding(.top, 2)
@@ -63,7 +64,8 @@ struct ProjectTemplateSelectionView: View {
                              subtitle: String,
                              systemImage: String,
                              schemeKind: NXProjectSchemeKind,
-                             scale: UIImage.SymbolScale = .default) -> some View {
+                             scale: UIImage.SymbolScale = .default,
+                             isEnabled: Bool = true) -> some View {
         let isSelected = model.schemeKind == schemeKind
         
         return Button {
@@ -110,6 +112,7 @@ struct ProjectTemplateSelectionView: View {
             }
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

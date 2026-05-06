@@ -117,7 +117,7 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
         }
         else if(languageKind == NXProjectLanguageKindSwift)
         {
-            /* so linker won't be confused */
+            /* so people won't be confused on how to add framework flags */
             return [baseFlags arrayByAddingObjectsFromArray:@[
                 @"-framework",
                 @"Foundation"
