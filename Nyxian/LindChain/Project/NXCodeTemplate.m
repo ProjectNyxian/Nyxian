@@ -131,34 +131,28 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
 NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
                                                         NXProjectLanguageKind languageKind)
 {
-    if(languageKind == NXProjectLanguageKindSwift)
+    NSArray *baseFlags = @[
+        @"-target",
+        @"arm64-apple-ios$(LDEMinimumVersion)",
+        @"-Xllvm",
+        @"-aarch64-use-tbi",
+        @"-Xfrontend",
+        @"-enable-objc-interop",
+        @"-sdk",
+        @"$(SDKROOT)",
+        @"-resource-dir",
+        @"$(BSROOT)/swift",
+        @"-module-cache-path",
+        @"$(BSROOT)/ModuleCache",
+    ];
+    
+    if(schemeKind == NXProjectSchemeKindApp ||
+       languageKind != NXProjectLanguageKindSwift)  /* parse as library because swift is not the main language */
     {
-        NSArray *baseFlags = @[
-            @"-target",
-            @"arm64-apple-ios$(LDEMinimumVersion)",
-            @"-Xllvm",
-            @"-aarch64-use-tbi",
-            @"-Xfrontend",
-            @"-enable-objc-interop",
-            @"-sdk",
-            @"$(SDKROOT)",
-            @"-resource-dir",
-            @"$(BSROOT)/swift",
-            @"-module-cache-path",
-            @"$(BSROOT)/ModuleCache",
-        ];
-        
-        if(schemeKind == NXProjectSchemeKindApp)
-        {
-            return [baseFlags arrayByAddingObject:@"-parse-as-library"];
-        }
-        else
-        {
-            return baseFlags;
-        }
+        return [baseFlags arrayByAddingObject:@"-parse-as-library"];
     }
     else
     {
-        return @[];
+        return baseFlags;
     }
 }
