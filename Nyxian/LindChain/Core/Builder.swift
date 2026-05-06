@@ -221,6 +221,25 @@ class Builder: NSObject, CCKDriverDelegate {
         }
     }
     
+    private func executeProducedPhasesJob(pstep: Double,
+                                          job: CCKJob) -> Bool {
+        defer { XCButton.incrementProgress(withValue: pstep) }
+        
+        var issues: NSArray?
+        var mainSource: NSString?
+        let success: Bool = job.execute(withOutDiagnostics: &issues, withOutMainSource: &mainSource)
+        
+        if let issues = issues as? [CCKDiagnostic] {
+            if job.type == .linker {
+                self.database.addDiagnosticMessages(title: "Linker", items: issues, clearPrevious: true)
+            } else if let mainSource = mainSource as? String {
+                self.database.setFileDebug(ofPath: mainSource, synItems: issues)
+            }
+        }
+        
+        return success
+    }
+    
     func executeProducedPhases(phases: [Any]? = nil) throws {
         let truePhases: [Any] = phases ?? self.phases
         for phase in truePhases {
@@ -230,112 +249,34 @@ class Builder: NSObject, CCKDriverDelegate {
                 let jobs: [CCKJob] = phase.jobs
                 let pstep: Double = 1.00 / Double(jobs.count)
                 
-                switch phase.type {
-                case .swiftCompiler:
-                    fallthrough
-                case .compiler:
-                    if phase.isMultithreadingSupported {
-                        guard let threader = CCKThreadPoolGroup(threads: UInt32(LDEGetUserSetThreadCount())) else {
-                            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because threader creation failed"])
-                        }
-                        
-                        for _ in jobs {
-                            threader.enter()
-                        }
-                        
-                        if phase.type == .compiler {
-                            for job in jobs {
-                                threader.dispatchExecution( {
-                                    defer { XCButton.incrementProgress(withValue: pstep) }
-                                    
-                                    guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
-                                          let file: CCKFile = astUnit.file else {
-                                        threader.lockdown = true
-                                        return
-                                    }
-                                    
-                                    let issues: [CCKDiagnostic] = astUnit.diagnostics
-                                    self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
-                                    
-                                    if astUnit.hasErrorOccured {
-                                        threader.lockdown = true
-                                        return
-                                    }
-                                }, withCompletion: nil)
-                            }
-                        } else {
-                            for job in jobs {
-                                threader.dispatchExecution( {
-                                    defer { XCButton.incrementProgress(withValue: pstep) }
-                                    
-                                    if !CCKSwiftCompiler.execute(job, outDiagnostics: nil, outMainSource: nil) {
-                                        threader.lockdown = true
-                                    }
-                                }, withCompletion: nil)
-                            }
-                        }
-                        
-                        threader.wait()
-                        
-                        if threader.lockdown {
-                            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-                        }
-                    } else {
-                        if phase.type == .compiler {
-                            for job in jobs {
-                                defer { XCButton.incrementProgress(withValue: pstep) }
-                                
-                                guard let astUnit: CCKASTUnit = CCKCompiler.execute(job),
-                                      let file: CCKFile = astUnit.file else {
-                                    throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-                                }
-                                
-                                let issues: [CCKDiagnostic] = astUnit.diagnostics
-                                self.database.setFileDebug(ofPath: file.fileURL.path, synItems: issues)
-                                
-                                if astUnit.hasErrorOccured {
-                                    throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-                                }
-                            }
-                        } else {
-                            for job in jobs {
-                                defer { XCButton.incrementProgress(withValue: pstep) }
-                                // TODO: implement diagnostics
-                                
-                                var issues: NSArray?
-                                var mainSource: NSString?
-                                let success: Bool = CCKSwiftCompiler.execute(job, outDiagnostics: &issues, outMainSource: &mainSource)
-                                
-                                if let issues = issues as? [CCKDiagnostic],
-                                   let mainSource = mainSource as? String {
-                                    self.database.setFileDebug(ofPath: mainSource, synItems: issues)
-                                    if let mainSource: String = issues.first?.mainSource {
-                                        self.database.setFileDebug(ofPath: mainSource, synItems: issues)
-                                    } else {
-                                        self.database.setFileDebug(ofPath: mainSource, synItems: [])
-                                    }
-                                }
-                                
-                                if !success {
-                                    throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to compile source code"])
-                                }
-                            }
-                        }
+                if phase.isMultithreadingSupported {
+                    guard let threader = CCKThreadPoolGroup(threads: UInt32(LDEGetUserSetThreadCount())) else {
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because threader creation failed"])
                     }
-                case .linker:
+                    
+                    for _ in jobs {
+                        threader.enter()
+                    }
+                    
                     for job in jobs {
-                        defer { XCButton.incrementProgress(withValue: pstep) }
-                        var issues: NSArray?
-                        
-                        if !job.execute(withOutDiagnostics: &issues, withOutMainSource: nil) {
-                            self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
-                            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Linking object files together to a executable failed"])
-                        }
-                        
-                        self.database.addDiagnosticMessages(title: "Linker", items: (issues as? [CCKDiagnostic]) ?? [], clearPrevious: true)
+                        threader.dispatchExecution({
+                            if !self.executeProducedPhasesJob(pstep: pstep, job: job) {
+                                threader.lockdown = true
+                            }
+                        }, withCompletion: nil)
                     }
-                default:
-                    throw NSError(domain: "com.cr4zy.nyxian.builder.phases", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase, because of a unknown phase type \(phase.type)"])
+                    
+                    threader.wait()
+                    
+                    if threader.lockdown {
+                        throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase of type \(phase.type)."])
+                    }
+                } else {
+                    for job in jobs {
+                        if !self.executeProducedPhasesJob(pstep: pstep, job: job) {
+                            throw NSError(domain: "com.cr4zy.nyxian.builder.phase", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to execute phase of type \(phase.type)."])
+                        }
+                    }
                 }
             } else if let phaseEngine = phase as? CCKPhaseEngine {
                 if let phases: [Any] = phaseEngine.generatePhases() {
