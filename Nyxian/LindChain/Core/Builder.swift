@@ -535,34 +535,36 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
                                 outPipe: Pipe? = nil,
                                 inPipe: Pipe? = nil,
                                 completion: @escaping () -> Void = {}) {
-    targetViewController.navigationItem.titleView?.isUserInteractionEnabled = false
-    XCButton.switchImageSync(withSystemName: "hammer.fill", animated: false)
-    guard let oldBarButtons: [UIBarButtonItem] = targetViewController.navigationItem.rightBarButtonItems else { return }
-    
-    let barButton: UIBarButtonItem = UIBarButtonItem(customView: XCButton.shared())
-    
-    targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
-    targetViewController.navigationItem.setHidesBackButton(true, animated: true)
-    
-    NXDocumentManager.shared().saveAll {
-        NXDocumentManager.shared().changeAllLockState(toBoolean: true)
-        Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
-            NXDocumentManager.shared().changeAllLockState(toBoolean: false)
-            DispatchQueue.main.async {
-                targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
-                targetViewController.navigationItem.setHidesBackButton(false, animated: true)
-                targetViewController.navigationController?.navigationBar.isUserInteractionEnabled = true
-                targetViewController.navigationItem.titleView?.isUserInteractionEnabled = true
-                
-                if !result {
-                    let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))
-                    loggerView.modalPresentationStyle = .formSheet
-                    targetViewController.present(loggerView, animated: true)
-                } else if buildType == .InstallPackagedApp {
-                    share(url: project.packageURL, remove: true)
+    autoreleasepool {
+        targetViewController.navigationItem.titleView?.isUserInteractionEnabled = false
+        XCButton.switchImageSync(withSystemName: "hammer.fill", animated: false)
+        guard let oldBarButtons: [UIBarButtonItem] = targetViewController.navigationItem.rightBarButtonItems else { return }
+        
+        let barButton: UIBarButtonItem = UIBarButtonItem(customView: XCButton.shared())
+        
+        targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
+        targetViewController.navigationItem.setHidesBackButton(true, animated: true)
+        
+        NXDocumentManager.shared().saveAll {
+            NXDocumentManager.shared().changeAllLockState(toBoolean: true)
+            Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
+                NXDocumentManager.shared().changeAllLockState(toBoolean: false)
+                DispatchQueue.main.async {
+                    targetViewController.navigationItem.setRightBarButtonItems(oldBarButtons, animated: true)
+                    targetViewController.navigationItem.setHidesBackButton(false, animated: true)
+                    targetViewController.navigationController?.navigationBar.isUserInteractionEnabled = true
+                    targetViewController.navigationItem.titleView?.isUserInteractionEnabled = true
+                    
+                    if !result {
+                        let loggerView = UINavigationController(rootViewController: UIDebugViewController(project: project))
+                        loggerView.modalPresentationStyle = .formSheet
+                        targetViewController.present(loggerView, animated: true)
+                    } else if buildType == .InstallPackagedApp {
+                        share(url: project.packageURL, remove: true)
+                    }
+                    
+                    completion()
                 }
-                
-                completion()
             }
         }
     }
