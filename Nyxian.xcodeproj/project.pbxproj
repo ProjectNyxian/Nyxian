@@ -352,7 +352,6 @@
 			);
 			publicHeaders = (
 				CCBase.h,
-				CCKProgramCompiler.h,
 				CCUtils.h,
 				CFRuntime.h,
 				CoreCompiler.h,
@@ -376,6 +375,7 @@
 				Tools/CCKASTUnit.h,
 				Tools/CCKDependencyScanner.h,
 				Tools/CCKDriver.h,
+				Tools/CCKProgramCompiler.h,
 				Tools/CCKSDK.h,
 				Tools/CCProgramCompiler.h,
 				Tools/CCSDK.h,

@@ -185,15 +185,8 @@ class Builder: NSObject, CCKDriverDelegate {
         
         // if payload exists remove it
         if self.project.projectConfig.schemeKind == .app {
-            let payloadPath: String = self.project.payloadURL.path
-            if FileManager.default.fileExists(atPath: payloadPath) {
-                try? FileManager.default.removeItem(atPath: payloadPath)
-            }
-            
-            let packagedApp: String = self.project.packageURL.path
-            if FileManager.default.fileExists(atPath: packagedApp) {
-                try? FileManager.default.removeItem(atPath: packagedApp)
-            }
+            try? FileManager.default.removeItem(atPath: self.project.payloadURL.path)
+            try? FileManager.default.removeItem(atPath: self.project.packageURL.path)
         }
     }
     

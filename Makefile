@@ -26,8 +26,8 @@ define ensure_brew
 				printf '\033[32m\033[1m[*]\033[0m\033[32m installing homebrew...\033[0m\n'; \
 				/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || { \
 					printf '\033[31m\033[1m[!]\033[0m\033[31m homebrew install failed\033[0m\n'; exit 1; }; \
-				echo >> /Users/frida/.zprofile \
-				echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> /Users/frida/.zprofile \
+				echo >> ~/.zprofile \
+				echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> ~/.zprofile \
 				eval "$(/opt/homebrew/bin/brew shellenv zsh)" \
 				command -v brew >/dev/null 2>&1 || { \
 					printf '\033[31m\033[1m[!]\033[0m\033[31m brew installed but not in PATH$(comma) open a new shell\033[0m\n'; exit 1; } ;; \
