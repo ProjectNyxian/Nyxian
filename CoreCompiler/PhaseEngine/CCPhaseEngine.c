@@ -22,19 +22,4 @@
  * SOFTWARE.
  */
 
-#ifndef CCPHASE_H
-#define CCPHASE_H
-
-#include <CoreCompiler/CCBase.h>
-
-typedef struct opaque_ccphase *CCPhaseRef;
-
-CC_EXPORT CFTypeID CCPhaseGetTypeID(void);
-
-CC_EXPORT CCPhaseRef CCPhaseCreate(CFAllocatorRef allocator, CCJobType type, CFArrayRef jobs, Boolean multithreadingSupport);
-
-CC_EXPORT CCJobType CCPhaseGetType(CCPhaseRef phase);
-CC_EXPORT CFArrayRef CCPhaseGetJobs(CCPhaseRef phase);
-CC_EXPORT Boolean CCPhaseMultithreadingSupported(CCPhaseRef phase);
-
-#endif /* CCPHASE_H */
+#include <CoreCompiler/CCPhaseEngine.h>

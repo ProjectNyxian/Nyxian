@@ -23,28 +23,35 @@
  */
 
 #import <CoreCompiler/CCKPhase.h>
+#import <CoreCompiler/CCPhase.h>
 
 @implementation CCKPhase
+
++ (void)load
+{
+    _CFRuntimeBridgeClasses(CCPhaseGetTypeID(), "CCKPhase");
+}
 
 + (instancetype)phaseWithJobs:(NSArray<CCKJob*>*)jobs
                   withJobType:(CCJobType)type
     withMultithreadingSupport:(BOOL)isMultithreadingSupported
 {
-    return [[self alloc] initWithJobs:jobs withJobType:type withMultithreadingSupport:isMultithreadingSupported];
+    return (__bridge CCKPhase*)CCPhaseCreate(kCFAllocatorSystemDefault, type, (__bridge CFArrayRef)jobs, isMultithreadingSupported);
 }
 
-- (instancetype)initWithJobs:(NSArray<CCKJob*>*)jobs
-                 withJobType:(CCJobType)type
-   withMultithreadingSupport:(BOOL)isMultithreadingSupported
+- (CCJobType)type
 {
-    self = [super init];
-    if(self)
-    {
-        _jobs = jobs;
-        _type = type;
-        _isMultithreadingSupported = isMultithreadingSupported;
-    }
-    return self;
+    return CCPhaseGetType((__bridge CCPhaseRef)self);
+}
+
+- (NSArray<CCKJob*>*)jobs
+{
+    return (__bridge NSArray<CCKJob*>*)CCPhaseGetJobs((__bridge CCPhaseRef)self);
+}
+
+- (BOOL)isMultithreadingSupported
+{
+    return CCPhaseMultithreadingSupported((__bridge CCPhaseRef)self);
 }
 
 @end

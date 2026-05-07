@@ -45,6 +45,9 @@ FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
 #include <CoreCompiler/CCSwiftCompiler.h>
 #include <CoreCompiler/CCLinker.h>
 #include <CoreCompiler/CCUtils.h>
+#import <CoreCompiler/CCPhase.h>
+#import <CoreCompiler/CCPhaseEngine.h>
+#import <CoreCompiler/CCPhaseRunner.h>
 
 #ifdef __OBJC__
 #import <CoreCompiler/CCKFile.h>

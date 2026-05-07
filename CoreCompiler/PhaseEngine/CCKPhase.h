@@ -35,7 +35,6 @@
 @property (nonatomic, readonly, nonnull) NSArray<CCKJob*> *jobs;
 
 + (instancetype _Nonnull)phaseWithJobs:(NSArray<CCKJob*> * _Nonnull)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
-- (instancetype _Nonnull)initWithJobs:(NSArray<CCKJob*> * _Nonnull)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
 
 @end
 
