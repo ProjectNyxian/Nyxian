@@ -31,7 +31,7 @@
                   withJobType:(CCJobType)type
     withMultithreadingSupport:(BOOL)isMultithreadingSupported
 {
-    return [[CCKPhase alloc] initWithJobs:jobs withJobType:type withMultithreadingSupport:isMultithreadingSupported];
+    return [[self alloc] initWithJobs:jobs withJobType:type withMultithreadingSupport:isMultithreadingSupported];
 }
 
 - (instancetype)initWithJobs:(NSArray<CCKJob*>*)jobs

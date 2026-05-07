@@ -45,7 +45,7 @@
 
 + (instancetype)currentMap
 {
-    FDMapObject *map = [[FDMapObject alloc] init];
+    FDMapObject *map = [[self alloc] init];
     
     if(map == nil)
     {
@@ -58,7 +58,7 @@
 
 + (instancetype)emptyMap
 {
-    FDMapObject *map = [[FDMapObject alloc] init];
+    FDMapObject *map = [[self alloc] init];
     return map;
 }
 

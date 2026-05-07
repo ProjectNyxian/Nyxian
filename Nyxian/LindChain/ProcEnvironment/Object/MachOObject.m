@@ -29,7 +29,7 @@
 
 + (instancetype)objectForFDObject:(FDObject*)object
 {
-    MachOObject *mobject = [[MachOObject alloc] init];
+    MachOObject *mobject = [[self alloc] init];
     mobject.fd = object.fd;
     return mobject;
 }

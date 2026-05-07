@@ -149,20 +149,20 @@ static void CCKPhaseGenerationAppendHelper(CCKPhaseEngine *engine,
              withOtherClangFlags:(NSArray<NSString*>*)clangFlags
             withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags
 {
-    return [[CCKPhaseEngine alloc] initWithDriver:driver withOtherClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
+    return [[self alloc] initWithDriver:driver withOtherClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
 }
 
 + (instancetype)engineWithClangFlags:(NSArray<NSString*>*)clangFlags
                 withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags
 {
-    return [[CCKPhaseEngine alloc] initWithClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
+    return [[self alloc] initWithClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
 }
 
 + (instancetype)engineWithSwiftFlags:(NSArray<NSString*>*)swiftFlags
                  withOtherClangFlags:(NSArray<NSString*>*)clangFlags
                 withOtherLinkerFlags:(NSArray<NSString*>*)linkerFlags
 {
-    return [[CCKPhaseEngine alloc] initWithSwiftFlags:swiftFlags withOtherClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
+    return [[self alloc] initWithSwiftFlags:swiftFlags withOtherClangFlags:clangFlags withOtherLinkerFlags:linkerFlags];
 }
 
 - (instancetype)initWithDriver:(CCKDriver*)driver

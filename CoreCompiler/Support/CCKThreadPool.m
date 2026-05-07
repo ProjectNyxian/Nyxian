@@ -116,12 +116,12 @@ static void *CCKWorkerThreadMain(void *arg)
 
 + (instancetype)poolWithThreads:(CFIndex)threads
 {
-    return [[CCKThreadPool alloc] initWithThreads:threads];
+    return [[self alloc] initWithThreads:threads];
 }
 
 + (instancetype)pool
 {
-    return [[CCKThreadPool alloc] init];
+    return [[self alloc] init];
 }
 
 - (instancetype)initWithThreads:(CFIndex)threads
