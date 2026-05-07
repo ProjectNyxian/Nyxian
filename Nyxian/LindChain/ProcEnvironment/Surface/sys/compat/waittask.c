@@ -61,8 +61,8 @@ DEFINE_SYSCALL_HANDLER(waittask)
     
     /* getting target requested for caller */
     ksurface_proc_t *target;
-    ksurface_return_t ksr = proc_for_pid(pid, &target);
-    if(ksr != SURFACE_SUCCESS)
+    kern_return_t ksr = proc_for_pid(pid, &target);
+    if(ksr != KERN_SUCCESS)
     {
         sys_return_failure(ECHILD);
     }
@@ -120,7 +120,7 @@ DEFINE_SYSCALL_HANDLER(waittask)
     
     /* register event */
     ksr = kvo_event_register(target, kvObjEventCustom1, waittask_proc_event_handler, payload, NULL);
-    if(ksr != SURFACE_SUCCESS)
+    if(ksr != KERN_SUCCESS)
     {
         mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
     out_again:

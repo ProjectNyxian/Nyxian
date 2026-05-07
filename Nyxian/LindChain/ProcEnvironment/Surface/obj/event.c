@@ -25,11 +25,11 @@
 #import <stdlib.h>
 #import <assert.h>
 
-ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
-                                          kvobject_event_type_t mask,
-                                          kvobject_event_handler_t handler,
-                                          void *context,
-                                          kvobject_event_t **event)
+kern_return_t kvobject_event_register(kvobject_strong_t *kvo,
+                                      kvobject_event_type_t mask,
+                                      kvobject_event_handler_t handler,
+                                      void *context,
+                                      kvobject_event_t **event)
 {
     assert(kvo != NULL && handler != NULL && kvo->base_type != kvObjBaseTypeObjectSnapshot);
     
@@ -39,7 +39,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     if(kvo->event_count >= KVOBJECT_EVENT_MAX)
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
-        return SURFACE_LIMIT;
+        return KERN_POLICY_LIMIT;
     }
     
     /* allocating new event */
@@ -48,7 +48,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     if(e_event == NULL)
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
-        return SURFACE_NOMEM;
+        return KERN_RESOURCE_SHORTAGE;
     }
     
     /* setting mutex */
@@ -56,7 +56,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
         free(e_event);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     /* setting properties */
@@ -83,7 +83,7 @@ ksurface_return_t kvobject_event_register(kvobject_strong_t *kvo,
         *event = e_event;
     }
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
 void kvobject_event_trigger(kvobject_strong_t *kvo,

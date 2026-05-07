@@ -152,7 +152,7 @@ force_not_inherite_entitlements:
     strlcpy(child->bsd.kp_proc.p_comm, name, MAXCOMLEN + 1);
     
     /* insert will retain the child process */
-    if(proc_insert(child) != SURFACE_SUCCESS)
+    if(proc_insert(child) != KERN_SUCCESS)
     {
         klog_log("proc:fork", "[%d] fork failed process %p failed to be inserted", proc_getpid(child), child);
         
@@ -206,14 +206,14 @@ force_not_inherite_entitlements:
     return child;
 }
 
-ksurface_return_t proc_reap(ksurface_proc_t *proc)
+kern_return_t proc_reap(ksurface_proc_t *proc)
 {
     assert(proc != NULL && proc != kernel_proc_);
     
     /* retain process that wants to exit */
     if(!kvo_retain(proc))
     {
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     /* lock mutex */
@@ -260,7 +260,7 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
         {
             /* releasing child */
             kvo_release(proc);
-            return SURFACE_FAILURE;
+            return KERN_FAILURE;
         }
         
         /* lock order: parent → child */
@@ -315,17 +315,17 @@ ksurface_return_t proc_reap(ksurface_proc_t *proc)
         [process terminate];
     }
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
-ksurface_return_t proc_zombify(ksurface_proc_t *proc)
+kern_return_t proc_zombify(ksurface_proc_t *proc)
 {
     assert(proc != NULL && proc != kernel_proc_);
     
     /* retain process that wants to be zombified */
     if(!kvo_retain(proc))
     {
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     pthread_mutex_lock(&(proc->children.mutex));
@@ -361,7 +361,7 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
         pthread_mutex_unlock(&(proc->children.mutex));
         kvo_release(proc);
         proc_reap(proc);
-        return SURFACE_SUCCESS;
+        return KERN_SUCCESS;
     }
     
     pthread_mutex_unlock(&(proc->children.mutex));
@@ -372,8 +372,8 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     kvo_unlock(proc);
     
     ksurface_proc_t *parent = NULL;
-    ksurface_return_t ksr = proc_parent_for_proc(proc, &parent);
-    if(ksr == SURFACE_SUCCESS)
+    kern_return_t ksr = proc_parent_for_proc(proc, &parent);
+    if(ksr == KERN_SUCCESS)
     {
         kvo_event_trigger(parent, kvObjEventCustom0, (uintptr_t)proc);
         
@@ -388,16 +388,16 @@ ksurface_return_t proc_zombify(ksurface_proc_t *proc)
     
     kvo_release(proc);
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
-ksurface_return_t proc_state_change(ksurface_proc_t *proc,
-                                    int64_t status)
+kern_return_t proc_state_change(ksurface_proc_t *proc,
+                                int64_t status)
 {
     ksurface_proc_t *parent = NULL;
-    ksurface_return_t ksr = proc_parent_for_proc(proc, &parent);
+    kern_return_t ksr = proc_parent_for_proc(proc, &parent);
     
-    if(ksr != SURFACE_SUCCESS)
+    if(ksr != KERN_SUCCESS)
     {
         return ksr;
     }
@@ -415,5 +415,5 @@ ksurface_return_t proc_state_change(ksurface_proc_t *proc,
     }
     
     kvo_release(parent);
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

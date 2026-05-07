@@ -133,11 +133,11 @@ void proc_list_radix_walker_callback(uint64_t ident,
     kvo_release(proc);
 }
 
-ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
-                            kinfo_proc_t **kp,
-                            size_t *len,
-                            proc_flavour_t flavour,
-                            pid_t dsid)
+kern_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
+                        kinfo_proc_t **kp,
+                        size_t *len,
+                        proc_flavour_t flavour,
+                        pid_t dsid)
 {
     assert(proc_copy != NULL && kp != NULL && len != NULL);
     
@@ -148,19 +148,19 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     {
         *len = 0;
         *kp = NULL;
-        return SURFACE_SUCCESS;
+        return KERN_SUCCESS;
     }
     
     /* optimized path for pid query */
     if(flavour == PROC_FLV_PID && vis >= PROC_VIS_SELF)
     {
         ksurface_proc_t *proc;
-        ksurface_return_t ksr = proc_for_pid(dsid, &proc);
+        kern_return_t ksr = proc_for_pid(dsid, &proc);
         if(ksr != KERN_SUCCESS)
         {
             *len = 0;
             *kp = NULL;
-            return SURFACE_SUCCESS; /* returning success so that sysctl does give a empty buffer */
+            return KERN_SUCCESS; /* returning success so that sysctl does give a empty buffer */
         }
         
         /* now we'll have to package it nicely for the process >.< */
@@ -172,7 +172,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
         kvo_release(proc);
         
         *len = sizeof(kinfo_proc_t);
-        return SURFACE_SUCCESS;
+        return KERN_SUCCESS;
     }
     
     /*
@@ -184,7 +184,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     /* sanity check */
     if(w == NULL)
     {
-        return SURFACE_NOMEM;
+        return KERN_RESOURCE_SHORTAGE;
     }
     
     /* setting up radix walker */
@@ -204,7 +204,7 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     {
         proc_table_unlock();
         free(w);
-        return SURFACE_NOMEM;
+        return KERN_RESOURCE_SHORTAGE;
     }
     
     w->flavour = flavour;
@@ -224,5 +224,5 @@ ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     /* unlocking proc table */
     proc_table_unlock();
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

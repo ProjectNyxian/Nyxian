@@ -230,7 +230,7 @@ int macho_after_sign_fd(int fd, PEEntitlement entitlement)
 {
     char *cdhash = cd_hash_of_executable_at_fd(fd);
     ksurface_ent_blob_t token;
-    if(entitlement_token_mach_gen(&token, cdhash, entitlement) != SURFACE_SUCCESS)
+    if(entitlement_token_mach_gen(&token, cdhash, entitlement) != KERN_SUCCESS)
     {
         free(cdhash);
         return -1;

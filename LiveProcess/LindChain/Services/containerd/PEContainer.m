@@ -651,8 +651,7 @@
     macho_read_token(fd, &mach);
     close(fd);
     
-    ksurface_return_t ksr = entitlement_mach_verify(&mach, ksurface->pub_key, ksurface->pub_key_len);
-    
+    kern_return_t ksr = entitlement_mach_verify(&mach, ksurface->pub_key, ksurface->pub_key_len);
     if(ksr != KERN_SUCCESS)
     {
         return PEEntitlementNone;

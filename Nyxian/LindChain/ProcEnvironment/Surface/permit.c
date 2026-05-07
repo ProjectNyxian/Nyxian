@@ -39,9 +39,9 @@ bool permitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
      * to operate onto the target process
      */
     ksurface_proc_t *targetProc = NULL;
-    ksurface_return_t ret = proc_for_pid(targetPid, &targetProc);
+    kern_return_t ret = proc_for_pid(targetPid, &targetProc);
     
-    if(ret != SURFACE_SUCCESS)
+    if(ret != KERN_SUCCESS)
     {
         errno = ESRCH;
         return false;

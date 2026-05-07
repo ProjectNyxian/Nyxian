@@ -55,6 +55,6 @@ bool can_see_process(ksurface_proc_snapshot_t *caller, ksurface_proc_t *target, 
 bool is_flavour_matching(ksurface_proc_t *target, proc_flavour_t flavour, pid_t dsid);
 
 /* Actual syscall handler */
-ksurface_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, size_t *len, proc_flavour_t flavour, pid_t dsid);
+kern_return_t proc_list(ksurface_proc_snapshot_t *proc_snapshot, kinfo_proc_t **kp, size_t *len, proc_flavour_t flavour, pid_t dsid);
 
 #endif /* PROC_COPYLIST_H */

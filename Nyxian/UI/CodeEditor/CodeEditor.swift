@@ -78,7 +78,12 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         }
         self.isReadOnly = isReadOnly
         
-        if [CCFileType.C, CCFileType.CXX, CCFileType.objC, CCFileType.objCXX, CCFileType.cHeader, CCFileType.cxxHeader, CCFileType.objCHeader, CCFileType.objCXXHeader].contains(self.file.type) {
+        // Only allow C files to typecheck for now
+        // Cuz swift is not supported yet by synpush
+        // because its still a long journey till
+        // swift gets all of those nice little features.
+        if CCFileTypeIsClangFile(self.file.type)
+        {
             self.synpushServer = SynpushServer(self.file.fileURL.path)
                 
             if let project = project {

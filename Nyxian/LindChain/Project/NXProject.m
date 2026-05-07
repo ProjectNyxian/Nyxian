@@ -245,7 +245,8 @@
         @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
         @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
         @"LDELinkerFlags": @[],
-        @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind)
+        @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
+        @"LDESignMachOWithNyxianEntitlements": @(YES) /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
     }];
     
     switch(schemeKind)

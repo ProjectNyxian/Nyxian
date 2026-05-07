@@ -23,7 +23,7 @@
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
 #include <assert.h>
 
-ksurface_return_t proc_insert(ksurface_proc_t *proc)
+kern_return_t proc_insert(ksurface_proc_t *proc)
 {
     assert(proc != NULL);
     
@@ -38,7 +38,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
         proc_table_unlock();
-        return SURFACE_LIMIT;
+        return KERN_POLICY_LIMIT;
     }
     
     /*
@@ -53,7 +53,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(radix_lookup(&(ksurface->proc_info.tree), proc_getpid(proc)) != NULL)
     {
         proc_table_unlock();
-        return SURFACE_DUPLICATE;
+        return KERN_FAILURE;
     }
     
     /*
@@ -64,7 +64,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     if(!kvo_retain(proc))
     {
         proc_table_unlock();
-        return SURFACE_RETAIN_FAILURE;
+        return KERN_FAILURE;
     }
     
     /* inserting process into radix tree */
@@ -72,7 +72,7 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     {
         kvo_release(proc);
         proc_table_unlock();
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     /*
@@ -82,5 +82,5 @@ ksurface_return_t proc_insert(ksurface_proc_t *proc)
     ksurface->proc_info.proc_count++;
     
     proc_table_unlock();
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

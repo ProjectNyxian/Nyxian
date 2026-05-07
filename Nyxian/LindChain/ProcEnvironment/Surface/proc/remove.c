@@ -21,7 +21,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
-ksurface_return_t proc_remove_by_pid(pid_t pid)
+kern_return_t proc_remove_by_pid(pid_t pid)
 {
     /*
      * removing process from radix tree, which is also
@@ -39,7 +39,7 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     if(proc == NULL)
     {
         proc_table_unlock();
-        return SURFACE_UNAVAILABLE;
+        return KERN_NO_ACCESS;
     }
     
     /*
@@ -57,5 +57,5 @@ ksurface_return_t proc_remove_by_pid(pid_t pid)
     kvo_invalidate(proc);
     kvo_release(proc);
 
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

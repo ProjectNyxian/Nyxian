@@ -48,10 +48,10 @@ DEFINE_SYSCALL_HANDLER(ioctl)
     
     /* looking up tty */
     ksurface_tty_t *tty = NULL;
-    ksurface_return_t ksr = tty_for_port(port, &tty);
+    kern_return_t ksr = tty_for_port(port, &tty);
     
     /* final check */
-    if(ksr != SURFACE_SUCCESS)
+    if(ksr != KERN_SUCCESS)
     {
         sys_return_failure(ENOTTY);
     }
@@ -79,8 +79,8 @@ DEFINE_SYSCALL_HANDLER(ioctl)
                 goto out_fault;
             }
             
-            ksurface_return_t ksr = tty_suspend(tty);
-            if(ksr != SURFACE_SUCCESS)
+            kern_return_t ksr = tty_suspend(tty);
+            if(ksr != KERN_SUCCESS)
             {
                 goto out_fault;
             }

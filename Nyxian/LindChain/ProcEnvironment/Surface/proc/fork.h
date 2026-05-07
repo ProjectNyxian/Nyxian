@@ -26,9 +26,9 @@
 
 ksurface_proc_t *proc_fork(ksurface_proc_t *parent, pid_t child_pid, const char *path);
 
-ksurface_return_t proc_reap(ksurface_proc_t *child);
-ksurface_return_t proc_zombify(ksurface_proc_t *child);
+kern_return_t proc_reap(ksurface_proc_t *child);
+kern_return_t proc_zombify(ksurface_proc_t *child);
 
-ksurface_return_t proc_state_change(ksurface_proc_t *proc, int64_t status);
+kern_return_t proc_state_change(ksurface_proc_t *proc, int64_t status);
 
 #endif /* PROC_FORK_H */

@@ -228,8 +228,8 @@ DEFINE_SYSCALL_HANDLER(wait4)
     payload->waitonpid = pid;
     
     /* register event */
-    ksurface_return_t ksr = kvo_event_register(sys_proc_, kvObjEventCustom0, wait4_proc_event_handler, payload, NULL);
-    if(ksr != SURFACE_SUCCESS)
+    kern_return_t ksr = kvo_event_register(sys_proc_, kvObjEventCustom0, wait4_proc_event_handler, payload, NULL);
+    if(ksr != KERN_SUCCESS)
     {
         mach_port_deallocate(mach_task_self(), sys_task_);  /* drop the reference, created prior */
     out_again:

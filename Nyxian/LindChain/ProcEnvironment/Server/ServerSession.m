@@ -54,8 +54,8 @@
     if(_proc == NULL)
     {
         /* attempting to get proc from ksurface */
-        ksurface_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
-        if(ret != SURFACE_SUCCESS)
+        kern_return_t ret = proc_for_pid(_processIdentifier, &(_proc));
+        if(ret != KERN_SUCCESS)
         {
             return NULL;
         }

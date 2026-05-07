@@ -32,8 +32,8 @@ DEFINE_SYSCALL_HANDLER(gettask)
     
     /* getting the target process */
     ksurface_proc_t *target;
-    ksurface_return_t ret = proc_for_pid(pid, &target);
-    if(ret != SURFACE_SUCCESS)
+    kern_return_t ret = proc_for_pid(pid, &target);
+    if(ret != KERN_SUCCESS)
     {
         sys_return_failure(ESRCH);
     }
@@ -51,9 +51,9 @@ DEFINE_SYSCALL_HANDLER(gettask)
     
     /* getting task port of flavour */
     task_t exportTask = MACH_PORT_NULL;
-    ksurface_return_t ksr = proc_task_for_proc(target, name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT, &exportTask);
+    kern_return_t ksr = proc_task_for_proc(target, name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT, &exportTask);
     kvo_release(target);
-    if(ksr != SURFACE_SUCCESS)
+    if(ksr != KERN_SUCCESS)
     {
         sys_return_failure(EACCES);
     }

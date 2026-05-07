@@ -23,13 +23,13 @@
 #include <LindChain/ProcEnvironment/Surface/tty/lookup.h>
 #include <LindChain/LiveContainer/Tweaks/libproc.h>
 
-ksurface_return_t tty_for_port(fileport_t port,
-                               ksurface_tty_t **tty)
+kern_return_t tty_for_port(fileport_t port,
+                           ksurface_tty_t **tty)
 {
     /* sanity check */
     if(tty == NULL)
     {
-        return SURFACE_NULLPTR;
+        return KERN_INVALID_ADDRESS;
     }
     
     /* getting file descriptor */
@@ -38,7 +38,7 @@ ksurface_return_t tty_for_port(fileport_t port,
     /* validating file descriptor */
     if(fd < 0)
     {
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     /* getting unique object pointer */
@@ -47,7 +47,7 @@ ksurface_return_t tty_for_port(fileport_t port,
     if(proc_pidfdinfo(getpid(), fd, PROC_PIDFDSOCKETINFO, &si, sizeof(si)) <= 0)
     {
         close(fd);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     /* disposing that fd, not needed rn */
@@ -66,8 +66,8 @@ ksurface_return_t tty_for_port(fileport_t port,
     if(*tty == NULL ||
        !kvo_retain(*tty))
     {
-        return SURFACE_RETAIN_FAILURE;
+        return KERN_FAILURE;
     }
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

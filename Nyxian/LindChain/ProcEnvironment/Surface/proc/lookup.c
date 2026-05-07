@@ -25,8 +25,8 @@
 #include <LindChain/ProcEnvironment/panic.h>
 #include <assert.h>
 
-ksurface_return_t proc_for_pid(pid_t pid,
-                               ksurface_proc_t **proc)
+kern_return_t proc_for_pid(pid_t pid,
+                           ksurface_proc_t **proc)
 {
     assert(proc != NULL);
     
@@ -37,7 +37,7 @@ ksurface_return_t proc_for_pid(pid_t pid,
     if(*proc == NULL)
     {
         proc_table_unlock();
-        return SURFACE_UNAVAILABLE;
+        return KERN_NO_ACCESS;
     }
     
     /*
@@ -48,16 +48,16 @@ ksurface_return_t proc_for_pid(pid_t pid,
     if(!kvo_retain(*proc))
     {
         proc_table_unlock();
-        return SURFACE_RETAIN_FAILURE;
+        return KERN_FAILURE;
     }
     
     proc_table_unlock();
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
-ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
-                                     task_special_port_t flavour,
-                                     task_t *task)
+kern_return_t proc_task_for_proc(ksurface_proc_t *proc,
+                                 task_special_port_t flavour,
+                                 task_t *task)
 {
     assert(proc != NULL && task != NULL);
     
@@ -75,7 +75,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
             /* valid type */
             break;
         default:
-            return SURFACE_INVALID;
+            return KERN_INVALID_ARGUMENT;
     }
     
     /*
@@ -107,7 +107,7 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
          * cannot validate type.
          */
         task_unlock();
-        return SURFACE_LOOKUP_FAILURE;
+        return KERN_INVALID_NAME;
     }
     
     switch(ipc_port_type)
@@ -154,14 +154,14 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
              * system(ksurface) termination.
              */
             task_unlock();
-            return SURFACE_LOOKUP_FAILURE;
+            return KERN_INVALID_NAME;
     }
     
     task_unlock();
     
     if(kr != KERN_SUCCESS)
     {
-        return SURFACE_ACQUIRE_FAILURE;
+        return KERN_INVALID_NAME;
     }
     
     /*
@@ -175,19 +175,19 @@ ksurface_return_t proc_task_for_proc(ksurface_proc_t *proc,
      */
     *task = tmp_task;
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
-ksurface_return_t proc_task_for_pid(pid_t pid,
-                                    task_special_port_t flavour,
-                                    task_t *task)
+kern_return_t proc_task_for_pid(pid_t pid,
+                                task_special_port_t flavour,
+                                task_t *task)
 {
     assert(task != NULL);
     
     /* looking up proc (creates reference) */
     ksurface_proc_t *proc = NULL;
-    ksurface_return_t ksr = proc_for_pid(pid, &proc);
-    if(ksr != SURFACE_SUCCESS)
+    kern_return_t ksr = proc_for_pid(pid, &proc);
+    if(ksr != KERN_SUCCESS)
     {
         /* lookup failed */
         return ksr;
@@ -200,8 +200,8 @@ ksurface_return_t proc_task_for_pid(pid_t pid,
     return ksr;
 }
 
-ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child,
-                                       ksurface_proc_t **parent)
+kern_return_t proc_parent_for_proc(ksurface_proc_t *child,
+                                   ksurface_proc_t **parent)
 {
     assert(child != NULL && parent != NULL);
     
@@ -217,12 +217,12 @@ ksurface_return_t proc_parent_for_proc(ksurface_proc_t *child,
     if(strong_parent == NULL || !kvo_retain(strong_parent))
     {
         pthread_mutex_unlock(&(child->children.mutex));
-        return SURFACE_UNAVAILABLE;
+        return KERN_NO_ACCESS;
     }
     
     pthread_mutex_unlock(&(child->children.mutex));
     
     *parent = strong_parent;
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

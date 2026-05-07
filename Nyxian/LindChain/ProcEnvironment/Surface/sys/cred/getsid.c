@@ -30,10 +30,10 @@ DEFINE_SYSCALL_HANDLER(getsid)
     
     /* getting process */
     ksurface_proc_t *proc = NULL;
-    ksurface_return_t ret = proc_for_pid(pid, &proc);
+    kern_return_t ret = proc_for_pid(pid, &proc);
     
     /* sanity check */
-    if(ret != SURFACE_SUCCESS ||
+    if(ret != KERN_SUCCESS ||
        proc == NULL)
     {
         sys_return_failure(EINVAL);

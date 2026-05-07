@@ -36,10 +36,10 @@ static void tty_kill(ksurface_tty_t *tty, int sig)
     size_t len = 0;
 
     proc_table_rdlock();
-    ksurface_return_t ksr = proc_list(kernel_proc_, &kp, &len, PROC_FLV_SID, tty->pgrp);
+    kern_return_t ksr = proc_list(kernel_proc_, &kp, &len, PROC_FLV_SID, tty->pgrp);
     proc_table_unlock();
 
-    if(ksr == SURFACE_SUCCESS)
+    if(ksr == KERN_SUCCESS)
     {
         size_t count = len / sizeof(kinfo_proc_t);
         for(size_t i = 0; i < count; i++)

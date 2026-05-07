@@ -42,24 +42,24 @@ bool tty_proc_event_handler(kvobject_event_type_t type,
     }
 }
 
-ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
-                                  ksurface_tty_t *tty)
+kern_return_t tty_attach_proc(ksurface_proc_t *proc,
+                              ksurface_tty_t *tty)
 {
     /* retain process */
     if(!kvo_retain(proc))
     {
-        return SURFACE_RETAIN_FAILURE;
+        return KERN_FAILURE;
     }
     
     /*
      * attach to process lifecycle
      * and consume callers reference.
      */
-    ksurface_return_t ksr = kvo_event_register(proc, 0, tty_proc_event_handler, tty, NULL);
-    if(ksr != SURFACE_SUCCESS)
+    kern_return_t ksr = kvo_event_register(proc, 0, tty_proc_event_handler, tty, NULL);
+    if(ksr != KERN_SUCCESS)
     {
         kvo_release(proc);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     kvo_wrlock(proc);
@@ -70,5 +70,5 @@ ksurface_return_t tty_attach_proc(ksurface_proc_t *proc,
     kvo_unlock(proc);
     
     kvo_release(proc);
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }

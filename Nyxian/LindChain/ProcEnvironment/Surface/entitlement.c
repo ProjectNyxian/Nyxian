@@ -29,9 +29,9 @@
 #include <OpenSSL/pem.h>
 #include <assert.h>
 
-ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
-                                             const char *cdhash,
-                                             PEEntitlement entitlement)
+kern_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
+                                         const char *cdhash,
+                                         PEEntitlement entitlement)
 {
     blob->entitlement = entitlement;
     
@@ -44,7 +44,7 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     {
         /* dont sign at all (just containing entitlements) */
         bzero((void*)(blob->cdhash), USER_FSIGNATURES_CDHASH_LEN);
-        return SURFACE_SUCCESS;
+        return KERN_SUCCESS;
     }
     
     /* generating nonce so it's harder to crack */
@@ -55,21 +55,21 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     EVP_PKEY *priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p, (long)ksurface->priv_key_len);
     if(!priv)
     {
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if(!mdctx)
     {
         EVP_PKEY_free(priv);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     
     if(EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, priv) != 1)
     {
         EVP_MD_CTX_free(mdctx);
         EVP_PKEY_free(priv);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
 
     size_t mac_len;
@@ -77,19 +77,19 @@ ksurface_return_t entitlement_token_mach_gen(ksurface_ent_blob_t *blob,
     {
         EVP_MD_CTX_free(mdctx);
         EVP_PKEY_free(priv);
-        return SURFACE_FAILURE;
+        return KERN_FAILURE;
     }
     blob->mac_len = mac_len;
     
     EVP_MD_CTX_free(mdctx);
     EVP_PKEY_free(priv);
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
-ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
-                                          uint8_t *pub_key,
-                                          size_t pub_key_len)
+kern_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
+                                      uint8_t *pub_key,
+                                      size_t pub_key_len)
 {
     assert(mach != NULL);
     
@@ -98,21 +98,21 @@ ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
     EVP_PKEY *pub = d2i_PUBKEY(NULL, &p, pub_key_len);
     if(!pub)
     {
-        return SURFACE_DENIED;
+        return KERN_DENIED;
     }
     
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if(!mdctx)
     {
         EVP_PKEY_free(pub);
-        return SURFACE_DENIED;
+        return KERN_DENIED;
     }
     
     if(EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, pub) != 1)
     {
         EVP_MD_CTX_free(mdctx);
         EVP_PKEY_free(pub);
-        return SURFACE_DENIED;
+        return KERN_DENIED;
     }
     
     int ret = EVP_DigestVerify(mdctx, mach->blob.mac, mach->blob.mac_len, (unsigned char *)&mach->blob, offsetof(ksurface_ent_blob_t, mac));
@@ -122,16 +122,16 @@ ksurface_return_t entitlement_mach_verify(ksurface_ent_result_t *mach,
     
     if(ret != 1)
     {
-        return SURFACE_DENIED;
+        return KERN_DENIED;
     }
     
     mach->blob_valid = true;
     if(!mach->cdhash_valid)
     {
-        return SURFACE_DENIED;
+        return KERN_DENIED;
     }
     
-    return SURFACE_SUCCESS;
+    return KERN_SUCCESS;
 }
 
 PEEntitlement entitlement_get_path(const char *path,
@@ -147,8 +147,8 @@ PEEntitlement entitlement_get_path(const char *path,
     macho_read_token(fd, &mach);
     close(fd);
     
-    ksurface_return_t ksr = entitlement_mach_verify(&mach, ksurface->pub_key, ksurface->pub_key_len);
-    *wasLocallySigned = (ksr == SURFACE_SUCCESS);
+    kern_return_t ksr = entitlement_mach_verify(&mach, ksurface->pub_key, ksurface->pub_key_len);
+    *wasLocallySigned = (ksr == KERN_SUCCESS);
     
     return mach.blob.entitlement;
 }

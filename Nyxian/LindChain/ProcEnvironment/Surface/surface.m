@@ -205,8 +205,8 @@ static inline void ksurface_kinit_kproc(void)
     /* storing kernel proc */
     ksurface->proc_info.kern_proc = kproc;
     klog_log("ksurface:kinit:kproc", "inserting kernel process");
-    ksurface_return_t error = proc_insert(kproc);
-    if(error != SURFACE_SUCCESS)
+    kern_return_t error = proc_insert(kproc);
+    if(error != KERN_SUCCESS)
     {
         /* shall never happen */
         environment_panic("failed to insert kernel process");

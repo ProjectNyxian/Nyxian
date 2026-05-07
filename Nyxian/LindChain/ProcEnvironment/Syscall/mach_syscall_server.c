@@ -56,10 +56,10 @@ static ksurface_proc_snapshot_t *get_caller_proc_snapshot(mach_msg_header_t *msg
     
     /* getting process */
     ksurface_proc_t *proc = NULL;
-    ksurface_return_t ret = proc_for_pid(xnu_pid, &proc);
+    kern_return_t ret = proc_for_pid(xnu_pid, &proc);
     
     /* null pointer check */
-    if(ret != SURFACE_SUCCESS)
+    if(ret != KERN_SUCCESS)
     {
         return NULL;
     }

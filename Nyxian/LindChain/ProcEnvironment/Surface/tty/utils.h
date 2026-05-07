@@ -24,7 +24,7 @@
 
 #import <LindChain/ProcEnvironment/Surface/tty/def.h>
 
-ksurface_return_t tty_suspend(ksurface_tty_t *tty);
-ksurface_return_t tty_resume(ksurface_tty_t *tty);
+kern_return_t tty_suspend(ksurface_tty_t *tty);
+kern_return_t tty_resume(ksurface_tty_t *tty);
 
 #endif /* TTY_UTILS_H */

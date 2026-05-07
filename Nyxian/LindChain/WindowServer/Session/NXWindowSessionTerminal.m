@@ -130,9 +130,9 @@
     _process = process;
     
     /* attaching tty to process lifecycle */
-    ksurface_return_t ksr = tty_attach_proc(_process.proc, tty);
+    kern_return_t ksr = tty_attach_proc(_process.proc, tty);
     
-    if(ksr != SURFACE_SUCCESS)
+    if(ksr != KERN_SUCCESS)
     {
         [process terminate];
         kvo_release(tty);

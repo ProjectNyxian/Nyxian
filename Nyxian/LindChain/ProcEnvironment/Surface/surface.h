@@ -27,8 +27,8 @@
 #endif /* __OBJC__ */
 
 #import <LindChain/ProcEnvironment/Surface/limits.h>
-#import <LindChain/ProcEnvironment/Surface/return.h>
 #import <LindChain/ProcEnvironment/Surface/mapping.h>
+#include <mach/kern_return.h>
 #include <assert.h>
 #include <errno.h>
 

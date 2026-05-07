@@ -273,8 +273,8 @@
     {
         /* yep writing official wait4 code~~ */
         proc_state_change(self.proc, arg1.exitContext.underlyingContext.legacyCode);
-        ksurface_return_t error = proc_zombify(self.proc);
-        if(error != SURFACE_SUCCESS)
+        kern_return_t error = proc_zombify(self.proc);
+        if(error != KERN_SUCCESS)
         {
             klog_log("LDEProcess", "failed to remove pid %d", self.pid);
         }
