@@ -2,7 +2,7 @@
  SPDX-License-Identifier: AGPL-3.0-or-later
 
  Copyright (C) 2023 - 2025 LiveContainer
- Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2025 - 2026 mach-port-t
 
  This file is part of LiveContainer.
 

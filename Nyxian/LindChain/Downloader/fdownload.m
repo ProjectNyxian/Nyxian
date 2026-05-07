@@ -1,7 +1,7 @@
 /*
  SPDX-License-Identifier: AGPL-3.0-or-later
 
- Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2025 - 2026 mach-port-t
 
  This file is part of Nyxian.
 
@@ -21,10 +21,6 @@
 
 #import <LindChain/Downloader/fdownload.h>
 
-/**
- * @brief This function is for downloading files online
- *
- */
 BOOL fdownload(NSString *urlString,
                NSString *destinationPath)
 {

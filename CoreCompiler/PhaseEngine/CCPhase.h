@@ -21,26 +21,3 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#include <CoreCompiler/CCBase.h>
-
-Boolean CCJobTypeSupportsMultithreading(CCJobType type)
-{
-    /* TODO: implement multithreading support for the swift compiler */
-    return (type == CCJobTypeCompiler);
-}
-
-Boolean CCFileTypeIsClangFile(CCFileType type)
-{
-    return (type < CCFileTypeSwift);
-}
-
-Boolean CCFileTypeIsSwiftFile(CCFileType type)
-{
-    return (type == CCFileTypeSwift);
-}
-
-Boolean CCFileTypeIsObjectFile(CCFileType type)
-{
-    return (type == CCFileTypeObject);
-}

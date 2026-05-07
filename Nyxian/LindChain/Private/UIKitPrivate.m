@@ -1,7 +1,7 @@
 /*
  SPDX-License-Identifier: AGPL-3.0-or-later
 
- Copyright (C) 2025 - 2026 cr4zyengineer
+ Copyright (C) 2025 - 2026 mach-port-t
 
  This file is part of Nyxian.
 
@@ -18,7 +18,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
-
 
 #import <LindChain/Private/UIKitPrivate.h>
 

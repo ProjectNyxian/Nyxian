@@ -1,10 +1,3 @@
-//
-//  ISIcon.h
-//  Nyxian
-//
-//  Created by SeanIsTethered on 08.09.25.
-//
-
 @interface ISIcon : NSObject
 
 - (id)imageForSize:(CGSize)arg1 scale:(double)arg2;
