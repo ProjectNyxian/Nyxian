@@ -67,7 +67,7 @@ struct UIOnboardingHelper {
                           ? UIColor(red: 0.78, green: 0.71, blue: 0.95, alpha: 1.0)
                           : UIColor(red: 0.55, green: 0.45, blue: 0.85, alpha: 1.0)
                       },
-                      title: "CoreCompiler",
+                      title: "MobileDevelopmentKit",
                       description: "A complete LLVM, Swift, Clang, and LLD toolchain running natively on iOS, powering compilation and linking completely on-device without any overpriced cloud services or subscriptions."),
             
                 .init(icon: UIImage(systemName: "cpu.fill")!,
