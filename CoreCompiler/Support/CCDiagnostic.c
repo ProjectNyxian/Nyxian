@@ -118,7 +118,7 @@ static CFStringRef CCDiagnosticCopyDebugDesc(CFTypeRef cf)
 
 static const CFRuntimeClass gCCDiagnosticClass = {
     0,                              /* version */
-    "CCKDiagnostic",                /* class name (later for OBJC type) */
+    "CCDiagnostic",                 /* class name */
     NULL,                           /* init */
     CCDiagnosticCopy,               /* copy */
     CCDiagnosticFinalize,           /* finalize */

@@ -50,7 +50,7 @@ static void CCSDKFinalize(CFTypeRef cf)
 
 static const CFRuntimeClass gCCSDKClass = {
     0,                              /* version */
-    "CCKSDK",                       /* class name (later for OBJC type) */
+    "CCSDK",                        /* class name */
     NULL,                           /* init */
     CCSDKCopy,                      /* copy */
     CCSDKFinalize,                  /* finalize */

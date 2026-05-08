@@ -79,7 +79,7 @@ static CFStringRef CCFileSourceLocationCopyDebugDesc(CFTypeRef cf)
 
 static const CFRuntimeClass gCCFileClass = {
     0,                                      /* version */
-    "CCKFileSourceLocation",                /* class name (later for OBJC type) */
+    "CCFileSourceLocation",                 /* class name */
     NULL,                                   /* init */
     CCFileSourceLocationCopy,               /* copy */
     CCFileSourceLocationFinalize,           /* finalize */
