@@ -38,7 +38,7 @@ kern_return_t proc_insert(ksurface_proc_t *proc)
     if(ksurface->proc_info.proc_count >= PROC_MAX)
     {
         proc_table_unlock();
-        return KERN_POLICY_LIMIT;
+        return KERN_NO_SPACE;
     }
     
     /*

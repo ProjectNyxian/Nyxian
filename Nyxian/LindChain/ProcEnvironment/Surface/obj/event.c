@@ -39,7 +39,7 @@ kern_return_t kvobject_event_register(kvobject_strong_t *kvo,
     if(kvo->event_count >= KVOBJECT_EVENT_MAX)
     {
         PTHREAD_RWLOCK_DEBUG_IMP_UNLOCK(&(kvo->event_rwlock));
-        return KERN_POLICY_LIMIT;
+        return KERN_NO_SPACE;
     }
     
     /* allocating new event */
