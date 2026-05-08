@@ -25,7 +25,7 @@
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
 #import <Nyxian-Swift.h>
-#import <CoreCompiler/CCKThreadPool.h>
+#import <MobileDevelopmentKit/MDKThreadPool.h>
 
 @interface NXBootstrap ()
 
@@ -135,7 +135,7 @@
 {
     NSLog(@"checking upon nyxian bootstrap :3");
     
-    CCKPthreadDispatch(^{
+    MDKPthreadDispatch(^{
         NSError *error = nil;
         
         goto skip_error_report;

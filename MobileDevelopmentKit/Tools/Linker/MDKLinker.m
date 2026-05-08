@@ -22,26 +22,30 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKLinker.h>
+#import <CoreCompiler/CCLinker.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@implementation MDKLinker
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
++ (BOOL)executeJob:(MDKJob*)job
+    outDiagnostics:(NSArray<MDKDiagnostic*>**)outDiagnostic
+{
+    CFArrayRef array = nil;
+    BOOL success = CCLinkerJobExecute((__bridge CCJobRef)job, &array);
+    
+    if(array != nil)
+    {
+        if(outDiagnostic != nil)
+        {
+            *outDiagnostic = (__bridge_transfer NSArray<MDKDiagnostic*>*)array;
+        }
+        else
+        {
+            CFRelease(array);
+        }
+    }
+    
+    return success;
+}
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@end

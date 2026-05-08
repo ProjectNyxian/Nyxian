@@ -22,26 +22,26 @@
  * SOFTWARE.
  */
 
+#ifndef MDKTHREADPOOL_H
+#define MDKTHREADPOOL_H
+
 #import <Foundation/Foundation.h>
+#import <CoreCompiler/CCUtils.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+void MDKPthreadDispatch(void (^code)(void));
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@interface MDKThreadPool : NSObject
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@property (atomic,readwrite) BOOL lockdown;
+
++ (instancetype)poolWithThreads:(CFIndex)threads;
++ (instancetype)pool;
+
+- (instancetype)initWithThreads:(CFIndex)threads;
+- (instancetype)init;
+
+- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
+
+@end
+
+#endif /* MDKTHREADPOOL_H */

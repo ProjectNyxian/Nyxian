@@ -1,6 +1,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2026 Kyle-Ye
  * Copyright (c) 2026 mach-port-t
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,26 +23,38 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKSwiftCompiler.h>
+#import <CoreCompiler/CCSwiftCompiler.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@implementation MDKSwiftCompiler
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
++ (BOOL)executeJob:(MDKJob*)job
+    outDiagnostics:(NSArray<MDKDiagnostic*>**)outDiagnostic
+     outMainSource:(NSString**)outMainSource
+{
+    CFArrayRef array = nil;
+    CFStringRef string = nil;
+    BOOL success = CCSwiftCompilerJobExecute((__bridge CCJobRef)job, &array, &string);
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+    if(array != nil && outDiagnostic != nil)
+    {
+        *outDiagnostic = (__bridge_transfer NSArray<MDKDiagnostic*>*)array;
+    }
+    else
+    {
+        CFRelease(array);
+    }
+    
+    if(string != nil && outMainSource != nil)
+    {
+        *outMainSource = (__bridge_transfer NSString*)string;
+    }
+    else
+    {
+        CFRelease(string);
+    }
+
+    return success;
+}
+
+@end

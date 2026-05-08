@@ -22,26 +22,36 @@
  * SOFTWARE.
  */
 
+#ifndef MDKPHASERUNNER_H
+#define MDKPHASERUNNER_H
+
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKPhaseEngine.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@class MDKPhaseRunner;
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@protocol MDKPhaseRunnerDelegate <NSObject>
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@optional
+- (void)runner:(MDKPhaseRunner * _Nonnull)runner phase:(MDKPhase * _Nonnull)phase finishedRunningJob:(MDKJob * _Nonnull)job withResultingDiagnostics:(NSArray<MDKDiagnostic*> * _Nullable)diagnostics withMainSource:(NSString * _Nullable)mainSource wasSuccessful:(BOOL)success;
+- (CFIndex)runner:(MDKPhaseRunner * _Nonnull)runner multithreadingThreadCountForPhase:(MDKPhase * _Nonnull)phase;
+
+@end
+
+@interface MDKPhaseRunner : NSObject
+
+@property (nonatomic, readonly, strong, nonnull) MDKPhaseEngine *engine;
+@property (nonatomic, readwrite, weak, nullable) id<MDKPhaseRunnerDelegate> delegate;
+
++ (instancetype _Nullable)runnerWithEngine:(MDKPhaseEngine * _Nonnull)engine;
+
+- (instancetype _Nullable)initWithEngine:(MDKPhaseEngine * _Nonnull)engine;
+
+- (BOOL)runJob:(MDKJob * _Nonnull)job withinPhase:(MDKPhase * _Nonnull)phase;
+- (BOOL)runPhase:(MDKPhase * _Nonnull)phase;
+- (BOOL)runPhasesWithPhases:(NSArray * _Nonnull)phases;
+- (BOOL)runPhases;
+
+@end
+
+#endif /* MDKPHASERUNNER_H */

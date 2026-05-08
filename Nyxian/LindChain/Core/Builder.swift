@@ -21,7 +21,7 @@
 
 import Foundation
 import Combine
-import CoreCompiler
+import MobileDevelopmentKit
 
 #if JAILBREAK_ENV
 
@@ -30,16 +30,16 @@ import CoreCompiler
 
 #endif // JAILBREAK_ENV
 
-class LDEPhaseRunner: CCKPhaseRunner {
+class LDEPhaseRunner: MDKPhaseRunner {
     var pstep: Double = 0.0
     
-    override func run(_ job: CCKJob, within phase: CCKPhase) -> Bool {
+    override func run(_ job: MDKJob, within phase: MDKPhase) -> Bool {
         let success: Bool = super.run(job, within: phase)
         XCButton.incrementProgress(withValue: pstep)
         return success
     }
     
-    override func run(_ phase: CCKPhase) -> Bool {
+    override func run(_ phase: MDKPhase) -> Bool {
         switch phase.type {
         case .compiler:
             fallthrough
@@ -64,13 +64,13 @@ class LDEPhaseRunner: CCKPhaseRunner {
     }
 }
 
-class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
+class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
     private let project: NXProject
     
     private let database: DebugDatabase
     
     private var phaseRunner: LDEPhaseRunner
-    private let dependencyScanner: CCKDependencyScanner
+    private let dependencyScanner: MDKDependencyScanner
     
     private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
     private let projectDirty: Bool
@@ -88,7 +88,7 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
-        self.dependencyScanner = CCKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        self.dependencyScanner = MDKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
         
         guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources","Config"]),
               let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources","Config"]) else {
@@ -103,7 +103,7 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         driverFlags.append("-o")
         driverFlags.append(self.project.machoURL.path)
         
-        let phaseEngine: CCKPhaseEngine
+        let phaseEngine: MDKPhaseEngine
         if swiftFiles.isEmpty && codeFiles.isEmpty {
             self.database.addMessage(message: "Nothing to build. No code files were found, please create a code file.", severity: .error)
             self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
@@ -113,11 +113,11 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
             driverFlags.append("-module-name")
             driverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
             
-            phaseEngine = CCKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+            phaseEngine = MDKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
         } else {
             driverFlags.append(contentsOf: self.project.projectConfig.compilerFlags)
             
-            phaseEngine = CCKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+            phaseEngine = MDKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
         }
         
         self.argsString = driverFlags.joined(separator: " ")
@@ -142,13 +142,13 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         self.phaseRunner.delegate = self
     }
     
-    func driver(_ driver: CCKDriver,
-                outputPathForInputFile file: CCKFile) -> String? {
+    func driver(_ driver: MDKDriver,
+                outputPathForInputFile file: MDKFile) -> String? {
         return "\(self.project.cacheURL.path)/\(NXExpectedObjectFileURLForFileURL(NXRelativeURLFromBaseURLToFullURL(self.project.url, file.fileURL)).path)"
     }
     
-    func driver(_ driver: CCKDriver,
-                skipCompileForInputFile file: CCKFile) -> Bool {
+    func driver(_ driver: MDKDriver,
+                skipCompileForInputFile file: MDKFile) -> Bool {
         if !CCFileTypeIsSwiftFile(file.type),
            !self.projectDirty {
             
@@ -181,15 +181,15 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         }
     }
     
-    func runner(_ runner: CCKPhaseRunner,
-                multithreadingThreadCountFor phase: CCKPhase) -> CFIndex {
+    func runner(_ runner: MDKPhaseRunner,
+                multithreadingThreadCountFor phase: MDKPhase) -> CFIndex {
         return CFIndex(LDEGetUserSetThreadCount())
     }
     
-    func runner(_ runner: CCKPhaseRunner,
-                phase: CCKPhase,
-                finishedRunning job: CCKJob,
-                withResultingDiagnostics diagnostics: [CCKDiagnostic]?,
+    func runner(_ runner: MDKPhaseRunner,
+                phase: MDKPhase,
+                finishedRunning job: MDKJob,
+                withResultingDiagnostics diagnostics: [MDKDiagnostic]?,
                 withMainSource mainSource: String?,
                 wasSuccessful success: Bool) {
         if let diagnostics = diagnostics {
@@ -469,7 +469,7 @@ class Builder: NSObject, CCKDriverDelegate, CCKPhaseRunnerDelegate {
         
         XCButton.resetProgress()
         
-        CCKPthreadDispatch {
+        MDKPthreadDispatch {
             NXBootstrap.shared().waitTillDone()
             
             var result: Bool = true

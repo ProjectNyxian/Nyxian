@@ -22,26 +22,26 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef MDKTHREADPOOLPRIVATE_H
+#define MDKTHREADPOOLPRIVATE_H
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+#if __OBJC__
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+#import <pthread.h>
+#import <stdbool.h>
+#import <stdatomic.h>
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+typedef struct {
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    void (^__strong currentBlock)(void);
+    void (^__strong completionBlock)(void);
+    int cpuIndex;
+    _Atomic(bool) shouldExit;
+    _Atomic(bool) hasWork;
+} MDKWorkerThread;
+
+#endif /* __OBJC__ */
+
+#endif /* MDKTHREADPOOLPRIVATE_H */

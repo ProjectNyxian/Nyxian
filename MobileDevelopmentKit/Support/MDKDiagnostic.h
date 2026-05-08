@@ -22,26 +22,24 @@
  * SOFTWARE.
  */
 
+#ifndef MDKDIAGNOSTIC_H
+#define MDKDIAGNOSTIC_H
+
 #import <Foundation/Foundation.h>
+#import <CoreCompiler/CCDiagnostic.h>
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@interface MDKDiagnostic : MDKCFType
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@property (nonatomic, readonly) CCDiagnosticType type;
+@property (nonatomic, readonly) CCDiagnosticLevel level;
+@property (nonatomic, readonly) NSString *mainSource;
+@property (nonatomic, readonly) MDKFileSourceLocation *fileSourceLocation;
+@property (nonatomic, readonly) NSString *message;
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
++ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level mainSource:(NSString*)mainSource fileSourceLocation:(MDKFileSourceLocation *)fileSourceLocation message:(NSString*)message;
+
+@end
+
+#endif /* MDKDIAGNOSTIC_H */

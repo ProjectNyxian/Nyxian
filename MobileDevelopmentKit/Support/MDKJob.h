@@ -22,26 +22,22 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef MDKJOB_H
+#define MDKJOB_H
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <MobileDevelopmentKit/MDKDiagnostic.h>
+#import <CoreCompiler/CCJob.h>
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@interface MDKJob : MDKCFType
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@property (nonatomic, readonly) CCJobType type;
+@property (nonatomic, readonly) NSArray<NSString*> *arguments;
+
++ (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments;
+
+- (BOOL)executeJobWithOutDiagnostics:(NSArray<MDKDiagnostic*>**)outDiagnostic withOutMainSource:(NSString**)outMainSource;
+
+@end
+
+#endif /* MDKJOB_H */

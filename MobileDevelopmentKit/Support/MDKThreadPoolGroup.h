@@ -22,26 +22,21 @@
  * SOFTWARE.
  */
 
+#ifndef MDKTHREADPOOLGROUP_H
+#define MDKTHREADPOOLGROUP_H
+
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKThreadPool.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@interface MDKThreadPoolGroup: MDKThreadPool
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+- (instancetype)initWithThreads:(CFIndex)threads;
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+- (void)enter;
+- (void)wait;
+
+- (void)dispatchExecution:(void (^)(void))code withCompletion:(void (^)(void))completion;
+
+@end
+
+#endif /* MDKTHREADPOOLGROUP_H */

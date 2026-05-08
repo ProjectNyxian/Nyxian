@@ -22,26 +22,29 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKPhase.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@implementation MDKPhase
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
++ (instancetype)phaseWithJobs:(NSArray<MDKJob*>*)jobs
+                  withJobType:(CCJobType)type
+    withMultithreadingSupport:(BOOL)isMultithreadingSupported
+{
+    return [[self alloc] initWithJobs:jobs withJobType:type withMultithreadingSupport:isMultithreadingSupported];
+}
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+- (instancetype)initWithJobs:(NSArray<MDKJob*>*)jobs
+                 withJobType:(CCJobType)type
+   withMultithreadingSupport:(BOOL)isMultithreadingSupported
+{
+    self = [super init];
+    if(self)
+    {
+        _jobs = jobs;
+        _type = type;
+        _isMultithreadingSupported = isMultithreadingSupported;
+    }
+    return self;
+}
+
+@end

@@ -22,26 +22,41 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKThreadPoolGroup.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@implementation MDKThreadPoolGroup {
+    dispatch_group_t _group;
+}
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+- (instancetype)initWithThreads:(CFIndex)threads
+{
+    self = [super initWithThreads:threads];
+    _group = dispatch_group_create();
+    return self;
+}
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+- (void)enter
+{
+    dispatch_group_enter(_group);
+}
+
+- (void)wait
+{
+    /* never timeout */
+    dispatch_group_wait(_group, DISPATCH_TIME_FOREVER);
+}
+
+- (void)dispatchExecution:(void (^)(void))code
+           withCompletion:(void (^)(void))completion
+{
+    /* now execute ^^ */
+    [super dispatchExecution:code withCompletion:^{
+        /* checking and running completion if it exists */
+        if(completion) completion();
+        
+        /* leaving entered group */
+        dispatch_group_leave(self->_group);
+    }];
+}
+
+@end

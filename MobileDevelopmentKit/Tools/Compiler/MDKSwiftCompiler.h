@@ -1,6 +1,7 @@
 /*
  * MIT License
  *
+ * Copyright (c) 2026 Kyle-Ye
  * Copyright (c) 2026 mach-port-t
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,26 +23,17 @@
  * SOFTWARE.
  */
 
+#ifndef MDKSWIFTCOMPILER_H
+#define MDKSWIFTCOMPILER_H
+
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKDiagnostic.h>
+#import <MobileDevelopmentKit/MDKJob.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@interface MDKSwiftCompiler : NSObject
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
++ (BOOL)executeJob:(MDKJob*)job outDiagnostics:(NSArray<MDKDiagnostic*>**)outDiagnostic outMainSource:(NSString**)outMainSource;
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@end
+
+#endif /* MDKSWIFTCOMPILER_H */

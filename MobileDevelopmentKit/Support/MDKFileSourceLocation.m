@@ -22,26 +22,29 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@implementation MDKFileSourceLocation
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
++ (void)load
+{
+    _CFRuntimeBridgeClasses(CCFileSourceLocationGetTypeID(), "MDKFileSourceLocation");
+}
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
++ (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL
+                           withSourceLocation:(CCSourceLocation)location
+{
+    return (__bridge_transfer MDKFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL, location);
+}
+
+- (NSURL*)fileURL
+{
+    return (__bridge NSURL*)CCFileSourceLocationGetFileURL((__bridge void *)self);
+}
+
+- (CCSourceLocation)location
+{
+    return CCFileSourceLocationGetLocation((__bridge void *)self);
+}
+
+@end

@@ -39,7 +39,7 @@
 enum kvObjBaseType {
     kvObjBaseTypeObject = 0,                        /* normal allocated object with referencing */
     kvObjBaseTypeObjectSnapshot = 1,                /* snapshot of object also with referencing, but with seperate memory */
-    kvObjBaseTypeObjectRCU = 2,                     /* rcu allocated object with referencing  */
+    kvObjBaseTypeObjectRCU = 2,                     /* rcu allocated object with referencing        MARK: not used yet */
 };
 
 /* enumeration of kernel virt object events */

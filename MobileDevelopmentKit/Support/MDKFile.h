@@ -22,26 +22,33 @@
  * SOFTWARE.
  */
 
+#ifndef MDKFILE_H
+#define MDKFILE_H
+
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <CoreCompiler/CCFile.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@interface MDKFile : MDKCFType <NSCopying,NSMutableCopying>
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@property (nonatomic, readonly) NSURL *fileURL;
+@property (nonatomic, readonly) NSData *unsavedData;
+@property (nonatomic, readonly) CCFileType type;
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
++ (instancetype)fileWithURL:(NSURL*)fileURL;
++ (instancetype)fileWithPath:(NSString*)filePath;
++ (instancetype)fileWithCString:(const char*)path encoding:(NSStringEncoding)encoding;
+
+@end
+
+@interface MDKMutableFile : MDKFile
+
+@property (nonatomic, readwrite) NSURL *fileURL;
+@property (nonatomic, readwrite) NSData *unsavedData;
+
++ (instancetype)fileWithURL:(NSURL*)fileURL;
++ (instancetype)fileWithURL:(NSURL*)fileURL withUnsavedData:(NSData*)unsavedData;
+
+@end
+
+#endif /* MDKFILE_H */

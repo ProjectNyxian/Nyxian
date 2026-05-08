@@ -95,7 +95,10 @@ static inline void ksurface_kinit_kinfo(void)
     for(unsigned char i = 0; i < 4; i++)
     {
         klog_log("ksurface:kinit:kinfo", "initilizing lock @ %p", wls[i]);
-        pthread_rwlock_init(wls[i], NULL);
+        if(pthread_rwlock_init(wls[i], NULL) != 0)
+        {
+            environment_panic("failed to initilize lock @ %p", wls[i]);
+        }
     }
     
     /*

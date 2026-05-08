@@ -22,26 +22,33 @@
  * SOFTWARE.
  */
 
+#ifndef MDKDRIVER_H
+#define MDKDRIVER_H
+
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <MobileDevelopmentKit/MDKJob.h>
+#import <MobileDevelopmentKit/MDKFile.h>
+#import <MobileDevelopmentKit/MDKSDK.h>
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+@class MDKDriver;
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@protocol MDKDriverDelegate <NSObject>
+@optional
+- (NSString * _Nullable)driver:(MDKDriver * _Nonnull)driver outputPathForInputFile:(MDKFile * _Nonnull)file;
+- (BOOL)driver:(MDKDriver * _Nonnull)driver skipCompileForInputFile:(MDKFile * _Nonnull)file;
+@end
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@interface MDKDriver : MDKCFType
+
+@property (nonatomic, readonly, copy, nullable) NSURL *sysrootURL;
+@property (nonatomic, readonly, copy, nullable) MDKSDK *sdk;
+
+@property (nonatomic, readwrite, weak) id<MDKDriverDelegate> delegate;
+
++ (instancetype _Nullable)driverWithArguments:(NSArray<NSString*> * _Nonnull)arguments withType:(CCDriverType)type;
+- (NSArray<MDKJob*> * _Nullable)generateJobs;
+
+@end
+
+#endif /* MDKDRIVER_H */

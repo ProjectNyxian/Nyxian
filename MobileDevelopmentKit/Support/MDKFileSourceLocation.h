@@ -22,26 +22,19 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef MDKFILESOURCELOCATION_H
+#define MDKFILESOURCELOCATION_H
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <CoreCompiler/CCFileSourceLocation.h>
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@interface MDKFileSourceLocation : MDKCFType
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@property (nonatomic, readonly) NSURL *fileURL;
+@property (nonatomic, readonly) CCSourceLocation location;
+
++ (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL withSourceLocation:(CCSourceLocation)location;
+
+@end
+
+#endif /* MDKFILESOURCELOCATION_H */

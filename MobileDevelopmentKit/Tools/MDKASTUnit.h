@@ -22,26 +22,34 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef MDKASTUNIT_H
+#define MDKASTUNIT_H
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
+#import <MobileDevelopmentKit/MDKCFType.h>
+#import <MobileDevelopmentKit/MDKDiagnostic.h>
+#import <MobileDevelopmentKit/MDKFile.h>
+#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
+#import <CoreCompiler/CCASTUnit.h>
 
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
+@interface MDKASTUnit : MDKCFType
 
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
-#include <CoreCompiler/CCBase.h>
-#include <CoreCompiler/CCSourceLocation.h>
-#include <CoreCompiler/CCFile.h>
-#include <CoreCompiler/CCFileSourceLocation.h>
-#include <CoreCompiler/CCDiagnostic.h>
-#include <CoreCompiler/CCJob.h>
-#include <CoreCompiler/CCDriver.h>
-#include <CoreCompiler/CCSDK.h>
-#include <CoreCompiler/CCASTUnit.h>
-#include <CoreCompiler/CCDependencyScanner.h>
-#include <CoreCompiler/CCCompiler.h>
-#include <CoreCompiler/CCSwiftCompiler.h>
-#include <CoreCompiler/CCLinker.h>
-#include <CoreCompiler/CCUtils.h>
+@property (nonatomic, readonly) MDKFile *file;
+@property (nonatomic, readonly) NSArray<MDKDiagnostic*> *diagnostics;
+@property (nonatomic, readonly) BOOL hasErrorOccured;
+
+- (MDKFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(CCSourceLocation)location;
+
+@end
+
+@interface MDKMutableASTUnit : MDKASTUnit
+
+@property (nonatomic, readwrite) MDKFile *file;
+
++ (instancetype)unit;
+
+- (BOOL)reparse;
+- (void)setArguments:(NSArray<NSString*>*)arguments;
+
+@end
+
+#endif /* MDKASTUNIT_H */

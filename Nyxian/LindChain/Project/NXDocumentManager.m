@@ -21,7 +21,7 @@
 
 #import <LindChain/Project/NXDocumentManager.h>
 #import <os/lock.h>
-#import <CoreCompiler/CCKThreadPoolGroup.h>
+#import <MobileDevelopmentKit/MDKThreadPoolGroup.h>
 #import <LindChain/Utils/Utils.h>
 
 @implementation NXDocumentManager {
@@ -108,7 +108,7 @@ out_complete:
     os_unfair_lock_unlock(&_lock);
     
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        CCKThreadPoolGroup *threadPoolGroup = [[CCKThreadPoolGroup alloc] initWithThreads:LDEGetUserSetThreadCount()];
+        MDKThreadPoolGroup *threadPoolGroup = [[MDKThreadPoolGroup alloc] initWithThreads:LDEGetUserSetThreadCount()];
 
         for(NXDocument *document in documents)
         {

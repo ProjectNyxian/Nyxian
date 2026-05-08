@@ -27,10 +27,7 @@ kern_return_t tty_for_port(fileport_t port,
                            ksurface_tty_t **tty)
 {
     /* sanity check */
-    if(tty == NULL)
-    {
-        return KERN_INVALID_ADDRESS;
-    }
+    assert(tty != NULL);
     
     /* getting file descriptor */
     int fd = fileport_makefd(port);

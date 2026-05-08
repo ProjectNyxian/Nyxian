@@ -20,8 +20,8 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <CoreCompiler/CCKDiagnostic.h>
-#import <CoreCompiler/CCKFileSourceLocation.h>
+#import <MobileDevelopmentKit/MDKDiagnostic.h>
+#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,8 +33,8 @@
 
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
-- (NSArray<CCKDiagnostic *> *)getDiagnostics;
-- (CCKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
+- (NSArray<MDKDiagnostic *> *)getDiagnostics;
+- (MDKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
 
 - (void)releaseMemory;
 

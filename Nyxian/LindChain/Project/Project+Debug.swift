@@ -21,7 +21,7 @@
 
 import Foundation
 import UIKit
-import CoreCompiler
+import MobileDevelopmentKit
 
 class DebugItem: Codable {
     let severity: CCDiagnosticLevel
@@ -117,7 +117,7 @@ class DebugDatabase: Codable {
         os_unfair_lock_unlock(&self.lock)
     }
     
-    func addDiagnosticMessages(title: String = "Internal", items: [CCKDiagnostic], clearPrevious: Bool = false) {
+    func addDiagnosticMessages(title: String = "Internal", items: [MDKDiagnostic], clearPrevious: Bool = false) {
         os_unfair_lock_lock(&self.lock)
         
         if items.count > 0 {
@@ -146,7 +146,7 @@ class DebugDatabase: Codable {
         os_unfair_lock_unlock(&self.lock)
     }
     
-    func setFileDebug(ofPath path: String, synItems: [CCKDiagnostic]) {
+    func setFileDebug(ofPath path: String, synItems: [MDKDiagnostic]) {
         guard let relPath: String = NXBootstrap.shared().relativeToBootstrap(withAbsolutePath: path) else {
             return
         }
