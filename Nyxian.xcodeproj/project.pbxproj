@@ -1052,6 +1052,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Private/Frameworks",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = Nyxian/;
@@ -1136,13 +1137,7 @@
 					"-DJAILBREAK_ENV",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
-					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
-					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
-					"-Wl,-U,_BKSTerminateApplicationForReasonAndReportWithDescription",
-				);
+				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1176,6 +1171,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Private/Frameworks",
 				);
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1261,13 +1257,7 @@
 					"-DJAILBREAK_ENV",
 				);
 				OTHER_CODE_SIGN_FLAGS = "";
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
-					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
-					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
-					"-Wl,-U,_BKSTerminateApplicationForReasonAndReportWithDescription",
-				);
+				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "-DJAILBREAK_ENV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cr4zy.nyxian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1687,6 +1677,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Private/Frameworks",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1771,13 +1762,7 @@
 				);
 				MARKETING_VERSION = "$(VERSION)";
 				OTHER_CFLAGS = "-DHOST_ENV";
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
-					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
-					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
-					"-Wl,-U,_OBJC_CLASS_$_FBProcess",
-				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(NYXIAN_PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1810,6 +1795,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Nyxian/LindChain",
+					"$(PROJECT_DIR)/Nyxian/LindChain/Private/Frameworks",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -1896,13 +1882,7 @@
 				MARKETING_VERSION = "$(VERSION)";
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DHOST_ENV";
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
-					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
-					"-Wl,-U,_OBJC_CLASS_$_MIBundle",
-					"-Wl,-U,_OBJC_CLASS_$_FBProcess",
-				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(NYXIAN_PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
