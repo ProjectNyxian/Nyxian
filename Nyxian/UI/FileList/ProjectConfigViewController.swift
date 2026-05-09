@@ -225,17 +225,32 @@ class ProjectConfigViewController: UIThemedTableViewController {
     init(project: NXProject) {
         self.project = project
         self.project.reload()
-        self.pendingClangFlags = project.projectConfig.dictionary["NXClangFlags"] as? [String] ?? []
-        self.pendingSwiftFlags = project.projectConfig.dictionary["NXSwiftFlags"] as? [String] ?? []
-        self.pendingLinkerFlags = project.projectConfig.dictionary["NXLinkerFlags"] as? [String] ?? []
-        self.pendingDisplayName = project.projectConfig.dictionary["NXDisplayName"] as? String ?? project.projectConfig.displayName
-        self.pendingBundleIdentifier = project.projectConfig.dictionary["NXBundleIdentifier"] as? String ?? project.projectConfig.bundleid
-        self.pendingBundleVersion = project.projectConfig.dictionary["NXBundleVersion"] as? String ?? project.projectConfig.version
-        self.pendingBundleShortVersion = project.projectConfig.dictionary["NXBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
-        self.pendingBundleIdentifier = project.projectConfig.dictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
-        self.pendingExecutable = project.projectConfig.dictionary["NXExecutable"] as? String ?? ""
-        self.pendingDeployVersion = project.projectConfig.dictionary["NXDeploymentTarget"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
-        self.pendingLinkerFlags = project.projectConfig.dictionary["NXLinkerFlags"] as? [String] ?? []
+        
+        if self.project.projectConfig.formatKind == .avisR1 {
+            self.pendingClangFlags = project.projectConfig.originalDictionary["NXClangFlags"] as? [String] ?? []
+            self.pendingSwiftFlags = project.projectConfig.originalDictionary["NXSwiftFlags"] as? [String] ?? []
+            self.pendingLinkerFlags = project.projectConfig.originalDictionary["NXLinkerFlags"] as? [String] ?? []
+            self.pendingDisplayName = project.projectConfig.originalDictionary["NXDisplayName"] as? String ?? project.projectConfig.displayName
+            self.pendingBundleIdentifier = project.projectConfig.originalDictionary["NXBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+            self.pendingBundleVersion = project.projectConfig.originalDictionary["NXBundleVersion"] as? String ?? project.projectConfig.version
+            self.pendingBundleShortVersion = project.projectConfig.originalDictionary["NXBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
+            self.pendingBundleIdentifier = project.projectConfig.originalDictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+            self.pendingExecutable = project.projectConfig.originalDictionary["NXExecutable"] as? String ?? ""
+            self.pendingDeployVersion = project.projectConfig.originalDictionary["NXDeploymentTarget"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
+            self.pendingLinkerFlags = project.projectConfig.originalDictionary["NXLinkerFlags"] as? [String] ?? []
+        } else {
+            self.pendingClangFlags = project.projectConfig.originalDictionary["LDECompilerFlags"] as? [String] ?? []
+            self.pendingSwiftFlags = project.projectConfig.originalDictionary["LDESwiftFlags"] as? [String] ?? []
+            self.pendingLinkerFlags = project.projectConfig.originalDictionary["LDELinkerFlags"] as? [String] ?? []
+            self.pendingDisplayName = project.projectConfig.originalDictionary["LDEDisplayName"] as? String ?? project.projectConfig.displayName
+            self.pendingBundleIdentifier = project.projectConfig.originalDictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+            self.pendingBundleVersion = project.projectConfig.originalDictionary["LDEBundleVersion"] as? String ?? project.projectConfig.version
+            self.pendingBundleShortVersion = project.projectConfig.originalDictionary["LDEBundleShortVersion"] as? String ?? project.projectConfig.shortVersion
+            self.pendingBundleIdentifier = project.projectConfig.originalDictionary["LDEBundleIdentifier"] as? String ?? project.projectConfig.bundleid
+            self.pendingExecutable = project.projectConfig.originalDictionary["LDEExecutable"] as? String ?? ""
+            self.pendingDeployVersion = project.projectConfig.originalDictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
+            self.pendingLinkerFlags = project.projectConfig.originalDictionary["LDELinkerFlags"] as? [String] ?? []
+        }
         super.init(style: .insetGrouped)
     }
 
@@ -476,15 +491,32 @@ class ProjectConfigViewController: UIThemedTableViewController {
     }
 
     @objc private func saveTapped() {
-        project.projectConfig.dictionary["NXDisplayName"] = pendingDisplayName
-        project.projectConfig.dictionary["NXExecutable"] = pendingExecutable
-        project.projectConfig.dictionary["NXBundleIdentifier"] = pendingBundleIdentifier
-        project.projectConfig.dictionary["NXMinimumVersion"] = pendingDeployVersion
-        project.projectConfig.dictionary["NXClangFlags"] = pendingClangFlags
-        project.projectConfig.dictionary["NXSwiftFlags"] = pendingSwiftFlags
-        project.projectConfig.dictionary["NXLinkerFlags"] = pendingLinkerFlags
-        project.projectConfig.dictionary["NXBundleVersion"] = pendingBundleVersion
-        project.projectConfig.dictionary["NXBundleShortVersion"] = pendingBundleShortVersion
+        var dictionary: [AnyHashable:Any] = self.project.projectConfig.originalDictionary
+        
+        if self.project.projectConfig.formatKind == .avisR1 {
+            dictionary["NXDisplayName"] = pendingDisplayName
+            dictionary["NXExecutable"] = pendingExecutable
+            dictionary["NXBundleIdentifier"] = pendingBundleIdentifier
+            dictionary["NXDeploymentTarget"] = pendingDeployVersion
+            dictionary["NXClangFlags"] = pendingClangFlags
+            dictionary["NXSwiftFlags"] = pendingSwiftFlags
+            dictionary["NXLinkerFlags"] = pendingLinkerFlags
+            dictionary["NXBundleVersion"] = pendingBundleVersion
+            dictionary["NXBundleShortVersion"] = pendingBundleShortVersion
+        } else {
+            dictionary["LDEDisplayName"] = pendingDisplayName
+            dictionary["LDEExecutable"] = pendingExecutable
+            dictionary["LDEBundleIdentifier"] = pendingBundleIdentifier
+            dictionary["LDEMinimumVersion"] = pendingDeployVersion
+            dictionary["LDECompilerFlags"] = pendingClangFlags
+            dictionary["LDESwiftFlags"] = pendingSwiftFlags
+            dictionary["LDELinkerFlags"] = pendingLinkerFlags
+            dictionary["LDEBundleVersion"] = pendingBundleVersion
+            dictionary["LDEBundleShortVersion"] = pendingBundleShortVersion
+        }
+        
+        self.project.projectConfig.dictionary = NSMutableDictionary(dictionary: dictionary)
+        
         project.projectConfig.save()
         isDirty = false
     }

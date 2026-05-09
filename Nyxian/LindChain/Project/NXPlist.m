@@ -72,7 +72,8 @@
     BOOL needsReload = ![hash isEqualToString:_dataHash];
     if(needsReload)
     {
-        _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:_plistPath];
+        _originalDictionary = [NSDictionary dictionaryWithContentsOfFile:_plistPath];
+        _dictionary = [_originalDictionary mutableCopy];
         _dataHash = hash;
         
         NSDictionary<NSString*,NSString*> *userDef = _dictionary;
