@@ -480,7 +480,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         project.projectConfig.dictionary["NXExecutable"] = pendingExecutable
         project.projectConfig.dictionary["NXBundleIdentifier"] = pendingBundleIdentifier
         project.projectConfig.dictionary["NXMinimumVersion"] = pendingDeployVersion
-        project.projectConfig.dictionary["NXCompilerFlags"] = pendingClangFlags
+        project.projectConfig.dictionary["NXClangFlags"] = pendingClangFlags
         project.projectConfig.dictionary["NXSwiftFlags"] = pendingSwiftFlags
         project.projectConfig.dictionary["NXLinkerFlags"] = pendingLinkerFlags
         project.projectConfig.dictionary["NXBundleVersion"] = pendingBundleVersion
