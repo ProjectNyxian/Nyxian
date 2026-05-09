@@ -154,12 +154,16 @@ char *mach_syscall_copy_str_in(task_t task,
     } while(buf != '\0');
     
     /* copy string */
-    char *strBuf = malloc(clen);
-    if(!mach_syscall_copy_in(task, clen, (kernelspace_pointer_t)strBuf, src))
+    char *strBuf = malloc(clen + 1);
+    if(!strBuf)
+    {
+        return NULL;
+    }
+    if(clen && !mach_syscall_copy_in(task, clen, (kernelspace_pointer_t)strBuf, src))
     {
         free(strBuf);
         return NULL;
     }
-    
+    strBuf[clen] = '\0';
     return strBuf;
 }
