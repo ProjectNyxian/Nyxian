@@ -80,7 +80,7 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
 {
     NSArray *baseFlags = @[
         @"-target",
-        @"arm64-apple-ios$(LDEMinimumVersion)",
+        @"arm64-apple-ios$(NXDeploymentTarget)",
         @"-isysroot",
         @"$(SDKROOT)",
         @"-resource-dir",
@@ -133,7 +133,7 @@ NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind sche
 {
     NSArray *baseFlags = @[
         @"-target",
-        @"arm64-apple-ios$(LDEMinimumVersion)",
+        @"arm64-apple-ios$(NXDeploymentTarget)",
         @"-Xllvm",
         @"-aarch64-use-tbi",
         @"-Xfrontend",

@@ -40,6 +40,49 @@
     ];
 }
 
+- (void)remapKey:(NSString*)oldKey
+           toKey:(NSString*)newKey
+withRemapHandler:(id (^)(id oldObj))handler
+{
+    /* remapping old keynames to new ones to create a kind of compatibility layer  */
+    id newObj = [self.dictionary objectForKey:newKey];
+    if(newObj == nil)
+    {
+        id oldObj = [self.dictionary objectForKey:oldKey];
+        if(oldObj != nil)
+        {
+            /*
+             * letting caller patch the old object,
+             * to for example convert it into something
+             * else.
+             */
+            if(handler != nil)
+            {
+                oldObj = handler(oldObj);
+            }
+            
+            [self.dictionary setObject:oldObj forKey:newKey];
+            [self.dictionary removeObjectForKey:oldKey];
+            
+            /*
+             * create a fake variable remap so
+             * that if the users defined flags
+             * use for example $(LDEMinimumVersion)
+             * they straightup point back to the new one.
+             */
+            NSMutableDictionary<NSString*,NSString*> *variables = [self.variables mutableCopy];
+            [variables setObject:[NSString stringWithFormat:@"$(%@)", newKey] forKey:oldKey];
+            self.variables = [variables copy];
+        }
+    }
+}
+
+- (void)remapKey:(NSString*)oldKey
+           toKey:(NSString*)newKey
+{
+    [self remapKey:oldKey toKey:newKey withRemapHandler:nil];
+}
+
 - (BOOL)reloadIfNeeded
 {
     BOOL reloaded = [super reloadIfNeeded];
@@ -47,31 +90,50 @@
     {
         /* MARK: projectFormat */
         _formatKind = NXProjectFormatKindFromFormat([self objectForKey:@"NXProjectFormat" withDefaultObject:NXProjectFormatKate]);
-        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withClass:[NSString class]]);
         
-        /* MARK: NXFalcon and below compatibility */
-        if(_schemeKind == NXProjectSchemeKindUnknown)
+        if(_formatKind != NXProjectFormatKindAvisR1)
         {
-            _schemeKind = (NXProjectSchemeKind)[self integerForKey:@"LDEProjectType" withDefaultValue:NXProjectSchemeKindApp];
+            [self remapKey:@"LDEMinimumVersion" toKey:@"NXDeploymentTarget"];
+            [self remapKey:@"LDEProjectType" toKey:@"NXProjectScheme" withRemapHandler:(id)^(id oldObj){
+                if([oldObj isKindOfClass:[NSNumber class]])
+                {
+                    return NXProjectSchemeFromSchemeKind([(NSNumber*)oldObj integerValue]);
+                }
+                return NXProjectSchemeUnknown;
+            }];
+            [self remapKey:@"LDEExecutable" toKey:@"NXExecutable"];
+            [self remapKey:@"LDEDisplayName" toKey:@"NXDisplayName"];
+            [self remapKey:@"LDEOrganizationPrefix" toKey:@"NXOrganizationPrefix"];
+            [self remapKey:@"LDEBundleIdentifier" toKey:@"NXBundleIdentifier"];
+            [self remapKey:@"LDEBundleVersion" toKey:@"NXBundleVersion"];
+            [self remapKey:@"LDEBundleShortVersion" toKey:@"NXBundleShortVersion"];
+            [self remapKey:@"LDEBundleInfo" toKey:@"NXBundleInfo"];
+            [self remapKey:@"LDEOutputPath" toKey:@"NXOutputPath"];
+            [self remapKey:@"LDESignMachOWithNyxianEntitlements" toKey:@"NXSignMachOWithNyxianEntitlements"];
+            [self remapKey:@"LDECompilerFlags" toKey:@"NXClangFlags"];
+            [self remapKey:@"LDELinkerFlags" toKey:@"NXLinkerFlags"];
         }
         
+        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withClass:[NSString class]]);
+        
         /* MARK: keys */
-        _executable = [self objectForKey:@"LDEExecutable" withDefaultObject:@"Unknown"];
-        _displayName = [self objectForKey:@"LDEDisplayName" withDefaultObject:[self executable]];
-        _organizationPrefix = [self objectForKey:@"LDEOrganizationPrefix" withDefaultObject:@"com.example"];
-        _bundleid = [self objectForKey:@"LDEBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
-        _version = [self objectForKey:@"LDEBundleVersion" withDefaultObject:@"1.0"];
-        _shortVersion = [self objectForKey:@"LDEBundleShortVersion" withDefaultObject:[self version]];
-        _infoDictionary = [self objectForKey:@"LDEBundleInfo" withDefaultObject:@{}];
-        _deploymentTarget = [self objectForKey:@"LDEMinimumVersion" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
-        _outputPath = [self objectForKey:@"LDEOutputPath"];
-        _signMachOWithNyxianEntitlements = [self booleanForKey:@"LDESignMachOWithNyxianEntitlements" withDefaultValue:true];
+        _executable = [self objectForKey:@"NXExecutable" withDefaultObject:@"Unknown"];
+        _displayName = [self objectForKey:@"NXDisplayName" withDefaultObject:[self executable]];
+        _organizationPrefix = [self objectForKey:@"NXOrganizationPrefix" withDefaultObject:@"com.example"];
+        _bundleid = [self objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
+        _version = [self objectForKey:@"NXBundleVersion" withDefaultObject:@"1.0"];
+        _shortVersion = [self objectForKey:@"NXBundleShortVersion" withDefaultObject:[self version]];
+        _infoDictionary = [self objectForKey:@"NXBundleInfo" withDefaultObject:@{}];
+        _deploymentTarget = [self objectForKey:@"NXDeploymentTarget" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
+        _outputPath = [self objectForKey:@"NXOutputPath"];
+        _signMachOWithNyxianEntitlements = [self booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
         
         /* MARK: compiler flags */
-        NSArray *compilerFlags = [self objectForKey:@"LDECompilerFlags" withDefaultObject:@[]];
+        NSArray *compilerFlags = [self objectForKey:@"NXClangFlags" withDefaultObject:@[]];
         
         if(_formatKind == NXProjectFormatKindFalcon ||
-           _formatKind == NXProjectFormatKindAvis)
+           _formatKind == NXProjectFormatKindAvis ||
+           _formatKind == NXProjectFormatKindAvisR1)
         {
             _compilerFlags = compilerFlags;
         }
@@ -96,28 +158,11 @@
             _compilerFlags = @[];
         }
         
-        /* FIXME: as soon as switching to Swift LLVM this will not be necessary anymore */
-        NSString *sysroot = nil;
-        for(CFIndex i = 0; i < _compilerFlags.count; i++)
-        {
-            NSString *flag = _compilerFlags[i];
-            if([flag isEqualToString:@"-isysroot"])
-            {
-                sysroot = _compilerFlags[i + 1];
-                break;
-            }
-        }
-        
-        if(sysroot != nil)
-        {
-            _compilerFlags = [_compilerFlags arrayByAddingObject:[NSString stringWithFormat:@"-F%@/System/Library/SubFrameworks", sysroot]];
-        }
-        
         /* MARK: linker flags */
-        _linkerFlags = [self objectForKey:@"LDELinkerFlags" withDefaultObject:@[]];
+        _linkerFlags = [self objectForKey:@"NXLinkerFlags" withDefaultObject:@[]];
         
         /* MARK: swift flags */
-        _swiftFlags = [self objectForKey:@"LDESwiftFlags" withDefaultObject:@[]];
+        _swiftFlags = [self objectForKey:@"NXSwiftFlags" withDefaultObject:@[]];
     }
     return reloaded;
 }
@@ -217,7 +262,7 @@
         NSString *sceneDelegateClassName = @"SceneDelegate";
         if(languageKind == NXProjectLanguageKindSwift)
         {
-            sceneDelegateClassName = [@"$(LDEExecutable)." stringByAppendingString:sceneDelegateClassName];
+            sceneDelegateClassName = [@"$(NXExecutable)." stringByAppendingString:sceneDelegateClassName];
         }
         
         appBundleInfo = @{
@@ -236,32 +281,32 @@
     }
     
     NSMutableDictionary *projConfigPlist = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"NXProjectFormat": NXProjectFormatAvis,
+        @"NXProjectFormat": NXProjectFormatAvisR1,
         @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
-        @"LDEExecutable": name,
-        @"LDEDisplayName": name,
-        @"LDEOrganizationPrefix": organizationIdentifierValue,
-        @"LDEBundleIdentifier": bundleIdentifierValue,
-        @"LDEMinimumVersion": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
-        @"LDECompilerFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
-        @"LDELinkerFlags": @[],
-        @"LDESwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
-        @"LDESignMachOWithNyxianEntitlements": @(YES) /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
+        @"NXExecutable": name,
+        @"NXDisplayName": name,
+        @"NXOrganizationPrefix": organizationIdentifierValue,
+        @"NXBundleIdentifier": bundleIdentifierValue,
+        @"NXDeploymentTarget": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
+        @"NXClangFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
+        @"NXLinkerFlags": @[],
+        @"NXSwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
+        @"NXSignMachOWithNyxianEntitlements": @(YES) /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
     }];
     
     switch(schemeKind)
     {
         case NXProjectSchemeKindApp:
             [projConfigPlist setValuesForKeysWithDictionary:@{
-                @"LDEBundleInfo": appBundleInfo,
-                @"LDEBundleVersion": @"1.0",
-                @"LDEBundleShortVersion": @"1.0",
-                @"LDEOutputPath": @"$(CACHEROOT)/Payload/$(LDEDisplayName).app/$(LDEExecutable)"
+                @"NXBundleInfo": appBundleInfo,
+                @"NXBundleVersion": @"1.0",
+                @"NXBundleShortVersion": @"1.0",
+                @"NXOutputPath": @"$(CACHEROOT)/Payload/$(NXDisplayName).app/$(NXExecutable)"
             }];
             break;
         case NXProjectSchemeKindUtility:
             [projConfigPlist setValuesForKeysWithDictionary:@{
-                @"LDEOutputPath": @"$(CACHEROOT)/$(LDEExecutable)"
+                @"NXOutputPath": @"$(CACHEROOT)/$(NXExecutable)"
             }];
             break;
         default:

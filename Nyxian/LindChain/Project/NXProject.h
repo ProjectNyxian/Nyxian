@@ -45,6 +45,8 @@
 @property (nonatomic,strong,readonly) NSString *outputPath;
 @property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
 
+@property (nonatomic,readonly) BOOL deploymentTargetContainsWhitespaces;
+
 + (NSArray<NSString*>*)sdkCompilerFlags;
 
 @end
