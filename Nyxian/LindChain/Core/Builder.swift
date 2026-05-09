@@ -222,7 +222,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         
         // Project requirement check
         if osVersionNeeded > NXOSVersion.hostVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is needed to build the app, but host version iOS \(NXOSVersion.hostVersion) is present."])
+            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is needed to build the app, but host version \(NXOSVersion.hostVersion) is present."])
         }
     }
     
