@@ -92,5 +92,5 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         CaptureDiagsKind::All
     );
 
-    return CCASTUnitCreateWithASTUnit(CFGetAllocator(job), std::unique_ptr<clang::ASTUnit>(ASTUnit));
+    return ASTUnit ? CCASTUnitCreateWithASTUnit(CFGetAllocator(job), std::unique_ptr<clang::ASTUnit>(ASTUnit)) : nullptr;
 }
