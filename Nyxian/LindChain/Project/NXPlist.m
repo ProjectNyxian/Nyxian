@@ -257,4 +257,52 @@
     return [[self objectForKey:key withDefaultObject:@(defaultValue)] doubleValue];
 }
 
+- (void)remapKey:(NSString*)oldKey
+           toKey:(NSString*)newKey
+withRemapHandler:(id (^)(id oldObj))handler
+{
+    /* remapping old keynames to new ones to create a kind of compatibility layer  */
+    id newObj = [self.dictionary objectForKey:newKey];
+    if(newObj == nil)
+    {
+        id oldObj = [self.dictionary objectForKey:oldKey];
+        if(oldObj != nil)
+        {
+            /*
+             * letting caller patch the old object,
+             * to for example convert it into something
+             * else.
+             */
+            if(handler != nil)
+            {
+                oldObj = handler(oldObj);
+                
+                if(oldObj == nil)
+                {
+                    return;
+                }
+            }
+            
+            [self.dictionary setObject:oldObj forKey:newKey];
+            [self.dictionary removeObjectForKey:oldKey];
+            
+            /*
+             * create a fake variable remap so
+             * that if the users defined flags
+             * use for example $(LDEMinimumVersion)
+             * they straightup point back to the new one.
+             */
+            NSMutableDictionary<NSString*,NSString*> *variables = [self.variables mutableCopy];
+            [variables setObject:[NSString stringWithFormat:@"$(%@)", newKey] forKey:oldKey];
+            self.variables = [variables copy];
+        }
+    }
+}
+
+- (void)remapKey:(NSString*)oldKey
+           toKey:(NSString*)newKey
+{
+    [self remapKey:oldKey toKey:newKey withRemapHandler:nil];
+}
+
 @end

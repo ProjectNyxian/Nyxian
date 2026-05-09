@@ -46,6 +46,9 @@
 - (BOOL)booleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
 - (double)doubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
 
+- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey withRemapHandler:(id _Nonnull (^ _Nonnull)(id _Nonnull oldObj))handler;
+- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey;
+
 @end
 
 #endif /* NXPLISTHELPER_H */
