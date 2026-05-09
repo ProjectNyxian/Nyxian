@@ -161,7 +161,7 @@ static void radix_walk_node(radix_node_t *node,
         }
         else
         {
-            radix_walk_node((radix_node_t *)node->slots[i], level + 1, ident_prefix, callback, ctx);
+            radix_walk_node((radix_node_t *)node->slots[i], level + 1, ident, callback, ctx);
         }
     }
 }

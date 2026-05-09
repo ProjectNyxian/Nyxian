@@ -120,7 +120,6 @@ void proc_list_radix_walker_callback(uint64_t ident,
     
     kvo_rdlock(proc);
     
-    
     if(can_see_process(w->caller, proc, w->vis) &&
        is_flavour_matching(proc, w->flavour, w->dsid))
     {
@@ -190,6 +189,7 @@ kern_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
     /* setting up radix walker */
     w->caller = proc_copy;
     w->vis = vis;
+    w->len = 0;
     
     /*
      * aquire read onto proc table so we can reach a
