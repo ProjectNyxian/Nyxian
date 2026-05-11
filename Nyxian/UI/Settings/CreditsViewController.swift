@@ -94,6 +94,7 @@ class CreditsViewController: UIThemedTableViewController {
         
         downloadImage(from: "\(credit.githubURL).png") { image in
             cell.configureImage(image ?? UIImage(systemName: "person.fill"))
+            cell.layoutSubviews()
         }
         
         return cell
