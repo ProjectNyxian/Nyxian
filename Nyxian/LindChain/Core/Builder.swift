@@ -31,11 +31,27 @@ import MobileDevelopmentKit
 #endif // JAILBREAK_ENV
 
 class LDEPhaseRunner: MDKPhaseRunner {
-    var pstep: Double = 0.0
+    private var pstep: Double = 0.0 // TODO: needs to be float for extremely large projects
+    private var steps: Int = 0 {
+        didSet {
+            self.pstep = 1.0 / Double(self.steps)
+            self.refreshDoneStep()
+        }
+    }
+    private var donestep: Int = 0 {
+        didSet {
+            self.refreshDoneStep()
+        }
+    }
+    
+    private func refreshDoneStep() {
+        let progress: Double = self.pstep * Double(self.donestep)
+        XCButton.updateProgress(withValue: progress)
+    }
     
     override func run(_ job: MDKJob, within phase: MDKPhase) -> Bool {
         let success: Bool = super.run(job, within: phase)
-        XCButton.incrementProgress(withValue: pstep)
+        self.donestep += 1
         return success
     }
     
@@ -45,22 +61,21 @@ class LDEPhaseRunner: MDKPhaseRunner {
             fallthrough
         case .swiftCompiler:
             XCButton.switchImageSync(withSystemName: "hammer.fill", animated: true, withDuration: 0.5)
-            usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
         case .linker:
             XCButton.switchImageSync(withSystemName: "link", animated: true, withDuration: 0.5)
-            usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
         default:
             break
         }
-        pstep = 1.0 / Double(phase.jobs.count)
-        let success: Bool = super.run(phase)
-        usleep(125000) /* making sure this shit is visible for atleast a moment for more quality */
-        XCButton.resetProgress()
-        return success
+        return super.run(phase)
     }
     
     override func runPhases(withPhases phases: [Any]) -> Bool {
-        super.runPhases(withPhases: phases)
+        for phase in phases {
+            if let phase: MDKPhase = phase as? MDKPhase {
+                self.steps += phase.jobs.count
+            }
+        }
+        return super.runPhases(withPhases: phases)
     }
 }
 
