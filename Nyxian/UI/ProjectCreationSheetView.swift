@@ -62,6 +62,12 @@ struct ProjectCreationSheetView: View {
             controls
         }
         .background(Color(uiColor: currentTheme!.backgroundColor))
+        .onAppear {
+            NXWindowServer.shared().windowsGetOutOfMyWay()
+        }
+        .onDisappear {
+            NXWindowServer.shared().windowsGetInMyWay()
+        }
     }
     
     private var header: some View {

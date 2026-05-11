@@ -256,38 +256,55 @@ extension UIBarButtonItem {
 }
 
 extension UIViewController {
-    static let swizzlePresentOnce: Void = {
-        let originalSelector = #selector(UIViewController.present(_:animated:completion:))
-        let swizzledSelector = #selector(UIViewController.swizzled_present(_:animated:completion:))
-
-        guard
-            let originalMethod = class_getInstanceMethod(UIViewController.self, originalSelector),
-            let swizzledMethod = class_getInstanceMethod(UIViewController.self, swizzledSelector)
-        else { return }
+    static let swizzlePresentAndDismissOnce: Void = {
+        swizzle(UIViewController.self, original: #selector(UIViewController.present(_:animated:completion:)), swizzled: #selector(UIViewController.swizzled_present(_:animated:completion:)))
+        swizzle(UIViewController.self, original: #selector(UIViewController.dismiss(animated:completion:)), swizzled: #selector(UIViewController.swizzled_dismiss(animated:completion:)))
+    }()
+    
+    private static func swizzle(_ cls: AnyClass, original: Selector, swizzled: Selector) {
+        guard let originalMethod = class_getInstanceMethod(cls, original),
+              let swizzledMethod = class_getInstanceMethod(cls, swizzled) else { return }
         
-        let didAdd = class_addMethod(UIViewController.self, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
-
+        let didAdd = class_addMethod(cls, original, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
+        
         if didAdd {
-            class_replaceMethod(UIViewController.self, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
+            class_replaceMethod(cls, swizzled, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
         } else {
             method_exchangeImplementations(originalMethod, swizzledMethod)
         }
-    }()
-
-    @objc func swizzled_present(
-        _ viewControllerToPresent: UIViewController,
-        animated: Bool,
-        completion: (() -> Void)? = nil
-    ) {
+    }
+    
+    @objc func swizzled_present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)? = nil) {
         let isPicker = String(describing: type(of: viewControllerToPresent)).lowercased().contains("picker")
         
         if viewControllerToPresent is UIThemedViewController ||
-            viewControllerToPresent is UIThemedTableViewController ||
-            viewControllerToPresent is UINavigationController ||
-            isPicker {
+           viewControllerToPresent is UIThemedTableViewController ||
+           viewControllerToPresent is UINavigationController ||
+           isPicker {
             NXWindowServer.shared().unfocusFocusedWindow()
+            NXWindowServer.shared().windowsGetOutOfMyWay()
         }
         
         swizzled_present(viewControllerToPresent, animated: animated, completion: completion)
+    }
+    
+    @objc func swizzled_dismiss(animated: Bool, completion: (() -> Void)? = nil) {
+        let dismissedVC = self.presentedViewController ?? self
+        let isPicker = String(describing: type(of: dismissedVC)).lowercased().contains("picker")
+        
+        let shouldRestore = (dismissedVC is UIThemedViewController ||
+                             dismissedVC is UIThemedTableViewController ||
+                             dismissedVC is UINavigationController ||
+                             isPicker) &&
+                            self.presentingViewController != nil
+        
+        if shouldRestore {
+            swizzled_dismiss(animated: animated, completion: {
+                NXWindowServer.shared().windowsGetInMyWay()
+                completion?()
+            })
+        } else {
+            swizzled_dismiss(animated: animated, completion: completion)
+        }
     }
 }

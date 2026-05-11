@@ -170,6 +170,36 @@
     }
 }
 
+- (void)windowsGetOutOfMyWay
+{
+    if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad)
+    {
+        return;
+    }
+
+    for(NXWindow *window in self.windows.allValues)
+    {
+        [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction animations:^{
+            window.view.alpha = 0.25;
+        } completion:nil];
+    }
+}
+
+- (void)windowsGetInMyWay
+{
+    if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad)
+    {
+        return;
+    }
+    
+    for(NXWindow *window in self.windows.allValues)
+    {
+        [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction animations:^{
+            window.view.alpha = 1.0;
+        } completion:nil];
+    }
+}
+
 - (void)openWindowWithSession:(NXWindowSession*)session
                withCompletion:(void (^)(BOOL))completion
 {

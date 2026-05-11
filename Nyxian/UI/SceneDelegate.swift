@@ -109,7 +109,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         guard let windowScene = scene as? UIWindowScene else { return }
         
         // swizzle swizzle swizzle :3
-        UIViewController.swizzlePresentOnce
+        UIViewController.swizzlePresentAndDismissOnce
         UIBarButtonItem.swizzleBarButtonitem
         
         self.window = NXWindowServer.shared(with: windowScene)
