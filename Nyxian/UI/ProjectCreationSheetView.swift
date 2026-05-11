@@ -32,6 +32,14 @@ struct ProjectCreationSheetView: View {
     let onCancel: () -> Void
     let onCreate: () -> Void
     
+    init(model: ProjectTemplateOptionsModel, onCancel: @escaping () -> Void, onCreate: @escaping () -> Void) {
+        self.model = model
+        self.onCancel = onCancel
+        self.onCreate = onCreate
+        
+        NXWindowServer.shared().unfocusFocusedWindow()
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             header

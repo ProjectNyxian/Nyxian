@@ -60,9 +60,9 @@ class LDEPhaseRunner: MDKPhaseRunner {
         case .compiler:
             fallthrough
         case .swiftCompiler:
-            XCButton.switchImageSync(withSystemName: "hammer.fill", animated: true, withDuration: 0.5)
+            XCButton.switchImageSync(withSystemName: "hammer.fill", animated: true, withDuration: 0.25)
         case .linker:
-            XCButton.switchImageSync(withSystemName: "link", animated: true, withDuration: 0.5)
+            XCButton.switchImageSync(withSystemName: "link", animated: true, withDuration: 0.25)
         default:
             break
         }
