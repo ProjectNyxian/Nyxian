@@ -24,6 +24,19 @@
 
 #import <Foundation/Foundation.h>
 
+@interface NSDictionary (Nyxian)
+
+- (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
+- (id _Nullable)objectForKey:(NSString * _Nonnull)key withClass:(Class _Nonnull)cls;
+
+- (NSArray * _Nonnull)arrayForKey:(NSString * _Nonnull)key allowedTypes:(NSSet<Class> * _Nonnull)allowedTypes;
+
+- (NSInteger)integerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
+- (BOOL)booleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
+- (double)doubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
+
+@end
+
 @interface NXPlist : NSObject
 
 @property (nonatomic,strong,readonly,nonnull) NSString *plistPath;
@@ -40,6 +53,7 @@
 
 - (id _Nullable)objectForKey:(NSString * _Nonnull)key;
 - (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
+- (NSArray * _Nonnull)arrayForKey:(NSString * _Nonnull)key allowedTypes:(NSSet<Class> * _Nonnull)allowedTypes;
 - (id _Nullable)objectForKey:(NSString * _Nonnull)key withClass:(Class _Nonnull)cls;
 
 - (NSInteger)integerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;

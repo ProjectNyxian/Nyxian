@@ -86,7 +86,7 @@
         _signMachOWithNyxianEntitlements = [self booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
         
         /* MARK: compiler flags */
-        NSArray *compilerFlags = [self objectForKey:@"NXClangFlags" withDefaultObject:@[]];
+        NSArray *compilerFlags = [self arrayForKey:@"NXClangFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
         
         if(_formatKind == NXProjectFormatKindFalcon ||
            _formatKind == NXProjectFormatKindAvis ||
@@ -116,10 +116,10 @@
         }
         
         /* MARK: linker flags */
-        _linkerFlags = [self objectForKey:@"NXLinkerFlags" withDefaultObject:@[]];
+        _linkerFlags = [self arrayForKey:@"NXLinkerFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
         
         /* MARK: swift flags */
-        _swiftFlags = [self objectForKey:@"NXSwiftFlags" withDefaultObject:@[]];
+        _swiftFlags = [self arrayForKey:@"NXSwiftFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
     }
     return reloaded;
 }

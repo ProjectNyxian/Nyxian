@@ -22,6 +22,96 @@
 #import <LindChain/Project/NXPlist.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <os/lock.h>
+#import <objc/runtime.h>
+
+@implementation NSDictionary (Nyxian)
+
+- (id)objectForKey:(NSString*)key
+ withDefaultObject:(id)value
+{
+    /*
+     * we have to check if its the same type
+     * as the default type, that is the upgrade
+     * to prior method signature were you needed
+     * the class type aswell, now you can pass
+     * the class type using the default value
+     * if you want a nullable
+     */
+    id valueOfKey = [self objectForKey:key];
+    if(!valueOfKey && ![valueOfKey isKindOfClass:[value class]])
+    {
+        return value;
+    }
+    
+    /*
+     * if everything matches up, we can safely
+     * return this.
+     */
+    return valueOfKey;
+}
+
+- (NSArray*)arrayForKey:(NSString *)key
+           allowedTypes:(NSSet<Class> *)allowedTypes
+{
+    NSArray *array = [self objectForKey:key withDefaultObject:@[]];
+    NSMutableArray *resultArray = [NSMutableArray array];
+    
+    /* iteratting through array */
+    for(id obj in array)
+    {
+        /* skip if type is not allowed */
+        if(![allowedTypes containsObject:[obj class]])
+        {
+            continue;
+        }
+        
+        [resultArray addObject:obj];
+    }
+    
+    return [resultArray copy];
+}
+
+- (id)objectForKey:(NSString * _Nonnull)key
+         withClass:(Class _Nonnull)cls
+{
+    /*
+     * this method is a bit different, it makes
+     * the return value nullable, as there is no
+     * defaultObject.
+     */
+    id valueOfKey = [self objectForKey:key];
+    if(!valueOfKey && ![valueOfKey isKindOfClass:cls])
+    {
+        /* god damn */
+        return nil;
+    }
+    
+    /*
+     * if everything matches up, we can safely
+     * return this.
+     */
+    return valueOfKey;
+}
+
+- (NSInteger)integerForKey:(NSString *)key
+          withDefaultValue:(NSInteger)defaultValue
+{
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] integerValue];
+}
+
+- (BOOL)booleanForKey:(NSString *)key
+     withDefaultValue:(BOOL)defaultValue
+{
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] boolValue];
+}
+
+- (double)doubleForKey:(NSString *)key
+      withDefaultValue:(double)defaultValue
+{
+    return [[self objectForKey:key withDefaultObject:@(defaultValue)] doubleValue];
+}
+
+@end
 
 @implementation NXPlist {
     os_unfair_lock _lock;
@@ -237,6 +327,29 @@
      * return this.
      */
     return valueOfKey;
+}
+
+- (NSArray * _Nonnull)arrayForKey:(NSString * _Nonnull)key
+                     allowedTypes:(NSSet<Class> * _Nonnull)allowedTypes
+{
+    NSArray *array = [self objectForKey:key withDefaultObject:@[]];
+    NSMutableArray *resultArray = [NSMutableArray array];
+    
+    /* iteratting through array */
+    for(id obj in array)
+    {
+        /* skip if type is not allowed */
+        for(Class cls in allowedTypes)
+        {
+            if([obj isKindOfClass:cls])
+            {
+                [resultArray addObject:obj];
+                continue;
+            }
+        }
+    }
+    
+    return [resultArray copy];
 }
 
 - (NSInteger)integerForKey:(NSString *)key
