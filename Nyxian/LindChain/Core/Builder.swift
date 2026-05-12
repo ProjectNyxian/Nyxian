@@ -93,7 +93,8 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
     private let argsString: String
     
     init?(project: NXProject) {
-        self.project = project
+        return nil
+        /*self.project = project
         self.project.reload()
         
         if !self.project.syncFolderStructureToCache() {
@@ -154,7 +155,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         super.init()
         
         phaseEngine.delegate = self
-        self.phaseRunner.delegate = self
+        self.phaseRunner.delegate = self*/
     }
     
     func driver(_ driver: MDKDriver,
@@ -217,7 +218,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
     }
     
     func headsup() throws {
-        let type = project.projectConfig.schemeKind
+        /*let type = project.projectConfig.schemeKind
         if(type != .app && type != .utility) {
             throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
         }
@@ -238,7 +239,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         // Project requirement check
         if osVersionNeeded > NXOSVersion.hostVersion {
             throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is needed to build the app, but host version \(NXOSVersion.hostVersion) is present."])
-        }
+        }*/
     }
     
     ///
@@ -246,7 +247,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
     ///
     func clean() throws {
         // now remove what was find
-        for file in LDEFilesFinder(
+        /*for file in LDEFilesFinder(
             self.project.url.path,
             ["o","tmp"],
             ["Resources","Config"]
@@ -258,11 +259,11 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         if self.project.projectConfig.schemeKind == .app {
             try? FileManager.default.removeItem(atPath: self.project.payloadURL.path)
             try? FileManager.default.removeItem(atPath: self.project.packageURL.path)
-        }
+        }*/
     }
     
     func prepare() throws {
-        if project.projectConfig.schemeKind == .app {
+        /*if project.projectConfig.schemeKind == .app {
             try FileManager.default.createDirectory(at: self.project.payloadURL, withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: self.project.resourcesURL, to: self.project.bundleURL)
             
@@ -289,7 +290,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
             
             let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: infoPlistData, format: .xml, options: 0)
             FileManager.default.createFile(atPath: self.project.bundleURL.appendingPathComponent("Info.plist").path, contents: infoPlistDataSerialized)
-        }
+        }*/
     }
     
     func executeRunner() throws {
@@ -305,7 +306,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
     }
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
-        let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
+        /*let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
         defer {
             spinnerStart.cancel()
@@ -450,6 +451,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
             }
         }
 #endif // !JAILBREAK_ENV
+         */
     }
     
     func package() throws {
@@ -464,7 +466,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         }
 #endif // JAILBREAK_ENV
         
-        zipDirectoryAtPath(project.payloadURL.path, project.packageURL.path, true)
+        //zipDirectoryAtPath(project.payloadURL.path, project.packageURL.path, true)
     }
     
     ///
@@ -555,7 +557,7 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
         targetViewController.navigationItem.setRightBarButtonItems([barButton], animated: true)
         targetViewController.navigationItem.setHidesBackButton(true, animated: true)
         
-        NXDocumentManager.shared().saveAll {
+        NXDocumentManager.shared()?.saveAll {
             NXDocumentManager.shared().changeAllLockState(toBoolean: true)
             Builder.buildProject(withProject: project, buildType: buildType, outPipe: outPipe, inPipe: inPipe) { result in
                 NXDocumentManager.shared().changeAllLockState(toBoolean: false)
@@ -570,7 +572,7 @@ func buildProjectWithArgumentUI(targetViewController: UIViewController,
                         loggerView.modalPresentationStyle = .formSheet
                         targetViewController.present(loggerView, animated: true)
                     } else if buildType == .InstallPackagedApp {
-                        share(url: project.packageURL, remove: true)
+                        //share(url: project.packageURL, remove: true)
                     }
                     
                     completion()

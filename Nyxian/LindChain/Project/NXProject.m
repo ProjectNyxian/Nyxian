@@ -47,79 +47,35 @@
     {
         /* MARK: projectFormat */
         _formatKind = NXProjectFormatKindFromFormat([self objectForKey:@"NXProjectFormat" withDefaultObject:NXProjectFormatKate]);
+        _organizationIdentifier = [self objectForKey:@"NXOrgIdentifier" withDefaultObject:@"com.example"];
         
-        if(_formatKind != NXProjectFormatKindAvisR1)
+        /* MARK: targets */
+        NSArray *targetDicts = [self arrayForKey:@"NXProjectTargets" allowedTypes:[NSSet setWithArray:@[[NSDictionary class]]]];
+        if(targetDicts == nil)
         {
-            [self remapKey:@"LDEMinimumVersion" toKey:@"NXDeploymentTarget"];
-            [self remapKey:@"LDEProjectType" toKey:@"NXProjectScheme" withRemapHandler:(id)^(id oldObj){
-                if([oldObj isKindOfClass:[NSNumber class]])
-                {
-                    return NXProjectSchemeFromSchemeKind([(NSNumber*)oldObj integerValue]);
-                }
-                return NXProjectSchemeUnknown;
-            }];
-            [self remapKey:@"LDEExecutable" toKey:@"NXExecutable"];
-            [self remapKey:@"LDEDisplayName" toKey:@"NXDisplayName"];
-            [self remapKey:@"LDEOrganizationPrefix" toKey:@"NXOrganizationPrefix"];
-            [self remapKey:@"LDEBundleIdentifier" toKey:@"NXBundleIdentifier"];
-            [self remapKey:@"LDEBundleVersion" toKey:@"NXBundleVersion"];
-            [self remapKey:@"LDEBundleShortVersion" toKey:@"NXBundleShortVersion"];
-            [self remapKey:@"LDEBundleInfo" toKey:@"NXBundleInfo"];
-            [self remapKey:@"LDEOutputPath" toKey:@"NXOutputPath"];
-            [self remapKey:@"LDESignMachOWithNyxianEntitlements" toKey:@"NXSignMachOWithNyxianEntitlements"];
-            [self remapKey:@"LDECompilerFlags" toKey:@"NXClangFlags"];
-            [self remapKey:@"LDELinkerFlags" toKey:@"NXLinkerFlags"];
-        }
-        
-        _schemeKind = NXProjectSchemeKindFromScheme([self objectForKey:@"NXProjectScheme" withClass:[NSString class]]);
-        
-        /* MARK: keys */
-        _executable = [self objectForKey:@"NXExecutable" withDefaultObject:@"Unknown"];
-        _displayName = [self objectForKey:@"NXDisplayName" withDefaultObject:[self executable]];
-        _organizationPrefix = [self objectForKey:@"NXOrganizationPrefix" withDefaultObject:@"com.example"];
-        _bundleid = [self objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
-        _version = [self objectForKey:@"NXBundleVersion" withDefaultObject:@"1.0"];
-        _shortVersion = [self objectForKey:@"NXBundleShortVersion" withDefaultObject:[self version]];
-        _infoDictionary = [self objectForKey:@"NXBundleInfo" withDefaultObject:@{}];
-        _deploymentTarget = [self objectForKey:@"NXDeploymentTarget" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
-        _outputPath = [self objectForKey:@"NXOutputPath"];
-        _signMachOWithNyxianEntitlements = [self booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
-        
-        /* MARK: compiler flags */
-        NSArray *compilerFlags = [self arrayForKey:@"NXClangFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
-        
-        if(_formatKind == NXProjectFormatKindFalcon ||
-           _formatKind == NXProjectFormatKindAvis ||
-           _formatKind == NXProjectFormatKindAvisR1)
-        {
-            _compilerFlags = compilerFlags;
-        }
-        else if(_formatKind == NXProjectFormatKindKate)
-        {
-            NSMutableArray *array = [compilerFlags mutableCopy];
-            
-            [array addObjectsFromArray:@[
-                @"-target",
-                [self objectForKey:@"LDEOverwriteTriple" withDefaultObject:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
-                @"-isysroot",
-                NXBootstrap.shared.sdkURL.path,
-                [@"-L" stringByAppendingString:[NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"lib"].path],
-                @"-resource-dir",
-                [NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"Include"].path
-            ]];
-            
-            _compilerFlags = array;
+            _targets = @[];
         }
         else
         {
-            _compilerFlags = @[];
+            NSMutableArray *targets = [NSMutableArray array];
+            for(NSDictionary *dict in targetDicts)
+            {
+                NXTarget *target = [NXTarget targetWithDictionary:dict];
+                if(target != nil)
+                {
+                    [targets addObject:target];
+                }
+            }
+            
+            if(targets.count > 0)
+            {
+                NXTarget *target = targets.firstObject;
+                _displayName = target.displayName;
+                _bundleIdentifier = target.bundleIdentifier;
+                _schemeKind = target.schemeKind;
+            }
+            _targets = targets;
         }
-        
-        /* MARK: linker flags */
-        _linkerFlags = [self arrayForKey:@"NXLinkerFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
-        
-        /* MARK: swift flags */
-        _swiftFlags = [self arrayForKey:@"NXSwiftFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
     }
     return reloaded;
 }
@@ -193,15 +149,12 @@
     assert(NXProjectConfigurationIsValid(schemeKind, interfaceKind, languageKind));
     
     NSURL *projectURL = [url URLByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
+    NSURL *targetURL = [projectURL URLByAppendingPathComponent:name];
     NSFileManager *defaultFileManager = [NSFileManager defaultManager];
     NSString *organizationIdentifierValue = organizationIdentifier ?: @"";
     NSString *bundleIdentifierValue = bundleid ?: @"";
 
-    NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"/Config"]];
-    if(schemeKind == NXProjectSchemeKindApp)
-    {
-        [directoryList addObject:@"/Resources"];
-    }
+    NSMutableArray *directoryList = [NSMutableArray arrayWithArray:@[@"",@"Config", name]];
     for(NSString *directory in directoryList)
     {
         NSError *error = nil;
@@ -237,39 +190,58 @@
         };
     }
     
-    NSMutableDictionary *projConfigPlist = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"NXProjectFormat": NXProjectFormatAvisR1,
-        @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
-        @"NXExecutable": name,
-        @"NXDisplayName": name,
-        @"NXOrganizationPrefix": organizationIdentifierValue,
-        @"NXBundleIdentifier": bundleIdentifierValue,
-        @"NXDeploymentTarget": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
-        @"NXClangFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
-        @"NXLinkerFlags": @[],
-        @"NXSwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
-        @"NXSignMachOWithNyxianEntitlements": @(YES) /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
-    }];
+    NSArray *frameworks = @[];
     
     switch(schemeKind)
     {
         case NXProjectSchemeKindApp:
-            [projConfigPlist setValuesForKeysWithDictionary:@{
-                @"NXBundleInfo": appBundleInfo,
-                @"NXBundleVersion": @"1.0",
-                @"NXBundleShortVersion": @"1.0",
-                @"NXOutputPath": @"$(CACHEROOT)/Payload/$(NXDisplayName).app/$(NXExecutable)"
-            }];
+            frameworks = @[
+                @"Foundation",
+                @"UIKit"
+            ];
             break;
         case NXProjectSchemeKindUtility:
-            [projConfigPlist setValuesForKeysWithDictionary:@{
-                @"NXOutputPath": @"$(CACHEROOT)/$(NXExecutable)"
-            }];
+            frameworks = @[
+                @"Foundation"
+            ];
             break;
         default:
             [defaultFileManager removeItemAtURL:projectURL error:nil];
             return nil;
     }
+    
+    NXProjectScheme scheme = NXProjectSchemeFromSchemeKind(schemeKind);
+    NXProjectLanguage language = NXProjectLanguageFromLanguageKind(languageKind);
+    NXProjectInterface interface = NXProjectInterfaceFromInterfaceKind(interfaceKind);
+    
+    NSArray<NSString*> *array;
+    if(!NXCodeTemplateMakeProjectStructure(scheme, language, interface, name, targetURL, &array))
+    {
+        [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
+        return nil;
+    }
+    
+    NSMutableDictionary *projConfigPlist = [NSMutableDictionary dictionaryWithDictionary:@{
+        @"NXProjectFormat": NXProjectFormatAvisR2,
+        @"NXOrgIdentifier": organizationIdentifierValue,
+        @"NXProjectTargets": @[ /* first target is the one that runs */
+            @{
+                @"NXDisplayName": name,
+                @"NXBundleName": name,
+                @"NXBundleIdentifier": bundleIdentifierValue,
+                @"NXScheme": NXProjectSchemeFromSchemeKind(schemeKind),
+                @"NXDeploymentTarget": NXOSVersion.hostVersion.pickerVersionString ?: NXOSVersion.maximumBuildVersion.versionString,
+                @"NXSourcePaths": array,
+                @"NXFrameworks": frameworks,
+                @"NXLibraries": @[
+                    @"clang_rt.ios"
+                ],
+                @"NXBundleResourcesPaths": @[
+                    [NSString stringWithFormat:@"$(SRCROOT)/%@/Info.plist", name],
+                ]
+            }
+        ],
+    }];
     
     NSDictionary *plistList = @{
         @"/Config/Project.plist": projConfigPlist,
@@ -307,16 +279,6 @@
             [defaultFileManager removeItemAtURL:projectURL error:nil];
             return nil;
         }
-    }
-    
-    NXProjectScheme scheme = NXProjectSchemeFromSchemeKind(schemeKind);
-    NXProjectLanguage language = NXProjectLanguageFromLanguageKind(languageKind);
-    NXProjectInterface interface = NXProjectInterfaceFromInterfaceKind(interfaceKind);
-    
-    if(!NXCodeTemplateMakeProjectStructure(scheme, language, interface, name, projectURL))
-    {
-        [[NSFileManager defaultManager] removeItemAtURL:projectURL error:nil];
-        return nil;
     }
     
     return [NXProject projectWithURL:projectURL];
@@ -433,35 +395,6 @@
     [fileManager removeItemAtURL:self.cacheURL error:nil];
     [fileManager removeItemAtURL:self.url error:nil];
 }
-
-- (NSURL*)resourcesURL { return [self.url URLByAppendingPathComponent:@"Resources"]; }
-- (NSURL*)payloadURL { return [self.cacheURL URLByAppendingPathComponent:@"Payload"]; }
-- (NSURL*)bundleURL { return [self.payloadURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"app"]]; }
-- (NSURL*)machoURL
-{
-    if(self.projectConfig.formatKind == NXProjectFormatKindKate)
-    {
-    kate_handling:
-        if(self.projectConfig.schemeKind == NXProjectSchemeKindApp)
-        {
-            return [self.bundleURL URLByAppendingPathComponent:self.projectConfig.executable];
-        }
-        else
-        {
-            return [self.cacheURL URLByAppendingPathComponent:self.projectConfig.executable];
-        }
-    }
-    else
-    {
-        NSString *outputPath = [[self projectConfig] outputPath];
-        if(outputPath == nil || ![outputPath isKindOfClass:[NSString class]])
-        {
-            goto kate_handling;
-        }
-        return [NSURL fileURLWithPath:outputPath];
-    }
-}
-- (NSURL*)packageURL { return [self.cacheURL URLByAppendingPathComponent:[self.projectConfig.executable stringByAppendingPathExtension:@"ipa"]]; }
 
 - (BOOL)reload
 {

@@ -25,29 +25,18 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/Project/NXPlist.h>
 #import <LindChain/Project/NXType.h>
+#import <LindChain/Project/NXTarget.h>
 #import <LindChain/ProcEnvironment/Surface/entitlement.h>
 
 @interface NXProjectConfig : NXPlist
 
 @property (nonatomic,readonly) NXProjectFormatKind formatKind;
 @property (nonatomic,readonly) NXProjectSchemeKind schemeKind;
-@property (nonatomic,strong,readonly) NSString *executable;
+@property (nonatomic,strong,readonly) NSString *organizationIdentifier;
 @property (nonatomic,strong,readonly) NSString *displayName;
-@property (nonatomic,strong,readonly) NSString *organizationPrefix;
-@property (nonatomic,strong,readonly) NSString *bundleid;
-@property (nonatomic,strong,readonly) NSString *version;
-@property (nonatomic,strong,readonly) NSString *shortVersion;
-@property (nonatomic,strong,readonly) NSDictionary *infoDictionary;
-@property (nonatomic,strong,readonly) NSArray<NSString*> *compilerFlags;
-@property (nonatomic,strong,readonly) NSArray<NSString*> *linkerFlags;
-@property (nonatomic,strong,readonly) NSArray<NSString*> *swiftFlags;
-@property (nonatomic,strong,readonly) NSString *deploymentTarget;
-@property (nonatomic,strong,readonly) NSString *outputPath;
-@property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
+@property (nonatomic,strong,readonly) NSString *bundleIdentifier;
 
-@property (nonatomic,readonly) BOOL deploymentTargetContainsWhitespaces;
-
-+ (NSArray<NSString*>*)sdkCompilerFlags;
+@property (nonatomic,strong,readonly) NSArray<NXTarget*> *targets;
 
 @end
 
@@ -64,11 +53,6 @@
 
 @property (nonatomic,strong,readonly) NSURL *url;
 @property (nonatomic,strong,readonly) NSURL *cacheURL;
-@property (nonatomic,strong,readonly) NSURL *resourcesURL;
-@property (nonatomic,strong,readonly) NSURL *payloadURL;
-@property (nonatomic,strong,readonly) NSURL *bundleURL;
-@property (nonatomic,strong,readonly) NSURL *machoURL;
-@property (nonatomic,strong,readonly) NSURL *packageURL;
 
 - (instancetype)initWithURL:(NSURL*)url;
 + (instancetype)projectWithURL:(NSURL*)url;

@@ -209,7 +209,7 @@ class FlagsEditViewController: UIThemedTableViewController {
 class ProjectConfigViewController: UIThemedTableViewController {
     let project: NXProject
     
-    private var pendingDisplayName: String
+    /*private var pendingDisplayName: String
     private var pendingExecutable: String
     private var pendingBundleIdentifier: String
     private var pendingBundleVersion: String
@@ -220,13 +220,13 @@ class ProjectConfigViewController: UIThemedTableViewController {
     private var pendingLinkerFlags: [String]
     private var isDirty = false {
         didSet { navigationItem.rightBarButtonItem?.isEnabled = isDirty }
-    }
+    }*/
 
     init(project: NXProject) {
         self.project = project
         self.project.reload()
         
-        if self.project.projectConfig.formatKind == .avisR1 {
+        /*if self.project.projectConfig.formatKind == .avisR1 {
             self.pendingClangFlags = project.projectConfig.originalDictionary["NXClangFlags"] as? [String] ?? []
             self.pendingSwiftFlags = project.projectConfig.originalDictionary["NXSwiftFlags"] as? [String] ?? []
             self.pendingLinkerFlags = project.projectConfig.originalDictionary["NXLinkerFlags"] as? [String] ?? []
@@ -250,7 +250,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
             self.pendingExecutable = project.projectConfig.originalDictionary["LDEExecutable"] as? String ?? ""
             self.pendingDeployVersion = project.projectConfig.originalDictionary["LDEMinimumVersion"] as? String ?? NXOSVersionSupportedBuildVersions.first ?? "9.0"
             self.pendingLinkerFlags = project.projectConfig.originalDictionary["LDELinkerFlags"] as? [String] ?? []
-        }
+        }*/
         super.init(style: .insetGrouped)
     }
 
@@ -258,7 +258,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
+    /*override func viewDidLoad() {
         super.viewDidLoad()
 
         title = "Project Configuration"
@@ -532,5 +532,5 @@ class ProjectConfigViewController: UIThemedTableViewController {
 
     private func subtitle(for flags: [String]) -> String {
         flags.isEmpty ? "None" : flags.joined(separator: " ")
-    }
+    }*/
 }

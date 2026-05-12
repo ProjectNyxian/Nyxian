@@ -50,8 +50,8 @@
     return valueOfKey;
 }
 
-- (NSArray*)arrayForKey:(NSString *)key
-           allowedTypes:(NSSet<Class> *)allowedTypes
+- (NSArray * _Nonnull)arrayForKey:(NSString * _Nonnull)key
+                     allowedTypes:(NSSet<Class> * _Nonnull)allowedTypes
 {
     NSArray *array = [self objectForKey:key withDefaultObject:@[]];
     NSMutableArray *resultArray = [NSMutableArray array];
@@ -60,12 +60,14 @@
     for(id obj in array)
     {
         /* skip if type is not allowed */
-        if(![allowedTypes containsObject:[obj class]])
+        for(Class cls in allowedTypes)
         {
-            continue;
+            if([obj isKindOfClass:cls])
+            {
+                [resultArray addObject:obj];
+                continue;
+            }
         }
-        
-        [resultArray addObject:obj];
     }
     
     return [resultArray copy];

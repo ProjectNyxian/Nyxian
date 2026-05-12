@@ -52,7 +52,7 @@ class Coordinator: NSObject, TextViewDelegate {
     }
     
     @objc func typecheckCode() {
-        self.isProcessing = true
+        /*self.isProcessing = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             guard let parent = self.parent else { return }
@@ -68,7 +68,7 @@ class Coordinator: NSObject, TextViewDelegate {
                 self.diag = diag
                 self.updateDiag()
             }
-        }
+        }*/
     }
     
     func textViewDidChange(_ textView: TextView) {

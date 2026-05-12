@@ -689,7 +689,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         guard let server = synpushServer else { return }
         guard let selectedRange = textView.selectedTextRange else { return }
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        /*DispatchQueue.global(qos: .userInitiated).async {
             let flags: [String] = (self.isReadOnly ? NXProjectConfig.sdkCompilerFlags() : self.project?.projectConfig.compilerFlags)!
             server.reparseFile(self.textView.text, withArgs: flags)
             
@@ -713,7 +713,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                     }
                 }
             }
-        }
+        }*/
     }
     
     private func offsetToLineColumn(text: String, offset: Int) -> (line: Int, column: Int) {

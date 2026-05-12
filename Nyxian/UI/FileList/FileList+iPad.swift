@@ -59,7 +59,7 @@ class MainSplitViewController: UISplitViewController, UISplitViewControllerDeleg
         if #available(iOS 16.0, *),
            self.project.projectConfig.schemeKind == .app
         {
-            NXWindowSessionApplication.bringSessionToFront(withBundleIdentifier: self.project.projectConfig.bundleid)
+            //NXWindowSessionApplication.bringSessionToFront(withBundleIdentifier: self.project.projectConfig.bundleid)
         }
     }
     

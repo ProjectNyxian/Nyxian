@@ -27,7 +27,8 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
                                         NXProjectLanguage language,
                                         NXProjectInterface interface,
                                         NSString *projectName,
-                                        NSURL *projectURL)
+                                        NSURL *projectURL,
+                                        NSArray **outSources)
 {
     assert(scheme != nil && language != nil);
     
@@ -50,12 +51,18 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
         @"LDEDisplayName": projectName
     };
     
+    NSMutableArray *sources = [NSMutableArray array];
+    
     for(NSURL *srcURL in folderEntries)
     {
         NSURL *dstURL = [projectURL URLByAppendingPathComponent:[srcURL lastPathComponent]];
         
         NSString *fileName = [dstURL lastPathComponent];
         fileName = NXSubstituteContent(fileName, variables, NO);
+        
+        /* good enough for now */
+        [sources addObject:[NSString stringWithFormat:@"$(SRCROOT)/%@/%@", projectName, [fileName lastPathComponent]]];
+        
         dstURL = [[dstURL URLByDeletingLastPathComponent] URLByAppendingPathComponent:fileName];
         
         
@@ -72,87 +79,7 @@ BOOL NXCodeTemplateMakeProjectStructure(NXProjectScheme scheme,
         [authoredCodeFileContent writeToURL:dstURL atomically:YES encoding:NSUTF8StringEncoding error:&error];
     }
     
+    *outSources = [sources copy];
+    
     return YES;
-}
-
-NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
-                                                           NXProjectLanguageKind languageKind)
-{
-    NSArray *baseFlags = @[
-        @"-target",
-        @"arm64-apple-ios$(NXDeploymentTarget)",
-        @"-isysroot",
-        @"$(SDKROOT)",
-        @"-resource-dir",
-        @"$(BSROOT)/Include",
-        @"-L$(BSROOT)/lib",
-        @"-lclang_rt.ios",
-    ];
-    
-    if(schemeKind == NXProjectSchemeKindApp)
-    {
-        return [baseFlags arrayByAddingObjectsFromArray:@[
-            @"-fobjc-arc",
-            @"-framework",
-            @"Foundation",
-            @"-framework",
-            @"UIKit"
-        ]];
-    }
-    else
-    {
-        if(languageKind == NXProjectLanguageKindObjectiveC)
-        {
-            return [baseFlags arrayByAddingObjectsFromArray:@[
-                @"-fobjc-arc",
-                @"-framework",
-                @"Foundation"
-            ]];
-        }
-        else if(languageKind == NXProjectLanguageKindCXX)
-        {
-            return [baseFlags arrayByAddingObjectsFromArray:@[
-                @"-lc++"
-            ]];
-        }
-        else if(languageKind == NXProjectLanguageKindSwift)
-        {
-            /* so people won't be confused on how to add framework flags */
-            return [baseFlags arrayByAddingObjectsFromArray:@[
-                @"-framework",
-                @"Foundation"
-            ]];
-        }
-    }
-    
-    return baseFlags;
-}
-
-NSArray<NSString*> *NXSwiftFlagsForCodeTemplateLanguage(NXProjectSchemeKind schemeKind,
-                                                        NXProjectLanguageKind languageKind)
-{
-    NSArray *baseFlags = @[
-        @"-target",
-        @"arm64-apple-ios$(NXDeploymentTarget)",
-        @"-Xllvm",
-        @"-aarch64-use-tbi",
-        @"-Xfrontend",
-        @"-enable-objc-interop",
-        @"-sdk",
-        @"$(SDKROOT)",
-        @"-resource-dir",
-        @"$(BSROOT)/swift",
-        @"-module-cache-path",
-        @"$(BSROOT)/ModuleCache",
-    ];
-    
-    if(schemeKind == NXProjectSchemeKindApp ||
-       languageKind != NXProjectLanguageKindSwift)  /* parse as library because swift is not the main language */
-    {
-        return [baseFlags arrayByAddingObject:@"-parse-as-library"];
-    }
-    else
-    {
-        return baseFlags;
-    }
 }

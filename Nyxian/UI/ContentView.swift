@@ -278,7 +278,7 @@ import UIKit
         let sectionProjects = self.projectsList[key] ?? []
         let project: NXProject = sectionProjects[indexPath.row];
         let cell: NXProjectTableCell = self.tableView.dequeueReusableCell(withIdentifier: NXProjectTableCell.reuseIdentifier()) as! NXProjectTableCell
-        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleid, withAppIcon: nil, showAppIcon: project.projectConfig.schemeKind == .app, showBundleID: project.projectConfig.schemeKind == .app, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
+        cell.configure(withDisplayName: project.projectConfig.displayName, withBundleIdentifier: project.projectConfig.bundleIdentifier, withAppIcon: nil, showAppIcon: project.projectConfig.schemeKind == .app, showBundleID: project.projectConfig.schemeKind == .app, showArrow: UIDevice.current.userInterfaceIdiom != .pad)
         return cell
     }
     
