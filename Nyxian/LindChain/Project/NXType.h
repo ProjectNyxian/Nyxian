@@ -72,6 +72,7 @@ typedef NSString * NXProjectInterface NS_TYPED_ENUM;
 static NXProjectInterface const NXProjectInterfaceUnknown = nil;
 static NXProjectInterface const NXProjectInterfaceSwiftUI = @"SwiftUI";
 static NXProjectInterface const NXProjectInterfaceUIKit = @"UIKit";
+static NXProjectInterface const NXProjectInterfaceZero = @"";
 
 typedef UInt64 NXProjectInterfaceKind NS_TYPED_ENUM;
 static NXProjectInterfaceKind const NXProjectInterfaceKindUnknown = 0;

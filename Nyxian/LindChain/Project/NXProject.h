@@ -53,6 +53,7 @@
 
 @property (nonatomic,strong,readonly) NSURL *url;
 @property (nonatomic,strong,readonly) NSURL *cacheURL;
+@property (nonatomic,strong,readonly) NSURL *artifacts;
 
 - (instancetype)initWithURL:(NSURL*)url;
 + (instancetype)projectWithURL:(NSURL*)url;

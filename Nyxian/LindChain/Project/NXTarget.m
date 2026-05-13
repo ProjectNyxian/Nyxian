@@ -101,7 +101,7 @@
         _bundleIdentifier = [dictionary objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"com.%@.%@", [[NXUser shared] username], _bundleName]];
         _bundleResourceURLs = bundleResourceURLs;
         _deploymentTarget = [dictionary objectForKey:@"NXDeploymentTarget" withDefaultObject:[[NXOSVersion maximumBuildVersion] versionString]];
-        _sdkURL = [dictionary objectForKey:@"NXSDKPath" withDefaultObject:[[NXBootstrap shared] sdkURL].path];
+        _sdkURL = [NSURL fileURLWithPath: [dictionary objectForKey:@"NXSDKPath" withDefaultObject:[[NXBootstrap shared] sdkURL].path]];
         _sourceURLs = sourceURLs;
         _headerSearchURLs = headerSearchURLs;
         _frameworkSearchURLs = frameworkSearchURLs;

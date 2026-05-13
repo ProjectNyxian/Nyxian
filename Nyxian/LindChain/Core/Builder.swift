@@ -79,83 +79,108 @@ class LDEPhaseRunner: MDKPhaseRunner {
     }
 }
 
-class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
-    private let project: NXProject
-    
+class LDETargetBuilder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
+    private var project: NXProject
+    private var target: NXTarget
+    private var phaseRunner: LDEPhaseRunner
+    private var dependencyScanner: MDKDependencyScanner
+    private var projectDirty: Bool
+    private let argsString: String
+    private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
     private let database: DebugDatabase
     
-    private var phaseRunner: LDEPhaseRunner
-    private let dependencyScanner: MDKDependencyScanner
-    
-    private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
-    private let projectDirty: Bool
-    
-    private let argsString: String
-    
-    init?(project: NXProject) {
-        return nil
-        /*self.project = project
-        self.project.reload()
+    init?(database: DebugDatabase,
+          project: NXProject,
+          target: NXTarget) {
+        self.project = project
+        self.target = target
+        self.database = database
         
-        if !self.project.syncFolderStructureToCache() {
-            return nil
+        // Check what source files are contained
+        let doesContainSwift: Bool = self.target.sourceURLs.contains(where: { $0.pathExtension == "swift" })
+        
+        // Base flags
+        var baseSwift: [String] = [
+            "-target",
+            "arm64-apple-ios\(self.target.deploymentTarget)",
+            "-sdk",
+            self.target.sdkURL.path,
+            "-resource-dir",
+            NXBootstrap.shared().swiftURL.path,
+            "-module-cache-path",
+            NXBootstrap.shared().swiftModuleCacheURL.path,
+            "-Xllvm",
+            "-aarch64-use-tbi",
+            "-Xfrontend",
+            "-enable-objc-interop"
+        ]
+        var baseClang: [String] = [
+            "-target",
+            "arm64-apple-ios\(self.target.deploymentTarget)",
+            "-isysroot",
+            self.target.sdkURL.path,
+            "-resource-dir",
+            NXBootstrap.shared().rootURL.appendingPathComponent("Include").path,
+        ]
+        
+        // Search paths
+        let searchPathFlags: [String] = self.target.frameworkSearchURLs.map { "-F\($0.path)" } + self.target.librarySearchURLs.map { "-L\($0.path)" } + self.target.headerSearchURLs.map { "-I\($0.path)" } + ["-L\(NXBootstrap.shared().rootURL.path)/lib"]
+        baseSwift.append(contentsOf: searchPathFlags)
+        baseClang.append(contentsOf: searchPathFlags)
+        
+        // Add linker & framework flags to clang
+        baseClang.append(contentsOf: self.target.libraries.map { "-l\($0)" })
+        for framework in self.target.frameworks {
+            baseClang.append("-framework")
+            baseClang.append(framework)
         }
         
-        self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
-        self.database.reuseDatabase()
+        // Add other flags
+        baseSwift.append(contentsOf: self.target.otherSwiftFlags)
+        baseClang.append(contentsOf: self.target.otherClangFlags)
         
-        self.dependencyScanner = MDKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        let sourceFiles = self.target.sourceURLs.map { $0.path }
         
-        guard let swiftFiles = LDEFilesFinder(self.project.url.path, ["swift"], ["Resources","Config"]),
-              let codeFiles = LDEFilesFinder(self.project.url.path, ["c","cpp","m","mm"], ["Resources","Config"]) else {
-            self.database.addMessage(message: "A fatal error has happened finding code files.", severity: .error)
-            self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
-            return nil
-        }
+        let artifactURL: URL = self.project.artifacts.appendingPathComponent(self.target.bundleName)
+        let outputURL: URL = artifactURL.appendingPathComponent(self.target.bundleName)
         
-        var driverFlags: [String] = []
-        driverFlags.append(contentsOf: swiftFiles)
-        driverFlags.append(contentsOf: codeFiles)
-        driverFlags.append("-o")
-        driverFlags.append(self.project.machoURL.path)
-        
-        let phaseEngine: MDKPhaseEngine
-        if swiftFiles.isEmpty && codeFiles.isEmpty {
-            self.database.addMessage(message: "Nothing to build. No code files were found, please create a code file.", severity: .error)
-            self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
-            return nil
-        } else if !swiftFiles.isEmpty {
-            driverFlags.append(contentsOf: self.project.projectConfig.swiftFlags)
-            driverFlags.append("-module-name")
-            driverFlags.append(NXMakeContentCodeFriendly(self.project.projectConfig.displayName))
-            
-            phaseEngine = MDKPhaseEngine(swiftFlags: driverFlags, withOtherClangFlags: self.project.projectConfig.compilerFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+        let engine: MDKPhaseEngine
+        if doesContainSwift {
+            baseSwift.append(contentsOf: sourceFiles)
+            baseSwift.append("-o")
+            baseSwift.append(outputURL.path)
+            engine = MDKPhaseEngine(swiftFlags: baseSwift, withOtherClangFlags: baseClang, withOtherLinkerFlags: self.target.otherLinkerFlags)
         } else {
-            driverFlags.append(contentsOf: self.project.projectConfig.compilerFlags)
-            
-            phaseEngine = MDKPhaseEngine(clangFlags: driverFlags, withOtherLinkerFlags: self.project.projectConfig.linkerFlags)
+            baseClang.append(contentsOf: sourceFiles)
+            baseClang.append("-o")
+            baseClang.append(outputURL.path)
+            self.phaseRunner = LDEPhaseRunner()
+            engine = MDKPhaseEngine(clangFlags: baseClang, withOtherLinkerFlags: self.target.otherLinkerFlags)
         }
         
-        self.argsString = driverFlags.joined(separator: " ")
+        guard let phaseRunner = LDEPhaseRunner(engine: engine) else {
+            return nil
+        }
         
-        // Check if the args string matches up
+        self.phaseRunner = phaseRunner
+        self.dependencyScanner = MDKDependencyScanner(arguments: baseClang)
+        
+        self.argsString = "\(baseClang.joined(separator: " ")) \(baseSwift.joined(separator: " "))"
+        
         if self.incrementalBuild,
            let args: String = (try? String(contentsOf: self.project.cacheURL.appendingPathComponent("args.txt"), encoding: .utf8)) {
             self.projectDirty = args != self.argsString
         } else {
             self.projectDirty = true
-            self.database.clearDatabase() /* nothing valid anymore */
+            for file in sourceFiles {
+                self.database.removeFileDebug(ofPath: file)
+            }
         }
-        
-        guard let phaseRunner = LDEPhaseRunner(engine: phaseEngine) else {
-            return nil
-        }
-        self.phaseRunner = phaseRunner
         
         super.init()
         
-        phaseEngine.delegate = self
-        self.phaseRunner.delegate = self*/
+        engine.delegate = self
+        phaseRunner.delegate = self
     }
     
     func driver(_ driver: MDKDriver,
@@ -217,83 +242,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
         }
     }
     
-    func headsup() throws {
-        /*let type = project.projectConfig.schemeKind
-        if(type != .app && type != .utility) {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
-        }
-        
-        guard let osVersionNeeded: NXOSVersion = NXOSVersion(versionString: project.projectConfig.deploymentTarget) else {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"App cannot be build, host version cannot be compared. Version \(project.projectConfig.deploymentTarget!) is not valid."])
-        }
-        
-        // Nyxian requirement checks
-        if osVersionNeeded < NXOSVersion.minimumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion) at a minimum."])
-        }
-        
-        if osVersionNeeded > NXOSVersion.maximumBuildVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion) at a maximum."])
-        }
-        
-        // Project requirement check
-        if osVersionNeeded > NXOSVersion.hostVersion {
-            throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Deployment target \(osVersionNeeded) is needed to build the app, but host version \(NXOSVersion.hostVersion) is present."])
-        }*/
-    }
-    
-    ///
-    /// Function to cleanup the project from old build files
-    ///
-    func clean() throws {
-        // now remove what was find
-        /*for file in LDEFilesFinder(
-            self.project.url.path,
-            ["o","tmp"],
-            ["Resources","Config"]
-        ) {
-            try? FileManager.default.removeItem(atPath: file)
-        }
-        
-        // if payload exists remove it
-        if self.project.projectConfig.schemeKind == .app {
-            try? FileManager.default.removeItem(atPath: self.project.payloadURL.path)
-            try? FileManager.default.removeItem(atPath: self.project.packageURL.path)
-        }*/
-    }
-    
-    func prepare() throws {
-        /*if project.projectConfig.schemeKind == .app {
-            try FileManager.default.createDirectory(at: self.project.payloadURL, withIntermediateDirectories: true)
-            try FileManager.default.copyItem(at: self.project.resourcesURL, to: self.project.bundleURL)
-            
-            var infoPlistData: [String: Any] = [
-                "CFBundleExecutable": self.project.projectConfig.executable!,
-                "CFBundleIdentifier": self.project.projectConfig.bundleid!,
-                "CFBundleName": self.project.projectConfig.displayName!,
-                "CFBundleShortVersionString": self.project.projectConfig.version!,
-                "CFBundleVersion": self.project.projectConfig.shortVersion!,
-                "MinimumOSVersion": self.project.projectConfig.deploymentTarget!,
-                "UIDeviceFamily": [1, 2],
-                "UIRequiresFullScreen": false,
-                "UISupportedInterfaceOrientations~ipad": [
-                    "UIInterfaceOrientationPortrait",
-                    "UIInterfaceOrientationPortraitUpsideDown",
-                    "UIInterfaceOrientationLandscapeLeft",
-                    "UIInterfaceOrientationLandscapeRight"
-                ]
-            ]
-            
-            for (key, value) in self.project.projectConfig.infoDictionary {
-                infoPlistData[key as! String] = value
-            }
-            
-            let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: infoPlistData, format: .xml, options: 0)
-            FileManager.default.createFile(atPath: self.project.bundleURL.appendingPathComponent("Info.plist").path, contents: infoPlistDataSerialized)
-        }*/
-    }
-    
-    func executeRunner() throws {
+    func runTarget() throws {
         if !self.phaseRunner.runPhases() {
             throw NSError(domain: "com.cr4zy.nyxian.builder.runner", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to run project."])
         }
@@ -304,13 +253,141 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
             throw NSError(domain: "com.cr4zy.nyxian.builder.runner", code: 1, userInfo: [NSLocalizedDescriptionKey:error.localizedDescription])
         }
     }
+}
+
+class Builder {
+    private let project: NXProject
+    private let database: DebugDatabase
+    private var targetBuilders: [LDETargetBuilder] = []
+    
+    init?(project: NXProject) {
+        self.project = project
+        self.project.reload()
+        
+        if !self.project.syncFolderStructureToCache() {
+            return nil
+        }
+        
+        self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
+        self.database.reuseDatabase()
+        
+        for target in self.project.projectConfig.targets {
+            guard let targetBuilder: LDETargetBuilder = LDETargetBuilder(database: self.database, project: self.project, target: target) else {
+                self.database.addMessage(message: "Failed to generate target builder for target \(target.bundleName).", severity: .error)
+                self.database.saveDatabase(toPath: project.cacheURL.appendingPathComponent("debug.json").path)
+                return nil
+            }
+            
+            self.targetBuilders.append(targetBuilder)
+        }
+    }
+    
+    func headsup() throws {
+        for target in self.project.projectConfig.targets {
+            let type = project.projectConfig.schemeKind
+            if(type != .app && type != .utility) {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Project type \(type) is unknown."])
+            }
+            
+            guard let osVersionNeeded: NXOSVersion = NXOSVersion(versionString: target.deploymentTarget) else {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Target \(target.bundleName) cannot be build, host version cannot be compared. Version \(target.deploymentTarget) is not valid."])
+            }
+            
+            // Nyxian requirement checks
+            if osVersionNeeded < NXOSVersion.minimumBuildVersion {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Target \(target.bundleName) cannot be build, Deployment target \(osVersionNeeded) is older than Nyxian supports building for. Nyxian supports \(NXOSVersion.minimumBuildVersion) at a minimum."])
+            }
+            
+            if osVersionNeeded > NXOSVersion.maximumBuildVersion {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Target \(target.bundleName) cannot be build, Deployment target \(osVersionNeeded) is newer than Nyxian supports building for. Nyxian supports \(NXOSVersion.maximumBuildVersion) at a maximum."])
+            }
+            
+            // Project requirement check
+            if osVersionNeeded > NXOSVersion.hostVersion {
+                throw NSError(domain: "com.cr4zy.nyxian.builder.headsup", code: 1, userInfo: [NSLocalizedDescriptionKey:"Target \(target.bundleName) cannot be build, Deployment target \(osVersionNeeded) is needed to build the target, but host version \(NXOSVersion.hostVersion) is present."])
+            }
+        }
+    }
+    
+    ///
+    /// Function to cleanup the project from old build files
+    ///
+    func clean() throws {
+        // now remove what was find
+        for file in LDEFilesFinder(
+            self.project.url.path,
+            ["o","tmp"],
+            ["Resources","Config"]
+        ) {
+            try? FileManager.default.removeItem(atPath: file)
+        }
+        
+        // if payload exists remove it
+        /*if self.project.projectConfig.schemeKind == .app {
+            try? FileManager.default.removeItem(atPath: self.project.payloadURL.path)
+            try? FileManager.default.removeItem(atPath: self.project.packageURL.path)
+        }*/
+    }
+    
+    func prepare() throws {
+        try FileManager.default.createDirectory(at: self.project.artifacts, withIntermediateDirectories: true)
+            
+        for target in self.project.projectConfig.targets {
+            let artifactURL: URL = self.project.artifacts.appendingPathComponent(target.bundleName)
+            try FileManager.default.createDirectory(at: artifactURL, withIntermediateDirectories: true)
+            
+            if target.schemeKind == .app {
+                for bundleResource in target.bundleResourceURLs {
+                    try? FileManager.default.copyItem(at: bundleResource, to: artifactURL.appendingPathComponent(bundleResource.lastPathComponent))
+                }
+                
+                var infoPlistData: [String: Any] = [
+                    "CFBundleExecutable": target.bundleName,
+                    "CFBundleIdentifier": target.bundleIdentifier,
+                    "CFBundleName": target.bundleName,
+                    "CFBundleShortVersionString": "1.0",
+                    "CFBundleVersion": "1.0",
+                    "MinimumOSVersion": target.deploymentTarget,
+                    "UIDeviceFamily": [1, 2],
+                    "UIRequiresFullScreen": false,
+                    "UISupportedInterfaceOrientations~ipad": [
+                        "UIInterfaceOrientationPortrait",
+                        "UIInterfaceOrientationPortraitUpsideDown",
+                        "UIInterfaceOrientationLandscapeLeft",
+                        "UIInterfaceOrientationLandscapeRight"
+                    ]
+                ]
+                
+                let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: infoPlistData, format: .xml, options: 0)
+                FileManager.default.createFile(atPath: artifactURL.appendingPathComponent("Info.plist").path, contents: infoPlistDataSerialized)
+            }
+        }
+    }
+    
+    func executeRunner() throws {
+        for builder in self.targetBuilders {
+            try builder.runTarget()
+        }
+    }
     
     func install(buildType: Builder.BuildType, outPipe: Pipe?, inPipe: Pipe?) throws {
-        /*let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
+        let spinnerStart = DispatchWorkItem { XCButton.startSpinning() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: spinnerStart)
         defer {
             spinnerStart.cancel()
             XCButton.stopSpinning()
+        }
+        
+        guard let mainTarget: NXTarget = self.project.projectConfig.targets.first else {
+            throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to get main target."])
+        }
+        
+        var artifactURL: URL = self.project.artifacts.appendingPathComponent(mainTarget.bundleName)
+        
+        if artifactURL.pathExtension != "app" {
+            let newArtifactURL = artifactURL.appendingPathExtension("app")
+            try FileManager.default.moveItem(at: artifactURL, to: newArtifactURL)
+            artifactURL = newArtifactURL
         }
         
 #if !JAILBREAK_ENV
@@ -323,13 +400,13 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                 let semaphore = DispatchSemaphore(value: 0)
                 var nsError: NSError? = nil
                 
-                LCUtils.signAppBundle(withZSign: self.project.bundleURL) { [weak self] result, error in
+                LCUtils.signAppBundle(withZSign: artifactURL) { [weak self] result, error in
                     guard let self = self else { return }
                     
-                    if(self.project.projectConfig.signMachOWithNyxianEntitlements)
+                    /*if(self.project.projectConfig.signMachOWithNyxianEntitlements)
                     {
                         macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
-                    }
+                    }*/
                     
                     guard result else {
                         nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:error?.localizedDescription ?? "Unknown error happened signing application"])
@@ -337,7 +414,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                         return
                     }
                     
-                    guard LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundleURL.path) else {
+                    guard LDEApplicationWorkspace.shared().installApplication(atBundlePath: artifactURL.path) else {
                         nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:error?.localizedDescription ?? "Unknown error happened installing application"])
                         semaphore.signal()
                         return
@@ -370,7 +447,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                             mapObject?.appendFileDescriptor(outPipe.fileHandleForReading.fileDescriptor, withMappingToLoc: 101)
                         }
                         
-                        PEProcessManager.shared().spawnProcess(withBundleIdentifier: self.project.projectConfig.bundleid, withItems: (mapObject != nil) ? ["PEMapObject":mapObject!] : [:], withKernelSurfaceProcess: nil, doRestartIfRunning: true)
+                        PEProcessManager.shared().spawnProcess(withBundleIdentifier: mainTarget.bundleIdentifier, withItems: (mapObject != nil) ? ["PEMapObject":mapObject!] : [:], withKernelSurfaceProcess: nil, doRestartIfRunning: true)
                     }
                     
                     semaphore.signal()
@@ -381,7 +458,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                     throw nsError
                 }
             } else if self.project.projectConfig.schemeKind == .utility {
-                if LCUtils.certificateData() == nil {
+                /*if LCUtils.certificateData() == nil {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"No code signature present to perform signing, import code signature in Settings > Certificate. Note that the code signature must be the same code signature used to sign Nyxian."])
                 }
                 
@@ -395,11 +472,11 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                     }
                 } else {
                     throw NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Failed to fastpath install utility"])
-                }
+                }*/
             }
         } else {
-            macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
-            try self.package()
+            /*macho_after_sign(self.project.machoURL.path, self.project.entitlementsConfig.entitlement)
+            try self.package()*/
         }
 #else
         
@@ -451,7 +528,6 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
             }
         }
 #endif // !JAILBREAK_ENV
-         */
     }
     
     func package() throws {

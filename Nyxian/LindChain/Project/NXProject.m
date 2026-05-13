@@ -122,6 +122,7 @@
     self = [super init];
     _url = url;
     _cacheURL = [NXBootstrap.shared.rootURL URLByAppendingPathComponent:[NSString stringWithFormat:@"/Cache/%@", [_url lastPathComponent]]];
+    _artifacts = [_cacheURL URLByAppendingPathComponent:@"Artifacts"];
     _projectConfig = [[NXProjectConfig alloc] initWithPlistPath:[NSString stringWithFormat:@"%@/Config/Project.plist", self.url.path] withVariables:@{
         @"SRCROOT": url.path,
         @"SDKROOT": NXBootstrap.shared.sdkURL.path,
