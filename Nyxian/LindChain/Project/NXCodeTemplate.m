@@ -56,7 +56,7 @@ void init_codetemplates(void)
         NXProjectSchemeUtility: @{
             NXProjectLanguageC: @{
                 NXProjectInterfaceZero: @{
-                    @"Main.c": @"#include <stdio.h>\n\nint main(int argc, char * argv[]) {\n\tprintf(\"Hello, World!\n\");\n}\n"
+                    @"Main.c": @"#include <stdio.h>\n\nint main(int argc, char * argv[]) {\n\tprintf(\"Hello, World!\\n\");\n}\n"
                 }
             },
             NXProjectLanguageCXX: @{
