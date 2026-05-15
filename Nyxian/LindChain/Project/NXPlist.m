@@ -138,8 +138,7 @@ static const char kNSDictionaryVariables;
     {
         return [self expandString:obj depth:0 ownRoot:oroot];
     }
-    
-    if([obj isKindOfClass:NSArray.class])
+    else if([obj isKindOfClass:NSArray.class])
     {
         NSMutableArray *arr = [NSMutableArray array];
         for(id v in (NSArray*)obj)
@@ -148,8 +147,7 @@ static const char kNSDictionaryVariables;
         }
         return arr;
     }
-    
-    if([obj isKindOfClass:NSDictionary.class])
+    else if([obj isKindOfClass:NSDictionary.class])
     {
         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
         for(id key in (NSDictionary*)obj)
@@ -165,11 +163,7 @@ static const char kNSDictionaryVariables;
 - (id)varObjectForKey:(id)aKey
 {
     id obj = [self objectForKey:aKey];
-    if(obj == nil)
-    {
-        return nil;
-    }
-    return [self expandObject:obj ownRoot:self];
+    return obj ? [self expandObject:obj ownRoot:self] : nil;
 }
 
 - (id)objectForKey:(NSString*)key

@@ -86,19 +86,10 @@
         _signMachOWithNyxianEntitlements = [self.dictionary booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
         
         /* MARK: compiler flags */
-        NSArray *compilerFlags = [self.dictionary arrayForKey:@"NXClangFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
-        
-        if(_formatKind == NXProjectFormatKindFalcon ||
-           _formatKind == NXProjectFormatKindAvis ||
-           _formatKind == NXProjectFormatKindAvisR1)
+        NSMutableArray *mutableCompilerFlags = [[self.dictionary arrayForKey:@"NXClangFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]] mutableCopy];
+        if(_formatKind <= NXProjectFormatKindKate)
         {
-            _compilerFlags = compilerFlags;
-        }
-        else if(_formatKind == NXProjectFormatKindKate)
-        {
-            NSMutableArray *array = [compilerFlags mutableCopy];
-            
-            [array addObjectsFromArray:@[
+            [mutableCompilerFlags addObjectsFromArray:@[
                 @"-target",
                 [self.dictionary objectForKey:@"LDEOverwriteTriple" withDefaultObject:[NSString stringWithFormat:@"apple-arm64-ios%@", [self deploymentTarget]]],
                 @"-isysroot",
@@ -107,13 +98,8 @@
                 @"-resource-dir",
                 [NXBootstrap.shared.rootURL URLByAppendingPathComponent:@"Include"].path
             ]];
-            
-            _compilerFlags = array;
         }
-        else
-        {
-            _compilerFlags = @[];
-        }
+        _compilerFlags = mutableCompilerFlags;
         
         /* MARK: linker flags */
         _linkerFlags = [self.dictionary arrayForKey:@"NXLinkerFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]];
