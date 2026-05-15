@@ -122,7 +122,11 @@ static const char kNSDictionaryVariables;
         }
         else
         {
-            replacementValue = self.variables[varName];
+            if(self.variables != nil)
+            {
+                replacementValue = self.variables[varName];
+            }
+            
             if(!replacementValue)
             {
                 replacementValue = NSProcessInfo.processInfo.environment[varName];
