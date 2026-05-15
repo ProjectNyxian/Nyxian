@@ -26,6 +26,12 @@
 
 @interface NSDictionary (Nyxian)
 
+@property (nonatomic,strong,nullable) NSDictionary *variables;
+
+- (id _Nonnull)expandString:(NSString * _Nonnull)input depth:(int)depth ownRoot:(NSDictionary * _Nullable)oroot;
+- (id _Nonnull)expandObject:(id _Nonnull)obj ownRoot:(NSDictionary * _Nullable)oroot;
+
+- (id _Nullable)varObjectForKey:(id _Nonnull)aKey;
 - (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
 - (id _Nullable)objectForKey:(NSString * _Nonnull)key withClass:(Class _Nonnull)cls;
 
@@ -41,24 +47,15 @@
 
 @property (nonatomic,strong,readonly,nonnull) NSString *plistPath;
 @property (nonatomic,strong,readwrite,nonnull) NSDictionary<NSString*,NSString*> *variables;
-@property (nonatomic,strong,readonly,nonnull) NSDictionary * originalDictionary;
-@property (nonatomic,strong,readwrite,nonnull) NSMutableDictionary * dictionary;
-@property (nonatomic,strong,readonly,nullable) NSString *dataHash;
+@property (atomic,strong,readonly,nonnull) NSDictionary *originalDictionary;
+@property (atomic,strong,readwrite,nonnull) NSMutableDictionary *dictionary;
+@property (atomic,strong,readonly,nullable) NSString *dataHash;
 
 - (instancetype _Nullable)initWithPlistPath:(NSString * _Nonnull)plistPath withVariables:(NSDictionary<NSString*,NSString*> * _Nullable)variables;
 
 - (BOOL)reloadIfNeeded;
 - (void)reloadData;
 - (BOOL)save;
-
-- (id _Nullable)objectForKey:(NSString * _Nonnull)key;
-- (id _Nonnull)objectForKey:(NSString * _Nonnull)key withDefaultObject:(id _Nonnull)value;
-- (NSArray * _Nonnull)arrayForKey:(NSString * _Nonnull)key allowedTypes:(NSSet<Class> * _Nonnull)allowedTypes;
-- (id _Nullable)objectForKey:(NSString * _Nonnull)key withClass:(Class _Nonnull)cls;
-
-- (NSInteger)integerForKey:(NSString * _Nonnull)key withDefaultValue:(NSInteger)defaultValue;
-- (BOOL)booleanForKey:(NSString * _Nonnull)key withDefaultValue:(BOOL)defaultValue;
-- (double)doubleForKey:(NSString * _Nonnull)key withDefaultValue:(double)defaultValue;
 
 - (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey withRemapHandler:(id _Nonnull (^ _Nonnull)(id _Nonnull oldObj))handler;
 - (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey;
