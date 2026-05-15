@@ -61,35 +61,14 @@ static const char kNSDictionaryVariables;
          * find the object root in root, if not
          * then fallback to self as root.
          */
-        id sroot = oroot;
+        id mroot = oroot;
+        id sroot;
         id currentObject = nil;
         BOOL success = YES;
-        for(NSString *component in varPathComponents)
-        {
-            if(currentObject == nil)
-            {
-                /*
-                 * means its root, cuz there
-                 * is no current object
-                 */
-                currentObject = sroot[component];
-                continue;
-            }
-            
-            /* if its not a dictionary its fake */
-            if(![currentObject isKindOfClass:[NSDictionary class]])
-            {
-                success = NO;
-                break;
-            }
-            
-            NSDictionary *sroot = currentObject;
-            currentObject = sroot[component];
-        }
         
-        if(!success)
+    iterrate_through_components:
         {
-            sroot = self;
+            sroot = mroot;
             for(NSString *component in varPathComponents)
             {
                 if(currentObject == nil)
@@ -112,6 +91,13 @@ static const char kNSDictionaryVariables;
                 NSDictionary *sroot = currentObject;
                 currentObject = sroot[component];
             }
+        }
+        
+        if(!success &&
+           mroot != self)
+        {
+            mroot = self;
+            goto iterrate_through_components;
         }
         
         /* either blank it out or nah */
