@@ -492,7 +492,7 @@ class ProjectConfigViewController: UIThemedTableViewController {
     @objc private func saveTapped() {
         var dictionary: [AnyHashable:Any] = self.project.projectConfig.originalDictionary
         
-        if self.project.projectConfig.formatKind == .avisR1 {
+        if self.project.projectConfig.formatKind == .avisR1 || self.project.projectConfig.formatKind == .avisR2 {
             dictionary["NXDisplayName"] = pendingDisplayName
             dictionary["NXExecutable"] = pendingExecutable
             dictionary["NXBundleIdentifier"] = pendingBundleIdentifier
