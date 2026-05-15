@@ -689,7 +689,7 @@ bool ZArchO::InjectDylib(bool bWeakInject, const char* szDylibFile)
 void ZArchO::RemoveDylibs(set<string> setDylibs)
 {
 	uint8_t* pLoadCommand = m_pBase + m_uHeaderSize;
-	uint32_t old_load_command_size = m_pHeader->sizeofcmds;
+	uint32_t old_load_command_size = BO(m_pHeader->sizeofcmds);
 	uint8_t* new_load_command_data = (uint8_t*)malloc(old_load_command_size);
 	if (NULL == new_load_command_data) {
 		return;
@@ -715,12 +715,15 @@ void ZArchO::RemoveDylibs(set<string> setDylibs)
 			}
 			ZLog::PrintV("\t\t\t%s\n", szDylib);
 		}
+		if (load_command_size == 0 || new_load_command_size + load_command_size > old_load_command_size) {
+			break;
+		}
 		new_load_command_size += load_command_size;
 		memcpy(new_load_command_data, pLoadCommand, load_command_size);
 		new_load_command_data += load_command_size;
 		pLoadCommand += BO(plc->cmdsize);
 	}
-	pLoadCommand -= m_pHeader->sizeofcmds;
+	pLoadCommand -= old_load_command_size;
 
 	m_pHeader->ncmds -= clear_num;
 	m_pHeader->sizeofcmds -= clear_data_size;
