@@ -127,6 +127,7 @@ static const char kNSDictionaryVariables;
             {
                 replacementValue = NSProcessInfo.processInfo.environment[varName];
             }
+            replacementValue = [self expandString:replacementValue depth:depth + 1 ownRoot:sroot];
         }
         
         replacementValue = replacementValue?: @"";
@@ -399,9 +400,9 @@ withRemapHandler:(id (^)(id oldObj))handler
              * use for example $(LDEMinimumVersion)
              * they straightup point back to the new one.
              */
-            NSMutableDictionary<NSString*,NSString*> *variables = [self.variables mutableCopy];
+            NSMutableDictionary<NSString*,NSString*> *variables = [self.dictionary.variables mutableCopy];
             [variables setObject:[NSString stringWithFormat:@"$(%@)", newKey] forKey:oldKey];
-            self.variables = [variables copy];
+            self.dictionary.variables = [variables copy];
         }
     }
 }
