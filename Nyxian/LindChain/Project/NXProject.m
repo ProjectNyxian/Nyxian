@@ -77,8 +77,6 @@
         _displayName = [self.dictionary objectForKey:@"NXDisplayName" withDefaultObject:[self executable]];
         _organizationPrefix = [self.dictionary objectForKey:@"NXOrganizationPrefix" withDefaultObject:@"com.example"];
         _bundleid = [self.dictionary objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
-        _version = [self.dictionary objectForKey:@"NXBundleVersion" withDefaultObject:@"1.0"];
-        _shortVersion = [self.dictionary objectForKey:@"NXBundleShortVersion" withDefaultObject:[self version]];
         _deploymentTarget = [self.dictionary objectForKey:@"NXDeploymentTarget" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
         _outputPath = [self.dictionary varObjectForKey:@"NXOutputPath"];
         _signMachOWithNyxianEntitlements = [self.dictionary booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
@@ -87,12 +85,15 @@
         NSMutableDictionary *mutableInfoDictionary = [[self.dictionary objectForKey:@"NXBundleInfo" withDefaultObject:@{}] mutableCopy];
         if(_formatKind < NXProjectFormatKindAvisR2)
         {
+            NSString *bundleVersion = [self.dictionary objectForKey:@"NXBundleVersion" withDefaultObject:@"1.0"];
+            NSString *bundleShortVersion = [self.dictionary objectForKey:@"NXBundleShortVersion" withDefaultObject:bundleVersion];
+            
             [mutableInfoDictionary addEntriesFromDictionary:@{
                 @"CFBundleExecutable": _executable,
                 @"CFBundleIdentifier": _bundleid,
                 @"CFBundleName": _displayName,
-                @"CFBundleVersion": _version,
-                @"CFBundleShortVersionString": _shortVersion,
+                @"CFBundleVersion": bundleVersion,
+                @"CFBundleShortVersionString": bundleShortVersion,
                 @"MinimumOSVersion": _deploymentTarget,
                 @"UIDeviceFamily": @[@(0), @(1)],
                 @"UIRequiresFullScreen": @(NO),
