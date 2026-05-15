@@ -133,18 +133,6 @@ static const char kNSDictionaryVariables;
         replacementValue = replacementValue?: @"";
         
         [result replaceCharactersInRange:match.range withString:replacementValue];
-        
-        /*NSString *value = _finalVariables[varName];
-        if(!value)
-        {
-            value = NSProcessInfo.processInfo.environment[varName];
-        }*/
-        
-        /*if(replacementValue)
-        {
-            value = [self expandString:value depth:depth + 1];
-            [result replaceCharactersInRange:match.range withString:value];
-        }*/
     }
     
     return result;
