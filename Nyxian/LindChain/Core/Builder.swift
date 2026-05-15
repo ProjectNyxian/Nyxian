@@ -316,7 +316,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
                     }
                     
                     guard LDEApplicationWorkspace.shared().installApplication(atBundlePath: project.bundleURL.path) else {
-                        nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:error?.localizedDescription ?? "Unknown error happened installing application"])
+                        nsError = NSError(domain: "com.cr4zy.nyxian.builder.install", code: 1, userInfo: [NSLocalizedDescriptionKey:"Unknown error happened installing application"]) // TODO: implement NSError pipeline
                         semaphore.signal()
                         return
                     }

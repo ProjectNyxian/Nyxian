@@ -221,7 +221,23 @@
         }
     }
 
-    NSDictionary *appBundleInfo = @{};
+    NSMutableDictionary *appBundleInfo = [@{
+        @"CFBundleExecutable": @"$(NXExecutable)",
+        @"CFBundleIdentifier": @"$(NXBundleIdentifier)",
+        @"CFBundleName": @"$(NXDisplayName)",
+        @"CFBundleVersion": @"$(NXBundleVersion)",
+        @"CFBundleShortVersionString": @"$(NXBundleShortVersion)",
+        @"MinimumOSVersion": @"$(NXDeploymentTarget)",
+        @"UIDeviceFamily": @[@(1), @(2)],
+        @"UIRequiresFullScreen": @(NO),
+        @"UISupportedInterfaceOrientations~ipad": @[
+            @"UIInterfaceOrientationPortrait",
+            @"UIInterfaceOrientationPortraitUpsideDown",
+            @"UIInterfaceOrientationLandscapeLeft",
+            @"UIInterfaceOrientationLandscapeRight",
+        ],
+    } mutableCopy];
+    
     if(interfaceKind == NXProjectInterfaceKindUIKit)
     {
         NSString *sceneDelegateClassName = @"SceneDelegate";
@@ -230,21 +246,7 @@
             sceneDelegateClassName = [@"$(NXExecutable)." stringByAppendingString:sceneDelegateClassName];
         }
         
-        appBundleInfo = @{
-            @"CFBundleExecutable": @"$(NXExecutable)",
-            @"CFBundleIdentifier": @"$(NXBundleIdentifier)",
-            @"CFBundleName": @"$(NXDisplayName)",
-            @"CFBundleVersion": @"$(NXBundleVersion)",
-            @"CFBundleShortVersionString": @"$(NXBundleShortVersion)",
-            @"MinimumOSVersion": @"$(NXDeploymentTarget)",
-            @"UIDeviceFamily": @[@(1), @(2)],
-            @"UIRequiresFullScreen": @(NO),
-            @"UISupportedInterfaceOrientations~ipad": @[
-                @"UIInterfaceOrientationPortrait",
-                @"UIInterfaceOrientationPortraitUpsideDown",
-                @"UIInterfaceOrientationLandscapeLeft",
-                @"UIInterfaceOrientationLandscapeRight",
-            ],
+        [appBundleInfo addEntriesFromDictionary:@{
             @"UIApplicationSceneManifest": @{
                 @"UIApplicationSupportsMultipleScenes": @(NO),
                 @"UISceneConfigurations": @{
@@ -256,7 +258,7 @@
                     ]
                 }
             }
-        };
+        }];
     }
     
     NSMutableDictionary *projConfigPlist = [NSMutableDictionary dictionaryWithDictionary:@{
