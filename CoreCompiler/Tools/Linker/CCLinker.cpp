@@ -73,12 +73,18 @@ Boolean CCLinkerJobExecute(CCJobRef job,
 
         lld::CommonLinkerContext::destroy();
     });
+    
+    CFAllocatorRef allocator = CFGetAllocator(job);
+    CFMutableArrayRef result = CFArrayCreateMutable(allocator, 1, &kCFTypeArrayCallBacks);
 
     if(!errBuf.empty())
     {
+        if(errBuf.back() == '\n')
+        {
+            errBuf.pop_back();
+        }
+        
         /* process error returns */
-        CFAllocatorRef allocator = CFGetAllocator(job);
-        CFMutableArrayRef result = CFArrayCreateMutable(allocator, 1, &kCFTypeArrayCallBacks);
         if(result == nullptr)
         {
             return retCode == 0;
@@ -93,11 +99,11 @@ Boolean CCLinkerJobExecute(CCJobRef job,
             CFArrayAppendValue(result, diagnosticRef);
             CFRelease(diagnosticRef);
         }
-
-        if(outDiagnostics != nullptr)
-        {
-            *outDiagnostics = result;
-        }
+    }
+    
+    if(outDiagnostics != nullptr)
+    {
+        *outDiagnostics = result;
     }
 
     return retCode == 0;
