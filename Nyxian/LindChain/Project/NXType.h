@@ -30,6 +30,7 @@ static NXProjectFormat const NXProjectFormatKate = @"NXKate";
 static NXProjectFormat const NXProjectFormatFalcon = @"NXFalcon";
 static NXProjectFormat const NXProjectFormatAvis = @"NSAvix";
 static NXProjectFormat const NXProjectFormatAvisR1 = @"NSAvixR1";
+static NXProjectFormat const NXProjectFormatAvisR2 = @"NXAvixR2";
 
 typedef UInt64 NXProjectFormatKind NS_TYPED_ENUM;
 static NXProjectFormatKind const NXProjectFormatKindUnknown = 0;
@@ -37,6 +38,7 @@ static NXProjectFormatKind const NXProjectFormatKindKate = 1;
 static NXProjectFormatKind const NXProjectFormatKindFalcon = 2;
 static NXProjectFormatKind const NXProjectFormatKindAvis = 3;
 static NXProjectFormatKind const NXProjectFormatKindAvisR1 = 4;
+static NXProjectFormatKind const NXProjectFormatKindAvisR2 = 5;
 
 typedef NSString * NXProjectScheme NS_TYPED_ENUM;
 static NXProjectScheme const NXProjectSchemeUnknown = nil;

@@ -30,6 +30,7 @@ NXProjectFormat NXProjectFormatFromFormatKind(NXProjectFormatKind kind)
         case NXProjectFormatKindFalcon: return NXProjectFormatFalcon;
         case NXProjectFormatKindAvis: return NXProjectFormatAvis;
         case NXProjectFormatKindAvisR1: return NXProjectFormatAvisR1;
+        case NXProjectFormatKindAvisR2: return NXProjectFormatAvisR2;
         default: return NXProjectFormatUnknown;
     }
 }
@@ -51,6 +52,10 @@ NXProjectFormatKind NXProjectFormatKindFromFormat(NXProjectFormat format)
     else if([format isEqualToString:NXProjectFormatAvisR1])
     {
         return NXProjectFormatKindAvisR1;
+    }
+    else if([format isEqualToString:NXProjectFormatAvisR2])
+    {
+        return NXProjectFormatKindAvisR2;
     }
     return NXProjectFormatKindUnknown;
 }

@@ -266,28 +266,7 @@ class Builder: NSObject, MDKDriverDelegate, MDKPhaseRunnerDelegate {
             try FileManager.default.createDirectory(at: self.project.payloadURL, withIntermediateDirectories: true)
             try FileManager.default.copyItem(at: self.project.resourcesURL, to: self.project.bundleURL)
             
-            var infoPlistData: [String: Any] = [
-                "CFBundleExecutable": self.project.projectConfig.executable!,
-                "CFBundleIdentifier": self.project.projectConfig.bundleid!,
-                "CFBundleName": self.project.projectConfig.displayName!,
-                "CFBundleShortVersionString": self.project.projectConfig.version!,
-                "CFBundleVersion": self.project.projectConfig.shortVersion!,
-                "MinimumOSVersion": self.project.projectConfig.deploymentTarget!,
-                "UIDeviceFamily": [1, 2],
-                "UIRequiresFullScreen": false,
-                "UISupportedInterfaceOrientations~ipad": [
-                    "UIInterfaceOrientationPortrait",
-                    "UIInterfaceOrientationPortraitUpsideDown",
-                    "UIInterfaceOrientationLandscapeLeft",
-                    "UIInterfaceOrientationLandscapeRight"
-                ]
-            ]
-            
-            for (key, value) in self.project.projectConfig.infoDictionary {
-                infoPlistData[key as! String] = value
-            }
-            
-            let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: infoPlistData, format: .xml, options: 0)
+            let infoPlistDataSerialized = try PropertyListSerialization.data(fromPropertyList: self.project.projectConfig.infoDictionary ?? [:], format: .xml, options: 0)
             FileManager.default.createFile(atPath: self.project.bundleURL.appendingPathComponent("Info.plist").path, contents: infoPlistDataSerialized)
         }
     }

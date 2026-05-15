@@ -47,28 +47,27 @@
     {
         /* MARK: projectFormat */
         _formatKind = NXProjectFormatKindFromFormat([self.dictionary objectForKey:@"NXProjectFormat" withDefaultObject:NXProjectFormatKate]);
-        
-        if(_formatKind != NXProjectFormatKindAvisR1)
+        if(_formatKind <= NXProjectFormatKindAvisR1)
         {
-            [self remapKey:@"LDEMinimumVersion" toKey:@"NXDeploymentTarget"];
-            [self remapKey:@"LDEProjectType" toKey:@"NXProjectScheme" withRemapHandler:(id)^(id oldObj){
+            [self.dictionary remapKey:@"LDEMinimumVersion" toKey:@"NXDeploymentTarget"];
+            [self.dictionary remapKey:@"LDEProjectType" toKey:@"NXProjectScheme" withRemapHandler:(id)^(id oldObj){
                 if([oldObj isKindOfClass:[NSNumber class]])
                 {
                     return NXProjectSchemeFromSchemeKind([(NSNumber*)oldObj integerValue]);
                 }
                 return NXProjectSchemeUnknown;
             }];
-            [self remapKey:@"LDEExecutable" toKey:@"NXExecutable"];
-            [self remapKey:@"LDEDisplayName" toKey:@"NXDisplayName"];
-            [self remapKey:@"LDEOrganizationPrefix" toKey:@"NXOrganizationPrefix"];
-            [self remapKey:@"LDEBundleIdentifier" toKey:@"NXBundleIdentifier"];
-            [self remapKey:@"LDEBundleVersion" toKey:@"NXBundleVersion"];
-            [self remapKey:@"LDEBundleShortVersion" toKey:@"NXBundleShortVersion"];
-            [self remapKey:@"LDEBundleInfo" toKey:@"NXBundleInfo"];
-            [self remapKey:@"LDEOutputPath" toKey:@"NXOutputPath"];
-            [self remapKey:@"LDESignMachOWithNyxianEntitlements" toKey:@"NXSignMachOWithNyxianEntitlements"];
-            [self remapKey:@"LDECompilerFlags" toKey:@"NXClangFlags"];
-            [self remapKey:@"LDELinkerFlags" toKey:@"NXLinkerFlags"];
+            [self.dictionary remapKey:@"LDEExecutable" toKey:@"NXExecutable"];
+            [self.dictionary remapKey:@"LDEDisplayName" toKey:@"NXDisplayName"];
+            [self.dictionary remapKey:@"LDEOrganizationPrefix" toKey:@"NXOrganizationPrefix"];
+            [self.dictionary remapKey:@"LDEBundleIdentifier" toKey:@"NXBundleIdentifier"];
+            [self.dictionary remapKey:@"LDEBundleVersion" toKey:@"NXBundleVersion"];
+            [self.dictionary remapKey:@"LDEBundleShortVersion" toKey:@"NXBundleShortVersion"];
+            [self.dictionary remapKey:@"LDEBundleInfo" toKey:@"NXBundleInfo"];
+            [self.dictionary remapKey:@"LDEOutputPath" toKey:@"NXOutputPath"];
+            [self.dictionary remapKey:@"LDESignMachOWithNyxianEntitlements" toKey:@"NXSignMachOWithNyxianEntitlements"];
+            [self.dictionary remapKey:@"LDECompilerFlags" toKey:@"NXClangFlags"];
+            [self.dictionary remapKey:@"LDELinkerFlags" toKey:@"NXLinkerFlags"];
         }
         
         _schemeKind = NXProjectSchemeKindFromScheme([self.dictionary objectForKey:@"NXProjectScheme" withClass:[NSString class]]);
@@ -80,10 +79,32 @@
         _bundleid = [self.dictionary objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
         _version = [self.dictionary objectForKey:@"NXBundleVersion" withDefaultObject:@"1.0"];
         _shortVersion = [self.dictionary objectForKey:@"NXBundleShortVersion" withDefaultObject:[self version]];
-        _infoDictionary = [self.dictionary objectForKey:@"NXBundleInfo" withDefaultObject:@{}];
         _deploymentTarget = [self.dictionary objectForKey:@"NXDeploymentTarget" withDefaultObject:NXOSVersion.maximumBuildVersion.pickerVersionString];
         _outputPath = [self.dictionary varObjectForKey:@"NXOutputPath"];
         _signMachOWithNyxianEntitlements = [self.dictionary booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
+        
+        /* MARK: info plist data */
+        NSMutableDictionary *mutableInfoDictionary = [[self.dictionary objectForKey:@"NXBundleInfo" withDefaultObject:@{}] mutableCopy];
+        if(_formatKind < NXProjectFormatKindAvisR2)
+        {
+            [mutableInfoDictionary addEntriesFromDictionary:@{
+                @"CFBundleExecutable": _executable,
+                @"CFBundleIdentifier": _bundleid,
+                @"CFBundleName": _displayName,
+                @"CFBundleVersion": _version,
+                @"CFBundleShortVersionString": _shortVersion,
+                @"MinimumOSVersion": _deploymentTarget,
+                @"UIDeviceFamily": @[@(0), @(1)],
+                @"UIRequiresFullScreen": @(NO),
+                @"UISupportedInterfaceOrientations~ipad": @[
+                    @"UIInterfaceOrientationPortrait",
+                    @"UIInterfaceOrientationPortraitUpsideDown",
+                    @"UIInterfaceOrientationLandscapeLeft",
+                    @"UIInterfaceOrientationLandscapeRight"
+                ]
+            }];
+        }
+        _infoDictionary = mutableInfoDictionary;
         
         /* MARK: compiler flags */
         NSMutableArray *mutableCompilerFlags = [[self.dictionary arrayForKey:@"NXClangFlags" allowedTypes:[NSSet setWithArray:@[[NSString class]]]] mutableCopy];
@@ -209,6 +230,20 @@
         }
         
         appBundleInfo = @{
+            @"CFBundleExecutable": @"$(NXExecutable)",
+            @"CFBundleIdentifier": @"$(NXBundleIdentifier)",
+            @"CFBundleName": @"$(NXDisplayName)",
+            @"CFBundleVersion": @"$(NXBundleVersion)",
+            @"CFBundleShortVersionString": @"$(NXBundleShortVersion)",
+            @"MinimumOSVersion": @"$(NXDeploymentTarget)",
+            @"UIDeviceFamily": @[@(1), @(2)],
+            @"UIRequiresFullScreen": @(NO),
+            @"UISupportedInterfaceOrientations~ipad": @[
+                @"UIInterfaceOrientationPortrait",
+                @"UIInterfaceOrientationPortraitUpsideDown",
+                @"UIInterfaceOrientationLandscapeLeft",
+                @"UIInterfaceOrientationLandscapeRight",
+            ],
             @"UIApplicationSceneManifest": @{
                 @"UIApplicationSupportsMultipleScenes": @(NO),
                 @"UISceneConfigurations": @{
@@ -224,7 +259,7 @@
     }
     
     NSMutableDictionary *projConfigPlist = [NSMutableDictionary dictionaryWithDictionary:@{
-        @"NXProjectFormat": NXProjectFormatAvisR1,
+        @"NXProjectFormat": NXProjectFormatAvisR2,
         @"NXProjectScheme": NXProjectSchemeFromSchemeKind(schemeKind),
         @"NXExecutable": name,
         @"NXDisplayName": name,

@@ -43,6 +43,13 @@
 
 @end
 
+@interface NSMutableDictionary (Nyxian)
+
+- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey withRemapHandler:(id _Nonnull (^ _Nullable)(id _Nonnull oldObj))handler;
+- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey;
+
+@end
+
 @interface NXPlist : NSObject
 
 @property (nonatomic,strong,readonly,nonnull) NSString *plistPath;
@@ -56,9 +63,6 @@
 - (BOOL)reloadIfNeeded;
 - (void)reloadData;
 - (BOOL)save;
-
-- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey withRemapHandler:(id _Nonnull (^ _Nullable)(id _Nonnull oldObj))handler;
-- (void)remapKey:(NSString * _Nonnull)oldKey toKey:(NSString * _Nonnull)newKey;
 
 @end
 
