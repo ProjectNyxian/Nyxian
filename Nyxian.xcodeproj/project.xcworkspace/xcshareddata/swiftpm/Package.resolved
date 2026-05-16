@@ -1,10 +1,10 @@
 {
-  "originHash" : "5fcceb76746199cfc898e33b20d3c88a3b504213ab01df818158a8a22f1d783d",
+  "originHash" : "f32f787b57875c631a1c9ebef4011b14c7eaa979c8bc9f92e9c0663e8e1d0208",
   "pins" : [
     {
       "identity" : "runestone",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ProjectNyxian/Runestone.git",
+      "location" : "https://github.com/emexlab/Runestone",
       "state" : {
         "revision" : "8b98d2559233279c404a48b544ab6c02f4ab0f5b",
         "version" : "0.0.2"
@@ -67,10 +67,10 @@
     {
       "identity" : "tree-sitter-swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ProjectNyxian/tree-sitter-swift",
+      "location" : "https://github.com/emexlab/tree-sitter-swift",
       "state" : {
         "branch" : "main",
-        "revision" : "5e12e0b6d90d518ff27039dd01f3da7db88fd072"
+        "revision" : "b787669ba973e5311234fad0aed2a03909281a5c"
       }
     },
     {
