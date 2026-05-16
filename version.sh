@@ -1,26 +1,17 @@
 #!/bin/bash
-# Increment build number across all targets and append country + username
+# Increment build number across all targets and append build configuration
 
 cd "$SRCROOT"
 
 # Current date
 current_date=$(date "+%Y%m%d")
 
-# Get macOS username
-build_user=$(whoami)
+# Get build configuration (Debug/Release) from Xcode, uppercased
+build_config=$(echo "$CONFIGURATION" | tr '[:lower:]' '[:upper:]')
 
-# Get locale like: en_US@rg=DEZZZZ
-locale=$(defaults read -g AppleLocale 2>/dev/null)
-
-# Remove anything after @
-locale_no_variant="${locale%%@*}"
-
-# Extract country code (part after underscore)
-country_code="${locale_no_variant##*_}"
-
-# Fallback
-if [ -z "$country_code" ]; then
-  country_code="XX"
+# Fallback if not set
+if [ -z "$build_config" ]; then
+  build_config="UNKNOWN"
 fi
 
 # Read previous build number
@@ -38,8 +29,8 @@ else
   new_counter=1
 fi
 
-# New build number with country + user
-new_build_number="${current_date}.${new_counter}.${country_code}.${build_user}"
+# New build number with build config
+new_build_number="${current_date}.${new_counter}.${build_config}"
 
 # Replace in config
 sed -i -e "/BUILD_NUMBER =/ s/= .*/= $new_build_number/" Config.xcconfig

@@ -1057,7 +1057,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = Nyxian/;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
+				INFOPLIST_KEY_CFBundleDisplayName = emexDE;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -1177,7 +1177,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = Nyxian/;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
+				INFOPLIST_KEY_CFBundleDisplayName = emexDE;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -1686,7 +1686,7 @@
 					LiveProcess/,
 				);
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
+				INFOPLIST_KEY_CFBundleDisplayName = emexDE;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -1805,7 +1805,7 @@
 					LiveProcess/,
 				);
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Nyxian;
+				INFOPLIST_KEY_CFBundleDisplayName = emexDE;
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = NO;
 				INFOPLIST_KEY_GCSupportsGameMode = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
