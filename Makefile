@@ -123,27 +123,27 @@ endif
 # Targets
 all: jailed
 
-jailed: SCHEME := Nyxian
-jailed: FILE := Nyxian.ipa
+jailed: SCHEME := emexDE
+jailed: FILE := emexDE.ipa
 jailed: clean check compile package-app clean
 
-rootless: SCHEME := NyxianForJB
+rootless: SCHEME := emexDEForJB
 rootless: ARCH := iphoneos-arm64
 rootless: JB_PATH := /var/jb/
 rootless: clean check compile pseudo-sign package-deb clean
 
-roothide: SCHEME := NyxianForJB
+roothide: SCHEME := emexDEForJB
 roothide: ARCH := iphoneos-arm64e
 roothide: JB_PATH := /
 roothide: clean check compile pseudo-sign package-deb clean
 
-rootful: SCHEME := NyxianForJB
+rootful: SCHEME := emexDEForJB
 rootful: ARCH := iphoneos-arm
 rootful: JB_PATH := /
 rootful: clean check compile pseudo-sign package-deb clean
 
-trollstore: SCHEME := NyxianForJB
-trollstore: FILE := Nyxian.tipa
+trollstore: SCHEME := emexDEForJB
+trollstore: FILE := emexDE.tipa
 trollstore: clean check compile pseudo-sign package-app clean
 
 # Dependencies
@@ -196,7 +196,7 @@ package-deb:
 	find . -type f -name ".DS_Store" -delete
 	mkdir -p .package/DEBIAN
 	echo "Package: $(NXBUNDLE)\nName: $(NXNAME)\nVersion: $(NXVERSION)\nArchitecture: $(ARCH)\nDescription: Full fledged Xcode-like IDE for iOS\nIcon: https://raw.githubusercontent.com/ProjectNyxian/Nyxian/main/preview.png\nMaintainer: cr4zyengineer\nAuthor: cr4zyengineer\nSection: Utilities\nTag: role::hacker" > .package/DEBIAN/control
-	dpkg-deb -b --root-owner-group .package nyxian_$(NXVERSION)_$(ARCH).deb
+	dpkg-deb -b --root-owner-group .package emexDE_$(NXVERSION)_$(ARCH).deb
 
 clean:
 	rm -rf Payload

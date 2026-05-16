@@ -32,7 +32,7 @@ struct UIOnboardingHelper {
     }
     
     static func setUpSecondTitleLine() -> NSMutableAttributedString {
-        .init(string: Bundle.main.displayName ?? "Nyxian", attributes: [
+        .init(string: Bundle.main.displayName ?? "emexDE", attributes: [
             .foregroundColor: UIColor { trait in
                 trait.userInterfaceStyle == .dark
                 ? UIColor(red: 0.85, green: 0.74, blue: 0.93, alpha: 1.0)
@@ -85,7 +85,7 @@ struct UIOnboardingHelper {
         return .init(icon: UIImage(systemName: "heart.fill")!,
                      text: "Contributions, feedback, and stars keep the project alive.",
                      linkTitle: "Contribute on GitHub",
-                     link: "https://github.com/ProjectNyxian/Nyxian",
+                     link: "https://github.com/emexlab/emexDE",
                      linkColor: UIColor { trait in
                          trait.userInterfaceStyle == .dark
                              ? UIColor(red: 0.85, green: 0.74, blue: 0.93, alpha: 1.0)

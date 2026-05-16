@@ -21,7 +21,7 @@
 
 #import <LindChain/JBSupport/Shell.h>
 #import <Foundation/Foundation.h>
-#import <Nyxian-Swift.h>
+#import <emexDE-Swift.h>
 #include <spawn.h>
 
 extern int posix_spawnattr_set_persona_np(posix_spawnattr_t *attr, uid_t persona_id, uint32_t flags);

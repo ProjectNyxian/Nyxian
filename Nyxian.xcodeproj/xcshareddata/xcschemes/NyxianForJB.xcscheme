@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "79AF51072F1CBD110055004A"
-               BuildableName = "NyxianForJB.app"
-               BlueprintName = "NyxianForJB"
+               BuildableName = "emexDEForJB.app"
+               BlueprintName = "emexDEForJB"
                ReferencedContainer = "container:Nyxian.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "79AF51072F1CBD110055004A"
-            BuildableName = "NyxianForJB.app"
-            BlueprintName = "NyxianForJB"
+            BuildableName = "emexDEForJB.app"
+            BlueprintName = "emexDEForJB"
             ReferencedContainer = "container:Nyxian.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "79AF51072F1CBD110055004A"
-            BuildableName = "NyxianForJB.app"
-            BlueprintName = "NyxianForJB"
+            BuildableName = "emexDEForJB.app"
+            BlueprintName = "emexDEForJB"
             ReferencedContainer = "container:Nyxian.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

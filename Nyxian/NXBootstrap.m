@@ -24,7 +24,7 @@
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/ProcEnvironment/Surface/extra/relax.h>
-#import <Nyxian-Swift.h>
+#import <emexDE-Swift.h>
 #import <MobileDevelopmentKit/MDKThreadPool.h>
 
 @interface NXBootstrap ()

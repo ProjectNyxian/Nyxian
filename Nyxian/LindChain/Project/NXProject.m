@@ -24,7 +24,7 @@
 #import <LindChain/Project/NXCodeTemplate.h>
 #import <LindChain/Project/NXUser.h>
 #import <LindChain/Project/NXUtils.h>
-#import <Nyxian-Swift.h>
+#import <emexDE-Swift.h>
 
 @implementation NXProjectConfig
 
