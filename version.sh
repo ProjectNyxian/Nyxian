@@ -37,3 +37,20 @@ sed -i -e "/BUILD_NUMBER =/ s/= .*/= $new_build_number/" Config.xcconfig
 
 # Remove sed backup
 rm -f Config.xcconfig-e
+
+# Use full path because Xcode's build phase environment may not include git in PATH
+GIT=$(command -v git || echo "/usr/bin/git")
+
+if [ -x "$GIT" ] && "$GIT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  tag_name="build-${new_build_number}"
+
+  if "$GIT" rev-parse "$tag_name" >/dev/null 2>&1; then
+    echo "warning: git tag '$tag_name' already exists, skipping"
+  else
+    "$GIT" tag -a "$tag_name" -m "Automated build tag $new_build_number" \
+      && echo "Created git tag: $tag_name" \
+      || echo "warning: failed to create git tag '$tag_name'"
+  fi
+else
+  echo "warning: not a git repository or git not available, skipping tag"
+fi
