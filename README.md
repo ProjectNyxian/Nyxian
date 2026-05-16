@@ -1,10 +1,10 @@
 <div align="center">
-  <h1><b>Nyxian</b></h1>
+  <h1><b>emexDE</b></h1>
   <p><i>IDE to develop native Swift, Objective-C, Objective-C++, C and C++ iOS apps and tools on unjailbroken iOS</i></p>
 </div>
 <h6 align="center">
-  <a target="_blank" href="https://discord.gg/VEMvDMJ8KB"><img src="https://dcbadge.limes.pink/api/server/VEMvDMJ8KB?style=flat" alt=""></a>
-  <a href="https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml"><img src="https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg" alt="Build iOS App"></a>
+  <a target="_blank" href="https://discord.gg/Cbeg3gJzC7"><img src="https://dcbadge.limes.pink/api/server/Cbeg3gJzC7?style=flat" alt=""></a>
+  <a href="https://github.com/emexlab/emexDE/actions/workflows/build.yml"><img src="https://github.com/ProjectNyxian/Nyxian/actions/workflows/build.yml/badge.svg" alt="Build iOS App"></a>
 </h6>
 <p align="center">
   <img src="./mockup.png">
