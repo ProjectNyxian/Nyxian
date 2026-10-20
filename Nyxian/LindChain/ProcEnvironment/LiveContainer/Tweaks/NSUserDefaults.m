@@ -29,6 +29,24 @@
 
 NSString* appContainerPath = nil;
 
+NSArray* appleIdentifierPrefixes = @[
+    @"com.apple.",
+    @"group.com.apple.",
+    @"systemgroup.com.apple."
+];
+
+static bool isAppleIdentifier(NSString* identifier)
+{
+    for(NSString* cur in appleIdentifierPrefixes)
+    {
+        if([identifier hasPrefix:cur])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void NUDGuestHooksInit(void)
 {
     static dispatch_once_t onceToken;
@@ -38,7 +56,16 @@ void NUDGuestHooksInit(void)
         {
             appContainerPath = [NSString stringWithCString:home encoding:NSUTF8StringEncoding];
         }
-
+        
+        NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
+        if(bundleID == nil)
+        {
+            NSString *exe = [[NSBundle mainBundle] executablePath].lastPathComponent;
+            bundleID = exe.length ? [@"org.emexlabs.guest." stringByAppendingString:exe] : @"org.emexlabs.guest.unknown";
+            bundleID = [bundleID copy];
+            CFRetain((__bridge CFTypeRef)bundleID);
+        }
+        
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
         SwizzleObjCMethod(@selector(initWithDomain:user:byHost:containerPath:containingPreferences:),
@@ -57,12 +84,15 @@ void NUDGuestHooksInit(void)
         const char* coreFoundationPath = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
         
         CFStringRef* _CFPrefsCurrentAppIdentifierCache = litehook_find_dsc_symbol(coreFoundationPath, "__CFPrefsCurrentAppIdentifierCache");
-        *_CFPrefsCurrentAppIdentifierCache = (__bridge CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
+        if(_CFPrefsCurrentAppIdentifierCache)
+        {
+            *_CFPrefsCurrentAppIdentifierCache = (__bridge CFStringRef)bundleID;
+        }
         
         NSUserDefaults* newStandardUserDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"whatever"];
         if(newStandardUserDefaults != nil)
         {
-            [newStandardUserDefaults _setIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
+            [newStandardUserDefaults _setIdentifier:bundleID];
             NSUserDefaults.standardUserDefaults = newStandardUserDefaults;
         }
         
@@ -79,16 +109,23 @@ void NUDGuestHooksInit(void)
 
 @implementation CFPrefsPlistSource2
 
-- (id)hook_initWithDomain:(CFStringRef)domain user:(CFStringRef)user byHost:(bool)host containerPath:(CFStringRef)containerPath containingPreferences:(id)arg5
+- (id)hook_initWithDomain:(CFStringRef)domain
+                     user:(CFStringRef)user
+                   byHost:(bool)host
+            containerPath:(CFStringRef)containerPath
+    containingPreferences:(id)arg5
 {
-    NSArray* appleIdentifierPrefixes = @[
-        @"com.apple.",
-        @"group.com.apple.",
-        @"systemgroup.com.apple."
-    ];
-    return [appleIdentifierPrefixes indexOfObjectPassingTest:^BOOL(NSString *cur, NSUInteger idx, BOOL *stop) { return [(__bridge NSString *)domain hasPrefix:cur]; }] != NSNotFound ?
-        [self hook_initWithDomain:domain user:user byHost:host containerPath:containerPath containingPreferences:arg5] :
-        [self hook_initWithDomain:domain user:user byHost:host containerPath:(__bridge CFStringRef)appContainerPath containingPreferences:arg5];
+    if(isAppleIdentifier((__bridge NSString*)domain))
+    {
+        return [self hook_initWithDomain:domain user:user byHost:host containerPath:containerPath containingPreferences:arg5];
+    }
+    
+    if(user == kCFPreferencesAnyUser)
+    {
+        user = kCFPreferencesCurrentUser;
+    }
+    
+    return [self hook_initWithDomain:domain user:user byHost:host containerPath:(__bridge CFStringRef)appContainerPath containingPreferences:arg5];
 }
 
 @end

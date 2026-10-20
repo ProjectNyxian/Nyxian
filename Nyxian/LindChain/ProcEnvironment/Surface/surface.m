@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
@@ -33,27 +34,15 @@
 #import <ksurface_abi.h>
 
 syscall_list_item_t sys_list[] = {
-    /* necessary for basic function */
     { .name = "SYS_handoffep",      .sysnum = SYS_handoffep,    .hndl = GET_SYSCALL_HANDLER(handoffep)      },
     { .name = "SYS_pectl",          .sysnum = SYS_pectl,        .hndl = GET_SYSCALL_HANDLER(pectl)          },
     { .name = "sys_getppid",        .sysnum = SYS_getppid,      .hndl = GET_SYSCALL_HANDLER(getppid)        },
     { .name = "SYS_openpty",        .sysnum = SYS_openpty,      .hndl = GET_SYSCALL_HANDLER(openpty)        },
     { .name = "SYS_vroot",          .sysnum = SYS_vroot,        .hndl = GET_SYSCALL_HANDLER(vroot)          },
-    
-#if KSURFACE_SYS_IOCTL_ENABLED
     { .name = "SYS_ioctl",          .sysnum = SYS_ioctl,        .hndl = GET_SYSCALL_HANDLER(ioctl)          },
-#endif /* KSURFACE_SYS_IOCTL_ENABLED */
-    
-#if KSURFACE_SYS_SYSCTL_ENABLED
     { .name = "SYS_sysctl",         .sysnum = SYS_sysctl,       .hndl = GET_SYSCALL_HANDLER(sysctl)         },
     { .name = "SYS_sysctlbyname",   .sysnum = SYS_sysctlbyname, .hndl = GET_SYSCALL_HANDLER(sysctlbyname)   },
-#endif /* KSURFACE_SYS_SYSCTL_ENABLED */
-    
-#if KSURFACE_SYS_TASK_ENABLED
     { .name = "SYS_task_for_pid",   .sysnum = SYS_task_for_pid, .hndl = GET_SYSCALL_HANDLER(task_for_pid)   },
-#endif /* KSURFACE_SYS_UCRED_ENABLED */
-    
-#if KSURFACE_SYS_UCRED_ENABLED
     { .name = "SYS_setuid",         .sysnum = SYS_setuid,       .hndl = GET_SYSCALL_HANDLER(setuid)         },
     { .name = "SYS_seteuid",        .sysnum = SYS_seteuid,      .hndl = GET_SYSCALL_HANDLER(seteuid)        },
     { .name = "SYS_setgid",         .sysnum = SYS_setgid,       .hndl = GET_SYSCALL_HANDLER(setgid)         },
@@ -71,15 +60,11 @@ syscall_list_item_t sys_list[] = {
     { .name = "SYS_getpgid",        .sysnum = SYS_getpgid,      .hndl = GET_SYSCALL_HANDLER(getpgid)        },
     { .name = "SYS_loginctl",       .sysnum = SYS_loginctl,     .hndl = GET_SYSCALL_HANDLER(loginctl)       },
     { .name = "SYS_groupctl",       .sysnum = SYS_groupctl,     .hndl = GET_SYSCALL_HANDLER(groupctl)       },
-#endif /* KSURFACE_SYS_UCRED_ENABLED */
-    
-#if KSURFACE_SYS_PROC_ENABLED
     { .name = "SYS_kill",           .sysnum = SYS_kill,         .hndl = GET_SYSCALL_HANDLER(kill)           },
     { .name = "SYS_wait4",          .sysnum = SYS_wait4,        .hndl = GET_SYSCALL_HANDLER(wait4)          },
     { .name = "SYS_waittask",       .sysnum = SYS_waittask,     .hndl = GET_SYSCALL_HANDLER(waittask)       },
     { .name = "SYS_sign",           .sysnum = SYS_sign,         .hndl = GET_SYSCALL_HANDLER(sign)           },
     { .name = "SYS_proc_info",      .sysnum = SYS_proc_info,    .hndl = GET_SYSCALL_HANDLER(proc_info)      },
-#endif /* KSURFACE_SYS_PROC_ENABLED */
 };
 
 ksurface_mapping_t *ksurface = NULL;

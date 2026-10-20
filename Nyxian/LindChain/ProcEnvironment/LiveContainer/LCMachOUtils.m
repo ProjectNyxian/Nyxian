@@ -50,7 +50,8 @@ LCMachO *LCMapMachO(const char *path,
     
     /* initially opening the machO */
     machO->ro = readOnly;
-    machO->fd = open(path, (readOnly ? O_RDONLY : O_RDWR) | O_EXLOCK, (mode_t)readOnly ? 0400 : 0600);
+    /* readers share the lock, only writers (re-signing) need it exclusive */
+    machO->fd = open(path, readOnly ? (O_RDONLY | O_SHLOCK) : (O_RDWR | O_EXLOCK), (mode_t)readOnly ? 0400 : 0600);
     if(machO->fd < 0)
     {
         goto out_fail_deallocate;
@@ -144,14 +145,14 @@ LCMachO *LCMapMachOFromFDRO(int fd)
         goto out_fail_deallocate;
     }
     
+    /* initially opening the machO */
+    machO->ro = true;
+    machO->fd = fd;
+    
     if(fcntl(machO->fd, F_GETPATH, machO->path) != 0)
     {
         goto out_fail_deallocate_path;
     }
-    
-    /* initially opening the machO */
-    machO->ro = true;
-    machO->fd = fd;
     
     /* getting its size and so on */
     struct stat s = {0};

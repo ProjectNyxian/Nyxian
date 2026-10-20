@@ -1,23 +1,24 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
  Copyright (C) 2026 semvis123
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <Foundation/Foundation.h>
@@ -577,7 +578,6 @@ static const sysctl_map_entry_t sysctl_map[] = {
     { { CTL_KERN, KERN_HOSTNAME                 }, 2, sysctl_kernhostname },
     { { CTL_KERN, KERN_BOOTTIME                 }, 2, sysctl_kernboottime },
     { { CTL_KERN, 9999                          }, 2, sysctl_kernmsgbuf },      /* got no solid identifier in XNU's BSD */
-#if KSURFACE_SYS_PROC_ENABLED
     { { CTL_KERN, KERN_MAXPROC                  }, 2, sysctl_kernmaxproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_ALL      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_ARGMAX                   }, 2, sysctl_kernargmax },
@@ -586,18 +586,15 @@ static const sysctl_map_entry_t sysctl_map[] = {
     { { CTL_KERN, KERN_PROC, KERN_PROC_UID      }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROC, KERN_PROC_RUID     }, 3, sysctl_kernproc },
     { { CTL_KERN, KERN_PROCARGS2                }, 2, sysctl_kernprocargs2 }
-#endif /* KSURFACE_SYS_PROC_ENABLED */
 };
 
 static const sysctl_name_map_entry_t sysctl_name_map[] = {
     { "kern.hostname",          &sysctl_map[0] },
     { "kern.boottime",          &sysctl_map[1] },
     { "kern.msgbuf",            &sysctl_map[2] },
-#if KSURFACE_SYS_PROC_ENABLED
     { "kern.maxproc",           &sysctl_map[3] },
     { "kern.proc.all",          &sysctl_map[4] },
     { "kern.argmax",            &sysctl_map[5] },
-#endif /* KSURFACE_SYS_PROC_ENABLED */
 };
 
 /* lookup symbol */

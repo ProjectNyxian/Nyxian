@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #include "CFRuntime.h"
@@ -84,7 +85,7 @@ typedef struct {
 
 typedef struct {
     union {
-        __Request__exception_raise_t v;
+        __Request__exception_raise_state_identity_t v;
         uint8_t pad[1024];
     };
 } __Request__exception_raise_large_t;
@@ -134,7 +135,11 @@ static void *__HWHookThreadContextServer(void *ctxp)
         request.v.Head.msgh_local_port = port;
         request.v.Head.msgh_size = (mach_msg_size_t)sizeof(request);
         mach_msg_return_t mr = mach_msg(&(request.v.Head), MACH_RCV_MSG | MACH_RCV_LARGE, 0, sizeof(request), port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
-        if(mr != MACH_MSG_SUCCESS)
+        if(mr != MACH_MSG_SUCCESS ||
+           request.v.codeCnt != 2 ||
+           request.v.flavor != ARM_THREAD_STATE64 ||
+           request.v.old_stateCnt != ARM_THREAD_STATE64_COUNT ||
+           request.v.exception != EXC_BREAKPOINT)   /* impossible not to be EXC_BREAKPOINT */
         {
             printf("[!] failed to receive exception\n");
             continue;
@@ -143,6 +148,10 @@ static void *__HWHookThreadContextServer(void *ctxp)
         arm_exception_state64_t es;
         mach_msg_type_number_t count = ARM_EXCEPTION_STATE64_COUNT;
         thread_get_state(request.v.thread.name, ARM_EXCEPTION_STATE64, (thread_state_t)&es, &count);
+        
+        arm_thread_state64_t state;
+        memcpy(&state, request.v.old_state, sizeof(state));
+        count = request.v.old_stateCnt;
         
         uint16_t imm;
         uint32_t ec = (es.__esr >> 26) & 0x3F;
@@ -167,27 +176,8 @@ static void *__HWHookThreadContextServer(void *ctxp)
                             goto reply_fastpath;
                         }
                         
-                        /* skip over pseudo exception */
-                        arm_thread_state64_t state;
-                        mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
-                        kr = thread_get_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
-                        if(kr != KERN_SUCCESS)
-                        {
-                            fprintf(stderr, "[!] failed to get normal thread state\n");
-                            handled_ret = KERN_FAILURE;
-                            goto reply_fastpath;
-                        }
-                        
                         /* skipping over __builtin_trap */
                         state.__pc += 4;
-                        
-                        kr = thread_set_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-                        if(kr != KERN_SUCCESS)
-                        {
-                            fprintf(stderr, "[!] failed to set normal thread state\n");
-                            handled_ret = KERN_FAILURE;
-                            goto reply_fastpath;
-                        }
                         
                         break;
                     }
@@ -204,14 +194,7 @@ static void *__HWHookThreadContextServer(void *ctxp)
                             goto reply_fastpath;
                         }
                         
-                        arm_thread_state64_t state;
-                        mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
-                        kr = thread_get_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
-                        if(kr == KERN_SUCCESS)
-                        {
-                            state.__pc += 4;
-                            thread_set_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-                        }
+                        state.__pc += 4;
                         
                         if(ctx->old_count > 0)
                         {
@@ -222,21 +205,24 @@ static void *__HWHookThreadContextServer(void *ctxp)
                         }
                         else
                         {
-                            thread_set_exception_ports(request.v.thread.name, EXC_MASK_BREAKPOINT, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
+                            thread_set_exception_ports(request.v.thread.name, EXC_MASK_BREAKPOINT, MACH_PORT_NULL, EXCEPTION_STATE_IDENTITY, THREAD_STATE_NONE);
                         }
                         
                         mach_port_mod_refs(mach_task_self(), ctx->exceptionPort, MACH_PORT_RIGHT_RECEIVE, -1);
                         mach_port_deallocate(mach_task_self(), ctx->exceptionPort);
                         
-                        __Reply__exception_raise_t reply;
+                        __Reply__exception_raise_state_identity_t reply;
                         memset(&reply, 0, sizeof(reply));
+                        reply.flavor = ARM_THREAD_STATE64;
+                        memcpy(reply.new_state, &state, sizeof(state));
+                        reply.new_stateCnt = ARM_THREAD_STATE64_COUNT;
                         reply.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(request.v.Head.msgh_bits), 0);
                         reply.Head.msgh_id = request.v.Head.msgh_id + 100;
                         reply.Head.msgh_local_port = MACH_PORT_NULL;
                         reply.Head.msgh_remote_port = request.v.Head.msgh_remote_port;
-                        reply.Head.msgh_size = sizeof(reply);
+                        reply.Head.msgh_size = (mach_msg_size_t)(offsetof(__Reply__exception_raise_state_identity_t, new_state) + reply.new_stateCnt * sizeof(reply.new_state[0]));
                         reply.NDR = NDR_record;
-                        reply.RetCode = KERN_SUCCESS;
+                        reply.RetCode = handled_ret;
                         mr = mach_msg(&reply.Head, MACH_SEND_MSG, reply.Head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
                         mach_msg_destroy(&(request.v.Head));
                         if(mr != KERN_SUCCESS)
@@ -253,17 +239,6 @@ static void *__HWHookThreadContextServer(void *ctxp)
             case 0x30:  /* this is a hardware breakpoint hook */
             case 0x31:
             {
-                /* debug register are set */
-                arm_thread_state64_t state;
-                mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
-                kern_return_t kr = thread_get_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
-                if(kr != KERN_SUCCESS)
-                {
-                    fprintf(stderr, "[!] failed to get normal thread state\n");
-                    handled_ret = KERN_FAILURE;
-                    goto reply_fastpath;
-                }
-                
                 /* matching hook */
                 HWHookRef matchingHook = NULL;
                 CFIndex hookCount = CFArrayGetCount(ctx->context->symbols);
@@ -303,13 +278,6 @@ static void *__HWHookThreadContextServer(void *ctxp)
                 {
                     state.__pc = (uint64_t)HWHookGetReplacementPtr(matchingHook);
                 }
-                kr = thread_set_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, count);
-                if(kr != KERN_SUCCESS)
-                {
-                    fprintf(stderr, "[!] failed to set normal thread state\n");
-                    handled_ret = KERN_FAILURE;
-                    goto reply_fastpath;
-                }
                 break;
             }
             case 0x32:  /* step or something else */
@@ -321,13 +289,16 @@ static void *__HWHookThreadContextServer(void *ctxp)
         
     reply_fastpath:
         {
-            __Reply__exception_raise_t reply;
+            __Reply__exception_raise_state_identity_t reply;
             memset(&reply, 0, sizeof(reply));
+            reply.flavor = ARM_THREAD_STATE64;
+            memcpy(reply.new_state, &state, sizeof(state));
+            reply.new_stateCnt = ARM_THREAD_STATE64_COUNT;
             reply.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(request.v.Head.msgh_bits), 0);
             reply.Head.msgh_id = request.v.Head.msgh_id + 100;
             reply.Head.msgh_local_port = MACH_PORT_NULL;
             reply.Head.msgh_remote_port = request.v.Head.msgh_remote_port;
-            reply.Head.msgh_size = sizeof(reply);
+            reply.Head.msgh_size = (mach_msg_size_t)(offsetof(__Reply__exception_raise_state_identity_t, new_state) + reply.new_stateCnt * sizeof(reply.new_state[0]));
             reply.NDR = NDR_record;
             reply.RetCode = handled_ret;    /* mach takes that to the next handler */
             mr = mach_msg(&reply.Head, MACH_SEND_MSG, reply.Head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
@@ -388,7 +359,7 @@ Boolean HWHookThreadContextEnter(HWHookThreadContextRef context)
     }
     tCurrentServerContext.exceptionPort = exceptionPort;
     
-    kr = thread_set_exception_ports(currentThread, EXC_MASK_BREAKPOINT, exceptionPort, EXCEPTION_DEFAULT, ARM_THREAD_STATE64);
+    kr = thread_set_exception_ports(currentThread, EXC_MASK_BREAKPOINT, exceptionPort, EXCEPTION_STATE_IDENTITY, ARM_THREAD_STATE64);
     if(kr != KERN_SUCCESS)
     {
         goto out_destroy_exception_port;
@@ -428,11 +399,11 @@ out_destroy_exception_port:
 out_recover_thread_exception_ports:
     if(tCurrentServerContext.old_count > 0)
     {
-        task_set_exception_ports(mach_task_self(), tCurrentServerContext.old_masks[0], tCurrentServerContext.old_ports[0], tCurrentServerContext.old_behaviors[0], tCurrentServerContext.old_flavors[0]);
+        thread_set_exception_ports(tCurrentServerContext.target, tCurrentServerContext.old_masks[0], tCurrentServerContext.old_ports[0], tCurrentServerContext.old_behaviors[0], tCurrentServerContext.old_flavors[0]);
     }
     else
     {
-        task_set_exception_ports(mach_task_self(), EXC_MASK_BREAKPOINT, MACH_PORT_NULL, EXCEPTION_DEFAULT, THREAD_STATE_NONE);
+        thread_set_exception_ports(tCurrentServerContext.target, EXC_MASK_BREAKPOINT, MACH_PORT_NULL, EXCEPTION_STATE_IDENTITY, THREAD_STATE_NONE);
     }
     return false;
 }

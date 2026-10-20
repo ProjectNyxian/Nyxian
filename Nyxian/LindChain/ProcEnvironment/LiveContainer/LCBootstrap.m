@@ -29,6 +29,7 @@
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_images.h>
 #include <objc/runtime.h>
+#import <LiveShim/dyld.h>
 
 #include <dlfcn.h>
 #include <execinfo.h>
@@ -112,6 +113,19 @@ void LCOverwriteExecutablePath(NSString *executablePath)
     }
 }
 
+void dyld_verifier_failed_callback(int fd,
+                                   bool *deny_open)
+{
+    /* rolling back */
+    if(liveshim_syscall(SYS_pectl, kPECTLCategoryCodeSigning, kPECTLCodeSigningDropAllEntitlements, NULL, NULL, MACH_PORT_NULL) != 0 ||
+       liveshim_syscall(SYS_setgid, 501) != 0 ||
+       liveshim_syscall(SYS_setuid, 501) != 0)
+    {
+        /* didn't succeed in rolling back primitives, trying to make dlopen fail */
+        *deny_open = true;
+    }
+}
+
 int LCBootstrapMain(NSString *executablePath,
                     int argc,
                     char *argv[])
@@ -135,7 +149,8 @@ int LCBootstrapMain(NSString *executablePath,
     }
     appMainImageIndex = _dyld_image_count();
     /* makes sure the binary gets loaded that is meant to have the ksurface capabilities */
-    void *guestHandle = dlopenBypassingLockWithTrust(executablePath.fileSystemRepresentation, RTLD_LAZY | RTLD_GLOBAL | RTLD_FIRST | RTLD_NODELETE, ret != 0 ? NULL : cdhash);
+    int flags = RTLD_LAZY | RTLD_GLOBAL | RTLD_FIRST | RTLD_NODELETE;
+    void *guestHandle = ret != 0 ? dlopen(executablePath.fileSystemRepresentation, flags) : dlopen_cdhash_verified(executablePath.fileSystemRepresentation, flags, cdhash, dyld_verifier_failed_callback);
     appExecutableHandle = guestHandle;
     if(!guestHandle || (uint64_t)guestHandle > 0xf00000000000)
     {
@@ -147,26 +162,13 @@ int LCBootstrapMain(NSString *executablePath,
     int (*guestMain)(int, char**, char **, const char *) = PEGetMachOEntryPointOfHeader(guestHandle)?: dlsym(guestHandle, "main");
     assert(guestHandle != NULL);
     
-    /*
-     * now we load the executable of the bundle, as it doesn't
-     * matter anymore from now on what CF does we can safely
-     * load it as it is loaded already and complete the safe
-     * initilization of the bundle swap LCOverwriteExecutablePath
-     * did. This is necessary cause of NSBundle's internal state,
-     * it can also fix known issues with the old implementation
-     * of Duy Tran. Not only the app cares about this bundle,
-     * the frameworks the app uses do aswell.
-     */
-    CFBundleRef bundle = CFBundleGetMainBundle();
-    if(CFBundleLoadExecutable(bundle))
-    {
-        CFBundleSetBinaryType(bundle, __CFBundleDYLDExecutableBinary);
-    }
+    /* mark the bundle as executable. */
+    CFBundleSetBinaryType(CFBundleGetMainBundle(), __CFBundleDYLDExecutableBinary);
     
     /* now applying LC hooks */
     if(!initialSpawn)
     {
-        NUDGuestHooksInit();
+        NUDGuestHooksInit();    /* FIXME: this is a 20ms bottleneck */
         NSFMGuestHooksInit();
         UIKitGuestHooksInit();
         initDead10ccFix();

@@ -622,10 +622,18 @@ uint32_t ZArchO::ReallocCodeSignSpace(const string& strNewFile)
 
 	string strPadding;
 	strPadding.append(uNewLength - m_uLength, 0);
-	if (!ZFile::AppendFile(strNewFile.c_str(), strPadding)) {
+	if(!ZFile::AppendFile(strNewFile.c_str(), strPadding))
+    {
 		ZFile::RemoveFile(strNewFile.c_str());
 		return 0;
 	}
+    
+    int fd = open(strNewFile.c_str(), O_RDONLY);
+    if(fd >= 0)
+    {
+        fcntl(fd, F_FULLFSYNC);
+        close(fd);
+    }
 
 	return uNewLength;
 }

@@ -170,14 +170,22 @@ bool ZMachO::ReallocCodeSignSpace()
 	}
 	ZLog::Warn(">>> Success!\n");
 
-	if (1 == m_arrArchOes.size()) {
-		CloseFile();
-		ZFile::RemoveFile(m_strFile.c_str());
-		string strNewArchOFile = m_strFile + ".archo.0";
-		if (0 == rename(strNewArchOFile.c_str(), m_strFile.c_str())) {
-			return OpenFile(m_strFile.c_str());
-		}
-	} else { //fat
+    if (1 == m_arrArchOes.size()) {
+        CloseFile();
+        ZFile::RemoveFile(m_strFile.c_str());
+        string strNewArchOFile = m_strFile + ".archo.0";
+        if (0 == rename(strNewArchOFile.c_str(), m_strFile.c_str())) {
+            string dir = m_strFile;
+            ZFile::PathRemoveFileSpec(dir);
+            int dfd = open(dir.c_str(), O_RDONLY | O_DIRECTORY);
+            if(dfd >= 0)
+            {
+                fsync(dfd);
+                close(dfd);
+            }
+            return OpenFile(m_strFile.c_str());
+        }
+    } else { //fatelse { //fat
 		uint32_t uAlign = 16384;
 		vector<fat_arch> arrArches;
 		fat_header fath = *((fat_header*)m_pBase);
@@ -241,7 +249,8 @@ bool ZMachO::ReallocCodeSignSpace()
 		}
 
 		ZFile::RemoveFile(m_strFile.c_str());
-		if (0 == rename(strNewFatMachOFile.c_str(), m_strFile.c_str())) {
+		if(0 == rename(strNewFatMachOFile.c_str(), m_strFile.c_str()))
+        {
 			return OpenFile(m_strFile.c_str());
 		}
 	}

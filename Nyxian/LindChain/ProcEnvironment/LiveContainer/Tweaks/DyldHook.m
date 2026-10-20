@@ -34,8 +34,8 @@ bool performHookDyldApi(const char* functionName,
                         void** origFunction,
                         void* hookFunction)
 {
-    
-    uint32_t* baseAddr = dlsym(RTLD_DEFAULT, functionName);
+    void *handle = dlopen("/usr/lib/system/libdyld.dylib", RTLD_NOW | RTLD_NOLOAD);
+    uint32_t *baseAddr = dlsym(handle, functionName);
     assert(baseAddr != 0);
     uint32_t* adrpInstPtr = baseAddr + adrpOffset;
 

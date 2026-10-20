@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <Foundation/Foundation.h>
@@ -33,8 +34,6 @@
 #import <ksurface_config.h>
 #include <ksurface_abi.h>
 #include <sys/stat.h>
-
-#if KSURFACE_SYS_PROC_ENABLED
 
 #pragma mark - posix_spawn helper
 
@@ -235,6 +234,27 @@ LIBKERN_PATCH(int, posix_spawn, (pid_t *process_identifier,
      */
     PEFileTable *fileTable = [PEFileTable currentTable];
     
+    NSMutableIndexSet *closeOnExec = [NSMutableIndexSet indexSet];
+    bool cloexecDefault = false;
+#ifdef POSIX_SPAWN_CLOEXEC_DEFAULT
+    cloexecDefault = (spawnFlags & POSIX_SPAWN_CLOEXEC_DEFAULT) != 0;
+#endif
+    for(NSNumber *key in fileTable.fd_map.allKeys)
+    {
+        int fd = key.intValue;
+        if(fd < 0)
+        {
+            continue;
+        }
+        
+        int fdFlags = fcntl(fd, F_GETFD);
+        if(cloexecDefault ||
+           (fdFlags >= 0 && (fdFlags & FD_CLOEXEC)))
+        {
+            [closeOnExec addIndex:(NSUInteger)fd];
+        }
+    }
+    
     /*
      * nullified cwd buffer, because of the case where a posix
      * file actions sets the buffer via PSFA_CHDIR, if not we
@@ -262,18 +282,46 @@ LIBKERN_PATCH(int, posix_spawn, (pid_t *process_identifier,
         {
             case PSFA_OPEN:
                 [fileTable openWithFileDescriptor:action->psfaa_filedes withPath:action->psfaa_openargs.psfao_path withFlags:action->psfaa_openargs.psfao_oflag withMode:action->psfaa_openargs.psfao_mode];
+                if(action->psfaa_filedes >= 0)
+                {
+                    if(action->psfaa_openargs.psfao_oflag & O_CLOEXEC)
+                    {
+                        [closeOnExec addIndex:(NSUInteger)action->psfaa_filedes];
+                    }
+                    else
+                    {
+                        [closeOnExec removeIndex:(NSUInteger)action->psfaa_filedes];
+                    }
+                }
                 break;
             case PSFA_CLOSE:
                 [fileTable closeWithFileDescriptor:action->psfaa_filedes];
+                if(action->psfaa_filedes >= 0)
+                {
+                    [closeOnExec removeIndex:(NSUInteger)action->psfaa_filedes];
+                }
                 break;
             case PSFA_DUP2:
                 [fileTable dup2WithOldFileDescriptor:action->psfaa_filedes withNewFileDescriptor:action->psfaa_dup2args.psfad_newfiledes];
+                /* dup2 (also onto itself) clears close-on-exec of the target */
+                if(action->psfaa_dup2args.psfad_newfiledes >= 0)
+                {
+                    [closeOnExec removeIndex:(NSUInteger)action->psfaa_dup2args.psfad_newfiledes];
+                }
                 break;
             case PSFA_INHERIT:
                 [fileTable appendFileDescriptor:action->psfaa_filedes];
+                if(action->psfaa_filedes >= 0)
+                {
+                    [closeOnExec removeIndex:(NSUInteger)action->psfaa_filedes];
+                }
                 break;
             case PSFA_FILEPORT_DUP2:
                 [fileTable appendFilePort:action->psfaa_fileport withMappingToLoc:action->psfaa_dup2args.psfad_newfiledes];
+                if(action->psfaa_dup2args.psfad_newfiledes >= 0)
+                {
+                    [closeOnExec removeIndex:(NSUInteger)action->psfaa_dup2args.psfad_newfiledes];
+                }
                 break;
             case PSFA_CHDIR:
                 /* not available on iOS but shrug, add it anyways */
@@ -295,6 +343,10 @@ LIBKERN_PATCH(int, posix_spawn, (pid_t *process_identifier,
     }
     
 skip_fileactions:
+    
+    [closeOnExec enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        [fileTable closeWithFileDescriptor:(int)idx];
+    }];
     
     if(cwd[0] == '\0')
     {
@@ -468,5 +520,3 @@ void environment_posix_spawn_init(void)
     LIBKERN_INSTALL_PATCH(posix_spawn);
     LIBKERN_INSTALL_PATCH(posix_spawnp);
 }
-
-#endif /* KSURFACE_SYS_PROC_ENABLED */

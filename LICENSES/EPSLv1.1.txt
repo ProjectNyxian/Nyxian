@@ -1,0 +1,219 @@
+emexLabs Public Source License
+Version 1.1 (EPSL 1.1)
+20 October 2026
+
+1. Scope and definitions
+
+This license applies only to material that a person entitled to license it
+expressly identifies as licensed under EPSL 1.1. Merely placing this license
+in a repository does not change the license of any material in that repository.
+
+"Covered Material" means that identified material, changes to it, and material
+that incorporates any portion of it protected by copyright. An independent
+file does not become Covered Material merely because it is used, linked, or
+distributed with Covered Material.
+
+"Contributor" means a copyright holder who releases Covered Material under
+this license. "Contribution" means the material that Contributor releases.
+"You" means the individual or legal entity exercising the permissions below.
+For an entity, internal use includes use by its employees and contractors
+acting solely on its behalf, subject to confidentiality and without independent
+rights to distribute the material.
+
+"Source" means the preferred form for changing Covered Material, including
+associated interface definitions and scripts needed to build and install it.
+Source excludes general-purpose tools and standard system components that are
+not part of Covered Material.
+
+"External Deployment" means either providing a copy of Covered Material to
+another person or entity, or using it to provide functionality or a service
+over a network to a person or entity outside Your internal use. A deployment
+may be commercial or noncommercial, public or restricted to selected users.
+
+2. Copyright permission
+
+Each Contributor gives You a worldwide, nonexclusive, royalty-free copyright
+license to use, copy, change, display, and perform that Contributor's
+Contribution, in Source or compiled form, subject to this license. Copying
+for private or internal use is permitted. Redistribution is permitted only
+with the prior written permission described below. You may charge for network
+access, services, or support subject to Section 4; charging for copies also
+requires redistribution permission. No royalty is imposed by this license
+itself; a separate permission may specify fees or other conditions.
+
+Private changes and internal use do not require disclosure of Source.
+
+Redistribution means providing copies of Covered Material, whether changed
+or unchanged, in Source or compiled form, to a person or entity outside Your
+internal use. It includes sales, gifts, public repositories, mirrors, forks
+made available to others, and distribution as part of another product.
+Redistribution requires prior written permission from emexLabs identifying
+the material and the scope of permitted redistribution. This requirement
+applies equally to commercial and noncommercial redistribution. Permission
+for one distributor, release, or purpose does not authorize another unless
+the written permission expressly says so. Receiving a copy or its Source
+does not itself give You permission to redistribute it.
+
+For material You own or are separately authorized to distribute, this license
+does not limit Your independent rights. Permission from emexLabs does not
+replace permission required from other rights holders, expand a Contributor's
+grant, or authorize violation of third-party licenses. No redistribution
+permission arises by implication from another provision of this license.
+
+3. Patent permission
+
+Each Contributor gives You a worldwide, nonexclusive, royalty-free license
+under patent claims that the Contributor can license and that would necessarily
+be infringed by its Contribution, alone or combined with the Covered Material
+to which it was contributed. This permission covers making, having made,
+using, offering, selling, importing, and otherwise transferring that material.
+It does not cover infringement arising solely from Your later changes or from
+combinations other than the combination to which the Contribution was made.
+No other patent permission is granted by this license. Patent permission does
+not independently authorize redistribution prohibited by Section 2.
+
+If You bring a patent claim, including a counterclaim or cross-claim, alleging
+that Covered Material infringes Your patent, the patent permissions You receive
+under this license for that Covered Material end when You file that claim.
+This does not terminate Your copyright permissions.
+
+4. Conditions of External Deployment
+
+Before any deployment involving redistribution, obtain the written permission
+required by Section 2. The duties below do not themselves authorize copying
+to others. A network service without redistribution remains permitted, but
+You must obtain permission covering the Source delivery required below before
+offering that service. If You cannot lawfully provide the required Source,
+You may not make that External Deployment.
+
+Whenever You Externally Deploy Covered Material, You must:
+
+(a) Preserve existing copyright notices, license notices, attribution notices,
+    and warranty disclaimers relating to that material. Notices may be moved
+    to an accompanying notices file when the output format cannot retain them.
+
+(b) Supply this license with distributed copies. For a network service, make
+    it available through a reasonably visible license or legal-information
+    link accessible to the service's users.
+
+(c) Identify changed files and describe Your changes and their dates, either
+    in those files or in an accompanying change record identifying the files.
+
+(d) Make the complete Source of the version of Covered Material You deploy,
+    including Your changes, available under EPSL 1.1 to every recipient or
+    service user. You may instead make that Source publicly available.
+    Provide a clear notice with the copy or service explaining where and how
+    to obtain it. Electronic access must be free of charge and must not require
+    a separate purchase, confidentiality agreement, or surrender of rights
+    granted by this license. A service account already required to use the
+    service may also be required to access its Source.
+
+(e) Maintain that Source access throughout the deployment and for at least
+    twelve months after the last distribution or the end of service access
+    for that version, whichever is later. An upstream download location may
+    satisfy this obligation only while it supplies the exact required Source
+    and meets these conditions; You remain responsible for availability.
+
+(f) Impose no contractual or technical restrictions that prevent recipients
+    from exercising this license's permissions in the Source You provide.
+    The redistribution permission requirement in Section 2 continues to apply
+    to recipients; Source access does not remove that requirement.
+
+By Externally Deploying Your changes under this license, You grant all
+recipients the copyright and patent permissions in Sections 2 and 3 for those
+changes, to the extent You have authority to grant them. The grants remain
+subject to the redistribution permission requirement in Section 2; they do
+not authorize recipients to redistribute without their own permission unless
+the applicable written permission expressly covers them. These grants continue
+for the duration of the relevant rights, subject to Sections 3 and 8.
+Every recipient receives permissions directly from the relevant Contributors.
+
+5. Combined works and third-party material
+
+You may combine Covered Material with independently licensed material.
+Redistribution of the combination requires the permission in Section 2 for
+its Covered Material; You may choose terms for the independent parts only
+to the extent their licenses allow.
+The Covered Material and its Source remain subject to this license. You need
+not disclose independent parts solely because they are combined, linked, or
+communicate with Covered Material.
+
+This license grants no rights in third-party material released under other
+terms. Preserve and comply with those terms. You may not replace another
+copyright holder's license without authority. If obligations for a proposed
+combination cannot be satisfied together, this license does not authorize
+distribution of that combination in violation of either set of obligations.
+
+6. Names, ownership, and additional services
+
+Contributors retain ownership of their Contributions. No ownership transfer
+or exclusive right is created by this license.
+
+No trademark permission is granted, except to reproduce required notices or
+to make truthful, lawful statements of origin. You must not claim that
+emexLabs or another Contributor endorses Your version without permission.
+
+You may offer paid support, warranties, or other services in Your own name
+and at Your own responsibility. Such promises do not bind other Contributors
+or reduce recipients' permissions under this license.
+
+7. Warranty and liability
+
+TO THE EXTENT ALLOWED BY APPLICABLE LAW, COVERED MATERIAL IS SUPPLIED "AS IS",
+WITHOUT ANY WARRANTY, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+A PARTICULAR PURPOSE, TITLE, OR NON-INFRINGEMENT. CONTRIBUTORS DO NOT PROMISE
+SUPPORT, UPDATES, SECURITY, ACCURACY, OR UNINTERRUPTED OPERATION.
+
+TO THE EXTENT ALLOWED BY APPLICABLE LAW, NO CONTRIBUTOR IS LIABLE FOR DAMAGES
+ARISING FROM THIS LICENSE OR THE USE OR INABILITY TO USE COVERED MATERIAL,
+INCLUDING DIRECT, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL LOSS, LOST PROFITS,
+OR LOST DATA, UNDER ANY LEGAL THEORY. THESE EXCLUSIONS DO NOT OVERRIDE LIABILITY
+THAT THE LAW DOES NOT ALLOW TO BE EXCLUDED OR A SEPARATE WRITTEN COMMITMENT
+MADE BY THAT CONTRIBUTOR.
+
+8. Breach and termination
+
+If You breach a condition of this license, Your permissions under it terminate
+unless You fully remedy the breach within thirty days after You first become
+aware of it. Permissions terminated for a breach are automatically reinstated
+when You fully remedy it, unless the relevant Contributor has expressly and
+finally terminated Your permissions by written notice after that thirty-day
+period. Section 3 separately governs termination of patent permissions.
+
+Termination of Your permissions does not terminate compliant recipients'
+permissions or withdraw grants You already made. Source-availability duties
+arising from prior deployments, preserved notices, warranty disclaimers, and
+liability limitations survive termination. Termination gives You no permission
+to continue a deployment that otherwise requires terminated rights.
+
+9. Versions and interpretation
+
+emexLabs is the steward of EPSL and may publish later numbered versions.
+EPSL 1.1 grants no automatic permission to use a later version. Such permission
+exists only where the relevant copyright holders expressly authorize it,
+for example by stating "EPSL 1.1 or any later version" in their license notice.
+Publishing a new version does not revoke permissions already granted.
+Revising this document likewise does not withdraw rights already granted
+under an earlier text, including a text previously bearing the same version
+number. The text supplied with a grant determines that grant's terms.
+
+If a provision cannot be enforced, the remaining provisions continue to apply
+to the extent permitted by law. This license creates no agency, partnership,
+or obligation to develop or release further material. It does not restrict
+rights You have independently under applicable law.
+
+10. Reuse of the license document
+
+Everyone may copy and distribute this license document unchanged, including
+to license their own material. You may adapt the document to create a different
+license if You give it a different name, remove claims of emexLabs stewardship,
+and clearly identify it as a separate license. Changing the document does not
+change the terms of material previously licensed under EPSL.
+
+Suggested notice for material You are entitled to license:
+
+    Copyright (c) [year] [copyright holder]
+    Licensed under the emexLabs Public Source License, version 1.1
+    (EPSL 1.1). See LICENSE for the full terms.
+
+End of EPSL 1.1.

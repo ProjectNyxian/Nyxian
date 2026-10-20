@@ -412,21 +412,20 @@ void _litehook_rebind_symbol_in_section(const mach_header_u *targetHeader, secti
     strlcpy(segname, section->segname, sizeof(segname));
     char sectname[sizeof(section->sectname)+1];
     strlcpy(sectname, section->sectname, sizeof(sectname));
-
+    
     unsigned long sectionSize = 0;
     uint8_t *sectionStart = getsectiondata(targetHeader, segname, sectname, &sectionSize);
-
+    
     bool auth = !strcmp(sectname, "__auth_got");
-
+    if (!sectionStart || sectionSize < sizeof(void *)) return;
     void **symbolPointers = (void **)sectionStart;
-    replacee = ptrauth_strip(ptrauth_auth_function(replacee, ptrauth_key_function_pointer, 0), ptrauth_key_function_pointer);
+    replacee = ptrauth_strip(replacee, ptrauth_key_function_pointer);
 
     for (uint32_t i = 0; i < (sectionSize / sizeof(void *)); i++) {
         void *symbolPointer = symbolPointers[i];
         if (!symbolPointer) continue;
-
-        if (auth) symbolPointer = ptrauth_strip(ptrauth_auth_function(symbolPointers[i], ptrauth_key_function_pointer, &symbolPointers[i]), ptrauth_key_function_pointer);
-
+        symbolPointer = ptrauth_strip(symbolPointer, ptrauth_key_function_pointer);
+        
         if (symbolPointer == replacee) {
 #if __arm64__
             bool needsTPRORevert = false;
@@ -437,7 +436,15 @@ void _litehook_rebind_symbol_in_section(const mach_header_u *targetHeader, secti
                 }
             }
 #endif
-            litehook_unprotect((vm_address_t)&symbolPointers[i], sizeof(void *));
+            kern_return_t kr = litehook_unprotect((vm_address_t)&symbolPointers[i], sizeof(void *));
+            if (kr != KERN_SUCCESS) {
+                fprintf(stderr, "[litehook] cannot write binding %p: kern_return=%d\n",
+                        (void *)&symbolPointers[i], kr);
+#if __arm64__
+                if (needsTPRORevert) os_thread_self_restrict_tpro_to_ro();
+#endif
+                continue;
+            }
             if (auth) {
                 symbolPointers[i] = ptrauth_auth_and_resign(replacement, ptrauth_key_function_pointer, 0, ptrauth_key_process_independent_code, &symbolPointers[i]);
             }
@@ -519,12 +526,15 @@ void litehook_rebind_symbol(const mach_header_u *targetHeader, void *replacee, v
             if (lcp->cmd == LC_SEGMENT_U) {
                 segment_command_u *segCmd = (segment_command_u *)lcp;
                 if (!strncmp(segCmd->segname, "__AUTH_CONST", sizeof(segCmd->segname)) ||
+                    !strncmp(segCmd->segname, "__AUTH", sizeof(segCmd->segname)) ||
                     !strncmp(segCmd->segname, "__DATA_CONST", sizeof(segCmd->segname)) ||
+                    !strncmp(segCmd->segname, "__DATA_DIRTY", sizeof(segCmd->segname)) ||
                     !strncmp(segCmd->segname, "__DATA", sizeof(segCmd->segname))) {
                     section_u *sections = (void *)((uintptr_t)lcp + sizeof(segment_command_u));
                     for (int j = 0; j < segCmd->nsects; j++) {
                         if ((sections[j].flags & SECTION_TYPE) == S_LAZY_SYMBOL_POINTERS ||
-                            (sections[j].flags & SECTION_TYPE) == S_NON_LAZY_SYMBOL_POINTERS) {
+                            (sections[j].flags & SECTION_TYPE) == S_NON_LAZY_SYMBOL_POINTERS ||
+                            (sections[j].flags & SECTION_TYPE) == S_THREAD_LOCAL_VARIABLE_POINTERS) {
                             _litehook_rebind_symbol_in_section(targetHeader, &sections[j], replacee, replacement);
                         }
                     }

@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #ifndef LIVESHIM_SHIM_H
@@ -39,6 +40,7 @@
 #include <sys/sysctl.h>
 #include <LiveShim/LiveShimSyscall.h>
 #include <LiveShim/fileport.h>
+#include <ksurface_abi.h>
 
 #define INTERPOSE(_replacement, _replacee)                          \
     __attribute__((used))                                           \
@@ -55,27 +57,5 @@ struct interpose_pair {
     const void *replacement;
     const void *replacee;
 };
-
-#if __has_include(<ksurface_abi.h>)
-#include <ksurface_abi.h>
-#else
-#include <sys/syscall.h>
-#endif /* __has_include(<ksurface_abi.h>) */
-
-
-#if __has_include(<ksurface_config.h>)
-#include <ksurface_config.h>
-#define LIVESHIM_IOCTL_ENABLED  KSURFACE_SYS_IOCTL_ENABLED
-#define LIVESHIM_SYSCTL_ENABLED KSURFACE_SYS_SYSCTL_ENABLED
-#define LIVESHIM_TASK_ENABLED   KSURFACE_SYS_TASK_ENABLED
-#define LIVESHIM_UCRED_ENABLED  KSURFACE_SYS_UCRED_ENABLED
-#define LIVESHIM_PROC_ENABLED   KSURFACE_SYS_PROC_ENABLED
-#else
-#define LIVESHIM_IOCTL_ENABLED  1
-#define LIVESHIM_SYSCTL_ENABLED 1
-#define LIVESHIM_TASK_ENABLED   1
-#define LIVESHIM_UCRED_ENABLED  1
-#define LIVESHIM_PROC_ENABLED   1
-#endif /* __has_include(<ksurface_config.h>) */
 
 #endif /* LIVESHIM_SHIM_H */

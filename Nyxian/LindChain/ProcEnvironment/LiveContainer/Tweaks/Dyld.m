@@ -39,6 +39,7 @@
 #import <LiveShim/dyld.h>
 #import <ksurface_config.h>
 #import <ksurface_abi.h>
+#import <Broadpatch/Broadpatch.h>
 
 static const char *gHostImageNeedles[] = {
     "/Nyxian.app/PlugIns/LiveProcess.appex/LiveProcess",
@@ -181,8 +182,9 @@ static inline bool isHiddenReal(uint32_t r)
     return isHostImagePath(ORIG_FUNC(_dyld_get_image_name)(r));
 }
 
-DEFINE_HOOK(dlopen, void *, (const char * __path,
-                             int __mode))
+LIBKERN_PATCH(void *, dlopen_hook, (void* dyldApiInstancePtr,
+                                    const char *__path,
+                                    int __mode),
 {
     /* check CS */
     LCMachO *machO = LCMapMachO(__path, true);
@@ -207,8 +209,8 @@ DEFINE_HOOK(dlopen, void *, (const char * __path,
     
 just_try:
     /* continue with opening */
-    return ORIG_FUNC(dlopen)(__path, __mode);
-}
+    return LIBKERN_ORIG(dlopen_hook)(dyldApiInstancePtr, __path, __mode);
+});
 
 bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr,
                                     dyld_build_version_t version)
@@ -352,7 +354,7 @@ bool initGuestSDKVersionInfo(void)
     return true;
 }
 
-void DyldHooksInit(void)
+LIBKERN_DEFINE_PATCHABLE(void, DyldHooksInit, (void))
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -372,7 +374,7 @@ void DyldHooksInit(void)
         DO_HOOK_GLOBAL(_dyld_get_image_header);
         DO_HOOK_GLOBAL(_dyld_get_image_vmaddr_slide);
         DO_HOOK_GLOBAL(_dyld_get_image_name);
-        DO_HOOK_GLOBAL(dlopen);
+        LIBKERN_INSTALL_PATCH(dlopen_hook);
         
         guestAppSdkVersion = getDyldImageBuildVersion((void*)ORIG_FUNC(_dyld_get_image_header)(appMainImageIndex)).version;
         if(!initGuestSDKVersionInfo() ||
@@ -383,59 +385,4 @@ void DyldHooksInit(void)
         }
         return;
     });
-}
-
-#pragma mark - Fix black screen
-
-void dyld_verifier_failed_callback(int fd,
-                                   bool *deny_open)
-{
-    /* rolling back */
-    if(liveshim_syscall(SYS_pectl, kPECTLCategoryCodeSigning, kPECTLCodeSigningDropAllEntitlements, NULL, NULL, MACH_PORT_NULL) != 0 ||
-       liveshim_syscall(SYS_setgid, 501) != 0 ||
-       liveshim_syscall(SYS_setuid, 501) != 0)
-    {
-        /* didn't succeed in rolling back primitives, trying to make dlopen fail */
-        *deny_open = true;
-    }
-}
-
-static void *lockPtrToIgnore;
-void hook_libdyld_os_unfair_recursive_lock_lock_with_options(void *ptr, void* lock, uint32_t options)
-{
-    if(!lockPtrToIgnore)
-        lockPtrToIgnore = lock;
-    if(lock != lockPtrToIgnore)
-        os_unfair_recursive_lock_lock_with_options(lock, options);
-}
-void hook_libdyld_os_unfair_recursive_lock_unlock(void *ptr, void* lock)
-{
-    if(lock != lockPtrToIgnore)
-        os_unfair_recursive_lock_unlock(lock);
-}
-
-void *dlopenBypassingLockWithTrust(const char *path,
-                                   int mode,
-                                   const char *expectedCdhash)
-{
-    if(!ksurface_user_patchcache_load())
-    {
-        return NULL;
-    }
-    
-    void **lockUnlockPtr = (void**)patchcache[kDyldLockUnlockFunc];
-    kern_return_t ret;
-    ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(void*[2]), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
-    assert(ret == KERN_SUCCESS);
-    void *origLockPtr = lockUnlockPtr[0], *origUnlockPtr = lockUnlockPtr[1];
-    lockUnlockPtr[0] = hook_libdyld_os_unfair_recursive_lock_lock_with_options;
-    lockUnlockPtr[1] = hook_libdyld_os_unfair_recursive_lock_unlock;
-    void *result = expectedCdhash == NULL ? dlopen(path, mode) : dlopen_cdhash_verified(path, mode, expectedCdhash, dyld_verifier_failed_callback);
-    ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(void*[2]), false, PROT_READ | PROT_WRITE);
-    assert(ret == KERN_SUCCESS);
-    lockUnlockPtr[0] = origLockPtr;
-    lockUnlockPtr[1] = origUnlockPtr;
-    ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(void*[2]), false, PROT_READ);
-    assert(ret == KERN_SUCCESS);
-    return result;
 }

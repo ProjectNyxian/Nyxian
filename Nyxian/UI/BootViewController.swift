@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 import UIKit
@@ -96,6 +97,7 @@ final class ROMManifest {
     let name: String
     let version: String
     let minimumNyxianVersion: String
+    let maximumNyxianVersion: String?
     
     // file permissions
     let defaultFilePermission: Int
@@ -112,10 +114,22 @@ final class ROMManifest {
     
     // helpers
     var isNyxianMinimumVersionMet: Bool {
-        get {
-            // TODO: make this actually work
-            return true
+        compareVersions(currentNyxianVersion(), minimumNyxianVersion) != .orderedAscending
+    }
+    
+    var isNyxianVersionSupported: Bool {
+        guard isNyxianMinimumVersionMet else { return false }
+        if let maximumNyxianVersion {
+            return compareVersions(currentNyxianVersion(), maximumNyxianVersion) == .orderedAscending
         }
+        return true
+    }
+    
+    var nyxianRequirement: String {
+        if let maximumNyxianVersion {
+            return "Nyxian \(minimumNyxianVersion) up to (not including) \(maximumNyxianVersion)"
+        }
+        return "Nyxian \(minimumNyxianVersion) or newer"
     }
     
     init(manifestPlistURL: URL) throws {
@@ -142,6 +156,7 @@ final class ROMManifest {
         self.name = name
         self.version = version
         self.minimumNyxianVersion = minimumNyxianVersion
+        self.maximumNyxianVersion = manifestContent["NXRomMaximumNyxianVersion"] as? String
         
         // file permissions
         self.defaultFilePermission = manifestContent["NXRomDefaultFilePermission"] as? Int ?? 420
@@ -199,12 +214,14 @@ enum BootFlag: String, CaseIterable {
     case kextLoading = "nyxian.boot.kextLoading"
     case logObfucation = "nyxian.boot.log.obfuscated"
     case sandboxFilesystem = "nyxian.boot.sandbox.filesystems"
+    case verboseBoot = "nyxian.boot.verbose"
     
     var title: String {
         switch self {
             case .kextLoading: return "Load kexts at boot"
             case .logObfucation: return "Obfuscate Log"
             case .sandboxFilesystem: return "Filesystem Sandbox"
+            case .verboseBoot: return "Verbose Boot"
         }
     }
     
@@ -213,6 +230,7 @@ enum BootFlag: String, CaseIterable {
             case .kextLoading: return true
             case .logObfucation: return true
             case .sandboxFilesystem: return true
+            case .verboseBoot: return false
         }
     }
 }
@@ -292,6 +310,221 @@ private let nxRomLogFD: Int32 = 27
 private let romQueue = DispatchQueue(label: "org.emexlabs.nyxian.bootloader.rom", qos: .userInitiated)
 private var romOperationInProgress = false
 
+private func drainLines(from readFD: Int32, onLine: @escaping (String) -> Void) -> DispatchGroup {
+    let drained = DispatchGroup()
+    drained.enter()
+    DispatchQueue.global(qos: .userInitiated).async {
+        var buf = [UInt8](repeating: 0, count: 4096)
+        var pending: [UInt8] = []
+        while true {
+            let n = read(readFD, &buf, buf.count)
+            if n > 0 {
+                pending.append(contentsOf: buf[0..<n])
+                var start = pending.startIndex
+                while let nl = pending[start...].firstIndex(of: 0x0A) {
+                    emitRomLine(pending[start..<nl], onLine)
+                    start = nl + 1
+                }
+                pending.removeFirst(start)
+                continue
+            }
+            if n < 0 && errno == EINTR {
+                continue
+            }
+            break
+        }
+        emitRomLine(pending[...], onLine)
+        close(readFD)
+        drained.leave()
+    }
+    return drained
+}
+
+private final class BootLogCapture {
+    private var savedFD: Int32 = -1
+    private var drained: DispatchGroup?
+    private(set) var active = false
+    
+    func start(onLine: @escaping (String) -> Void) -> Bool {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard !active else { return true }
+        
+        var fds: [Int32] = [0, 0]
+        guard pipe(&fds) == 0 else { return false }
+        
+        savedFD = dup(nxRomLogFD) // -1 if nothing was on 27, that's fine
+        guard dup2(fds[1], nxRomLogFD) >= 0 else {
+            close(fds[0])
+            close(fds[1])
+            if savedFD >= 0 { close(savedFD); savedFD = -1 }
+            return false
+        }
+        close(fds[1])
+        
+        drained = drainLines(from: fds[0], onLine: onLine)
+        active = true
+        return true
+    }
+    
+    func stop() {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard active else { return }
+        active = false
+        
+        if savedFD >= 0 {
+            dup2(savedFD, nxRomLogFD) // atomically drops our write end
+            close(savedFD)
+            savedFD = -1
+        } else {
+            close(nxRomLogFD)
+        }
+        
+        // if the slot dup'd fd 27 somewhere we never see EOF, so don't block boot on it
+        _ = drained?.wait(timeout: .now() + .milliseconds(100))
+        drained = nil
+    }
+}
+
+private final class VerboseBootConsole {
+    let layer = CATextLayer()
+    
+    private let lock = NSLock()
+    private var lines: [(text: String, isError: Bool)] = []
+    private var maxLines = 1
+    private var columns = Int.max
+    
+    private let font = UIFont.monospacedSystemFont(ofSize: 8, weight: .regular)
+    private let normalColor: CGColor
+    private let errorColor: CGColor
+    
+    private static let historyLimit = 512
+    
+    init(in host: UIView) {
+        dispatchPrecondition(condition: .onQueue(.main))
+        
+        normalColor = UIColor.label.resolvedColor(with: host.traitCollection).cgColor
+        errorColor = UIColor.systemRed.resolvedColor(with: host.traitCollection).cgColor
+        
+        layer.isWrapped = false
+        layer.truncationMode = .end
+        layer.alignmentMode = .left
+        layer.contentsScale = host.traitCollection.displayScale > 0 ? host.traitCollection.displayScale : 3
+        
+        host.layer.addSublayer(layer)
+        layout(in: host)
+    }
+    
+    func layout(in host: UIView) {
+        dispatchPrecondition(condition: .onQueue(.main))
+        
+        let insets = host.safeAreaInsets
+        let frame = host.bounds.inset(by: UIEdgeInsets(top: insets.top + 8,
+                                                       left: insets.left + 8,
+                                                       bottom: insets.bottom + 8,
+                                                       right: insets.right + 8))
+        
+        let scale = host.window?.screen.scale ?? host.traitCollection.displayScale
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.frame = frame
+        if scale > 0 { layer.contentsScale = scale }
+        CATransaction.commit()
+        
+        // monospaced font, so one cell width gives the column count
+        let cellWidth = ("M" as NSString).size(withAttributes: [.font: font]).width
+        
+        lock.lock()
+        maxLines = max(1, Int(frame.height / font.lineHeight))
+        columns = cellWidth > 0 ? max(1, Int(frame.width / cellWidth)) : Int.max
+        lock.unlock()
+        
+        redraw()
+    }
+    
+    /// any thread
+    func append(_ line: String, isError: Bool) {
+        lock.lock()
+        lines.append((line, isError))
+        if lines.count > Self.historyLimit {
+            lines.removeFirst(lines.count - Self.historyLimit)
+        }
+        lock.unlock()
+        DispatchQueue.main.async { [weak self] in
+            self?.redraw()
+        }
+    }
+    
+    /// any thread
+    func snapshot() -> [(text: String, isError: Bool)] {
+        lock.lock()
+        defer { lock.unlock() }
+        return lines
+    }
+    
+    /// hard wrap at the column limit, same as the recovery glyph view does
+    private static func wrap(_ text: String, columns: Int) -> [String] {
+        let text = text.replacingOccurrences(of: "\t", with: "    ")
+        guard columns > 0, columns != Int.max, text.count > columns else { return [text] }
+        
+        var rows: [String] = []
+        var rest = text[...]
+        while rest.count > columns {
+            let cut = rest.index(rest.startIndex, offsetBy: columns)
+            rows.append(String(rest[..<cut]))
+            rest = rest[cut...]
+        }
+        rows.append(String(rest))
+        return rows
+    }
+    
+    private func redraw() {
+        lock.lock()
+        let capacity = maxLines
+        let cols = columns
+        let all = lines
+        lock.unlock()
+        
+        var visible: [(text: String, isError: Bool)] = []
+        outer: for entry in all.reversed() {
+            for row in Self.wrap(entry.text, columns: cols).reversed() {
+                visible.append((row, entry.isError))
+                if visible.count >= capacity { break outer }
+            }
+        }
+        visible.reverse()
+        
+        let text = NSMutableAttributedString()
+        let fontKey = NSAttributedString.Key(kCTFontAttributeName as String)
+        let colorKey = NSAttributedString.Key(kCTForegroundColorAttributeName as String)
+        
+        for (i, entry) in visible.enumerated() {
+            let s = (i == 0 ? "" : "\n") + entry.text
+            text.append(NSAttributedString(string: s, attributes: [
+                fontKey: font as CTFont,
+                colorKey: entry.isError ? errorColor : normalColor,
+            ]))
+        }
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.string = text
+        CATransaction.commit()
+        
+        if !Thread.isMainThread {
+            CATransaction.flush()
+        }
+    }
+}
+
+private let bootLogMax = 64
+
+private let verboseBootHold: TimeInterval = 1.5
+
+private func bootLog(_ message: String) {
+    (message + "\n").withCString { _ = write(nxRomLogFD, $0, strlen($0)) }
+}
+
 private struct RomLog {
     let controller: NXRecoveryViewController
     
@@ -337,15 +570,6 @@ private func runRomGeneric(_ relative: String, symbol: String, slot: URL, onLine
     
     let url = try slotFile(relative, in: slot)
     
-    guard let handle = dlopen(url.path, RTLD_NOW | RTLD_LOCAL) else {
-        throw romError("couldnt load \(relative): \(lastDlError())")
-    }
-    defer { dlclose(handle) }
-    
-    guard let sym = dlsym(handle, symbol) else {
-        throw romError("\(relative) has no \(symbol) entry point")
-    }
-    
     var fds: [Int32] = [0, 0]
     guard pipe(&fds) == 0 else {
         throw romError("pipe failed: \(String(cString: strerror(errno)))")
@@ -363,43 +587,36 @@ private func runRomGeneric(_ relative: String, symbol: String, slot: URL, onLine
     }
     close(writeFD)
     
-    // don't touch this, it works
-    let drained = DispatchGroup()
-    drained.enter()
-    DispatchQueue.global(qos: .userInitiated).async {
-        var buf = [UInt8](repeating: 0, count: 4096)
-        var pending: [UInt8] = []
-        while true {
-            let n = read(readFD, &buf, buf.count)
-            if n > 0 {
-                pending.append(contentsOf: buf[0..<n])
-                var start = pending.startIndex
-                while let nl = pending[start...].firstIndex(of: 0x0A) {
-                    emitRomLine(pending[start..<nl], onLine)
-                    start = nl + 1
-                }
-                pending.removeFirst(start)
-                continue
-            }
-            if n < 0 && errno == EINTR {
-                continue
-            }
-            break
+    let drained = drainLines(from: readFD, onLine: onLine)
+    
+    func restoreLogFD() {
+        close(nxRomLogFD)
+        if oldFD >= 0 {
+            dup2(oldFD, nxRomLogFD)
+            close(oldFD)
         }
-        emitRomLine(pending[...], onLine)
-        close(readFD)
-        drained.leave()
+        drained.wait()
     }
+    
+    guard let handle = dlopen(url.path, RTLD_NOW | RTLD_LOCAL) else {
+        let reason = lastDlError()
+        restoreLogFD()
+        throw romError("couldnt load \(relative): \(reason)")
+    }
+    defer { dlclose(handle) }
+    
+    guard let sym = dlsym(handle, symbol) else {
+        restoreLogFD()
+        throw romError("\(relative) has no \(symbol) entry point")
+    }
+    
     let generic = unsafeBitCast(sym, to: NXRomGenericFn.self)
     let rc = slot.path.withCString {
         generic($0)
     }
-    close(nxRomLogFD)
-    if oldFD >= 0 {
-        dup2(oldFD, nxRomLogFD)
-        close(oldFD)
-    }
-    drained.wait()
+    
+    restoreLogFD()
+    
     guard rc == 0 else {
         throw romError("\(symbol) returned \(rc)")
     }
@@ -444,8 +661,75 @@ private func refreshVnode(atPath path: String) -> Bool {
     return fcopyfile(fd, copyfd, nil, copyfile_flags_t(COPYFILE_DATA)) == 0
 }
 
+func currentNyxianVersion() -> String {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+}
+
+func compareVersions(_ a: String, _ b: String) -> ComparisonResult {
+    func parts(_ version: String) -> [Int] {
+        version.split(separator: ".").map { Int($0.prefix(while: { $0.isNumber })) ?? 0 }
+    }
+    let left = parts(a)
+    let right = parts(b)
+    for index in 0..<max(left.count, right.count) {
+        let l = index < left.count ? left[index] : 0
+        let r = index < right.count ? right[index] : 0
+        if l != r {
+            return l < r ? .orderedAscending : .orderedDescending
+        }
+    }
+    return .orderedSame
+}
+
+// MARK: - Slots
+
+private let activeSlotKey = "org.emexlabs.nyxian.bootloader.active-slot"
+private let slotNames = ["A", "B"]
+
+private func slotURL(_ name: String) -> URL {
+    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Boot/Slot/\(name)")
+}
+
+private func slotManifest(_ name: String) -> ROMManifest? {
+    try? ROMManifest(manifestPlistURL: slotURL(name).appendingPathComponent("manifest.plist"))
+}
+
+private func slotIsFlashed(_ name: String) -> Bool {
+    FileManager.default.fileExists(atPath: slotURL(name).appendingPathComponent("manifest.plist").path)
+}
+
+private func otherSlotName(_ name: String) -> String {
+    name == "A" ? "B" : "A"
+}
+
+private func activeSlotName() -> String {
+    let stored = UserDefaults.standard.string(forKey: activeSlotKey) ?? "A"
+    let name = slotNames.contains(stored) ? stored : "A"
+    if !slotIsFlashed(name) && slotIsFlashed(otherSlotName(name)) {
+        return otherSlotName(name)
+    }
+    return name
+}
+
+private func setActiveSlot(_ name: String) {
+    UserDefaults.standard.set(name, forKey: activeSlotKey)
+    CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+}
+
+private func flashTargetSlotName() -> String {
+    let active = activeSlotName()
+    return slotIsFlashed(active) ? otherSlotName(active) : active
+}
+
+private func slotSummary(_ name: String) -> String {
+    if let manifest = slotManifest(name) {
+        return "Slot \(name): \(manifest.name) \(manifest.version)"
+    }
+    return slotIsFlashed(name) ? "Slot \(name): unreadable manifest" : "Slot \(name): empty"
+}
+
 private func flashedSlotURL() -> URL {
-    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Boot/Slot/A")
+    slotURL(activeSlotName())
 }
 
 private func lastDlError() -> String {
@@ -829,9 +1113,16 @@ func recoveryConfirmWipe(recoveryController c: NXRecoveryViewController) {
 }
 
 private func removeFlashedSlot(_ log: RomLog) {
+    let name = activeSlotName()
+    let other = otherSlotName(name)
     do {
-        try FileManager.default.removeItem(at: flashedSlotURL())
-        log.info("flashed ROM removed, next boot uses SuperSlot.dylib")
+        try FileManager.default.removeItem(at: slotURL(name))
+        if slotIsFlashed(other) {
+            setActiveSlot(other)
+            log.info("slot \(name) removed, next boot uses slot \(other)")
+        } else {
+            log.info("slot \(name) removed, next boot uses SuperSlot.dylib")
+        }
     } catch {
         log.error("ERROR: \(errnoDescription(error))")
     }
@@ -848,11 +1139,12 @@ func recoveryShowUnflash(recoveryController c: NXRecoveryViewController) {
     
     let manifest = try? ROMManifest(manifestPlistURL: slot.appendingPathComponent("manifest.plist"))
     
+    let name = activeSlotName()
     let header: String
     if let manifest {
-        header = "Unflash \(manifest.name) \(manifest.version)?\n\(manifest.identifier)"
+        header = "Unflash \(manifest.name) \(manifest.version) (slot \(name))?\n\(manifest.identifier)"
     } else {
-        header = "Unflash ROM?\nmanifest unreadable, only force removal possible"
+        header = "Unflash ROM (slot \(name))?\nmanifest unreadable, only force removal possible"
     }
     
     var items: [NXRecoveryItem] = [
@@ -898,11 +1190,11 @@ func recoveryShowUnflash(recoveryController c: NXRecoveryViewController) {
     )
 }
 
-private func flashROM(archive: URL, log: RomLog) throws -> ROMManifest {
+private func flashROM(archive: URL, slotName: String, log: RomLog) throws -> ROMManifest {
     let fm = FileManager.default
-    let slot = flashedSlotURL()
+    let slot = slotURL(slotName)
     
-    log.info("\n-- Flashing rom...")
+    log.info("\n-- Flashing rom into slot \(slotName)...")
     log.info("selected rom: \(archive.lastPathComponent)")
     
     try? fm.removeItem(at: slot)
@@ -998,9 +1290,19 @@ private func recoveryFlashROM(_ c: NXRecoveryViewController, archive: URL) {
     c.enterConsole()
     
     runRomOperation(c) { log in
+        let previous = activeSlotName()
+        let hadPrevious = slotIsFlashed(previous)
+        let target = flashTargetSlotName()
         do {
-            let manifest = try flashROM(archive: archive, log: log)
-            log.info("flashed \(manifest.name) \(manifest.version)")
+            let manifest = try flashROM(archive: archive, slotName: target, log: log)
+            setActiveSlot(target)
+            log.info("flashed \(manifest.name) \(manifest.version) into slot \(target), slot \(target) is active")
+            if hadPrevious {
+                log.info("the previous ROM stays in slot \(previous)")
+            }
+            if !manifest.isNyxianVersionSupported {
+                log.error("this ROM needs \(manifest.nyxianRequirement), this is Nyxian \(currentNyxianVersion())")
+            }
             DispatchQueue.main.async {
                 c.recoveryLog("\nFlash complete.\nPress both volume buttons to reboot when ready.")
                 c.finishConsole(selectAction: { _ in
@@ -1009,9 +1311,12 @@ private func recoveryFlashROM(_ c: NXRecoveryViewController, archive: URL) {
             }
         } catch {
             log.error("ERROR: \(error.localizedDescription)")
-            try? FileManager.default.removeItem(at: flashedSlotURL())
+            try? FileManager.default.removeItem(at: slotURL(target))
             DispatchQueue.main.async {
-                c.recoveryLogError("\nFlash failed.\nPress both volume buttons to return to the menu.")
+                c.recoveryLogError(hadPrevious
+                    ? "\nFlash failed, slot \(previous) untouched."
+                    : "\nFlash failed.")
+                c.recoveryLogError("Press both volume buttons to return to the menu.")
                 c.finishConsole(selectAction: { c in
                     guard let c = c else { return }
                     c.exitConsole()
@@ -1022,67 +1327,169 @@ private func recoveryFlashROM(_ c: NXRecoveryViewController, archive: URL) {
     }
 }
 
+// MARK: - OTA
+
+private let otaPathKey = "org.emexlabs.nyxian.bootloader.ota-path"
+
+private func takePendingOTA() -> String? {
+    let defaults = UserDefaults.standard
+    guard let path = defaults.string(forKey: otaPathKey) else { return nil }
+    defaults.removeObject(forKey: otaPathKey)
+    CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+    return path
+}
+
+private func stageOTA(_ path: String) throws -> URL {
+    let fm = FileManager.default
+    var isDir: ObjCBool = false
+    guard fm.fileExists(atPath: path, isDirectory: &isDir), !isDir.boolValue else {
+        throw romError("OTA archive missing: \(path)")
+    }
+    let staged = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent("ota-\(UUID().uuidString).zip")
+    try fm.copyItem(at: URL(fileURLWithPath: path), to: staged)
+    return staged
+}
+
+private func otaFailed(_ c: NXRecoveryViewController, slotIntact: Bool) {
+    c.recoveryLogError(slotIntact
+        ? "\nOTA failed, current ROM untouched."
+        : "\nOTA failed, no ROM flashed, next boot uses SuperSlot.dylib.")
+    c.recoveryLogError("Press both volume buttons to return to the menu.")
+    c.finishConsole(selectAction: { c in
+        guard let c = c else { return }
+        c.exitConsole()
+        recoveryShowMenu(recoveryController: c)
+    })
+}
+
+private func applyOTA(_ c: NXRecoveryViewController, path: String) {
+    c.enterConsole()
+    
+    runRomOperation(c) { log in
+        log.info("\n-- Applying OTA update...")
+        log.info("source: \(path)")
+        
+        // staging failure: slot untouched, current ROM still boots
+        let staged: URL
+        do {
+            staged = try stageOTA(path)
+        } catch {
+            log.error("ERROR: \(error.localizedDescription)")
+            DispatchQueue.main.async { otaFailed(c, slotIntact: true) }
+            return
+        }
+        defer { try? FileManager.default.removeItem(at: staged) }
+        
+        // into the other slot: the running ROM stays where it is, as the fallback
+        let previous = activeSlotName()
+        let hadPrevious = slotIsFlashed(previous)
+        let target = flashTargetSlotName()
+        do {
+            let manifest = try flashROM(archive: staged, slotName: target, log: log)
+            setActiveSlot(target)
+            log.info("flashed \(manifest.name) \(manifest.version) into slot \(target), slot \(target) is active")
+            if hadPrevious {
+                log.info("the previous ROM stays in slot \(previous)")
+            }
+            DispatchQueue.main.async {
+                c.recoveryLog("\nUpdate complete. Rebooting...")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    restartSelf()
+                }
+            }
+        } catch {
+            log.error("ERROR: \(error.localizedDescription)")
+            try? FileManager.default.removeItem(at: slotURL(target))
+            DispatchQueue.main.async { otaFailed(c, slotIntact: hadPrevious) }
+        }
+    }
+}
+
 // Cuz it is weak
 let romImporter: ROMImporter = ROMImporter()
 
+private func slotSwitchItems() -> [NXRecoveryItem] {
+    let active = activeSlotName()
+    let other = otherSlotName(active)
+    guard slotIsFlashed(other) else { return [] }
+    return [
+        NXRecoveryItem(title: "Switch to Slot \(other)") { c in
+            guard let c = c, !romIsBusy(c) else { return }
+            setActiveSlot(other)
+            c.recoveryLog("slot \(other) is active: \(slotSummary(other))")
+            if let manifest = slotManifest(other), !manifest.isNyxianVersionSupported {
+                c.recoveryLogError("it needs \(manifest.nyxianRequirement), this is Nyxian \(currentNyxianVersion())")
+            }
+            recoveryShowMenu(recoveryController: c)
+        }
+    ]
+}
+
 func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
+    let active = activeSlotName()
+    let header = "Nyxian Recovery\n\(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? "UNKNOWN") \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "0.0.0") \"Scriptura\" Beta (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? "UNKNOWN"))\n\(slotSummary(active)) (active)\n\(slotSummary(otherSlotName(active)))"
+    var items: [NXRecoveryItem] = [
+        NXRecoveryItem(title: "Reboot system now") { c in
+            restartSelf()
+        },
+        NXRecoveryItem(title: "Boot Configuration") { c in
+            if let c = c {
+                recoveryShowBootConfig(recoveryController: c)
+            }
+        },
+        NXRecoveryItem(title: "Wipe data / factory reset") { c in
+            if let c = c {
+                recoveryConfirmWipe(recoveryController: c)
+            }
+        },
+        NXRecoveryItem(title: "Wipe cache") { c in
+            if let c = c {
+                recoveryWipeCache(c)
+            }
+        },
+        NXRecoveryItem(title: "Flash ROM") { c in
+            guard let c = c, !romIsBusy(c) else { return }
+            romImporter.present(from: c) { url in
+                if let url = url {
+                    recoveryFlashROM(c, archive: url)
+                }
+            }
+        },
+        NXRecoveryItem(title: "Unflash ROM") { c in
+            if let c = c {
+                recoveryShowUnflash(recoveryController: c)
+            }
+        },
+    ]
+    items.append(contentsOf: slotSwitchItems())
+    items += [
+        NXRecoveryItem(title: "Nyxian Files") { c in
+            c?.enterFileBrowser(atPath: NSHomeDirectory(), root: NSHomeDirectory(), header: "Nyxian Files", onBack: { recovery in
+                if let recovery = recovery {
+                    recoveryShowMenu(recoveryController: recovery)
+                }
+            }, onFile: { path,name,controller in
+            })
+        },
+        NXRecoveryItem(title: "System Files") { c in
+            c?.enterFileBrowser(atPath: "/", root: "/", header: "System Files", onBack: { recovery in
+                if let recovery = recovery {
+                    recoveryShowMenu(recoveryController: recovery)
+                }
+            }, onFile: { path,name,controller in
+            })
+        },
+        NXRecoveryItem(title: "Power Off") { c in
+            UIApplication.shared.perform(Selector("suspend"))
+            exit(0)
+        },
+    ]
     recoveryController.enterRecovery(
-        withHeader: "Nyxian Recovery\n\(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? "UNKNOWN") \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "0.0.0") \"Scriptura\" Beta (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? "UNKNOWN"))",
+        withHeader: header,
         instructions: nil,
         footer: nil,
-        items: [
-            NXRecoveryItem(title: "Reboot system now") { c in
-                restartSelf()
-            },
-            NXRecoveryItem(title: "Boot Configuration") { c in
-                if let c = c {
-                    recoveryShowBootConfig(recoveryController: c)
-                }
-            },
-            NXRecoveryItem(title: "Wipe data / factory reset") { c in
-                if let c = c {
-                    recoveryConfirmWipe(recoveryController: c)
-                }
-            },
-            NXRecoveryItem(title: "Wipe cache") { c in
-                if let c = c {
-                    recoveryWipeCache(c)
-                }
-            },
-            NXRecoveryItem(title: "Flash ROM") { c in
-                guard let c = c, !romIsBusy(c) else { return }
-                romImporter.present(from: c) { url in
-                    if let url = url {
-                        recoveryFlashROM(c, archive: url)
-                    }
-                }
-            },
-            NXRecoveryItem(title: "Unflash ROM") { c in
-                if let c = c {
-                    recoveryShowUnflash(recoveryController: c)
-                }
-            },
-            NXRecoveryItem(title: "Nyxian Files") { c in
-                c?.enterFileBrowser(atPath: NSHomeDirectory(), root: NSHomeDirectory(), header: "Nyxian Files", onBack: { recovery in
-                    if let recovery = recovery {
-                        recoveryShowMenu(recoveryController: recovery)
-                    }
-                }, onFile: { path,name,controller in
-                })
-            },
-            NXRecoveryItem(title: "System Files") { c in
-                c?.enterFileBrowser(atPath: "/", root: "/", header: "System Files", onBack: { recovery in
-                    if let recovery = recovery {
-                        recoveryShowMenu(recoveryController: recovery)
-                    }
-                }, onFile: { path,name,controller in
-                })
-            },
-            NXRecoveryItem(title: "Power Off") { c in
-                UIApplication.shared.perform(Selector("suspend"))
-                exit(0)
-            },
-        ],
+        items: items,
         onSelect: nil,
         onMove: nil
     )
@@ -1091,6 +1498,8 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
 class BootViewController: UIViewController {
     private let splashView = UIView()
     private let logoView = UIImageView()
+    private var verboseConsole: VerboseBootConsole?
+    private let bootCapture = BootLogCapture()
     
     private enum BootTransition {
         case zoomThrough
@@ -1128,33 +1537,79 @@ class BootViewController: UIViewController {
             logoView.widthAnchor.constraint(equalToConstant: 125),
         ])
         
+        // from here on, fd 27 -> live console instead of logo
+        let verbose = BootConfig.isEnabled(.verboseBoot)
+        if verbose {
+            startVerboseBoot()
+        }
+        
         DispatchQueue.global(qos: .utility).async {
+            if verbose { bootLog("bootloader: scanning volume buttons") }
             let mode = NXVolumeButtonMonitor.scan(for: 1.0)
             NXVolumeButtonMonitor.disarm()
             
             if mode == 2 {
+                if verbose { bootLog("bootloader: recovery requested") }
                 DispatchQueue.main.async {
                     self.enterRecovery(error: nil)
                 }
                 return
             }
             
-            let slot = loadSlot(loadSuperslotForcefully: mode == 1)
+            // only on a normal boot, safe/recovery boots leave the request pending
+            if mode == 0, let otaPath = takePendingOTA() {
+                if verbose { bootLog("bootloader: OTA pending: \(otaPath)") }
+                DispatchQueue.main.async {
+                    self.enterOTA(path: otaPath)
+                }
+                return
+            }
             
-            DispatchQueue.main.async {
-                guard case let .loaded(name, slotMain, slotDidAppear, slotCreateWindow) = slot else {
-                    if case let .failed(message) = slot {
-                        self.enterRecovery(error: "ERROR: \(message)")
-                    }
-                    return
+            let forceSuperSlot = mode == 1
+            
+            // a ROM built for another Nyxian doesn't boot, the user can go back to the other slot
+            if !forceSuperSlot,
+               let manifest = slotManifest(activeSlotName()),
+               !manifest.isNyxianVersionSupported {
+                if verbose { bootLog("bootloader: slot \(activeSlotName()) needs \(manifest.nyxianRequirement)") }
+                DispatchQueue.main.async {
+                    self.presentUnsupportedROM(manifest, verbose: verbose)
                 }
-                
-                guard let raw = slotMain() else {
-                    self.enterRecovery(error: "ERROR: \(name) NXSlotMain returned no view controller")
-                    return
+                return
+            }
+            
+            self.bootSlot(forceSuperSlot: forceSuperSlot, verbose: verbose)
+        }
+    }
+    
+    /// loads the active slot (or SuperSlot.dylib) and hands over to it, off the main thread
+    private func bootSlot(forceSuperSlot: Bool, verbose: Bool) {
+        if verbose { bootLog(forceSuperSlot ? "bootloader: forcing SuperSlot.dylib" : "bootloader: loading slot \(activeSlotName())") }
+        let slot = loadSlot(loadSuperslotForcefully: forceSuperSlot)
+        
+        DispatchQueue.main.async {
+            guard case let .loaded(name, slotMain, slotDidAppear, slotCreateWindow) = slot else {
+                if case let .failed(message) = slot {
+                    self.enterRecovery(error: "ERROR: \(message)")
                 }
-                let slotRoot = Unmanaged<UIViewController>.fromOpaque(raw).takeRetainedValue()
-                
+                return
+            }
+            
+            if verbose { bootLog("bootloader: \(name) loaded, entering NXSlotMain") }
+            let raw = slotMain()
+            if verbose { bootLog("bootloader: NXSlotMain returned") }
+            
+            // NXSlotMain returned -> boot is over, fd 27 goes back to what it was
+            self.bootCapture.stop()
+            
+            guard let raw else {
+                self.enterRecovery(error: "ERROR: \(name) NXSlotMain returned no view controller")
+                return
+            }
+            let slotRoot = Unmanaged<UIViewController>.fromOpaque(raw).takeRetainedValue()
+            
+            let hold: TimeInterval = verbose ? verboseBootHold : 0
+            DispatchQueue.main.asyncAfter(deadline: .now() + hold) {
                 self.changableStatusBarHidden = false
                 UIView.animate(withDuration: 0.3) {
                     self.setNeedsStatusBarAppearanceUpdate()
@@ -1172,6 +1627,58 @@ class BootViewController: UIViewController {
             }
         }
     }
+    
+    private func presentUnsupportedROM(_ manifest: ROMManifest, verbose: Bool) {
+        let active = activeSlotName()
+        let other = otherSlotName(active)
+        
+        let alert = UIAlertController(
+            title: "Update Nyxian",
+            message: "\(manifest.name) \(manifest.version) in slot \(active) needs \(manifest.nyxianRequirement). This is Nyxian \(currentNyxianVersion()). Update Nyxian to boot this ROM.",
+            preferredStyle: .alert)
+        
+        if let previous = slotManifest(other), previous.isNyxianVersionSupported {
+            alert.addAction(UIAlertAction(title: "Revert to Slot \(other)", style: .default) { _ in
+                setActiveSlot(other)
+                if let logo = previous.bootlogo {
+                    self.logoView.image = logo
+                }
+                DispatchQueue.global(qos: .utility).async {
+                    self.bootSlot(forceSuperSlot: false, verbose: verbose)
+                }
+            })
+        }
+        alert.addAction(UIAlertAction(title: "Recovery", style: .cancel) { _ in
+            self.enterRecovery(error: "slot \(active): \(manifest.name) \(manifest.version) needs \(manifest.nyxianRequirement), this is Nyxian \(currentNyxianVersion())")
+        })
+        
+        self.present(alert, animated: true)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if splashView.superview != nil {
+            verboseConsole?.layout(in: splashView)
+        }
+    }
+    
+    // MARK: - Verbose boot
+    
+    private func startVerboseBoot() {
+        let console = VerboseBootConsole(in: splashView)
+        verboseConsole = console
+        logoView.isHidden = true
+        
+        // runs on the drain thread and draws right there, main is never involved
+        let ok = bootCapture.start { line in
+            console.append(line, isError: line.hasPrefix("ERROR:"))
+        }
+        if !ok {
+            console.append("ERROR: couldn't capture fd \(nxRomLogFD): \(String(cString: strerror(errno)))", isError: true)
+        }
+    }
+    
+    // MARK: - Transitions
     
     private func makeSlotWindow(_ create: NXSlotCreateWindowFn) -> UIWindow? {
         guard let scene = view.window?.windowScene else { return nil }
@@ -1232,13 +1739,43 @@ class BootViewController: UIViewController {
         appIn.startAnimation()
     }
     
-    private func enterRecovery(error: String?) {
+    private func makeRecoveryController() -> NXRecoveryViewController {
+        bootCapture.stop()
+        
         let recoveryController = NXRecoveryViewController()
+        
+        // carry the boot log over into recovery
+        if let console = verboseConsole {
+            recoveryController.recoveryLogMax = max(recoveryController.recoveryLogMax, bootLogMax)
+            for entry in console.snapshot().suffix(bootLogMax) {
+                if entry.isError {
+                    recoveryController.recoveryLogError(entry.text)
+                } else {
+                    recoveryController.recoveryLog(entry.text)
+                }
+            }
+        }
+        
+        return recoveryController
+    }
+    
+    private func enterRecovery(error: String?) {
+        let recoveryController = makeRecoveryController()
+        
         if let error {
             recoveryController.recoveryLogError(error)
         }
         recoveryShowMenu(recoveryController: recoveryController)
         self.transition(to: recoveryController, style: .crossfade)
+    }
+    
+    private func enterOTA(path: String) {
+        let recoveryController = makeRecoveryController()
+        
+        // menu underneath so a failed OTA can drop back into it
+        recoveryShowMenu(recoveryController: recoveryController)
+        self.transition(to: recoveryController, style: .crossfade)
+        applyOTA(recoveryController, path: path)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -1248,6 +1785,7 @@ class BootViewController: UIViewController {
     
     private func startBreathing() {
         guard !UIAccessibility.isReduceMotionEnabled,
+              !logoView.isHidden,
               splashView.superview != nil,
               logoView.layer.animation(forKey: "breathe") == nil else { return }
         

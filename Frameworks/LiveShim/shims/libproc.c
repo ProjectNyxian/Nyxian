@@ -1,29 +1,34 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #include <LiveShim/shim.h>
 #include <Nyxian/LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
 #include <Broadpatch/Broadpatch.h>
-
-#if LIVESHIM_PROC_ENABLED
+#include <pthread.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <execinfo.h>
+#include <string.h>
 
 extern int __proc_info(int32_t callnum, int32_t pid, uint32_t flavor, uint64_t arg, user_addr_t buffer, int32_t buffersize);
 
@@ -161,19 +166,71 @@ LIBKERN_PATCH(int, proc_kmsgbuf, (void *buffer,
     return __proc_info(PROC_INFO_CALL_KERNMSGBUF, 0, 0, (uint64_t)0, (user_addr_t)buffer, buffersize);
 });
 
+static bool liveshim_signal_self_locally(int sig)
+{
+    if(sig <= 0 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP || sig == SIGCONT)
+    {
+        return false;
+    }
+    
+    sigset_t blocked;
+    if(pthread_sigmask(SIG_BLOCK, NULL, &blocked) != 0 || sigismember(&blocked, sig))
+    {
+        return false;
+    }
+    
+    return pthread_kill(pthread_self(), sig) == 0;
+}
+
 LIBKERN_PATCH(int, kill, (pid_t pid,
                           int sig),
 {
+    if(pid == getpid() && liveshim_signal_self_locally(sig))
+    {
+        return 0;
+    }
     return (int)liveshim_syscall(SYS_kill, pid, sig);
 });
 
 LIBKERN_PATCH(int, raise, (int sig),{
+    if(liveshim_signal_self_locally(sig))
+    {
+        return 0;
+    }
     return kill(getpid(), sig);
 });
+
+static void liveshim_abort_reporter(int sig)
+{
+    static const char header[] = "\n[LiveShim] SIGABRT, backtrace:\n";
+    write(STDERR_FILENO, header, sizeof(header) - 1);
+    void *frames[64];
+    int count = backtrace(frames, 64);
+    backtrace_symbols_fd(frames, count, STDERR_FILENO);
+    raise(sig);
+}
+
+static void liveshim_install_abort_reporter(void)
+{
+    struct sigaction current;
+    if(sigaction(SIGABRT, NULL, &current) != 0 || current.sa_handler != SIG_DFL)
+    {
+        return;
+    }
+    
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = liveshim_abort_reporter;
+    sa.sa_flags = SA_RESETHAND;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGABRT, &sa, NULL);
+}
 
 __attribute__((constructor))
 static void InstallPatches(void)
 {
+    liveshim_install_abort_reporter();
+    
     LIBKERN_INSTALL_PATCH(__proc_info);
     LIBKERN_INSTALL_PATCH(proc_pidinfo);
     LIBKERN_INSTALL_PATCH(proc_name);
@@ -184,5 +241,3 @@ static void InstallPatches(void)
     LIBKERN_INSTALL_PATCH(kill);
     LIBKERN_INSTALL_PATCH(raise);
 }
-
-#endif /* LIVESHIM_PROC_ENABLED */

@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #include <LiveShim/shim.h>
@@ -31,6 +32,7 @@
 #include <copyfile.h>
 #include <time.h>
 #include <os/lock.h>
+#include <pthread.h>
 #include <LiveShim/patchcache.h>
 #include <Broadpatch/Broadpatch.h>
 
@@ -454,28 +456,86 @@ HWHookThreadContextRef HWHookDlopenThreadContext(void)
     return context;
 }
 
-LIBKERN_PATCH(void*, dlopen, (const char *path, int mode),
+extern bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
+
+static pthread_mutex_t g_dlopen_lock = PTHREAD_MUTEX_INITIALIZER;
+static unsigned int g_active_dlopens = 0;
+static char g_dlopen_tmp_root[PATH_MAX];
+
+static bool dlopen_session_enter(void)
 {
-    inode_bank_init();
+    pthread_mutex_lock(&g_dlopen_lock);
     
-    char newTmpPath[PATH_MAX];
-    snprintf(newTmpPath, sizeof(newTmpPath), "%s/tmp", mmap_sandbox_map_exec_allowed_path);
-    mkdir(newTmpPath, 0777);
-    snprintf(newTmpPath, sizeof(newTmpPath), "%s/tmp/%d", mmap_sandbox_map_exec_allowed_path, getpid());
-    mkdir(newTmpPath, 0777);
+    if(g_active_dlopens == 0)
+    {
+        int n = snprintf(g_dlopen_tmp_root, sizeof(g_dlopen_tmp_root), "%s/tmp/%d", mmap_sandbox_map_exec_allowed_path, getpid());
+        if(n < 0 || n >= sizeof(g_dlopen_tmp_root))
+        {
+            pthread_mutex_unlock(&g_dlopen_lock);
+            return false;
+        }
+        
+        inode_bank_init();
+        
+        int err = mkpath_np(g_dlopen_tmp_root, 0777);
+        if(err != 0 && err != EEXIST)
+        {
+            pthread_mutex_unlock(&g_dlopen_lock);
+            return false;
+        }
+    }
+    
+    g_active_dlopens++;
+    
+    pthread_mutex_unlock(&g_dlopen_lock);
+    return true;
+}
+
+static void dlopen_session_leave(void)
+{
+    pthread_mutex_lock(&g_dlopen_lock);
+    if(g_active_dlopens > 0 && --g_active_dlopens == 0)
+    {
+        inode_bank_unlink_all(g_dlopen_tmp_root);
+        rmdir(g_dlopen_tmp_root);
+    }
+    pthread_mutex_unlock(&g_dlopen_lock);
+}
+
+void *(*dlopen_orig)(void* dyldApiInstancePtr, const char *path, int mode) = NULL;
+LIBKERN_DEFINE_PATCHABLE(void*, dlopen_hook, (void* dyldApiInstancePtr, const char *path, int mode))
+{
+    if(!dlopen_session_enter())
+    {
+        return NULL;
+    }
     
     dyld_hook_log("[hook_dlopen] %s\n", path);
     
-    open_hardlock = false;
+    /* backing up the current hardware breakpoint context */
     HWHookThreadContextRef context = HWHookDlopenThreadContext();
-    HWHookThreadContextEnter(context);  /* is nil safe, so it shall work anyways */
-    void *ret = dlopen__orig(path, mode);
+    HWHookThreadContextRef currentContext = HWHookThreadContextGetCurrent();
+    if(currentContext != NULL)
+    {
+        currentContext = (HWHookThreadContextRef)CFRetain(currentContext);
+        HWHookThreadContextExit(currentContext);
+    }
+    
+    open_hardlock = false;
+    HWHookThreadContextEnter(context);
+    void *ret = dlopen_orig(dyldApiInstancePtr, path, mode);
     HWHookThreadContextExit(context);
     
-    inode_bank_unlink_all(newTmpPath);
-    rmdir(newTmpPath);
+    /* restoring the last context if applicable */
+    if(currentContext != NULL)
+    {
+        HWHookThreadContextEnter(currentContext);
+        CFRelease(currentContext);
+    }
+    
+    dlopen_session_leave();
     return ret;
-});
+}
 
 void *dlopen_cdhash_verified(const char *path,
                              int flags,
@@ -486,7 +546,7 @@ void *dlopen_cdhash_verified(const char *path,
     cdhash_must_valid = true;
     cdhash_data_container_match = cdhash;
     cdhash_verifier_failed_callback = callback;
-    void *ret = dlopen(path, flags);
+    void *ret = dlopen(path, flags);    /* enters the dlopen api hook */
     cdhash_verifier_failed_callback = NULL;
     cdhash_data_container_match = NULL;
     cdhash_must_valid = false;
@@ -496,7 +556,7 @@ void *dlopen_cdhash_verified(const char *path,
 __attribute__((constructor))
 void LiveShimDlopenHookInit(void)
 {
-    LIBKERN_INSTALL_PATCH(dlopen);
+    performHookDyldApi("dlopen", 2, (void**)&dlopen_orig, (void*)dlopen_hook);
     
     const char *home = getenv("HOME");
     if(home == NULL)

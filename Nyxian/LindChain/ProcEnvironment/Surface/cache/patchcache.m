@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <LindChain/IDEFoundation/NXBootstrap.h>
@@ -35,6 +36,371 @@
 #include <string.h>
 #include <dlfcn.h>
 #import <Foundation/Foundation.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+static inline bool a64_is_bl(uint32_t insn)
+{
+    return (insn & 0xFC000000u) == 0x94000000u;
+}
+
+static inline uintptr_t a64_resolve_bl(const uint32_t *pc)
+{
+    uint32_t insn = *pc;
+    int64_t imm26 = (int64_t)(insn & 0x03FFFFFFu);
+    if(imm26 & 0x02000000LL)
+    {
+        imm26 |= ~0x03FFFFFFLL;
+    }
+    return (uintptr_t)pc + (imm26 << 2);
+}
+
+#define CF_SCAN_INSNS       128
+#define CF_SCAN_CALLEE      64
+#define CF_MAX_CALLEES      8
+
+static uintptr_t emulate_adrp(uintptr_t pc,
+                              uint32_t insn)
+{
+    uint32_t immhi = (insn >> 5) & 0x7FFFF;
+    uint32_t immlo = (insn >> 29) & 3;
+    uint32_t imm21 = (immhi << 2) | immlo;
+    int64_t offset = ((int64_t)(int32_t)(imm21 << 11)) >> 11;
+    
+    return (uintptr_t)(
+        (int64_t)(pc & ~(uintptr_t)0xFFF) + offset * 4096
+    );
+}
+
+static bool find_global_slot(uintptr_t pc,
+                             uint32_t adrp,
+                             uint32_t mem,
+                             uintptr_t *result)
+{
+    if((adrp & 0x9F000000) != 0x90000000)
+    {
+        return false;
+    }
+    
+    uint32_t kind = mem & 0xFFC00000;
+    if(kind != 0xF9400000 && kind != 0xF9000000)
+    {
+        return false;
+    }
+    
+    if(((mem >> 5) & 31) != (adrp & 31))
+    {
+        return false;
+    }
+    
+    uintptr_t page = emulate_adrp(pc, adrp);
+    uint32_t offset = ((mem >> 10) & 0xFFF) * 8;
+    
+    *result = page + offset;
+    return true;
+}
+
+static inline bool a64_is_ldrb_uimm(uint32_t insn)
+{
+    return (insn & 0xFFC00000u) == 0x39400000u;
+}
+
+static bool a64_reg_tested_soon(const uint32_t *p,
+                                uint32_t rt,
+                                size_t window)
+{
+    for(size_t i = 1; i <= window; i++)
+    {
+        uint32_t cls = p[i] & 0x7E000000u;
+        if((cls == 0x36000000u || cls == 0x34000000u) && (p[i] & 31) == rt)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static int cf_scan_for_slot(const uint32_t *fn,
+                            size_t n,
+                            const void *cfBase,
+                            const void *expected,
+                            uintptr_t *ioSlot)
+{
+    uint32_t  adrpInsn[32] = {0};
+    uintptr_t adrpPc[32] = {0};
+    
+    for(size_t i = 0; i < n; i++)
+    {
+        uint32_t  insn = fn[i];
+        uintptr_t pc   = (uintptr_t)&fn[i];
+        
+        if((insn & 0x9F000000u) == 0x90000000u)
+        {
+            adrpInsn[insn & 31] = insn;
+            adrpPc[insn & 31]   = pc;
+            continue;
+        }
+        
+        uint32_t rn = (insn >> 5) & 31;
+        if(adrpPc[rn] == 0)
+        {
+            continue;
+        }
+        
+        uintptr_t slot;
+        if(!find_global_slot(adrpPc[rn], adrpInsn[rn], insn, &slot))
+        {
+            continue;
+        }
+        
+        Dl_info info;
+        if(dladdr((const void *)slot, &info) == 0 || info.dli_fbase != cfBase)
+        {
+            continue;
+        }
+        
+        if(*(void * volatile *)slot != expected)
+        {
+            continue;
+        }
+        
+        if(*ioSlot != 0 && *ioSlot != slot)
+        {
+            return -1;
+        }
+        *ioSlot = slot;
+    }
+    
+    return *ioSlot != 0;
+}
+
+static uintptr_t aarch64_emulate_adrp_add(uint32_t adrp,
+                                          uint32_t add,
+                                          uintptr_t adrpPc)
+{
+    if((adrp & 0x9F000000u) != 0x90000000u)
+    {
+        return 0;
+    }
+    
+    if((add & 0xFF800000u) != 0x91000000u)
+    {
+        return 0;
+    }
+    
+    uint32_t adrpRd = adrp & 31;
+    uint32_t addRn  = (add >> 5) & 31;
+    if(adrpRd != addRn)
+    {
+        return 0;
+    }
+    
+    uintptr_t page = emulate_adrp(adrpPc, adrp);
+    uint32_t imm12 = (add >> 10) & 0xFFF;
+    if((add >> 22) & 1)
+    {
+        imm12 <<= 12;
+    }
+    
+    return page + imm12;
+}
+
+static int cf_scan_for_inited_flag(const uint32_t *fn,
+                                   size_t n,
+                                   const void *cfBase,
+                                   uintptr_t mainBundleSlot,
+                                   uintptr_t *ioFlag)
+{
+    uint32_t  adrpInsn[32] = {0};
+    uintptr_t adrpPc[32]   = {0};
+    
+    for(size_t i = 0; i < n; i++)
+    {
+        uint32_t  insn = fn[i];
+        uintptr_t pc   = (uintptr_t)&fn[i];
+        
+        if((insn & 0x9F000000u) == 0x90000000u)
+        {
+            adrpInsn[insn & 31] = insn;
+            adrpPc[insn & 31]   = pc;
+            continue;
+        }
+        
+        if(!a64_is_ldrb_uimm(insn))
+        {
+            continue;
+        }
+        
+        uint32_t rn = (insn >> 5) & 31;
+        if(adrpPc[rn] == 0)
+        {
+            continue;
+        }
+        
+        uintptr_t flag = emulate_adrp(adrpPc[rn], adrpInsn[rn]) + ((insn >> 10) & 0xFFF);
+        
+        intptr_t dist = (intptr_t)flag - (intptr_t)mainBundleSlot;
+        if(dist < -0x1000 || dist > 0x1000)
+        {
+            continue;
+        }
+        
+        Dl_info info;
+        if(dladdr((const void *)flag, &info) == 0 || info.dli_fbase != cfBase)
+        {
+            continue;
+        }
+        
+        if(*(volatile uint8_t *)flag != 1)
+        {
+            continue;
+        }
+        
+        if(!a64_reg_tested_soon(&fn[i], insn & 31, 4))
+        {
+            continue;
+        }
+        
+        if(*ioFlag != 0 && *ioFlag != flag)
+        {
+            return -1;
+        }
+        *ioFlag = flag;
+    }
+    
+    return *ioFlag != 0;
+}
+
+static bool cf_find_main_bundle_offs(uint64_t *outMainOff,
+                                     uint64_t *outInitedOff)
+{
+    *outMainOff = 0;
+    *outInitedOff = 0;
+    
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    if(mainBundle == NULL)
+    {
+        klog_log("patchfinder:emit", "CFBundleGetMainBundle returned NULL");
+        return false;
+    }
+    
+    const uint32_t *fn = (const uint32_t *)dlsym(RTLD_DEFAULT, "CFBundleGetMainBundle");
+    Dl_info cfInfo;
+    if(fn == NULL || dladdr(fn, &cfInfo) == 0)
+    {
+        return false;
+    }
+    
+    const uint32_t *hitFn = fn;
+    size_t hitLen = CF_SCAN_INSNS;
+    uintptr_t slot = 0;
+    int r = cf_scan_for_slot(fn, CF_SCAN_INSNS, cfInfo.dli_fbase, mainBundle, &slot);
+    
+    if(r == 0)
+    {
+        size_t followed = 0;
+        for(size_t i = 0; i < CF_SCAN_INSNS && followed < CF_MAX_CALLEES; i++)
+        {
+            if(!a64_is_bl(fn[i]))
+            {
+                continue;
+            }
+            const uint32_t *callee = (const uint32_t *)a64_resolve_bl(&fn[i]);
+            followed++;
+            r = cf_scan_for_slot(callee, CF_SCAN_CALLEE, cfInfo.dli_fbase, mainBundle, &slot);
+            if(r != 0)
+            {
+                hitFn = callee;
+                hitLen = CF_SCAN_CALLEE;
+                break;
+            }
+        }
+    }
+    
+    if(r != 1)
+    {
+        klog_log("patchfinder:emit", "_mainBundle slot %s", r < 0 ? "ambiguous" : "not found");
+        return false;
+    }
+    
+    uintptr_t flag = 0;
+    int rf = cf_scan_for_inited_flag(hitFn, hitLen, cfInfo.dli_fbase, slot, &flag);
+    if(rf != 1)
+    {
+        klog_log("patchfinder:emit", "_initedMainBundle %s", rf < 0 ? "ambiguous" : "not found");
+        return false;
+    }
+    
+    *outMainOff   = (uint64_t)(slot - (uintptr_t)cfInfo.dli_fbase);
+    *outInitedOff = (uint64_t)(flag - (uintptr_t)cfInfo.dli_fbase);
+    return true;
+}
+
+static uint64_t ns_find_main_bundle_slot_off(void)
+{
+    NSBundle *mb = NSBundle.mainBundle;
+    if(mb == nil)
+    {
+        return 0;
+    }
+    
+    Method m = class_getClassMethod(NSBundle.class, @selector(mainBundle));
+    uint32_t *impl = (uint32_t *)method_getImplementation(m);
+    
+    Dl_info fInfo;
+    if(dladdr((const void *)impl, &fInfo) == 0)
+    {
+        return 0;
+    }
+    
+    uintptr_t found = 0;
+    
+    for(int i = 0; i + 5 < 24; i++)
+    {
+        void **mg = (void **)aarch64_emulate_adrp_add(impl[i], impl[i+1], (uint64_t)&impl[i]);
+        if(mg == NULL)
+        {
+            continue;
+        }
+        
+        if((impl[i+4] & 0xFF000000u) == 0xF8000000u)
+        {
+            mg = (void **)((uintptr_t)mg - 4);
+        }
+        
+        for(int j = 0; j < 24; j++)
+        {
+            uintptr_t slot = (uintptr_t)&mg[j];
+            
+            Dl_info sInfo;
+            if(dladdr((const void *)slot, &sInfo) == 0 ||
+               sInfo.dli_fbase != fInfo.dli_fbase)
+            {
+                continue;
+            }
+            
+            if(mg[j] != (__bridge void *)mb)
+            {
+                continue;
+            }
+            
+            if(found != 0 && found != slot)
+            {
+                klog_log("patchfinder:emit", "NSBundle main slot ambiguous");
+                return 0;
+            }
+            found = slot;
+        }
+    }
+    
+    if(found == 0)
+    {
+        klog_log("patchfinder:emit", "NSBundle main slot not found");
+        return 0;
+    }
+    
+    return (uint64_t)(found - (uintptr_t)fInfo.dli_fbase);
+}
 
 typedef struct {
     uint64_t signature;
@@ -63,22 +429,7 @@ static struct dyld_all_image_infos *_alt_dyld_get_all_image_infos(void)
     return result;
 }
 
-static inline bool a64_is_bl(uint32_t insn)
-{
-    return (insn & 0xFC000000u) == 0x94000000u;
-}
-
-static inline uintptr_t a64_resolve_bl(const uint32_t *pc)
-{
-    uint32_t insn = *pc;
-    int64_t imm26 = (int64_t)(insn & 0x03FFFFFFu);
-    if(imm26 & 0x02000000LL)
-    {
-        imm26 |= ~0x03FFFFFFLL;
-    }
-    return (uintptr_t)pc + (imm26 << 2);
-}
-
+/* FIXME: still very experimental for fixing iOS 17.x support */
 static void *findDyldFcntl17(const char *base)
 {
     static const uint32_t movFAddFileSigsReturn = 0x52800C21;
@@ -101,7 +452,7 @@ static void *findDyldFcntl17(const char *base)
             bl1End = count;
         }
         
-        for (size_t j = i + 1; j < bl1End; j++)
+        for(size_t j = i + 1; j < bl1End; j++)
         {
             if(!a64_is_bl(text[j]))
             {
@@ -337,7 +688,7 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
         
         void* vtableFunctionPtr = 0;
         uint32_t* movInstPtr = adrpInstPtr + 6;
-
+        
         if((*movInstPtr & 0x7F800000) == 0x52800000)
         {
             // arm64e, mov imm + add + ldr
@@ -374,6 +725,10 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
         }
     }
     
+    /* CoreFoundation shit */
+    cf_find_main_bundle_offs((uint64_t*)&entries[kCFBundleMainOffset].found, (uint64_t*)(uint64_t*)&entries[kCFBundleMainInitedOffset].found);
+    entries[kNSBundleMainOffset].found = (void*)ns_find_main_bundle_slot_off();
+    
     static const char *names[kDyldPtrCount] = {
         "dyld.open",
         "dyld.fcntl",
@@ -385,6 +740,11 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
         "_NSGetExecutablePath.vtable.fn",
         "dyld_program_sdk_at_least.vtable.fn",
         "dyld_get_program_sdk_version.vtable.fn",
+        
+        "core_foundation.main_bundle.off",
+        "core_foundation.main_bundle_inited.off",
+        
+        "foundation.main_bundle.off",
     };
     
     bool entryNotFound = false;

@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #include <LiveShim/shim.h>
@@ -28,8 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#if LIVESHIM_UCRED_ENABLED
+#include <sys/stat.h>
+#include <stdbool.h>
 
 #ifndef PE_SUPPLEMENTARY_GROUPS_MAX
 #define PE_SUPPLEMENTARY_GROUPS_MAX 32
@@ -267,7 +268,6 @@ LIBKERN_PATCH(gid_t, getegid, (void),
     return (gid_t)liveshim_syscall(SYS_getegid);
 });
 
-/* MARK: the fs layer has no UNIX ownership semantics yet */
 LIBKERN_PATCH(int, chown, (const char *path,
                            uid_t owner,
                            gid_t group),
@@ -296,6 +296,60 @@ LIBKERN_PATCH(int, fchownat, (int fd,
                               int flags),
 {
     return LIBKERN_ORIG(fchownat)(fd, path, 501, 501, flags);
+});
+
+static inline bool liveshim_is_root(void)
+{
+    return (uid_t)liveshim_syscall(SYS_geteuid) == 0;
+}
+
+static inline mode_t liveshim_root_mode(mode_t mode,
+                                        mode_t type)
+{
+    return mode | (S_ISDIR(type) ? S_IRWXU : (S_IRUSR | S_IWUSR));
+}
+
+LIBKERN_PATCH(int, chmod, (const char *path,
+                           mode_t mode),
+{
+    struct stat st;
+    if(liveshim_is_root() && stat(path, &st) == 0)
+    {
+        mode = liveshim_root_mode(mode, st.st_mode);
+    }
+    return LIBKERN_ORIG(chmod)(path, mode);
+});
+
+LIBKERN_PATCH(int, fchmod, (int fd,
+                            mode_t mode),
+{
+    struct stat st;
+    if(liveshim_is_root() && fstat(fd, &st) == 0)
+    {
+        mode = liveshim_root_mode(mode, st.st_mode);
+    }
+    return LIBKERN_ORIG(fchmod)(fd, mode);
+});
+
+LIBKERN_PATCH(int, mkdir, (const char *path,
+                           mode_t mode),
+{
+    if(liveshim_is_root())
+    {
+        mode |= S_IRWXU;
+    }
+    return LIBKERN_ORIG(mkdir)(path, mode);
+});
+
+LIBKERN_PATCH(int, mkdirat, (int fd,
+                             const char *path,
+                             mode_t mode),
+{
+    if(liveshim_is_root())
+    {
+        mode |= S_IRWXU;
+    }
+    return LIBKERN_ORIG(mkdirat)(fd, path, mode);
 });
 
 LIBKERN_PATCH(pid_t, getppid, (void),
@@ -345,6 +399,22 @@ LIBKERN_PATCH(int, setregid, (gid_t egid,
     return (int)liveshim_syscall(SYS_setregid, egid, rgid);
 });
 
+LIBKERN_PATCH(pid_t, getpgrp, (void),
+{
+    return (pid_t)liveshim_syscall(SYS_getpgrp);
+});
+
+LIBKERN_PATCH(pid_t, getpgid, (pid_t pid),
+{
+    return (pid_t)liveshim_syscall(SYS_getpgid, pid);
+});
+
+LIBKERN_PATCH(int, setpgid, (pid_t pid,
+                             pid_t pgid),
+{
+    return (int)liveshim_syscall(SYS_setpgid, pid, pgid);
+});
+
 LIBKERN_PATCH(pid_t, getsid, (pid_t sid),
 {
     return (pid_t)liveshim_syscall(SYS_getsid, sid);
@@ -372,6 +442,10 @@ static void InstallPatches(void)
     LIBKERN_INSTALL_PATCH(lchown);
     LIBKERN_INSTALL_PATCH(fchown);
     LIBKERN_INSTALL_PATCH(fchownat);
+    LIBKERN_INSTALL_PATCH(chmod);
+    LIBKERN_INSTALL_PATCH(fchmod);
+    LIBKERN_INSTALL_PATCH(mkdir);
+    LIBKERN_INSTALL_PATCH(mkdirat);
     LIBKERN_INSTALL_PATCH(getppid);
     LIBKERN_INSTALL_PATCH(setuid);
     LIBKERN_INSTALL_PATCH(seteuid);
@@ -381,9 +455,10 @@ static void InstallPatches(void)
     LIBKERN_INSTALL_PATCH(setegid);
     LIBKERN_INSTALL_PATCH(setrgid);
     LIBKERN_INSTALL_PATCH(setregid);
+    LIBKERN_INSTALL_PATCH(getpgrp);
+    LIBKERN_INSTALL_PATCH(getpgid);
+    LIBKERN_INSTALL_PATCH(setpgid);
     LIBKERN_INSTALL_PATCH(getsid);
     LIBKERN_INSTALL_PATCH(setsid);
     LIBKERN_INSTALL_PATCH(setgroups);
 }
-
-#endif /* LIVESHIM_UCRED_ENABLED */

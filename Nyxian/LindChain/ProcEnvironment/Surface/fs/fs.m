@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <Foundation/Foundation.h>
@@ -39,6 +40,17 @@
 
 NSString *kextFSRoot = nil;
 
+static void ksurface_fs_init_mount3(FSMountAttr attributes,
+                                    const char *device_dir,
+                                    const char *mount_dir,
+                                    ...)
+{
+    if(ksurface_fs_mount3(attributes, device_dir, mount_dir) != KERN_SUCCESS)
+    {
+        kpanic("failed to create %s usersoace mount", mount_dir);
+    }
+}
+
 kern_return_t ksurface_fs_init(void)
 {
     const char *home = getenv("HOME");
@@ -59,192 +71,60 @@ kern_return_t ksurface_fs_init(void)
         kpanic("failed to initialize fs sandbox");
     }
     
-    typedef struct {
-        FSMountAttr permissionFlags;
-        __strong NSString *device_dir;
-        __strong NSString *mount_dir;
-    } FSMountInitRegistry;
-    
-    /* something like fstab x3 */
-    FSMountInitRegistry fstab[] = {
-        /* virtual file systems */
-        {
-            kFSMountAttrNone,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs", home]
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrClear,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/devfs", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrClear,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs", home],
-        },
-        {
-            kFSMountAttrRead,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/kextfs", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,   /* write will later be allowed through entitlement org.emexlabs.nyxian.launch-services.toggle */
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/lsfs", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,   /* write will later be allowed through entitlement org.emexlabs.nyxian.storage.etc.allow */
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/etcfs", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrClear,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec", home],
-        },
-        
-        /* bind mounts */
-        {
-            kFSMountAttrRead,
-            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/bootstrapd.dylib"].path,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/bootstrapd", home],
-        },
-        {
-            kFSMountAttrRead,
-            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/MobileDevelopmentService.dylib"].path,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/MobileDevelopmentService", home],
-        },
-        {
-            kFSMountAttrRead,
-            NSBundle.mainBundle.bundlePath,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/bootloader", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSBundle.mainBundle.bundlePath stringByAppendingString:@"/Shared/kernel"],
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/headers", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/kextfs", home],
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/kexts", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/devfs", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/dev", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/bootfs", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/boot", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/lsfs", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/System/Library/LaunchDaemons", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSBundle.mainBundle.bundlePath stringByAppendingString:@"/Shared/LaunchServices/org.emexlabs.bootstrapd.plist"],
-            [NSString stringWithFormat:@"%s/Documents/mntfs/lsfs/org.emexlabs.bootstrapd.plist", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSBundle.mainBundle.bundlePath stringByAppendingString:@"/Shared/LaunchServices/org.emexlabs.compilerd.plist"],
-            [NSString stringWithFormat:@"%s/Documents/mntfs/lsfs/org.emexlabs.compilerd.plist", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            [NSString stringWithFormat:@"%s/Documents/mntfs/etcfs", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/etc", home],
-        },
-        
-        /* root mounts */
-        {
-            kFSMountAttrRead | kFSMountAttrWrite | kFSMountAttrClear,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/tmp", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/var/containers", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/var/mobile/Containers", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/var/mobile/tmp", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite | kFSMountAttrClear,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/var/root", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/bin", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/sbin", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/lib", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            @"/dev/nounlink",
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/include", home],
-        },
-        
-        /* root bind mounts */
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/bin", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/bin", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/sbin", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/sbin", home],
-        },
-        {
-            kFSMountAttrRead | kFSMountAttrWrite,
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/lib", home],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/lib", home],
-        },
-        {
-            kFSMountAttrRead,
-            [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"libexec"],
-            [NSString stringWithFormat:@"%s/Documents/rootfs/usr/libexec", home],
-        },
-    };
-    
-    for(int i = 0; i < sizeof(fstab) / sizeof(FSMountInitRegistry); i++)
+    if(ksurface_fs_mount3_var_add("croot", home) != KERN_SUCCESS ||
+       ksurface_fs_mount3_var_add("bootloader", NSBundle.mainBundle.bundlePath.UTF8String) != KERN_SUCCESS ||
+       ksurface_fs_mount3_var_add("vroot", "$croot/Documents/rootfs") != KERN_SUCCESS)
     {
-        kr = ksurface_fs_mount2(fstab[i].permissionFlags, fstab[i].device_dir.fileSystemRepresentation, fstab[i].mount_dir.fileSystemRepresentation);
-        if(kr != KERN_SUCCESS)
-        {
-            klog_log("ksurface:fs", "failed to create %s userspace mount", fstab[i].mount_dir);
-            return KERN_FAILURE;
-        }
+        kpanic("failed to initialize fs variable table");
     }
+    
+    /* TODO: fstab reader */
+    /* main */
+    ksurface_fs_init_mount3(kFSMountAttrNone, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot");
+    
+    /* mntfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/devfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/bootfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/kextfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/lsfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/etcfs");
+    
+    /* bootfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/bootfs/libexec");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/bootstrapd.dylib", "$croot/Documents/mntfs/bootfs/libexec/bootstrapd");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/MobileDevelopmentService.dylib", "$croot/Documents/mntfs/bootfs/libexec/MobileDevelopmentService");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader", "$croot/Documents/mntfs/bootfs/bootloader");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/kernel", "$croot/Documents/mntfs/bootfs/headers");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/bootfs", "$vroot/boot");
+    
+    /* kextfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/kextfs", "$croot/Documents/mntfs/bootfs/kexts");
+    
+    /* devfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/devfs", "$vroot/dev");
+    
+    /* lsfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.bootstrapd.plist", "$croot/Documents/mntfs/lsfs/org.emexlabs.bootstrapd.plist");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.compilerd.plist", "$croot/Documents/mntfs/lsfs/org.emexlabs.compilerd.plist");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$croot/Documents/mntfs/lsfs", "$vroot/System/Library/LaunchDaemons");
+    
+    /* etcfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$croot/Documents/mntfs/etcfs", "$vroot/etc");
+    
+    /* rootfs */
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$vroot/tmp");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/var/containers");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/var/mobile/Containers");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/var/mobile/tmp");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/var/root");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/usr/bin");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/usr/sbin");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/usr/lib");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/usr/include");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/bin");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/sbin");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot/lib");
     
     klog_log("ksurface:fs", "starting mount preserver");
     kr = ksurface_fs_preserver_kickstart();

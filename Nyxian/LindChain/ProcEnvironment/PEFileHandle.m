@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <LindChain/ProcEnvironment/PEFileHandle.h>
@@ -24,6 +25,27 @@
 #include <LindChain/ProcEnvironment/Utils/vnode.h>
 #include <copyfile.h>
 #include <fcntl.h>
+#include <unistd.h>
+
+static xpc_object_t pe_xpc_fd_create_snapshot(int fd)
+{
+    if(fd < 0)
+    {
+        return NULL;
+    }
+    
+    int own = fcntl(fd, F_DUPFD_CLOEXEC, 0);
+    if(own < 0)
+    {
+        return NULL;
+    }
+    
+    xpc_object_t x = xpc_fd_create(own);
+    int saved = errno;
+    close(own);
+    errno = (x == NULL) ? (saved ? saved : EBADF) : saved;
+    return x;
+}
 
 @implementation PEFileHandle
 
@@ -35,7 +57,14 @@
 
 + (instancetype)handleForFileDescriptor:(int)fd
 {
-    if(fd_is_guarded(fd))
+    if(fd < 0 || fd_is_guarded(fd))
+    {
+        errno = EBADF;
+        return nil;
+    }
+    
+    xpc_object_t x = pe_xpc_fd_create_snapshot(fd);
+    if(x == NULL)
     {
         return nil;
     }
@@ -43,8 +72,9 @@
     PEFileHandle *object = [[self alloc] init];
     if(object != nil)
     {
-        object.fd = xpc_fd_create(fd);
+        object.fd = x;
     }
+    
     return object;
 }
 
@@ -65,7 +95,13 @@
                           withFlags:(int)flags
                     withPermissions:(int)perm
 {
-    int fd = open([path UTF8String], flags, perm);
+    if(path == nil)
+    {
+        errno = EINVAL;
+        return nil;
+    }
+    
+    int fd = open([path fileSystemRepresentation], flags | O_CLOEXEC, perm);
     if(fd < 0)
     {
         return nil;
@@ -89,11 +125,20 @@
 
 - (void)setFileDescriptor:(int)fd
 {
-    _fd = xpc_fd_create(fd);
+    xpc_object_t x = pe_xpc_fd_create_snapshot(fd);
+    if(x != NULL)
+    {
+        _fd = x;
+    }
 }
 
 - (int)extractFileDescriptor
 {
+    if(_fd == nil)
+    {
+        errno = EBADF;
+        return -1;
+    }
     return xpc_fd_dup(_fd);
 }
 
@@ -104,27 +149,30 @@
         return NO;
     }
     
-    int cfd = xpc_fd_dup(_fd);
-    if(cfd == loc)
+    int cfd = [self extractFileDescriptor];
+    if(cfd < 0)
     {
-        return YES;
-    }
-    else
-    {
-        int retval = dup2(cfd, loc);
-        close(cfd);
-        if(retval < 0)
-        {
-            return NO;
-        }
+        return NO;
     }
     
-    return YES;
+    if(cfd == loc)
+    {
+        int flags = fcntl(cfd, F_GETFD);
+        if(flags >= 0 && (flags & FD_CLOEXEC))
+        {
+            fcntl(cfd, F_SETFD, flags & ~FD_CLOEXEC);
+        }
+        return YES;
+    }
+    
+    int retval = dup2(cfd, loc);
+    close(cfd);
+    return retval >= 0;
 }
 
 - (BOOL)writeOut:(NSString*)path
 {
-    int tmpfd = xpc_fd_dup(_fd);
+    int tmpfd = [self extractFileDescriptor];
     if(tmpfd < 0)
     {
         return NO;
@@ -137,34 +185,32 @@
         return NO;
     }
     
-    bool success = vnode_recover_with_fd_to_path(tmpfd, [path UTF8String]);
+    bool success = vnode_recover_with_fd_to_path(tmpfd, [path fileSystemRepresentation]);
     close(tmpfd);
-    if(!success)
-    {
-        close(tmpfd);
-        return NO;
-    }
-    
-    return tmpfd == 0;
+    return success ? YES : NO;
 }
 
 - (BOOL)writeIn:(NSString*)path
 {
-    int tmpfd = xpc_fd_dup(_fd);
+    int tmpfd = [self extractFileDescriptor];
     if(tmpfd < 0)
     {
         return NO;
     }
     
-    int srcFd = open([path UTF8String], O_RDONLY);
+    int srcFd = open([path fileSystemRepresentation], O_RDONLY | O_CLOEXEC);
     if(srcFd < 0)
     {
         close(tmpfd);
         return NO;
     }
     
-    ftruncate(tmpfd, 0);
-    lseek(tmpfd, 0, SEEK_SET);
+    if(ftruncate(tmpfd, 0) != 0 || lseek(tmpfd, 0, SEEK_SET) == -1)
+    {
+        close(srcFd);
+        close(tmpfd);
+        return NO;
+    }
     
     int ret = fcopyfile(srcFd, tmpfd, NULL, COPYFILE_DATA);
     
@@ -181,8 +227,10 @@
 
 - (void)encodeWithCoder:(nonnull NSCoder *)coder
 {
-    [(id)coder encodeXPCObject:_fd forKey:@"fd"];
-    return;
+    if(_fd != nil)
+    {
+        [(id)coder encodeXPCObject:_fd forKey:@"fd"];
+    }
 }
 
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
@@ -198,7 +246,7 @@
 - (id)copyWithZone:(NSZone *)zone
 {
     PEFileHandle *copy = [[[self class] allocWithZone:zone] init];
-    copy.fd = [self.fd copy];
+    copy.fd = self.fd;
     return copy;
 }
 

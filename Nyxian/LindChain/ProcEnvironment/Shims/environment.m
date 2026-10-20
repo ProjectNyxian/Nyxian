@@ -25,10 +25,12 @@
 #import <LindChain/ProcEnvironment/LiveContainer/LCBootstrap.h>
 #import <LiveShim/LiveShimSyscall.h>
 #import <LiveShim/vroot.h>
+#import <LiveShim/patchcache.h>
 #import <LindChain/Utils/CFTools.h>
 #import <ksurface_config.h>
 #import <dlfcn.h>
 #import <sys/resource.h>
+#import <objc/runtime.h>
 
 #if !HOST_ENV
 
@@ -87,40 +89,61 @@ void PEInsertLibrariesIfNeeded(void)
     }
 }
 
+static bool cf_main_bundle_slots(uint64_t bundle_off,
+                                 uint64_t bundle_inited_off,
+                                 CFBundleRef **bundle,
+                                 bool **bundle_inited)
+{
+    Dl_info info;
+    if(bundle_off == 0 || bundle_inited_off == 0 ||
+       dladdr((const void *)CFBundleGetMainBundle, &info) == 0)
+    {
+        return false;
+    }
+    *bundle = (CFBundleRef *)((uintptr_t)info.dli_fbase + bundle_off);
+    *bundle_inited = (bool *)((uintptr_t)info.dli_fbase + bundle_inited_off);
+    return true;
+}
+
+static NSBundle * __unsafe_unretained *ns_main_bundle_slot(uint64_t off)
+{
+    if(off == 0)
+    {
+        return NULL;
+    }
+    Method m = class_getClassMethod(NSBundle.class, @selector(mainBundle));
+    Dl_info info;
+    if(dladdr((const void *)method_getImplementation(m), &info) == 0)
+    {
+        return NULL;
+    }
+    return (NSBundle * __unsafe_unretained *)(void *)((uintptr_t)info.dli_fbase + off);
+}
+
 void PEOverwriteExecutablePath(NSString *executablePath)
 {
-    /* literally swapping CFBundle CFRuntime instances */
-    CFBundleRef currentMainCFBundle = CFBundleGetMainBundle();
-    if(currentMainCFBundle == NULL)
-    {
-        goto skip_to_exec_override;
-    }
-    CFAllocatorRef allocator = CFGetAllocator(currentMainCFBundle); /* doesnt matter if zero */
-    CFURLRef urlRef = CFURLCreateWithFileSystemPath(allocator, (__bridge CFStringRef)[executablePath stringByDeletingLastPathComponent], kCFURLPOSIXPathStyle, true);
-    if(urlRef == NULL)
-    {
-        goto skip_to_exec_override;
-    }
-    CFBundleRef guestMainCFBundle = CFBundleCreate(allocator, urlRef);
-    CFRelease(urlRef);  /* took a reference of it most probably */
-    if(guestMainCFBundle == NULL)
-    {
-        goto skip_to_exec_override;
-    }
-    
-    /*
-     * Swaps both bundles simply, not leaking any memory
-     * as both internal states are stable by CFRuntime it
-     * self we can safely exploit that angle to swap both
-     * and release the original bundle. To my knowledge
-     * CFBundle also doesn't cary any extra inline
-     * buffers but relies on other CF types.
-     */
-    assert(CFSwap(currentMainCFBundle, guestMainCFBundle));
-    CFRelease(guestMainCFBundle);                   /* destroys the real bundle, sounds like swizzling x3 */
-    
-skip_to_exec_override:
+    /* first overwrite executable path */
     LCOverwriteExecutablePath(executablePath);
+    
+    if(!ksurface_user_patchcache_load())
+    {
+        /* I'm sorry, I cannot locate the patchcache */
+        return;
+    }
+    
+    /* fast CFBundle force reinit */
+    CFBundleRef *bundle = NULL;
+    bool *inited_bundle = NULL;
+    if(!cf_main_bundle_slots(patchcache[kCFBundleMainOffset], patchcache[kCFBundleMainInitedOffset], &bundle, &inited_bundle))
+    {
+        return;
+    }
+    *bundle = nil;
+    *inited_bundle = false;
+    
+    /* fast NSBundle force reinit */
+    NSBundle * __unsafe_unretained *nsMainBundle = ns_main_bundle_slot(patchcache[kNSBundleMainOffset]);
+    *nsMainBundle = nil;
 }
 
 int environment_init(EnvironmentExec exec,
@@ -140,24 +163,22 @@ int environment_init(EnvironmentExec exec,
          * files opened, we need to bypass that by raising
          * the rlimit.
          */
+        struct rlimit rl;
+        if(getrlimit(RLIMIT_NOFILE, &rl) == 0)
         {
-            struct rlimit rl;
-            if(getrlimit(RLIMIT_NOFILE, &rl) == 0)
+            rlim_t target = (rl.rlim_max == RLIM_INFINITY || rl.rlim_max > 65536) ? 65536 : rl.rlim_max;
+            if(rl.rlim_cur < target)
             {
-                rlim_t target = (rl.rlim_max == RLIM_INFINITY || rl.rlim_max > 65536) ? 65536 : rl.rlim_max;
-                if(rl.rlim_cur < target)
+                struct rlimit want = rl;
+                want.rlim_cur = target;
+                if(setrlimit(RLIMIT_NOFILE, &want) != 0)
                 {
-                    struct rlimit want = rl;
-                    want.rlim_cur = target;
-                    if(setrlimit(RLIMIT_NOFILE, &want) != 0)
+                    want.rlim_cur = 10240;
+                    if(want.rlim_max != RLIM_INFINITY && want.rlim_max < want.rlim_cur)
                     {
-                        want.rlim_cur = 10240;
-                        if(want.rlim_max != RLIM_INFINITY && want.rlim_max < want.rlim_cur)
-                        {
-                            want.rlim_cur = want.rlim_max;
-                        }
-                        setrlimit(RLIMIT_NOFILE, &want);
+                        want.rlim_cur = want.rlim_max;
                     }
+                    setrlimit(RLIMIT_NOFILE, &want);
                 }
             }
         }
@@ -169,10 +190,8 @@ int environment_init(EnvironmentExec exec,
          * processes have capabilities on other processes
          * that exist within the same reality.
          */
-        #if KSURFACE_SYS_PROC_ENABLED
         environment_posix_spawn_init();
         environment_vfork_init();
-        #endif /* KSURFACE_SYS_PROC_ENABLED */
         environment_application_init();
         
         /*
@@ -180,9 +199,21 @@ int environment_init(EnvironmentExec exec,
          * first, we gonna have to wait.
          * TODO: create something like a process placeholder to confirm that spawning processes is allowed otherwise a forkbomb would cause continious killing and spawning of NXExtension child
          */
-        while(liveshim_syscall(SYS_getppid) < 0)
+        for(unsigned attempt = 0; liveshim_syscall(SYS_getppid) < 0; attempt++)
         {
-            relax();
+            /*
+             * every attempt is a round trip through the host's syscall
+             * workers, which every other process needs too. registration
+             * usually lands within a few attempts, after that back off.
+             */
+            if(attempt < 32)
+            {
+                relax();
+            }
+            else
+            {
+                usleep(100);
+            }
         }
         
         /* handoffs task port */
@@ -199,18 +230,21 @@ int environment_init(EnvironmentExec exec,
          */
         PEOverwriteExecutablePath(executablePath);
         
-        /* loading rtpatch into guest process */
-        NSString *nyxianRoot = [NSString stringWithCString:liveshim_vroot() encoding:NSUTF8StringEncoding];
-        if(nyxianRoot != NULL)
+        /* technically this could be a DYLD_INSERT_LIBRARIES */
+        const char *vroot = liveshim_vroot();
+        if(vroot != NULL)
         {
-            NSString *shimPath = [nyxianRoot stringByAppendingString:@"/boot/rtpatch"];
-            if([[NSFileManager defaultManager] fileExistsAtPath:shimPath])
+            char rtpatchPath[PATH_MAX];
+            snprintf(rtpatchPath, sizeof(rtpatchPath), "%s/boot/rtpatch", vroot);
+            if(access(rtpatchPath, R_OK) == 0)
             {
-                /* now load the shimcache! */
-                void *handle = dlopen(shimPath.fileSystemRepresentation, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+                /* now load the runtime patch! */
+                void *handle = dlopen(rtpatchPath, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
                 if(handle == NULL)
                 {
-                    printf("dlopen: %s\n", dlerror());
+                    const char *error = dlerror();
+                    fprintf(stderr, "%s\n", error);
+                    __builtin_unreachable();
                 }
             }
         }

@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #ifndef FS_MOUNT_H
@@ -38,6 +39,9 @@ typedef CF_OPTIONS(UInt64, FSMountAttr) {
     kFSMountAttrWriteEntitlement        = 1ull << 6,    /* grants write access in file system sandbox if a specific entitlement is met  TODO: not supported yet */
 };
 
+extern const char *FS_MOUNT_SANDBOX;
+extern const char *FS_MOUNT_NOUNLINK;
+
 /* TODO: not supported yet */
 typedef struct {
     CFStringRef readEntitlement;
@@ -48,5 +52,9 @@ kern_return_t ksurface_fs_mount(FSMountAttr attributes, const char *mount_dir, c
 kern_return_t ksurface_fs_mount2(FSMountAttr attributes, const char *device_dir, const char *mount_dir, ...);
 
 kern_return_t ksurface_fs_umount(const char *mount_dir);
+
+kern_return_t ksurface_fs_mount3_var_add(const char *var, const char *path);
+kern_return_t ksurface_fs_mount3_var_del(const char *var);
+kern_return_t ksurface_fs_mount3(FSMountAttr attributes, const char *device_dir, const char *mount_dir, ...);
 
 #endif /* FS_MOUNT_H */

@@ -1,22 +1,23 @@
 /*
- SPDX-License-Identifier: AGPL-3.0-or-later
+ SPDX-License-Identifier: LicenseRef-EPSL-1.1
 
  Copyright (C) 2025 - 2026 emexlab
 
  This file is part of Nyxian.
 
- Nyxian is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+ Licensed under the emexLabs Public Source License, version 1.1
+ (EPSL 1.1).
 
- Nyxian is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU Affero General Public License for more details.
+ Private use and modification are permitted under the license.
+ Redistribution of source or binaries, modified or unmodified,
+ requires prior written permission from emexLabs.
 
- You should have received a copy of the GNU Affero General Public License
- along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
+ External deployment is subject to the source-availability
+ requirements and other conditions of the license.
+
+ Provided "AS IS", without warranty, to the extent permitted by law.
+
+ See LICENSE for the full license terms.
 */
 
 #import <dlfcn.h>
@@ -31,10 +32,10 @@
 #import <LindChain/ProcEnvironment/PEFileTable.h>
 #import <LiveShim/Service.h>
 #import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceInternal.h>
-#import <ResecureDecoder.h>
 #import <LiveShim/LiveShimSyscall.h>
 #import <LiveShim/dyld.h>
 #import <ksurface_config.h>
+#include <crt_externs.h>
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction);
 
@@ -195,6 +196,9 @@ int LiveProcessMain(int argc, char *argv[])
     overwriteEnvironmentProperties(environmentDictionary);
     overwriteArguments(argumentDictionary, &argc, &argv);
     
+    *_NSGetArgc() = argc;
+    *_NSGetArgv() = argv;
+    
 #if DEBUG
     setenv("DYLD_MMAP_SANDBOX_EXEC_ALLOWED_PATH", dyld_get_mmap_sandbox_map_exec_allowed_path(), 0);
 #endif /* DEBUG */
@@ -232,8 +236,13 @@ DEFINE_HOOK(dlsym, void*, (void* dyldApiInstancePtr, void* handle, const char* s
 /* Extension entry point */
 int NSExtensionMain(int argc, char * argv[])
 {
-    /* resecure decoder, instead of bluntly removing validation entirely */
-    ResecureDecoder();
+    /* bluntly removing validation entirely (trust ur caller) */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+    method_setImplementation(class_getInstanceMethod(NSClassFromString(@"NSXPCDecoder"), @selector(_validateAllowedClass:forKey:allowingInvocations:)), imp_implementationWithBlock(^BOOL(id self, Class cls, NSString *key, BOOL allowingInvocations){
+        return YES;
+    }));
+#pragma clang diagnostic pop
     
     /*
      * hook dlopen to catch UIKit framework load and trick it
