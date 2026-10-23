@@ -208,9 +208,12 @@ kern_return_t proc_reap(ksurface_proc_t *proc)
 {
     assert(proc != NULL && proc != kernel_proc_);
     
+    proc_table_wrlock();
+    
     /* retain process that wants to exit */
     if(!kvo_retain(proc))
     {
+        proc_table_unlock();
         return KERN_FAILURE;
     }
     
@@ -299,7 +302,7 @@ kern_return_t proc_reap(ksurface_proc_t *proc)
     pid_t pid = proc_getpid(proc);
     
     /* TODO: Completely move to tree-based system, which is possible now */
-    proc_remove_by_pid(pid);  /* remove from global table */
+    proc_remove_by_pid__nolock(pid);  /* remove from global table */
     
     /* release our working reference */
     kvo_release(proc);
@@ -311,6 +314,7 @@ kern_return_t proc_reap(ksurface_proc_t *proc)
         [process forceTerminate];
     }
     
+    proc_table_unlock();
     return KERN_SUCCESS;
 }
 

@@ -22,13 +22,12 @@
 
 #include <LindChain/ProcEnvironment/Surface/proc/remove.h>
 
-kern_return_t proc_remove_by_pid(pid_t pid)
+kern_return_t proc_remove_by_pid__nolock(pid_t pid)
 {
     /*
      * removing process from radix tree, which is also
      * where its first reference lives at.
      */
-    proc_table_wrlock();
     ksurface_proc_t *proc = radix_remove(&(ksurface->proc_info.tree), pid);
     
     /*
@@ -39,7 +38,6 @@ kern_return_t proc_remove_by_pid(pid_t pid)
      */
     if(proc == NULL)
     {
-        proc_table_unlock();
         return KERN_NOT_FOUND;
     }
     
@@ -48,7 +46,6 @@ kern_return_t proc_remove_by_pid(pid_t pid)
      * correctly counted.
      */
     ksurface->proc_info.proc_count--;
-    proc_table_unlock();
     
     /*
      * invalidating object and removing its
@@ -59,4 +56,12 @@ kern_return_t proc_remove_by_pid(pid_t pid)
     kvo_release(proc);
 
     return KERN_SUCCESS;
+}
+
+kern_return_t proc_remove_by_pid(pid_t pid)
+{
+    proc_table_wrlock();
+    kern_return_t kr = proc_remove_by_pid__nolock(pid);
+    proc_table_unlock();
+    return kr;
 }

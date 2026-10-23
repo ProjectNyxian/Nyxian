@@ -25,6 +25,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/surface.h>
 
+kern_return_t proc_remove_by_pid__nolock(pid_t pid);
 kern_return_t proc_remove_by_pid(pid_t pid);
 
 #endif /* PROC_REMOVE_H */
