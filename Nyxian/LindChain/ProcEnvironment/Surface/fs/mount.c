@@ -492,8 +492,8 @@ kern_return_t ksurface_fs_mount3(FSMountAttr attributes,
     }
     
     /* accessed only within the log */
-    static char expanded_device_dir[PATH_MAX];
-    static char expanded_mount_dir[PATH_MAX];
+    char expanded_device_dir[PATH_MAX];
+    char expanded_mount_dir[PATH_MAX];
     
     if(!ksurface_fs_expand_path(device_dir, expanded_device_dir) ||
        !ksurface_fs_expand_path(mount_dir, expanded_mount_dir))
