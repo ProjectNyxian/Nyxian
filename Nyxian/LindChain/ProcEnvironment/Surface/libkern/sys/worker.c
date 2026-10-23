@@ -251,7 +251,8 @@ void* syscall_worker(void *ctx)
          * on failure paths.
          */
         kvo_rdlock((ksurface_proc_t*)(proc_snapshot->header.orig));
-        proc_task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), TASK_KERNEL_PORT, &task);
+        task_special_port_t flavour = TASK_KERNEL_PORT;
+        proc_task_for_proc((ksurface_proc_t*)(proc_snapshot->header.orig), &flavour, &task);
         kvo_unlock((ksurface_proc_t*)(proc_snapshot->header.orig));
         
         /* getting the syscall handler the kernel virtualisation layer previously has set */

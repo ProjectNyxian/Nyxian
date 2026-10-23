@@ -64,10 +64,17 @@ skip_bsd_primitive_semantic_check:
     {
         /* getting task port of flavour */
         task_t exportTask = MACH_PORT_NULL;
-        kern_return_t kr = proc_task_for_proc(target, name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT, &exportTask);
+        task_special_port_t flavour = name_only ? TASK_NAME_PORT : TASK_KERNEL_PORT;
+        kern_return_t kr = proc_task_for_proc(target, &flavour, &exportTask);
         kvo_release(target);
         if(kr != KERN_SUCCESS)
         {
+            sys_return_failure_with_errno(EACCES);
+        }
+        
+        if(name_only && flavour != TASK_NAME_PORT)
+        {
+            mach_port_deallocate(mach_task_self(), exportTask);
             sys_return_failure_with_errno(EACCES);
         }
         

@@ -83,17 +83,17 @@ kern_return_t proc_for_pid_with_pidv(pid_t pid,
 }
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *proc,
-                                                             task_special_port_t flavour,
+                                                             task_special_port_t *flavour,
                                                              task_t *task))
 {
-    assert(proc != NULL && task != NULL);
+    assert(proc != NULL && task != NULL && flavour != NULL);
     
     /*
      * whitelisting acquirable task special ports
      * by type, making sure we hand in a expected
      * type.
      */
-    switch(flavour)
+    switch(*flavour)
     {
         case TASK_KERNEL_PORT:
         case TASK_NAME_PORT:
@@ -147,7 +147,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *pr
              * the port is a normal task ksurface
              * serves for.
              */
-            kr = task_get_special_port(tmp_task, flavour, &tmp_task);
+            kr = task_get_special_port(tmp_task, *flavour, &tmp_task);
             break;
         case IPC_OTYPE_TASK_NAME:       /* IKOT_TASK_NAME */
             /*
@@ -165,6 +165,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *pr
              * name port to protect ksurface from
              * attacks.
              */
+            *flavour = TASK_NAME_PORT;
             kr = mach_port_mod_refs(mach_task_self(), tmp_task, MACH_PORT_RIGHT_SEND, 1);
             break;
         default:
@@ -205,7 +206,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *pr
 }
 
 kern_return_t proc_task_for_pid(pid_t pid,
-                                task_special_port_t flavour,
+                                task_special_port_t *flavour,
                                 task_t *task)
 {
     /* aquiring proc object */

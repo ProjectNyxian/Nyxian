@@ -346,7 +346,8 @@ DEFINE_SYSCALL_HANDLER(proc_info_pidrusage)
     }
     
     task_t target_task;
-    kern_return_t kr = proc_task_for_proc(target, TASK_NAME_PORT, &target_task);
+    task_special_port_t flavour = TASK_NAME_PORT;
+    kern_return_t kr = proc_task_for_proc(target, &flavour, &target_task);
     if(kr != KERN_SUCCESS)
     {
         kvo_release(target);
