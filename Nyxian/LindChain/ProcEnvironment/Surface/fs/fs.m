@@ -73,44 +73,44 @@ kern_return_t ksurface_fs_init(void)
     
     if(ksurface_fs_mount3_var_add("croot", home) != KERN_SUCCESS ||
        ksurface_fs_mount3_var_add("bootloader", NSBundle.mainBundle.bundlePath.UTF8String) != KERN_SUCCESS ||
-       ksurface_fs_mount3_var_add("vroot", "$croot/Documents/rootfs") != KERN_SUCCESS)
+       ksurface_fs_mount3_var_add("vroot", "$croot/Documents/rootfs") != KERN_SUCCESS ||
+       ksurface_fs_mount3_var_add("mnt", "$croot/Documents/mntfs") != KERN_SUCCESS)
     {
         kpanic("failed to initialize fs variable table");
     }
     
     /* TODO: fstab reader */
     /* main */
-    ksurface_fs_init_mount3(kFSMountAttrNone, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs");
+    ksurface_fs_init_mount3(kFSMountAttrNone, FS_MOUNT_NOUNLINK, "$mnt");
     ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$vroot");
     
     /* mntfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/devfs");
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/bootfs");
-    ksurface_fs_init_mount3(kFSMountAttrRead, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/kextfs");
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/lsfs");
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$croot/Documents/mntfs/etcfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$mnt/devfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$mnt/bootfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead, FS_MOUNT_NOUNLINK, "$mnt/kextfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$mnt/lsfs");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, FS_MOUNT_NOUNLINK, "$mnt/etcfs");
     
     /* bootfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$croot/Documents/bootfs/libexec");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/bootstrapd.dylib", "$croot/Documents/mntfs/bootfs/libexec/bootstrapd");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/MobileDevelopmentService.dylib", "$croot/Documents/mntfs/bootfs/libexec/MobileDevelopmentService");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader", "$croot/Documents/mntfs/bootfs/bootloader");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/kernel", "$croot/Documents/mntfs/bootfs/headers");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/bootfs", "$vroot/boot");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/bootstrapd.dylib", "$mnt/bootfs/libexec/bootstrapd");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Frameworks/MobileDevelopmentService.dylib", "$mnt/bootfs/libexec/MobileDevelopmentService");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader", "$mnt/bootfs/bootloader");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/kernel", "$mnt/bootfs/headers");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$mnt/bootfs", "$vroot/boot");
     
     /* kextfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/kextfs", "$croot/Documents/mntfs/bootfs/kexts");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$mnt/kextfs", "$mnt/bootfs/kexts");
     
     /* devfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$croot/Documents/mntfs/devfs", "$vroot/dev");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$mnt/devfs", "$vroot/dev");
     
     /* lsfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.bootstrapd.plist", "$croot/Documents/mntfs/lsfs/org.emexlabs.bootstrapd.plist");
-    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.compilerd.plist", "$croot/Documents/mntfs/lsfs/org.emexlabs.compilerd.plist");
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$croot/Documents/mntfs/lsfs", "$vroot/System/Library/LaunchDaemons");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.bootstrapd.plist", "$mnt/lsfs/org.emexlabs.bootstrapd.plist");
+    ksurface_fs_init_mount3(kFSMountAttrRead, "$bootloader/Shared/LaunchServices/org.emexlabs.compilerd.plist", "$mnt/lsfs/org.emexlabs.compilerd.plist");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$mnt/lsfs", "$vroot/System/Library/LaunchDaemons");
     
     /* etcfs */
-    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$croot/Documents/mntfs/etcfs", "$vroot/etc");
+    ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite, "$mnt/etcfs", "$vroot/etc");
     
     /* rootfs */
     ksurface_fs_init_mount3(kFSMountAttrRead | kFSMountAttrWrite | kFSMountAttrClear, FS_MOUNT_NOUNLINK, "$vroot/tmp");
