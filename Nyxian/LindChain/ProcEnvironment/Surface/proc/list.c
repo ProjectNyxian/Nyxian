@@ -237,6 +237,14 @@ kern_return_t proc_list(ksurface_proc_snapshot_t *proc_copy,
             return KERN_SUCCESS;    /* returning success so that sysctl does give a empty buffer */
         }
         
+        /* can we see bro? */
+        if(!proc_can_see_proc(proc_copy, proc, vis))
+        {
+            *len = 0;
+            *kp = NULL;
+            return KERN_SUCCESS;    /* returning success so that sysctl does give a empty buffer */
+        }
+        
         /* now we'll have to package it nicely for the process >.< */
         *kp = malloc(sizeof(kinfo_proc_t));
         if(*kp == NULL)
