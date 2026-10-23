@@ -259,6 +259,7 @@ kern_return_t proc_reap(ksurface_proc_t *proc)
         {
             /* releasing child */
             kvo_release(proc);
+            proc_table_unlock();
             return KERN_FAILURE;
         }
         
