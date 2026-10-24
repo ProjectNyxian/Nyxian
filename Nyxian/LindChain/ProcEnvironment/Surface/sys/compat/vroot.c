@@ -22,6 +22,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/sys/compat/vroot.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <os/lock.h>
 
 DEFINE_SYSCALL_HANDLER(vroot)
 {
@@ -33,21 +34,26 @@ DEFINE_SYSCALL_HANDLER(vroot)
         return (int64_t)(size_t)PATH_MAX;
     }
     
-    /* create vroot path */
+    /* vroot setup */
     static char path[PATH_MAX];
     static size_t size = 0;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    
+    /* must be locked */
+    os_unfair_lock_lock(&lock);
+    if(size == 0)
+    {
         /* we gotta get the home path */
         const char *home = getenv("HOME");
         if(home == NULL)
         {
-            return;
+            sys_return_failure_with_errno(EFAULT);
         }
         
         /* and construct the vroot path */
         size = snprintf(path, PATH_MAX, "%s/Documents/rootfs", home) + 1;
-    });
+    }
+    os_unfair_lock_unlock(&lock);
     
     /* copy the string out */
     if(size == 0 || !syscall_copy_out(sys_task_, size, path, u_path_buf))
