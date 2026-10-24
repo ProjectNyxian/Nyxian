@@ -139,6 +139,10 @@ out_dealloc:
     mach_port_deallocate(mach_task_self(), thread);
     mach_port_deallocate(mach_task_self(), exceptionPort);
     task_normalize();
+    if(success)
+    {
+        liveshim_syscall(SYS_waittask, getpid());
+    }
     return success ? KERN_SUCCESS : KERN_FAILURE;
     
 #else

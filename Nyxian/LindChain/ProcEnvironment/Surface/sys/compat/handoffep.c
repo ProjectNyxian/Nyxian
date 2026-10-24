@@ -33,17 +33,17 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     /* guest hands of a receive right of a exception port */
     sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_RECEIVE);
     
-    kvo_wrlock(sys_proc_);
+    kvo_wrlock(sys_proc_);  /* wrlock is needed so that this cannot be concurrently called by a attacker */
     if(sys_proc_->task != MACH_PORT_NULL || sys_proc_->in_tfp_handoff)
     {
-        /* task port's can only be initialized once per process lifecycle. */
+        /* task port's can only be initialized once per process lifecycle */
         kvo_unlock(sys_proc_);
-        sys_return_failure_with_errno(EPERM);
+        goto out_failure_kill;
     }
     sys_proc_->in_tfp_handoff = true;
     kvo_unlock(sys_proc_);
     
-    /* consuming the exception port so it won't be released by the send_reply symbol. */
+    /* consuming the exception port so it won't be released by the send_reply symbol */
     mach_port_t exceptionPort = sys_in_ports[0];
     sys_in_ports[0] = MACH_PORT_NULL;
     
@@ -52,7 +52,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
      * pseudo exception using __builtin_trap.
      */
     syscall_send_reply((mach_msg_header_t*)*recv_buffer, 0, *out_ports, *out_ports_cnt, true, 0);
-    *recv_buffer = NULL;    /* consuming the mach message header the syscall server uses so it won't attempt to reply. */
+    *recv_buffer = NULL;    /* consuming the mach message header the syscall server uses so it won't attempt to reply */
     
     task_t returnedTask;
     kern_return_t kr = task_handoff(exceptionPort, &returnedTask);
@@ -62,7 +62,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
         goto out_failure_kill;
     }
     
-    /* validating the identity of the process behind the task port. */
+    /* validating the identity of the process behind the task port */
     pid_t pid;
     kr = pid_for_task(returnedTask, &pid);
     if(kr != KERN_SUCCESS || pid != proc_getpid(sys_proc_snapshot_))
@@ -81,6 +81,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     sys_return;
     
 out_failure_kill:
+    /* this cannot fail legitimately */
     proc_kill(sys_proc_, SIGKILL);
     sys_return;
 }

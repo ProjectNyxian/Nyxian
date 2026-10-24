@@ -196,8 +196,16 @@ int LiveProcessMain(int argc, char *argv[])
     overwriteEnvironmentProperties(environmentDictionary);
     overwriteArguments(argumentDictionary, &argc, &argv);
     
+    /* set libc stuff correctly for constructors */
     *_NSGetArgc() = argc;
     *_NSGetArgv() = argv;
+    
+    /* set libc stuff correctly for some shell utils */
+    if(argv != NULL && *argv != NULL && argv[0] != NULL && argv[0][0] != '\0')
+    {
+        char *name = strrchr(argv[0], '/');
+        *_NSGetProgname() = name != NULL ? name + 1 : argv[0];
+    }
     
 #if DEBUG
     setenv("DYLD_MMAP_SANDBOX_EXEC_ALLOWED_PATH", dyld_get_mmap_sandbox_map_exec_allowed_path(), 0);
@@ -214,13 +222,18 @@ int LiveProcessMain(int argc, char *argv[])
 
 /* this is our fake UIApplicationMain called from _xpc_objc_uimain (xpc_main) */
 __attribute__((visibility("default")))
-int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName)
+int UIApplicationMain(int argc,
+                      char * argv[],
+                      NSString * principalClassName,
+                      NSString * delegateClassName)
 {
     exit(LiveProcessMain(argc, argv));
 }
 
 /* literally redirecting UIApplicationMain to our own one */
-DEFINE_HOOK(dlsym, void*, (void* dyldApiInstancePtr, void* handle, const char* symbol))
+DEFINE_HOOK(dlsym, void*, (void* dyldApiInstancePtr,
+                           void* handle,
+                           const char* symbol))
 {
     /* checking if process is looking for it */
     if(symbol && !strcmp(symbol, "UIApplicationMain"))
@@ -234,7 +247,8 @@ DEFINE_HOOK(dlsym, void*, (void* dyldApiInstancePtr, void* handle, const char* s
 }
 
 /* Extension entry point */
-int NSExtensionMain(int argc, char * argv[])
+int NSExtensionMain(int argc,
+                    char * argv[])
 {
     /* bluntly removing validation entirely (trust ur caller) */
 #pragma clang diagnostic push
